@@ -52,9 +52,10 @@ Roofing's timber frames want a hammer in the off hand; Roofing's shipped assets 
 So siding frames want a vanilla `saw` in the off hand: an existing item with its own model, texture, and recipes, and a tool that reads as "framing carpentry".
 No saw → our behavior passes, and whatever else is on planks (Roofing, plain placement) handles the click.
 
-**Frame type via tool modes: `wall` for the prototype.**
+**Frame type via tool modes: `wall` and `corner` for the prototype.**
 Same mechanism as Roofing's standard/eave/ridge.
-Window and door frames become further tool modes later (see the proposals index) — the prototype registers the tool-mode list with one entry so adding them isn't a restructure.
+`corner` places the `cornerout` layout (see `wall-shape-and-collision`), without which a house built from outside has a walk-through gap at every corner and doesn't seal.
+Window and door frames become further tool modes later (see the proposals index).
 
 ## Alternatives considered
 - **Craft finished walls in the grid, place like any block.** Simplest to build, but four independent material slots in a grid recipe means a recipe per combination — the explosion again, in recipe form. And it loses the "watch the wall go up" feel.
@@ -68,6 +69,7 @@ Window and door frames become further tool modes later (see the proposals index)
 ## Consequences & open questions
 - **The saw may not fully resolve the Roofing clash.** Roofing's lang file has "Wrong item/tool in offhand." — so with planks in hand and a saw in the off hand, Roofing's behavior may run first, complain, and swallow the click before ours sees it. Which behavior runs first is its position in the planks' `behaviors` array. Test with Roofing installed; if it bites, our patch uses `"op": "add", "path": "/behaviors/0"` to put ours first (vanilla `plank.json` already has a `behaviors` array, so the path exists). Roofing's `addmerge` appends, so ours stays in front whichever mod patches first. A patch can only reorder here — it can't change Roofing's C# offhand check — and it doesn't need a `dependsOn` condition, since putting ours first is harmless without Roofing. If reordering isn't enough, a patch conditioned on `vsroofing` being installed is the next step, but only once we know what it would need to change.
 - **Reaching the back face.** On a house's outer wall the back face is indoors, so finishing it means walking in. Natural for a house; awkward for a freestanding wall only if its far side is blocked. Watch for it in playtest.
+- **Auto-connecting corners.** Picking the corner piece from neighbouring walls would save a tool-mode switch per corner, but it makes collision, retention, and mesh all depend on neighbours and need refreshing when a neighbour changes. Manual first; auto-connect if players find it tedious.
 - **Clicking an end or top face does nothing.** Silent failure is confusing; a short error message ("click the wall's face") probably belongs here.
 - Shift-right-click on a block is also vanilla's "place against" gesture. Check it doesn't place the held item next to the wall instead of adding the layer.
 - Handbook page explaining the flow: needed before anyone else plays it, not for the prototype.

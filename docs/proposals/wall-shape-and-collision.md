@@ -6,7 +6,7 @@
 
 ## Summary
 A siding wall is one block cell holding a quarter-block-thick slab pressed against one horizontal face of that cell.
-Prototype 1 is JSON plus a block class with one override: one texture, four orientations, a thin collision box, and a closed hut of walls counts as a room.
+Prototype 1 is JSON plus a block class with one override: one texture, four orientations, a straight and an outside-corner layout, thin collision boxes, and a closed hut of walls counts as a room.
 
 ## Context
 The whole point of the mod is a wall thinner than a block.
@@ -24,11 +24,15 @@ So this proposal is mostly "copy the palisade's skeleton, give it our own shape 
 **Geometry: a 4/16 slab against the cell's west face, rotated for the other three sides.**
 Thickness 0.25 matches the palisade, so we inherit a thickness vanilla already considers walkable and selectable.
 The thickness is fixed for the prototype; layers (proposal `layered-wall-mesh`) subdivide it visually, they don't change it.
-One fixed thickness means one collision box per side and no per-block-entity collision code.
+One fixed thickness means collision boxes are static JSON, with no per-block-entity collision code.
 
-**Orientation: `side` variant group, four blocks, nothing else as a variant.**
-Consistent with decision 0001 — orientation is the one axis that is a real variant.
-Shape uses `shapeByType` with `rotateY` per side, collision uses one box with `rotateYByType`, both lifted from the palisade pattern.
+**Variants: `layout` (`wall`, `cornerout`) × `side`, eight blocks.**
+Decision 0001 keeps *materials* out of variants; shape and orientation are small, fixed axes and the palisade already uses exactly these.
+`wall` is one box, `{x1: 0, z1: 0, x2: 0.25, z2: 1}`.
+`cornerout` is an L: that box plus `{x1: 0.25, z1: 0, x2: 1, z2: 0.25}`, the palisade's own `cornerout` collision, covering both the west and north faces of the cell.
+Its four `side` rotations give the four corners of a building.
+Shape uses `shapeByType` with `rotateY` per side, collision uses `rotateYByType`, both lifted from the palisade pattern.
+No `cornerin`: an inside corner of walls meets at a single point, which no player fits through, so it's a looks-only notch and can wait.
 
 **Placement: vanilla `HorizontalOrientable` behavior.**
 Wall faces relative to the player, zero code.
@@ -55,7 +59,9 @@ Worked through for a west-hugging wall at `x=0` with the room interior at `x=1`:
 The room includes the wall's cell, and it's sealed.
 It works the same way whichever face the player hugs, because the solid face is a plane that the fill can't cross from either side.
 
-The rule: the hugged face returns what vanilla's default returns for a solid side (`1` for wood-like, `-1` for stone/ceramic, which counts as a cooling wall for cellars); the other faces return 0 — except the two short end faces, see corners below.
+The rule: the hugged face returns what vanilla's default returns for a solid side (`1` for wood-like, `-1` for stone/ceramic, which counts as a cooling wall for cellars); the other faces return 0.
+A `cornerout` claims both faces its L covers.
+A face is claimed only if the slab physically covers all of it, so the room scan can never call a room sealed that a player can walk out of.
 Using `GetRetention` rather than `sidesolid` keeps the room behaviour without claiming the face is solid for anything else (torch attachment, support for blocks above).
 
 ## Alternatives considered
@@ -63,10 +69,12 @@ Using `GetRetention` rather than `sidesolid` keeps the room behaviour without cl
 - **Vertical slabs (8/16).** Half a block is still a thick wall; doesn't read as siding.
 - **Several thin walls per cell (both faces, or a corner in one cell).** Real need, but it turns one collision box into a combination of boxes driven by block entity state. Deferred until one wall per cell is working.
 - **Gridless/entity walls** (Roofing's "gridless" tagline). Roofing is still blocks underneath — one `roof` block per cell. No reason for us to leave the grid.
+- **Claiming retention on a wall's short end faces instead of a corner piece.** An earlier draft did this to stop the fill running along a line of wall cells. It seals the hut above on paper while the 0.75 slot stays open — the scan says sealed, the player walks out. Retention must never claim a face the slab doesn't fully cover. (Caught in review of PR #2.)
 
 ## Consequences & open questions
-- **Corners leak rooms unless the end faces also retain.** Hut with interior `x=1..3, z=1..3`, west walls in column `x=0`, north walls in row `z=0`. The corner cell `(0,0)` holds a west wall. The fill enters `(0,1)` from inside, goes north into `(0,0)` (open end face), then north again out of the hut — `(0,0)`'s north face is open. One leak, `ExitCount` 1, not a room. Proposed fix: the wall's two end faces (north/south for a west wall) also return nonzero retention. Then the fill can't pass along a line of wall cells at all, and the corner seals even if `(0,0)` is left empty. This can't fake a seal across a real gap: a doorway cell's outward face belongs to the doorway cell, not the wall beside it. Traced on paper, not tested — the 3x3 hut is the first in-game check, with the room debug overlay (`RoomRegistry` draws exits red/green).
-- **Corners also look wrong.** Two perpendicular walls meet at a 0.25x0.25 column that one of them has to own. The palisade solves this with `cornerin`/`cornerout` variants; we might need the same, or an auto-connect later. Visual problem only once the end faces retain.
+- **Outside corners need the `cornerout` piece, and that's a real hole, not a looks problem.** Hut with interior `x=1..3, z=1..3`, walls hugging the outer faces: west walls in column `x=0`, north walls in row `z=0` — the layout you get building from outside. Put a plain west wall in the corner cell `(0,0)` and it covers `x 0..0.25`; the strip `x 0.25..1, z 0..0.25` where the north wall would continue is empty. That's a 0.75-wide slot a 0.6-wide player walks through. The room scan agrees: it goes `(0,1)` → `(0,0)` → out through `(0,0)`'s open north face. With a `cornerout` in `(0,0)` both faces are physically closed and both are claimed, so the scan and the collision agree it's sealed.
+- **Walls hugging inside faces don't need corner pieces.** The missing 0.25x0.25 square sits outside the room and the two walls meet at a point. Looks notched from outside, seals honestly.
+- **Test:** build the outside-hugging 3x3 hut with `cornerout` corners and check the room overlay (`RoomRegistry` draws exits red/green). Then swap one corner for a plain wall and confirm both that the overlay shows an exit *and* that you can walk through the gap. Scan and collision must agree in both directions.
 - **Room cache refresh.** The registry drops cached rooms on `ChunkDirty`. Placing or breaking a wall dirties the chunk. Changing only block entity state (proposal `wall-layer-state`, e.g. adding infill to a frame) might not — check, and mark the chunk dirty ourselves if not.
 - **Retention is the game's real temperature mechanic.** `GetRetention`'s sign already carries the cellar distinction, driven by the infill (see `wall-layer-state`). Its magnitude — how well a wall holds heat — is untouched for now; that's the hook a real heat-retention mechanic would use later.
 - **Floors and ceilings are out of scope** — horizontal orientations only.

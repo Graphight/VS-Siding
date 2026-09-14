@@ -42,6 +42,7 @@ A house of one material combination tesselates once per side, not once per block
 
 ## Consequences & open questions
 - Textures must be in the block texture atlas to be addressable at tesselation time. Vanilla textures are; mod textures added by compat patches may need registering at load. Check what happens with a texture nothing else references.
+- `cornerout` needs its own L-shaped version of `wall.json`, with the layers mitred or overlapped at the corner post. Same slot names, so the texture source doesn't change.
 - The inventory/hand-held rendering of a wall has no block entity to read. Until there's a wall item, the held block can just render frame-only.
 - Half-timbering often uses diagonal braces and varied patterns between neighbouring cells. One frame layout per framing material won't cover that; a frame-pattern choice (tool mode, or per-material `Shape`) is a likely follow-up.
 - `NeverCull` from the shape proposal means some overdraw between neighbouring walls. Probably invisible at house scale; measure if a big build stutters.

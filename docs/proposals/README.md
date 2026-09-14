@@ -10,9 +10,9 @@ An idea that's been thought through but not acted on. Mutable — edit freely, a
 
 Build order to a playable prototype — each one should be demoable in game before the next starts.
 
-1. `wall-shape-and-collision` — a thin, oriented, walkable-against wall block after the vanilla palisade, plus a `GetRetention` override so walls seal rooms.
+1. `wall-shape-and-collision` — a thin, oriented wall block with a straight and an outside-corner layout after the vanilla palisade, plus a `GetRetention` override so walls seal rooms.
 2. `wall-layer-state` — framing + infill (seals rooms) and front + back finishes (looks only) as keys on a block entity; drops.
-3. `layered-wall-mesh` — one shape, three texture slots, compositing done by the texture source; mesh cache per combination.
+3. `layered-wall-mesh` — one shape, four texture slots, compositing done by the texture source; mesh cache per combination.
 4. `in-world-build-flow` — Roofing-style: right-click planks with a saw in the off hand to frame, shift-right-click to add layers.
 
 ## Later (not yet written up)
