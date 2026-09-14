@@ -32,8 +32,8 @@ Shape uses `shapeByType` with `rotateY` per side, collision uses one box with `r
 
 **Placement: vanilla `HorizontalOrientable` behavior.**
 Wall faces relative to the player, zero code.
-It picks orientation from where the player stands, not which half of the cell they clicked, so you can't yet say "put it against the *far* face".
-Good enough to test the shape; revisit once the build flow exists.
+The wall hugs the target cell's face nearest the player, so it appears directly in front of them — the placement `in-world-build-flow` keeps.
+Check in game which `side` variant that picks, and rotate the shape to match.
 
 **Block class: `vssiding.SidingWallBlock`, registered in `SidingModSystem`, overriding only `GetRetention` for now.**
 It exists so later proposals have somewhere to hang collision overrides, interaction, and mesh work without renaming the block code in existing worlds.
@@ -63,12 +63,11 @@ Using `GetRetention` rather than `sidesolid` keeps the room behaviour without cl
 - **Vertical slabs (8/16).** Half a block is still a thick wall; doesn't read as siding.
 - **Several thin walls per cell (both faces, or a corner in one cell).** Real need, but it turns one collision box into a combination of boxes driven by block entity state. Deferred until one wall per cell is working.
 - **Gridless/entity walls** (Roofing's "gridless" tagline). Roofing is still blocks underneath — one `roof` block per cell. No reason for us to leave the grid.
-- **Pick orientation from the clicked hit position.** Nicer placement, but it's C# for a prototype that only needs to prove the shape. Belongs with `in-world-build-flow`.
 
 ## Consequences & open questions
 - **Corners leak rooms unless the end faces also retain.** Hut with interior `x=1..3, z=1..3`, west walls in column `x=0`, north walls in row `z=0`. The corner cell `(0,0)` holds a west wall. The fill enters `(0,1)` from inside, goes north into `(0,0)` (open end face), then north again out of the hut — `(0,0)`'s north face is open. One leak, `ExitCount` 1, not a room. Proposed fix: the wall's two end faces (north/south for a west wall) also return nonzero retention. Then the fill can't pass along a line of wall cells at all, and the corner seals even if `(0,0)` is left empty. This can't fake a seal across a real gap: a doorway cell's outward face belongs to the doorway cell, not the wall beside it. Traced on paper, not tested — the 3x3 hut is the first in-game check, with the room debug overlay (`RoomRegistry` draws exits red/green).
 - **Corners also look wrong.** Two perpendicular walls meet at a 0.25x0.25 column that one of them has to own. The palisade solves this with `cornerin`/`cornerout` variants; we might need the same, or an auto-connect later. Visual problem only once the end faces retain.
-- **Room cache refresh.** The registry drops cached rooms on `ChunkDirty`. Placing or breaking a wall dirties the chunk. Changing only block entity state (proposal `wall-layer-state`, e.g. adding the exterior to a frame) might not — check, and mark the chunk dirty ourselves if not.
+- **Room cache refresh.** The registry drops cached rooms on `ChunkDirty`. Placing or breaking a wall dirties the chunk. Changing only block entity state (proposal `wall-layer-state`, e.g. adding insulation to a frame) might not — check, and mark the chunk dirty ourselves if not.
 - **Retention is the game's real insulation mechanic.** `GetRetention`'s sign and magnitude feed cellar/greenhouse behaviour. Insulation is flavour-only for now (see `CLAUDE.md`), but this is exactly the hook it would use later.
 - **Floors and ceilings are out of scope** — horizontal orientations only.
 - The shape file and collision box must agree on thickness by hand. Fine for one thickness; a smell if thickness ever varies.
