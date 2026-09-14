@@ -42,6 +42,11 @@ Enough to see two visibly different combinations.
 Material goes back to the player, matching Roofing's "materials are built into the frame" model.
 The alternative (drop a wall item carrying all three keys) is covered below.
 
+**A wall seals a room only once its exterior is built.**
+`SidingWallBlock.GetRetention` (see `wall-shape-and-collision`) reads the block entity: `exterior == null` → 0 on every face.
+A bare frame is a skeleton you can see through; an insulated frame with no cladding is still open to the weather.
+The retention sign follows the exterior's `BlockMaterial` the way vanilla does (stone/ceramic cool, everything else doesn't), so a daub wall and a plank wall behave like their solid-block equivalents.
+
 ## Alternatives considered
 - **Store keys on the block ID via variants.** Rejected by decision 0001.
 - **Drop a single wall item with the three keys in its itemstack attributes.** Lets you pick up and move a finished wall, and makes creative-inventory walls easy. But it means walls exist as items, need their own icons per combination, and duplicate the "place a finished wall" path alongside the in-world build flow. Revisit if players ask to move walls.
