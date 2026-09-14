@@ -45,7 +45,13 @@ The alternative (drop a wall item carrying all three keys) is covered below.
 **A wall seals a room only once its exterior is built.**
 `SidingWallBlock.GetRetention` (see `wall-shape-and-collision`) reads the block entity: `exterior == null` → 0 on every face.
 A bare frame is a skeleton you can see through; an insulated frame with no cladding is still open to the weather.
-The retention sign follows the exterior's `BlockMaterial` the way vanilla does (stone/ceramic cool, everything else doesn't), so a daub wall and a plank wall behave like their solid-block equivalents.
+
+**Insulation decides what kind of wall it is; the exterior is purely looks.**
+Vanilla's retention sign — negative for stone/soil/ceramic/ore, which the room registry counts as a cooling wall, positive otherwise — follows the *insulation's* `BlockMaterial`, not the exterior's.
+A player who wants brick cladding on a warm house, or planks outside a stone-packed cellar, gets both.
+No insulation (`null`) counts as non-cooling.
+So the exterior answers "is it closed?" and the insulation answers "is it a cellar wall?" — two separate questions, two separate layers.
+Starter set gains a cooling insulation (packed stone rubble or clay fill) so the cellar case is testable.
 
 ## Alternatives considered
 - **Store keys on the block ID via variants.** Rejected by decision 0001.

@@ -19,8 +19,10 @@ That's the whole trick.
 ## Design
 
 **One shape file, `shapes/block/wall.json`, three element groups.**
-Within the 0.25 slab from `wall-shape-and-collision`, from the cell's face inward: exterior 1/16, insulation 2/16, framing 1/16.
-Framing as studs plus top and bottom plates, not a solid sheet, so a frame-only wall reads as a frame.
+Within the 0.25 slab from `wall-shape-and-collision`, from the cell's face inward: exterior 1/16, cavity 2/16, interior face 1/16.
+The cavity holds framing *and* insulation in the same plane, the way a real stud wall does: studs plus top and bottom plates, with the insulation filling the gaps between them.
+A frame-only wall reads as a frame; an insulated wall seen from inside looks like an unfinished wall, studs and fill showing.
+The interior face is left empty for now — reserved for a later interior finish layer (plaster, boards, wallpaper) so the inside can be styled without touching the insulation that decides the wall's function.
 Thicknesses are a first guess to be tuned by eye in game.
 
 **`SidingWallEntity.OnTesselation` builds or fetches the mesh and adds it to the chunk mesher.**
