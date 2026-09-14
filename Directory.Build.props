@@ -1,0 +1,14 @@
+<Project>
+  <!--
+    This project requires the VINTAGE_STORY environment variable to be set.
+
+    Option 1: Set environment variable (recommended)
+      Windows: set VINTAGE_STORY=C:\Path\To\Vintagestory
+      Mac/Linux: export VINTAGE_STORY=/path/to/VintageStory.app
+
+    Option 2: Create a Directory.Build.props.user file (gitignored)
+      Copy Directory.Build.props.user.example and set your local path there
+  -->
+
+  <Import Project="Directory.Build.props.user" Condition="Exists('Directory.Build.props.user')" />
+</Project>
