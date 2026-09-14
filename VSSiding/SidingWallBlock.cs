@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
 
@@ -7,7 +8,7 @@ public class SidingWallBlock : Block
 {
     // cornerout's L covers `side` plus the face counter-clockwise from it:
     // west+north, south+west, east+south, north+east.
-    private static readonly System.Collections.Generic.Dictionary<string, string> CorneroutSecondFace = new()
+    private static readonly Dictionary<string, string> CorneroutSecondFace = new()
     {
         ["west"] = "north",
         ["south"] = "west",
