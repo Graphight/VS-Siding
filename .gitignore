@@ -1,0 +1,12 @@
+bin/
+obj/
+/packages/
+riderModule.iml
+/_ReSharper.Caches/
+
+Releases/
+.idea
+.claude
+
+# Local build configuration (contains user-specific paths)
+Directory.Build.props.user

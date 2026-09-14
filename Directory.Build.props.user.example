@@ -1,0 +1,5 @@
+<Project>
+  <PropertyGroup>
+    <VINTAGE_STORY>/path/to/VintageStory</VINTAGE_STORY>
+  </PropertyGroup>
+</Project>
