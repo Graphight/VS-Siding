@@ -5,7 +5,7 @@
 - Reflects: planning session on `prototype-proposals`; `vsroofing_1.7.2` shipped `patches/items.json` and handbook guide text; no code yet
 
 ## Summary
-Walls are built in place, layer by layer, the way Roofing builds roofs: right-click with a framing material to place a frame, shift-right-click it with insulation to complete the wall, then optionally shift-right-click either face with a finish.
+Walls are built in place, layer by layer, the way Roofing builds roofs: right-click with a framing material to place a frame, shift-right-click it with infill to complete the wall, then optionally shift-right-click either face with a finish.
 Each step consumes the held item and fills one key on the block entity.
 The face you click is the face you finish — no menu, no modifier keys.
 
@@ -26,10 +26,10 @@ The wall always hugs the target cell's face nearest the player, so it appears di
 That's orientation from player facing — the same thing `HorizontalOrientable` does in the shape proposal, just computed in our behavior.
 
 **Adding layers: `SidingWallBlock.OnBlockInteractStart`, shift held.**
-- Held item matches an insulation entry, insulation empty → fill the cavity. The wall is now complete and seals rooms (see `wall-layer-state`).
-- Held item matches a finish entry, insulation built → finish the face the player clicked. `BlockSelection.Face` says which face of the selection box was hit: the hugged direction → `front`, the opposite → `back`, an end or top face → nothing happens.
+- Held item matches an infill entry, infill empty → fill the cavity. The wall is now complete and seals rooms (see `wall-layer-state`).
+- Held item matches a finish entry, infill built → finish the face the player clicked. `BlockSelection.Face` says which face of the selection box was hit: the hugged direction → `front`, the opposite → `back`, an end or top face → nothing happens.
 
-Order is frame → insulation → finishes, and the two finishes in any order.
+Order is frame → infill → finishes, and the two finishes in any order.
 Roofing fixes its layers as 0, 1, 2 in sequence; that works for a roof, which has one visible side.
 A wall has two, and the player has already told us which one they mean by where they're standing.
 
