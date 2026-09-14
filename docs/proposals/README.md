@@ -17,5 +17,6 @@ Build order to a playable prototype — each one should be demoable in game befo
 
 ## Later (not yet written up)
 
-- `window-and-door-frames` — framed openings as extra frame-type tool modes, like Roofing's eaves and ridges. Needs an answer for how a window frame's glass and a door's open/closed state feed room retention.
+- `window-and-door-frames` — framed openings as extra frame-type tool modes, like Roofing's eaves and ridges. A closed solid door and a glazed window seal the room; an open door, an unglazed window, or a non-solid door (e.g. a gate) don't.
+- `interior-finish` — a fourth, purely cosmetic layer on the interior face (plaster, boards, wallpaper). The mesh already reserves the space.
 - `multiple-walls-per-cell` — both faces or a corner in one cell.
