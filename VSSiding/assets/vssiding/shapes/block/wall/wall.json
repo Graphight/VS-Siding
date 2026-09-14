@@ -1,0 +1,22 @@
+{
+	"textureWidth": 16,
+	"textureHeight": 16,
+	"textures": {
+		"wall": "block/wood/planks/aged/aged1"
+	},
+	"elements": [
+		{
+			"name": "wall",
+			"from": [ 0.0, 0.0, 0.0 ],
+			"to": [ 4.0, 16.0, 16.0 ],
+			"faces": {
+				"north": { "texture": "#wall", "uv": [ 0.0, 0.0, 4.0, 16.0 ] },
+				"east": { "texture": "#wall", "uv": [ 0.0, 0.0, 16.0, 16.0 ] },
+				"south": { "texture": "#wall", "uv": [ 0.0, 0.0, 4.0, 16.0 ] },
+				"west": { "texture": "#wall", "uv": [ 0.0, 0.0, 16.0, 16.0 ] },
+				"up": { "texture": "#wall", "uv": [ 0.0, 0.0, 4.0, 16.0 ] },
+				"down": { "texture": "#wall", "uv": [ 0.0, 0.0, 4.0, 16.0 ] }
+			}
+		}
+	]
+}
