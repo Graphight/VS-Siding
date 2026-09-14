@@ -8,4 +8,15 @@ An idea that's been thought through but not acted on. Mutable — edit freely, a
 
 ## Open
 
-1. `wall-shape-and-collision` — how a sub-block-thick wall's shape/collision box actually works, and where the selected framing/insulation/exterior materials live on a placed block (block entity data, per decision 0001's `AutoRoofEntity` guess, unconfirmed). Not yet written up.
+Build order to a playable prototype — each one should be demoable in game before the next starts.
+
+1. `wall-shape-and-collision` — a thin, oriented wall block with a straight and an outside-corner layout after the vanilla palisade, plus a `GetRetention` override so walls seal rooms.
+2. `wall-layer-state` — framing + infill (seals rooms) and front + back finishes (looks only) as keys on a block entity; drops.
+3. `layered-wall-mesh` — one shape, four texture slots, compositing done by the texture source; mesh cache per combination.
+4. `in-world-build-flow` — Roofing-style: right-click planks with a saw in the off hand to frame, shift-right-click to add layers.
+
+## Later (not yet written up)
+
+- `window-and-door-frames` — framed openings as extra frame-type tool modes, like Roofing's eaves and ridges. A closed solid door and a glazed window seal the room; an open door, an unglazed window, or a non-solid door (e.g. a gate) don't.
+- `face-specific-finishes` — materials that only make sense on one side (wallpaper, weatherboard). Both faces already take finishes.
+- `multiple-walls-per-cell` — both faces or a corner in one cell.
