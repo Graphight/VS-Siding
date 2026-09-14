@@ -1,8 +1,8 @@
 # Wall shape and collision
 
-- Status: Draft
+- Status: Accepted
 - Created: 2026-09-13
-- Reflects: planning session on `prototype-proposals`; vanilla 1.22.2 `survival/blocktypes/wood/palisadewall.json`; `vsessentialsmod` `Systems/RoomRegistry.cs` and `vsapi` `Block.GetRetention` (GitHub main); `vsroofing_1.7.2` shipped assets; no code yet
+- Reflects: `wall-shape-and-collision` branch, commits `cab82d5`..`bbf5825`
 
 ## Summary
 A siding wall is one block cell holding a quarter-block-thick slab pressed against one horizontal face of that cell.
