@@ -6,7 +6,7 @@
     "authors": [
         "Tom Marsh"
     ],
-    "description": "Layered wall building: pick framing, insulation, and exterior materials for thinner, more realistic walls",
+    "description": "Layered wall building: pick framing, infill, and finish materials for thinner, more realistic walls",
     "version": "0.1.0",
     "dependencies": {
         "game": "1.22.2"
