@@ -8,4 +8,4 @@ An idea that's been thought through but not acted on. Mutable — edit freely, a
 
 ## Open
 
-Nothing yet.
+1. `wall-shape-and-collision` — how a sub-block-thick wall's shape/collision box actually works, and where the selected framing/insulation/exterior materials live on a placed block (block entity data, per decision 0001's `AutoRoofEntity` guess, unconfirmed). Not yet written up.
