@@ -1,0 +1,72 @@
+{
+	code: "wall",
+	class: "SidingWallBlock",
+	behaviors: [{name: "HorizontalOrientable", properties: { dropBlockFace: "west" }}],
+	variantgroups: [
+		{ code: "layout", states: ["wall", "cornerout"] },
+		{ code: "side", loadFromProperties: "abstract/horizontalorientation" }
+	],
+	creativeinventory: { "general": ["*"], "decorative": ["*"] },
+	blockmaterial: "Wood",
+	drawtype: "json",
+	shapebytype: {
+		"*-wall-west": { base: "block/wall/wall", rotateY: 0 },
+		"*-wall-south": { base: "block/wall/wall", rotateY: 90 },
+		"*-wall-east": { base: "block/wall/wall", rotateY: 180 },
+		"*-wall-north": { base: "block/wall/wall", rotateY: 270 },
+		"*-cornerout-west": { base: "block/wall/cornerout", rotateY: 0 },
+		"*-cornerout-south": { base: "block/wall/cornerout", rotateY: 90 },
+		"*-cornerout-east": { base: "block/wall/cornerout", rotateY: 180 },
+		"*-cornerout-north": { base: "block/wall/cornerout", rotateY: 270 }
+	},
+	resistance: 1.2,
+	lightAbsorption: 0,
+	faceCullMode: "NeverCull",
+	sidesolid: {
+		all: false
+	},
+	sideopaque: {
+		all: false
+	},
+	sounds: {
+		"place": "block/planks",
+		"hit": "block/planks",
+		"break": "block/planks",
+		"walk": "walk/wood"
+	},
+	combustibleProps: {
+		burnTemperature: 600,
+		burnDuration: 20
+	},
+	materialDensity: 600,
+	collisionSelectionBoxesbytype: {
+		"*-wall-*": [
+			{ x1: 0, y1: 0, z1: 0, x2: 0.25, y2: 1, z2: 1,
+				rotateYByType: {
+					"*-west": 0,
+					"*-south": 90,
+					"*-east": 180,
+					"*-north": 270
+				}
+			}
+		],
+		"*-cornerout-*": [
+			{ x1: 0, y1: 0, z1: 0, x2: 0.25, y2: 1, z2: 1,
+				rotateYByType: {
+					"*-west": 0,
+					"*-south": 90,
+					"*-east": 180,
+					"*-north": 270
+				}
+			},
+			{ x1: 0.25, y1: 0, z1: 0, x2: 1, y2: 1, z2: 0.25,
+				rotateYByType: {
+					"*-west": 0,
+					"*-south": 90,
+					"*-east": 180,
+					"*-north": 270
+				}
+			}
+		]
+	}
+}
