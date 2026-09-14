@@ -8,4 +8,9 @@ An idea that's been thought through but not acted on. Mutable — edit freely, a
 
 ## Open
 
-1. `wall-shape-and-collision` — how a sub-block-thick wall's shape/collision box actually works, and where the selected framing/insulation/exterior materials live on a placed block (block entity data, per decision 0001's `AutoRoofEntity` guess, unconfirmed). Not yet written up.
+Build order to a playable prototype — each one should be demoable in game before the next starts.
+
+1. `wall-shape-and-collision` — a thin, oriented, walkable-against wall block, pure JSON after the palisade. Includes the room-sealing test that could sink the mod.
+2. `wall-layer-state` — framing/insulation/exterior keys on a block entity, looked up in attribute dictionaries; drops.
+3. `layered-wall-mesh` — one shape, three texture slots, compositing done by the texture source; mesh cache per combination.
+4. `in-world-build-flow` — Roofing-style: right-click planks to frame, shift-right-click to add layers.
