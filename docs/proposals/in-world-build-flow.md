@@ -38,14 +38,24 @@ Often `Consumes` and `Drops` will be the same stack; keep them separate only if 
 **Removing: breaking the block drops all built layers** (per `wall-layer-state`).
 No per-layer removal in the prototype.
 
-**No off-hand tool requirement in the prototype.** Roofing's hammer-in-off-hand is good flavour; it's also an extra failure mode to debug while the basics don't work yet.
+**Off-hand saw required, to tell siding apart from Roofing.**
+Both mods hang a frame-placing behavior on vanilla planks, so "right-click with planks" alone is ambiguous with both installed.
+Roofing's timber frames want a hammer in the off hand; Roofing's shipped assets never reference the saw.
+So siding frames want a vanilla `saw` in the off hand: an existing item with its own model, texture, and recipes, and a tool that reads as "framing carpentry".
+No saw → our behavior passes, and whatever else is on planks (Roofing, plain placement) handles the click.
+
+**Frame type via tool modes: `wall` for the prototype.**
+Same mechanism as Roofing's standard/eave/ridge.
+Window and door frames become further tool modes later (see the proposals index) — the prototype registers the tool-mode list with one entry so adding them isn't a restructure.
 
 ## Alternatives considered
 - **Craft finished walls in the grid, place like any block.** Simplest to build, but three independent material slots in a grid recipe means a recipe per combination — the explosion again, in recipe form. And it loses the "watch the wall go up" feel.
 - **A GUI to pick three materials.** More discoverable, much more code, and doesn't consume items naturally.
 - **A dedicated "wall frame" item instead of patching planks.** Adds a crafting step and an item for nothing; Roofing's patch-the-raw-material approach is lighter.
+- **A custom "construction hammer" in the off hand** (a copy of the vanilla hammer, retextured later). Works as a discriminator just as well, but it's a new item with a recipe, lang entries, handbook entry, and an art debt, to get what the saw gives for free. Worth it only if the saw turns out to be claimed by another popular building mod.
+- **A tool mode on planks to choose siding vs roofing.** Both mods' tool modes would be piled onto the same item; the list gets long and it's easy to place the wrong thing. The off-hand item is a physical, visible switch.
 
 ## Consequences & open questions
-- Patching behaviors onto vanilla planks means right-click with planks in hand now places frames. Roofing already does this to the same item — if both mods are installed, which behavior wins? Probably needs a tool mode ("siding frame" vs "roof frame" vs plain placement) or a sneak modifier. Test with Roofing installed before release.
+- **The saw may not fully resolve the Roofing clash.** Roofing's lang file has "Wrong item/tool in offhand." — so with planks in hand and a saw in the off hand, Roofing's behavior may run first, complain, and swallow the click before ours sees it. Which behavior runs first depends on patch order. Now I'm guessing it's load order of the mods. Test with Roofing installed; if it bites, our patch can insert our behavior at the front of the planks' `behaviors` list instead of appending.
 - Shift-right-click on a block is also vanilla's "place against" gesture. Check it doesn't place the held item next to the wall instead of adding the layer.
 - Handbook page explaining the flow: needed before anyone else plays it, not for the prototype.
