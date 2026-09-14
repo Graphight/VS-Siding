@@ -27,6 +27,13 @@ public class SidingWallBlock : Block
             claimed = facing.Code == CorneroutSecondFace[side];
         }
 
-        return claimed ? base.GetRetention(pos, facing, type) : 0;
+        if (!claimed) return 0;
+
+        // base.GetRetention is gated on SideSolid, which wall.json sets false on every
+        // face (see decision 0002) - so the sign has to be computed directly here instead
+        // of delegating, using the same wood-vs-cooling rule vanilla's default applies.
+        bool cooling = BlockMaterial is EnumBlockMaterial.Stone or EnumBlockMaterial.Ore
+            or EnumBlockMaterial.Soil or EnumBlockMaterial.Ceramic;
+        return cooling ? -1 : 1;
     }
 }

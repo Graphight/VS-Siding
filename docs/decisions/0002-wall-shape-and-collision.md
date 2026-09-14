@@ -59,7 +59,7 @@ Worked through for a west-hugging wall at `x=0` with the room interior at `x=1`:
 The room includes the wall's cell, and it's sealed.
 It works the same way whichever face the player hugs, because the solid face is a plane that the fill can't cross from either side.
 
-The rule: the hugged face returns what vanilla's default returns for a solid side (`1` for wood-like, `-1` for stone/ceramic, which counts as a cooling wall for cellars); the other faces return 0.
+The rule: the hugged face returns `1` for wood-like materials or `-1` for stone/ore/soil/ceramic (a cooling wall for cellars); the other faces return 0. `sidesolid` is `false` on every face (a deliberate choice, see above), so vanilla's own `GetRetention` - which is gated on `SideSolid` - can't be delegated to; the sign is computed directly from `BlockMaterial` instead.
 A `cornerout` claims both faces its L covers.
 A face is claimed only if the slab physically covers all of it, so the room scan can never call a room sealed that a player can walk out of.
 Using `GetRetention` rather than `sidesolid` keeps the room behaviour without claiming the face is solid for anything else (torch attachment, support for blocks above).
