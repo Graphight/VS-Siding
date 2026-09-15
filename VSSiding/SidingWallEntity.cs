@@ -22,9 +22,13 @@ public class SidingWallEntity : BlockEntity
     public override void FromTreeAttributes(ITreeAttribute tree, IWorldAccessor worldAccessForResolve)
     {
         base.FromTreeAttributes(tree, worldAccessForResolve);
-        Framing = tree.GetString("framing", null);
-        Infill = tree.GetString("infill", null);
-        Front = tree.GetString("front", null);
-        Back = tree.GetString("back", null);
+        Framing = NullIfEmpty(tree.GetString("framing", null));
+        Infill = NullIfEmpty(tree.GetString("infill", null));
+        Front = NullIfEmpty(tree.GetString("front", null));
+        Back = NullIfEmpty(tree.GetString("back", null));
     }
+
+    // A ToBytes/FromBytes round trip (chunk save/reload, client sync) turns a null
+    // SetString value into "" - normalize back to null so "unbuilt" survives a reload.
+    internal static string? NullIfEmpty(string? value) => string.IsNullOrEmpty(value) ? null : value;
 }

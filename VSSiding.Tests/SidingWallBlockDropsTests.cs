@@ -12,17 +12,18 @@ public class SidingWallBlockDropsTests
     private static JsonObject Dict(string json) => new(JToken.Parse(json));
 
     private static readonly JsonObject Framings = Dict("""
-    { "oak": { "Drops": [ { "type": "item", "code": "game:plank-oak", "quantity": 2 } ] } }
+    { "oak": { "Drops": [ { "type": "item", "code": "game:plank-oak", "quantity": { "avg": 2, "var": 0 } } ] } }
     """);
 
     private static readonly JsonObject Infills = Dict("""
-    { "wattle": { "Drops": [ { "type": "item", "code": "game:stick", "quantity": 4 } ] } }
+    { "wattle": { "Drops": [ { "type": "item", "code": "game:stick", "quantity": { "avg": 4, "var": 0 } } ] } }
     """);
 
     private static readonly JsonObject Finishes = Dict("""
     {
-        "daub": { "Drops": [ { "type": "item", "code": "game:clay-blue", "quantity": 2 } ] },
-        "brick": { "Drops": [ { "type": "item", "code": "game:brick-fired", "quantity": 2 } ] }
+        "daub": { "Drops": [ { "type": "item", "code": "game:clay-blue", "quantity": { "avg": 2, "var": 0 } } ] },
+        "brick": { "Drops": [ { "type": "item", "code": "game:burnedbrick-red", "quantity": { "avg": 2, "var": 0 } } ] },
+        "nocodefinish": { "Drops": [ { "type": "item", "quantity": { "avg": 2, "var": 0 } } ] }
     }
     """);
 
@@ -54,6 +55,13 @@ public class SidingWallBlockDropsTests
     public void AllFourPartsDrop()
     {
         var drops = SidingWallBlock.ComputeDrops("oak", "wattle", "daub", "brick", Framings, Infills, Finishes);
-        Assert.Equal(new[] { "game:plank-oak", "game:stick", "game:clay-blue", "game:brick-fired" }, Codes(drops));
+        Assert.Equal(new[] { "game:plank-oak", "game:stick", "game:clay-blue", "game:burnedbrick-red" }, Codes(drops));
+    }
+
+    [Fact]
+    public void DropEntryWithNoCodeIsSkippedNotThrown()
+    {
+        var drops = SidingWallBlock.ComputeDrops(null, null, "nocodefinish", null, Framings, Infills, Finishes);
+        Assert.Equal(Array.Empty<string>(), Codes(drops));
     }
 }

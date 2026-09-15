@@ -12,9 +12,7 @@
         <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
     </ItemGroup>
 
-    <!-- Unlike VSSiding.csproj, these need Private=true (copied to output): the mod runs
-         inside a game process that already provides them, but `dotnet test` runs standalone
-         and has to bring its own copies of the game API and its native dependencies. -->
+    <!-- Private=true here (unlike VSSiding.csproj): dotnet test has no game process to supply these. -->
     <ItemGroup>
         <Reference Include="VintagestoryAPI">
             <HintPath>$(VINTAGE_STORY)/VintagestoryAPI.dll</HintPath>

@@ -36,17 +36,17 @@ public class SidingWallBlock : Block
         return ComputeRetention(claimed, entity?.Framing, entity?.Infill, Attributes["Framings"], Attributes["Infills"]);
     }
 
-    // base.GetRetention is gated on SideSolid, which wall.json sets false on every face
-    // (see decision 0002), so the sign has to be computed directly here. A wall only seals
-    // once framing and infill are both built and both keys still exist in their dictionary
-    // (see wall-layer-state) - an uninstalled material renders as "not built" rather than
-    // crashing or wrongly sealing the room.
+    // sidesolid is false on every face (decision 0002), so base.GetRetention can't be
+    // delegated to. A wall seals only once framing and infill are both built and still
+    // valid in their dictionary; an uninstalled material counts as not built.
     internal static int ComputeRetention(bool claimed, string? framingKey, string? infillKey, JsonObject framings, JsonObject infills)
     {
         if (!claimed || framingKey == null || infillKey == null) return 0;
-        if (!framings[framingKey].Exists || !infills[infillKey].Exists) return 0;
 
-        string? materialName = infills[infillKey]["BlockMaterial"].AsString(null!);
+        var infill = infills[infillKey];
+        if (!framings[framingKey].Exists || !infill.Exists) return 0;
+
+        string? materialName = infill["BlockMaterial"].AsString(null!);
         bool cooling = Enum.TryParse(materialName, true, out EnumBlockMaterial material)
             && material is EnumBlockMaterial.Stone or EnumBlockMaterial.Ore
                 or EnumBlockMaterial.Soil or EnumBlockMaterial.Ceramic;
@@ -60,6 +60,10 @@ public class SidingWallBlock : Block
             entity?.Framing, entity?.Infill, entity?.Front, entity?.Back,
             Attributes["Framings"], Attributes["Infills"], Attributes["Finishes"]);
 
+        // Nothing built yet - fall back to the base drops so HorizontalOrientable still
+        // hands back the placed block.
+        if (drops.Count == 0) return base.GetDrops(world, pos, byPlayer, dropQuantityMultiplier);
+
         var stacks = new List<ItemStack>();
         foreach (var drop in drops)
         {
@@ -70,8 +74,6 @@ public class SidingWallBlock : Block
         return stacks.ToArray();
     }
 
-    // Breaking a wall drops every built part (see wall-layer-state), each part's own Drops
-    // entry - an unbuilt or no-longer-valid part (uninstalled material) drops nothing.
     internal static List<BlockDropItemStack> ComputeDrops(
         string? framing, string? infill, string? front, string? back,
         JsonObject framings, JsonObject infills, JsonObject finishes)
@@ -86,21 +88,13 @@ public class SidingWallBlock : Block
 
     private static void AddDrops(List<BlockDropItemStack> drops, string? key, JsonObject dictionary)
     {
-        if (key == null || !dictionary[key].Exists) return;
-        foreach (var dropJson in dictionary[key]["Drops"].AsArray() ?? Array.Empty<JsonObject>())
-        {
-            drops.Add(ParseDrop(dropJson));
-        }
-    }
+        if (key == null) return;
+        var entry = dictionary[key];
+        if (!entry.Exists) return;
 
-    private static BlockDropItemStack ParseDrop(JsonObject dropJson)
-    {
-        Enum.TryParse(dropJson["type"].AsString("item"), true, out EnumItemClass itemClass);
-        return new BlockDropItemStack
+        foreach (var drop in entry["Drops"].AsObject(Array.Empty<BlockDropItemStack>()))
         {
-            Type = itemClass,
-            Code = new AssetLocation(dropJson["code"].AsString(null!)),
-            Quantity = NatFloat.createDirac(dropJson["quantity"].AsFloat(1f), 0),
-        };
+            if (drop.Code != null) drops.Add(drop);
+        }
     }
 }
