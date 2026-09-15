@@ -44,6 +44,12 @@ public class SidingWallEntity : BlockEntity
         if (Block.Variant["layout"] != "wall") return false;
         if (Api is not ICoreClientAPI capi) return false;
 
+        // An empty selectiveElements array matches zero shape elements, not "no filter" -
+        // an unbuilt wall (true of every wall today, since nothing sets these keys yet)
+        // must fall back to the block's default JSON shape instead of tesselating nothing.
+        string[] selectiveElements = SelectiveElements(Framing, Infill, Front, Back);
+        if (selectiveElements.Length == 0) return false;
+
         string side = Block.Variant["side"];
         string cacheKey = CacheKey(side, Framing, Infill, Front, Back);
 
@@ -55,7 +61,7 @@ public class SidingWallEntity : BlockEntity
             tesselator.TesselateShape(
                 "vssiding-wall", shape, out MeshData modeldata, texSource,
                 new Vec3f(0, RotationYDeg(side), 0), 0, 0, 0, null,
-                SelectiveElements(Framing, Infill, Front, Back));
+                selectiveElements);
             return modeldata;
         });
 
