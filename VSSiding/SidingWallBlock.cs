@@ -25,13 +25,25 @@ public class SidingWallBlock : Block
         ["north"] = "east",
     };
 
-    // Shift-right-click layers infill onto a framed wall, then finishes onto a filled one -
-    // which face was clicked picks Front vs Back. Returns true for every handled branch
-    // (including the wrong-face error) so vanilla's "place block against" fallthrough
-    // doesn't also fire; PlacedPriorityInteract in wall.json runs this before that.
+    // Saws come in per-metal variants (saw-copper, saw-meteoriciron, ...) - there is no bare
+    // "saw" item, so this has to be a wildcard match, not an exact AssetLocation comparison.
+    private static readonly AssetLocation SawCode = new("game", "saw-*");
+
+    // Shared "are we in build mode" check for both framing (PlaceWallFrame) and layering
+    // (below). A plain right-click, not shift - see decision 0006 for why shift was dropped.
+    internal static bool HasSawInOffhand(IPlayer byPlayer)
+    {
+        AssetLocation? offhandCode = byPlayer.InventoryManager.OffhandHotbarSlot?.Itemstack?.Collectible.Code;
+        return offhandCode != null && WildcardUtil.Match(SawCode, offhandCode);
+    }
+
+    // A saw in the off hand layers infill onto a framed wall, then finishes onto a filled
+    // one - which face was clicked picks Front vs Back. Returns true for every handled
+    // branch (including the wrong-face error) so vanilla's "place block against" fallthrough
+    // doesn't also fire. Plain right-click, not shift - see decision 0006.
     public override bool OnBlockInteractStart(IWorldAccessor world, IPlayer byPlayer, BlockSelection blockSel)
     {
-        if (!byPlayer.Entity.Controls.ShiftKey) return base.OnBlockInteractStart(world, byPlayer, blockSel);
+        if (!HasSawInOffhand(byPlayer)) return base.OnBlockInteractStart(world, byPlayer, blockSel);
 
         ItemSlot slot = byPlayer.InventoryManager.ActiveHotbarSlot;
         AssetLocation? heldCode = slot.Itemstack?.Collectible.Code;
@@ -207,7 +219,7 @@ public class SidingWallBlock : Block
     // to "wall" rather than throwing on a stale/out-of-range stored mode.
     internal static string ResolveLayout(int toolMode) => toolMode == 1 ? "cornerout" : "wall";
 
-    // Which finish layer a shift-right-click's clicked face targets - the hugged side is
+    // Which finish layer a build-flow click's clicked face targets - the hugged side is
     // "front", the opposite side is "back", an end/top/bottom face is neither.
     internal static string? ResolveFinishFace(string side, BlockFacing clickedFace)
     {

@@ -7,16 +7,14 @@ using Vintagestory.API.Util;
 
 namespace VSSiding;
 
-// Patched onto game:itemtypes/resource/plank.json - see docs/decisions/0005. A saw in the
-// off hand tells this apart from Roofing's own plank-placing behavior; the tool mode picks
-// wall vs cornerout, and placement itself is handed to the placeholder wall block so its
-// existing HorizontalOrientable behavior does the "hug the player's side" orientation.
+// Patched onto game:itemtypes/resource/plank.json - see docs/decisions/0005/0006. A saw in
+// the off hand tells this apart from Roofing's own plank-placing behavior (and is also the
+// whole build flow's "you're building" signal, see SidingWallBlock.HasSawInOffhand); the
+// tool mode picks wall vs cornerout, and placement itself is handed to the placeholder wall
+// block so its existing HorizontalOrientable behavior does the "hug the player's side"
+// orientation.
 public class PlaceWallFrame : CollectibleBehavior
 {
-    // Saws come in per-metal variants (saw-copper, saw-meteoriciron, ...) - there is no bare
-    // "saw" item, so this has to be a wildcard match, not an exact AssetLocation comparison.
-    private static readonly AssetLocation SawCode = new("game", "saw-*");
-
     private SkillItem[]? toolModes;
 
     public PlaceWallFrame(CollectibleObject collObj) : base(collObj)
@@ -48,8 +46,8 @@ public class PlaceWallFrame : CollectibleBehavior
     {
         if (!firstEvent || blockSel == null) return;
 
-        AssetLocation? offhandCode = byEntity.LeftHandItemSlot?.Itemstack?.Collectible.Code;
-        if (offhandCode == null || !WildcardUtil.Match(SawCode, offhandCode)) return;
+        var byPlayer = (byEntity as EntityPlayer)?.Player;
+        if (byPlayer == null || !SidingWallBlock.HasSawInOffhand(byPlayer)) return;
 
         IWorldAccessor world = byEntity.World;
         var wallBlock = world.GetBlock(new AssetLocation("vssiding", "wall-wall-west")) as SidingWallBlock;
@@ -57,9 +55,6 @@ public class PlaceWallFrame : CollectibleBehavior
 
         string? framingKey = SidingWallBlock.MatchConsumes(slot.Itemstack.Collectible.Code, wallBlock.Attributes["Framings"]);
         if (framingKey == null) return;
-
-        var byPlayer = (byEntity as EntityPlayer)?.Player;
-        if (byPlayer == null) return;
 
         var consumes = wallBlock.Attributes["Framings"][framingKey]["Consumes"];
         bool isCreative = byPlayer.WorldData.CurrentGameMode == EnumGameMode.Creative;

@@ -2,7 +2,6 @@
 	code: "wall",
 	class: "SidingWallBlock",
 	entityclass: "SidingWallEntity",
-	PlacedPriorityInteract: true,
 	behaviors: [{name: "HorizontalOrientable", properties: { dropBlockFace: "west" }}],
 	variantgroups: [
 		{ code: "layout", states: ["wall", "cornerout"] },
