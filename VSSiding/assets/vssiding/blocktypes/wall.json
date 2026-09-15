@@ -14,6 +14,7 @@
 			"oak": {
 				DisplayName: "vssiding:framing-oak",
 				Texture: "game:block/wood/planks/oak1",
+				Consumes: { type: "item", code: "game:plank-oak", quantity: 2 },
 				Drops: [ { type: "item", code: "game:plank-oak", quantity: { avg: 2, var: 0 } } ]
 			}
 		},

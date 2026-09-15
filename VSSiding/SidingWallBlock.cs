@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using Newtonsoft.Json.Linq;
 using Vintagestory.API.Common;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
+using Vintagestory.API.Util;
 
 [assembly: InternalsVisibleTo("VSSiding.Tests")]
 
@@ -97,4 +99,30 @@ public class SidingWallBlock : Block
             if (drop.Code != null) drops.Add(drop);
         }
     }
+
+    // Finds the material dictionary entry whose Consumes.code matches the held item, so a
+    // build-flow behavior can turn "the player right-clicked with plank-oak" into "oak".
+    internal static string? MatchConsumes(AssetLocation heldCode, JsonObject materials)
+    {
+        if (materials.Token is not JObject obj) return null;
+
+        foreach (var property in obj.Properties())
+        {
+            var consumes = materials[property.Name]["Consumes"];
+            if (!consumes.Exists) continue;
+
+            string? code = consumes["code"].AsString(null!);
+            if (code == null) continue;
+
+            if (WildcardUtil.Match(new AssetLocation(code), heldCode)) return property.Name;
+        }
+
+        return null;
+    }
+
+    internal static int ConsumeQuantity(JsonObject consumes) => consumes["quantity"].AsInt(1);
+
+    // Tool mode 0 is "wall", 1 is "corner" - see decision 0005. Anything else falls back
+    // to "wall" rather than throwing on a stale/out-of-range stored mode.
+    internal static string ResolveLayout(int toolMode) => toolMode == 1 ? "cornerout" : "wall";
 }
