@@ -9,6 +9,47 @@
 	],
 	creativeinventory: { "general": ["*-west"], "decorative": ["*-west"] },
 	blockmaterial: "Wood",
+	attributes: {
+		Framings: {
+			"oak": {
+				DisplayName: "vssiding:framing-oak",
+				Texture: "game:block/wood/planks/oak1",
+				Drops: [ { type: "item", code: "game:plank-oak", quantity: 2 } ]
+			}
+		},
+		Infills: {
+			"wattle": {
+				DisplayName: "vssiding:infill-wattle",
+				Texture: "game:block/wattle/wattle1",
+				BlockMaterial: "Wood",
+				Drops: [ { type: "item", code: "game:stick", quantity: 4 } ]
+			},
+			"straw": {
+				DisplayName: "vssiding:infill-straw",
+				Texture: "game:block/hay/normal1",
+				BlockMaterial: "Wood",
+				Drops: [ { type: "item", code: "game:drygrass", quantity: 4 } ]
+			},
+			"clay": {
+				DisplayName: "vssiding:infill-clay",
+				Texture: "game:block/clay/normal1",
+				BlockMaterial: "Soil",
+				Drops: [ { type: "item", code: "game:clay-blue", quantity: 4 } ]
+			}
+		},
+		Finishes: {
+			"daub": {
+				DisplayName: "vssiding:finish-daub",
+				Texture: "game:block/clay/daub1",
+				Drops: [ { type: "item", code: "game:clay-blue", quantity: 2 } ]
+			},
+			"brick": {
+				DisplayName: "vssiding:finish-brick",
+				Texture: "game:block/clay/fired/brick1",
+				Drops: [ { type: "item", code: "game:brick-fired", quantity: 2 } ]
+			}
+		}
+	},
 	drawtype: "json",
 	shapebytype: {
 		"*-wall-west": { base: "block/wall/wall", rotateY: 0 },

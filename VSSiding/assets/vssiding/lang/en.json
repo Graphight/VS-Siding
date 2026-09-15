@@ -1,3 +1,9 @@
 {
-	"block-wall-*": "Siding Wall"
+	"block-wall-*": "Siding Wall",
+	"framing-oak": "Oak Framing",
+	"infill-wattle": "Wattle Infill",
+	"infill-straw": "Straw Infill",
+	"infill-clay": "Clay Infill",
+	"finish-daub": "Daub Finish",
+	"finish-brick": "Brick Finish"
 }
