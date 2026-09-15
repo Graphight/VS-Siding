@@ -9,5 +9,6 @@ public class SidingModSystem : ModSystem
         base.Start(api);
 
         api.RegisterBlockClass("SidingWallBlock", typeof(SidingWallBlock));
+        api.RegisterBlockEntityClass("SidingWallEntity", typeof(SidingWallEntity));
     }
 }
