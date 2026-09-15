@@ -1,0 +1,59 @@
+using System;
+using System.Collections.Generic;
+using Newtonsoft.Json.Linq;
+using Vintagestory.API.Common;
+using Vintagestory.API.Datastructures;
+using Xunit;
+
+namespace VSSiding.Tests;
+
+public class SidingWallBlockDropsTests
+{
+    private static JsonObject Dict(string json) => new(JToken.Parse(json));
+
+    private static readonly JsonObject Framings = Dict("""
+    { "oak": { "Drops": [ { "type": "item", "code": "game:plank-oak", "quantity": 2 } ] } }
+    """);
+
+    private static readonly JsonObject Infills = Dict("""
+    { "wattle": { "Drops": [ { "type": "item", "code": "game:stick", "quantity": 4 } ] } }
+    """);
+
+    private static readonly JsonObject Finishes = Dict("""
+    {
+        "daub": { "Drops": [ { "type": "item", "code": "game:clay-blue", "quantity": 2 } ] },
+        "brick": { "Drops": [ { "type": "item", "code": "game:brick-fired", "quantity": 2 } ] }
+    }
+    """);
+
+    private static string[] Codes(List<BlockDropItemStack> drops) =>
+        drops.ConvertAll(d => d.Code!.ToString()).ToArray();
+
+    [Fact]
+    public void NoPartsBuiltDropsNothing()
+    {
+        var drops = SidingWallBlock.ComputeDrops(null, null, null, null, Framings, Infills, Finishes);
+        Assert.Equal(Array.Empty<string>(), Codes(drops));
+    }
+
+    [Fact]
+    public void UnknownKeysDropNothing()
+    {
+        var drops = SidingWallBlock.ComputeDrops("uninstalled", "uninstalled", "uninstalled", "uninstalled", Framings, Infills, Finishes);
+        Assert.Equal(Array.Empty<string>(), Codes(drops));
+    }
+
+    [Fact]
+    public void OnlyValidPartsDrop()
+    {
+        var drops = SidingWallBlock.ComputeDrops("oak", "wattle", "uninstalled", null, Framings, Infills, Finishes);
+        Assert.Equal(new[] { "game:plank-oak", "game:stick" }, Codes(drops));
+    }
+
+    [Fact]
+    public void AllFourPartsDrop()
+    {
+        var drops = SidingWallBlock.ComputeDrops("oak", "wattle", "daub", "brick", Framings, Infills, Finishes);
+        Assert.Equal(new[] { "game:plank-oak", "game:stick", "game:clay-blue", "game:brick-fired" }, Codes(drops));
+    }
+}

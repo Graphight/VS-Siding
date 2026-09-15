@@ -52,4 +52,55 @@ public class SidingWallBlock : Block
                 or EnumBlockMaterial.Soil or EnumBlockMaterial.Ceramic;
         return cooling ? -1 : 1;
     }
+
+    public override ItemStack[] GetDrops(IWorldAccessor world, BlockPos pos, IPlayer byPlayer, float dropQuantityMultiplier)
+    {
+        var entity = world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos);
+        var drops = ComputeDrops(
+            entity?.Framing, entity?.Infill, entity?.Front, entity?.Back,
+            Attributes["Framings"], Attributes["Infills"], Attributes["Finishes"]);
+
+        var stacks = new List<ItemStack>();
+        foreach (var drop in drops)
+        {
+            drop.Resolve(world, "vssiding:wall drops", Code);
+            var stack = drop.GetNextItemStack(dropQuantityMultiplier);
+            if (stack != null) stacks.Add(stack);
+        }
+        return stacks.ToArray();
+    }
+
+    // Breaking a wall drops every built part (see wall-layer-state), each part's own Drops
+    // entry - an unbuilt or no-longer-valid part (uninstalled material) drops nothing.
+    internal static List<BlockDropItemStack> ComputeDrops(
+        string? framing, string? infill, string? front, string? back,
+        JsonObject framings, JsonObject infills, JsonObject finishes)
+    {
+        var drops = new List<BlockDropItemStack>();
+        AddDrops(drops, framing, framings);
+        AddDrops(drops, infill, infills);
+        AddDrops(drops, front, finishes);
+        AddDrops(drops, back, finishes);
+        return drops;
+    }
+
+    private static void AddDrops(List<BlockDropItemStack> drops, string? key, JsonObject dictionary)
+    {
+        if (key == null || !dictionary[key].Exists) return;
+        foreach (var dropJson in dictionary[key]["Drops"].AsArray() ?? Array.Empty<JsonObject>())
+        {
+            drops.Add(ParseDrop(dropJson));
+        }
+    }
+
+    private static BlockDropItemStack ParseDrop(JsonObject dropJson)
+    {
+        Enum.TryParse(dropJson["type"].AsString("item"), true, out EnumItemClass itemClass);
+        return new BlockDropItemStack
+        {
+            Type = itemClass,
+            Code = new AssetLocation(dropJson["code"].AsString(null!)),
+            Quantity = NatFloat.createDirac(dropJson["quantity"].AsFloat(1f), 0),
+        };
+    }
 }
