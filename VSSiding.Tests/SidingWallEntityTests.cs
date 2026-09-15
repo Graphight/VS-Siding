@@ -28,4 +28,23 @@ public class SidingWallEntityTests
 
         Assert.Equal("oak", SidingWallEntity.NullIfEmpty(reloaded.GetString("framing", null)));
     }
+
+    [Fact]
+    public void SelectiveElementsSkipsUnbuiltParts()
+    {
+        Assert.Equal(new string[0], SidingWallEntity.SelectiveElements(null, null, null, null));
+        Assert.Equal(new[] { "front", "framing", "infill", "back" },
+            SidingWallEntity.SelectiveElements("oak", "wattle", "daub", "brick"));
+        Assert.Equal(new[] { "framing" }, SidingWallEntity.SelectiveElements("oak", null, null, null));
+    }
+
+    [Theory]
+    [InlineData("west", 0)]
+    [InlineData("south", 90)]
+    [InlineData("east", 180)]
+    [InlineData("north", 270)]
+    public void RotationYDegMatchesCollisionBoxRotation(string side, float expectedDegrees)
+    {
+        Assert.Equal(expectedDegrees, SidingWallEntity.RotationYDeg(side));
+    }
 }
