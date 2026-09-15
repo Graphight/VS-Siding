@@ -23,10 +23,11 @@ Manual build: `dotnet build VSSiding/VSSiding.csproj -c Release`
 
 Requires `VINTAGE_STORY` env var pointing at the game install, or a `Directory.Build.props.user` (gitignored, copy from `Directory.Build.props.user.example`).
 
-Deploy to Vintage Story (macOS):
+Deploy to Vintage Story (macOS) - drop the zip in, don't unpack it:
 ```bash
-cp -r Releases/vssiding ~/Library/Application\ Support/VintagestoryData/Mods/
+cp Releases/vssiding_*.zip ~/Library/Application\ Support/VintagestoryData/Mods/
 ```
+A version bump leaves the old zip behind under its old filename; delete it so two versions of the same modid don't both load.
 
 ## Architecture
 
