@@ -31,7 +31,7 @@ A version bump leaves the old zip behind under its old filename; delete it so tw
 
 ## Architecture
 
-Nothing built yet - `SidingModSystem.cs` is an empty `ModSystem` entry point. This section gets filled in as real systems (wall block class, material attribute dictionaries, shape handling) land.
+`SidingModSystem` registers two classes: `SidingWallBlock` (shape, collision, room-sealing retention, drops — decision 0002) and `SidingWallEntity` (per-wall `Framing`/`Infill`/`Front`/`Back` state — decision 0003). `wall.json` carries the `Framings`/`Infills`/`Finishes` material dictionaries the entity's keys look up. Nothing yet sets those keys in play; that's `in-world-build-flow`. See the decisions for the *why*.
 
 **Material selection is a JSON attribute dictionary read by one block class, not a block variant.** Framing, infill, and face finishes each key into their own dictionary in the block's `attributes` (e.g. `attributes.Framings.oak`, `attributes.Infills.wattle`), read at mesh-build time - not `variantgroups`, which would multiply out into a real block per combination across three crossed axes. Reverse-engineered from the released Roofing mod's shipped JSON (no source available, no DLL decompiled - the assets alone show the shape). See decision 0001.
 

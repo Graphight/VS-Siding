@@ -26,7 +26,7 @@ The wall always hugs the target cell's face nearest the player, so it appears di
 That's orientation from player facing — the same thing `HorizontalOrientable` does in the shape proposal, just computed in our behavior.
 
 **Adding layers: `SidingWallBlock.OnBlockInteractStart`, shift held.**
-- Held item matches an infill entry, infill empty → fill the cavity. The wall is now complete and seals rooms (see `wall-layer-state`).
+- Held item matches an infill entry, infill empty → fill the cavity. The wall is now complete and seals rooms (see decision 0003).
 - Held item matches a finish entry, infill built → finish the face the player clicked. `BlockSelection.Face` says which face of the selection box was hit: the hugged direction → `front`, the opposite → `back`, an end or top face → nothing happens.
 
 Order is frame → infill → finishes, and the two finishes in any order.
@@ -43,7 +43,7 @@ Building from inside works the same way in reverse, with no setting to change.
 ```
 Often `Consumes` and `Drops` will be the same stack; keep them separate only if that turns out not to be true, otherwise collapse to one field.
 
-**Removing: breaking the block drops all built layers** (per `wall-layer-state`).
+**Removing: breaking the block drops all built layers** (per decision 0003).
 No per-layer removal in the prototype.
 
 **Off-hand saw required, to tell siding apart from Roofing.**

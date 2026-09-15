@@ -36,7 +36,7 @@ A house of one material combination tesselates once per side, not once per block
 
 ## Alternatives considered
 - **One shape file per layer, meshes merged.** Works, but each material then needs to agree on geometry across files, and there's no benefit over element groups in one file until layers need genuinely different geometry per material. Switch if that day comes.
-- **Per-material shape files as Roofing does (`Shape` in each dictionary entry).** Roofing needs it because straw and slate have different geometry. Our prototype layers are flat; texture is enough. Add `Shape` to an entry when a material needs its own geometry. The finish catalogue in `wall-layer-state` already has two: lapped weatherboards (planks) and shakes (logs). So the face element groups will need an optional per-finish shape override soon after the prototype — just not for the texture-only prototype finishes.
+- **Per-material shape files as Roofing does (`Shape` in each dictionary entry).** Roofing needs it because straw and slate have different geometry. Our prototype layers are flat; texture is enough. Add `Shape` to an entry when a material needs its own geometry. The finish catalogue in decision 0003 already has two: lapped weatherboards (planks) and shakes (logs). So the face element groups will need an optional per-finish shape override soon after the prototype — just not for the texture-only prototype finishes.
 - **Infill as a separate plane behind the frame.** Hides the frame from one side, so half-timbering can't be seen from both sides. Real walls put it between the studs.
 - **Bake every combination as a static block model.** That's the variant explosion again.
 
