@@ -7,5 +7,6 @@
 	"finish-daub": "Daub Finish",
 	"finish-brick": "Brick Finish",
 	"toolmode-wall": "Wall",
-	"toolmode-corner": "Corner"
+	"toolmode-corner": "Corner",
+	"build-wrong-face": "Click the wall's face"
 }

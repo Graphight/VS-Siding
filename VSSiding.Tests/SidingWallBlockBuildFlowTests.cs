@@ -1,6 +1,7 @@
 using Newtonsoft.Json.Linq;
 using Vintagestory.API.Common;
 using Vintagestory.API.Datastructures;
+using Vintagestory.API.MathTools;
 using Xunit;
 
 namespace VSSiding.Tests;
@@ -67,5 +68,73 @@ public class SidingWallBlockBuildFlowTests
     public void ResolveLayoutOutOfRangeFallsBackToWall()
     {
         Assert.Equal("wall", SidingWallBlock.ResolveLayout(2));
+    }
+
+    private static readonly JsonObject Infills = Dict("""
+    {
+        "wattle": { "Consumes": { "type": "item", "code": "game:stick", "quantity": 4 } }
+    }
+    """);
+
+    [Fact]
+    public void MatchConsumesFindsInfillMatch()
+    {
+        string? key = SidingWallBlock.MatchConsumes(new AssetLocation("game:stick"), Infills);
+        Assert.Equal("wattle", key);
+    }
+
+    [Fact]
+    public void MatchConsumesReturnsNullForNonMatchingInfill()
+    {
+        string? key = SidingWallBlock.MatchConsumes(new AssetLocation("game:drygrass"), Infills);
+        Assert.Null(key);
+    }
+
+    private static readonly JsonObject Finishes = Dict("""
+    {
+        "daub": { "Consumes": { "type": "item", "code": "game:clay-blue", "quantity": 2 } }
+    }
+    """);
+
+    [Fact]
+    public void MatchConsumesFindsFinishMatch()
+    {
+        string? key = SidingWallBlock.MatchConsumes(new AssetLocation("game:clay-blue"), Finishes);
+        Assert.Equal("daub", key);
+    }
+
+    [Fact]
+    public void MatchConsumesReturnsNullForNonMatchingFinish()
+    {
+        string? key = SidingWallBlock.MatchConsumes(new AssetLocation("game:burnedbrick-red"), Finishes);
+        Assert.Null(key);
+    }
+
+    [Fact]
+    public void ResolveFinishFaceOnHuggedSideIsFront()
+    {
+        string? face = SidingWallBlock.ResolveFinishFace("west", BlockFacing.WEST);
+        Assert.Equal("front", face);
+    }
+
+    [Fact]
+    public void ResolveFinishFaceOnOppositeSideIsBack()
+    {
+        string? face = SidingWallBlock.ResolveFinishFace("west", BlockFacing.EAST);
+        Assert.Equal("back", face);
+    }
+
+    [Fact]
+    public void ResolveFinishFaceOnEndFaceIsNull()
+    {
+        string? face = SidingWallBlock.ResolveFinishFace("west", BlockFacing.NORTH);
+        Assert.Null(face);
+    }
+
+    [Fact]
+    public void ResolveFinishFaceOnTopFaceIsNull()
+    {
+        string? face = SidingWallBlock.ResolveFinishFace("west", BlockFacing.UP);
+        Assert.Null(face);
     }
 }

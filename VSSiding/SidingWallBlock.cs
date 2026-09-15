@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Newtonsoft.Json.Linq;
 using Vintagestory.API.Common;
+using Vintagestory.API.Config;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
+using Vintagestory.API.Server;
 using Vintagestory.API.Util;
 
 [assembly: InternalsVisibleTo("VSSiding.Tests")]
@@ -22,6 +24,55 @@ public class SidingWallBlock : Block
         ["east"] = "south",
         ["north"] = "east",
     };
+
+    // Shift-right-click layers infill onto a framed wall, then finishes onto a filled one -
+    // which face was clicked picks Front vs Back. Returns true for every handled branch
+    // (including the wrong-face error) so vanilla's "place block against" fallthrough
+    // doesn't also fire; PlacedPriorityInteract in wall.json runs this before that.
+    public override bool OnBlockInteractStart(IWorldAccessor world, IPlayer byPlayer, BlockSelection blockSel)
+    {
+        if (!byPlayer.Entity.Controls.ShiftKey) return base.OnBlockInteractStart(world, byPlayer, blockSel);
+
+        ItemSlot slot = byPlayer.InventoryManager.ActiveHotbarSlot;
+        AssetLocation? heldCode = slot.Itemstack?.Collectible.Code;
+        if (heldCode == null) return base.OnBlockInteractStart(world, byPlayer, blockSel);
+
+        var entity = world.BlockAccessor.GetBlockEntity<SidingWallEntity>(blockSel.Position);
+        if (entity == null || entity.Framing == null) return base.OnBlockInteractStart(world, byPlayer, blockSel);
+
+        if (entity.Infill == null)
+        {
+            string? infillKey = MatchConsumes(heldCode, Attributes["Infills"]);
+            if (infillKey == null) return base.OnBlockInteractStart(world, byPlayer, blockSel);
+
+            entity.Infill = infillKey;
+            entity.MarkDirty(true);
+            ConsumeHeld(slot, Attributes["Infills"][infillKey]["Consumes"]);
+            return true;
+        }
+
+        string? finishKey = MatchConsumes(heldCode, Attributes["Finishes"]);
+        if (finishKey == null) return base.OnBlockInteractStart(world, byPlayer, blockSel);
+
+        string side = Variant["side"];
+        string? face = ResolveFinishFace(side, blockSel.Face);
+        if (face == null)
+        {
+            (byPlayer as IServerPlayer)?.SendIngameError("vssiding:wrongface", Lang.Get("vssiding:build-wrong-face"));
+            return true;
+        }
+
+        if (face == "front") entity.Front = finishKey; else entity.Back = finishKey;
+        entity.MarkDirty(true);
+        ConsumeHeld(slot, Attributes["Finishes"][finishKey]["Consumes"]);
+        return true;
+    }
+
+    private static void ConsumeHeld(ItemSlot slot, JsonObject consumes)
+    {
+        slot.TakeOut(ConsumeQuantity(consumes));
+        slot.MarkDirty();
+    }
 
     public override int GetRetention(BlockPos pos, BlockFacing facing, EnumRetentionType type)
     {
@@ -125,4 +176,13 @@ public class SidingWallBlock : Block
     // Tool mode 0 is "wall", 1 is "corner" - see decision 0005. Anything else falls back
     // to "wall" rather than throwing on a stale/out-of-range stored mode.
     internal static string ResolveLayout(int toolMode) => toolMode == 1 ? "cornerout" : "wall";
+
+    // Which finish layer a shift-right-click's clicked face targets - the hugged side is
+    // "front", the opposite side is "back", an end/top/bottom face is neither.
+    internal static string? ResolveFinishFace(string side, BlockFacing clickedFace)
+    {
+        if (clickedFace.Code == side) return "front";
+        if (clickedFace == BlockFacing.FromCode(side).Opposite) return "back";
+        return null;
+    }
 }
