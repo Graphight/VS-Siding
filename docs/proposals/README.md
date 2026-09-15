@@ -10,9 +10,8 @@ An idea that's been thought through but not acted on. Mutable — edit freely, a
 
 Build order to a playable prototype — each one should be demoable in game before the next starts.
 
-1. `wall-layer-state` — framing + infill (seals rooms) and front + back finishes (looks only) as keys on a block entity; drops.
-2. `layered-wall-mesh` — one shape, four texture slots, compositing done by the texture source; mesh cache per combination.
-3. `in-world-build-flow` — Roofing-style: right-click planks with a saw in the off hand to frame, shift-right-click to add layers.
+1. `layered-wall-mesh` — one shape, four texture slots, compositing done by the texture source; mesh cache per combination.
+2. `in-world-build-flow` — Roofing-style: right-click planks with a saw in the off hand to frame, shift-right-click to add layers.
 
 ## Later (not yet written up)
 
