@@ -2,7 +2,7 @@
 	"textureWidth": 16,
 	"textureHeight": 16,
 	"textures": {
-		"wall": "survival:block/wood/planks/aged/aged1"
+		"wall": "game:block/wood/planks/aged/aged1"
 	},
 	"elements": [
 		{
