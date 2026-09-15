@@ -8,5 +8,7 @@
 	"finish-brick": "Brick Finish",
 	"toolmode-wall": "Wall",
 	"toolmode-corner": "Corner",
-	"build-wrong-face": "Click the wall's face"
+	"build-wrong-face": "Click the wall's face",
+	"build-already-finished": "That side is already finished",
+	"build-cant-afford": "Not enough material"
 }

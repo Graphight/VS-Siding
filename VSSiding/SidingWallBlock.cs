@@ -40,14 +40,23 @@ public class SidingWallBlock : Block
         var entity = world.BlockAccessor.GetBlockEntity<SidingWallEntity>(blockSel.Position);
         if (entity == null || entity.Framing == null) return base.OnBlockInteractStart(world, byPlayer, blockSel);
 
+        bool isCreative = byPlayer.WorldData.CurrentGameMode == EnumGameMode.Creative;
+
         if (entity.Infill == null)
         {
             string? infillKey = MatchConsumes(heldCode, Attributes["Infills"]);
             if (infillKey == null) return base.OnBlockInteractStart(world, byPlayer, blockSel);
 
+            var consumes = Attributes["Infills"][infillKey]["Consumes"];
+            if (!CanAfford(isCreative, slot.StackSize, consumes))
+            {
+                (byPlayer as IServerPlayer)?.SendIngameError("vssiding:cantafford", Lang.Get("vssiding:build-cant-afford"));
+                return true;
+            }
+
             entity.Infill = infillKey;
             entity.MarkDirty(true);
-            ConsumeHeld(slot, Attributes["Infills"][infillKey]["Consumes"]);
+            ConsumeHeld(slot, consumes, isCreative);
             return true;
         }
 
@@ -62,17 +71,38 @@ public class SidingWallBlock : Block
             return true;
         }
 
+        bool alreadyFinished = face == "front" ? entity.Front != null : entity.Back != null;
+        if (alreadyFinished)
+        {
+            (byPlayer as IServerPlayer)?.SendIngameError("vssiding:alreadyfinished", Lang.Get("vssiding:build-already-finished"));
+            return true;
+        }
+
+        var finishConsumes = Attributes["Finishes"][finishKey]["Consumes"];
+        if (!CanAfford(isCreative, slot.StackSize, finishConsumes))
+        {
+            (byPlayer as IServerPlayer)?.SendIngameError("vssiding:cantafford", Lang.Get("vssiding:build-cant-afford"));
+            return true;
+        }
+
         if (face == "front") entity.Front = finishKey; else entity.Back = finishKey;
         entity.MarkDirty(true);
-        ConsumeHeld(slot, Attributes["Finishes"][finishKey]["Consumes"]);
+        ConsumeHeld(slot, finishConsumes, isCreative);
         return true;
     }
 
-    private static void ConsumeHeld(ItemSlot slot, JsonObject consumes)
+    private static void ConsumeHeld(ItemSlot slot, JsonObject consumes, bool isCreative)
     {
+        if (isCreative) return;
         slot.TakeOut(ConsumeQuantity(consumes));
         slot.MarkDirty();
     }
+
+    // A held stack too small to pay Consumes.quantity must not place/build - ItemSlot.TakeOut
+    // silently takes whatever is available rather than failing, so the caller has to check first.
+    // Creative players aren't charged at all.
+    internal static bool CanAfford(bool isCreative, int stackSize, JsonObject consumes)
+        => isCreative || stackSize >= ConsumeQuantity(consumes);
 
     public override int GetRetention(BlockPos pos, BlockFacing facing, EnumRetentionType type)
     {

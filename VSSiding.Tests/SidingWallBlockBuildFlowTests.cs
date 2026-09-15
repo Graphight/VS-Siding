@@ -137,4 +137,22 @@ public class SidingWallBlockBuildFlowTests
         string? face = SidingWallBlock.ResolveFinishFace("west", BlockFacing.UP);
         Assert.Null(face);
     }
+
+    [Fact]
+    public void CanAffordIsTrueWhenStackCoversQuantity()
+    {
+        Assert.True(SidingWallBlock.CanAfford(false, 2, Framings["oak"]["Consumes"]));
+    }
+
+    [Fact]
+    public void CanAffordIsFalseWhenStackFallsShort()
+    {
+        Assert.False(SidingWallBlock.CanAfford(false, 1, Framings["oak"]["Consumes"]));
+    }
+
+    [Fact]
+    public void CanAffordIsTrueInCreativeRegardlessOfStack()
+    {
+        Assert.True(SidingWallBlock.CanAfford(true, 0, Framings["oak"]["Consumes"]));
+    }
 }
