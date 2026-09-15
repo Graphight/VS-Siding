@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <IsPackable>false</IsPackable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+        <PackageReference Include="xunit" Version="2.9.2" />
+        <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+    </ItemGroup>
+
+    <!-- Private=true here (unlike VSSiding.csproj): dotnet test has no game process to supply these. -->
+    <ItemGroup>
+        <Reference Include="VintagestoryAPI">
+            <HintPath>$(VINTAGE_STORY)/VintagestoryAPI.dll</HintPath>
+            <Private>true</Private>
+        </Reference>
+        <Reference Include="Newtonsoft.Json">
+            <HintPath>$(VINTAGE_STORY)/Lib/Newtonsoft.Json.dll</HintPath>
+            <Private>true</Private>
+        </Reference>
+        <Reference Include="cairo-sharp">
+            <HintPath>$(VINTAGE_STORY)/Lib/cairo-sharp.dll</HintPath>
+            <Private>true</Private>
+        </Reference>
+        <Reference Include="protobuf-net">
+            <HintPath>$(VINTAGE_STORY)/Lib/protobuf-net.dll</HintPath>
+            <Private>true</Private>
+        </Reference>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\VSSiding\VSSiding.csproj" />
+    </ItemGroup>
+
+</Project>
