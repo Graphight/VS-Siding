@@ -1,8 +1,8 @@
 # Layered wall mesh
 
-- Status: Draft
+- Status: Accepted
 - Created: 2026-09-13
-- Reflects: planning session on `prototype-proposals`; decision 0001; VS 1.22.2 API (`BlockEntity.OnTesselation`, `ITesselatorAPI.TesselateShape`); no code yet
+- Reflects: `layered-wall-mesh` branch, commits `88aa297`..`aaf7609`
 
 ## Summary
 One shared wall shape with four named texture slots — `framing`, `infill`, `front`, `back` — tesselated per block entity with a texture source that maps each slot to that wall's chosen material.
@@ -18,21 +18,23 @@ That's the whole trick.
 
 ## Design
 
-**One shape file, `shapes/block/wall.json`, four element groups.**
+**One shape file, `shapes/block/wall/wall.json`, four element groups.**
 Within the 0.25 slab from `wall-shape-and-collision`, from the hugged cell face inward: front finish 1/16, cavity 2/16, back finish 1/16.
-The cavity holds framing *and* infill in the same plane, the way a real stud wall does: studs plus top and bottom plates, with the infill filling the gaps between them.
+The cavity holds framing *and* infill in the same plane, the way a real stud wall does: bottom plate, top plate, and two corner posts (the `framing` group, four elements), with one infill panel filling the gap between them.
 With no finishes, that cavity *is* the wall's surface on both sides — a half-timbered wall.
 Finishes cover it, one face at a time.
-Thicknesses are a first guess to be tuned by eye in game; the framing's stud spacing especially decides whether half-timbering reads right.
+A center stud splitting infill into two panels is a natural follow-up once varied framing patterns matter; not needed for the prototype.
 
 **`SidingWallEntity.OnTesselation` builds or fetches the mesh and adds it to the chunk mesher.**
-Texture source resolves each slot to the `Texture` of that part's dictionary entry.
-Unbuilt parts (`null` key) are skipped by passing only built element groups to the tesselator (`selectiveElements`), so a frame-only wall shows just its frame.
+Texture source (`SidingWallTexSource`) resolves each slot to the `Texture` of that part's dictionary entry, read off `Block.Attributes["Framings"/"Infills"/"Finishes"]`.
+Unbuilt parts (`null` key) are skipped by passing only built element-group names to the tesselator (`selectiveElements`), so a frame-only wall shows just its frame.
+Only the `wall` layout gets this treatment — `cornerout` has no four-layer shape yet, so its entity's `OnTesselation` returns `false` and it keeps rendering through the block's default JSON shape, untouched.
 
-**Cache: `ObjectCacheUtil` keyed by the five values.**
+**Cache: `ObjectCacheUtil` keyed by `(side, Framing, Infill, Front, Back)`.**
 A house of one material combination tesselates once per side, not once per block.
 
-**Rotation from `side`**, applied to the tesselated mesh, same angles as the collision box.
+**Rotation from `side`, passed straight into `TesselateShape`'s `meshRotationDeg`.**
+Same 0/90/180/270 values as `collisionSelectionBoxesbytype`'s `rotateYByType` — no separate rotation call needed once the tesselator does it at build time.
 
 ## Alternatives considered
 - **One shape file per layer, meshes merged.** Works, but each material then needs to agree on geometry across files, and there's no benefit over element groups in one file until layers need genuinely different geometry per material. Switch if that day comes.
@@ -41,8 +43,9 @@ A house of one material combination tesselates once per side, not once per block
 - **Bake every combination as a static block model.** That's the variant explosion again.
 
 ## Consequences & open questions
-- Textures must be in the block texture atlas to be addressable at tesselation time. Vanilla textures are; mod textures added by compat patches may need registering at load. Check what happens with a texture nothing else references.
-- `cornerout` needs its own L-shaped version of `wall.json`, with the layers mitred or overlapped at the corner post. Same slot names, so the texture source doesn't change.
-- The inventory/hand-held rendering of a wall has no block entity to read. Until there's a wall item, the held block can just render frame-only.
+- Textures must be in the block texture atlas to be addressable at tesselation time. Every material's `Texture` is a vanilla `game:` path already in the atlas, so this didn't block the prototype; a mod texture added by a compat patch may need explicit atlas registration at load — unverified, revisit when one exists.
+- `cornerout` needs its own L-shaped version of `wall.json`, with the layers mitred or overlapped at the corner post. Same slot names, so the texture source doesn't change. Until then its entity opts out of custom tesselation entirely (`OnTesselation` returns `false` for that layout) and it keeps the single-texture shape from decision 0002.
+- The inventory/hand-held rendering of a wall has no block entity to read. The shape's own inline `textures` dict gives each of the four slots a default (oak planks), so the default JSON render used for the held/inventory view shows a plausible four-layer wall rather than a missing-texture placeholder — not literally "frame only" as first floated, but the same spirit: a fixed stand-in until there's a wall item.
 - Half-timbering often uses diagonal braces and varied patterns between neighbouring cells. One frame layout per framing material won't cover that; a frame-pattern choice (tool mode, or per-material `Shape`) is a likely follow-up.
 - `NeverCull` from the shape proposal means some overdraw between neighbouring walls. Probably invisible at house scale; measure if a big build stutters.
+- Nothing sets `Framing`/`Infill`/`Front`/`Back` on a placed wall yet (`in-world-build-flow` isn't written), so every wall in the world today tesselates with all four keys `null` — an empty mesh. Expected and harmless, but it means this decision can't be eyeballed in game until that proposal lands or a debug setter exists.
