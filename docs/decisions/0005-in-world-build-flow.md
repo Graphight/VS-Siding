@@ -1,6 +1,6 @@
 # In-world build flow
 
-- Status: Draft
+- Status: Accepted
 - Created: 2026-09-13
 - Reflects: planning session on `prototype-proposals`; `vsroofing_1.7.2` shipped `patches/items.json` and handbook guide text; no code yet
 
