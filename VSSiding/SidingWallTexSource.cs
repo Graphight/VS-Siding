@@ -34,10 +34,13 @@ public class SidingWallTexSource : ITexPositionSource
                 textureCode, entity.Framing, entity.Infill, entity.Front, entity.Back,
                 framings, infills, finishes);
             var atlas = capi.BlockTextureAtlas;
-            // An unresolved key falls back to oak; a resolved path missing from the atlas
-            // (e.g. a mod texture nothing else registered) returns null from the indexer
-            // rather than a usable position - fall back rather than hand the tesselator null.
-            return atlas[new AssetLocation(path ?? "game:block/wood/planks/oak1")] ?? atlas.UnknownTexturePosition;
+            var loc = new AssetLocation(path ?? "game:block/wood/planks/oak1");
+            // The plain indexer only finds textures some other block/item already caused to
+            // be packed into the atlas - most of our material textures aren't declared by
+            // anything else, so they need GetOrInsertTexture to load and pack them on demand.
+            return atlas.GetOrInsertTexture(loc, out _, out TextureAtlasPosition texPos)
+                ? texPos
+                : atlas.UnknownTexturePosition;
         }
     }
 
