@@ -13,7 +13,9 @@ namespace VSSiding;
 // existing HorizontalOrientable behavior does the "hug the player's side" orientation.
 public class PlaceWallFrame : CollectibleBehavior
 {
-    private static readonly AssetLocation SawCode = new("game", "saw");
+    // Saws come in per-metal variants (saw-copper, saw-meteoriciron, ...) - there is no bare
+    // "saw" item, so this has to be a wildcard match, not an exact AssetLocation comparison.
+    private static readonly AssetLocation SawCode = new("game", "saw-*");
 
     private SkillItem[]? toolModes;
 
@@ -47,7 +49,7 @@ public class PlaceWallFrame : CollectibleBehavior
         if (!firstEvent || blockSel == null) return;
 
         AssetLocation? offhandCode = byEntity.LeftHandItemSlot?.Itemstack?.Collectible.Code;
-        if (offhandCode == null || offhandCode != SawCode) return;
+        if (offhandCode == null || !WildcardUtil.Match(SawCode, offhandCode)) return;
 
         IWorldAccessor world = byEntity.World;
         var wallBlock = world.GetBlock(new AssetLocation("vssiding", "wall-wall-west")) as SidingWallBlock;
