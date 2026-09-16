@@ -36,12 +36,15 @@ public class SidingWallEntity : BlockEntity
     // SetString value into "" - normalize back to null so "unbuilt" survives a reload.
     internal static string? NullIfEmpty(string? value) => string.IsNullOrEmpty(value) ? null : value;
 
-    // Only "wall" gets the layered mesh. "cornerout" has no four-layer shape yet
-    // (decision layered-wall-mesh's own open question), so it keeps rendering via the
-    // block's default JSON shape - returning false here leaves that path untouched.
+    // "wall" and "cornerout" each have their own layered shape file (same four element
+    // names - front/framing/infill/back - so selectiveElements works identically on
+    // either). A cornerout wraps both claimed faces (decision 0002's CorneroutSecondFace)
+    // with the SAME Framing/Infill/Front/Back state - one physical L-shaped frame, not two
+    // independent builds - so no per-leg entity fields are needed, just per-leg geometry.
     public override bool OnTesselation(ITerrainMeshPool mesher, ITesselatorAPI tesselator)
     {
-        if (Block.Variant["layout"] != "wall") return false;
+        string layout = Block.Variant["layout"];
+        if (layout != "wall" && layout != "cornerout") return false;
         if (Api is not ICoreClientAPI capi) return false;
 
         // An empty selectiveElements array matches zero shape elements, not "no filter" -
@@ -51,11 +54,11 @@ public class SidingWallEntity : BlockEntity
         if (selectiveElements.Length == 0) return false;
 
         string side = Block.Variant["side"];
-        string cacheKey = CacheKey(side, Framing, Infill, Front, Back);
+        string cacheKey = CacheKey(layout, side, Framing, Infill, Front, Back);
 
         MeshData mesh = ObjectCacheUtil.GetOrCreate(capi, cacheKey, () =>
         {
-            Shape shape = Shape.TryGet(capi, new AssetLocation("vssiding", "shapes/block/wall/wall.json"));
+            Shape shape = Shape.TryGet(capi, new AssetLocation("vssiding", $"shapes/block/wall/{layout}.json"));
             var texSource = new SidingWallTexSource(
                 capi, this, Block.Attributes["Framings"], Block.Attributes["Infills"], Block.Attributes["Finishes"]);
             tesselator.TesselateShape(
@@ -69,8 +72,8 @@ public class SidingWallEntity : BlockEntity
         return true;
     }
 
-    internal static string CacheKey(string side, string? framing, string? infill, string? front, string? back)
-        => $"vssiding-wall-mesh-{side}-{framing}-{infill}-{front}-{back}";
+    internal static string CacheKey(string layout, string side, string? framing, string? infill, string? front, string? back)
+        => $"vssiding-wall-mesh-{layout}-{side}-{framing}-{infill}-{front}-{back}";
 
     // Unbuilt parts (null key) are left out so a frame-only wall shows just its frame.
     internal static string[] SelectiveElements(string? framing, string? infill, string? front, string? back)

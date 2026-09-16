@@ -47,4 +47,13 @@ public class SidingWallEntityTests
     {
         Assert.Equal(expectedDegrees, SidingWallEntity.RotationYDeg(side));
     }
+
+    [Fact]
+    public void CacheKeyDiffersByLayoutForTheSameMaterials()
+    {
+        string wallKey = SidingWallEntity.CacheKey("wall", "west", "oak", "wattle", "daub", "brick");
+        string cornerKey = SidingWallEntity.CacheKey("cornerout", "west", "oak", "wattle", "daub", "brick");
+
+        Assert.NotEqual(wallKey, cornerKey);
+    }
 }
