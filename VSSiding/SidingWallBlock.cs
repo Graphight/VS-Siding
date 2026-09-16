@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using Newtonsoft.Json.Linq;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
 using Vintagestory.API.Datastructures;
@@ -60,11 +59,7 @@ public class SidingWallBlock : Block
             if (infillKey == null) return base.OnBlockInteractStart(world, byPlayer, blockSel);
 
             var consumes = Attributes["Infills"][infillKey]["Consumes"];
-            if (!CanAfford(isCreative, slot.StackSize, consumes))
-            {
-                (byPlayer as IServerPlayer)?.SendIngameError("vssiding:cantafford", Lang.Get("vssiding:build-cant-afford"));
-                return true;
-            }
+            if (!TryAffordOrError(byPlayer, isCreative, slot.StackSize, consumes)) return true;
 
             entity.Infill = infillKey;
             entity.MarkDirty(true);
@@ -91,11 +86,7 @@ public class SidingWallBlock : Block
         }
 
         var finishConsumes = Attributes["Finishes"][finishKey]["Consumes"];
-        if (!CanAfford(isCreative, slot.StackSize, finishConsumes))
-        {
-            (byPlayer as IServerPlayer)?.SendIngameError("vssiding:cantafford", Lang.Get("vssiding:build-cant-afford"));
-            return true;
-        }
+        if (!TryAffordOrError(byPlayer, isCreative, slot.StackSize, finishConsumes)) return true;
 
         if (face == "front") entity.Front = finishKey; else entity.Back = finishKey;
         entity.MarkDirty(true);
@@ -103,7 +94,16 @@ public class SidingWallBlock : Block
         return true;
     }
 
-    private static void ConsumeHeld(ItemSlot slot, JsonObject consumes, bool isCreative)
+    // Shared by both build-flow steps (this class's layering, and PlaceWallFrame's framing)
+    // so the afford-check-and-error path lives in exactly one place.
+    internal static bool TryAffordOrError(IPlayer byPlayer, bool isCreative, int stackSize, JsonObject consumes)
+    {
+        if (CanAfford(isCreative, stackSize, consumes)) return true;
+        (byPlayer as IServerPlayer)?.SendIngameError("vssiding:cantafford", Lang.Get("vssiding:build-cant-afford"));
+        return false;
+    }
+
+    internal static void ConsumeHeld(ItemSlot slot, JsonObject consumes, bool isCreative)
     {
         if (isCreative) return;
         slot.TakeOut(ConsumeQuantity(consumes));
@@ -197,17 +197,18 @@ public class SidingWallBlock : Block
     // build-flow behavior can turn "the player right-clicked with plank-oak" into "oak".
     internal static string? MatchConsumes(AssetLocation heldCode, JsonObject materials)
     {
-        if (materials.Token is not JObject obj) return null;
+        if (!materials.Exists) return null;
 
-        foreach (var property in obj.Properties())
+        foreach (var keyToken in materials)
         {
-            var consumes = materials[property.Name]["Consumes"];
+            string key = keyToken.AsString()!;
+            var consumes = materials[key]["Consumes"];
             if (!consumes.Exists) continue;
 
             string? code = consumes["code"].AsString(null!);
             if (code == null) continue;
 
-            if (WildcardUtil.Match(new AssetLocation(code), heldCode)) return property.Name;
+            if (WildcardUtil.Match(new AssetLocation(code), heldCode)) return key;
         }
 
         return null;

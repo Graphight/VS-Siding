@@ -2,7 +2,6 @@ using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
 using Vintagestory.API.MathTools;
-using Vintagestory.API.Server;
 using Vintagestory.API.Util;
 
 namespace VSSiding;
@@ -58,11 +57,7 @@ public class PlaceWallFrame : CollectibleBehavior
 
         var consumes = wallBlock.Attributes["Framings"][framingKey]["Consumes"];
         bool isCreative = byPlayer.WorldData.CurrentGameMode == EnumGameMode.Creative;
-        if (!SidingWallBlock.CanAfford(isCreative, slot.Itemstack.StackSize, consumes))
-        {
-            (byPlayer as IServerPlayer)?.SendIngameError("vssiding:cantafford", Lang.Get("vssiding:build-cant-afford"));
-            return;
-        }
+        if (!SidingWallBlock.TryAffordOrError(byPlayer, isCreative, slot.Itemstack.StackSize, consumes)) return;
 
         string layout = SidingWallBlock.ResolveLayout(GetToolMode(slot, byPlayer, blockSel));
         var placeholder = world.GetBlock(new AssetLocation("vssiding", $"wall-{layout}-west"));
@@ -88,11 +83,7 @@ public class PlaceWallFrame : CollectibleBehavior
             entity.MarkDirty(true);
         }
 
-        if (!isCreative)
-        {
-            slot.TakeOut(SidingWallBlock.ConsumeQuantity(consumes));
-            slot.MarkDirty();
-        }
+        SidingWallBlock.ConsumeHeld(slot, consumes, isCreative);
 
         handling = EnumHandling.PreventSubsequent;
         handHandling = EnumHandHandling.PreventDefault;
