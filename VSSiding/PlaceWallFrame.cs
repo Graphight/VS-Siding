@@ -64,13 +64,14 @@ public class PlaceWallFrame : CollectibleBehavior
         if (placeholder == null) return;
 
         BlockPos targetPos = blockSel.Position;
-        if (!world.BlockAccessor.GetBlock(targetPos).IsReplacableBy(placeholder))
+        bool didOffset = !world.BlockAccessor.GetBlock(targetPos).IsReplacableBy(placeholder);
+        if (didOffset)
         {
             targetPos = targetPos.AddCopy(blockSel.Face);
         }
         BlockSelection placeSel = blockSel.Clone();
         placeSel.Position = targetPos;
-        placeSel.DidOffset = true;
+        placeSel.DidOffset = didOffset;
 
         string failureCode = "";
         bool placed = placeholder.TryPlaceBlock(world, byPlayer, new ItemStack(placeholder), placeSel, ref failureCode);
