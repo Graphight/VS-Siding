@@ -2,8 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Vintagestory.API.Common;
+using Vintagestory.API.Config;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
+using Vintagestory.API.Server;
+using Vintagestory.API.Util;
 
 [assembly: InternalsVisibleTo("VSSiding.Tests")]
 
@@ -20,6 +23,98 @@ public class SidingWallBlock : Block
         ["east"] = "south",
         ["north"] = "east",
     };
+
+    // Saws come in per-metal variants (saw-copper, saw-meteoriciron, ...) - there is no bare
+    // "saw" item, so this has to be a wildcard match, not an exact AssetLocation comparison.
+    private static readonly AssetLocation SawCode = new("game", "saw-*");
+
+    // Shared "are we in build mode" check for both framing (PlaceWallFrame) and layering
+    // (below). A plain right-click, not shift - see decision 0006 for why shift was dropped.
+    internal static bool HasSawInOffhand(IPlayer byPlayer)
+    {
+        AssetLocation? offhandCode = byPlayer.InventoryManager.OffhandHotbarSlot?.Itemstack?.Collectible.Code;
+        return offhandCode != null && WildcardUtil.Match(SawCode, offhandCode);
+    }
+
+    // A saw in the off hand layers infill onto a framed wall, then finishes onto a filled
+    // one - which face was clicked picks Front vs Back. Returns true for every handled
+    // branch (including the wrong-face error) so vanilla's "place block against" fallthrough
+    // doesn't also fire. Plain right-click, not shift - see decision 0006.
+    public override bool OnBlockInteractStart(IWorldAccessor world, IPlayer byPlayer, BlockSelection blockSel)
+    {
+        if (!HasSawInOffhand(byPlayer)) return base.OnBlockInteractStart(world, byPlayer, blockSel);
+
+        ItemSlot slot = byPlayer.InventoryManager.ActiveHotbarSlot;
+        AssetLocation? heldCode = slot.Itemstack?.Collectible.Code;
+        if (heldCode == null) return base.OnBlockInteractStart(world, byPlayer, blockSel);
+
+        var entity = world.BlockAccessor.GetBlockEntity<SidingWallEntity>(blockSel.Position);
+        if (entity == null || entity.Framing == null) return base.OnBlockInteractStart(world, byPlayer, blockSel);
+
+        bool isCreative = byPlayer.WorldData.CurrentGameMode == EnumGameMode.Creative;
+
+        if (entity.Infill == null)
+        {
+            string? infillKey = MatchConsumes(heldCode, Attributes["Infills"]);
+            if (infillKey == null) return base.OnBlockInteractStart(world, byPlayer, blockSel);
+
+            var consumes = Attributes["Infills"][infillKey]["Consumes"];
+            if (!TryAffordOrError(byPlayer, isCreative, slot.StackSize, consumes)) return true;
+
+            entity.Infill = infillKey;
+            entity.MarkDirty(true);
+            ConsumeHeld(slot, consumes, isCreative);
+            return true;
+        }
+
+        string? finishKey = MatchConsumes(heldCode, Attributes["Finishes"]);
+        if (finishKey == null) return base.OnBlockInteractStart(world, byPlayer, blockSel);
+
+        string side = Variant["side"];
+        string? face = ResolveFinishFace(side, blockSel.Face);
+        if (face == null)
+        {
+            (byPlayer as IServerPlayer)?.SendIngameError("vssiding:wrongface", Lang.Get("vssiding:build-wrong-face"));
+            return true;
+        }
+
+        bool alreadyFinished = face == "front" ? entity.Front != null : entity.Back != null;
+        if (alreadyFinished)
+        {
+            (byPlayer as IServerPlayer)?.SendIngameError("vssiding:alreadyfinished", Lang.Get("vssiding:build-already-finished"));
+            return true;
+        }
+
+        var finishConsumes = Attributes["Finishes"][finishKey]["Consumes"];
+        if (!TryAffordOrError(byPlayer, isCreative, slot.StackSize, finishConsumes)) return true;
+
+        if (face == "front") entity.Front = finishKey; else entity.Back = finishKey;
+        entity.MarkDirty(true);
+        ConsumeHeld(slot, finishConsumes, isCreative);
+        return true;
+    }
+
+    // Shared by both build-flow steps (this class's layering, and PlaceWallFrame's framing)
+    // so the afford-check-and-error path lives in exactly one place.
+    internal static bool TryAffordOrError(IPlayer byPlayer, bool isCreative, int stackSize, JsonObject consumes)
+    {
+        if (CanAfford(isCreative, stackSize, consumes)) return true;
+        (byPlayer as IServerPlayer)?.SendIngameError("vssiding:cantafford", Lang.Get("vssiding:build-cant-afford"));
+        return false;
+    }
+
+    internal static void ConsumeHeld(ItemSlot slot, JsonObject consumes, bool isCreative)
+    {
+        if (isCreative) return;
+        slot.TakeOut(ConsumeQuantity(consumes));
+        slot.MarkDirty();
+    }
+
+    // A held stack too small to pay Consumes.quantity must not place/build - ItemSlot.TakeOut
+    // silently takes whatever is available rather than failing, so the caller has to check first.
+    // Creative players aren't charged at all.
+    internal static bool CanAfford(bool isCreative, int stackSize, JsonObject consumes)
+        => isCreative || stackSize >= ConsumeQuantity(consumes);
 
     public override int GetRetention(BlockPos pos, BlockFacing facing, EnumRetentionType type)
     {
@@ -96,5 +191,41 @@ public class SidingWallBlock : Block
         {
             if (drop.Code != null) drops.Add(drop);
         }
+    }
+
+    // Finds the material dictionary entry whose Consumes.code matches the held item, so a
+    // build-flow behavior can turn "the player right-clicked with plank-oak" into "oak".
+    internal static string? MatchConsumes(AssetLocation heldCode, JsonObject materials)
+    {
+        if (!materials.Exists) return null;
+
+        foreach (var keyToken in materials)
+        {
+            string key = keyToken.AsString()!;
+            var consumes = materials[key]["Consumes"];
+            if (!consumes.Exists) continue;
+
+            string? code = consumes["code"].AsString(null!);
+            if (code == null) continue;
+
+            if (WildcardUtil.Match(new AssetLocation(code), heldCode)) return key;
+        }
+
+        return null;
+    }
+
+    internal static int ConsumeQuantity(JsonObject consumes) => consumes["quantity"].AsInt(1);
+
+    // Tool mode 0 is "wall", 1 is "corner" - see decision 0005. Anything else falls back
+    // to "wall" rather than throwing on a stale/out-of-range stored mode.
+    internal static string ResolveLayout(int toolMode) => toolMode == 1 ? "cornerout" : "wall";
+
+    // Which finish layer a build-flow click's clicked face targets - the hugged side is
+    // "front", the opposite side is "back", an end/top/bottom face is neither.
+    internal static string? ResolveFinishFace(string side, BlockFacing clickedFace)
+    {
+        if (clickedFace.Code == side) return "front";
+        if (clickedFace == BlockFacing.FromCode(side).Opposite) return "back";
+        return null;
     }
 }
