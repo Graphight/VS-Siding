@@ -1,8 +1,8 @@
 # Framing-only collision
 
-- Status: Draft
+- Status: Accepted
 - Created: 2026-09-16
-- Reflects: planning session on `docs/plan-later-proposals`, reading `SidingWallBlock` and `shapes/block/wall/wall.json` as of 71c1d9c
+- Reflects: planning session on `docs/plan-later-proposals`, reading `SidingWallBlock` and `shapes/block/wall/wall.json` as of 71c1d9c; graduated on branch `framing-only-collision`; supersedes decision 0002's "no per-block-entity collision code" line
 
 ## Summary
 A stack of framed walls draws its plates only at the top and bottom of the stack, like a real stud wall, and a wall with framing but no infill collides only on its posts.
@@ -27,10 +27,15 @@ Doing the same fixes the look and the walk-through together.
 
 ## Design
 
-**Plates are split out of the `framing` element group into `framing-top` and `framing-bottom`**, in `wall.json` and `cornerout.json`.
-The posts stay `framing`.
+**Posts run the full cell height; plates are split out of the `framing` element group and shortened to run between the posts.**
+`wall.json`'s posts run y 1..15 today, between the plates.
+Skipping the plates at a join would leave a 2-voxel gap in every post, the same slit problem the infill fix below solves for infill.
+So posts become full height (y 0..16), and plates become their own `framing-top`/`framing-bottom` elements, shortened to run between the posts: `wall`'s plate runs z 1..15; `cornerout`'s two legs run leg1 z 3..15, leg2 x 3..15.
+No post extension elements are needed, since the posts are already full height; only `infill-top`/`infill-bottom` are added, below.
+Post collision boxes (see `GetCollisionBoxes` below) are full height to match.
 
 **A plate is drawn only when the cell on that side doesn't continue the frame.**
+"Continues" means any non-null `Framing`, not a material match: mixed-wood stacks are still one wall.
 The top plate is skipped when the block above is a siding wall with the same `layout` and `side` and non-null `Framing`; the bottom plate likewise for the block below.
 So a single-high frame keeps both plates, a two-high stack has a bottom plate at y=0 and a top plate at y=2 with nothing between, and the wall above a doorway gets a bottom plate that reads as a lintel.
 `SelectiveElements` gains `continuesAbove` and `continuesBelow` inputs; `CacheKey` gains the same two bools.
@@ -52,10 +57,13 @@ Plates never collide: the bottom plate is a 1-voxel step the player walks over, 
 **Selection boxes don't change.**
 The player has to be able to click the frame to add infill.
 
-**Adding infill refuses if any entity overlaps the full slab box**, with an ingame error (`vssiding:build-occupied`), so nobody gets a wall built around them.
+**Adding infill refuses if any entity overlaps the full slab box**, with an ingame error using the `vssiding:build-occupied` lang string, so nobody gets a wall built around them.
 
 **Retention is untouched.**
 No infill already means `GetRetention` returns 0 (decision 0003), so scan and collision agree the frame is open.
+
+**A missing block entity falls back to the full JSON collision boxes.**
+`GetCollisionBoxes` only returns posts when it has an entity to read `Framing`/`Infill` from; no entity means no confidence the frame is open, so it collides as a solid cell.
 
 ## Alternatives considered
 - **Posts-only collision, plates drawn in every cell.** The first draft of this proposal. Players walk through a visible beam at head height.
@@ -64,10 +72,8 @@ No infill already means `GetRetention` returns 0 (decision 0003), so scan and co
 - **A `built` variant axis so collision stays static JSON.** Encodes entity state in the block ID, which decision 0001 exists to avoid.
 
 ## Consequences & open questions
-- Supersedes decision 0002's "no per-block-entity collision code" line; graduation should say so.
+- Supersedes decision 0002's "no per-block-entity collision code" line.
 - First neighbour-dependent mesh in the mod. It's only vertical and only reads the two cells above and below, but it's the pattern auto-connecting corners would also need, so get the dirty-marking right here.
 - A three-high stack is walkable too; one-high never is. That's just player height.
-- Does `GetCollisionBoxes` get called client-side before the entity has synced? A missing entity must fall back to the full boxes, never posts.
-- Does "continues" need to match material too, or just any framing? Proposed: any framing, since mixed-wood stacks should still be one wall.
 - An unglazed `window-frames` window is framing-only, so it becomes walk-through. Plausibly right for a hole; check in playtest.
 - Tests: `SelectiveElements` including a filled two-high stack (plates skipped, infill extensions selected), and a pure `ComputeCollisionBoxes(layout, side, framing, infill)`, asserted against whole expected arrays.
