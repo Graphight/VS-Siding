@@ -14,6 +14,7 @@ Build order — each one should be demoable in game before the next starts.
 - [`cornerout-second-front`](cornerout-second-front.md) — independent front finish per corner leg, so a T-junction doesn't brick the room next door.
 - [`material-families`](material-families.md) — template entries that expand per wood type; framing and plank finishes for every wood.
 - [`masonry-finishes`](masonry-finishes.md) — drystone, cobblestone, ashlar, and polished stone faces per rock type, via material families.
+- [`clay-and-brick-finishes`](clay-and-brick-finishes.md) — every brick colour and clay daub; first solves the see-through brick textures.
 - [`shake-finish`](shake-finish.md) — logs as overlapping shake courses on the front face, per wood.
 - [`window-frames`](window-frames.md) — a `window` frame mode glazed with a glass infill; doors need nothing (vanilla seals them).
 
