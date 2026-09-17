@@ -34,7 +34,10 @@ The posts stay `framing`.
 The top plate is skipped when the block above is a siding wall with the same `layout` and `side` and non-null `Framing`; the bottom plate likewise for the block below.
 So a single-high frame keeps both plates, a two-high stack has a bottom plate at y=0 and a top plate at y=2 with nothing between, and the wall above a doorway gets a bottom plate that reads as a lintel.
 `SelectiveElements` gains `continuesAbove` and `continuesBelow` inputs; `CacheKey` gains the same two bools.
-Infill and finishes are unchanged: they already cover the full cell height.
+Finishes are unchanged: the face slabs already span the full cell height.
+Infill doesn't: the `infill` element runs y 1..15, between the plates, so skipping the plates at a join would leave a 2-voxel see-through slit in a filled, unfinished stack.
+So `infill` gains two extension elements, `infill-top` (y 15..16) and `infill-bottom` (y 0..1), selected when infill is built and the same `continuesAbove`/`continuesBelow` input is true.
+A filled two-high stack then shows one unbroken panel from y 1 to y 31.
 
 **Neighbour changes re-tesselate.**
 `SidingWallBlock.OnNeighbourBlockChange` marks the entity dirty (`MarkDirty(true)`) when the changed position is directly above or below.
@@ -67,4 +70,4 @@ No infill already means `GetRetention` returns 0 (decision 0003), so scan and co
 - Does `GetCollisionBoxes` get called client-side before the entity has synced? A missing entity must fall back to the full boxes, never posts.
 - Does "continues" need to match material too, or just any framing? Proposed: any framing, since mixed-wood stacks should still be one wall.
 - An unglazed `window-frames` window is framing-only, so it becomes walk-through. Plausibly right for a hole; check in playtest.
-- Tests: `SelectiveElements` and a pure `ComputeCollisionBoxes(layout, side, framing, infill)`, asserted against whole expected arrays.
+- Tests: `SelectiveElements` including a filled two-high stack (plates skipped, infill extensions selected), and a pure `ComputeCollisionBoxes(layout, side, framing, infill)`, asserted against whole expected arrays.
