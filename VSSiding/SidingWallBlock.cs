@@ -184,7 +184,12 @@ public class SidingWallBlock : Block
             return true;
         }
 
-        bool alreadyFinished = face == "front" ? entity.Front != null : entity.Back != null;
+        bool alreadyFinished = face switch
+        {
+            "front" => entity.Front != null,
+            "secondfront" => entity.SecondFront != null,
+            _ => entity.Back != null
+        };
         if (alreadyFinished)
         {
             if (heldIsFraming) return base.OnBlockInteractStart(world, byPlayer, blockSel);
@@ -195,7 +200,12 @@ public class SidingWallBlock : Block
         var finishConsumes = Attributes["Finishes"][finishKey]["Consumes"];
         if (!TryAffordOrError(byPlayer, isCreative, slot.StackSize, finishConsumes)) return true;
 
-        if (face == "front") entity.Front = finishKey; else entity.Back = finishKey;
+        switch (face)
+        {
+            case "front": entity.Front = finishKey; break;
+            case "secondfront": entity.SecondFront = finishKey; break;
+            default: entity.Back = finishKey; break;
+        }
         entity.MarkDirty(true);
         ConsumeHeld(slot, finishConsumes, isCreative);
         return true;
@@ -355,16 +365,17 @@ public class SidingWallBlock : Block
 
     // Which finish layer a build-flow click's clicked face targets - the hugged side is
     // "front", the opposite side is "back", an end/top/bottom face is neither. A cornerout's
-    // second leg shares the same Front/Back, so its outer and inner faces count too.
+    // second leg has its own hugged-side layer, "secondfront", but still shares "back" with
+    // the first leg.
     internal static string? ResolveFinishFace(string layout, string side, BlockFacing clickedFace)
     {
-        if (FinishFaceFor(side, clickedFace) is string face) return face;
-        return layout == "cornerout" ? FinishFaceFor(CorneroutSecondFace[side], clickedFace) : null;
+        if (FinishFaceFor(side, clickedFace, "front") is string face) return face;
+        return layout == "cornerout" ? FinishFaceFor(CorneroutSecondFace[side], clickedFace, "secondfront") : null;
     }
 
-    private static string? FinishFaceFor(string side, BlockFacing clickedFace)
+    private static string? FinishFaceFor(string side, BlockFacing clickedFace, string frontLayer)
     {
-        if (clickedFace.Code == side) return "front";
+        if (clickedFace.Code == side) return frontLayer;
         if (clickedFace == BlockFacing.FromCode(side).Opposite) return "back";
         return null;
     }
