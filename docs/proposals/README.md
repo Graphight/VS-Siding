@@ -8,7 +8,7 @@ An idea that's been thought through but not acted on. Mutable — edit freely, a
 
 ## Open
 
-Build order to a playable prototype — each one should be demoable in game before the next starts.
+Build order — each one should be demoable in game before the next starts.
 
 - [`framing-only-collision`](framing-only-collision.md) — walk between the studs of a wall with no infill yet.
 - [`cornerout-second-front`](cornerout-second-front.md) — independent front finish per corner leg, so a T-junction doesn't brick the room next door.
@@ -17,8 +17,9 @@ Build order to a playable prototype — each one should be demoable in game befo
 - [`shake-finish`](shake-finish.md) — logs as overlapping shake courses on the front face, per wood.
 - [`window-frames`](window-frames.md) — a `window` frame mode glazed with a glass infill; doors need nothing (vanilla seals them).
 
-## Later (not yet written up)
+## Parked
 
-- `multiple-walls-per-cell` — both faces or a corner in one cell.
-- `furniture-against-thin-walls` — placement is gated by cell occupancy (`Block.Replaceable`), not collision geometry, so nothing can go in the empty 3/4 of a wall's cell even though there's visibly room. Vanilla's `Decor` system doesn't cover it (thin/flat only, not a full `BlockEntity` like a cooking pot); the real fix is probably chisel-style voxel merging into one block entity, not true two-block coexistence.
-- `expand-material-catalogue` — only `oak` framing exists (decision 0003's starter set); any other plank wood type (`plank-aged`, `plank-birch`, ...) silently doesn't match and frame placement no-ops. Same starter-set gap applies to `Infills`/`Finishes`. Two directions worth weighing when this gets picked up: hand-author a `Framings`/`Infills`/`Finishes` entry per wood type/material (more entries, but each gets its own texture and stays simple to reason about), or find a programmatic way to derive entries from installed items/blocks (e.g. every `plank-*` wood variant, every `Block.Attributes.woodType` sibling) so third-party mods' own wood types are picked up automatically without a JSON entry per mod. The second is more powerful but needs a real design — what does a "material" even mean generically enough to auto-derive a texture and drop stack from an arbitrary item.
+Thought through and deliberately not planned; the reason is what would have to change to revive it.
+
+- `multiple-walls-per-cell` — a `cornerout` already covers any two adjacent faces of a cell, which is every L corner and every T-junction. What's left is two walls on *opposite* faces of one cell, 0.75 apart, which no ordinary building needs, and the inside-corner notch, which decision 0002 already calls cosmetic. Revive if players show a real build that needs it.
+- `furniture-against-thin-walls` — placement is gated by cell occupancy, so nothing goes in the empty 3/4 of a wall's cell. But a wall built from inside the room hugs the room-side face: furniture in the next cell sits flush against it, and the wall's own cell falls outside the room. The only real loss is one side of an interior partition. The fix (chisel-style voxel merging of a wall and another block into one entity) is far bigger than that loss. Revive if the partition case turns out to matter in play, and say so in the handbook page meanwhile.
