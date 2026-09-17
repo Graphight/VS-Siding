@@ -19,8 +19,12 @@ Players usually find out a wall needs to be a corner when the partition reaches 
 ## Design
 
 **Where: `SidingWallBlock.OnBlockInteractStart`, in the existing `Infill == null` branch, before the infill match.**
-Conditions: saw in off hand (decision 0006), held item matches a `Framings` entry, the held stack's tool mode resolves to `cornerout` (`ResolveLayout`), this block's `layout` is `wall`, and `Framing != null`.
+Conditions: saw in off hand (decision 0006), held item matches a `Framings` entry, the held stack's tool mode resolves to `cornerout` (`ResolveLayout`), this block's `layout` is `wall`, `Framing != null`, and the click landed on the wall's front or back face (`ResolveFinishFace` returns non-null).
 Anything else falls through exactly as today.
+
+**End, top, and bottom faces keep placing a new corner next door.**
+Today a corner-mode click on a frame's end face falls through to `PlaceWallFrame`, which puts a `cornerout` in the neighbouring cell; that's how a corner goes on the end of a run, and the frame it's placed against is nearly always bare.
+The upgrade only claims front and back clicks, which today place a corner in the cell in front of the wall, rarely what anyone wants.
 
 **Frames only.**
 A `cornerout`'s legs share `Framing`, `Infill`, and `Back` (decision 0007, `cornerout-second-front`).
@@ -53,6 +57,7 @@ A frame has no infill, so neither face is claimed until it's filled (decision 00
 
 ## Consequences & open questions
 - `framing-only-collision` skips plates when the block above or below has the same `layout` and `side`. A corner upgraded in the middle of a wall stack would bring its plates back at both joins. That rule probably wants "the neighbour covers this wall's face", which a `cornerout` over a `wall` does; settle it in whichever of the two ships second.
+- Front and back clicks in corner mode stop placing a corner in the cell in front of the wall. To do that deliberately, click the ground there instead.
 - `window-frames`' `window` layout can't be upgraded; only `wall` can.
 - Downgrading a corner back to a wall isn't planned. Break and re-place; ask again if it turns out to be common.
 - The same "build from the room side needs no T-junction corner" note belongs in the handbook page, so players don't need this at all for most builds.
