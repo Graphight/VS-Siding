@@ -284,7 +284,7 @@ public class SidingWallBlock : Block
     {
         var entity = world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos);
         var drops = ComputeDrops(
-            entity?.Framing, entity?.Infill, entity?.Front, entity?.Back,
+            entity?.Framing, entity?.Infill, entity?.Front, entity?.SecondFront, entity?.Back,
             Attributes["Framings"], Attributes["Infills"], Attributes["Finishes"]);
 
         // Nothing built yet - fall back to the base drops so HorizontalOrientable still
@@ -302,13 +302,14 @@ public class SidingWallBlock : Block
     }
 
     internal static List<BlockDropItemStack> ComputeDrops(
-        string? framing, string? infill, string? front, string? back,
+        string? framing, string? infill, string? front, string? secondFront, string? back,
         JsonObject framings, JsonObject infills, JsonObject finishes)
     {
         var drops = new List<BlockDropItemStack>();
         AddDrops(drops, framing, framings);
         AddDrops(drops, infill, infills);
         AddDrops(drops, front, finishes);
+        AddDrops(drops, secondFront, finishes);
         AddDrops(drops, back, finishes);
         return drops;
     }

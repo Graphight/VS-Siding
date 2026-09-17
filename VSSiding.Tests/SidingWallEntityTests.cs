@@ -106,9 +106,18 @@ public class SidingWallEntityTests
     [Fact]
     public void CacheKeyDiffersByLayoutForTheSameMaterials()
     {
-        string wallKey = SidingWallEntity.CacheKey("wall", "west", "oak", "wattle", "daub", "brick", false, false);
-        string cornerKey = SidingWallEntity.CacheKey("cornerout", "west", "oak", "wattle", "daub", "brick", false, false);
+        string wallKey = SidingWallEntity.CacheKey("wall", "west", "oak", "wattle", "daub", "planks", "brick", false, false);
+        string cornerKey = SidingWallEntity.CacheKey("cornerout", "west", "oak", "wattle", "daub", "planks", "brick", false, false);
 
         Assert.NotEqual(wallKey, cornerKey);
+    }
+
+    [Fact]
+    public void CacheKeyDiffersBySecondFront()
+    {
+        string withPlanks = SidingWallEntity.CacheKey("cornerout", "west", "oak", "wattle", "daub", "planks", "brick", false, false);
+        string withoutSecondFront = SidingWallEntity.CacheKey("cornerout", "west", "oak", "wattle", "daub", null, "brick", false, false);
+
+        Assert.NotEqual(withPlanks, withoutSecondFront);
     }
 }

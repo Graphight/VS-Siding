@@ -31,7 +31,7 @@ public class SidingWallTexSource : ITexPositionSource
         get
         {
             string? path = ResolveTexturePath(
-                textureCode, entity.Framing, entity.Infill, entity.Front, entity.Back,
+                textureCode, entity.Framing, entity.Infill, entity.Front, entity.SecondFront, entity.Back,
                 framings, infills, finishes);
             var atlas = capi.BlockTextureAtlas;
             var loc = new AssetLocation(path ?? "game:block/wood/planks/oak1");
@@ -48,7 +48,7 @@ public class SidingWallTexSource : ITexPositionSource
     // null - callers only reach here for selectiveElements actually being tesselated, so
     // this is a defensive fallback, not the expected path.
     internal static string? ResolveTexturePath(
-        string slotCode, string? framing, string? infill, string? front, string? back,
+        string slotCode, string? framing, string? infill, string? front, string? secondFront, string? back,
         JsonObject framings, JsonObject infills, JsonObject finishes)
     {
         (string? key, JsonObject dictionary) = slotCode switch
@@ -56,6 +56,7 @@ public class SidingWallTexSource : ITexPositionSource
             "framing" => (framing, framings),
             "infill" => (infill, infills),
             "front" => (front, finishes),
+            "secondfront" => (secondFront, finishes),
             "back" => (back, finishes),
             _ => (null, finishes),
         };

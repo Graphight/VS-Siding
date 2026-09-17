@@ -19,6 +19,7 @@ public class SidingWallTexSourceTests
     private static readonly JsonObject Finishes = Dict("""
     {
         "daub": { "Texture": "game:block/clay/daub/browngolden/normal1" },
+        "planks": { "Texture": "game:block/wood/planks/aged1" },
         "brick": { "Texture": "game:block/clay/brick/four/running/red1" }
     }
     """);
@@ -26,14 +27,14 @@ public class SidingWallTexSourceTests
     [Fact]
     public void UnbuiltSlotResolvesToNull()
     {
-        string? path = SidingWallTexSource.ResolveTexturePath("framing", null, null, null, null, Framings, Infills, Finishes);
+        string? path = SidingWallTexSource.ResolveTexturePath("framing", null, null, null, null, null, Framings, Infills, Finishes);
         Assert.Null(path);
     }
 
     [Fact]
     public void UnknownKeyResolvesToNull()
     {
-        string? path = SidingWallTexSource.ResolveTexturePath("infill", null, "uninstalled", null, null, Framings, Infills, Finishes);
+        string? path = SidingWallTexSource.ResolveTexturePath("infill", null, "uninstalled", null, null, null, Framings, Infills, Finishes);
         Assert.Null(path);
     }
 
@@ -41,12 +42,14 @@ public class SidingWallTexSourceTests
     public void EachSlotResolvesFromItsOwnDictionary()
     {
         Assert.Equal("game:block/wood/planks/oak1",
-            SidingWallTexSource.ResolveTexturePath("framing", "oak", "wattle", "daub", "brick", Framings, Infills, Finishes));
+            SidingWallTexSource.ResolveTexturePath("framing", "oak", "wattle", "daub", "planks", "brick", Framings, Infills, Finishes));
         Assert.Equal("game:block/wood/wattle",
-            SidingWallTexSource.ResolveTexturePath("infill", "oak", "wattle", "daub", "brick", Framings, Infills, Finishes));
+            SidingWallTexSource.ResolveTexturePath("infill", "oak", "wattle", "daub", "planks", "brick", Framings, Infills, Finishes));
         Assert.Equal("game:block/clay/daub/browngolden/normal1",
-            SidingWallTexSource.ResolveTexturePath("front", "oak", "wattle", "daub", "brick", Framings, Infills, Finishes));
+            SidingWallTexSource.ResolveTexturePath("front", "oak", "wattle", "daub", "planks", "brick", Framings, Infills, Finishes));
+        Assert.Equal("game:block/wood/planks/aged1",
+            SidingWallTexSource.ResolveTexturePath("secondfront", "oak", "wattle", "daub", "planks", "brick", Framings, Infills, Finishes));
         Assert.Equal("game:block/clay/brick/four/running/red1",
-            SidingWallTexSource.ResolveTexturePath("back", "oak", "wattle", "daub", "brick", Framings, Infills, Finishes));
+            SidingWallTexSource.ResolveTexturePath("back", "oak", "wattle", "daub", "planks", "brick", Framings, Infills, Finishes));
     }
 }

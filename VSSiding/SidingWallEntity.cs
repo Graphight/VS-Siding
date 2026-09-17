@@ -12,6 +12,7 @@ public class SidingWallEntity : BlockEntity
     public string? Framing;
     public string? Infill;
     public string? Front;
+    public string? SecondFront;
     public string? Back;
 
     public override void ToTreeAttributes(ITreeAttribute tree)
@@ -20,6 +21,7 @@ public class SidingWallEntity : BlockEntity
         tree.SetString("framing", Framing);
         tree.SetString("infill", Infill);
         tree.SetString("front", Front);
+        tree.SetString("secondfront", SecondFront);
         tree.SetString("back", Back);
     }
 
@@ -29,6 +31,7 @@ public class SidingWallEntity : BlockEntity
         Framing = NullIfEmpty(tree.GetString("framing", null));
         Infill = NullIfEmpty(tree.GetString("infill", null));
         Front = NullIfEmpty(tree.GetString("front", null));
+        SecondFront = NullIfEmpty(tree.GetString("secondfront", null));
         Back = NullIfEmpty(tree.GetString("back", null));
     }
 
@@ -56,7 +59,7 @@ public class SidingWallEntity : BlockEntity
         if (selectiveElements.Length == 0) return false;
 
         string side = Block.Variant["side"];
-        string cacheKey = CacheKey(layout, side, Framing, Infill, Front, Back, continuesAbove, continuesBelow);
+        string cacheKey = CacheKey(layout, side, Framing, Infill, Front, SecondFront, Back, continuesAbove, continuesBelow);
 
         MeshData mesh = ObjectCacheUtil.GetOrCreate(capi, cacheKey, () =>
         {
@@ -75,9 +78,9 @@ public class SidingWallEntity : BlockEntity
     }
 
     internal static string CacheKey(
-        string layout, string side, string? framing, string? infill, string? front, string? back,
+        string layout, string side, string? framing, string? infill, string? front, string? secondFront, string? back,
         bool continuesAbove, bool continuesBelow)
-        => $"vssiding-wall-mesh-{layout}-{side}-{framing}-{infill}-{front}-{back}-{continuesAbove}-{continuesBelow}";
+        => $"vssiding-wall-mesh-{layout}-{side}-{framing}-{infill}-{front}-{secondFront}-{back}-{continuesAbove}-{continuesBelow}";
 
     // Unbuilt parts (null key) are left out so a frame-only wall shows just its frame.
     // A finish can name its own element per face (decision 0007) instead of the plain slab.
