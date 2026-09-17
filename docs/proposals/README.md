@@ -10,8 +10,6 @@ An idea that's been thought through but not acted on. Mutable — edit freely, a
 
 Build order to a playable prototype — each one should be demoable in game before the next starts.
 
-- `plank-finishes` — overlapping weatherboard fronts, vertical board backs, per-face finish geometry; fixes the see-through brick finish.
-
 ## Later (not yet written up)
 
 - `window-and-door-frames` — framed openings as extra frame-type tool modes, like Roofing's eaves and ridges. A closed solid door and a glazed window seal the room; an open door, an unglazed window, or a non-solid door (e.g. a gate) don't.

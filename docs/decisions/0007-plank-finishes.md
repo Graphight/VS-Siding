@@ -1,6 +1,6 @@
 # Plank finishes
 
-- Status: Draft
+- Status: Accepted
 - Created: 2026-09-16
 - Reflects: in-game playtest of the build flow merged in #7 (83d94a9)
 
