@@ -72,8 +72,11 @@ public class SidingWallBlock : Block
 
         string side = Variant["side"];
         string? face = ResolveFinishFace(side, blockSel.Face);
+        // Planks that can't finish this face still extend the wall via PlaceWallFrame.
+        bool heldIsFraming = MatchConsumes(heldCode, Attributes["Framings"]) != null;
         if (face == null)
         {
+            if (heldIsFraming) return base.OnBlockInteractStart(world, byPlayer, blockSel);
             (byPlayer as IServerPlayer)?.SendIngameError("vssiding:wrongface", Lang.Get("vssiding:build-wrong-face"));
             return true;
         }
@@ -81,6 +84,7 @@ public class SidingWallBlock : Block
         bool alreadyFinished = face == "front" ? entity.Front != null : entity.Back != null;
         if (alreadyFinished)
         {
+            if (heldIsFraming) return base.OnBlockInteractStart(world, byPlayer, blockSel);
             (byPlayer as IServerPlayer)?.SendIngameError("vssiding:alreadyfinished", Lang.Get("vssiding:build-already-finished"));
             return true;
         }
