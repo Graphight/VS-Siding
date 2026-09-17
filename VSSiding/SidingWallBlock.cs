@@ -28,6 +28,57 @@ public class SidingWallBlock : Block
     // "saw" item, so this has to be a wildcard match, not an exact AssetLocation comparison.
     private static readonly AssetLocation SawCode = new("game", "saw-*");
 
+    // Unrotated ("west", full height) post boxes per layout, matching the full-height framing
+    // elements in wall.json/cornerout.json. Rotated per side into PostBoxes below.
+    private static readonly Dictionary<string, Cuboidf[]> UnrotatedPostBoxes = new()
+    {
+        ["wall"] = new[]
+        {
+            new Cuboidf(1f / 16, 0, 0, 3f / 16, 1, 1f / 16),
+            new Cuboidf(1f / 16, 0, 15f / 16, 3f / 16, 1, 1),
+        },
+        ["cornerout"] = new[]
+        {
+            new Cuboidf(1f / 16, 0, 1f / 16, 3f / 16, 1, 3f / 16),
+            new Cuboidf(1f / 16, 0, 15f / 16, 3f / 16, 1, 1),
+            new Cuboidf(15f / 16, 0, 1f / 16, 1, 1, 3f / 16),
+        },
+    };
+
+    // Built once up front so collision calls from client and server threads only ever read it.
+    private static readonly Dictionary<(string layout, string side), Cuboidf[]> PostBoxes = BuildPostBoxes();
+
+    private static Dictionary<(string layout, string side), Cuboidf[]> BuildPostBoxes()
+    {
+        var origin = new Vec3d(0.5, 0.5, 0.5);
+        var boxes = new Dictionary<(string layout, string side), Cuboidf[]>();
+        foreach (var (layout, unrotated) in UnrotatedPostBoxes)
+        {
+            foreach (string side in CorneroutSecondFace.Keys)
+            {
+                float rotationYDeg = SidingWallEntity.RotationYDeg(side);
+                boxes[(layout, side)] = Array.ConvertAll(unrotated, box => box.RotatedCopy(0, rotationYDeg, 0, origin));
+            }
+        }
+        return boxes;
+    }
+
+    // A frame with framing but no infill is walk-through between its posts (decision 0008).
+    internal static Cuboidf[] ComputeCollisionBoxes(string layout, string side, string? framing, string? infill, Cuboidf[] fullBoxes)
+        => framing != null && infill == null ? PostBoxes[(layout, side)] : fullBoxes;
+
+    public override Cuboidf[] GetCollisionBoxes(IBlockAccessor blockAccessor, BlockPos pos)
+    {
+        var entity = blockAccessor.GetBlockEntity<SidingWallEntity>(pos);
+        return ComputeCollisionBoxes(Variant["layout"], Variant["side"], entity?.Framing, entity?.Infill, base.GetCollisionBoxes(blockAccessor, pos));
+    }
+
+    public override Cuboidf[] GetParticleCollisionBoxes(IBlockAccessor blockAccessor, BlockPos pos)
+    {
+        var entity = blockAccessor.GetBlockEntity<SidingWallEntity>(pos);
+        return ComputeCollisionBoxes(Variant["layout"], Variant["side"], entity?.Framing, entity?.Infill, base.GetParticleCollisionBoxes(blockAccessor, pos));
+    }
+
     // Shared "are we in build mode" check for both framing (PlaceWallFrame) and layering
     // (below). A plain right-click, not shift - see decision 0006 for why shift was dropped.
     internal static bool HasSawInOffhand(IPlayer byPlayer)
