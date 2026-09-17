@@ -17,6 +17,7 @@ Build order — each one should be demoable in game before the next starts.
 - [`clay-and-brick-finishes`](clay-and-brick-finishes.md) — every brick colour and clay daub; first solves the see-through brick textures.
 - [`shake-finish`](shake-finish.md) — logs as overlapping shake courses on the front face, per wood.
 - [`window-frames`](window-frames.md) — a `window` frame mode glazed with a glass infill; doors need nothing (vanilla seals them).
+- [`upgrade-frame-to-corner`](upgrade-frame-to-corner.md) — corner tool mode on an existing frame turns it into a `cornerout` in place, for T-junctions found late.
 
 ## Parked
 
