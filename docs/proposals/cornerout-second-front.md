@@ -61,7 +61,7 @@ Pre-release (0.1.0), accepted rather than migrated: the original finish was only
 
 ## Consequences & open questions
 - **Partitions line up, because no wall sits mid-cell.** Every slab lies against a cell face, so every wall lies on one of the same grid planes. A partition on the plane `z=5` hugs either the north faces of row `z=5` (slab at `z 5..5.25`) or the south faces of row `z=4` (slab at `z 4.75..5`). The first joins with a `cornerout` in `(0,5)`, `side: west`; the second with one in `(0,4)`, `side: south`. Both put the corner's leg flush with the partition. The player's only job is putting the corner in the cell on the partition's slab side.
-- **Auto-connecting corners, fence-style**, would do that choice for the player: placing a wall whose end meets a perpendicular slab swaps that neighbour to the matching `cornerout`. Decision 0005 deferred it; it needs the neighbour-dirtying that `framing-only-collision` introduces, plus a rule for what the new leg costs. Worth its own proposal once corners have been placed by hand in a real build.
+- **Corners found late.** A partition usually reaches a wall that's already built. `upgrade-frame-to-corner` converts that frame in place; auto-connecting corners is parked (see the proposals index).
 - Is the join cell's north leg front even reachable to click from room A? It sits at `z=5` facing north, so yes, from cell `(0,4)`; confirm in game.
 - A `wall` layout could in principle have the same room-bleed if players use it as a partition end. It doesn't: a plain wall has one front plane and one room on each side.
 - Tests: extend the `ResolveFinishFace` and `SelectiveElements` cases; whole-array asserts as the existing tests do.
