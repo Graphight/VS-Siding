@@ -36,4 +36,9 @@
         <ProjectReference Include="..\VSSiding\VSSiding.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+        <AssemblyMetadata Include="VintageStoryPath" Value="$(VINTAGE_STORY)" />
+        <AssemblyMetadata Include="RepoRoot" Value="$(MSBuildThisFileDirectory)..\" />
+    </ItemGroup>
+
 </Project>
