@@ -26,6 +26,10 @@
             <HintPath>$(VINTAGE_STORY)/Lib/cairo-sharp.dll</HintPath>
             <Private>true</Private>
         </Reference>
+        <Reference Include="SkiaSharp">
+            <HintPath>$(VINTAGE_STORY)/Lib/SkiaSharp.dll</HintPath>
+            <Private>true</Private>
+        </Reference>
         <Reference Include="protobuf-net">
             <HintPath>$(VINTAGE_STORY)/Lib/protobuf-net.dll</HintPath>
             <Private>true</Private>
@@ -34,6 +38,10 @@
 
     <ItemGroup>
         <ProjectReference Include="..\VSSiding\VSSiding.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include="$(VINTAGE_STORY)/Lib/libSkiaSharp.dylib" Link="libSkiaSharp.dylib" CopyToOutputDirectory="PreserveNewest" Condition="Exists('$(VINTAGE_STORY)/Lib/libSkiaSharp.dylib')" />
     </ItemGroup>
 
     <ItemGroup>
