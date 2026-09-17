@@ -50,7 +50,7 @@ public class SidingWallEntity : BlockEntity
         // An empty selectiveElements array matches zero shape elements, not "no filter" -
         // an unbuilt wall (true of every wall today, since nothing sets these keys yet)
         // must fall back to the block's default JSON shape instead of tesselating nothing.
-        string[] selectiveElements = SelectiveElements(Framing, Infill, Front, Back);
+        string[] selectiveElements = SelectiveElements(Framing, Infill, Front, Back, Block.Attributes["Finishes"]);
         if (selectiveElements.Length == 0) return false;
 
         string side = Block.Variant["side"];
@@ -76,13 +76,14 @@ public class SidingWallEntity : BlockEntity
         => $"vssiding-wall-mesh-{layout}-{side}-{framing}-{infill}-{front}-{back}";
 
     // Unbuilt parts (null key) are left out so a frame-only wall shows just its frame.
-    internal static string[] SelectiveElements(string? framing, string? infill, string? front, string? back)
+    // A finish can name its own element per face (decision 0007) instead of the plain slab.
+    internal static string[] SelectiveElements(string? framing, string? infill, string? front, string? back, JsonObject finishes)
     {
         var names = new List<string>();
-        if (front != null) names.Add("front");
+        if (front != null) names.Add(finishes[front]["Elements"]["front"].AsString("front"));
         if (framing != null) names.Add("framing");
         if (infill != null) names.Add("infill");
-        if (back != null) names.Add("back");
+        if (back != null) names.Add(finishes[back]["Elements"]["back"].AsString("back"));
         return names.ToArray();
     }
 

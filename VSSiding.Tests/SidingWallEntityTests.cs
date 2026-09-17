@@ -1,3 +1,4 @@
+using Newtonsoft.Json.Linq;
 using Vintagestory.API.Datastructures;
 using Xunit;
 
@@ -5,6 +6,23 @@ namespace VSSiding.Tests;
 
 public class SidingWallEntityTests
 {
+    private static JsonObject Dict(string json) => new(JToken.Parse(json));
+
+    private static readonly JsonObject NoElementFinishes = Dict("""
+    {
+        "daub": { "Consumes": { "type": "item", "code": "game:clay-blue-raw", "quantity": 2 } }
+    }
+    """);
+
+    private static readonly JsonObject PlankFinishes = Dict("""
+    {
+        "planks": {
+            "Elements": { "front": "front-weatherboard", "back": "back-boards" },
+            "Consumes": { "type": "item", "code": "game:plank-oak", "quantity": 2 }
+        }
+    }
+    """);
+
     [Fact]
     public void UnsetKeySurvivesByteRoundTripAsNullNotEmptyString()
     {
@@ -32,10 +50,17 @@ public class SidingWallEntityTests
     [Fact]
     public void SelectiveElementsSkipsUnbuiltParts()
     {
-        Assert.Equal(new string[0], SidingWallEntity.SelectiveElements(null, null, null, null));
+        Assert.Equal(new string[0], SidingWallEntity.SelectiveElements(null, null, null, null, NoElementFinishes));
         Assert.Equal(new[] { "front", "framing", "infill", "back" },
-            SidingWallEntity.SelectiveElements("oak", "wattle", "daub", "brick"));
-        Assert.Equal(new[] { "framing" }, SidingWallEntity.SelectiveElements("oak", null, null, null));
+            SidingWallEntity.SelectiveElements("oak", "wattle", "daub", "daub", NoElementFinishes));
+        Assert.Equal(new[] { "framing" }, SidingWallEntity.SelectiveElements("oak", null, null, null, NoElementFinishes));
+    }
+
+    [Fact]
+    public void SelectiveElementsUsesFinishNamedElementsPerFace()
+    {
+        Assert.Equal(new[] { "front-weatherboard", "framing", "infill", "back-boards" },
+            SidingWallEntity.SelectiveElements("oak", "wattle", "planks", "planks", PlankFinishes));
     }
 
     [Theory]
