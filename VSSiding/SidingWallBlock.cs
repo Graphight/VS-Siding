@@ -109,6 +109,15 @@ public class SidingWallBlock : Block
             string? infillKey = MatchConsumes(heldCode, Attributes["Infills"]);
             if (infillKey == null) return base.OnBlockInteractStart(world, byPlayer, blockSel);
 
+            // Check against the full slab, not the posts-only override above - infill would
+            // otherwise seal someone standing between the posts inside the frame.
+            var occupants = world.GetIntersectingEntities(blockSel.Position, base.GetCollisionBoxes(world.BlockAccessor, blockSel.Position));
+            if (occupants is { Length: > 0 })
+            {
+                (byPlayer as IServerPlayer)?.SendIngameError("vssiding:occupied", Lang.Get("vssiding:build-occupied"));
+                return true;
+            }
+
             var consumes = Attributes["Infills"][infillKey]["Consumes"];
             if (!TryAffordOrError(byPlayer, isCreative, slot.StackSize, consumes)) return true;
 
