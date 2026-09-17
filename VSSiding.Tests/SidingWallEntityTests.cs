@@ -8,18 +8,11 @@ public class SidingWallEntityTests
 {
     private static JsonObject Dict(string json) => new(JToken.Parse(json));
 
-    private static readonly JsonObject NoElementFinishes = Dict("""
-    {
-        "daub": { "Consumes": { "type": "item", "code": "game:clay-blue-raw", "quantity": 2 } }
-    }
-    """);
+    private static readonly JsonObject NoElementFinishes = Dict("""{ "daub": {} }""");
 
     private static readonly JsonObject PlankFinishes = Dict("""
     {
-        "planks": {
-            "Elements": { "front": "front-weatherboard", "back": "back-boards" },
-            "Consumes": { "type": "item", "code": "game:plank-oak", "quantity": 2 }
-        }
+        "planks": { "Elements": { "front": "front-weatherboard", "back": "back-boards" } }
     }
     """);
 
