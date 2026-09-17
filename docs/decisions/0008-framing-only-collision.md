@@ -2,10 +2,10 @@
 
 - Status: Accepted
 - Created: 2026-09-16
-- Reflects: planning session on `docs/plan-later-proposals`, reading `SidingWallBlock` and `shapes/block/wall/wall.json` as of 71c1d9c; graduated on branch `framing-only-collision`; supersedes decision 0002's "no per-block-entity collision code" line
+- Reflects: planning session on `docs/plan-later-proposals`, reading `SidingWallBlock` and `shapes/block/wall/wall.json` as of 71c1d9c; graduated on branch `framing-only-collision` and revised after in-game playtest (cross-beams, top-plate collision, open/filled boundaries); supersedes decision 0002's "no per-block-entity collision code" line
 
 ## Summary
-A stack of framed walls draws its plates only at the top and bottom of the stack, like a real stud wall, and a wall with framing but no infill collides only on its posts.
+A stack of framed walls draws its plates at the top and bottom of the stack, like a real stud wall, plus a cross-beam every second cell, and a wall with framing but no infill collides only on its posts and top plate.
 So a two-high frame is a door-shaped opening a player can walk through.
 
 ## Context
@@ -48,14 +48,14 @@ So `infill` gains two extension elements, `infill-top` (y 15..16) and `infill-bo
 A filled two-high stack then shows one unbroken panel from y 1 to y 31.
 
 **Neighbour changes re-tesselate.**
-`SidingWallBlock.OnNeighbourBlockChange` marks the entity dirty (`MarkDirty(true)`) when the changed position is directly above or below.
-Adding framing to a wall already goes through `MarkDirty`, which is a block-entity update, not a block change; the frame placement in `PlaceWallFrame` must also mark the walls above and below dirty.
+`SidingWallBlock.OnNeighbourBlockChange` marks the entity dirty (`MarkDirty(true)`) when the cell above changes, and marks every framed cell from here up when the cell below changes, since the cross-beam count runs from the bottom.
+Setting `Framing` (in `PlaceWallFrame`) or `Infill` is a block-entity update, not a block change, so both also mark the cell below and the stack above dirty.
 
 **`GetCollisionBoxes` returns only the framing the cell draws when `Framing != null && Infill == null`:** the posts, plus the top plate if it draws one.
 Every other state returns `base.GetCollisionBoxes`, the static JSON boxes.
 `GetParticleCollisionBoxes` follows the same rule.
 The boxes are hand-written for `west` and rotated with `Cuboidf.RotatedCopy` around the block centre, the angles of `SidingWallEntity.RotationYDeg`, built once per layout, side and plate combination in static fields.
-Drawn plates collide, so a one-high frame or a waist-height cross-beam blocks the player, while a two-high doorway's only top plate sits above head height.
+Top plates collide, so a one-high frame or a waist-height cross-beam blocks the player, while a two-high doorway's only top plate sits above head height.
 Bottom plates never collide: standing on one lifts the player 1 voxel, into a two-high doorway's top plate.
 
 **Selection boxes don't change.**
@@ -71,13 +71,12 @@ No infill already means `GetRetention` returns 0 (decision 0003), so scan and co
 
 ## Alternatives considered
 - **Posts-only collision, plates drawn in every cell.** The first draft of this proposal. Players walk through a visible beam at head height.
-- **Keep plates in the collision.** Correct for one cell; a two-high frame is impassable.
+- **Collide on every drawn plate.** Standing on the bottom plate lifts the player into a two-high doorway's top plate, so they have to crouch.
 - **No collision for a framing-only wall.** You'd walk through the posts, which are visible solid timber.
 - **A `built` variant axis so collision stays static JSON.** Encodes entity state in the block ID, which decision 0001 exists to avoid.
 
 ## Consequences & open questions
 - Supersedes decision 0002's "no per-block-entity collision code" line.
-- First neighbour-dependent mesh in the mod. It's only vertical and only reads the two cells above and below, but it's the pattern auto-connecting corners would also need, so get the dirty-marking right here.
+- First neighbour-dependent mesh in the mod. It's only vertical, but it walks down the whole stack to count cells, and it's the pattern auto-connecting corners would also need, so get the dirty-marking right here.
 - A three-high stack is walkable too; one-high never is. That's just player height.
 - An unglazed `window-frames` window is framing-only, so it becomes walk-through. Plausibly right for a hole; check in playtest.
-- Tests: `SelectiveElements` including a filled two-high stack (plates skipped, infill extensions selected), and a pure `ComputeCollisionBoxes(layout, side, framing, infill)`, asserted against whole expected arrays.
