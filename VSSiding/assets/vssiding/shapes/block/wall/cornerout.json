@@ -5,6 +5,7 @@
 		"framing": "game:block/wood/planks/aged/aged1",
 		"infill": "game:block/wood/planks/aged/aged1",
 		"front": "game:block/wood/planks/aged/aged1",
+		"secondfront": "game:block/wood/planks/aged/aged1",
 		"back": "game:block/wood/planks/aged/aged1"
 	},
 	"elements": [
@@ -126,16 +127,16 @@
 			}
 		},
 		{
-			"name": "front",
+			"name": "secondfront",
 			"from": [ 1.0, 0.0, 0.0 ],
 			"to": [ 16.0, 16.0, 1.0 ],
 			"faces": {
-				"north": { "texture": "#front", "uv": [ 0.0, 0.0, 15.0, 16.0 ] },
-				"east": { "texture": "#front", "uv": [ 0.0, 0.0, 1.0, 16.0 ] },
-				"south": { "texture": "#front", "uv": [ 0.0, 0.0, 15.0, 16.0 ] },
-				"west": { "texture": "#front", "uv": [ 0.0, 0.0, 1.0, 16.0 ] },
-				"up": { "texture": "#front", "uv": [ 0.0, 0.0, 15.0, 1.0 ] },
-				"down": { "texture": "#front", "uv": [ 0.0, 0.0, 15.0, 1.0 ] }
+				"north": { "texture": "#secondfront", "uv": [ 0.0, 0.0, 15.0, 16.0 ] },
+				"east": { "texture": "#secondfront", "uv": [ 0.0, 0.0, 1.0, 16.0 ] },
+				"south": { "texture": "#secondfront", "uv": [ 0.0, 0.0, 15.0, 16.0 ] },
+				"west": { "texture": "#secondfront", "uv": [ 0.0, 0.0, 1.0, 16.0 ] },
+				"up": { "texture": "#secondfront", "uv": [ 0.0, 0.0, 15.0, 1.0 ] },
+				"down": { "texture": "#secondfront", "uv": [ 0.0, 0.0, 15.0, 1.0 ] }
 			}
 		},
 		{
@@ -256,29 +257,29 @@
 			}
 		},
 		{
-			"name": "front-weatherboard",
+			"name": "secondfront-weatherboard",
 			"from": [ 1.0, 0.0, 0.0 ],
 			"to": [ 16.0, 1.0, 1.0 ],
 			"faces": {
-				"north": { "texture": "#front", "uv": [ 0.0, 0.0, 15.0, 1.0 ] },
-				"east": { "texture": "#front", "uv": [ 0.0, 0.0, 1.0, 1.0 ] },
-				"south": { "texture": "#front", "uv": [ 0.0, 0.0, 15.0, 1.0 ] },
-				"west": { "texture": "#front", "uv": [ 0.0, 0.0, 1.0, 1.0 ] },
-				"up": { "texture": "#front", "uv": [ 0.0, 0.0, 15.0, 1.0 ] },
-				"down": { "texture": "#front", "uv": [ 0.0, 0.0, 15.0, 1.0 ] }
+				"north": { "texture": "#secondfront", "uv": [ 0.0, 0.0, 15.0, 1.0 ] },
+				"east": { "texture": "#secondfront", "uv": [ 0.0, 0.0, 1.0, 1.0 ] },
+				"south": { "texture": "#secondfront", "uv": [ 0.0, 0.0, 15.0, 1.0 ] },
+				"west": { "texture": "#secondfront", "uv": [ 0.0, 0.0, 1.0, 1.0 ] },
+				"up": { "texture": "#secondfront", "uv": [ 0.0, 0.0, 15.0, 1.0 ] },
+				"down": { "texture": "#secondfront", "uv": [ 0.0, 0.0, 15.0, 1.0 ] }
 			}
 		},
 		{
-			"name": "front-weatherboard",
+			"name": "secondfront-weatherboard",
 			"from": [ 1.0, 1.0, 0.5 ],
 			"to": [ 16.0, 4.0, 1.0 ],
 			"faces": {
-				"north": { "texture": "#front", "uv": [ 0.0, 0.0, 15.0, 3.0 ] },
-				"east": { "texture": "#front", "uv": [ 0.0, 0.0, 0.5, 3.0 ] },
-				"south": { "texture": "#front", "uv": [ 0.0, 0.0, 15.0, 3.0 ] },
-				"west": { "texture": "#front", "uv": [ 0.0, 0.0, 0.5, 3.0 ] },
-				"up": { "texture": "#front", "uv": [ 0.0, 0.0, 15.0, 0.5 ] },
-				"down": { "texture": "#front", "uv": [ 0.0, 0.0, 15.0, 0.5 ] }
+				"north": { "texture": "#secondfront", "uv": [ 0.0, 0.0, 15.0, 3.0 ] },
+				"east": { "texture": "#secondfront", "uv": [ 0.0, 0.0, 0.5, 3.0 ] },
+				"south": { "texture": "#secondfront", "uv": [ 0.0, 0.0, 15.0, 3.0 ] },
+				"west": { "texture": "#secondfront", "uv": [ 0.0, 0.0, 0.5, 3.0 ] },
+				"up": { "texture": "#secondfront", "uv": [ 0.0, 0.0, 15.0, 0.5 ] },
+				"down": { "texture": "#secondfront", "uv": [ 0.0, 0.0, 15.0, 0.5 ] }
 			}
 		},
 		{
@@ -308,29 +309,29 @@
 			}
 		},
 		{
-			"name": "front-weatherboard",
+			"name": "secondfront-weatherboard",
 			"from": [ 1.0, 4.0, 0.0 ],
 			"to": [ 16.0, 5.0, 1.0 ],
 			"faces": {
-				"north": { "texture": "#front", "uv": [ 0.0, 0.0, 15.0, 1.0 ] },
-				"east": { "texture": "#front", "uv": [ 0.0, 0.0, 1.0, 1.0 ] },
-				"south": { "texture": "#front", "uv": [ 0.0, 0.0, 15.0, 1.0 ] },
-				"west": { "texture": "#front", "uv": [ 0.0, 0.0, 1.0, 1.0 ] },
-				"up": { "texture": "#front", "uv": [ 0.0, 0.0, 15.0, 1.0 ] },
-				"down": { "texture": "#front", "uv": [ 0.0, 0.0, 15.0, 1.0 ] }
+				"north": { "texture": "#secondfront", "uv": [ 0.0, 0.0, 15.0, 1.0 ] },
+				"east": { "texture": "#secondfront", "uv": [ 0.0, 0.0, 1.0, 1.0 ] },
+				"south": { "texture": "#secondfront", "uv": [ 0.0, 0.0, 15.0, 1.0 ] },
+				"west": { "texture": "#secondfront", "uv": [ 0.0, 0.0, 1.0, 1.0 ] },
+				"up": { "texture": "#secondfront", "uv": [ 0.0, 0.0, 15.0, 1.0 ] },
+				"down": { "texture": "#secondfront", "uv": [ 0.0, 0.0, 15.0, 1.0 ] }
 			}
 		},
 		{
-			"name": "front-weatherboard",
+			"name": "secondfront-weatherboard",
 			"from": [ 1.0, 5.0, 0.5 ],
 			"to": [ 16.0, 8.0, 1.0 ],
 			"faces": {
-				"north": { "texture": "#front", "uv": [ 0.0, 0.0, 15.0, 3.0 ] },
-				"east": { "texture": "#front", "uv": [ 0.0, 0.0, 0.5, 3.0 ] },
-				"south": { "texture": "#front", "uv": [ 0.0, 0.0, 15.0, 3.0 ] },
-				"west": { "texture": "#front", "uv": [ 0.0, 0.0, 0.5, 3.0 ] },
-				"up": { "texture": "#front", "uv": [ 0.0, 0.0, 15.0, 0.5 ] },
-				"down": { "texture": "#front", "uv": [ 0.0, 0.0, 15.0, 0.5 ] }
+				"north": { "texture": "#secondfront", "uv": [ 0.0, 0.0, 15.0, 3.0 ] },
+				"east": { "texture": "#secondfront", "uv": [ 0.0, 0.0, 0.5, 3.0 ] },
+				"south": { "texture": "#secondfront", "uv": [ 0.0, 0.0, 15.0, 3.0 ] },
+				"west": { "texture": "#secondfront", "uv": [ 0.0, 0.0, 0.5, 3.0 ] },
+				"up": { "texture": "#secondfront", "uv": [ 0.0, 0.0, 15.0, 0.5 ] },
+				"down": { "texture": "#secondfront", "uv": [ 0.0, 0.0, 15.0, 0.5 ] }
 			}
 		},
 		{
@@ -360,29 +361,29 @@
 			}
 		},
 		{
-			"name": "front-weatherboard",
+			"name": "secondfront-weatherboard",
 			"from": [ 1.0, 8.0, 0.0 ],
 			"to": [ 16.0, 9.0, 1.0 ],
 			"faces": {
-				"north": { "texture": "#front", "uv": [ 0.0, 0.0, 15.0, 1.0 ] },
-				"east": { "texture": "#front", "uv": [ 0.0, 0.0, 1.0, 1.0 ] },
-				"south": { "texture": "#front", "uv": [ 0.0, 0.0, 15.0, 1.0 ] },
-				"west": { "texture": "#front", "uv": [ 0.0, 0.0, 1.0, 1.0 ] },
-				"up": { "texture": "#front", "uv": [ 0.0, 0.0, 15.0, 1.0 ] },
-				"down": { "texture": "#front", "uv": [ 0.0, 0.0, 15.0, 1.0 ] }
+				"north": { "texture": "#secondfront", "uv": [ 0.0, 0.0, 15.0, 1.0 ] },
+				"east": { "texture": "#secondfront", "uv": [ 0.0, 0.0, 1.0, 1.0 ] },
+				"south": { "texture": "#secondfront", "uv": [ 0.0, 0.0, 15.0, 1.0 ] },
+				"west": { "texture": "#secondfront", "uv": [ 0.0, 0.0, 1.0, 1.0 ] },
+				"up": { "texture": "#secondfront", "uv": [ 0.0, 0.0, 15.0, 1.0 ] },
+				"down": { "texture": "#secondfront", "uv": [ 0.0, 0.0, 15.0, 1.0 ] }
 			}
 		},
 		{
-			"name": "front-weatherboard",
+			"name": "secondfront-weatherboard",
 			"from": [ 1.0, 9.0, 0.5 ],
 			"to": [ 16.0, 12.0, 1.0 ],
 			"faces": {
-				"north": { "texture": "#front", "uv": [ 0.0, 0.0, 15.0, 3.0 ] },
-				"east": { "texture": "#front", "uv": [ 0.0, 0.0, 0.5, 3.0 ] },
-				"south": { "texture": "#front", "uv": [ 0.0, 0.0, 15.0, 3.0 ] },
-				"west": { "texture": "#front", "uv": [ 0.0, 0.0, 0.5, 3.0 ] },
-				"up": { "texture": "#front", "uv": [ 0.0, 0.0, 15.0, 0.5 ] },
-				"down": { "texture": "#front", "uv": [ 0.0, 0.0, 15.0, 0.5 ] }
+				"north": { "texture": "#secondfront", "uv": [ 0.0, 0.0, 15.0, 3.0 ] },
+				"east": { "texture": "#secondfront", "uv": [ 0.0, 0.0, 0.5, 3.0 ] },
+				"south": { "texture": "#secondfront", "uv": [ 0.0, 0.0, 15.0, 3.0 ] },
+				"west": { "texture": "#secondfront", "uv": [ 0.0, 0.0, 0.5, 3.0 ] },
+				"up": { "texture": "#secondfront", "uv": [ 0.0, 0.0, 15.0, 0.5 ] },
+				"down": { "texture": "#secondfront", "uv": [ 0.0, 0.0, 15.0, 0.5 ] }
 			}
 		},
 		{
@@ -412,29 +413,29 @@
 			}
 		},
 		{
-			"name": "front-weatherboard",
+			"name": "secondfront-weatherboard",
 			"from": [ 1.0, 12.0, 0.0 ],
 			"to": [ 16.0, 13.0, 1.0 ],
 			"faces": {
-				"north": { "texture": "#front", "uv": [ 0.0, 0.0, 15.0, 1.0 ] },
-				"east": { "texture": "#front", "uv": [ 0.0, 0.0, 1.0, 1.0 ] },
-				"south": { "texture": "#front", "uv": [ 0.0, 0.0, 15.0, 1.0 ] },
-				"west": { "texture": "#front", "uv": [ 0.0, 0.0, 1.0, 1.0 ] },
-				"up": { "texture": "#front", "uv": [ 0.0, 0.0, 15.0, 1.0 ] },
-				"down": { "texture": "#front", "uv": [ 0.0, 0.0, 15.0, 1.0 ] }
+				"north": { "texture": "#secondfront", "uv": [ 0.0, 0.0, 15.0, 1.0 ] },
+				"east": { "texture": "#secondfront", "uv": [ 0.0, 0.0, 1.0, 1.0 ] },
+				"south": { "texture": "#secondfront", "uv": [ 0.0, 0.0, 15.0, 1.0 ] },
+				"west": { "texture": "#secondfront", "uv": [ 0.0, 0.0, 1.0, 1.0 ] },
+				"up": { "texture": "#secondfront", "uv": [ 0.0, 0.0, 15.0, 1.0 ] },
+				"down": { "texture": "#secondfront", "uv": [ 0.0, 0.0, 15.0, 1.0 ] }
 			}
 		},
 		{
-			"name": "front-weatherboard",
+			"name": "secondfront-weatherboard",
 			"from": [ 1.0, 13.0, 0.5 ],
 			"to": [ 16.0, 16.0, 1.0 ],
 			"faces": {
-				"north": { "texture": "#front", "uv": [ 0.0, 0.0, 15.0, 3.0 ] },
-				"east": { "texture": "#front", "uv": [ 0.0, 0.0, 0.5, 3.0 ] },
-				"south": { "texture": "#front", "uv": [ 0.0, 0.0, 15.0, 3.0 ] },
-				"west": { "texture": "#front", "uv": [ 0.0, 0.0, 0.5, 3.0 ] },
-				"up": { "texture": "#front", "uv": [ 0.0, 0.0, 15.0, 0.5 ] },
-				"down": { "texture": "#front", "uv": [ 0.0, 0.0, 15.0, 0.5 ] }
+				"north": { "texture": "#secondfront", "uv": [ 0.0, 0.0, 15.0, 3.0 ] },
+				"east": { "texture": "#secondfront", "uv": [ 0.0, 0.0, 0.5, 3.0 ] },
+				"south": { "texture": "#secondfront", "uv": [ 0.0, 0.0, 15.0, 3.0 ] },
+				"west": { "texture": "#secondfront", "uv": [ 0.0, 0.0, 0.5, 3.0 ] },
+				"up": { "texture": "#secondfront", "uv": [ 0.0, 0.0, 15.0, 0.5 ] },
+				"down": { "texture": "#secondfront", "uv": [ 0.0, 0.0, 15.0, 0.5 ] }
 			}
 		},
 		{
