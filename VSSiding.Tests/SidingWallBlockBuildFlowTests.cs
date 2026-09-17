@@ -110,32 +110,19 @@ public class SidingWallBlockBuildFlowTests
         Assert.Null(key);
     }
 
-    [Fact]
-    public void ResolveFinishFaceOnHuggedSideIsFront()
+    [Theory]
+    [InlineData("wall", "west", "west", "front")]
+    [InlineData("wall", "west", "east", "back")]
+    [InlineData("wall", "west", "north", null)]
+    [InlineData("wall", "west", "up", null)]
+    [InlineData("cornerout", "west", "west", "front")]
+    [InlineData("cornerout", "west", "east", "back")]
+    [InlineData("cornerout", "west", "north", "front")]
+    [InlineData("cornerout", "west", "south", "back")]
+    [InlineData("cornerout", "west", "up", null)]
+    public void ResolveFinishFaceMapsClickedFaceToLayer(string layout, string side, string clicked, string? expected)
     {
-        string? face = SidingWallBlock.ResolveFinishFace("west", BlockFacing.WEST);
-        Assert.Equal("front", face);
-    }
-
-    [Fact]
-    public void ResolveFinishFaceOnOppositeSideIsBack()
-    {
-        string? face = SidingWallBlock.ResolveFinishFace("west", BlockFacing.EAST);
-        Assert.Equal("back", face);
-    }
-
-    [Fact]
-    public void ResolveFinishFaceOnEndFaceIsNull()
-    {
-        string? face = SidingWallBlock.ResolveFinishFace("west", BlockFacing.NORTH);
-        Assert.Null(face);
-    }
-
-    [Fact]
-    public void ResolveFinishFaceOnTopFaceIsNull()
-    {
-        string? face = SidingWallBlock.ResolveFinishFace("west", BlockFacing.UP);
-        Assert.Null(face);
+        Assert.Equal(expected, SidingWallBlock.ResolveFinishFace(layout, side, BlockFacing.FromCode(clicked)));
     }
 
     [Fact]

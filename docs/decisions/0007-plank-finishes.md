@@ -1,6 +1,6 @@
 # Plank finishes
 
-- Status: Draft
+- Status: Accepted
 - Created: 2026-09-16
 - Reflects: in-game playtest of the build flow merged in #7 (83d94a9)
 
@@ -30,15 +30,19 @@ Once a plank finish exists, the wall claims the click first.
 
 ### Brick
 
-Investigate how vanilla `claybricks` renders `four/running/*` opaque (render pass, shader alpha handling, or a base texture underneath) and match it.
-If that turns out to be awkward, point the finish at a fully opaque brick texture instead.
-Either way, add a check that fails if a `Finishes`/`Infills`/`Framings` texture has non-opaque pixels, so the next material doesn't repeat this.
+Point the finish at `game:legacy/clay/brick/red1`, a fully opaque brick texture.
+Decompiling the tesselator and texture atlas didn't turn up how vanilla renders `four/running/*` solid, so matching vanilla wasn't an option.
+
+A test fails if any `Framings`/`Infills`/`Finishes` texture has partially transparent pixels (alpha strictly between 0 and 255), so the next material doesn't repeat this.
+Fully transparent pixels are allowed: `wattle` uses alpha-0 cutouts, which render cleanly.
 
 ### Same gesture, context decides
 
 Keep the saw-in-offhand right-click for everything (decision 0006).
 Planks on a wall with framing and infill, clicking an unfinished face, apply the finish.
-Planks anywhere else (air, ground, an already-finished face, a frame with no infill) still place a frame.
+Planks anywhere else (air, ground, an already-finished face, an end face, a frame with no infill) still place a frame.
+Other finish materials on an already-finished or end face show an error instead.
+On a `cornerout`, the second leg's outer and inner faces count as front and back too, since both legs share one `Front`/`Back`.
 No shift-click: shift+right-click is vanilla ground storage, which places plank and brick piles.
 
 ### Finish geometry chosen by face
@@ -62,6 +66,8 @@ So a finish entry gains an optional per-face element name:
 `SidingWallEntity.SelectiveElements` adds `Elements.front ?? "front"` instead of the literal `"front"` (same for back).
 Existing daub and brick entries are unchanged.
 The shape files gain the new named element groups alongside the existing `front`/`back` slabs.
+Tesselation matches element names exactly, so `front` doesn't also select `front-weatherboard`.
+The block's default shape (inventory icon, unbuilt walls) lists them in `ignoreElements`, so it doesn't draw boards on top of the slabs.
 The texture slot stays `#front`/`#back`, so `SidingWallTexSource` doesn't change.
 
 ### Weatherboard overlap
@@ -69,14 +75,14 @@ The texture slot stays `#front`/`#back`, so `SidingWallTexSource` doesn't change
 This is the same kind of hand-authored JSON as the corner framing, just more elements.
 Each board is two elements inside the existing 1-voxel finish depth, stepped rather than rotated:
 
-- a thin board body, e.g. x 0.5..1, 4 voxels tall
 - a lip along its bottom edge, x 0..1, 1 voxel tall, standing proud of the board below
+- a thin board body above it, x 0.5..1, 3 voxels tall, so the two don't overlap and z-fight
 
 Four boards per block gives 8 elements per face, and the step reads as overlap from any angle that isn't dead-on.
 Stepping avoids element rotation, which would poke tilted corners through the block edge or into neighbouring cells and z-fight where boards meet.
 Board edges line up at block boundaries (4-voxel pitch into 16), so stacked walls continue the pattern.
 
-Vertical interior boards need no overlap: one slab with the texture UVs rotated 90° (per-face `rotation`), or a few slabs with a small gap to show the joins.
+Vertical interior boards need no overlap: one slab with the texture UVs rotated 90° on the room-facing face.
 
 ## Alternatives considered
 
@@ -87,7 +93,7 @@ Vertical interior boards need no overlap: one slab with the texture UVs rotated 
 
 ## Consequences & open questions
 
-- Corners need their own weatherboard elements on both legs in `cornerout.json`, and the lip at the outside corner needs deciding: butt joint with a corner board, or let one leg's lips run past the other.
-- Which way the grain runs in `planks/oak1` needs checking in game before deciding which face gets the UV rotation.
+- At outside corners, one leg's lips run past the other's, with no separate corner board; lips and bodies each meet in a clean plane.
+- Finishing either leg of a corner finishes both; independent per-leg finishes stay on the backlog as `cornerout-finish-faces`.
 - Weatherboard lips stick out a fraction of a voxel less than a full slab would, which matters only if collision should follow the finish; decision 0002's boxes don't today.
 - Absorbs the `face-specific-finishes` item from the proposals backlog: per-face `Elements` is the mechanism for one-side-only materials too.
