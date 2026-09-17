@@ -50,11 +50,11 @@ public class SidingWallEntity : BlockEntity
         // An empty selectiveElements array matches zero shape elements, not "no filter" -
         // an unbuilt wall (true of every wall today, since nothing sets these keys yet)
         // must fall back to the block's default JSON shape instead of tesselating nothing.
-        string[] selectiveElements = SelectiveElements(Framing, Infill, Front, Back, Block.Attributes["Finishes"]);
+        string[] selectiveElements = SelectiveElements(Framing, Infill, Front, Back, Block.Attributes["Finishes"], false, false);
         if (selectiveElements.Length == 0) return false;
 
         string side = Block.Variant["side"];
-        string cacheKey = CacheKey(layout, side, Framing, Infill, Front, Back);
+        string cacheKey = CacheKey(layout, side, Framing, Infill, Front, Back, false, false);
 
         MeshData mesh = ObjectCacheUtil.GetOrCreate(capi, cacheKey, () =>
         {
@@ -72,17 +72,33 @@ public class SidingWallEntity : BlockEntity
         return true;
     }
 
-    internal static string CacheKey(string layout, string side, string? framing, string? infill, string? front, string? back)
-        => $"vssiding-wall-mesh-{layout}-{side}-{framing}-{infill}-{front}-{back}";
+    internal static string CacheKey(
+        string layout, string side, string? framing, string? infill, string? front, string? back,
+        bool continuesAbove, bool continuesBelow)
+        => $"vssiding-wall-mesh-{layout}-{side}-{framing}-{infill}-{front}-{back}-{continuesAbove}-{continuesBelow}";
 
     // Unbuilt parts (null key) are left out so a frame-only wall shows just its frame.
     // A finish can name its own element per face (decision 0007) instead of the plain slab.
-    internal static string[] SelectiveElements(string? framing, string? infill, string? front, string? back, JsonObject finishes)
+    // A stack draws one pair of plates for the whole run (decision 0008): a join has no
+    // plates, so the infill extends across it instead.
+    internal static string[] SelectiveElements(
+        string? framing, string? infill, string? front, string? back, JsonObject finishes,
+        bool continuesAbove, bool continuesBelow)
     {
         var names = new List<string>();
         if (front != null) names.Add(finishes[front]["Elements"]["front"].AsString("front"));
-        if (framing != null) names.Add("framing");
-        if (infill != null) names.Add("infill");
+        if (framing != null)
+        {
+            names.Add("framing");
+            if (!continuesAbove) names.Add("framing-top");
+            if (!continuesBelow) names.Add("framing-bottom");
+        }
+        if (infill != null)
+        {
+            names.Add("infill");
+            if (continuesAbove) names.Add("infill-top");
+            if (continuesBelow) names.Add("infill-bottom");
+        }
         if (back != null) names.Add(finishes[back]["Elements"]["back"].AsString("back"));
         return names.ToArray();
     }
