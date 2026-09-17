@@ -71,7 +71,7 @@ public class SidingWallBlock : Block
         if (finishKey == null) return base.OnBlockInteractStart(world, byPlayer, blockSel);
 
         string side = Variant["side"];
-        string? face = ResolveFinishFace(side, blockSel.Face);
+        string? face = ResolveFinishFace(Variant["layout"], side, blockSel.Face);
         // Planks that can't finish this face still extend the wall via PlaceWallFrame.
         bool heldIsFraming = MatchConsumes(heldCode, Attributes["Framings"]) != null;
         if (face == null)
@@ -225,8 +225,15 @@ public class SidingWallBlock : Block
     internal static string ResolveLayout(int toolMode) => toolMode == 1 ? "cornerout" : "wall";
 
     // Which finish layer a build-flow click's clicked face targets - the hugged side is
-    // "front", the opposite side is "back", an end/top/bottom face is neither.
-    internal static string? ResolveFinishFace(string side, BlockFacing clickedFace)
+    // "front", the opposite side is "back", an end/top/bottom face is neither. A cornerout's
+    // second leg shares the same Front/Back, so its outer and inner faces count too.
+    internal static string? ResolveFinishFace(string layout, string side, BlockFacing clickedFace)
+    {
+        if (FinishFaceFor(side, clickedFace) is string face) return face;
+        return layout == "cornerout" ? FinishFaceFor(CorneroutSecondFace[side], clickedFace) : null;
+    }
+
+    private static string? FinishFaceFor(string side, BlockFacing clickedFace)
     {
         if (clickedFace.Code == side) return "front";
         if (clickedFace == BlockFacing.FromCode(side).Opposite) return "back";
