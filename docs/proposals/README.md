@@ -14,6 +14,7 @@ Build order to a playable prototype — each one should be demoable in game befo
 - [`cornerout-second-front`](cornerout-second-front.md) — independent front finish per corner leg, so a T-junction doesn't brick the room next door.
 - [`material-families`](material-families.md) — template entries that expand per wood type; framing and plank finishes for every wood.
 - [`stone-finishes`](stone-finishes.md) — cobblestone and polished stone faces per rock type, via material families.
+- [`shake-finish`](shake-finish.md) — logs as overlapping shake courses on the front face, per wood.
 
 ## Later (not yet written up)
 
