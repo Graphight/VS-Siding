@@ -111,7 +111,7 @@ public class SidingWallBlock : Block
 
             // Check against the full slab, not the posts-only override above - infill would
             // otherwise seal someone standing between the posts inside the frame.
-            var occupants = world.GetIntersectingEntities(blockSel.Position, base.GetCollisionBoxes(world.BlockAccessor, blockSel.Position));
+            var occupants = world.GetIntersectingEntities(blockSel.Position, base.GetCollisionBoxes(world.BlockAccessor, blockSel.Position), e => e.IsInteractable);
             if (occupants is { Length: > 0 })
             {
                 (byPlayer as IServerPlayer)?.SendIngameError("vssiding:occupied", Lang.Get("vssiding:build-occupied"));
