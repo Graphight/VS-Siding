@@ -1,8 +1,8 @@
 # Cornerout second front
 
-- Status: Draft
+- Status: Accepted
 - Created: 2026-09-16
-- Reflects: planning session on `docs/plan-later-proposals`, reading `SidingWallBlock.ResolveFinishFace` and `shapes/block/wall/cornerout.json` as of 71c1d9c
+- Reflects: planning session on `docs/plan-later-proposals`, reading `SidingWallBlock.ResolveFinishFace` and `shapes/block/wall/cornerout.json` as of 71c1d9c; graduated on branch `cornerout-second-front`
 
 ## Summary
 A `cornerout` gets a second, independent front finish for its second leg.
