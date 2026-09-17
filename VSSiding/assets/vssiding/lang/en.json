@@ -11,5 +11,6 @@
 	"toolmode-corner": "Corner",
 	"build-wrong-face": "Click the wall's face",
 	"build-already-finished": "That side is already finished",
+	"build-occupied": "Something is in the way",
 	"build-cant-afford": "Not enough material"
 }

@@ -1,3 +1,4 @@
+using System.Linq;
 using Newtonsoft.Json.Linq;
 using Vintagestory.API.Datastructures;
 using Xunit;
@@ -43,17 +44,53 @@ public class SidingWallEntityTests
     [Fact]
     public void SelectiveElementsSkipsUnbuiltParts()
     {
-        Assert.Equal(new string[0], SidingWallEntity.SelectiveElements(null, null, null, null, NoElementFinishes));
-        Assert.Equal(new[] { "front", "framing", "infill", "back" },
-            SidingWallEntity.SelectiveElements("oak", "wattle", "daub", "daub", NoElementFinishes));
-        Assert.Equal(new[] { "framing" }, SidingWallEntity.SelectiveElements("oak", null, null, null, NoElementFinishes));
+        Assert.Equal(new string[0], SidingWallEntity.SelectiveElements(null, null, null, null, NoElementFinishes, false, false));
+        Assert.Equal(new[] { "front", "framing", "framing-top", "framing-bottom", "infill", "back" },
+            SidingWallEntity.SelectiveElements("oak", "wattle", "daub", "daub", NoElementFinishes, false, false));
+        Assert.Equal(new[] { "framing", "framing-top", "framing-bottom" },
+            SidingWallEntity.SelectiveElements("oak", null, null, null, NoElementFinishes, false, false));
     }
 
     [Fact]
     public void SelectiveElementsUsesFinishNamedElementsPerFace()
     {
-        Assert.Equal(new[] { "front-weatherboard", "framing", "infill", "back-boards" },
-            SidingWallEntity.SelectiveElements("oak", "wattle", "planks", "planks", PlankFinishes));
+        Assert.Equal(new[] { "front-weatherboard", "framing", "framing-top", "framing-bottom", "infill", "back-boards" },
+            SidingWallEntity.SelectiveElements("oak", "wattle", "planks", "planks", PlankFinishes, false, false));
+    }
+
+    [Fact]
+    public void SelectiveElementsForBottomOfAStackSkipsOnlyTheTopPlate()
+    {
+        Assert.Equal(new[] { "framing", "framing-bottom", "infill", "infill-top" },
+            SidingWallEntity.SelectiveElements("oak", "wattle", null, null, NoElementFinishes, true, false));
+    }
+
+    [Fact]
+    public void SelectiveElementsForTopOfAStackSkipsOnlyTheBottomPlate()
+    {
+        Assert.Equal(new[] { "framing", "framing-top", "infill", "infill-bottom" },
+            SidingWallEntity.SelectiveElements("oak", "wattle", null, null, NoElementFinishes, false, true));
+    }
+
+    [Fact]
+    public void SelectiveElementsForAFilledMiddleCellSkipsBothPlatesAndExtendsInfillBothWays()
+    {
+        Assert.Equal(new[] { "framing", "infill", "infill-top", "infill-bottom" },
+            SidingWallEntity.SelectiveElements("oak", "wattle", null, null, NoElementFinishes, true, true));
+    }
+
+    [Theory]
+    [InlineData(1, new[] { true })]
+    [InlineData(2, new[] { false, true })]
+    [InlineData(3, new[] { false, true, true })]
+    [InlineData(4, new[] { false, true, false, true })]
+    public void EverySecondCellUpAStackKeepsItsTopPlateAsACrossBeam(int height, bool[] expectedTopPlates)
+    {
+        bool[] topPlates = Enumerable.Range(0, height)
+            .Select(cellsBelow => !SidingWallBlock.JoinsAbove(cellsBelow < height - 1, cellsBelow))
+            .ToArray();
+
+        Assert.Equal(expectedTopPlates, topPlates);
     }
 
     [Theory]
@@ -69,8 +106,8 @@ public class SidingWallEntityTests
     [Fact]
     public void CacheKeyDiffersByLayoutForTheSameMaterials()
     {
-        string wallKey = SidingWallEntity.CacheKey("wall", "west", "oak", "wattle", "daub", "brick");
-        string cornerKey = SidingWallEntity.CacheKey("cornerout", "west", "oak", "wattle", "daub", "brick");
+        string wallKey = SidingWallEntity.CacheKey("wall", "west", "oak", "wattle", "daub", "brick", false, false);
+        string cornerKey = SidingWallEntity.CacheKey("cornerout", "west", "oak", "wattle", "daub", "brick", false, false);
 
         Assert.NotEqual(wallKey, cornerKey);
     }

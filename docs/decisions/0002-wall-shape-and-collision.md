@@ -1,6 +1,6 @@
 # Wall shape and collision
 
-- Status: Accepted
+- Status: Superseded by 0008
 - Created: 2026-09-13
 - Reflects: `wall-shape-and-collision` branch, commits `cab82d5`..`bbf5825`
 
