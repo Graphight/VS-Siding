@@ -29,8 +29,7 @@ public class SidingWallBlockCollisionTests
     [Fact]
     public void RotationDirectionMatchesTheJsonSlabConvention()
     {
-        // The static collision slab from wall.json, x 0..0.25 z 0..1, rotated for "south"
-        // must land on z 0.75..1 - the reference check from the framing-only-collision plan.
+        // wall.json's static slab, x 0..0.25, must land on z 0.75..1 when rotated for "south".
         var slab = new Cuboidf(0, 0, 0, 0.25f, 1, 1);
         var rotated = slab.RotatedCopy(0, SidingWallEntity.RotationYDeg("south"), 0, new Vec3d(0.5, 0.5, 0.5));
 

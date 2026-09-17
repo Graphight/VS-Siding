@@ -59,14 +59,14 @@ public class SidingWallEntityTests
     }
 
     [Fact]
-    public void SelectiveElementsForBottomOfAStackSkipsOnlyTheBottomPlate()
+    public void SelectiveElementsForBottomOfAStackSkipsOnlyTheTopPlate()
     {
         Assert.Equal(new[] { "framing", "framing-bottom", "infill", "infill-top" },
             SidingWallEntity.SelectiveElements("oak", "wattle", null, null, NoElementFinishes, true, false));
     }
 
     [Fact]
-    public void SelectiveElementsForTopOfAStackSkipsOnlyTheTopPlate()
+    public void SelectiveElementsForTopOfAStackSkipsOnlyTheBottomPlate()
     {
         Assert.Equal(new[] { "framing", "framing-top", "infill", "infill-bottom" },
             SidingWallEntity.SelectiveElements("oak", "wattle", null, null, NoElementFinishes, false, true));

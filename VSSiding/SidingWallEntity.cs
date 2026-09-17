@@ -47,11 +47,11 @@ public class SidingWallEntity : BlockEntity
         if (layout != "wall" && layout != "cornerout") return false;
         if (Api is not ICoreClientAPI capi) return false;
 
+        var (continuesAbove, continuesBelow) = ((SidingWallBlock)Block).StackJoins(Api.World.BlockAccessor, Pos, Infill);
+
         // An empty selectiveElements array matches zero shape elements, not "no filter" -
         // an unbuilt wall (true of every wall today, since nothing sets these keys yet)
         // must fall back to the block's default JSON shape instead of tesselating nothing.
-        var (continuesAbove, continuesBelow) = ((SidingWallBlock)Block).StackJoins(Api.World.BlockAccessor, Pos, Infill);
-
         string[] selectiveElements = SelectiveElements(Framing, Infill, Front, Back, Block.Attributes["Finishes"], continuesAbove, continuesBelow);
         if (selectiveElements.Length == 0) return false;
 
@@ -81,8 +81,7 @@ public class SidingWallEntity : BlockEntity
 
     // Unbuilt parts (null key) are left out so a frame-only wall shows just its frame.
     // A finish can name its own element per face (decision 0007) instead of the plain slab.
-    // A stack draws one pair of plates for the whole run (decision 0008): a join has no
-    // plates, so the infill extends across it instead.
+    // A join between stacked cells has no plates, so the infill extends across it (decision 0008).
     internal static string[] SelectiveElements(
         string? framing, string? infill, string? front, string? back, JsonObject finishes,
         bool continuesAbove, bool continuesBelow)

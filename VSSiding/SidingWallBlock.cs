@@ -78,7 +78,7 @@ public class SidingWallBlock : Block
         return boxes;
     }
 
-    // A frame with framing but no infill collides only on the framing it draws (decision 0008).
+    // A frame with framing but no infill collides only on its posts and top plate (decision 0008).
     internal static Cuboidf[] ComputeCollisionBoxes(
         string layout, string side, string? framing, string? infill, bool joinsAbove, Cuboidf[] fullBoxes)
         => framing != null && infill == null ? FramingBoxes[(layout, side, joinsAbove)] : fullBoxes;
@@ -152,8 +152,7 @@ public class SidingWallBlock : Block
             string? infillKey = MatchConsumes(heldCode, Attributes["Infills"]);
             if (infillKey == null) return base.OnBlockInteractStart(world, byPlayer, blockSel);
 
-            // Check against the full slab, not the posts-only override above - infill would
-            // otherwise seal someone standing between the posts inside the frame.
+            // The full slab, not the open frame's collision: infill would seal in anyone standing in it.
             var occupants = world.GetIntersectingEntities(blockSel.Position, base.GetCollisionBoxes(world.BlockAccessor, blockSel.Position), e => e.IsInteractable);
             if (occupants is { Length: > 0 })
             {
@@ -224,8 +223,7 @@ public class SidingWallBlock : Block
     internal static bool CanAfford(bool isCreative, int stackSize, JsonObject consumes)
         => isCreative || stackSize >= ConsumeQuantity(consumes);
 
-    // A stack draws its plates from the top/bottom cells' state (decision 0008), so a
-    // neighbour above/below gaining or losing framing must re-tesselate this cell too.
+    // Which plates a cell draws depends on the cells above and below it (decision 0008).
     public override void OnNeighbourBlockChange(IWorldAccessor world, BlockPos pos, BlockPos neibpos)
     {
         base.OnNeighbourBlockChange(world, pos, neibpos);
@@ -234,9 +232,7 @@ public class SidingWallBlock : Block
         if (neibpos.Y == pos.Y - 1) MarkStackDirtyFrom(world, pos);
     }
 
-    // Shared with PlaceWallFrame: the neighbour-change notification for a newly placed frame
-    // fires during TryPlaceBlock, before Framing is set, so the cells above/below never see
-    // it - they have to be marked dirty explicitly once Framing is in place.
+    // Setting Framing or Infill isn't a block change, so the stack around it has to be told.
     internal static void MarkVerticalNeighboursDirty(IWorldAccessor world, BlockPos pos)
     {
         world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos.DownCopy())?.MarkDirty(true);
