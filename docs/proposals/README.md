@@ -13,7 +13,7 @@ Build order — each one should be demoable in game before the next starts.
 - [`framing-only-collision`](framing-only-collision.md) — walk between the studs of a wall with no infill yet.
 - [`cornerout-second-front`](cornerout-second-front.md) — independent front finish per corner leg, so a T-junction doesn't brick the room next door.
 - [`material-families`](material-families.md) — template entries that expand per wood type; framing and plank finishes for every wood.
-- [`stone-finishes`](stone-finishes.md) — cobblestone and polished stone faces per rock type, via material families.
+- [`masonry-finishes`](masonry-finishes.md) — drystone, cobblestone, ashlar, and polished stone faces per rock type, via material families.
 - [`shake-finish`](shake-finish.md) — logs as overlapping shake courses on the front face, per wood.
 - [`window-frames`](window-frames.md) — a `window` frame mode glazed with a glass infill; doors need nothing (vanilla seals them).
 

@@ -64,5 +64,5 @@ The existing explicit `planks` entry keeps oak.
 - `veryaged` planks only have textures under `planks/aged/`, so the template path misses it and it renders decision 0004's unknown-texture placeholder. Hand-author that one entry in the same session. (`aged1.png` does exist at the template path.)
 - Third-party woods using the `game:` plank item code are picked up for free; ones in their own domain need a one-entry family patch pointing at their domain's code and texture path. That's still one patch per mod, not one per wood.
 - The texture opacity test must run over the expanded entries, not only the JSON on disk, or a new wood with a partially transparent texture sneaks past it.
-- `stone-finishes` is the second consumer and the proof the mechanism is general; don't generalise past what those two need.
+- `masonry-finishes` is the second consumer and the proof the mechanism is general; don't generalise past what those two need.
 - Save stability: a generated key is the variant value, so an uninstalled wood mod leaves walls with an unknown key, which decision 0003 already renders as missing and restores on reinstall.
