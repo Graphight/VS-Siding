@@ -1,3 +1,4 @@
+using System.Linq;
 using Newtonsoft.Json.Linq;
 using Vintagestory.API.Datastructures;
 using Xunit;
@@ -76,6 +77,20 @@ public class SidingWallEntityTests
     {
         Assert.Equal(new[] { "framing", "infill", "infill-top", "infill-bottom" },
             SidingWallEntity.SelectiveElements("oak", "wattle", null, null, NoElementFinishes, true, true));
+    }
+
+    [Theory]
+    [InlineData(1, new[] { true })]
+    [InlineData(2, new[] { false, true })]
+    [InlineData(3, new[] { false, true, true })]
+    [InlineData(4, new[] { false, true, false, true })]
+    public void EverySecondCellUpAStackKeepsItsTopPlateAsACrossBeam(int height, bool[] expectedTopPlates)
+    {
+        bool[] topPlates = Enumerable.Range(0, height)
+            .Select(cellsBelow => !SidingWallBlock.JoinsAbove(cellsBelow < height - 1, cellsBelow))
+            .ToArray();
+
+        Assert.Equal(expectedTopPlates, topPlates);
     }
 
     [Theory]

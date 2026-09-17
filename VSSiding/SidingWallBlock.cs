@@ -28,56 +28,99 @@ public class SidingWallBlock : Block
     // "saw" item, so this has to be a wildcard match, not an exact AssetLocation comparison.
     private static readonly AssetLocation SawCode = new("game", "saw-*");
 
-    // Unrotated ("west", full height) post boxes per layout, matching the full-height framing
-    // elements in wall.json/cornerout.json. Rotated per side into PostBoxes below.
-    private static readonly Dictionary<string, Cuboidf[]> UnrotatedPostBoxes = new()
+    // Unrotated ("west") framing boxes per layout, matching the framing elements in
+    // wall.json/cornerout.json: full-height posts, then top plates. Bottom plates don't
+    // collide - standing on one would lift the player into a two-high doorway's top plate.
+    private static readonly Dictionary<string, (Cuboidf[] posts, Cuboidf[] top)> UnrotatedFramingBoxes = new()
     {
-        ["wall"] = new[]
-        {
-            new Cuboidf(1f / 16, 0, 0, 3f / 16, 1, 1f / 16),
-            new Cuboidf(1f / 16, 0, 15f / 16, 3f / 16, 1, 1),
-        },
-        ["cornerout"] = new[]
-        {
-            new Cuboidf(1f / 16, 0, 1f / 16, 3f / 16, 1, 3f / 16),
-            new Cuboidf(1f / 16, 0, 15f / 16, 3f / 16, 1, 1),
-            new Cuboidf(15f / 16, 0, 1f / 16, 1, 1, 3f / 16),
-        },
+        ["wall"] = (
+            new[]
+            {
+                new Cuboidf(1f / 16, 0, 0, 3f / 16, 1, 1f / 16),
+                new Cuboidf(1f / 16, 0, 15f / 16, 3f / 16, 1, 1),
+            },
+            new[] { new Cuboidf(1f / 16, 15f / 16, 1f / 16, 3f / 16, 1, 15f / 16) }),
+        ["cornerout"] = (
+            new[]
+            {
+                new Cuboidf(1f / 16, 0, 1f / 16, 3f / 16, 1, 3f / 16),
+                new Cuboidf(1f / 16, 0, 15f / 16, 3f / 16, 1, 1),
+                new Cuboidf(15f / 16, 0, 1f / 16, 1, 1, 3f / 16),
+            },
+            new[]
+            {
+                new Cuboidf(1f / 16, 15f / 16, 3f / 16, 3f / 16, 1, 15f / 16),
+                new Cuboidf(3f / 16, 15f / 16, 1f / 16, 15f / 16, 1, 3f / 16),
+            }),
     };
 
     // Built once up front so collision calls from client and server threads only ever read it.
-    private static readonly Dictionary<(string layout, string side), Cuboidf[]> PostBoxes = BuildPostBoxes();
+    private static readonly Dictionary<(string layout, string side, bool joinsAbove), Cuboidf[]> FramingBoxes = BuildFramingBoxes();
 
-    private static Dictionary<(string layout, string side), Cuboidf[]> BuildPostBoxes()
+    private static Dictionary<(string layout, string side, bool joinsAbove), Cuboidf[]> BuildFramingBoxes()
     {
         var origin = new Vec3d(0.5, 0.5, 0.5);
-        var boxes = new Dictionary<(string layout, string side), Cuboidf[]>();
-        foreach (var (layout, unrotated) in UnrotatedPostBoxes)
+        var boxes = new Dictionary<(string layout, string side, bool joinsAbove), Cuboidf[]>();
+        foreach (var (layout, (posts, top)) in UnrotatedFramingBoxes)
         {
             foreach (string side in CorneroutSecondFace.Keys)
             {
                 float rotationYDeg = SidingWallEntity.RotationYDeg(side);
-                boxes[(layout, side)] = Array.ConvertAll(unrotated, box => box.RotatedCopy(0, rotationYDeg, 0, origin));
+                foreach (bool joinsAbove in new[] { false, true })
+                {
+                    var unrotated = new List<Cuboidf>(posts);
+                    if (!joinsAbove) unrotated.AddRange(top);
+                    boxes[(layout, side, joinsAbove)] =
+                        unrotated.ConvertAll(box => box.RotatedCopy(0, rotationYDeg, 0, origin)).ToArray();
+                }
             }
         }
         return boxes;
     }
 
-    // A frame with framing but no infill is walk-through between its posts (decision 0008).
-    internal static Cuboidf[] ComputeCollisionBoxes(string layout, string side, string? framing, string? infill, Cuboidf[] fullBoxes)
-        => framing != null && infill == null ? PostBoxes[(layout, side)] : fullBoxes;
+    // A frame with framing but no infill collides only on the framing it draws (decision 0008).
+    internal static Cuboidf[] ComputeCollisionBoxes(
+        string layout, string side, string? framing, string? infill, bool joinsAbove, Cuboidf[] fullBoxes)
+        => framing != null && infill == null ? FramingBoxes[(layout, side, joinsAbove)] : fullBoxes;
 
     public override Cuboidf[] GetCollisionBoxes(IBlockAccessor blockAccessor, BlockPos pos)
-    {
-        var entity = blockAccessor.GetBlockEntity<SidingWallEntity>(pos);
-        return ComputeCollisionBoxes(Variant["layout"], Variant["side"], entity?.Framing, entity?.Infill, base.GetCollisionBoxes(blockAccessor, pos));
-    }
+        => FramedCollisionBoxes(blockAccessor, pos, base.GetCollisionBoxes(blockAccessor, pos));
 
     public override Cuboidf[] GetParticleCollisionBoxes(IBlockAccessor blockAccessor, BlockPos pos)
+        => FramedCollisionBoxes(blockAccessor, pos, base.GetParticleCollisionBoxes(blockAccessor, pos));
+
+    private Cuboidf[] FramedCollisionBoxes(IBlockAccessor blockAccessor, BlockPos pos, Cuboidf[] fullBoxes)
     {
         var entity = blockAccessor.GetBlockEntity<SidingWallEntity>(pos);
-        return ComputeCollisionBoxes(Variant["layout"], Variant["side"], entity?.Framing, entity?.Infill, base.GetParticleCollisionBoxes(blockAccessor, pos));
+        if (entity?.Framing == null || entity.Infill != null) return fullBoxes;
+
+        var (joinsAbove, _) = StackJoins(blockAccessor, pos, entity.Infill);
+        return ComputeCollisionBoxes(Variant["layout"], Variant["side"], entity.Framing, entity.Infill, joinsAbove, fullBoxes);
     }
+
+    // Whether the cell at pos shares its top/bottom with the frame above/below, i.e. draws no
+    // plate there. Every second cell up a stack keeps its top plate as a cross-beam.
+    internal (bool joinsAbove, bool joinsBelow) StackJoins(IBlockAccessor blockAccessor, BlockPos pos, string? infill)
+    {
+        int cellsBelow = 0;
+        for (BlockPos p = pos.DownCopy(); ContinuesFrame(blockAccessor, p, infill); p.Down()) cellsBelow++;
+        return (JoinsAbove(ContinuesFrame(blockAccessor, pos.UpCopy(), infill), cellsBelow), cellsBelow > 0);
+    }
+
+    internal static bool JoinsAbove(bool continuesAbove, int cellsBelow) => continuesAbove && cellsBelow % 2 == 0;
+
+    private bool ContinuesFrame(IBlockAccessor blockAccessor, BlockPos neighbourPos, string? infill)
+    {
+        if (blockAccessor.GetBlock(neighbourPos) is not SidingWallBlock neighbourBlock) return false;
+        if (neighbourBlock.Variant["layout"] != Variant["layout"]) return false;
+        if (neighbourBlock.Variant["side"] != Variant["side"]) return false;
+        return SharesStack(infill, blockAccessor.GetBlockEntity<SidingWallEntity>(neighbourPos));
+    }
+
+    // Any framing counts, so mixed woods are one stack, but open and filled cells aren't:
+    // a plate marks where a doorway frame meets filled wall (decision 0008).
+    internal static bool SharesStack(string? infill, SidingWallEntity? neighbour)
+        => neighbour?.Framing != null && (neighbour.Infill == null) == (infill == null);
 
     // Shared "are we in build mode" check for both framing (PlaceWallFrame) and layering
     // (below). A plain right-click, not shift - see decision 0006 for why shift was dropped.
@@ -123,6 +166,7 @@ public class SidingWallBlock : Block
 
             entity.Infill = infillKey;
             entity.MarkDirty(true);
+            MarkVerticalNeighboursDirty(world, blockSel.Position);
             ConsumeHeld(slot, consumes, isCreative);
             return true;
         }
@@ -185,10 +229,9 @@ public class SidingWallBlock : Block
     public override void OnNeighbourBlockChange(IWorldAccessor world, BlockPos pos, BlockPos neibpos)
     {
         base.OnNeighbourBlockChange(world, pos, neibpos);
-        if (neibpos.X == pos.X && neibpos.Z == pos.Z && Math.Abs(neibpos.Y - pos.Y) == 1)
-        {
-            world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos)?.MarkDirty(true);
-        }
+        if (neibpos.X != pos.X || neibpos.Z != pos.Z) return;
+        if (neibpos.Y == pos.Y + 1) world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos)?.MarkDirty(true);
+        if (neibpos.Y == pos.Y - 1) MarkStackDirtyFrom(world, pos);
     }
 
     // Shared with PlaceWallFrame: the neighbour-change notification for a newly placed frame
@@ -196,8 +239,17 @@ public class SidingWallBlock : Block
     // it - they have to be marked dirty explicitly once Framing is in place.
     internal static void MarkVerticalNeighboursDirty(IWorldAccessor world, BlockPos pos)
     {
-        world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos.UpCopy())?.MarkDirty(true);
         world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos.DownCopy())?.MarkDirty(true);
+        MarkStackDirtyFrom(world, pos.UpCopy());
+    }
+
+    // Cross-beams alternate up a stack, so a change low down shifts every cell above it.
+    private static void MarkStackDirtyFrom(IWorldAccessor world, BlockPos pos)
+    {
+        for (BlockPos p = pos.Copy(); world.BlockAccessor.GetBlockEntity<SidingWallEntity>(p) is { Framing: not null } entity; p.Up())
+        {
+            entity.MarkDirty(true);
+        }
     }
 
     public override int GetRetention(BlockPos pos, BlockFacing facing, EnumRetentionType type)

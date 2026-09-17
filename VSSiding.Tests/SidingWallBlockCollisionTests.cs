@@ -46,7 +46,7 @@ public class SidingWallBlockCollisionTests
             new Cuboidf(1f / 16, 0, 15f / 16, 3f / 16, 1, 1),
         };
 
-        Assert.Equal(expected, SidingWallBlock.ComputeCollisionBoxes("wall", "west", "oak", null, FullBoxes), Comparer);
+        Assert.Equal(expected, SidingWallBlock.ComputeCollisionBoxes("wall", "west", "oak", null, true, FullBoxes), Comparer);
     }
 
     [Fact]
@@ -58,7 +58,7 @@ public class SidingWallBlockCollisionTests
             new Cuboidf(15f / 16, 0, 13f / 16, 1, 1, 15f / 16),
         };
 
-        Assert.Equal(expected, SidingWallBlock.ComputeCollisionBoxes("wall", "south", "oak", null, FullBoxes), Comparer);
+        Assert.Equal(expected, SidingWallBlock.ComputeCollisionBoxes("wall", "south", "oak", null, true, FullBoxes), Comparer);
     }
 
     [Fact]
@@ -71,7 +71,7 @@ public class SidingWallBlockCollisionTests
             new Cuboidf(15f / 16, 0, 1f / 16, 1, 1, 3f / 16),
         };
 
-        Assert.Equal(expected, SidingWallBlock.ComputeCollisionBoxes("cornerout", "west", "oak", null, FullBoxes), Comparer);
+        Assert.Equal(expected, SidingWallBlock.ComputeCollisionBoxes("cornerout", "west", "oak", null, true, FullBoxes), Comparer);
     }
 
     [Fact]
@@ -84,18 +84,57 @@ public class SidingWallBlockCollisionTests
             new Cuboidf(1f / 16, 0, 0, 3f / 16, 1, 1f / 16),
         };
 
-        Assert.Equal(expected, SidingWallBlock.ComputeCollisionBoxes("cornerout", "south", "oak", null, FullBoxes), Comparer);
+        Assert.Equal(expected, SidingWallBlock.ComputeCollisionBoxes("cornerout", "south", "oak", null, true, FullBoxes), Comparer);
+    }
+
+    [Fact]
+    public void UnjoinedWallWestCollidesOnItsTopPlateButNotItsBottomPlate()
+    {
+        var expected = new[]
+        {
+            new Cuboidf(1f / 16, 0, 0, 3f / 16, 1, 1f / 16),
+            new Cuboidf(1f / 16, 0, 15f / 16, 3f / 16, 1, 1),
+            new Cuboidf(1f / 16, 15f / 16, 1f / 16, 3f / 16, 1, 15f / 16),
+        };
+
+        Assert.Equal(expected, SidingWallBlock.ComputeCollisionBoxes("wall", "west", "oak", null, false, FullBoxes), Comparer);
+    }
+
+    [Fact]
+    public void CrossBeamOnARotatedWallCollides()
+    {
+        var expected = new[]
+        {
+            new Cuboidf(0, 0, 13f / 16, 1f / 16, 1, 15f / 16),
+            new Cuboidf(15f / 16, 0, 13f / 16, 1, 1, 15f / 16),
+            new Cuboidf(1f / 16, 15f / 16, 13f / 16, 15f / 16, 1, 15f / 16),
+        };
+
+        Assert.Equal(expected, SidingWallBlock.ComputeCollisionBoxes("wall", "south", "oak", null, false, FullBoxes), Comparer);
+    }
+
+    [Theory]
+    [InlineData(null, "oak", null, true)]
+    [InlineData("wattle", "pine", "wattle", true)]
+    [InlineData(null, "oak", "wattle", false)]
+    [InlineData("wattle", "oak", null, false)]
+    [InlineData(null, null, null, false)]
+    public void OnlyFramedNeighboursWithTheSameInfillStateShareAStack(string? infill, string? neighbourFraming, string? neighbourInfill, bool expected)
+    {
+        var neighbour = new SidingWallEntity { Framing = neighbourFraming, Infill = neighbourInfill };
+
+        Assert.Equal(expected, SidingWallBlock.SharesStack(infill, neighbour));
     }
 
     [Fact]
     public void FilledFrameReturnsFullBoxesUnchanged()
     {
-        Assert.Same(FullBoxes, SidingWallBlock.ComputeCollisionBoxes("wall", "west", "oak", "wattle", FullBoxes));
+        Assert.Same(FullBoxes, SidingWallBlock.ComputeCollisionBoxes("wall", "west", "oak", "wattle", false, FullBoxes));
     }
 
     [Fact]
     public void MissingEntityFallsBackToFullBoxes()
     {
-        Assert.Same(FullBoxes, SidingWallBlock.ComputeCollisionBoxes("wall", "west", null, null, FullBoxes));
+        Assert.Same(FullBoxes, SidingWallBlock.ComputeCollisionBoxes("wall", "west", null, null, false, FullBoxes));
     }
 }

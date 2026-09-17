@@ -50,8 +50,7 @@ public class SidingWallEntity : BlockEntity
         // An empty selectiveElements array matches zero shape elements, not "no filter" -
         // an unbuilt wall (true of every wall today, since nothing sets these keys yet)
         // must fall back to the block's default JSON shape instead of tesselating nothing.
-        bool continuesAbove = ContinuesFrame(Pos.UpCopy());
-        bool continuesBelow = ContinuesFrame(Pos.DownCopy());
+        var (continuesAbove, continuesBelow) = ((SidingWallBlock)Block).StackJoins(Api.World.BlockAccessor, Pos, Infill);
 
         string[] selectiveElements = SelectiveElements(Framing, Infill, Front, Back, Block.Attributes["Finishes"], continuesAbove, continuesBelow);
         if (selectiveElements.Length == 0) return false;
@@ -73,15 +72,6 @@ public class SidingWallEntity : BlockEntity
 
         mesher.AddMeshData(mesh);
         return true;
-    }
-
-    // Any framing counts - mixed woods still count as one continuous stack (decision 0008).
-    private bool ContinuesFrame(BlockPos neighbourPos)
-    {
-        if (Api.World.BlockAccessor.GetBlock(neighbourPos) is not SidingWallBlock neighbourBlock) return false;
-        if (neighbourBlock.Variant["layout"] != Block.Variant["layout"]) return false;
-        if (neighbourBlock.Variant["side"] != Block.Variant["side"]) return false;
-        return Api.World.BlockAccessor.GetBlockEntity<SidingWallEntity>(neighbourPos)?.Framing != null;
     }
 
     internal static string CacheKey(

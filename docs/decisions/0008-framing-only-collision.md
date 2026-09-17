@@ -35,9 +35,12 @@ No post extension elements are needed, since the posts are already full height; 
 Post collision boxes (see `GetCollisionBoxes` below) are full height to match.
 
 **A plate is drawn only when the cell on that side doesn't continue the frame.**
-"Continues" means any non-null `Framing`, not a material match: mixed-wood stacks are still one wall.
-The top plate is skipped when the block above is a siding wall with the same `layout` and `side` and non-null `Framing`; the bottom plate likewise for the block below.
-So a single-high frame keeps both plates, a two-high stack has a bottom plate at y=0 and a top plate at y=2 with nothing between, and the wall above a doorway gets a bottom plate that reads as a lintel.
+"Continues" means non-null `Framing` with the same infill state (both open or both filled), not a material match: mixed-wood stacks are still one wall, but an open frame and a filled cell are not.
+The top plate is skipped when the block above is a siding wall with the same `layout` and `side` and non-null `Framing` and matching infill state; the bottom plate likewise for the block below.
+So a single-high frame keeps both plates, a two-high stack has a bottom plate at y=0 and a top plate at y=2 with nothing between, and a filled wall above an open doorway frame gets plates at the boundary that read as a lintel.
+The one exception is a cross-beam: every second cell up a stack, counted from its bottom cell, keeps its top plate, so a 3-high stack has plates on top of cells [no, yes, yes] and a 4-high on [no, yes, no, yes].
+That keeps a two-high doorway open while a tall wall still reads as braced framing.
+Because the count runs from the bottom, adding or removing a cell marks every framed cell above it dirty, not just its neighbours.
 `SelectiveElements` gains `continuesAbove` and `continuesBelow` inputs; `CacheKey` gains the same two bools.
 Finishes are unchanged: the face slabs already span the full cell height.
 Infill doesn't: the `infill` element runs y 1..15, between the plates, so skipping the plates at a join would leave a 2-voxel see-through slit in a filled, unfinished stack.
@@ -48,11 +51,12 @@ A filled two-high stack then shows one unbroken panel from y 1 to y 31.
 `SidingWallBlock.OnNeighbourBlockChange` marks the entity dirty (`MarkDirty(true)`) when the changed position is directly above or below.
 Adding framing to a wall already goes through `MarkDirty`, which is a block-entity update, not a block change; the frame placement in `PlaceWallFrame` must also mark the walls above and below dirty.
 
-**`GetCollisionBoxes` returns posts only when `Framing != null && Infill == null`.**
+**`GetCollisionBoxes` returns only the framing the cell draws when `Framing != null && Infill == null`:** the posts, plus the top plate if it draws one.
 Every other state returns `base.GetCollisionBoxes`, the static JSON boxes.
 `GetParticleCollisionBoxes` follows the same rule.
-Post boxes are hand-written for `west` and rotated with `Cuboidf.RotatedCopy` around the block centre, the angles of `SidingWallEntity.RotationYDeg`, cached per layout in static fields.
-Plates never collide: the bottom plate is a 1-voxel step the player walks over, and the top plate is overhead.
+The boxes are hand-written for `west` and rotated with `Cuboidf.RotatedCopy` around the block centre, the angles of `SidingWallEntity.RotationYDeg`, built once per layout, side and plate combination in static fields.
+Drawn plates collide, so a one-high frame or a waist-height cross-beam blocks the player, while a two-high doorway's only top plate sits above head height.
+Bottom plates never collide: standing on one lifts the player 1 voxel, into a two-high doorway's top plate.
 
 **Selection boxes don't change.**
 The player has to be able to click the frame to add infill.
