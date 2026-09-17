@@ -82,6 +82,7 @@ public class PlaceWallFrame : CollectibleBehavior
         {
             entity.Framing = framingKey;
             entity.MarkDirty(true);
+            SidingWallBlock.MarkVerticalNeighboursDirty(world, targetPos);
         }
 
         SidingWallBlock.ConsumeHeld(slot, consumes, isCreative);

@@ -120,6 +120,26 @@ public class SidingWallBlock : Block
     internal static bool CanAfford(bool isCreative, int stackSize, JsonObject consumes)
         => isCreative || stackSize >= ConsumeQuantity(consumes);
 
+    // A stack draws its plates from the top/bottom cells' state (decision 0008), so a
+    // neighbour above/below gaining or losing framing must re-tesselate this cell too.
+    public override void OnNeighbourBlockChange(IWorldAccessor world, BlockPos pos, BlockPos neibpos)
+    {
+        base.OnNeighbourBlockChange(world, pos, neibpos);
+        if (neibpos.X == pos.X && neibpos.Z == pos.Z && Math.Abs(neibpos.Y - pos.Y) == 1)
+        {
+            world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos)?.MarkDirty(true);
+        }
+    }
+
+    // Shared with PlaceWallFrame: the neighbour-change notification for a newly placed frame
+    // fires during TryPlaceBlock, before Framing is set, so the cells above/below never see
+    // it - they have to be marked dirty explicitly once Framing is in place.
+    internal static void MarkVerticalNeighboursDirty(IWorldAccessor world, BlockPos pos)
+    {
+        world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos.UpCopy())?.MarkDirty(true);
+        world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos.DownCopy())?.MarkDirty(true);
+    }
+
     public override int GetRetention(BlockPos pos, BlockFacing facing, EnumRetentionType type)
     {
         string side = Variant["side"];
