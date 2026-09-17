@@ -12,6 +12,7 @@ Build order to a playable prototype — each one should be demoable in game befo
 
 - [`framing-only-collision`](framing-only-collision.md) — walk between the studs of a wall with no infill yet.
 - [`cornerout-second-front`](cornerout-second-front.md) — independent front finish per corner leg, so a T-junction doesn't brick the room next door.
+- [`material-families`](material-families.md) — template entries that expand per wood type; framing and plank finishes for every wood.
 
 ## Later (not yet written up)
 
