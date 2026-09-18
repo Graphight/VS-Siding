@@ -67,7 +67,7 @@ public class SidingWallBlockDropsTests
     }
 
     [Fact]
-    public void BlockDropKeepsItsType()
+    public void DropsKeepTheirItemOrBlockType()
     {
         var finishes = Dict("""
         { "cobblestone-granite": { "Drops": [ { "type": "block", "code": "game:cobblestone-granite", "quantity": { "avg": 1, "var": 0 } } ] } }

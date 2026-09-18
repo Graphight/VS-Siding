@@ -2,7 +2,7 @@
 
 - Status: Draft
 - Created: 2026-09-18
-- Reflects: branch `masonry-finishes` at 71c1d9c; `SidingWallBlock.ComputeRetention`; vanilla 1.21 assets (`itemtypes/resource/stone.json`, `textures/block/stone/drystone/`)
+- Reflects: branch `masonry-finishes` at 71b8139; `SidingWallBlock.ComputeRetention`; vanilla 1.21 assets (`itemtypes/resource/stone.json`, `textures/block/stone/drystone/`)
 
 ## Summary
 Loose stones (`stone-{rock}`) pack a frame as a cooling infill, once per rock, via an `InfillFamilies` template.
@@ -50,5 +50,4 @@ The build flow offers infill first while a frame is empty, so the first click pa
 
 ## Consequences & open questions
 - The opacity test must see the infill candidates; `stone.json` is already in its candidate list, so the template is covered once it's added.
-- Mixed-rock walls: a granite infill with a basalt drystone face is allowed and probably fine.
 - The regex is now in two places; if a third stone family needs it, consider whether it belongs in one shared spot.
