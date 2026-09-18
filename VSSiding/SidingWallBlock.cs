@@ -312,6 +312,50 @@ public class SidingWallBlock : Block
     internal static int ComputeLightAbsorption(string? framingKey, string? infillKey, JsonObject framings, JsonObject infills)
         => ComputeRetention(true, framingKey, infillKey, framings, infills) != 0 ? 99 : 0;
 
+    // A player's break peels one layer (decision 0013); anything else, or a bare frame, breaks the block.
+    public override void OnBlockBroken(IWorldAccessor world, BlockPos pos, IPlayer byPlayer, float dropQuantityMultiplier = 1f)
+    {
+        var entity = world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos);
+        BlockFacing? hitFace = byPlayer?.CurrentBlockSelection?.Face;
+        string? face = hitFace == null ? null : ResolveFinishFace(Variant["layout"], Variant["side"], hitFace);
+        string? layer = entity == null || byPlayer == null
+            ? null
+            : PeelLayer(face, entity.Framing, entity.Infill, entity.Front, entity.SecondFront, entity.Back);
+        if (layer == null)
+        {
+            base.OnBlockBroken(world, pos, byPlayer, dropQuantityMultiplier);
+            return;
+        }
+
+        string? key = layer switch
+        {
+            "front" => entity!.Front,
+            "secondfront" => entity!.SecondFront,
+            "back" => entity!.Back,
+            _ => entity!.Infill,
+        };
+        if (world.Side == EnumAppSide.Server && byPlayer!.WorldData.CurrentGameMode != EnumGameMode.Creative)
+        {
+            var drops = new List<BlockDropItemStack>();
+            AddDrops(drops, key, Attributes[layer == "infill" ? "Infills" : "Finishes"]);
+            foreach (var stack in ResolveDrops(world, drops, dropQuantityMultiplier)) world.SpawnItemEntity(stack, pos);
+        }
+        if (world.Side == EnumAppSide.Server && Sounds != null) world.PlaySoundAt(Sounds.GetBreakSound(byPlayer), pos, 0.0, byPlayer);
+        SpawnBlockBrokenParticles(pos, byPlayer);
+
+        switch (layer)
+        {
+            case "front": entity.Front = null; break;
+            case "secondfront": entity.SecondFront = null; break;
+            case "back": entity.Back = null; break;
+            default:
+                entity.Infill = null;
+                OnInfillChanged(world, entity, pos);
+                return;
+        }
+        entity.MarkDirty(true);
+    }
+
     public override ItemStack[] GetDrops(IWorldAccessor world, BlockPos pos, IPlayer byPlayer, float dropQuantityMultiplier)
     {
         var entity = world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos);
