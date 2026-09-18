@@ -47,8 +47,10 @@ Expansion skips a generated key that already exists, and skips an item that an e
 That keeps today's `oak` framing and `planks` finish exactly as saved in existing worlds, and lets a single awkward wood be hand-authored over the template.
 
 **Expansion runs once, server side, in `SidingModSystem.AssetsFinalize`**, writing into `Block.Attributes.Token` for every `vssiding:wall-*` block.
-First thing to verify: that block attributes reach the client from the server after `AssetsFinalize`, so the client's texture source sees the generated entries.
-If they don't, run the same pure expansion in `SidingWallBlock.OnLoaded` on both sides instead; it's deterministic over the same item list.
+Verified in play, singleplayer and a dedicated server with a separate client: the expanded block attributes reach the client with the block list, so the client's texture source sees the generated entries.
+Had they not, the fallback was running the same pure expansion in `SidingWallBlock.OnLoaded` on both sides; it's deterministic over the same item list.
+
+A malformed family (not an object, or missing `Match.code`/`Match.variant`) is skipped with a logged warning rather than failing the load, since family entries can come from other mods' patches.
 
 **Pure function, tested without a game:** `MaterialFamilies.Expand(JObject families, JObject explicitEntries, IEnumerable<(string type, AssetLocation code, IDictionary<string,string> variants)> candidates) → JObject`.
 Assert the whole resulting `JObject` against an expected one.
