@@ -164,11 +164,7 @@ public class SidingWallBlock : Block
             if (!TryAffordOrError(byPlayer, isCreative, slot.StackSize, consumes)) return true;
 
             entity.Infill = infillKey;
-            entity.MarkDirty(true);
-            world.BlockAccessor.MarkAbsorptionChanged(0, GetLightAbsorption(world.BlockAccessor, blockSel.Position), blockSel.Position);
-            // Infill changes retention, but rooms only recompute on a chunk-dirty event; exchanging the block for itself fires one.
-            world.BlockAccessor.ExchangeBlock(Id, blockSel.Position);
-            MarkVerticalNeighboursDirty(world, blockSel.Position);
+            OnInfillChanged(world, entity, blockSel.Position);
             ConsumeHeld(slot, consumes, isCreative);
             return true;
         }
@@ -212,6 +208,15 @@ public class SidingWallBlock : Block
         entity.MarkDirty(true);
         ConsumeHeld(slot, finishConsumes, isCreative);
         return true;
+    }
+
+    private void OnInfillChanged(IWorldAccessor world, SidingWallEntity entity, BlockPos pos)
+    {
+        entity.MarkDirty(true);
+        world.BlockAccessor.MarkAbsorptionChanged(0, GetLightAbsorption(world.BlockAccessor, pos), pos);
+        // Infill changes retention, but rooms only recompute on a chunk-dirty event; exchanging the block for itself fires one.
+        world.BlockAccessor.ExchangeBlock(Id, pos);
+        MarkVerticalNeighboursDirty(world, pos);
     }
 
     // Shared by both build-flow steps (this class's layering, and PlaceWallFrame's framing)
@@ -318,6 +323,11 @@ public class SidingWallBlock : Block
         // hands back the placed block.
         if (drops.Count == 0) return base.GetDrops(world, pos, byPlayer, dropQuantityMultiplier);
 
+        return ResolveDrops(world, drops, dropQuantityMultiplier);
+    }
+
+    private ItemStack[] ResolveDrops(IWorldAccessor world, List<BlockDropItemStack> drops, float dropQuantityMultiplier)
+    {
         var stacks = new List<ItemStack>();
         foreach (var drop in drops)
         {
