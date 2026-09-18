@@ -6,6 +6,7 @@ using System.Reflection;
 using Newtonsoft.Json.Linq;
 using SkiaSharp;
 using Vintagestory.API.Common;
+using Vintagestory.API.Util;
 using Xunit;
 
 namespace VSSiding.Tests;
@@ -33,16 +34,26 @@ public class MaterialTextureOpacityTests
             yield return (string)entry.Value["Texture"]!;
     }
 
-    // Vanilla's plank items: plank.json's own states plus every wood in worldproperties/block/wood.json.
-    private static List<(string, AssetLocation, IDictionary<string, string>)> PlankCandidates(string vintageStoryPath)
+    // A vanilla item or block type's variants: its first variant group's own states plus its
+    // loadFromProperties list, minus skipVariants. Enough for the single-group types families match.
+    private static IEnumerable<(string, AssetLocation, IDictionary<string, string>)> Candidates(
+        string vintageStoryPath, string type, string relativePath)
     {
         var survival = Path.Combine(vintageStoryPath, "assets", "survival");
-        var plank = JToken.Parse(File.ReadAllText(Path.Combine(survival, "itemtypes", "resource", "plank.json")));
-        var wood = JToken.Parse(File.ReadAllText(Path.Combine(survival, "worldproperties", "block", "wood.json")));
-        var woods = plank["variantgroups"]![0]!["states"]!.Select(t => (string)t!)
-            .Concat(wood["variants"]!.Select(v => (string)v["Code"]!));
-        return woods.Select(w => ("item", new AssetLocation("game", "plank-" + w), (IDictionary<string, string>)new Dictionary<string, string> { ["wood"] = w }))
-            .ToList();
+        var json = JToken.Parse(File.ReadAllText(Path.Combine(survival, relativePath)));
+        var group = json["variantgroups"]![0]!;
+        string code = (string)json["code"]!, variant = (string)group["code"]!;
+        var values = group["states"]?.Select(t => (string)t!) ?? [];
+        if (group["loadFromProperties"] is JValue props)
+        {
+            var properties = JToken.Parse(File.ReadAllText(Path.Combine(survival, "worldproperties", (string)props! + ".json")));
+            values = values.Concat(properties["variants"]!.Select(v => (string)v["Code"]!));
+        }
+        var skip = json["skipVariants"]?.Select(t => new AssetLocation("game", (string)t!)).ToList() ?? [];
+        return values.Distinct()
+            .Select(v => new AssetLocation("game", code + "-" + v))
+            .Where(c => !skip.Any(s => WildcardUtil.Match(s, c)))
+            .Select(c => (type, c, (IDictionary<string, string>)new Dictionary<string, string> { [variant] = c.Path[(code.Length + 1)..] }));
     }
 
     private static string ResolveTextureFile(string vintageStoryPath, string textureCode)
@@ -66,7 +77,10 @@ public class MaterialTextureOpacityTests
         var wallJsonPath = Path.Combine(repoRoot, "VSSiding", "assets", "vssiding", "blocktypes", "wall.json");
         var wallJson = (JObject)JToken.Parse(File.ReadAllText(wallJsonPath));
 
-        var candidates = PlankCandidates(vintageStoryPath);
+        var candidates = Candidates(vintageStoryPath, "item", "itemtypes/resource/plank.json")
+            .Concat(Candidates(vintageStoryPath, "block", "blocktypes/stone/cobble/cobblestone.json"))
+            .Concat(Candidates(vintageStoryPath, "block", "blocktypes/stone/polished/polishedrock.json"))
+            .ToList();
         var textureCodes = CollectTextureCodes(wallJson, "Framings", "FramingFamilies", candidates)
             .Concat(CollectTextureCodes(wallJson, "Infills", "InfillFamilies", candidates))
             .Concat(CollectTextureCodes(wallJson, "Finishes", "FinishFamilies", candidates))
