@@ -318,29 +318,30 @@ public class SidingWallBlock : Block
         var entity = world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos);
         BlockFacing? hitFace = byPlayer?.CurrentBlockSelection?.Face;
         string? face = hitFace == null ? null : ResolveFinishFace(Variant["layout"], Variant["side"], hitFace);
-        string? layer = entity == null || byPlayer == null
-            ? null
-            : PeelLayer(face, entity.Framing, entity.Infill, entity.Front, entity.SecondFront, entity.Back);
-        if (layer == null)
+        string? layer = entity == null ? null : PeelLayer(face, entity.Infill, entity.Front, entity.SecondFront, entity.Back);
+        if (entity == null || byPlayer == null || layer == null)
         {
             base.OnBlockBroken(world, pos, byPlayer, dropQuantityMultiplier);
             return;
         }
 
-        string? key = layer switch
+        if (world.Side == EnumAppSide.Server)
         {
-            "front" => entity!.Front,
-            "secondfront" => entity!.SecondFront,
-            "back" => entity!.Back,
-            _ => entity!.Infill,
-        };
-        if (world.Side == EnumAppSide.Server && byPlayer!.WorldData.CurrentGameMode != EnumGameMode.Creative)
-        {
-            var drops = new List<BlockDropItemStack>();
-            AddDrops(drops, key, Attributes[layer == "infill" ? "Infills" : "Finishes"]);
-            foreach (var stack in ResolveDrops(world, drops, dropQuantityMultiplier)) world.SpawnItemEntity(stack, pos);
+            if (byPlayer.WorldData.CurrentGameMode != EnumGameMode.Creative)
+            {
+                string? key = layer switch
+                {
+                    "front" => entity.Front,
+                    "secondfront" => entity.SecondFront,
+                    "back" => entity.Back,
+                    _ => entity.Infill,
+                };
+                var drops = new List<BlockDropItemStack>();
+                AddDrops(drops, key, Attributes[layer == "infill" ? "Infills" : "Finishes"]);
+                foreach (var stack in ResolveDrops(world, drops, dropQuantityMultiplier)) world.SpawnItemEntity(stack, pos);
+            }
+            if (Sounds != null) world.PlaySoundAt(Sounds.GetBreakSound(byPlayer), pos, 0.0, byPlayer);
         }
-        if (world.Side == EnumAppSide.Server && Sounds != null) world.PlaySoundAt(Sounds.GetBreakSound(byPlayer), pos, 0.0, byPlayer);
         SpawnBlockBrokenParticles(pos, byPlayer);
 
         switch (layer)
@@ -408,7 +409,7 @@ public class SidingWallBlock : Block
     }
 
     // Reverse build order: the hit face's finish, then any finish, then infill; null leaves only the frame.
-    internal static string? PeelLayer(string? face, string? framing, string? infill, string? front, string? secondFront, string? back)
+    internal static string? PeelLayer(string? face, string? infill, string? front, string? secondFront, string? back)
     {
         string? hit = face switch { "front" => front, "secondfront" => secondFront, "back" => back, _ => null };
         if (hit != null) return face;

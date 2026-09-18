@@ -6,21 +6,21 @@ public class SidingWallBlockPeelTests
 {
     [Fact]
     public void HitFaceFinishPeelsFirst()
-        => Assert.Equal("back", SidingWallBlock.PeelLayer("back", "oak", "wattle", "daub", null, "planks"));
+        => Assert.Equal("back", SidingWallBlock.PeelLayer("back", "wattle", "daub", null, "planks"));
 
     [Fact]
     public void BareHitFacePeelsAnotherFinish()
-        => Assert.Equal("secondfront", SidingWallBlock.PeelLayer("front", "oak", "wattle", null, "daub", "planks"));
+        => Assert.Equal("secondfront", SidingWallBlock.PeelLayer("front", "wattle", null, "daub", "planks"));
 
     [Fact]
     public void EndFacePeelsFrontFirst()
-        => Assert.Equal("front", SidingWallBlock.PeelLayer(null, "oak", "wattle", "daub", "daub", "planks"));
+        => Assert.Equal("front", SidingWallBlock.PeelLayer(null, "wattle", "daub", "daub", "planks"));
 
     [Fact]
     public void InfillPeelsOnceFinishesAreGone()
-        => Assert.Equal("infill", SidingWallBlock.PeelLayer("front", "oak", "wattle", null, null, null));
+        => Assert.Equal("infill", SidingWallBlock.PeelLayer("front", "wattle", null, null, null));
 
     [Fact]
     public void FrameOnlyBreaksTheBlock()
-        => Assert.Null(SidingWallBlock.PeelLayer("front", "oak", null, null, null, null));
+        => Assert.Null(SidingWallBlock.PeelLayer("front", null, null, null, null));
 }

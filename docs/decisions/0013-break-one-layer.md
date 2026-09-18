@@ -29,8 +29,8 @@ The face comes from `byPlayer.CurrentBlockSelection.Face`, resolved with `Resolv
 The build flow only accepts finishes on an infilled frame, so infill waits for every finish to go; peeling never makes a wall the build flow couldn't.
 
 **Pure function for the choice, tested without a game.**
-`PeelLayer(string? face, framing, infill, front, secondFront, back) → string?` returns the layer name to clear (or `null` for "break the frame").
-Assert on it per case; drops reuse `ComputeDrops` with only the peeled key set.
+`PeelLayer(string? face, infill, front, secondFront, back) → string?` returns the layer name to clear (or `null` for "break the frame").
+Assert on it per case; drops go through the same `AddDrops` and stack resolving as a whole-wall break, for the peeled key only.
 
 **Removing infill is a block change in all but name.**
 Retention and the stack joins both change, so it gets the same `ExchangeBlock` (rooms recompute), `MarkAbsorptionChanged` (the wall turns see-through again) and `MarkVerticalNeighboursDirty` calls that placing infill has.
@@ -48,7 +48,6 @@ Same mining time for each layer, at the block's resistance; creative peels insta
 - **Return all layers but keep the frame.** Swapping one face would still cost re-applying the other two layers.
 
 ## Consequences & open questions
-- Not yet playtested; accepted on the implementation and unit tests alone.
-- Unknown until played: whether mining progress restarts from zero for each layer, or the crack carries over from the last peel.
+- Playtested on branch `break-one-layer`: every layer peels in the designed order and a bare frame breaks as before.
 - Is rule 2 (hitting a bare face peels the other face's finish) surprising in play? The alternative is doing nothing and showing an error.
 - Per-layer mining times (straw fast, stone slow) are the natural follow-up; not needed to fix the rebuild pain.
