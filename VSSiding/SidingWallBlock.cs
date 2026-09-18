@@ -165,6 +165,8 @@ public class SidingWallBlock : Block
 
             entity.Infill = infillKey;
             entity.MarkDirty(true);
+            // Infill changes retention, but rooms only recompute on a chunk-dirty event; exchanging the block for itself fires one.
+            world.BlockAccessor.ExchangeBlock(Id, blockSel.Position);
             MarkVerticalNeighboursDirty(world, blockSel.Position);
             ConsumeHeld(slot, consumes, isCreative);
             return true;
