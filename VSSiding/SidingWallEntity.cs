@@ -28,8 +28,14 @@ public class SidingWallEntity : BlockEntity
     public override void FromTreeAttributes(ITreeAttribute tree, IWorldAccessor worldAccessForResolve)
     {
         base.FromTreeAttributes(tree, worldAccessForResolve);
+        string? oldInfill = Infill;
         Framing = NullIfEmpty(tree.GetString("framing", null));
         Infill = NullIfEmpty(tree.GetString("infill", null));
+        // Other clients learn of new infill only through this sync, so they relight here; Api is null on chunk load.
+        if (Api?.Side == EnumAppSide.Client && Infill != oldInfill)
+        {
+            worldAccessForResolve.BlockAccessor.MarkAbsorptionChanged(0, Block.GetLightAbsorption(worldAccessForResolve.BlockAccessor, Pos), Pos);
+        }
         Front = NullIfEmpty(tree.GetString("front", null));
         SecondFront = NullIfEmpty(tree.GetString("secondfront", null));
         Back = NullIfEmpty(tree.GetString("back", null));

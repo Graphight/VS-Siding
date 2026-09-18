@@ -1,4 +1,8 @@
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using Newtonsoft.Json.Linq;
+using Vintagestory.API.Common;
 using Vintagestory.API.Datastructures;
 using Xunit;
 
@@ -57,5 +61,28 @@ public class SidingWallBlockRetentionTests
     public void NonCoolingInfillSealsPositive()
     {
         Assert.Equal(1, SidingWallBlock.ComputeRetention(true, "oak", "wattle", Framings, Infills));
+    }
+
+    [Fact]
+    public void ShippedInfillsSealWithTheirCoolingSign()
+    {
+        var wallJsonPath = Path.Combine(MaterialTextureOpacityTests.GetAssemblyMetadata("RepoRoot"), "VSSiding", "assets", "vssiding", "blocktypes", "wall.json");
+        var attributes = (JObject)JToken.Parse(File.ReadAllText(wallJsonPath))["attributes"]!;
+        var infills = MaterialFamilies.Expand((JObject)attributes["InfillFamilies"]!, (JObject)attributes["Infills"]!,
+            [("item", new AssetLocation("game:stone-granite"), new Dictionary<string, string> { ["rock"] = "granite" })]);
+
+        var actual = infills.Properties().ToDictionary(p => p.Name,
+            p => SidingWallBlock.ComputeRetention(true, "oak", p.Name, new JsonObject(attributes["Framings"]), new JsonObject(infills)));
+
+        Assert.Equal(new Dictionary<string, int> { ["wattle"] = 1, ["straw"] = 1, ["clay"] = -1, ["stone-granite"] = -1 }, actual);
+    }
+
+    [Fact]
+    public void OnlyASealedWallAbsorbsLight()
+    {
+        var actual = new[] { (null, null), ("oak", null), ("oak", "wattle"), ("oak", "clay"), ("oak", "uninstalled") }
+            .Select(w => SidingWallBlock.ComputeLightAbsorption(w.Item1, w.Item2, Framings, Infills));
+
+        Assert.Equal(new[] { 0, 0, 99, 99, 0 }, actual);
     }
 }

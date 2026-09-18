@@ -15,7 +15,7 @@ public class MaterialTextureOpacityTests
 {
     private static readonly string[] AssetDomainFolders = ["survival", "game", "creative"];
 
-    private static string GetAssemblyMetadata(string key)
+    internal static string GetAssemblyMetadata(string key)
     {
         var value = typeof(MaterialTextureOpacityTests).Assembly
             .GetCustomAttributes<AssemblyMetadataAttribute>()

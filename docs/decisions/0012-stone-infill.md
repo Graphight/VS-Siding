@@ -1,8 +1,8 @@
 # Stone infill
 
-- Status: Draft
+- Status: Accepted
 - Created: 2026-09-18
-- Reflects: branch `masonry-finishes` at 71b8139; `SidingWallBlock.ComputeRetention`; vanilla 1.21 assets (`itemtypes/resource/stone.json`, `textures/block/stone/drystone/`)
+- Reflects: branch `masonry-finishes` at 71b8139; `SidingWallBlock.ComputeRetention`; vanilla 1.21 assets (`itemtypes/resource/stone.json`, `textures/block/stone/drystone/`); graduated on branch `stone-infill` at 8195d65
 
 ## Summary
 Loose stones (`stone-{rock}`) pack a frame as a cooling infill, once per rock, via an `InfillFamilies` template.
@@ -10,7 +10,7 @@ Same cellar behaviour as `clay`; no code change.
 
 ## Context
 `clay` is the only cooling infill, so a cellar wall means digging clay even in stone country where loose stones are everywhere.
-`masonry-finishes` parked a stone-rubble infill until a player asked; this is the ask.
+Decision 0011 parked a stone-rubble infill until a player asked; this is the ask.
 
 ## Design
 
@@ -49,5 +49,8 @@ The build flow offers infill first while a frame is empty, so the first click pa
 - **Better insulation than clay.** Out of scope: retention only has a sign today, not a magnitude (decision 0002).
 
 ## Consequences & open questions
-- The opacity test must see the infill candidates; `stone.json` is already in its candidate list, so the template is covered once it's added.
+- The opacity test covers the expanded infills with no change; `stone.json` was already in its candidate list.
 - The regex is now in two places; if a third stone family needs it, consider whether it belongs in one shared spot.
+- Playtesting found rooms went stale after packing infill: `RoomRegistry` only recomputes on a chunk-dirty event, and setting infill isn't a block change. Placing infill now exchanges the block for itself (`IBlockAccessor.ExchangeBlock`), which fires that event on server and client. The bug dates from decision 0003, not this one.
+- Even sealed, no siding cellar got a spoilage bonus: `wall.json` has `lightAbsorption: 0`, so sunlight came through the wall and both warmed the room and counted as skylight. A wall now absorbs light (99, opaque) once it seals, via `GetLightAbsorption` read from the entity, the way vanilla's chiselled blocks do; an open frame still lets light through. Packing infill calls `MarkAbsorptionChanged` to relight, and other clients relight when the entity syncs. Walls infilled before this fix keep their old light until rebuilt.
+- With both fixes, a stone-infilled cellar is sealed, dark and small, but gets only about half the spoilage bonus of an identical rammed-earth one. Clay infill wasn't tested on its own, but nothing in the retention path tells clay and stone apart. See `siding-cellar-strength`.

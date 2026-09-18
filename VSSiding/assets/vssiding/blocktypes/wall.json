@@ -56,6 +56,16 @@
 				Drops: [ { type: "item", code: "game:clay-blue", quantity: { avg: 4, var: 0 } } ]
 			}
 		},
+		InfillFamilies: {
+			"stone-{rock}": {
+				Match: { type: "item", code: "game:@stone-(?!travertine$|meteorite-iron$).*", variant: "rock" },
+				DisplayName: "vssiding:infill-stone-{rock}",
+				Texture: "game:block/stone/drystone/{rock}1",
+				BlockMaterial: "Stone",
+				Consumes: { type: "item", code: "game:stone-{rock}", quantity: 4 },
+				Drops: [ { type: "item", code: "game:stone-{rock}", quantity: { avg: 4, var: 0 } } ]
+			}
+		},
 		Finishes: {
 			"daub": {
 				DisplayName: "vssiding:finish-daub",

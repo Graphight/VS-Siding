@@ -1,8 +1,8 @@
 # Masonry finishes
 
-- Status: Draft
+- Status: Accepted
 - Created: 2026-09-16
-- Reflects: planning session on `docs/plan-later-proposals`; vanilla 1.21 assets (`blocktypes/stone/`, `itemtypes/resource/stone.json`, `itemtypes/resource/stonebrick.json`, `textures/block/stone/`)
+- Reflects: planning session on `docs/plan-later-proposals`; vanilla 1.21 assets (`blocktypes/stone/`, `itemtypes/resource/stone.json`, `itemtypes/resource/stonebrick.json`, `textures/block/stone/`); shipped in #15 (8195d65); graduated on branch `stone-infill`
 
 ## Summary
 Every stone material a player can hold becomes a face finish, once per rock type, using `material-families` templates.
@@ -33,6 +33,7 @@ Quantities are starting guesses, tuned in playtest.
 
 **Plain right-click with a saw, same as every other finish (decision 0006).**
 The wall gets first refusal, so holding cobblestone and clicking a wall finishes it instead of placing a block; clicking anything else places cobblestone as normal.
+A wall face the held block can't finish (the wrong face, or one already finished) also places it as normal (`heldPlaces` in `SidingWallBlock.OnBlockInteractStart`).
 
 **Finishes stay cosmetic.**
 A stone face doesn't make a cooling wall; the infill does (decision 0003).
@@ -41,10 +42,12 @@ A stone face doesn't make a cooling wall; the infill does (decision 0003).
 - **Hand-authored entries per rock.** Around twenty rocks times four finishes; this is what `material-families` exists to avoid.
 - **One `stone` finish with a single texture.** Loses the per-rock colour that makes vanilla stone building look good.
 - **Plaster** (also in decision 0003's catalogue). Vanilla has plaster blocks but no raw plaster material a player holds and spreads. Parked until there's something natural to consume.
-- **A stone-rubble cooling infill.** Asked for; see `stone-infill`.
+- **A stone-rubble cooling infill.** Asked for; see decision 0012.
 
 ## Consequences & open questions
-- Not every rock has every form (polished rock and stone bricks both list only some rocks). Families expand over items that exist, so that's handled; still check no generated texture path misses, since a miss renders the atlas placeholder.
-- Loose stones and drystone: is `block/stone/drystone/{rock}1` the right look, or should dry-laid stone use a rubble texture? Decide by eye.
-- The texture opacity test (decision 0007) runs over the expanded entries.
-- Is this one session? Four templates plus eyeballing ~80 generated finishes. If the eyeballing drags, ship cobblestone and polished first and the other two after.
+- Not every rock has every form (polished rock and stone bricks both list only some rocks). Families expand over items that exist, so that's handled.
+- Travertine and meteoric iron stones have no drystone texture, so the drystone `Match` is a regex that leaves them out: `game:@stone-(?!travertine$|meteorite-iron$).*`.
+- Dry-laid stone uses `block/stone/drystone/{rock}1`; no rubble texture was needed.
+- All four families shipped in one session.
+- The texture opacity test (decision 0007) runs over the expanded entries; its candidate list gained `cobblestone.json`, `polishedrock.json`, `stonebrick.json`, and `stone.json`.
+- Verified in play: `ConsumeHeld` takes the right count off a held block stack (a cobblestone finish takes one block off a stack of ten).
