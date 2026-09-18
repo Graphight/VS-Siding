@@ -35,7 +35,8 @@ public class SidingModSystem : ModSystem
             foreach (var (familiesKey, materialsKey) in new[] { ("FramingFamilies", "Framings"), ("InfillFamilies", "Infills"), ("FinishFamilies", "Finishes") })
             {
                 if (attributes[familiesKey] is not JObject families) continue;
-                attributes[materialsKey] = MaterialFamilies.Expand(families, attributes[materialsKey] as JObject ?? new JObject(), candidates);
+                attributes[materialsKey] = MaterialFamilies.Expand(families, attributes[materialsKey] as JObject ?? new JObject(), candidates,
+                    message => api.Logger.Warning("{0}: {1}", block.Code, message));
                 attributes.Remove(familiesKey);
             }
             block.Attributes = new JsonObject(attributes);

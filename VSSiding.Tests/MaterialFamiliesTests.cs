@@ -79,6 +79,24 @@ public class MaterialFamiliesTests
     }
 
     [Fact]
+    public void MalformedFamilyIsSkippedWithAWarning()
+    {
+        var families = (JObject)WoodFamily.DeepClone();
+        families["broken-{wood}"] = JObject.Parse("""{ "Match": { "code": "game:plank-*" }, "Texture": "x" }""");
+        families["nomatch-{wood}"] = JObject.Parse("""{ "Texture": "x" }""");
+        var warnings = new List<string>();
+
+        var actual = MaterialFamilies.Expand(families, new JObject(), new[] { Candidate("item", "game:plank-birch", "wood", "birch") }, warnings.Add);
+
+        AssertJson(new JObject { ["birch"] = Entry("birch") }, actual);
+        Assert.Equal(new[]
+        {
+            "material family 'broken-{wood}' needs Match.code and Match.variant; skipped",
+            "material family 'nomatch-{wood}' needs Match.code and Match.variant; skipped",
+        }, warnings);
+    }
+
+    [Fact]
     public void BlockMatchesOnlyBlocks()
     {
         var families = JObject.Parse("""
