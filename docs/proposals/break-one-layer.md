@@ -33,7 +33,7 @@ The build flow only accepts finishes on an infilled frame, so infill waits for e
 Assert on it per case; drops reuse `ComputeDrops` with only the peeled key set.
 
 **Removing infill is a block change in all but name.**
-Retention and the stack joins both change, so it gets the same `ExchangeBlock` (rooms recompute) and `MarkVerticalNeighboursDirty` calls that placing infill has.
+Retention and the stack joins both change, so it gets the same `ExchangeBlock` (rooms recompute), `MarkAbsorptionChanged` (the wall turns see-through again) and `MarkVerticalNeighboursDirty` calls that placing infill has.
 
 **Every peel is a full break.**
 Same mining time for each layer, at the block's resistance; creative peels instantly, one layer per click.
