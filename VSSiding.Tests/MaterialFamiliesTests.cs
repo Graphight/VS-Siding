@@ -111,4 +111,21 @@ public class MaterialFamiliesTests
 
         AssertJson(JObject.Parse("""{ "cobble-granite": { "Texture": "game:block/stone/cobblestone/granite1" } }"""), actual);
     }
+
+    [Fact]
+    public void RegexMatchExcludesVariants()
+    {
+        var families = JObject.Parse("""
+        { "drystone-{rock}": { "Match": { "type": "item", "code": "game:@stone-(?!travertine$|meteorite-iron$).*", "variant": "rock" }, "Texture": "game:block/stone/drystone/{rock}1" } }
+        """);
+
+        var actual = MaterialFamilies.Expand(families, new JObject(), new[]
+        {
+            Candidate("item", "game:stone-granite", "rock", "granite"),
+            Candidate("item", "game:stone-travertine", "rock", "travertine"),
+            Candidate("item", "game:stone-meteorite-iron", "rock", "meteorite-iron"),
+        });
+
+        AssertJson(JObject.Parse("""{ "drystone-granite": { "Texture": "game:block/stone/drystone/granite1" } }"""), actual);
+    }
 }

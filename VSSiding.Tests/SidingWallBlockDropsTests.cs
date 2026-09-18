@@ -65,4 +65,16 @@ public class SidingWallBlockDropsTests
         var drops = SidingWallBlock.ComputeDrops(null, null, "nocodefinish", null, null, Framings, Infills, Finishes);
         Assert.Equal(Array.Empty<string>(), Codes(drops));
     }
+
+    [Fact]
+    public void DropsKeepTheirItemOrBlockType()
+    {
+        var finishes = Dict("""
+        { "cobblestone-granite": { "Drops": [ { "type": "block", "code": "game:cobblestone-granite", "quantity": { "avg": 1, "var": 0 } } ] } }
+        """);
+
+        var drops = SidingWallBlock.ComputeDrops("oak", null, "cobblestone-granite", null, null, Framings, Infills, finishes);
+
+        Assert.Equal(new[] { (EnumItemClass.Item, "game:plank-oak"), (EnumItemClass.Block, "game:cobblestone-granite") }, drops.ConvertAll(d => (d.Type, d.Code!.ToString())).ToArray());
+    }
 }

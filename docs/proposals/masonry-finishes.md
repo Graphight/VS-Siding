@@ -41,7 +41,7 @@ A stone face doesn't make a cooling wall; the infill does (decision 0003).
 - **Hand-authored entries per rock.** Around twenty rocks times four finishes; this is what `material-families` exists to avoid.
 - **One `stone` finish with a single texture.** Loses the per-rock colour that makes vanilla stone building look good.
 - **Plaster** (also in decision 0003's catalogue). Vanilla has plaster blocks but no raw plaster material a player holds and spreads. Parked until there's something natural to consume.
-- **A stone-rubble cooling infill.** `clay` already covers the cellar case; add a second cooling infill when a player asks.
+- **A stone-rubble cooling infill.** Asked for; see `stone-infill`.
 
 ## Consequences & open questions
 - Not every rock has every form (polished rock and stone bricks both list only some rocks). Families expand over items that exist, so that's handled; still check no generated texture path misses, since a miss renders the atlas placeholder.

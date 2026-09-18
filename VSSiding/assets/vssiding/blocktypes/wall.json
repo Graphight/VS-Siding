@@ -92,6 +92,34 @@
 				Elements: { front: "front-weatherboard", back: "back-boards" },
 				Consumes: { type: "item", code: "game:plank-{wood}", quantity: 2 },
 				Drops: [ { type: "item", code: "game:plank-{wood}", quantity: { avg: 2, var: 0 } } ]
+			},
+			"cobblestone-{rock}": {
+				Match: { type: "block", code: "game:cobblestone-*", variant: "rock" },
+				DisplayName: "vssiding:finish-cobblestone-{rock}",
+				Texture: "game:block/stone/cobblestone/{rock}1",
+				Consumes: { type: "block", code: "game:cobblestone-{rock}", quantity: 1 },
+				Drops: [ { type: "block", code: "game:cobblestone-{rock}", quantity: { avg: 1, var: 0 } } ]
+			},
+			"polished-{rock}": {
+				Match: { type: "block", code: "game:rockpolished-*", variant: "rock" },
+				DisplayName: "vssiding:finish-polished-{rock}",
+				Texture: "game:block/stone/polishedrock/{rock}",
+				Consumes: { type: "block", code: "game:rockpolished-{rock}", quantity: 1 },
+				Drops: [ { type: "block", code: "game:rockpolished-{rock}", quantity: { avg: 1, var: 0 } } ]
+			},
+			"ashlar-{rock}": {
+				Match: { type: "item", code: "game:stonebrick-*", variant: "rock" },
+				DisplayName: "vssiding:finish-ashlar-{rock}",
+				Texture: "game:block/stone/brick/{rock}1",
+				Consumes: { type: "item", code: "game:stonebrick-{rock}", quantity: 2 },
+				Drops: [ { type: "item", code: "game:stonebrick-{rock}", quantity: { avg: 2, var: 0 } } ]
+			},
+			"drystone-{rock}": {
+				Match: { type: "item", code: "game:@stone-(?!travertine$|meteorite-iron$).*", variant: "rock" },
+				DisplayName: "vssiding:finish-drystone-{rock}",
+				Texture: "game:block/stone/drystone/{rock}1",
+				Consumes: { type: "item", code: "game:stone-{rock}", quantity: 4 },
+				Drops: [ { type: "item", code: "game:stone-{rock}", quantity: { avg: 4, var: 0 } } ]
 			}
 		}
 	},
