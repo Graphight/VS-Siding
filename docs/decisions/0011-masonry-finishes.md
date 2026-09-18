@@ -1,8 +1,8 @@
 # Masonry finishes
 
-- Status: Draft
+- Status: Accepted
 - Created: 2026-09-16
-- Reflects: planning session on `docs/plan-later-proposals`; vanilla 1.21 assets (`blocktypes/stone/`, `itemtypes/resource/stone.json`, `itemtypes/resource/stonebrick.json`, `textures/block/stone/`)
+- Reflects: planning session on `docs/plan-later-proposals`; vanilla 1.21 assets (`blocktypes/stone/`, `itemtypes/resource/stone.json`, `itemtypes/resource/stonebrick.json`, `textures/block/stone/`); shipped in #15 (8195d65); graduated on branch `stone-infill`
 
 ## Summary
 Every stone material a player can hold becomes a face finish, once per rock type, using `material-families` templates.
@@ -41,10 +41,12 @@ A stone face doesn't make a cooling wall; the infill does (decision 0003).
 - **Hand-authored entries per rock.** Around twenty rocks times four finishes; this is what `material-families` exists to avoid.
 - **One `stone` finish with a single texture.** Loses the per-rock colour that makes vanilla stone building look good.
 - **Plaster** (also in decision 0003's catalogue). Vanilla has plaster blocks but no raw plaster material a player holds and spreads. Parked until there's something natural to consume.
-- **A stone-rubble cooling infill.** Asked for; see `stone-infill`.
+- **A stone-rubble cooling infill.** Asked for; see decision 0012.
 
 ## Consequences & open questions
-- Not every rock has every form (polished rock and stone bricks both list only some rocks). Families expand over items that exist, so that's handled; still check no generated texture path misses, since a miss renders the atlas placeholder.
-- Loose stones and drystone: is `block/stone/drystone/{rock}1` the right look, or should dry-laid stone use a rubble texture? Decide by eye.
-- The texture opacity test (decision 0007) runs over the expanded entries.
-- Is this one session? Four templates plus eyeballing ~80 generated finishes. If the eyeballing drags, ship cobblestone and polished first and the other two after.
+- Not every rock has every form (polished rock and stone bricks both list only some rocks). Families expand over items that exist, so that's handled; the drystone family additionally excludes travertine and meteoric iron by name (`Match` regex `game:@stone-(?!travertine$|meteorite-iron$).*`), since neither has a drystone texture.
+- Loose stones and drystone: shipped using `block/stone/drystone/{rock}1`; kept as the drystone look.
+- All four families (drystone, cobblestone, ashlar, polished) landed in one session, along with a fix so a held block that can't finish a face (wrong face, or a face already finished) still places as a normal block (`heldPlaces` in `SidingWallBlock.OnBlockInteractStart`).
+- `MaterialTextureOpacityTests` got candidates for `cobblestone.json`, `polishedrock.json`, `stonebrick.json`, and `stone.json`, so the texture opacity test (decision 0007) does run over the expanded entries.
+- `en.json` has one hand-written `finish-drystone-*`-style line per rock per family rather than a generated display name.
+- Whether `ConsumeHeld` takes the right count off a held block stack in play is not verified; still open.
