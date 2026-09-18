@@ -1,8 +1,8 @@
 # Break one layer
 
-- Status: Draft
+- Status: Accepted
 - Created: 2026-09-18
-- Reflects: playtest on branch `stone-infill` at 1c65919; `SidingWallBlock.OnBlockInteractStart`, `GetDrops`, `ResolveFinishFace`; vanilla 1.21 `RoomRegistry` (decompiled from `VSEssentials.dll`)
+- Reflects: playtest on branch `stone-infill` at 1c65919; `SidingWallBlock.OnBlockInteractStart`, `GetDrops`, `ResolveFinishFace`; vanilla 1.21 `RoomRegistry` (decompiled from `VSEssentials.dll`); vanilla 1.21 `Block.OnBlockBroken`/`SpawnDropsAndRemoveBlock` (decompiled from `VintagestoryAPI.dll`); graduated on branch `break-one-layer` at aeb6aac
 
 ## Summary
 Breaking a built-up wall takes off one layer, the most recent one on the face you hit, instead of the whole wall.
@@ -35,6 +35,10 @@ Assert on it per case; drops reuse `ComputeDrops` with only the peeled key set.
 **Removing infill is a block change in all but name.**
 Retention and the stack joins both change, so it gets the same `ExchangeBlock` (rooms recompute), `MarkAbsorptionChanged` (the wall turns see-through again) and `MarkVerticalNeighboursDirty` calls that placing infill has.
 
+**A peel looks and sounds like a break; only the block removal is skipped.**
+Drops, break sound and particles follow vanilla's `SpawnDropsAndRemoveBlock`, including no drops in creative.
+Only a player's break peels: with no player (an explosion, say) there is no face to read, so the whole wall breaks as before.
+
 **Every peel is a full break.**
 Same mining time for each layer, at the block's resistance; creative peels instantly, one layer per click.
 
@@ -44,5 +48,7 @@ Same mining time for each layer, at the block's resistance; creative peels insta
 - **Return all layers but keep the frame.** Swapping one face would still cost re-applying the other two layers.
 
 ## Consequences & open questions
+- Not yet playtested; accepted on the implementation and unit tests alone.
+- Unknown until played: whether mining progress restarts from zero for each layer, or the crack carries over from the last peel.
 - Is rule 2 (hitting a bare face peels the other face's finish) surprising in play? The alternative is doing nothing and showing an error.
 - Per-layer mining times (straw fast, stone slow) are the natural follow-up; not needed to fix the rebuild pain.
