@@ -10,7 +10,6 @@ An idea that's been thought through but not acted on. Mutable — edit freely, a
 
 Build order — each one should be demoable in game before the next starts.
 
-- [`material-families`](material-families.md) — template entries that expand per wood type; framing and plank finishes for every wood.
 - [`masonry-finishes`](masonry-finishes.md) — drystone, cobblestone, ashlar, and polished stone faces per rock type, via material families.
 - [`clay-and-brick-finishes`](clay-and-brick-finishes.md) — every brick colour and clay daub; first solves the see-through brick textures.
 - [`shake-finish`](shake-finish.md) — logs as overlapping shake courses on the front face, per wood.
