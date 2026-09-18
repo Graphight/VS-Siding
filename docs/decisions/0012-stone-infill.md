@@ -1,8 +1,8 @@
 # Stone infill
 
-- Status: Draft
+- Status: Accepted
 - Created: 2026-09-18
-- Reflects: branch `masonry-finishes` at 71b8139; `SidingWallBlock.ComputeRetention`; vanilla 1.21 assets (`itemtypes/resource/stone.json`, `textures/block/stone/drystone/`)
+- Reflects: branch `masonry-finishes` at 71b8139; `SidingWallBlock.ComputeRetention`; vanilla 1.21 assets (`itemtypes/resource/stone.json`, `textures/block/stone/drystone/`); graduated on branch `stone-infill` at 8195d65
 
 ## Summary
 Loose stones (`stone-{rock}`) pack a frame as a cooling infill, once per rock, via an `InfillFamilies` template.
@@ -10,7 +10,7 @@ Same cellar behaviour as `clay`; no code change.
 
 ## Context
 `clay` is the only cooling infill, so a cellar wall means digging clay even in stone country where loose stones are everywhere.
-`masonry-finishes` parked a stone-rubble infill until a player asked; this is the ask.
+Decision 0011 parked a stone-rubble infill until a player asked; this is the ask.
 
 ## Design
 
