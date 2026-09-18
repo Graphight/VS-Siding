@@ -49,5 +49,5 @@ The build flow offers infill first while a frame is empty, so the first click pa
 - **Better insulation than clay.** Out of scope: retention only has a sign today, not a magnitude (decision 0002).
 
 ## Consequences & open questions
-- The opacity test must see the infill candidates; `stone.json` is already in its candidate list, so the template is covered once it's added.
+- The opacity test covers the expanded infills with no change; `stone.json` was already in its candidate list.
 - The regex is now in two places; if a third stone family needs it, consider whether it belongs in one shared spot.

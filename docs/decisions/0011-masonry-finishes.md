@@ -33,6 +33,7 @@ Quantities are starting guesses, tuned in playtest.
 
 **Plain right-click with a saw, same as every other finish (decision 0006).**
 The wall gets first refusal, so holding cobblestone and clicking a wall finishes it instead of placing a block; clicking anything else places cobblestone as normal.
+A wall face the held block can't finish (the wrong face, or one already finished) also places it as normal (`heldPlaces` in `SidingWallBlock.OnBlockInteractStart`).
 
 **Finishes stay cosmetic.**
 A stone face doesn't make a cooling wall; the infill does (decision 0003).
@@ -44,9 +45,9 @@ A stone face doesn't make a cooling wall; the infill does (decision 0003).
 - **A stone-rubble cooling infill.** Asked for; see decision 0012.
 
 ## Consequences & open questions
-- Not every rock has every form (polished rock and stone bricks both list only some rocks). Families expand over items that exist, so that's handled; the drystone family additionally excludes travertine and meteoric iron by name (`Match` regex `game:@stone-(?!travertine$|meteorite-iron$).*`), since neither has a drystone texture.
-- Loose stones and drystone: shipped using `block/stone/drystone/{rock}1`; kept as the drystone look.
-- All four families (drystone, cobblestone, ashlar, polished) landed in one session, along with a fix so a held block that can't finish a face (wrong face, or a face already finished) still places as a normal block (`heldPlaces` in `SidingWallBlock.OnBlockInteractStart`).
-- `MaterialTextureOpacityTests` got candidates for `cobblestone.json`, `polishedrock.json`, `stonebrick.json`, and `stone.json`, so the texture opacity test (decision 0007) does run over the expanded entries.
-- `en.json` has one hand-written `finish-drystone-*`-style line per rock per family rather than a generated display name.
-- Whether `ConsumeHeld` takes the right count off a held block stack in play is not verified; still open.
+- Not every rock has every form (polished rock and stone bricks both list only some rocks). Families expand over items that exist, so that's handled.
+- Travertine and meteoric iron stones have no drystone texture, so the drystone `Match` is a regex that leaves them out: `game:@stone-(?!travertine$|meteorite-iron$).*`.
+- Dry-laid stone uses `block/stone/drystone/{rock}1`; no rubble texture was needed.
+- All four families shipped in one session.
+- The texture opacity test (decision 0007) runs over the expanded entries; its candidate list gained `cobblestone.json`, `polishedrock.json`, `stonebrick.json`, and `stone.json`.
+- Unverified: that `ConsumeHeld` takes the right count off a held block stack in play.
