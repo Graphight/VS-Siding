@@ -1,8 +1,8 @@
 # Cornerout second front
 
-- Status: Draft
+- Status: Accepted
 - Created: 2026-09-16
-- Reflects: planning session on `docs/plan-later-proposals`, reading `SidingWallBlock.ResolveFinishFace` and `shapes/block/wall/cornerout.json` as of 71c1d9c
+- Reflects: planning session on `docs/plan-later-proposals`, reading `SidingWallBlock.ResolveFinishFace` and `shapes/block/wall/cornerout.json` as of 71c1d9c; graduated on branch `cornerout-second-front`
 
 ## Summary
 A `cornerout` gets a second, independent front finish for its second leg.
@@ -61,6 +61,11 @@ Pre-release (0.1.0), accepted rather than migrated: the original finish was only
 
 ## Consequences & open questions
 - **Partitions line up, because no wall sits mid-cell.** Every slab lies against a cell face, so every wall lies on one of the same grid planes. A partition on the plane `z=5` hugs either the north faces of row `z=5` (slab at `z 5..5.25`) or the south faces of row `z=4` (slab at `z 4.75..5`). The first joins with a `cornerout` in `(0,5)`, `side: west`; the second with one in `(0,4)`, `side: south`. Both put the corner's leg flush with the partition. The player's only job is putting the corner in the cell on the partition's slab side.
+- **The first leg owns the corner prism.**
+`front` spans the full `z 0..16`; `secondfront` starts at `x 1`, so the 1×1 corner belongs to `front` and a 1/16 sliver of its finish shows on the second leg's façade.
+Two perpendicular 1/16 skins always share that corner, and cuboid elements can't mitre, so the sliver has to belong to someone; stopping each slab at the midline instead would notch every ordinary exterior corner to fix a defect only visible where the two finishes differ.
+The upgrade path, if a pairing ever makes it glaring: gate on `Front != SecondFront` (no neighbour lookup needed), shorten `front` to `z 1..16`, and add a corner element whose west face is `#front` and north face is `#secondfront`.
+It stays parked because that geometry has to be duplicated per finish style — one element for the plain slab, sixteen for `front-weatherboard`, and the same again for every style added later.
 - **Corners found late.** A partition usually reaches a wall that's already built. `upgrade-frame-to-corner` converts that frame in place; auto-connecting corners is parked (see the proposals index).
 - Is the join cell's north leg front even reachable to click from room A? It sits at `z=5` facing north, so yes, from cell `(0,4)`; confirm in game.
 - A `wall` layout could in principle have the same room-bleed if players use it as a partition end. It doesn't: a plain wall has one front plane and one room on each side.
