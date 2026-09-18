@@ -16,6 +16,21 @@
 				Texture: "game:block/wood/planks/oak1",
 				Consumes: { type: "item", code: "game:plank-oak", quantity: 2 },
 				Drops: [ { type: "item", code: "game:plank-oak", quantity: { avg: 2, var: 0 } } ]
+			},
+			"veryaged": {
+				DisplayName: "vssiding:framing-veryaged",
+				Texture: "game:block/wood/planks/aged/veryaged1",
+				Consumes: { type: "item", code: "game:plank-veryaged", quantity: 2 },
+				Drops: [ { type: "item", code: "game:plank-veryaged", quantity: { avg: 2, var: 0 } } ]
+			}
+		},
+		FramingFamilies: {
+			"{wood}": {
+				Match: { type: "item", code: "game:plank-*", variant: "wood" },
+				DisplayName: "vssiding:framing-{wood}",
+				Texture: "game:block/wood/planks/{wood}1",
+				Consumes: { type: "item", code: "game:plank-{wood}", quantity: 2 },
+				Drops: [ { type: "item", code: "game:plank-{wood}", quantity: { avg: 2, var: 0 } } ]
 			}
 		},
 		Infills: {
@@ -60,6 +75,23 @@
 				Elements: { front: "front-weatherboard", back: "back-boards" },
 				Consumes: { type: "item", code: "game:plank-oak", quantity: 2 },
 				Drops: [ { type: "item", code: "game:plank-oak", quantity: { avg: 2, var: 0 } } ]
+			},
+			"planks-veryaged": {
+				DisplayName: "vssiding:finish-planks-veryaged",
+				Texture: "game:block/wood/planks/aged/veryaged1",
+				Elements: { front: "front-weatherboard", back: "back-boards" },
+				Consumes: { type: "item", code: "game:plank-veryaged", quantity: 2 },
+				Drops: [ { type: "item", code: "game:plank-veryaged", quantity: { avg: 2, var: 0 } } ]
+			}
+		},
+		FinishFamilies: {
+			"planks-{wood}": {
+				Match: { type: "item", code: "game:plank-*", variant: "wood" },
+				DisplayName: "vssiding:finish-planks-{wood}",
+				Texture: "game:block/wood/planks/{wood}1",
+				Elements: { front: "front-weatherboard", back: "back-boards" },
+				Consumes: { type: "item", code: "game:plank-{wood}", quantity: 2 },
+				Drops: [ { type: "item", code: "game:plank-{wood}", quantity: { avg: 2, var: 0 } } ]
 			}
 		}
 	},
