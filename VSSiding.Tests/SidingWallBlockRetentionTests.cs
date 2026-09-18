@@ -76,4 +76,13 @@ public class SidingWallBlockRetentionTests
 
         Assert.Equal(new Dictionary<string, int> { ["wattle"] = 1, ["straw"] = 1, ["clay"] = -1, ["stone-granite"] = -1 }, actual);
     }
+
+    [Fact]
+    public void OnlyASealedWallAbsorbsLight()
+    {
+        var actual = new[] { (null, null), ("oak", null), ("oak", "wattle"), ("oak", "clay"), ("oak", "uninstalled") }
+            .Select(w => SidingWallBlock.ComputeLightAbsorption(w.Item1, w.Item2, Framings, Infills));
+
+        Assert.Equal(new[] { 0, 0, 99, 99, 0 }, actual);
+    }
 }

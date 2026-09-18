@@ -165,6 +165,7 @@ public class SidingWallBlock : Block
 
             entity.Infill = infillKey;
             entity.MarkDirty(true);
+            world.BlockAccessor.MarkAbsorptionChanged(0, GetLightAbsorption(world.BlockAccessor, blockSel.Position), blockSel.Position);
             // Infill changes retention, but rooms only recompute on a chunk-dirty event; exchanging the block for itself fires one.
             world.BlockAccessor.ExchangeBlock(Id, blockSel.Position);
             MarkVerticalNeighboursDirty(world, blockSel.Position);
@@ -291,6 +292,20 @@ public class SidingWallBlock : Block
                 or EnumBlockMaterial.Soil or EnumBlockMaterial.Ceramic;
         return cooling ? -1 : 1;
     }
+
+    public override int GetLightAbsorption(IBlockAccessor blockAccessor, BlockPos pos)
+        => GetLightAbsorption(blockAccessor.GetChunkAtBlockPos(pos), pos);
+
+    // lightAbsorption is 0 in wall.json so an open frame lets light through; a sealed wall
+    // is opaque, or sunlight through it warms the room and cancels a cellar.
+    public override int GetLightAbsorption(IWorldChunk chunk, BlockPos pos)
+    {
+        var entity = chunk?.GetLocalBlockEntityAtBlockPos(pos) as SidingWallEntity;
+        return ComputeLightAbsorption(entity?.Framing, entity?.Infill, Attributes["Framings"], Attributes["Infills"]);
+    }
+
+    internal static int ComputeLightAbsorption(string? framingKey, string? infillKey, JsonObject framings, JsonObject infills)
+        => ComputeRetention(true, framingKey, infillKey, framings, infills) != 0 ? 99 : 0;
 
     public override ItemStack[] GetDrops(IWorldAccessor world, BlockPos pos, IPlayer byPlayer, float dropQuantityMultiplier)
     {
