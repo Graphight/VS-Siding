@@ -20,7 +20,10 @@ If the entity has an infill or any finish, remove one layer, spawn that layer's 
 A framing-only wall breaks as it does today.
 
 **Which layer: reverse build order, starting from the face you hit.**
-The face comes from `byPlayer.CurrentBlockSelection.Face`, resolved with `ResolveFinishFace` exactly as finishing does.
+The face comes from the break packet, resolved with `ResolveFinishFace` exactly as finishing does.
+On the server, `byPlayer.CurrentBlockSelection` is the server's own raytrace from the last tick, not what the player hit, so a near-edge hit or a fast flick could peel a layer the player didn't aim at.
+The packet's selection only reaches the `BreakBlock` event, fired just before `OnBlockBroken`, so the mod system stashes it there; the client, predicting, reads its own `CurrentBlockSelection`.
+A selection for a different block counts as no face.
 1. That face's finish, if it has one.
 2. Otherwise another finish (`front`, `secondfront`, `back` in that order), so a hit always removes something.
 3. The infill, once no finishes remain.
@@ -36,7 +39,7 @@ Assert on it per case; drops go through the same `AddDrops` and stack resolving 
 Retention and the stack joins both change, so it gets the same `ExchangeBlock` (rooms recompute), `MarkAbsorptionChanged` (the wall turns see-through again) and `MarkVerticalNeighboursDirty` calls that placing infill has.
 
 **A peel looks and sounds like a break; only the block removal is skipped.**
-Drops, break sound and particles follow vanilla's `SpawnDropsAndRemoveBlock`, including no drops in creative.
+Drops, break sound and particles follow vanilla's `SpawnDropsAndRemoveBlock`, including no drops and no sound in creative.
 Only a player's break peels: with no player (an explosion, say) there is no face to read, so the whole wall breaks as before.
 
 **Every peel is a full break.**

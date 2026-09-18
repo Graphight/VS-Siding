@@ -313,10 +313,18 @@ public class SidingWallBlock : Block
         => ComputeRetention(true, framingKey, infillKey, framings, infills) != 0 ? 99 : 0;
 
     // A player's break peels one layer (decision 0013); anything else, or a bare frame, breaks the block.
+    internal static BlockSelection? ServerBreakSelection;
+
     public override void OnBlockBroken(IWorldAccessor world, BlockPos pos, IPlayer byPlayer, float dropQuantityMultiplier = 1f)
     {
         var entity = world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos);
-        BlockFacing? hitFace = byPlayer?.CurrentBlockSelection?.Face;
+        BlockSelection? selection = byPlayer?.CurrentBlockSelection;
+        if (world.Side == EnumAppSide.Server)
+        {
+            selection = ServerBreakSelection;
+            ServerBreakSelection = null;
+        }
+        BlockFacing? hitFace = selection?.Position.Equals(pos) == true ? selection.Face : null;
         string? face = hitFace == null ? null : ResolveFinishFace(Variant["layout"], Variant["side"], hitFace);
         string? layer = entity == null ? null : PeelLayer(face, entity.Infill, entity.Front, entity.SecondFront, entity.Back);
         if (entity == null || byPlayer == null || layer == null)
@@ -325,21 +333,18 @@ public class SidingWallBlock : Block
             return;
         }
 
-        if (world.Side == EnumAppSide.Server)
+        if (world.Side == EnumAppSide.Server && byPlayer.WorldData.CurrentGameMode != EnumGameMode.Creative)
         {
-            if (byPlayer.WorldData.CurrentGameMode != EnumGameMode.Creative)
+            string? key = layer switch
             {
-                string? key = layer switch
-                {
-                    "front" => entity.Front,
-                    "secondfront" => entity.SecondFront,
-                    "back" => entity.Back,
-                    _ => entity.Infill,
-                };
-                var drops = new List<BlockDropItemStack>();
-                AddDrops(drops, key, Attributes[layer == "infill" ? "Infills" : "Finishes"]);
-                foreach (var stack in ResolveDrops(world, drops, dropQuantityMultiplier)) world.SpawnItemEntity(stack, pos);
-            }
+                "front" => entity.Front,
+                "secondfront" => entity.SecondFront,
+                "back" => entity.Back,
+                _ => entity.Infill,
+            };
+            var drops = new List<BlockDropItemStack>();
+            AddDrops(drops, key, Attributes[layer == "infill" ? "Infills" : "Finishes"]);
+            foreach (var stack in ResolveDrops(world, drops, dropQuantityMultiplier)) world.SpawnItemEntity(stack, pos);
             if (Sounds != null) world.PlaySoundAt(Sounds.GetBreakSound(byPlayer), pos, 0.0, byPlayer);
         }
         SpawnBlockBrokenParticles(pos, byPlayer);
