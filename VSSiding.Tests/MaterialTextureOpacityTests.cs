@@ -80,6 +80,8 @@ public class MaterialTextureOpacityTests
         var candidates = Candidates(vintageStoryPath, "item", "itemtypes/resource/plank.json")
             .Concat(Candidates(vintageStoryPath, "block", "blocktypes/stone/cobble/cobblestone.json"))
             .Concat(Candidates(vintageStoryPath, "block", "blocktypes/stone/polished/polishedrock.json"))
+            .Concat(Candidates(vintageStoryPath, "item", "itemtypes/resource/stonebrick.json"))
+            .Concat(Candidates(vintageStoryPath, "item", "itemtypes/resource/stone.json"))
             .ToList();
         var textureCodes = CollectTextureCodes(wallJson, "Framings", "FramingFamilies", candidates)
             .Concat(CollectTextureCodes(wallJson, "Infills", "InfillFamilies", candidates))
