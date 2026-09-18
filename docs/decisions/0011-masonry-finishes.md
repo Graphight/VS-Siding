@@ -50,4 +50,4 @@ A stone face doesn't make a cooling wall; the infill does (decision 0003).
 - Dry-laid stone uses `block/stone/drystone/{rock}1`; no rubble texture was needed.
 - All four families shipped in one session.
 - The texture opacity test (decision 0007) runs over the expanded entries; its candidate list gained `cobblestone.json`, `polishedrock.json`, `stonebrick.json`, and `stone.json`.
-- Unverified: that `ConsumeHeld` takes the right count off a held block stack in play.
+- Verified in play: `ConsumeHeld` takes the right count off a held block stack (a cobblestone finish takes one block off a stack of ten).
