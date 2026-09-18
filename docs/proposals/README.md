@@ -10,6 +10,7 @@ An idea that's been thought through but not acted on. Mutable — edit freely, a
 
 Build order — each one should be demoable in game before the next starts.
 
+- [`break-one-layer`](break-one-layer.md) — breaking a wall takes off one layer from the face you hit; the frame goes last.
 - [`clay-and-brick-finishes`](clay-and-brick-finishes.md) — every brick colour and clay daub; first solves the see-through brick textures.
 - [`shake-finish`](shake-finish.md) — logs as overlapping shake courses on the front face, per wood.
 - [`window-frames`](window-frames.md) — a `window` frame mode glazed with a glass infill; doors need nothing (vanilla seals them).
