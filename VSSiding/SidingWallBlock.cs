@@ -353,6 +353,17 @@ public class SidingWallBlock : Block
         }
     }
 
+    // Reverse build order: the hit face's finish, then any finish, then infill; null leaves only the frame.
+    internal static string? PeelLayer(string? face, string? framing, string? infill, string? front, string? secondFront, string? back)
+    {
+        string? hit = face switch { "front" => front, "secondfront" => secondFront, "back" => back, _ => null };
+        if (hit != null) return face;
+        if (front != null) return "front";
+        if (secondFront != null) return "secondfront";
+        if (back != null) return "back";
+        return infill != null ? "infill" : null;
+    }
+
     // Finds the material dictionary entry whose Consumes.code matches the held item, so a
     // build-flow behavior can turn "the player right-clicked with plank-oak" into "oak".
     internal static string? MatchConsumes(AssetLocation heldCode, JsonObject materials)
