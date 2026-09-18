@@ -3,6 +3,7 @@ using System.Linq;
 using Newtonsoft.Json.Linq;
 using Vintagestory.API.Common;
 using Vintagestory.API.Datastructures;
+using Vintagestory.API.Server;
 
 namespace VSSiding;
 
@@ -15,6 +16,13 @@ public class SidingModSystem : ModSystem
         api.RegisterBlockClass("SidingWallBlock", typeof(SidingWallBlock));
         api.RegisterBlockEntityClass("SidingWallEntity", typeof(SidingWallEntity));
         api.RegisterCollectibleBehaviorClass("vssiding.PlaceWallFrame", typeof(PlaceWallFrame));
+    }
+
+    // The server's CurrentBlockSelection is its own raytrace; the break packet's face only reaches this event.
+    public override void StartServerSide(ICoreServerAPI api)
+    {
+        api.Event.BreakBlock += (IServerPlayer _, BlockSelection blockSel, ref float _, ref EnumHandling _)
+            => SidingWallBlock.ServerBreakSelection = blockSel;
     }
 
     // Server side only: the client receives the expanded block attributes with the block list (decision 0010).

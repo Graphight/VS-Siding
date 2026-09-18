@@ -164,11 +164,7 @@ public class SidingWallBlock : Block
             if (!TryAffordOrError(byPlayer, isCreative, slot.StackSize, consumes)) return true;
 
             entity.Infill = infillKey;
-            entity.MarkDirty(true);
-            world.BlockAccessor.MarkAbsorptionChanged(0, GetLightAbsorption(world.BlockAccessor, blockSel.Position), blockSel.Position);
-            // Infill changes retention, but rooms only recompute on a chunk-dirty event; exchanging the block for itself fires one.
-            world.BlockAccessor.ExchangeBlock(Id, blockSel.Position);
-            MarkVerticalNeighboursDirty(world, blockSel.Position);
+            OnInfillChanged(world, entity, blockSel.Position);
             ConsumeHeld(slot, consumes, isCreative);
             return true;
         }
@@ -212,6 +208,15 @@ public class SidingWallBlock : Block
         entity.MarkDirty(true);
         ConsumeHeld(slot, finishConsumes, isCreative);
         return true;
+    }
+
+    private void OnInfillChanged(IWorldAccessor world, SidingWallEntity entity, BlockPos pos)
+    {
+        entity.MarkDirty(true);
+        world.BlockAccessor.MarkAbsorptionChanged(0, GetLightAbsorption(world.BlockAccessor, pos), pos);
+        // Infill changes retention, but rooms only recompute on a chunk-dirty event; exchanging the block for itself fires one.
+        world.BlockAccessor.ExchangeBlock(Id, pos);
+        MarkVerticalNeighboursDirty(world, pos);
     }
 
     // Shared by both build-flow steps (this class's layering, and PlaceWallFrame's framing)
@@ -307,6 +312,56 @@ public class SidingWallBlock : Block
     internal static int ComputeLightAbsorption(string? framingKey, string? infillKey, JsonObject framings, JsonObject infills)
         => ComputeRetention(true, framingKey, infillKey, framings, infills) != 0 ? 99 : 0;
 
+    // A player's break peels one layer (decision 0013); anything else, or a bare frame, breaks the block.
+    internal static BlockSelection? ServerBreakSelection;
+
+    public override void OnBlockBroken(IWorldAccessor world, BlockPos pos, IPlayer byPlayer, float dropQuantityMultiplier = 1f)
+    {
+        var entity = world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos);
+        BlockSelection? selection = byPlayer?.CurrentBlockSelection;
+        if (world.Side == EnumAppSide.Server)
+        {
+            selection = ServerBreakSelection;
+            ServerBreakSelection = null;
+        }
+        BlockFacing? hitFace = selection?.Position.Equals(pos) == true ? selection.Face : null;
+        string? face = hitFace == null ? null : ResolveFinishFace(Variant["layout"], Variant["side"], hitFace);
+        string? layer = entity == null ? null : PeelLayer(face, entity.Infill, entity.Front, entity.SecondFront, entity.Back);
+        if (entity == null || byPlayer == null || layer == null)
+        {
+            base.OnBlockBroken(world, pos, byPlayer, dropQuantityMultiplier);
+            return;
+        }
+
+        if (world.Side == EnumAppSide.Server && byPlayer.WorldData.CurrentGameMode != EnumGameMode.Creative)
+        {
+            string? key = layer switch
+            {
+                "front" => entity.Front,
+                "secondfront" => entity.SecondFront,
+                "back" => entity.Back,
+                _ => entity.Infill,
+            };
+            var drops = new List<BlockDropItemStack>();
+            AddDrops(drops, key, Attributes[layer == "infill" ? "Infills" : "Finishes"]);
+            foreach (var stack in ResolveDrops(world, drops, dropQuantityMultiplier)) world.SpawnItemEntity(stack, pos);
+            if (Sounds != null) world.PlaySoundAt(Sounds.GetBreakSound(byPlayer), pos, 0.0, byPlayer);
+        }
+        SpawnBlockBrokenParticles(pos, byPlayer);
+
+        switch (layer)
+        {
+            case "front": entity.Front = null; break;
+            case "secondfront": entity.SecondFront = null; break;
+            case "back": entity.Back = null; break;
+            default:
+                entity.Infill = null;
+                OnInfillChanged(world, entity, pos);
+                return;
+        }
+        entity.MarkDirty(true);
+    }
+
     public override ItemStack[] GetDrops(IWorldAccessor world, BlockPos pos, IPlayer byPlayer, float dropQuantityMultiplier)
     {
         var entity = world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos);
@@ -318,6 +373,11 @@ public class SidingWallBlock : Block
         // hands back the placed block.
         if (drops.Count == 0) return base.GetDrops(world, pos, byPlayer, dropQuantityMultiplier);
 
+        return ResolveDrops(world, drops, dropQuantityMultiplier);
+    }
+
+    private ItemStack[] ResolveDrops(IWorldAccessor world, List<BlockDropItemStack> drops, float dropQuantityMultiplier)
+    {
         var stacks = new List<ItemStack>();
         foreach (var drop in drops)
         {
@@ -351,6 +411,17 @@ public class SidingWallBlock : Block
         {
             if (drop.Code != null) drops.Add(drop);
         }
+    }
+
+    // Reverse build order: the hit face's finish, then any finish, then infill; null leaves only the frame.
+    internal static string? PeelLayer(string? face, string? infill, string? front, string? secondFront, string? back)
+    {
+        string? hit = face switch { "front" => front, "secondfront" => secondFront, "back" => back, _ => null };
+        if (hit != null) return face;
+        if (front != null) return "front";
+        if (secondFront != null) return "secondfront";
+        if (back != null) return "back";
+        return infill != null ? "infill" : null;
     }
 
     // Finds the material dictionary entry whose Consumes.code matches the held item, so a
