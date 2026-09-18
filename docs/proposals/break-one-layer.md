@@ -33,7 +33,7 @@ The build flow only accepts finishes on an infilled frame, so infill waits for e
 Assert on it per case; drops reuse `ComputeDrops` with only the peeled key set.
 
 **Removing infill is a block change in all but name.**
-Retention and the stack joins both change, so it gets the same `MarkVerticalNeighboursDirty` call that placing infill has.
+Retention and the stack joins both change, so it gets the same `ExchangeBlock` (rooms recompute) and `MarkVerticalNeighboursDirty` calls that placing infill has.
 
 **Every peel is a full break.**
 Same mining time for each layer, at the block's resistance; creative peels instantly, one layer per click.
@@ -44,6 +44,5 @@ Same mining time for each layer, at the block's resistance; creative peels insta
 - **Return all layers but keep the frame.** Swapping one face would still cost re-applying the other two layers.
 
 ## Consequences & open questions
-- Does `RoomRegistry` notice a retention change that isn't a block change? It recomputes on `ChunkDirty`; confirm `MarkDirty(true)` fires that, for infill added as well as removed. If it doesn't, rooms can go stale after any infill change, which is a bug today, not just here.
 - Is rule 2 (hitting a bare face peels the other face's finish) surprising in play? The alternative is doing nothing and showing an error.
 - Per-layer mining times (straw fast, stone slow) are the natural follow-up; not needed to fix the rebuild pain.

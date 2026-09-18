@@ -51,3 +51,4 @@ The build flow offers infill first while a frame is empty, so the first click pa
 ## Consequences & open questions
 - The opacity test covers the expanded infills with no change; `stone.json` was already in its candidate list.
 - The regex is now in two places; if a third stone family needs it, consider whether it belongs in one shared spot.
+- Playtesting found rooms went stale after packing infill: `RoomRegistry` only recomputes on a chunk-dirty event, and setting infill isn't a block change. Placing infill now exchanges the block for itself (`IBlockAccessor.ExchangeBlock`), which fires that event on server and client. The bug dates from decision 0003, not this one.
