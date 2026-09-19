@@ -52,7 +52,6 @@ A second asset test checks every finish element group exists in both shapes and 
 - **A C#-generated mesh with randomised shake widths.** The whole mesh pipeline is JSON shapes plus selective elements (decision 0007 rejected the same thing).
 
 ## Consequences & open questions
-- Checked in play: the front of a straight wall shows upright shakes with the painted courses on the lips.
-- Not yet checked in play: the log-cabin back, a cornerout's second leg, and courses continuing across a stacked wall.
+- Checked in play: upright shakes with the painted courses on the lips, the log-cabin back, both cornerout legs, and courses continuing across stacked walls.
 - The first playtest's "sideways shakes" were most likely the back: shakes then used `back-boards`, whose 90° room face shows the shingle texture turned on its side without stretching.
   Face `rotation` on the front was tried and is no fix: it turns the texture inside each thin strip, so the strip samples 16 texels across 1 voxel and stretches.
