@@ -31,7 +31,7 @@ public class MaterialTextureOpacityTests
         var dict = (JObject)attributes[dictName]!;
         if (attributes[familiesName] is JObject families) dict = MaterialFamilies.Expand(families, dict, candidates);
         foreach (var entry in dict.Properties())
-            yield return (string)entry.Value["Texture"]!;
+            yield return entry.Value["Texture"] is JObject o ? (string)o["base"]! : (string)entry.Value["Texture"]!;
     }
 
     // A vanilla item or block type's variants: its first variant group's own states plus its
