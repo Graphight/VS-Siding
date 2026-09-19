@@ -1,9 +1,13 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Emit;
+using HarmonyLib;
 using Newtonsoft.Json.Linq;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
 using Vintagestory.API.Datastructures;
+using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
 using Vintagestory.GameContent;
 
@@ -18,6 +22,42 @@ public class SidingModSystem : ModSystem
         api.RegisterBlockClass("SidingWallBlock", typeof(SidingWallBlock));
         api.RegisterBlockEntityClass("SidingWallEntity", typeof(SidingWallEntity));
         api.RegisterCollectibleBehaviorClass("vssiding.PlaceWallFrame", typeof(PlaceWallFrame));
+
+        // Singleplayer runs client+server in one process, so patch once.
+        if (!Harmony.HasAnyPatches("vssiding"))
+            new Harmony("vssiding").Patch(AccessTools.Method(typeof(RoomRegistry), "FindRoomForPosition"),
+                transpiler: new HarmonyMethod(typeof(SidingModSystem), nameof(RoomSkylightTranspiler)));
+    }
+
+    public override void Dispose()
+    {
+        new Harmony("vssiding").UnpatchAll("vssiding");
+        base.Dispose();
+    }
+
+    // Swaps RoomRegistry's skylight sample for SidingWallBlock.RoomSunlight so sealed wall cells read dark (decision 0015).
+    internal static IEnumerable<CodeInstruction> RoomSkylightTranspiler(IEnumerable<CodeInstruction> instructions)
+    {
+        var getLightLevel = AccessTools.Method(typeof(IBlockAccessor), nameof(IBlockAccessor.GetLightLevel),
+            new[] { typeof(BlockPos), typeof(EnumLightLevelType) });
+        var roomSunlight = AccessTools.Method(typeof(SidingWallBlock), nameof(SidingWallBlock.RoomSunlight));
+
+        int replaced = 0;
+        foreach (var instruction in instructions)
+        {
+            if (instruction.Calls(getLightLevel))
+            {
+                replaced++;
+                yield return new CodeInstruction(OpCodes.Call, roomSunlight);
+            }
+            else
+            {
+                yield return instruction;
+            }
+        }
+
+        if (replaced != 1)
+            throw new InvalidOperationException($"Expected exactly one IBlockAccessor.GetLightLevel call to replace, found {replaced}.");
     }
 
     // The server's CurrentBlockSelection is its own raytrace; the break packet's face only reaches this event.

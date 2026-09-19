@@ -312,6 +312,10 @@ public class SidingWallBlock : Block
     internal static int ComputeLightAbsorption(string? framingKey, string? infillKey, JsonObject framings, JsonObject infills)
         => ComputeRetention(true, framingKey, infillKey, framings, infills) != 0 ? 99 : 0;
 
+    // A sealed wall's cell stores the sunlight flowing in from outside, which RoomRegistry would count as sky (decision 0015).
+    internal static int RoomSunlight(IBlockAccessor accessor, BlockPos pos, EnumLightLevelType type)
+        => accessor.GetBlock(pos) is SidingWallBlock wall && wall.GetLightAbsorption(accessor, pos) > 0 ? 0 : accessor.GetLightLevel(pos, type);
+
     // A player's break peels one layer (decision 0013); anything else, or a bare frame, breaks the block.
     internal static BlockSelection? ServerBreakSelection;
 
