@@ -78,8 +78,8 @@
 			"daub": {
 				DisplayName: "vssiding:finish-daub",
 				Texture: "game:block/clay/daub/browngolden/normal1",
-				Consumes: { type: "item", code: "game:clay-blue", quantity: 2 },
-				Drops: [ { type: "item", code: "game:clay-blue", quantity: { avg: 2, var: 0 } } ]
+				Consumes: { type: "item", code: "game:daubraw-browngolden", quantity: 2 },
+				Drops: [ { type: "item", code: "game:daubraw-browngolden", quantity: { avg: 2, var: 0 } } ]
 			},
 			"brick": {
 				DisplayName: "vssiding:finish-brick",
@@ -164,12 +164,12 @@
 				Consumes: { type: "item", code: "game:burnedbrick-{type}", quantity: 2 },
 				Drops: [ { type: "item", code: "game:burnedbrick-{type}", quantity: { avg: 2, var: 0 } } ]
 			},
-			"daub-{type}": {
-				Match: { type: "item", code: "game:clay-*", variant: "type" },
-				DisplayName: "vssiding:finish-daub-{type}",
-				Texture: { base: "game:block/clay/{type}clay", blendedOverlays: [ { base: "game:block/clay/daub/browngolden/normal1", blendMode: "Overlay" } ] },
-				Consumes: { type: "item", code: "game:clay-{type}", quantity: 2 },
-				Drops: [ { type: "item", code: "game:clay-{type}", quantity: { avg: 2, var: 0 } } ]
+			"daub-{color}": {
+				Match: { type: "item", code: "game:daubraw-*", variant: "color" },
+				DisplayName: "vssiding:finish-daub-{color}",
+				Texture: "game:block/clay/daub/{color}/normal1",
+				Consumes: { type: "item", code: "game:daubraw-{color}", quantity: 2 },
+				Drops: [ { type: "item", code: "game:daubraw-{color}", quantity: { avg: 2, var: 0 } } ]
 			}
 		}
 	},
