@@ -24,9 +24,17 @@ public class SidingModSystem : ModSystem
         api.RegisterCollectibleBehaviorClass("vssiding.PlaceWallFrame", typeof(PlaceWallFrame));
 
         // Singleplayer runs client+server in one process, so patch once.
-        if (!Harmony.HasAnyPatches("vssiding"))
+        if (Harmony.HasAnyPatches("vssiding")) return;
+        try
+        {
             new Harmony("vssiding").Patch(AccessTools.Method(typeof(RoomRegistry), "FindRoomForPosition"),
                 transpiler: new HarmonyMethod(typeof(SidingModSystem), nameof(RoomSkylightTranspiler)));
+        }
+        catch (Exception e)
+        {
+            // RoomSkylightPatchTests catches a changed method at build time; players keep the mod, minus the fix.
+            api.Logger.Error("vssiding: room skylight patch skipped, sealed walls will count as sky: {0}", e);
+        }
     }
 
     public override void Dispose()

@@ -35,7 +35,8 @@ Its vessel spoils slower than outside but faster than the stone or clay cellars,
 It replaces the method's one `IBlockAccessor.GetLightLevel(BlockPos, EnumLightLevelType)` callvirt with a static `SidingWallBlock.RoomSunlight(IBlockAccessor, BlockPos, EnumLightLevelType)`, which returns 0 when the cell's block is a `SidingWallBlock` whose `GetLightAbsorption(accessor, pos) > 0`, and the vanilla value otherwise.
 Unsealed frames keep vanilla light — they're exits anyway, so counting them as sky is correct.
 Patched once in `SidingModSystem.Start`, guarded by `!Harmony.HasAnyPatches("vssiding")` (singleplayer runs both sides in one process, so `Start` runs twice), unpatched in `Dispose`.
-The transpiler throws unless it rewrites exactly one call site; a test asserts that against the real method's IL, so a game update that changes the call count fails loudly instead of silently patching the wrong thing.
+The transpiler throws unless it rewrites exactly one call site; a test asserts that against the real method's IL, so a game update that changes the call count fails our build instead of silently patching the wrong thing.
+At runtime `Start` catches that throw and logs an error, so players on an old release after a game update keep the mod and lose only this fix.
 
 **`/sidingroom` (controlserver) stays.**
 It prints the room counts and the sunlight level at the player's feet, for the next playtest that questions a room.
