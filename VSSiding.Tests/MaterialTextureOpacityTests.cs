@@ -24,14 +24,27 @@ public class MaterialTextureOpacityTests
         return value!;
     }
 
-    private static IEnumerable<string> CollectTextureCodes(JObject wallJson, string dictName, string familiesName,
+    // Every texture a material draws, and whether it must be opaque: a composite's overlays
+    // draw over an opaque base, so only the base is held to that.
+    private static IEnumerable<(string Code, bool MustBeOpaque)> CollectTextureCodes(JObject wallJson, string dictName, string familiesName,
         List<(string, AssetLocation, IDictionary<string, string>)> candidates)
     {
         var attributes = (JObject)wallJson["attributes"]!;
         var dict = (JObject)attributes[dictName]!;
         if (attributes[familiesName] is JObject families) dict = MaterialFamilies.Expand(families, dict, candidates);
         foreach (var entry in dict.Properties())
-            yield return entry.Value["Texture"] is JObject o ? (string)o["base"]! : (string)entry.Value["Texture"]!;
+        {
+            if (entry.Value["Texture"] is not JObject composite)
+            {
+                yield return ((string)entry.Value["Texture"]!, true);
+                continue;
+            }
+            yield return ((string)composite["base"]!, true);
+            foreach (var overlay in composite["overlays"] ?? new JArray())
+                yield return ((string)overlay!, false);
+            foreach (var overlay in composite["blendedOverlays"] ?? new JArray())
+                yield return ((string)overlay["base"]!, false);
+        }
     }
 
     // A vanilla item or block type's variants: its first variant group's own states plus its
@@ -92,9 +105,10 @@ public class MaterialTextureOpacityTests
             .Distinct();
 
         var offenders = new List<string>();
-        foreach (var textureCode in textureCodes)
+        foreach (var (textureCode, mustBeOpaque) in textureCodes)
         {
             var file = ResolveTextureFile(vintageStoryPath, textureCode);
+            if (!mustBeOpaque) continue;
             using var bitmap = SKBitmap.Decode(file);
             int partial = bitmap.Pixels.Count(p => p.Alpha != 0 && p.Alpha != 255);
             if (partial > 0)
