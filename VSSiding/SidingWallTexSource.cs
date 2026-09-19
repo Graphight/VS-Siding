@@ -65,8 +65,9 @@ public class SidingWallTexSource : ITexPositionSource
         if (!entry.Exists) return null;
 
         var texture = entry["Texture"];
-        return texture.Token?.Type == Newtonsoft.Json.Linq.JTokenType.Object
-            ? texture.AsObject<CompositeTexture>()
-            : new CompositeTexture(new AssetLocation(texture.AsString(null!)));
+        if (texture.Token?.Type == Newtonsoft.Json.Linq.JTokenType.Object)
+            return texture.AsObject<CompositeTexture>() is { Base: not null } composite ? composite : null;
+        string? path = texture.AsString(null!);
+        return path == null ? null : new CompositeTexture(new AssetLocation(path));
     }
 }

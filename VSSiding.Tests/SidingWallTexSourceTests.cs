@@ -32,6 +32,8 @@ public class SidingWallTexSourceTests
                 "overlays": ["game:block/clay/brick/four/running/blue1"]
             }
         },
+        "no-texture": { },
+        "no-base": { "Texture": { "overlays": ["game:block/clay/brick/four/running/blue1"] } },
         "blended-daub": {
             "Texture": {
                 "base": "game:block/clay/browngoldenclay",
@@ -59,6 +61,15 @@ public class SidingWallTexSourceTests
     public void UnknownKeyResolvesToNull()
     {
         CompositeTexture? texture = SidingWallTexSource.ResolveTexture("infill", null, "uninstalled", null, null, null, Framings, Infills, Finishes);
+        Assert.Null(texture);
+    }
+
+    [Theory]
+    [InlineData("no-texture")]
+    [InlineData("no-base")]
+    public void MalformedTextureResolvesToNull(string finish)
+    {
+        CompositeTexture? texture = SidingWallTexSource.ResolveTexture("front", null, null, finish, null, null, Framings, Infills, Finishes);
         Assert.Null(texture);
     }
 
