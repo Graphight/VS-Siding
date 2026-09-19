@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Created: 2026-09-16
-- Reflects: planning session on `docs/plan-later-proposals`; decision 0007's brick texture fix; `SidingWallTexSource`; vanilla 1.21 assets (`blocktypes/clay/brickcourse.json`, `itemtypes/resource/burnedbrick.json`, `itemtypes/resource/clay.json`, `itemtypes/resource/daub.json`, `recipes/barrel/daub-dyed.json`, `textures/block/clay/`); playtest of the tinted daub; shipped in `525c2ce`, `b734768`, `50ab6c4`, `ede04bd` and the daub and clay infill commits after it; graduated on branch `clay-and-brick-finishes`
+- Reflects: planning session on `docs/plan-later-proposals`; decision 0007's brick texture fix; `SidingWallTexSource`; vanilla 1.21 assets (`blocktypes/clay/brickcourse.json`, `itemtypes/resource/burnedbrick.json`, `itemtypes/resource/clay.json`, `itemtypes/resource/daub.json`, `recipes/barrel/daub-dyed.json`, `textures/block/clay/`); playtests on branch `clay-and-brick-finishes`; shipped in #18; graduated on branch `clay-and-brick-finishes`
 
 ## Summary
 Fired bricks in every vanilla colour and raw daub in every vanilla colour become face finishes via `material-families`, and every raw clay becomes an infill.
@@ -42,11 +42,11 @@ Vanilla's `overlays` JSON shorthand (a plain list of texture paths) deserialises
 
 **The opacity test judges what renders, not each file.**
 For a composite, only the base must be fully opaque: an overlay over an opaque base can't produce a see-through pixel.
-Overlays may carry partial alpha.
+Overlays may carry partial alpha, but every overlay path must still resolve to a file.
 
 **Brick family**, key `brick-{type}`: held item `game:burnedbrick-{type}`, 2, texture the cream base plus `{type}1` overlay.
 Cream, clinker and fire use their own `four/running/{type}1` with no overlay, hand-authored after checking they're fully opaque, and `material-families`' "explicit entries win" skips them in the family.
-The existing explicit `brick` entry keeps red on its legacy texture: the open question below wasn't resolved, so saved red-brick walls don't change.
+The existing explicit `brick` entry keeps red on its legacy texture, so saved red-brick walls don't change; see the open question below.
 
 **Daub comes from raw daub, not raw clay.**
 Vanilla already makes daub in eleven colours as an item, `daubraw-{color}` (crafted as ash daub from blue clay, soil, grass and sand, then dyed in a barrel), which the proposal missed.
@@ -57,7 +57,7 @@ Raw clay is infill only: `InfillFamilies."clay-{type}"` adds red and fire clay b
 ## Alternatives considered
 - **Bake opaque copies of the brick textures into this mod.** Ships recoloured copies of vanilla art that drift when vanilla updates them, when vanilla's own composite already works.
 - **Render bricks in a transparent pass.** You'd see through the wall, which is the bug.
-- **Raw clay as a finish too, tinted to the clay.** Tried: `{type}clay` with the daub blended over it in `Overlay` mode, vanilla's door trick. It only existed because coloured daub seemed unobtainable; once raw daub turned up it was a shortcut past crafting daub, and the explicit blue `daub` kept blue out of the tint anyway.
+- **Raw clay as a finish too, tinted to the clay.** Tried: `{type}clay` with the daub blended over it in `Overlay` mode, vanilla's door trick. It only existed because coloured daub seemed unobtainable; once raw daub turned up it was a shortcut past crafting daub.
 - **A hand-picked daub colour per clay, one entry each.** The original proposal; moot once each daub colour is its own item.
 - **Plain `{type}clay` as a finish.** Would look identical to clay infill, so a finished face couldn't be told from a bare one.
 
@@ -65,4 +65,4 @@ Raw clay is infill only: `InfillFamilies."clay-{type}"` adds red and fire clay b
 - Should the explicit red `brick` move to the composite too, for consistency with the other colours? It would change how existing red brick walls look; decide by eye.
 - A daub face built before this change drops `daubraw-browngolden` when peeled, not the `clay-blue` it cost.
 - The opacity test (decision 0007) runs over the expanded entries; its candidate list gained `burnedbrick.json`, `clay.json` and `daub.json`.
-- Checked in play: bricks in every colour render opaque. Not yet checked: the ten daub colours and red and fire clay infill.
+- Checked in play: bricks in every colour render opaque, each daub colour finishes in its own colour, and red and fire clay infill a frame.
