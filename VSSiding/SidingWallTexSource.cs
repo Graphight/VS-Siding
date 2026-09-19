@@ -65,7 +65,7 @@ public class SidingWallTexSource : ITexPositionSource
         var entry = dictionary[key];
         if (!entry.Exists) return null;
 
-        var texture = entry["Texture"];
+        var texture = slotCode == "back" && entry["BackTexture"].Exists ? entry["BackTexture"] : entry["Texture"];
         if (texture.Token?.Type == JTokenType.Object)
             return texture.AsObject<CompositeTexture>() is { Base: not null } composite ? composite : null;
         string? path = texture.AsString(null!);

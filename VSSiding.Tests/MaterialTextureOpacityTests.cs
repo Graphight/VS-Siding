@@ -34,6 +34,7 @@ public class MaterialTextureOpacityTests
         if (attributes[familiesName] is JObject families) dict = MaterialFamilies.Expand(families, dict, candidates);
         foreach (var entry in dict.Properties())
         {
+            if (entry.Value["BackTexture"] is JValue back) yield return ((string)back!, true);
             if (entry.Value["Texture"] is not JObject composite)
             {
                 yield return ((string)entry.Value["Texture"]!, true);
