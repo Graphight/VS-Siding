@@ -57,6 +57,14 @@
 			}
 		},
 		InfillFamilies: {
+			"clay-{type}": {
+				Match: { type: "item", code: "game:clay-*", variant: "type" },
+				DisplayName: "vssiding:infill-clay-{type}",
+				Texture: "game:block/clay/{type}clay",
+				BlockMaterial: "Soil",
+				Consumes: { type: "item", code: "game:clay-{type}", quantity: 4 },
+				Drops: [ { type: "item", code: "game:clay-{type}", quantity: { avg: 4, var: 0 } } ]
+			},
 			"stone-{rock}": {
 				Match: { type: "item", code: "game:@stone-(?!travertine$|meteorite-iron$).*", variant: "rock" },
 				DisplayName: "vssiding:infill-stone-{rock}",

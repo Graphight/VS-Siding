@@ -69,12 +69,15 @@ public class SidingWallBlockRetentionTests
         var wallJsonPath = Path.Combine(MaterialTextureOpacityTests.GetAssemblyMetadata("RepoRoot"), "VSSiding", "assets", "vssiding", "blocktypes", "wall.json");
         var attributes = (JObject)JToken.Parse(File.ReadAllText(wallJsonPath))["attributes"]!;
         var infills = MaterialFamilies.Expand((JObject)attributes["InfillFamilies"]!, (JObject)attributes["Infills"]!,
-            [("item", new AssetLocation("game:stone-granite"), new Dictionary<string, string> { ["rock"] = "granite" })]);
+            [
+                ("item", new AssetLocation("game:stone-granite"), new Dictionary<string, string> { ["rock"] = "granite" }),
+                ("item", new AssetLocation("game:clay-red"), new Dictionary<string, string> { ["type"] = "red" }),
+            ]);
 
         var actual = infills.Properties().ToDictionary(p => p.Name,
             p => SidingWallBlock.ComputeRetention(true, "oak", p.Name, new JsonObject(attributes["Framings"]), new JsonObject(infills)));
 
-        Assert.Equal(new Dictionary<string, int> { ["wattle"] = 1, ["straw"] = 1, ["clay"] = -1, ["stone-granite"] = -1 }, actual);
+        Assert.Equal(new Dictionary<string, int> { ["wattle"] = 1, ["straw"] = 1, ["clay"] = -1, ["clay-red"] = -1, ["stone-granite"] = -1 }, actual);
     }
 
     [Fact]
