@@ -61,6 +61,6 @@ A style mode only matches entries listing that style, so daub and brick ignore s
 
 ## Consequences & open questions
 - Tool modes are stored as an index on the item stack. `window-frames` plans a third frame mode; whichever ships second must append rather than insert, or stacks saved in one mode wake up in another. Worth grouping frame modes before style modes once both exist, accepting one reset.
-- Shakes (`shake-finish`) have the same inside-a-room problem, but logs have no tool-mode behaviour. Add styles there when shakes ship and someone finds them indoors, not now.
+- Shakes (decision 0017) have the same inside-a-room problem, but logs have no tool-mode behaviour. Add styles there when shakes ship and someone finds them indoors, not now.
 - The mode list on planks grows to four (five with windows). Watch whether players find the radial crowded.
 - Tests: `SelectiveElements` with each style set and unset, and the style-mode matching as a pure function, whole-array asserts.

@@ -170,19 +170,27 @@
 				Texture: "game:block/clay/daub/{color}/normal1",
 				Consumes: { type: "item", code: "game:daubraw-{color}", quantity: 2 },
 				Drops: [ { type: "item", code: "game:daubraw-{color}", quantity: { avg: 2, var: 0 } } ]
+			},
+			"shakes-{wood}": {
+				Match: { type: "block", code: "game:log-placed-*-ud", variant: "wood" },
+				DisplayName: "vssiding:finish-shakes-{wood}",
+				Texture: "game:block/wood/shingles/{wood}-top",
+				Elements: { front: "front-shakes", back: "back-boards" },
+				Consumes: { type: "block", code: "game:log-placed-{wood}-ud", quantity: 1 },
+				Drops: [ { type: "block", code: "game:log-placed-{wood}-ud", quantity: { avg: 1, var: 0 } } ]
 			}
 		}
 	},
 	drawtype: "json",
 	shapebytype: {
-		"*-wall-west": { base: "block/wall/wall", ignoreElements: ["front-weatherboard", "back-boards"], rotateY: 0 },
-		"*-wall-south": { base: "block/wall/wall", ignoreElements: ["front-weatherboard", "back-boards"], rotateY: 90 },
-		"*-wall-east": { base: "block/wall/wall", ignoreElements: ["front-weatherboard", "back-boards"], rotateY: 180 },
-		"*-wall-north": { base: "block/wall/wall", ignoreElements: ["front-weatherboard", "back-boards"], rotateY: 270 },
-		"*-cornerout-west": { base: "block/wall/cornerout", ignoreElements: ["front-weatherboard", "secondfront-weatherboard", "back-boards"], rotateY: 0 },
-		"*-cornerout-south": { base: "block/wall/cornerout", ignoreElements: ["front-weatherboard", "secondfront-weatherboard", "back-boards"], rotateY: 90 },
-		"*-cornerout-east": { base: "block/wall/cornerout", ignoreElements: ["front-weatherboard", "secondfront-weatherboard", "back-boards"], rotateY: 180 },
-		"*-cornerout-north": { base: "block/wall/cornerout", ignoreElements: ["front-weatherboard", "secondfront-weatherboard", "back-boards"], rotateY: 270 }
+		"*-wall-west": { base: "block/wall/wall", ignoreElements: ["front-weatherboard", "front-shakes", "back-boards"], rotateY: 0 },
+		"*-wall-south": { base: "block/wall/wall", ignoreElements: ["front-weatherboard", "front-shakes", "back-boards"], rotateY: 90 },
+		"*-wall-east": { base: "block/wall/wall", ignoreElements: ["front-weatherboard", "front-shakes", "back-boards"], rotateY: 180 },
+		"*-wall-north": { base: "block/wall/wall", ignoreElements: ["front-weatherboard", "front-shakes", "back-boards"], rotateY: 270 },
+		"*-cornerout-west": { base: "block/wall/cornerout", ignoreElements: ["front-weatherboard", "secondfront-weatherboard", "front-shakes", "secondfront-shakes", "back-boards"], rotateY: 0 },
+		"*-cornerout-south": { base: "block/wall/cornerout", ignoreElements: ["front-weatherboard", "secondfront-weatherboard", "front-shakes", "secondfront-shakes", "back-boards"], rotateY: 90 },
+		"*-cornerout-east": { base: "block/wall/cornerout", ignoreElements: ["front-weatherboard", "secondfront-weatherboard", "front-shakes", "secondfront-shakes", "back-boards"], rotateY: 180 },
+		"*-cornerout-north": { base: "block/wall/cornerout", ignoreElements: ["front-weatherboard", "secondfront-weatherboard", "front-shakes", "secondfront-shakes", "back-boards"], rotateY: 270 }
 	},
 	resistance: 1.2,
 	lightAbsorption: 0,
