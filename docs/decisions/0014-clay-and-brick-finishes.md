@@ -1,12 +1,12 @@
 # Clay and brick finishes
 
-- Status: Draft
+- Status: Accepted
 - Created: 2026-09-16
-- Reflects: planning session on `docs/plan-later-proposals`; decision 0007's brick texture fix; `SidingWallTexSource`; vanilla 1.21 assets (`blocktypes/clay/brickcourse.json`, `itemtypes/resource/burnedbrick.json`, `itemtypes/resource/clay.json`, `textures/block/clay/`)
+- Reflects: planning session on `docs/plan-later-proposals`; decision 0007's brick texture fix; `SidingWallTexSource`; vanilla 1.21 assets (`blocktypes/clay/brickcourse.json`, `itemtypes/resource/burnedbrick.json`, `itemtypes/resource/clay.json`, `textures/block/clay/`); shipped in `525c2ce`, `b734768`, `50ab6c4`, `df684d6`; graduated on branch `clay-and-brick-finishes`
 
 ## Summary
 Fired bricks in every vanilla colour, and daub in every clay colour, become face finishes via `material-families`.
-Coloured bricks need composite textures (a base plus an overlay), which the texture source can't do yet.
+Coloured bricks needed composite textures (a base plus an overlay), which the texture source couldn't do yet.
 
 ## Context
 Only `brick` (red, `burnedbrick-red`) and `daub` (browngolden, from `clay-blue`) exist.
@@ -34,27 +34,34 @@ Texture: { base: "game:block/clay/brick/four/running/cream1", overlays: [ "game:
 ```
 A plain string still means a single texture, so every existing entry is unchanged.
 
-**`SidingWallTexSource` builds a `CompositeTexture` when `Texture` is an object** and passes it to the `ITextureAtlasAPI.GetOrInsertTexture(CompositeTexture, ...)` overload, which exists for exactly this.
-`ResolveTexturePath` becomes `ResolveTexture`, returning a `CompositeTexture` either way (a string is a composite with no overlays), so there's one atlas call.
-First thing to verify: whether the overload needs the composite `Bake`d first, and that two walls with the same composite share one atlas entry rather than inserting twice.
+**`SidingWallTexSource` builds a `CompositeTexture` when `Texture` is an object.**
+`ResolveTexturePath` becomes `ResolveTexture`, returning a `CompositeTexture` either way (a string is a composite with no overlays).
+There's no `GetOrInsertTexture(CompositeTexture, ...)` overload in the 1.21 API, contrary to the proposal; the indexer instead calls `CompositeTexture.RuntimeBake(capi, atlas)` and reads `atlas.Positions[Baked.TextureSubId]`.
+`RuntimeBake` keys the atlas entry by the baked name, so identical composites across walls share one slot (from decompiling the API; not verified in game).
+Vanilla's `overlays` JSON shorthand (a plain list of texture paths) deserialises into `BlendedOverlays` with blend mode `Normal`, so both the shorthand and the explicit `blendedOverlays` shape are accepted.
 
 **The opacity test judges what renders, not each file.**
 For a composite, only the base must be fully opaque: an overlay over an opaque base can't produce a see-through pixel.
 Overlays may carry partial alpha.
 
 **Brick family**, key `brick-{type}`: held item `game:burnedbrick-{type}`, 2, texture the cream base plus `{type}1` overlay.
-Cream and clinker use their own `four/running/{type}1` with no overlay, and fire bricks aren't in `brickcourse.json` at all (`brick.json` uses `four/running/fire*` directly); all three are hand-authored exceptions, after checking their alpha, and `material-families`' "explicit entries win" skips them in the family.
-The existing explicit `brick` entry keeps red on its legacy texture, so saved walls don't change.
+Cream, clinker and fire use their own `four/running/{type}1` with no overlay, hand-authored after checking they're fully opaque, and `material-families`' "explicit entries win" skips them in the family.
+The existing explicit `brick` entry keeps red on its legacy texture: the open question below wasn't resolved, so saved red-brick walls don't change.
 
-**Daub**: vanilla has daub textures in eleven colours (`block/clay/daub/{color}/normal1`), but they don't map one-to-one onto the three raw clays (`clay-blue`, `clay-red`, `clay-fire`).
-Proposed: one daub finish per raw clay, each picking the nearest-looking daub colour, hand-authored (three entries isn't a family).
-The other daub colours wait for a real in-game way to make coloured daub.
+**Daub changed from the proposal.**
+Instead of hand-picking a daub colour per clay, `FinishFamilies."daub-{type}"` matches `game:clay-*` and builds a composite: the clay's own texture `block/clay/{type}clay` as the base, with `daub/browngolden/normal1` blended over it in `Overlay` mode (vanilla's own doors use the same trick), so the daub keeps the colour of the clay it's made from rather than one fixed hue.
+The explicit `daub` entry keeps blue, so saved walls don't change.
+Not yet checked in game whether the blend actually looks right; see Consequences.
 
 ## Alternatives considered
 - **Bake opaque copies of the brick textures into this mod.** Ships recoloured copies of vanilla art that drift when vanilla updates them, when vanilla's own composite already works.
 - **Render bricks in a transparent pass.** You'd see through the wall, which is the bug.
 - **Clay infills in every colour.** Infill is mostly hidden behind finishes; `clay` already exists as the cooling fill.
+- **A hand-picked daub colour per clay, one entry each.** The original proposal; blending the daub over the clay's own texture keys the colour to the clay with one family instead of three judgement calls.
+- **Plain `{type}clay` texture with no daub overlay.** The fallback if the blended overlay looks muddy in game; not needed yet.
 
 ## Consequences & open questions
 - Should the explicit red `brick` move to the composite too, for consistency with the other colours? It would change how existing red brick walls look; decide by eye.
 - Raw clay as both an infill (`clay`) and a finish (`daub`) is already the case today via `MatchConsumes`' first-match rule on different dictionaries; more daub entries don't change that.
+- The opacity test (decision 0007) runs over the expanded entries; its candidate list gained `burnedbrick.json` and `clay.json`.
+- The blended daub-over-clay look hasn't been checked in game yet; if it reads muddy, drop the overlay and fall back to the plain clay texture.
