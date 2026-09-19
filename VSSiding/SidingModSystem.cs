@@ -2,8 +2,10 @@ using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json.Linq;
 using Vintagestory.API.Common;
+using Vintagestory.API.Config;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.Server;
+using Vintagestory.GameContent;
 
 namespace VSSiding;
 
@@ -23,6 +25,21 @@ public class SidingModSystem : ModSystem
     {
         api.Event.BreakBlock += (IServerPlayer _, BlockSelection blockSel, ref float _, ref EnumHandling _)
             => SidingWallBlock.ServerBreakSelection = blockSel;
+
+        api.ChatCommands.Create("sidingroom")
+            .WithDescription("Prints the room counts and light level at the player's feet")
+            .RequiresPrivilege(Privilege.controlserver)
+            .RequiresPlayer()
+            .HandleWith(args =>
+            {
+                var pos = args.Caller.Player.Entity.Pos.AsBlockPos;
+                var room = api.ModLoader.GetModSystem<RoomRegistry>().GetRoomForPosition(pos);
+                var light = api.World.BlockAccessor.GetLightLevel(pos, EnumLightLevelType.OnlySunLight);
+                return TextCommandResult.Success(
+                    $"cooling {room.CoolingWallCount}, warm {room.NonCoolingWallCount}, " +
+                    $"sky {room.SkylightCount}/{room.SkylightCount + room.NonSkylightCount}, " +
+                    $"exits {room.ExitCount}, small {room.IsSmallRoom}, light {light} (sun {api.World.SunBrightness})");
+            });
     }
 
     // Server side only: the client receives the expanded block attributes with the block list (decision 0010).
