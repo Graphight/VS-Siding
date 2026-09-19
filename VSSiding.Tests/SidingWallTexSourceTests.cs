@@ -25,6 +25,7 @@ public class SidingWallTexSourceTests
     {
         "daub": { "Texture": "game:block/clay/daub/browngolden/normal1" },
         "planks": { "Texture": "game:block/wood/planks/aged1" },
+        "shakes": { "Texture": "game:block/wood/shingles/oak-top", "BackTexture": "game:block/wood/debarked/oak" },
         "brick": { "Texture": "game:block/clay/brick/four/running/red1" },
         "overlay-brick": {
             "Texture": {
@@ -86,6 +87,20 @@ public class SidingWallTexSourceTests
             new AssetLocation("game:block/clay/daub/browngolden/normal1"),
             new AssetLocation("game:block/wood/planks/aged1"),
             new AssetLocation("game:block/clay/brick/four/running/red1"),
+        }, actual);
+    }
+
+    [Fact]
+    public void BackTextureOverridesTextureOnTheBackOnly()
+    {
+        var actual = new[] { "front", "secondfront", "back" }
+            .Select(slot => SidingWallTexSource.ResolveTexture(slot, "oak", "wattle", "shakes", "shakes", "shakes", Framings, Infills, Finishes)!.Base);
+
+        Assert.Equal(new[]
+        {
+            new AssetLocation("game:block/wood/shingles/oak-top"),
+            new AssetLocation("game:block/wood/shingles/oak-top"),
+            new AssetLocation("game:block/wood/debarked/oak"),
         }, actual);
     }
 
