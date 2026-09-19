@@ -1,3 +1,4 @@
+using Newtonsoft.Json.Linq;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Datastructures;
@@ -36,15 +37,15 @@ public class SidingWallTexSource : ITexPositionSource
             var atlas = capi.BlockTextureAtlas;
             // The plain indexer only finds textures some other block/item already caused to
             // be packed into the atlas - most of our material textures aren't declared by
-            // anything else, so they need GetOrInsertTexture to bake, load and pack them on demand.
+            // anything else, so they need GetOrInsertTexture to load and pack them on demand.
             return atlas.GetOrInsertTexture(texture, out _, out TextureAtlasPosition texPos)
                 ? texPos
                 : atlas.UnknownTexturePosition;
         }
     }
 
-    // Unbuilt slots (null key) or a key no longer present in its dictionary resolve to
-    // null - callers only reach here for selectiveElements actually being tesselated, so
+    // Unbuilt slots (null key), a key no longer present in its dictionary, or an entry with
+    // no usable Texture resolve to null - callers only reach here for selectiveElements actually being tesselated, so
     // this is a defensive fallback, not the expected path.
     internal static CompositeTexture? ResolveTexture(
         string slotCode, string? framing, string? infill, string? front, string? secondFront, string? back,
@@ -65,7 +66,7 @@ public class SidingWallTexSource : ITexPositionSource
         if (!entry.Exists) return null;
 
         var texture = entry["Texture"];
-        if (texture.Token?.Type == Newtonsoft.Json.Linq.JTokenType.Object)
+        if (texture.Token?.Type == JTokenType.Object)
             return texture.AsObject<CompositeTexture>() is { Base: not null } composite ? composite : null;
         string? path = texture.AsString(null!);
         return path == null ? null : new CompositeTexture(new AssetLocation(path));

@@ -34,9 +34,9 @@ public class SidingWallTexSourceTests
         },
         "no-texture": { },
         "no-base": { "Texture": { "overlays": ["game:block/clay/brick/four/running/blue1"] } },
-        "blended-daub": {
+        "blended-clay": {
             "Texture": {
-                "base": "game:block/clay/browngoldenclay",
+                "base": "game:block/clay/blueclay",
                 "blendedOverlays": [
                     { "base": "game:block/clay/daub/browngolden/normal1", "blendMode": "Overlay" }
                 ]
@@ -76,16 +76,17 @@ public class SidingWallTexSourceTests
     [Fact]
     public void EachSlotResolvesFromItsOwnDictionary()
     {
-        Assert.Equal(new AssetLocation("game:block/wood/planks/oak1"),
-            SidingWallTexSource.ResolveTexture("framing", "oak", "wattle", "daub", "planks", "brick", Framings, Infills, Finishes)!.Base);
-        Assert.Equal(new AssetLocation("game:block/wood/wattle"),
-            SidingWallTexSource.ResolveTexture("infill", "oak", "wattle", "daub", "planks", "brick", Framings, Infills, Finishes)!.Base);
-        Assert.Equal(new AssetLocation("game:block/clay/daub/browngolden/normal1"),
-            SidingWallTexSource.ResolveTexture("front", "oak", "wattle", "daub", "planks", "brick", Framings, Infills, Finishes)!.Base);
-        Assert.Equal(new AssetLocation("game:block/wood/planks/aged1"),
-            SidingWallTexSource.ResolveTexture("secondfront", "oak", "wattle", "daub", "planks", "brick", Framings, Infills, Finishes)!.Base);
-        Assert.Equal(new AssetLocation("game:block/clay/brick/four/running/red1"),
-            SidingWallTexSource.ResolveTexture("back", "oak", "wattle", "daub", "planks", "brick", Framings, Infills, Finishes)!.Base);
+        var actual = new[] { "framing", "infill", "front", "secondfront", "back" }
+            .Select(slot => SidingWallTexSource.ResolveTexture(slot, "oak", "wattle", "daub", "planks", "brick", Framings, Infills, Finishes)!.Base);
+
+        Assert.Equal(new[]
+        {
+            new AssetLocation("game:block/wood/planks/oak1"),
+            new AssetLocation("game:block/wood/wattle"),
+            new AssetLocation("game:block/clay/daub/browngolden/normal1"),
+            new AssetLocation("game:block/wood/planks/aged1"),
+            new AssetLocation("game:block/clay/brick/four/running/red1"),
+        }, actual);
     }
 
     [Fact]
@@ -104,10 +105,10 @@ public class SidingWallTexSourceTests
     public void CompositeTextureWithBlendedOverlayResolves()
     {
         CompositeTexture? texture = SidingWallTexSource.ResolveTexture(
-            "front", "oak", "wattle", "blended-daub", null, null, Framings, Infills, Finishes);
+            "front", "oak", "wattle", "blended-clay", null, null, Framings, Infills, Finishes);
 
         Assert.NotNull(texture);
-        Assert.Equal(new AssetLocation("game:block/clay/browngoldenclay"), texture!.Base);
+        Assert.Equal(new AssetLocation("game:block/clay/blueclay"), texture!.Base);
         Assert.Equal([(new AssetLocation("game:block/clay/daub/browngolden/normal1"), EnumColorBlendMode.Overlay)], Overlays(texture));
     }
 }
