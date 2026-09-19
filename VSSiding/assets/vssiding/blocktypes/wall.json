@@ -57,6 +57,14 @@
 			}
 		},
 		InfillFamilies: {
+			"clay-{type}": {
+				Match: { type: "item", code: "game:clay-*", variant: "type" },
+				DisplayName: "vssiding:infill-clay-{type}",
+				Texture: "game:block/clay/{type}clay",
+				BlockMaterial: "Soil",
+				Consumes: { type: "item", code: "game:clay-{type}", quantity: 4 },
+				Drops: [ { type: "item", code: "game:clay-{type}", quantity: { avg: 4, var: 0 } } ]
+			},
 			"stone-{rock}": {
 				Match: { type: "item", code: "game:@stone-(?!travertine$|meteorite-iron$).*", variant: "rock" },
 				DisplayName: "vssiding:infill-stone-{rock}",
@@ -70,14 +78,32 @@
 			"daub": {
 				DisplayName: "vssiding:finish-daub",
 				Texture: "game:block/clay/daub/browngolden/normal1",
-				Consumes: { type: "item", code: "game:clay-blue", quantity: 2 },
-				Drops: [ { type: "item", code: "game:clay-blue", quantity: { avg: 2, var: 0 } } ]
+				Consumes: { type: "item", code: "game:daubraw-browngolden", quantity: 2 },
+				Drops: [ { type: "item", code: "game:daubraw-browngolden", quantity: { avg: 2, var: 0 } } ]
 			},
 			"brick": {
 				DisplayName: "vssiding:finish-brick",
 				Texture: "game:legacy/clay/brick/red1",
 				Consumes: { type: "item", code: "game:burnedbrick-red", quantity: 2 },
 				Drops: [ { type: "item", code: "game:burnedbrick-red", quantity: { avg: 2, var: 0 } } ]
+			},
+			"brick-cream": {
+				DisplayName: "vssiding:finish-brick-cream",
+				Texture: "game:block/clay/brick/four/running/cream1",
+				Consumes: { type: "item", code: "game:burnedbrick-cream", quantity: 2 },
+				Drops: [ { type: "item", code: "game:burnedbrick-cream", quantity: { avg: 2, var: 0 } } ]
+			},
+			"brick-clinker": {
+				DisplayName: "vssiding:finish-brick-clinker",
+				Texture: "game:block/clay/brick/four/running/clinker1",
+				Consumes: { type: "item", code: "game:burnedbrick-clinker", quantity: 2 },
+				Drops: [ { type: "item", code: "game:burnedbrick-clinker", quantity: { avg: 2, var: 0 } } ]
+			},
+			"brick-fire": {
+				DisplayName: "vssiding:finish-brick-fire",
+				Texture: "game:block/clay/brick/four/running/fire1",
+				Consumes: { type: "item", code: "game:burnedbrick-fire", quantity: 2 },
+				Drops: [ { type: "item", code: "game:burnedbrick-fire", quantity: { avg: 2, var: 0 } } ]
 			},
 			"planks": {
 				DisplayName: "vssiding:finish-planks",
@@ -130,6 +156,20 @@
 				Texture: "game:block/stone/drystone/{rock}1",
 				Consumes: { type: "item", code: "game:stone-{rock}", quantity: 4 },
 				Drops: [ { type: "item", code: "game:stone-{rock}", quantity: { avg: 4, var: 0 } } ]
+			},
+			"brick-{type}": {
+				Match: { type: "item", code: "game:burnedbrick-*", variant: "type" },
+				DisplayName: "vssiding:finish-brick-{type}",
+				Texture: { base: "game:block/clay/brick/four/running/cream1", overlays: [ "game:block/clay/brick/four/running/{type}1" ] },
+				Consumes: { type: "item", code: "game:burnedbrick-{type}", quantity: 2 },
+				Drops: [ { type: "item", code: "game:burnedbrick-{type}", quantity: { avg: 2, var: 0 } } ]
+			},
+			"daub-{color}": {
+				Match: { type: "item", code: "game:daubraw-*", variant: "color" },
+				DisplayName: "vssiding:finish-daub-{color}",
+				Texture: "game:block/clay/daub/{color}/normal1",
+				Consumes: { type: "item", code: "game:daubraw-{color}", quantity: 2 },
+				Drops: [ { type: "item", code: "game:daubraw-{color}", quantity: { avg: 2, var: 0 } } ]
 			}
 		}
 	},

@@ -128,4 +128,26 @@ public class MaterialFamiliesTests
 
         AssertJson(JObject.Parse("""{ "drystone-granite": { "Texture": "game:block/stone/drystone/granite1" } }"""), actual);
     }
+
+    [Fact]
+    public void CompositeTextureExpandsInsideOverlays()
+    {
+        var families = JObject.Parse("""
+        {
+            "brick-{type}": {
+                "Match": { "type": "item", "code": "game:burnedbrick-*", "variant": "type" },
+                "Texture": { "base": "game:block/clay/brick/four/running/cream1", "overlays": [ "game:block/clay/brick/four/running/{type}1" ] }
+            }
+        }
+        """);
+
+        var actual = MaterialFamilies.Expand(families, new JObject(), new[]
+        {
+            Candidate("item", "game:burnedbrick-fire", "type", "fire"),
+        });
+
+        AssertJson(JObject.Parse("""
+        { "brick-fire": { "Texture": { "base": "game:block/clay/brick/four/running/cream1", "overlays": [ "game:block/clay/brick/four/running/fire1" ] } } }
+        """), actual);
+    }
 }
