@@ -155,6 +155,13 @@
 				Texture: { base: "game:block/clay/brick/four/running/cream1", overlays: [ "game:block/clay/brick/four/running/{type}1" ] },
 				Consumes: { type: "item", code: "game:burnedbrick-{type}", quantity: 2 },
 				Drops: [ { type: "item", code: "game:burnedbrick-{type}", quantity: { avg: 2, var: 0 } } ]
+			},
+			"daub-{type}": {
+				Match: { type: "item", code: "game:clay-*", variant: "type" },
+				DisplayName: "vssiding:finish-daub-{type}",
+				Texture: { base: "game:block/clay/{type}clay", blendedOverlays: [ { base: "game:block/clay/daub/browngolden/normal1", blendMode: "Overlay" } ] },
+				Consumes: { type: "item", code: "game:clay-{type}", quantity: 2 },
+				Drops: [ { type: "item", code: "game:clay-{type}", quantity: { avg: 2, var: 0 } } ]
 			}
 		}
 	},
