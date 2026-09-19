@@ -9,6 +9,7 @@ using Vintagestory.API.Config;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
+using Vintagestory.Client.NoObf;
 using Vintagestory.GameContent;
 
 namespace VSSiding;
@@ -34,6 +35,15 @@ public class SidingModSystem : ModSystem
         {
             // RoomSkylightPatchTests catches a changed method at build time; players keep the mod, minus the fix.
             api.Logger.Error("vssiding: room skylight patch skipped, sealed walls will count as sky: {0}", e);
+        }
+        try
+        {
+            new Harmony("vssiding").Patch(AccessTools.Method(typeof(ChunkTesselator), "BuildExtendedChunkData"),
+                postfix: new HarmonyMethod(typeof(SidingModSystem), nameof(SealedCellLightPostfix)));
+        }
+        catch (Exception e)
+        {
+            api.Logger.Error("vssiding: sealed cell light patch skipped, sealed rooms will glow at the wall base: {0}", e);
         }
     }
 
@@ -66,6 +76,27 @@ public class SidingModSystem : ModSystem
 
         if (replaced != 1)
             throw new InvalidOperationException($"Expected exactly one IBlockAccessor.GetLightLevel call to replace, found {replaced}.");
+    }
+
+    // A face's own light sample is its neighbour cell, so a sealed wall cell's stored sunlight lit the floor beside it; show its open side's light instead.
+    internal static void SealedCellLightPostfix(ClientMain ___game, Block[] ___currentChunkBlocksExt, int[] ___currentChunkRgbsExt,
+        int chunkX, int chunkY, int chunkZ)
+    {
+        const int size = 34;
+        var pos = new BlockPos(chunkY / 1024);
+        for (int i = 0; i < ___currentChunkBlocksExt.Length; i++)
+        {
+            if (___currentChunkBlocksExt[i] is not SidingWallBlock wall) continue;
+
+            int x = i % size, z = i / size % size, y = i / (size * size);
+            var (dx, dz) = SidingWallBlock.OpenSide(wall.Variant["layout"], wall.Variant["side"]);
+            if (x + dx is < 0 or >= size || z + dz is < 0 or >= size) continue;
+
+            pos.Set(chunkX * 32 + x - 1, chunkY * 32 % 32768 + y - 1, chunkZ * 32 + z - 1);
+            if (!wall.IsSealed(___game.BlockAccessor.GetBlockEntity(pos))) continue;
+
+            ___currentChunkRgbsExt[i] = ___currentChunkRgbsExt[i + dx + dz * size];
+        }
     }
 
     // The server's CurrentBlockSelection is its own raytrace; the break packet's face only reaches this event.
