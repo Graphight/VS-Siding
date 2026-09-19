@@ -28,3 +28,4 @@ Leaning tessellator: smaller blast radius, and nothing outside rendering reads t
 ## Consequences & open questions
 - Which exact faces read a wall cell as their own sample: confirm with `/debug` light readings at a glowing floor square before patching.
 - A tessellator patch touches every chunk mesh; measure the cost.
+- Once a sealed cell renders dark, averaging it into a corner already reads dark, so decision 0016's side AO may be redundant. If so, remove it and its pre-roof corner shading; say which in the decision this graduates to.
