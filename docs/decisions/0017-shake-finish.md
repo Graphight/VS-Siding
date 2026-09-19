@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Created: 2026-09-16
-- Reflects: `shake-finish` proposal; decision 0007's weatherboard elements; vanilla 1.21 `textures/block/wood/shingles/` and `blocktypes/wood/woodtyped/log.json`; graduated on branch `shake-finish`
+- Reflects: `shake-finish` proposal; decision 0007's weatherboard elements; vanilla 1.21 `textures/block/wood/shingles/` and `blocktypes/wood/woodtyped/log.json`; graduated on branch `shake-finish`; playtest on branch `shake-finish` at fc0ad49
 
 ## Summary
 Placed logs become a front finish of overlapping shake courses, one per wood, with flat vertical boards on the back.
@@ -40,4 +40,7 @@ The opacity test now includes log candidates, so a family entry pointing at a mi
 - **A C#-generated mesh with randomised shake widths.** The whole mesh pipeline is JSON shapes plus selective elements (decision 0007 rejected the same thing).
 
 ## Consequences & open questions
-- Not yet checked in play: that the painted courses sit on the lips, on a cornerout's second leg, and across a stacked wall.
+- Checked in play: the front of a straight wall shows upright shakes with the painted courses on the lips.
+- Not yet checked in play: a cornerout's second leg, and courses continuing across a stacked wall.
+- A first playtest showed the shakes turned sideways; a clean rebuild of the same commit rendered them correctly, cause not identified.
+  Face `rotation` is no fix either way: it turns the texture inside each thin strip, so the strip samples 16 texels across 1 voxel and stretches.
