@@ -15,19 +15,20 @@ Framing plus infill is a complete wall: it seals rooms through vanilla's per-fac
 ## Build & Development Commands
 
 ```bash
-./build.sh
+just            # build, then install into the game's Mods folder (same as `just deploy`)
+just build      # build only
+just test
 ```
-Runs the Cake build (`CakeBuild/Program.cs`): validates JSON in `VSSiding/assets/`, `dotnet publish`s Release, packages into `Releases/vssiding/`, zips it.
+Needs [`just`](https://github.com/casey/just); recipes run on macOS and Windows.
+`just build` runs the Cake build (`CakeBuild/Program.cs`): validates JSON in `VSSiding/assets/`, `dotnet publish`es Release, packages into `Releases/vssiding/`, zips it.
+`./build.sh` / `build.ps1` run the same build without `just`.
 
 Manual build: `dotnet build VSSiding/VSSiding.csproj -c Release`
 
 Requires `VINTAGE_STORY` env var pointing at the game install, or a `Directory.Build.props.user` (gitignored, copy from `Directory.Build.props.user.example`).
 
-Deploy to Vintage Story (macOS) - drop the zip in, don't unpack it:
-```bash
-cp Releases/vssiding_*.zip ~/Library/Application\ Support/VintagestoryData/Mods/
-```
-A version bump leaves the old zip behind under its old filename; delete it so two versions of the same modid don't both load.
+`just deploy` deletes any installed `vssiding_*.zip` before copying the new one, so a version bump doesn't leave two versions of the modid loading.
+The game loads the zip as-is; don't unpack it.
 
 ## Architecture
 
