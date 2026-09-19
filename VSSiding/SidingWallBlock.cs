@@ -312,6 +312,16 @@ public class SidingWallBlock : Block
     internal static int ComputeLightAbsorption(string? framingKey, string? infillKey, JsonObject framings, JsonObject infills)
         => ComputeRetention(true, framingKey, infillKey, framings, infills) != 0 ? 99 : 0;
 
+    // A sealed wall's cell stores outside sunlight (decision 0015); emitting side AO stops smooth lighting averaging it into neighbouring faces' corners.
+    public override bool DoEmitSideAo(IGeometryTester caller, BlockFacing facing)
+        => IsSealed(caller.GetCurrentBlockEntityOnSide(facing.Opposite)) || base.DoEmitSideAo(caller, facing);
+
+    public override bool DoEmitSideAoByFlag(IGeometryTester caller, Vec3iAndFacingFlags vec, int flags)
+        => IsSealed(caller.GetCurrentBlockEntityOnSide(vec)) || base.DoEmitSideAoByFlag(caller, vec, flags);
+
+    private bool IsSealed(BlockEntity? be)
+        => be is SidingWallEntity entity && ComputeLightAbsorption(entity.Framing, entity.Infill, Attributes["Framings"], Attributes["Infills"]) > 0;
+
     // A sealed wall's cell stores the sunlight flowing in from outside, which RoomRegistry would count as sky (decision 0015).
     internal static int RoomSunlight(IBlockAccessor accessor, BlockPos pos, EnumLightLevelType type)
         => accessor.GetBlock(pos) is SidingWallBlock wall && wall.GetLightAbsorption(accessor, pos) > 0 ? 0 : accessor.GetLightLevel(pos, type);
