@@ -34,12 +34,11 @@ public class SidingWallTexSource : ITexPositionSource
                 textureCode, entity.Framing, entity.Infill, entity.Front, entity.SecondFront, entity.Back,
                 framings, infills, finishes) ?? new CompositeTexture(new AssetLocation("game:block/wood/planks/oak1"));
             var atlas = capi.BlockTextureAtlas;
-            // RuntimeBake loads and packs the base plus any overlays into the atlas on demand
-            // (most of our material textures aren't declared by anything else), and keys the
-            // atlas entry by the baked name, so identical composites across walls share one slot.
-            texture.RuntimeBake(capi, atlas);
-            return texture.Baked != null && atlas.Positions.Length > texture.Baked.TextureSubId
-                ? atlas.Positions[texture.Baked.TextureSubId]
+            // The plain indexer only finds textures some other block/item already caused to
+            // be packed into the atlas - most of our material textures aren't declared by
+            // anything else, so they need GetOrInsertTexture to bake, load and pack them on demand.
+            return atlas.GetOrInsertTexture(texture, out _, out TextureAtlasPosition texPos)
+                ? texPos
                 : atlas.UnknownTexturePosition;
         }
     }

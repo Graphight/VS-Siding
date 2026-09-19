@@ -36,8 +36,8 @@ A plain string still means a single texture, so every existing entry is unchange
 
 **`SidingWallTexSource` builds a `CompositeTexture` when `Texture` is an object.**
 `ResolveTexturePath` becomes `ResolveTexture`, returning a `CompositeTexture` either way (a string is a composite with no overlays).
-There's no `GetOrInsertTexture(CompositeTexture, ...)` overload in the 1.21 API, contrary to the proposal; the indexer instead calls `CompositeTexture.RuntimeBake(capi, atlas)` and reads `atlas.Positions[Baked.TextureSubId]`.
-`RuntimeBake` keys the atlas entry by the baked name, so identical composites across walls share one slot (from decompiling the API; not verified in game).
+The indexer passes it to `ITextureAtlasAPI.GetOrInsertTexture(CompositeTexture, ...)`, which bakes it, keys the atlas entry by the baked name (so identical composites across walls share one slot), and loads the pixels through `LoadCompositeBitmap`, which adds the `textures/` prefix and `.png` and blends the overlays.
+`CompositeTexture.RuntimeBake` looks like the same thing but isn't: it reads the asset by its bare name (so `game:block/wood/planks/oak1` is not found, and every wall fell back to the default shape) and inserts a fresh atlas slot on every call.
 Vanilla's `overlays` JSON shorthand (a plain list of texture paths) deserialises into `BlendedOverlays` with blend mode `Normal`, so both the shorthand and the explicit `blendedOverlays` shape are accepted.
 
 **The opacity test judges what renders, not each file.**
