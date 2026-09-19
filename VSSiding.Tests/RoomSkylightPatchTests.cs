@@ -1,5 +1,4 @@
 using System.Linq;
-using System.Reflection;
 using HarmonyLib;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
@@ -23,6 +22,6 @@ public class RoomSkylightPatchTests
         var roomSunlight = AccessTools.Method(typeof(SidingWallBlock), nameof(SidingWallBlock.RoomSunlight));
 
         Assert.DoesNotContain(patched, i => i.Calls(getLightLevel));
-        Assert.Single(patched, i => i.opcode == System.Reflection.Emit.OpCodes.Call && (MethodInfo)i.operand == roomSunlight);
+        Assert.Single(patched, i => i.Calls(roomSunlight));
     }
 }
