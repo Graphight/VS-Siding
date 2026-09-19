@@ -2,10 +2,10 @@
 
 - Status: Accepted
 - Created: 2026-09-16
-- Reflects: planning session on `docs/plan-later-proposals`; decision 0007's brick texture fix; `SidingWallTexSource`; vanilla 1.21 assets (`blocktypes/clay/brickcourse.json`, `itemtypes/resource/burnedbrick.json`, `itemtypes/resource/clay.json`, `textures/block/clay/`); shipped in `525c2ce`, `b734768`, `50ab6c4`, `df684d6`; graduated on branch `clay-and-brick-finishes`
+- Reflects: planning session on `docs/plan-later-proposals`; decision 0007's brick texture fix; `SidingWallTexSource`; vanilla 1.21 assets (`blocktypes/clay/brickcourse.json`, `itemtypes/resource/burnedbrick.json`, `itemtypes/resource/clay.json`, `itemtypes/resource/daub.json`, `recipes/barrel/daub-dyed.json`, `textures/block/clay/`); playtest of the tinted daub; shipped in `525c2ce`, `b734768`, `50ab6c4`, `ede04bd` and the daub and clay infill commits after it; graduated on branch `clay-and-brick-finishes`
 
 ## Summary
-Fired bricks in every vanilla colour, and daub in every clay colour, become face finishes via `material-families`.
+Fired bricks in every vanilla colour and raw daub in every vanilla colour become face finishes via `material-families`, and every raw clay becomes an infill.
 Coloured bricks needed composite textures (a base plus an overlay), which the texture source couldn't do yet.
 
 ## Context
@@ -48,20 +48,21 @@ Overlays may carry partial alpha.
 Cream, clinker and fire use their own `four/running/{type}1` with no overlay, hand-authored after checking they're fully opaque, and `material-families`' "explicit entries win" skips them in the family.
 The existing explicit `brick` entry keeps red on its legacy texture: the open question below wasn't resolved, so saved red-brick walls don't change.
 
-**Daub changed from the proposal.**
-Instead of hand-picking a daub colour per clay, `FinishFamilies."daub-{type}"` matches `game:clay-*` and builds a composite: the clay's own texture `block/clay/{type}clay` as the base, with `daub/browngolden/normal1` blended over it in `Overlay` mode (vanilla's own doors use the same trick), so the daub keeps the colour of the clay it's made from rather than one fixed hue.
-The explicit `daub` entry keeps blue, so saved walls don't change.
-Not yet checked in game whether the blend actually looks right; see Consequences.
+**Daub comes from raw daub, not raw clay.**
+Vanilla already makes daub in eleven colours as an item, `daubraw-{color}` (crafted as ash daub from blue clay, soil, grass and sand, then dyed in a barrel), which the proposal missed.
+`FinishFamilies."daub-{color}"` matches `game:daubraw-*`, 2 daub, texture `block/clay/daub/{color}/normal1`; all eleven are fully opaque.
+The explicit `daub` key keeps its browngolden texture so saved walls look the same, but now consumes and drops `daubraw-browngolden` instead of `clay-blue`, and the family skips browngolden.
+Raw clay is infill only: `InfillFamilies."clay-{type}"` adds red and fire clay beside the explicit blue `clay`, all `Soil`, so all three cool.
 
 ## Alternatives considered
 - **Bake opaque copies of the brick textures into this mod.** Ships recoloured copies of vanilla art that drift when vanilla updates them, when vanilla's own composite already works.
 - **Render bricks in a transparent pass.** You'd see through the wall, which is the bug.
-- **Clay infills in every colour.** Infill is mostly hidden behind finishes; `clay` already exists as the cooling fill.
-- **A hand-picked daub colour per clay, one entry each.** The original proposal; blending the daub over the clay's own texture keys the colour to the clay with one family instead of three judgement calls.
-- **Plain `{type}clay` texture with no daub overlay.** The fallback if the blended overlay looks muddy in game; not needed yet.
+- **Raw clay as a finish too, tinted to the clay.** Tried: `{type}clay` with the daub blended over it in `Overlay` mode, vanilla's door trick. It only existed because coloured daub seemed unobtainable; once raw daub turned up it was a shortcut past crafting daub, and the explicit blue `daub` kept blue out of the tint anyway.
+- **A hand-picked daub colour per clay, one entry each.** The original proposal; moot once each daub colour is its own item.
+- **Plain `{type}clay` as a finish.** Would look identical to clay infill, so a finished face couldn't be told from a bare one.
 
 ## Consequences & open questions
 - Should the explicit red `brick` move to the composite too, for consistency with the other colours? It would change how existing red brick walls look; decide by eye.
-- Raw clay as both an infill (`clay`) and a finish (`daub`) is already the case today via `MatchConsumes`' first-match rule on different dictionaries; more daub entries don't change that.
-- The opacity test (decision 0007) runs over the expanded entries; its candidate list gained `burnedbrick.json` and `clay.json`.
-- The blended daub-over-clay look hasn't been checked in game yet; if it reads muddy, drop the overlay and fall back to the plain clay texture.
+- A daub face built before this change drops `daubraw-browngolden` when peeled, not the `clay-blue` it cost.
+- The opacity test (decision 0007) runs over the expanded entries; its candidate list gained `burnedbrick.json`, `clay.json` and `daub.json`.
+- Checked in play: bricks in every colour render opaque. Not yet checked: the ten daub colours and red and fire clay infill.
