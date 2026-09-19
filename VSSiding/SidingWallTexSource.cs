@@ -30,16 +30,16 @@ public class SidingWallTexSource : ITexPositionSource
     {
         get
         {
-            string? path = ResolveTexturePath(
+            CompositeTexture texture = ResolveTexture(
                 textureCode, entity.Framing, entity.Infill, entity.Front, entity.SecondFront, entity.Back,
-                framings, infills, finishes);
+                framings, infills, finishes) ?? new CompositeTexture(new AssetLocation("game:block/wood/planks/oak1"));
             var atlas = capi.BlockTextureAtlas;
-            var loc = new AssetLocation(path ?? "game:block/wood/planks/oak1");
-            // The plain indexer only finds textures some other block/item already caused to
-            // be packed into the atlas - most of our material textures aren't declared by
-            // anything else, so they need GetOrInsertTexture to load and pack them on demand.
-            return atlas.GetOrInsertTexture(loc, out _, out TextureAtlasPosition texPos)
-                ? texPos
+            // RuntimeBake loads and packs the base plus any overlays into the atlas on demand
+            // (most of our material textures aren't declared by anything else), and keys the
+            // atlas entry by the baked name, so identical composites across walls share one slot.
+            texture.RuntimeBake(capi, atlas);
+            return texture.Baked != null && atlas.Positions.Length > texture.Baked.TextureSubId
+                ? atlas.Positions[texture.Baked.TextureSubId]
                 : atlas.UnknownTexturePosition;
         }
     }
@@ -47,7 +47,7 @@ public class SidingWallTexSource : ITexPositionSource
     // Unbuilt slots (null key) or a key no longer present in its dictionary resolve to
     // null - callers only reach here for selectiveElements actually being tesselated, so
     // this is a defensive fallback, not the expected path.
-    internal static string? ResolveTexturePath(
+    internal static CompositeTexture? ResolveTexture(
         string slotCode, string? framing, string? infill, string? front, string? secondFront, string? back,
         JsonObject framings, JsonObject infills, JsonObject finishes)
     {
@@ -63,6 +63,11 @@ public class SidingWallTexSource : ITexPositionSource
         if (key == null) return null;
 
         var entry = dictionary[key];
-        return entry.Exists ? entry["Texture"].AsString(null!) : null;
+        if (!entry.Exists) return null;
+
+        var texture = entry["Texture"];
+        return texture.Token?.Type == Newtonsoft.Json.Linq.JTokenType.Object
+            ? texture.AsObject<CompositeTexture>()
+            : new CompositeTexture(new AssetLocation(texture.AsString(null!)));
     }
 }
