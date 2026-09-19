@@ -71,13 +71,15 @@ public class SidingWallBlockRetentionTests
         var infills = MaterialFamilies.Expand((JObject)attributes["InfillFamilies"]!, (JObject)attributes["Infills"]!,
             [
                 ("item", new AssetLocation("game:stone-granite"), new Dictionary<string, string> { ["rock"] = "granite" }),
+                ("item", new AssetLocation("game:clay-blue"), new Dictionary<string, string> { ["type"] = "blue" }),
                 ("item", new AssetLocation("game:clay-red"), new Dictionary<string, string> { ["type"] = "red" }),
+                ("item", new AssetLocation("game:clay-fire"), new Dictionary<string, string> { ["type"] = "fire" }),
             ]);
 
         var actual = infills.Properties().ToDictionary(p => p.Name,
             p => SidingWallBlock.ComputeRetention(true, "oak", p.Name, new JsonObject(attributes["Framings"]), new JsonObject(infills)));
 
-        Assert.Equal(new Dictionary<string, int> { ["wattle"] = 1, ["straw"] = 1, ["clay"] = -1, ["clay-red"] = -1, ["stone-granite"] = -1 }, actual);
+        Assert.Equal(new Dictionary<string, int> { ["wattle"] = 1, ["straw"] = 1, ["clay"] = -1, ["clay-red"] = -1, ["clay-fire"] = -1, ["stone-granite"] = -1 }, actual);
     }
 
     [Fact]
