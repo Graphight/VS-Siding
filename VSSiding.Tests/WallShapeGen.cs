@@ -82,6 +82,52 @@ public static class WallShapeGen
         }
     }
 
+
+    // Cobblestone and drystone paint no grid at all - row and column means across
+    // stone/cobblestone/*.png and stone/drystone/*.png are flat, so there is nothing for modelled
+    // joints to agree with. Decision 0022 hit this with irregular shake joints and the answer
+    // holds: no modelled joints, vary depth only, and let the step carry the texture without
+    // claiming to be a joint. Cells abut with no gaps, because a gap opens a line into the cavity.
+    // Depths are literal, never randomised, or the golden test goes flaky.
+    private static readonly double[][] RubbleDepths =
+    [
+        [0.2, 0, 0.3, 0.1],
+        [0, 0.25, 0.1, 0.3],
+        [0.3, 0.1, 0.2, 0],
+        [0.15, 0.3, 0, 0.2],
+    ];
+
+    // The cell boundaries move course to course for the same reason the shakes' do - four identical
+    // columns would read as one vertical seam.
+    private static readonly double[][] RubbleCuts =
+    [
+        [0, 5, 9, 13, 16],
+        [0, 4, 7, 12, 16],
+        [0, 6, 10, 13, 16],
+        [0, 3, 8, 12, 16],
+    ];
+
+    private static IEnumerable<Element> RubbleGrid(
+        string name, string slot, char depthAxis, double outer, double inner, double runLo, double runHi)
+    {
+        char runAxis = depthAxis == 'x' ? 'z' : 'x';
+        double dir = Math.Sign(inner - outer);
+        for (int row = 0; row < RubbleDepths.Length; row++)
+        {
+            var cuts = RubbleCuts[row];
+            for (int cell = 0; cell < cuts.Length - 1; cell++)
+            {
+                double lo = Math.Max(cuts[cell], runLo), hi = Math.Min(cuts[cell + 1], runHi);
+                if (hi <= lo) continue;
+                double face = outer + dir * RubbleDepths[row][cell];
+                yield return new Element(name,
+                    Corner(depthAxis, Math.Min(face, inner), lo, row * 4),
+                    Corner(depthAxis, Math.Max(face, inner), hi, row * 4 + 4),
+                    slot, UvRule.Positional, RunAxis: runAxis);
+            }
+        }
+    }
+
     private static readonly string[] AllFaces = ["north", "east", "south", "west", "up", "down"];
 
     private static readonly Element[] WallElements =
@@ -170,6 +216,8 @@ public static class WallShapeGen
         // beside while the elevation it backs onto has relief.
         .. RunningBond("back-brick", "back", 4, 8, 'x', 4, 3, 0, 16),
         .. RunningBond("back-ashlar", "back", 8, 8, 'x', 4, 3, 0, 16),
+        .. RubbleGrid("front-rubble", "front", 'x', 0, 1, 0, 16),
+        .. RubbleGrid("back-rubble", "back", 'x', 4, 3, 0, 16),
     ];
 
     private static readonly Element[] CornerOutElements =
@@ -314,6 +362,10 @@ public static class WallShapeGen
         .. RunningBond("back-brick", "back", 4, 8, 'z', 4, 3, 3, 16),
         .. RunningBond("back-ashlar", "back", 8, 8, 'x', 4, 3, 4, 16),
         .. RunningBond("back-ashlar", "back", 8, 8, 'z', 4, 3, 3, 16),
+        .. RubbleGrid("front-rubble", "front", 'x', 0, 1, 0, 16),
+        .. RubbleGrid("secondfront-rubble", "secondfront", 'z', 0, 1, 1, 16),
+        .. RubbleGrid("back-rubble", "back", 'x', 4, 3, 4, 16),
+        .. RubbleGrid("back-rubble", "back", 'z', 4, 3, 3, 16),
     ];
 
     private static readonly (string Slot, string Texture)[] WallTextures =
