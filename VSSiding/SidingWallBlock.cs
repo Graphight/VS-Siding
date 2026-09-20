@@ -366,6 +366,16 @@ public class SidingWallBlock : Block
     internal static float ComputeLiquidBarrier(bool claimed, string? framingKey, string? infillKey, JsonObject framings, JsonObject infills)
         => ComputeRetention(claimed, framingKey, infillKey, framings, infills) != 0 ? 1f : 0f;
 
+    // Another SideSolid consumer (decision 0020): with sidesolid off, nothing could be hung on any
+    // siding wall. A finished wall is a wall, so it holds a torch on the face its panels actually
+    // cover; a bare frame is not a wall and holds nothing. attachmentArea is ignored - a sealed
+    // face is solid across its whole 16x16.
+    public override bool CanAttachBlockAt(IBlockAccessor blockAccessor, Block block, BlockPos pos, BlockFacing blockFace, Cuboidi? attachmentArea = null)
+    {
+        var entity = blockAccessor.GetBlockEntity<SidingWallEntity>(pos);
+        return ComputeRetention(ClaimsFace(blockFace), entity?.Framing, entity?.Infill, Attributes["Framings"], Attributes["Infills"]) != 0;
+    }
+
     // sidesolid is false on every face (decision 0002), so base.GetRetention can't be
     // delegated to. A wall seals only once framing and infill are both built and still
     // valid in their dictionary; an uninstalled material counts as not built.
