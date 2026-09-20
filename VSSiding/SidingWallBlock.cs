@@ -258,6 +258,10 @@ public class SidingWallBlock : Block
         world.BlockAccessor.MarkAbsorptionChanged(0, GetLightAbsorption(world.BlockAccessor, pos), pos);
         // Infill changes retention, but rooms only recompute on a chunk-dirty event; exchanging the block for itself fires one.
         world.BlockAccessor.ExchangeBlock(Id, pos);
+        // It changes the liquid barrier too, and the block itself never changed, so the water
+        // beside it has no idea. Without this a wall only starts damming once something else
+        // nearby happens to make the neighbours recalculate - and only stops damming then too.
+        world.BlockAccessor.TriggerNeighbourBlockUpdate(pos);
         MarkNeighboursDirty(world, pos);
     }
 
