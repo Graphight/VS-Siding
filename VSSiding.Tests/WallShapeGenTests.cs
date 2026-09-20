@@ -10,6 +10,9 @@ namespace VSSiding.Tests;
 // The element table in WallShapeGen is a hand-transcribed reading of the uv derivation rules,
 // checked against the committed shape files it is meant to replace. If it drifts from what the
 // game actually loads, this is where that would show up.
+// The golden test cannot check the generator's own arithmetic - `just shapes` reblesses that file
+// from this same generator, so a wrong rule would pass against its own output. Every assertion
+// below it is therefore written out by hand rather than recomputed (decision 0021).
 public class WallShapeGenTests
 {
     [Theory]
@@ -58,10 +61,8 @@ public class WallShapeGenTests
         Assert.Equal([], offenders);
     }
 
-    // RunAxis is the generator's other piece of arithmetic, and the golden test cannot check it
-    // either - that file is regenerated from this same generator. The rule is that a split segment
-    // samples the texture at its own position along the run, so u must equal the box's own run
-    // coordinates. Restarting each segment at 0 is the bug this catches.
+    // A split segment samples the texture at its own position along the run, so u must equal the
+    // box's own run coordinates. Restarting each segment at 0 is the bug this catches.
     [Theory]
     [InlineData("wall", "front-shakes", 2)]
     [InlineData("cornerout", "front-shakes", 2)]
@@ -85,10 +86,119 @@ public class WallShapeGenTests
         Assert.Equal(expected, actual);
     }
 
-    // UvRule.Course is the only arithmetic the generator carries, and the golden test cannot check
-    // it: that file is regenerated from this same generator, so a wrong courseTop would be blessed
-    // by `just shapes` and still pass. These are the spans decision 0023 fixes, written out rather
-    // than recomputed, so the rule is checked against something other than its own output.
+    // A box with no faces left is a box the tesselator draws nothing for: a hole in the wall, not
+    // an error. Only the prune can cause one.
+    [Theory]
+    [InlineData("wall")]
+    [InlineData("cornerout")]
+    public void NoElementIsPrunedDownToNothing(string layout)
+    {
+        Assert.Equal([], WallShapeGen.Generate(layout)["elements"]!
+            .Where(e => !((JObject)e["faces"]!).Properties().Any())
+            .Select(e => (string)e["name"]!)
+            .ToArray());
+    }
+
+    // The bottom course of shakes carries every case of the prune in four boxes. They abut along
+    // z at 5, 9 and 13, at depths 0, 0.2, 0.1 and 0.3 - a depth is an x offset from the outward
+    // face, so the smaller number is the one standing proud.
+    [Fact]
+    public void AShakeDropsOnlyTheFaceItsDeeperNeighbourCoversEntirely()
+    {
+        string[][] expected =
+        [
+            // Proudest of the four, so its neighbour leaves a strip of it showing.
+            ["north", "east", "south", "west", "up", "down"],
+            // Recessed behind both neighbours, so it loses both.
+            ["east", "west", "up", "down"],
+            // Proud of the boxes at z 5 and z 13 alike.
+            ["north", "east", "south", "west", "up", "down"],
+            // Recessed behind z 9; past z 16 is the cell edge, with no neighbour in this mesh.
+            ["east", "south", "west", "up", "down"],
+        ];
+
+        Assert.Equal(expected, WallShapeGen.Generate("wall")["elements"]!
+            .Where(e => (string)e["name"]! == "front-shakes")
+            .Take(4)
+            .Select(e => ((JObject)e["faces"]!).Properties().Select(p => p.Name).ToArray())
+            .ToArray());
+    }
+
+    // What the prune is actually for: the quads one built cell hands the tesselator.
+    [Fact]
+    public void EachBuiltCellHandsTheTesselatorThisManyQuads()
+    {
+        var expected = new Dictionary<string, int>
+        {
+            ["wall bare frame"] = 24,
+            ["wall wattle"] = 30,
+            ["wall wattle, mid-stack"] = 30,
+            ["wall daub both faces"] = 42,
+            ["wall weatherboard both faces"] = 117,
+            ["wall shakes both faces"] = 205,
+            ["wall glazed"] = 26,
+            ["wall glazed, merged all round"] = 2,
+            ["cornerout bare frame"] = 42,
+            ["cornerout wattle"] = 54,
+            ["cornerout wattle, mid-stack"] = 54,
+            ["cornerout daub both faces"] = 77,
+            ["cornerout weatherboard both faces"] = 227,
+            ["cornerout shakes both faces"] = 400,
+            ["cornerout glazed"] = 46,
+            ["cornerout glazed, merged all round"] = 22,
+            ["wall shakes front, daub elsewhere"] = 185,
+            ["cornerout shakes front, daub elsewhere"] = 220,
+            ["wall weatherboard front, shakes back"] = 137,
+            ["cornerout weatherboard front, shakes back"] = 332,
+        };
+
+        var finishes = SidingWallEntityTests.Dict("""
+        {
+            "daub": {},
+            "planks": { "Elements": { "front": "front-weatherboard", "back": "back-boards" } },
+            "shakes": { "Elements": { "front": "front-shakes", "back": "back-logs" } }
+        }
+        """);
+
+        // Front, second front and back are picked independently (decisions 0007 and 0009), so the
+        // last two rows give each face a different finish. The same-name prune is per element
+        // group, and those groups only stay independent if a mixed cell still names all three.
+        (string State, string? Infill, string? Front, string? SecondFront, string? Back,
+            (bool, bool, bool, bool) Joins, bool Glazed)[] states =
+        [
+            ("bare frame", null, null, null, null, (false, false, false, false), false),
+            ("wattle", "wattle", null, null, null, (false, false, false, false), false),
+            ("wattle, mid-stack", "wattle", null, null, null, (true, true, false, false), false),
+            ("daub both faces", "wattle", "daub", "daub", "daub", (false, false, false, false), false),
+            ("weatherboard both faces", "wattle", "planks", "planks", "planks", (false, false, false, false), false),
+            ("shakes both faces", "wattle", "shakes", "shakes", "shakes", (false, false, false, false), false),
+            ("glazed", "glass", null, null, null, (false, false, false, false), true),
+            ("glazed, merged all round", "glass", null, null, null, (true, true, true, true), true),
+            ("shakes front, daub elsewhere", "wattle", "shakes", "daub", "daub", (false, false, false, false), false),
+            ("weatherboard front, shakes back", "wattle", "planks", "shakes", "shakes", (false, false, false, false), false),
+        ];
+
+        var actual = new Dictionary<string, int>();
+        foreach (var layout in new[] { "wall", "cornerout" })
+        {
+            var quads = WallShapeGen.Generate(layout)["elements"]!
+                .GroupBy(e => (string)e["name"]!)
+                .ToDictionary(g => g.Key, g => g.Sum(e => ((JObject)e["faces"]!).Properties().Count()));
+
+            foreach (var (state, infill, front, secondFront, back, joins, glazed) in states)
+            {
+                var names = SidingWallEntity.SelectiveElements(
+                    layout, "oak", infill, front, layout == "cornerout" ? secondFront : null, back,
+                    finishes, joins, glazed);
+                actual[$"{layout} {state}"] = names.Sum(n => quads[n]);
+            }
+        }
+
+        Assert.Equal(expected, actual);
+    }
+
+    // These are the spans decision 0023 fixes. A wrong courseTop would restart the grain on every
+    // step of the taper.
     [Fact]
     public void EachWeatherboardStepSamplesTheTextureOnceDownItsCourse()
     {

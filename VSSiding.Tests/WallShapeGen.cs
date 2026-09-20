@@ -285,14 +285,20 @@ public static class WallShapeGen
             ["textureWidth"] = 16,
             ["textureHeight"] = 16,
             ["textures"] = textureObject,
-            ["elements"] = new JArray(elements.Select(EmitElement)),
+            ["elements"] = new JArray(elements.Select(e => EmitElement(e, elements))),
         };
     }
 
-    private static JObject EmitElement(Element element)
+    private static JObject EmitElement(Element element, Element[] elements)
     {
+        var sameName = elements.Where(e => e.Name == element.Name).ToArray();
+
         var faces = new JObject();
-        foreach (var face in element.Faces ?? AllFaces) faces[face] = EmitFace(element, face);
+        foreach (var face in element.Faces ?? AllFaces)
+        {
+            if (IsBuried(element, face, sameName)) continue;
+            faces[face] = EmitFace(element, face);
+        }
 
         return new JObject
         {
@@ -301,6 +307,33 @@ public static class WallShapeGen
             ["to"] = new JArray(element.To.X, element.To.Y, element.To.Z),
             ["faces"] = faces,
         };
+    }
+
+    private static double Axis((double X, double Y, double Z) corner, char axis)
+        => axis == 'x' ? corner.X : axis == 'y' ? corner.Y : corner.Z;
+
+    // One name is one selectiveElements group, so boxes sharing a name are drawn together or not
+    // at all - a face flat against one of them is never seen, whatever the cell is built from.
+    // Cover has to be total: abutting shakes meet at a shared plane but sit at different depths,
+    // and the recessed one leaves a strip of its neighbour's face showing.
+    private static bool IsBuried(Element element, string face, Element[] sameName)
+    {
+        var (axis, high) = face switch
+        {
+            "north" => ('z', false),
+            "south" => ('z', true),
+            "west" => ('x', false),
+            "east" => ('x', true),
+            "down" => ('y', false),
+            _ => ('y', true),
+        };
+        double plane = Axis(high ? element.To : element.From, axis);
+        char[] across = axis == 'x' ? ['y', 'z'] : axis == 'y' ? ['x', 'z'] : ['x', 'y'];
+
+        return sameName.Any(other => other != element
+            && Axis(high ? other.From : other.To, axis) == plane
+            && across.All(a => Axis(other.From, a) <= Axis(element.From, a)
+                && Axis(other.To, a) >= Axis(element.To, a)));
     }
 
     private static JObject EmitFace(Element element, string face)
