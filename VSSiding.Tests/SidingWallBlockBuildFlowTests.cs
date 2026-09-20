@@ -55,13 +55,22 @@ public class SidingWallBlockBuildFlowTests
     }
 
     // A stale stored mode - a saved stack from a build with fewer tool modes, say - must land on
-    // a layout that exists rather than throwing, so anything unrecognised is a plain wall.
+    // a layout that exists rather than throwing, so anything unrecognised is a plain wall. The
+    // style modes are the one case that resolves to no layout: they finish, they never frame.
     [Fact]
     public void ToolModesResolveToLayoutsAndAnythingElseToWall()
     {
         Assert.Equal(
-            new Dictionary<int, string> { [0] = "wall", [1] = "cornerout", [2] = "wall", [-1] = "wall" },
-            new[] { 0, 1, 2, -1 }.ToDictionary(mode => mode, SidingWallBlock.ResolveLayout));
+            new Dictionary<int, string?> { [0] = "wall", [1] = "cornerout", [2] = null, [3] = null, [4] = "wall", [-1] = "wall" },
+            new[] { 0, 1, 2, 3, 4, -1 }.ToDictionary(mode => mode, SidingWallBlock.ResolveLayout));
+    }
+
+    [Fact]
+    public void ToolModesResolveToStyles()
+    {
+        Assert.Equal(
+            new Dictionary<int, string?> { [0] = null, [1] = null, [2] = "weatherboard", [3] = "boards", [4] = null, [-1] = null },
+            new[] { 0, 1, 2, 3, 4, -1 }.ToDictionary(mode => mode, SidingWallBlock.ResolveStyle));
     }
 
     private static readonly JsonObject Infills = Dict("""

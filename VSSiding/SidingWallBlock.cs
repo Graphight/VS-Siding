@@ -607,9 +607,20 @@ public class SidingWallBlock : Block
 
     internal static int ConsumeQuantity(JsonObject consumes) => consumes["quantity"].AsInt(1);
 
-    // Tool mode 0 is "wall", 1 is "corner" - see decision 0005. Anything else falls back to
-    // "wall" rather than throwing on a stale/out-of-range stored mode.
-    internal static string ResolveLayout(int toolMode) => toolMode == 1 ? "cornerout" : "wall";
+    // Tool mode 0 is "wall", 1 is "corner" - see decision 0005. Modes 2 and 3 pick a plank
+    // finish style (decision 0027) and frame nothing at all, so they resolve to no layout.
+    // Anything else falls back to "wall" rather than throwing on a stale/out-of-range mode.
+    internal static string? ResolveLayout(int toolMode)
+        => ResolveStyle(toolMode) != null ? null : toolMode == 1 ? "cornerout" : "wall";
+
+    // The style modes are appended after the frame modes, never inserted among them: the mode is
+    // stored as an index on the item stack, so renumbering wakes saved stacks up in another mode.
+    internal static string? ResolveStyle(int toolMode) => toolMode switch
+    {
+        2 => "weatherboard",
+        3 => "boards",
+        _ => null,
+    };
 
     // Which finish layer a build-flow click's clicked face targets - the hugged side is
     // "front", the opposite side is "back", an end/top/bottom face is neither. A cornerout's

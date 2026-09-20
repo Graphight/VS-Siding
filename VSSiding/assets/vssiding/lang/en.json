@@ -180,6 +180,8 @@
 	"finish-drystone-greenmarble": "Green Marble Drystone Finish",
 	"toolmode-wall": "Wall",
 	"toolmode-corner": "Corner",
+	"toolmode-weatherboard": "Weatherboard",
+	"toolmode-boards": "Flat boards",
 	"build-wrong-face": "Click the wall's face",
 	"build-glazed": "Glazing takes no finish",
 	"build-already-finished": "That side is already finished",
