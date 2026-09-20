@@ -161,6 +161,10 @@ public static class WallShapeGen
         new("back-logs", (3.5, 8.5, 0), (4, 11.5, 16), "back", UvRule.Flat, PositionalOverrides: ["east"]),
         new("back-logs", (3.5, 12.5, 0), (4, 15.5, 16), "back", UvRule.Flat, PositionalOverrides: ["east"]),
         .. RunningBond("front-brick", "front", 4, 8, 'x', 0, 1, 0, 16),
+        // stone/brick/andesite1.png draws the same running bond over 8-voxel units, but its
+        // joints sit at px 13-15 and 29-31 - a course every 8 voxels, not 4. Same table, one
+        // different number, which is the whole reason the course pitch is a parameter.
+        .. RunningBond("front-ashlar", "front", 8, 8, 'x', 0, 1, 0, 16),
     ];
 
     private static readonly Element[] CornerOutElements =
@@ -298,6 +302,8 @@ public static class WallShapeGen
         new("back-logs", (3, 12.5, 3.5), (16, 15.5, 4), "back", UvRule.Flat, PositionalOverrides: ["south"]),
         .. RunningBond("front-brick", "front", 4, 8, 'x', 0, 1, 0, 16),
         .. RunningBond("secondfront-brick", "secondfront", 4, 8, 'z', 0, 1, 1, 16),
+        .. RunningBond("front-ashlar", "front", 8, 8, 'x', 0, 1, 0, 16),
+        .. RunningBond("secondfront-ashlar", "secondfront", 8, 8, 'z', 0, 1, 1, 16),
     ];
 
     private static readonly (string Slot, string Texture)[] WallTextures =

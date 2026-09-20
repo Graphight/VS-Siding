@@ -160,6 +160,7 @@
 				Match: { type: "item", code: "game:stonebrick-*", variant: "rock" },
 				DisplayName: "vssiding:finish-ashlar-{rock}",
 				Texture: "game:block/stone/brick/{rock}1",
+				Elements: { front: "front-ashlar" },
 				Consumes: { type: "item", code: "game:stonebrick-{rock}", quantity: 2 },
 				Drops: [ { type: "item", code: "game:stonebrick-{rock}", quantity: { avg: 2, var: 0 } } ]
 			},
@@ -198,14 +199,14 @@
 	},
 	drawtype: "json",
 	shapebytype: {
-		"*-wall-west": { base: "block/wall/wall", ignoreElements: ["glazing-left", "glazing-right", "glazing-top", "glazing-bottom", "infill-pane", "front-brick", "front-weatherboard", "front-shakes", "back-boards", "back-logs"], rotateY: 0 },
-		"*-wall-south": { base: "block/wall/wall", ignoreElements: ["glazing-left", "glazing-right", "glazing-top", "glazing-bottom", "infill-pane", "front-brick", "front-weatherboard", "front-shakes", "back-boards", "back-logs"], rotateY: 90 },
-		"*-wall-east": { base: "block/wall/wall", ignoreElements: ["glazing-left", "glazing-right", "glazing-top", "glazing-bottom", "infill-pane", "front-brick", "front-weatherboard", "front-shakes", "back-boards", "back-logs"], rotateY: 180 },
-		"*-wall-north": { base: "block/wall/wall", ignoreElements: ["glazing-left", "glazing-right", "glazing-top", "glazing-bottom", "infill-pane", "front-brick", "front-weatherboard", "front-shakes", "back-boards", "back-logs"], rotateY: 270 },
-		"*-cornerout-west": { base: "block/wall/cornerout", ignoreElements: ["glazing-left", "glazing-right", "glazing-top", "glazing-bottom", "infill-pane", "front-brick", "secondfront-brick", "front-weatherboard", "secondfront-weatherboard", "front-shakes", "secondfront-shakes", "back-boards", "back-logs"], rotateY: 0 },
-		"*-cornerout-south": { base: "block/wall/cornerout", ignoreElements: ["glazing-left", "glazing-right", "glazing-top", "glazing-bottom", "infill-pane", "front-brick", "secondfront-brick", "front-weatherboard", "secondfront-weatherboard", "front-shakes", "secondfront-shakes", "back-boards", "back-logs"], rotateY: 90 },
-		"*-cornerout-east": { base: "block/wall/cornerout", ignoreElements: ["glazing-left", "glazing-right", "glazing-top", "glazing-bottom", "infill-pane", "front-brick", "secondfront-brick", "front-weatherboard", "secondfront-weatherboard", "front-shakes", "secondfront-shakes", "back-boards", "back-logs"], rotateY: 180 },
-		"*-cornerout-north": { base: "block/wall/cornerout", ignoreElements: ["glazing-left", "glazing-right", "glazing-top", "glazing-bottom", "infill-pane", "front-brick", "secondfront-brick", "front-weatherboard", "secondfront-weatherboard", "front-shakes", "secondfront-shakes", "back-boards", "back-logs"], rotateY: 270 }
+		"*-wall-west": { base: "block/wall/wall", ignoreElements: ["glazing-left", "glazing-right", "glazing-top", "glazing-bottom", "infill-pane", "front-ashlar", "front-brick", "front-weatherboard", "front-shakes", "back-boards", "back-logs"], rotateY: 0 },
+		"*-wall-south": { base: "block/wall/wall", ignoreElements: ["glazing-left", "glazing-right", "glazing-top", "glazing-bottom", "infill-pane", "front-ashlar", "front-brick", "front-weatherboard", "front-shakes", "back-boards", "back-logs"], rotateY: 90 },
+		"*-wall-east": { base: "block/wall/wall", ignoreElements: ["glazing-left", "glazing-right", "glazing-top", "glazing-bottom", "infill-pane", "front-ashlar", "front-brick", "front-weatherboard", "front-shakes", "back-boards", "back-logs"], rotateY: 180 },
+		"*-wall-north": { base: "block/wall/wall", ignoreElements: ["glazing-left", "glazing-right", "glazing-top", "glazing-bottom", "infill-pane", "front-ashlar", "front-brick", "front-weatherboard", "front-shakes", "back-boards", "back-logs"], rotateY: 270 },
+		"*-cornerout-west": { base: "block/wall/cornerout", ignoreElements: ["glazing-left", "glazing-right", "glazing-top", "glazing-bottom", "infill-pane", "front-ashlar", "secondfront-ashlar", "front-brick", "secondfront-brick", "front-weatherboard", "secondfront-weatherboard", "front-shakes", "secondfront-shakes", "back-boards", "back-logs"], rotateY: 0 },
+		"*-cornerout-south": { base: "block/wall/cornerout", ignoreElements: ["glazing-left", "glazing-right", "glazing-top", "glazing-bottom", "infill-pane", "front-ashlar", "secondfront-ashlar", "front-brick", "secondfront-brick", "front-weatherboard", "secondfront-weatherboard", "front-shakes", "secondfront-shakes", "back-boards", "back-logs"], rotateY: 90 },
+		"*-cornerout-east": { base: "block/wall/cornerout", ignoreElements: ["glazing-left", "glazing-right", "glazing-top", "glazing-bottom", "infill-pane", "front-ashlar", "secondfront-ashlar", "front-brick", "secondfront-brick", "front-weatherboard", "secondfront-weatherboard", "front-shakes", "secondfront-shakes", "back-boards", "back-logs"], rotateY: 180 },
+		"*-cornerout-north": { base: "block/wall/cornerout", ignoreElements: ["glazing-left", "glazing-right", "glazing-top", "glazing-bottom", "infill-pane", "front-ashlar", "secondfront-ashlar", "front-brick", "secondfront-brick", "front-weatherboard", "secondfront-weatherboard", "front-shakes", "secondfront-shakes", "back-boards", "back-logs"], rotateY: 270 }
 	},
 	resistance: 1.2,
 	lightAbsorption: 0,
