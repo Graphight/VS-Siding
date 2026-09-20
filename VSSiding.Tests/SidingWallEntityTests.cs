@@ -51,10 +51,10 @@ public class SidingWallEntityTests
         Assert.Equal(
             new Dictionary<string, bool>
             {
-                ["framing-left"] = false,
-                ["framing-right"] = false,
-                ["framing-top"] = false,
-                ["framing-bottom"] = false,
+                ["glazing-left"] = false,
+                ["glazing-right"] = false,
+                ["glazing-top"] = false,
+                ["glazing-bottom"] = false,
                 ["infill-pane"] = true,
             },
             elements.ToDictionary(name => name, SidingWallEntity.IsInfillElement));
@@ -76,9 +76,9 @@ public class SidingWallEntityTests
         Assert.Equal(
             new Dictionary<(bool, bool, bool, bool), string[]>
             {
-                [(false, false, false, false)] = ["framing-left", "framing-right", "framing-top", "framing-bottom", "infill-pane"],
-                [(false, false, true, false)] = ["framing-right", "framing-top", "framing-bottom", "infill-pane"],
-                [(true, false, false, true)] = ["framing-left", "framing-bottom", "infill-pane"],
+                [(false, false, false, false)] = ["glazing-left", "glazing-right", "glazing-top", "glazing-bottom", "infill-pane"],
+                [(false, false, true, false)] = ["glazing-right", "glazing-top", "glazing-bottom", "infill-pane"],
+                [(true, false, false, true)] = ["glazing-left", "glazing-bottom", "infill-pane"],
                 // Surrounded by glazing: nothing but the pane, so the run reads as one sheet.
                 [(true, true, true, true)] = ["infill-pane"],
             },

@@ -132,16 +132,21 @@ public class SidingWallEntity : BlockEntity
         if (secondFront != null) names.Add("second" + finishes[secondFront]["Elements"]["front"].AsString("front"));
         if (framing != null)
         {
-            // A wall's two posts drop individually wherever glazing merges sideways; a cornerout's
-            // three are structural and always drawn.
+            // Glazing gets its own frame: a bezel whose members each span the full cell edge, so
+            // the frame still reaches the pane where the member beside it has been dropped. A
+            // plain wall's plates stop short at its posts, which is right while the posts are
+            // always there and leaves a notch at every cell edge once they aren't.
+            string member = layout != "cornerout" && transparentInfill ? "glazing" : "framing";
+            // A cornerout's three posts are structural and always drawn; a wall's two drop
+            // individually wherever glazing merges sideways.
             if (layout == "cornerout") names.Add("framing");
             else
             {
-                if (!joins.left) names.Add("framing-left");
-                if (!joins.right) names.Add("framing-right");
+                if (!joins.left) names.Add(member + "-left");
+                if (!joins.right) names.Add(member + "-right");
             }
-            if (!continuesAbove) names.Add("framing-top");
-            if (!continuesBelow) names.Add("framing-bottom");
+            if (!continuesAbove) names.Add(member + "-top");
+            if (!continuesBelow) names.Add(member + "-bottom");
         }
         if (infill != null)
         {

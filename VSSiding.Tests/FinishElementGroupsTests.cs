@@ -72,19 +72,25 @@ public class FinishElementGroupsTests
         Assert.Equal([], asked.Distinct().Where(name => !names.Contains(name)).ToArray());
     }
 
-    // The glazing pane must not ride along on the block's default JSON shape.
+    // Glazing's own elements - the pane and its bezel - exist only for a glazed cell, so none of
+    // them may ride along on the block's default JSON shape.
     [Fact]
-    public void EveryWallAndCorneroutVariantIgnoresTheGlazingPane()
+    public void EveryVariantIgnoresTheGlazingOnlyElements()
     {
         var repoRoot = MaterialTextureOpacityTests.GetAssemblyMetadata("RepoRoot");
-        var wallJson = JObject.Parse(File.ReadAllText(
-            Path.Combine(repoRoot, "VSSiding", "assets", "vssiding", "blocktypes", "wall.json")));
+        var assets = Path.Combine(repoRoot, "VSSiding", "assets", "vssiding");
+        var wallJson = JObject.Parse(File.ReadAllText(Path.Combine(assets, "blocktypes", "wall.json")));
 
-        var offenders = ((JObject)wallJson["shapebytype"]!).Properties()
-            .Where(v => (string)v.Value["base"]! != "block/wall/window")
-            .Where(v => v.Value["ignoreElements"]?.Select(t => (string)t!).Contains("infill-pane") != true)
-            .Select(v => v.Name)
-            .ToArray();
+        var offenders = new List<string>();
+        foreach (var variant in ((JObject)wallJson["shapebytype"]!).Properties())
+        {
+            var shapeJson = JObject.Parse(File.ReadAllText(
+                Path.Combine(assets, "shapes", (string)variant.Value["base"]! + ".json")));
+            var glazingOnly = shapeJson["elements"]!.Select(e => (string)e["name"]!)
+                .Where(n => n == "infill-pane" || n.StartsWith("glazing")).Distinct();
+            var ignored = variant.Value["ignoreElements"]?.Select(t => (string)t!).ToHashSet() ?? [];
+            offenders.AddRange(glazingOnly.Where(n => !ignored.Contains(n)).Select(n => $"{variant.Name} draws '{n}'"));
+        }
 
         Assert.Equal([], offenders);
     }
