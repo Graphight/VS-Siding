@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json.Linq;
@@ -16,6 +17,7 @@ public enum UvRule
 {
     Flat,
     Positional,
+    Course,
 }
 
 public record Element(
@@ -31,6 +33,9 @@ public record Element(
 
 public static class WallShapeGen
 {
+    // Both cladding textures draw a course every 4 voxels of a 16-voxel face.
+    private const double CoursePitch = 4;
+
     private static readonly string[] AllFaces = ["north", "east", "south", "west", "up", "down"];
 
     private static readonly Element[] WallElements =
@@ -50,14 +55,22 @@ public static class WallShapeGen
         new("glazing-bottom", (1.25, 0.25, 0), (2.75, 2, 16), "framing", UvRule.Flat),
         new("back", (3, 0, 0), (4, 16, 16), "back", UvRule.Flat),
         new("back-boards", (3, 0, 0), (4, 16, 16), "back", UvRule.Flat, RotatedFaces: ["east"]),
-        new("front-weatherboard", (0, 0, 0), (1, 1, 16), "front", UvRule.Flat),
-        new("front-weatherboard", (0.5, 1, 0), (1, 4, 16), "front", UvRule.Flat),
-        new("front-weatherboard", (0, 4, 0), (1, 5, 16), "front", UvRule.Flat),
-        new("front-weatherboard", (0.5, 5, 0), (1, 8, 16), "front", UvRule.Flat),
-        new("front-weatherboard", (0, 8, 0), (1, 9, 16), "front", UvRule.Flat),
-        new("front-weatherboard", (0.5, 9, 0), (1, 12, 16), "front", UvRule.Flat),
-        new("front-weatherboard", (0, 12, 0), (1, 13, 16), "front", UvRule.Flat),
-        new("front-weatherboard", (0.5, 13, 0), (1, 16, 16), "front", UvRule.Flat),
+        new("front-weatherboard", (0, 0, 0), (1, 1, 16), "front", UvRule.Course),
+        new("front-weatherboard", (0.25, 1, 0), (1, 2, 16), "front", UvRule.Course),
+        new("front-weatherboard", (0.5, 2, 0), (1, 3, 16), "front", UvRule.Course),
+        new("front-weatherboard", (0.75, 3, 0), (1, 4, 16), "front", UvRule.Course),
+        new("front-weatherboard", (0, 4, 0), (1, 5, 16), "front", UvRule.Course),
+        new("front-weatherboard", (0.25, 5, 0), (1, 6, 16), "front", UvRule.Course),
+        new("front-weatherboard", (0.5, 6, 0), (1, 7, 16), "front", UvRule.Course),
+        new("front-weatherboard", (0.75, 7, 0), (1, 8, 16), "front", UvRule.Course),
+        new("front-weatherboard", (0, 8, 0), (1, 9, 16), "front", UvRule.Course),
+        new("front-weatherboard", (0.25, 9, 0), (1, 10, 16), "front", UvRule.Course),
+        new("front-weatherboard", (0.5, 10, 0), (1, 11, 16), "front", UvRule.Course),
+        new("front-weatherboard", (0.75, 11, 0), (1, 12, 16), "front", UvRule.Course),
+        new("front-weatherboard", (0, 12, 0), (1, 13, 16), "front", UvRule.Course),
+        new("front-weatherboard", (0.25, 13, 0), (1, 14, 16), "front", UvRule.Course),
+        new("front-weatherboard", (0.5, 14, 0), (1, 15, 16), "front", UvRule.Course),
+        new("front-weatherboard", (0.75, 15, 0), (1, 16, 16), "front", UvRule.Course),
         // Weatherboard's lap (proud butt, recessed body) stays, but each course is cut into four
         // shakes along its run, and a shake keeps its depth through both bands - butt at d, body at
         // 0.5 + d - so it reads as one tile rather than a banded strip. Depths run 0 to 0.3 of a
@@ -124,22 +137,38 @@ public static class WallShapeGen
         new("infill-pane", (3, 0, 2), (16, 16, 2), "infill", UvRule.Flat, Faces: ["north", "south"]),
         new("framing", (15, 0, 1), (16, 16, 3), "framing", UvRule.Flat),
         new("back", (3, 0, 3), (16, 16, 4), "back", UvRule.Flat),
-        new("front-weatherboard", (0, 0, 0), (1, 1, 16), "front", UvRule.Flat),
-        new("front-weatherboard", (0.5, 1, 0.5), (1, 4, 16), "front", UvRule.Flat),
-        new("secondfront-weatherboard", (1, 0, 0), (16, 1, 1), "secondfront", UvRule.Flat),
-        new("secondfront-weatherboard", (1, 1, 0.5), (16, 4, 1), "secondfront", UvRule.Flat),
-        new("front-weatherboard", (0, 4, 0), (1, 5, 16), "front", UvRule.Flat),
-        new("front-weatherboard", (0.5, 5, 0.5), (1, 8, 16), "front", UvRule.Flat),
-        new("secondfront-weatherboard", (1, 4, 0), (16, 5, 1), "secondfront", UvRule.Flat),
-        new("secondfront-weatherboard", (1, 5, 0.5), (16, 8, 1), "secondfront", UvRule.Flat),
-        new("front-weatherboard", (0, 8, 0), (1, 9, 16), "front", UvRule.Flat),
-        new("front-weatherboard", (0.5, 9, 0.5), (1, 12, 16), "front", UvRule.Flat),
-        new("secondfront-weatherboard", (1, 8, 0), (16, 9, 1), "secondfront", UvRule.Flat),
-        new("secondfront-weatherboard", (1, 9, 0.5), (16, 12, 1), "secondfront", UvRule.Flat),
-        new("front-weatherboard", (0, 12, 0), (1, 13, 16), "front", UvRule.Flat),
-        new("front-weatherboard", (0.5, 13, 0.5), (1, 16, 16), "front", UvRule.Flat),
-        new("secondfront-weatherboard", (1, 12, 0), (16, 13, 1), "secondfront", UvRule.Flat),
-        new("secondfront-weatherboard", (1, 13, 0.5), (16, 16, 1), "secondfront", UvRule.Flat),
+        new("front-weatherboard", (0, 0, 0), (1, 1, 16), "front", UvRule.Course),
+        new("front-weatherboard", (0.25, 1, 0.5), (1, 2, 16), "front", UvRule.Course),
+        new("front-weatherboard", (0.5, 2, 0.5), (1, 3, 16), "front", UvRule.Course),
+        new("front-weatherboard", (0.75, 3, 0.5), (1, 4, 16), "front", UvRule.Course),
+        new("secondfront-weatherboard", (1, 0, 0), (16, 1, 1), "secondfront", UvRule.Course),
+        new("secondfront-weatherboard", (1, 1, 0.25), (16, 2, 1), "secondfront", UvRule.Course),
+        new("secondfront-weatherboard", (1, 2, 0.5), (16, 3, 1), "secondfront", UvRule.Course),
+        new("secondfront-weatherboard", (1, 3, 0.75), (16, 4, 1), "secondfront", UvRule.Course),
+        new("front-weatherboard", (0, 4, 0), (1, 5, 16), "front", UvRule.Course),
+        new("front-weatherboard", (0.25, 5, 0.5), (1, 6, 16), "front", UvRule.Course),
+        new("front-weatherboard", (0.5, 6, 0.5), (1, 7, 16), "front", UvRule.Course),
+        new("front-weatherboard", (0.75, 7, 0.5), (1, 8, 16), "front", UvRule.Course),
+        new("secondfront-weatherboard", (1, 4, 0), (16, 5, 1), "secondfront", UvRule.Course),
+        new("secondfront-weatherboard", (1, 5, 0.25), (16, 6, 1), "secondfront", UvRule.Course),
+        new("secondfront-weatherboard", (1, 6, 0.5), (16, 7, 1), "secondfront", UvRule.Course),
+        new("secondfront-weatherboard", (1, 7, 0.75), (16, 8, 1), "secondfront", UvRule.Course),
+        new("front-weatherboard", (0, 8, 0), (1, 9, 16), "front", UvRule.Course),
+        new("front-weatherboard", (0.25, 9, 0.5), (1, 10, 16), "front", UvRule.Course),
+        new("front-weatherboard", (0.5, 10, 0.5), (1, 11, 16), "front", UvRule.Course),
+        new("front-weatherboard", (0.75, 11, 0.5), (1, 12, 16), "front", UvRule.Course),
+        new("secondfront-weatherboard", (1, 8, 0), (16, 9, 1), "secondfront", UvRule.Course),
+        new("secondfront-weatherboard", (1, 9, 0.25), (16, 10, 1), "secondfront", UvRule.Course),
+        new("secondfront-weatherboard", (1, 10, 0.5), (16, 11, 1), "secondfront", UvRule.Course),
+        new("secondfront-weatherboard", (1, 11, 0.75), (16, 12, 1), "secondfront", UvRule.Course),
+        new("front-weatherboard", (0, 12, 0), (1, 13, 16), "front", UvRule.Course),
+        new("front-weatherboard", (0.25, 13, 0.5), (1, 14, 16), "front", UvRule.Course),
+        new("front-weatherboard", (0.5, 14, 0.5), (1, 15, 16), "front", UvRule.Course),
+        new("front-weatherboard", (0.75, 15, 0.5), (1, 16, 16), "front", UvRule.Course),
+        new("secondfront-weatherboard", (1, 12, 0), (16, 13, 1), "secondfront", UvRule.Course),
+        new("secondfront-weatherboard", (1, 13, 0.25), (16, 14, 1), "secondfront", UvRule.Course),
+        new("secondfront-weatherboard", (1, 14, 0.5), (16, 15, 1), "secondfront", UvRule.Course),
+        new("secondfront-weatherboard", (1, 15, 0.75), (16, 16, 1), "secondfront", UvRule.Course),
         new("back-boards", (3, 0, 4), (4, 16, 16), "back", UvRule.Flat, RotatedFaces: ["east"]),
         new("back-boards", (3, 0, 3), (16, 16, 4), "back", UvRule.Flat, null, null, ["south"]),
         // Same tiling as wall's front-shakes (see the comment there), on both legs. The front leg
@@ -297,8 +326,15 @@ public static class WallShapeGen
         (double, double) Span(char axis) =>
             element.RunAxis == axis ? (Lo(axis), Hi(axis)) : (0.0, Hi(axis) - Lo(axis));
 
+        // A board tapered into steps samples down its own course, so the grain runs once from butt
+        // to head instead of each step restarting the same slice.
+        double courseTop = Math.Floor(fy / CoursePitch) * CoursePitch + CoursePitch;
+        bool course = vAxis == 'y' && element.UvRule == UvRule.Course;
+
         var (u0, u1) = Span(uAxis);
-        var (v0, v1) = positional ? (16 - ty, 16 - fy) : Span(vAxis);
+        var (v0, v1) = course ? (courseTop - ty, courseTop - fy)
+            : positional ? (16 - ty, 16 - fy)
+            : Span(vAxis);
 
         var result = new JObject
         {
