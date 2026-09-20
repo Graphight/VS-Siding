@@ -68,7 +68,7 @@ public class SidingWallEntity : BlockEntity
         string side = Block.Variant["side"];
         string cacheKey = CacheKey(layout, side, Framing, Infill, Front, SecondFront, Back, joins);
 
-        MeshData mesh = ObjectCacheUtil.GetOrCreate(capi, cacheKey, () =>
+        MeshData[] meshes = ObjectCacheUtil.GetOrCreate(capi, cacheKey, () =>
         {
             Shape shape = Shape.TryGet(capi, new AssetLocation("vssiding", $"shapes/block/wall/{layout}.json"));
             var texSource = new SidingWallTexSource(
@@ -76,19 +76,21 @@ public class SidingWallEntity : BlockEntity
             var rotation = new Vec3f(0, RotationYDeg(side), 0);
 
             if (!SidingWallBlock.IsTransparent(Infill, Block.Attributes["Infills"]))
-                return Tesselate(tesselator, shape, texSource, rotation, selectiveElements);
+                return new[] { Tesselate(tesselator, shape, texSource, rotation, selectiveElements) };
 
             // Glazing has to reach the transparent pool while its frame stays opaque, so the two
-            // are tesselated apart and the glass half restamped before they're merged - one mesh
-            // carrying a pass per quad, the same way vanilla's chiselled blocks mix materials.
+            // halves are tesselated and handed over separately. They are deliberately NOT merged
+            // into one mesh: MeshData.AddMeshData offsets the incoming indices by the target's
+            // last index value plus one, which is only the target's vertex count when that last
+            // index is also its highest. Any trailing vertex without an index shifts the glass
+            // indices back into the frame's vertices and smears a pane across the room.
             MeshData glass = Tesselate(tesselator, shape, texSource, rotation, Array.FindAll(selectiveElements, IsInfillElement));
             SetRenderPass(glass, EnumChunkRenderPass.Transparent);
             MeshData frame = Tesselate(tesselator, shape, texSource, rotation, Array.FindAll(selectiveElements, name => !IsInfillElement(name)));
-            frame.AddMeshData(glass);
-            return frame;
+            return new[] { frame, glass };
         });
 
-        mesher.AddMeshData(mesh);
+        foreach (MeshData mesh in meshes) mesher.AddMeshData(mesh);
         return true;
     }
 
