@@ -29,7 +29,7 @@ If the numbers are small, the finding is "not worth it" and that is a result wor
 
 **Then prune by rule, not by eye.**
 Two boxes that share a face plane, where one's face lies entirely within the other's, can both drop that face.
-That is a geometric test over the element list, so it can be a build-time check or a generator pass rather than hand edits — hand-pruning 36 elements across two files is exactly how the duplicates in `shake-profile` got in.
+That is a geometric test over the element list, so it belongs in the shape generator decision 0021 added, as a pass over the element table rather than hand edits across two files.
 
 **Selective elements complicate it, and that is the interesting part.**
 A face is only buried if the element burying it is *drawn*, and `SelectiveElements` picks a different set per cell: a merged glazed cell draws no posts, so `infill-pane`'s edges are exposed there but hidden in an unmerged one.
@@ -38,9 +38,9 @@ The safe subset is faces buried by an element that is always drawn alongside —
 Anything conditional needs either a per-combination mesh (which the cache already keys) or leaving alone.
 
 ## Alternatives considered
-- **Prune by hand now.** No measurement, and it re-introduces exactly the hand-maintenance problem `shake-profile` documents.
+- **Prune by hand now.** No measurement, and it re-introduces exactly the hand-maintenance problem decision 0021 removed.
 - **Turn on vanilla face culling.** Decision 0002 turned `sidesolid` off precisely so a thin wall does not cull its neighbours; this is culling *within* one mesh, which vanilla does not do for us.
-- **Do it inside the shape generator.** Probably the right home, which is why that generator wants its own proposal first. This one can then become a rule in it.
+- **Do it inside the shape generator.** That generator now exists (decision 0021), so this becomes a rule in it rather than a separate mechanism.
 
 ## Consequences & open questions
 - This is a performance proposal with no measurement behind it yet. It may well close as "measured, not worth it", and it should be allowed to.
