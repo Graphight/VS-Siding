@@ -17,7 +17,8 @@ public class SidingWallBlockRetentionTests
     private static readonly JsonObject Infills = Dict("""
     {
         "wattle": { "BlockMaterial": "Wood" },
-        "clay": { "BlockMaterial": "Soil" }
+        "clay": { "BlockMaterial": "Soil" },
+        "glass": { "BlockMaterial": "Glass", "Transparent": true }
     }
     """);
 
@@ -83,11 +84,18 @@ public class SidingWallBlockRetentionTests
     }
 
     [Fact]
-    public void OnlyASealedWallAbsorbsLight()
+    public void TransparentInfillSealsLikeAnyOther()
     {
-        var actual = new[] { (null, null), ("oak", null), ("oak", "wattle"), ("oak", "clay"), ("oak", "uninstalled") }
+        Assert.Equal(1, SidingWallBlock.ComputeRetention(true, "oak", "glass", Framings, Infills));
+    }
+
+    // Glazing is the case that splits these two apart: sealed, so it retains, but not opaque.
+    [Fact]
+    public void OnlyAnOpaqueSealedWallAbsorbsLight()
+    {
+        var actual = new[] { (null, null), ("oak", null), ("oak", "wattle"), ("oak", "clay"), ("oak", "glass"), ("oak", "uninstalled") }
             .Select(w => SidingWallBlock.ComputeLightAbsorption(w.Item1, w.Item2, Framings, Infills));
 
-        Assert.Equal(new[] { 0, 0, 99, 99, 0 }, actual);
+        Assert.Equal(new[] { 0, 0, 99, 99, 0, 0 }, actual);
     }
 }
