@@ -62,22 +62,31 @@ public class SidingWallBlock : Block
     };
 
     // Built once up front so collision calls from client and server threads only ever read it.
-    private static readonly Dictionary<(string layout, string side, bool joinsAbove), Cuboidf[]> FramingBoxes = BuildFramingBoxes();
+    private static readonly Dictionary<(string layout, string side, bool joinsAbove, bool joinsLeft, bool joinsRight), Cuboidf[]> FramingBoxes = BuildFramingBoxes();
 
-    private static Dictionary<(string layout, string side, bool joinsAbove), Cuboidf[]> BuildFramingBoxes()
+    private static Dictionary<(string layout, string side, bool joinsAbove, bool joinsLeft, bool joinsRight), Cuboidf[]> BuildFramingBoxes()
     {
         var origin = new Vec3d(0.5, 0.5, 0.5);
-        var boxes = new Dictionary<(string layout, string side, bool joinsAbove), Cuboidf[]>();
+        var boxes = new Dictionary<(string layout, string side, bool joinsAbove, bool joinsLeft, bool joinsRight), Cuboidf[]>();
         foreach (var (layout, (posts, top)) in UnrotatedFramingBoxes)
         {
             foreach (string side in CorneroutSecondFace.Keys)
             {
                 float rotationYDeg = SidingWallEntity.RotationYDeg(side);
                 foreach (bool joinsAbove in new[] { false, true })
+                foreach (bool joinsLeft in new[] { false, true })
+                foreach (bool joinsRight in new[] { false, true })
                 {
-                    var unrotated = new List<Cuboidf>(posts);
+                    var unrotated = new List<Cuboidf>();
+                    for (int i = 0; i < posts.Length; i++)
+                    {
+                        // Only a window drops a post, and only the one on the side that merged.
+                        // Its two posts are listed z = 0 end first, matching RunNeighbours' left.
+                        if (layout == "window" && (i == 0 ? joinsLeft : joinsRight)) continue;
+                        unrotated.Add(posts[i]);
+                    }
                     if (!joinsAbove) unrotated.AddRange(top);
-                    boxes[(layout, side, joinsAbove)] =
+                    boxes[(layout, side, joinsAbove, joinsLeft, joinsRight)] =
                         unrotated.ConvertAll(box => box.RotatedCopy(0, rotationYDeg, 0, origin)).ToArray();
                 }
             }
@@ -86,9 +95,13 @@ public class SidingWallBlock : Block
     }
 
     // A frame with framing but no infill collides only on its posts and top plate (decision 0008).
+    // A merged window drops the posts it doesn't draw, so a run of them is walk-through.
     internal static Cuboidf[] ComputeCollisionBoxes(
-        string layout, string side, string? framing, string? infill, bool joinsAbove, Cuboidf[] fullBoxes)
-        => framing != null && infill == null ? FramingBoxes[(layout, side, joinsAbove)] : fullBoxes;
+        string layout, string side, string? framing, string? infill,
+        (bool above, bool below, bool left, bool right) joins, Cuboidf[] fullBoxes)
+        => framing != null && infill == null
+            ? FramingBoxes[(layout, side, joins.above, joins.left, joins.right)]
+            : fullBoxes;
 
     public override Cuboidf[] GetCollisionBoxes(IBlockAccessor blockAccessor, BlockPos pos)
         => FramedCollisionBoxes(blockAccessor, pos, base.GetCollisionBoxes(blockAccessor, pos));
@@ -102,7 +115,7 @@ public class SidingWallBlock : Block
         if (entity?.Framing == null || entity.Infill != null) return fullBoxes;
 
         var joins = NeighbourJoins(blockAccessor, pos, entity.Infill);
-        return ComputeCollisionBoxes(Variant["layout"], Variant["side"], entity.Framing, entity.Infill, joins.above, fullBoxes);
+        return ComputeCollisionBoxes(Variant["layout"], Variant["side"], entity.Framing, entity.Infill, joins, fullBoxes);
     }
 
     // Which neighbours this cell shares a member with, i.e. draws no plate or post against.

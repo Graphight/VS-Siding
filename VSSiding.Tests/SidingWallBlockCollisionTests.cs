@@ -48,7 +48,7 @@ public class SidingWallBlockCollisionTests
             new Cuboidf(1f / 16, 0, 15f / 16, 3f / 16, 1, 1),
         };
 
-        Assert.Equal(expected, SidingWallBlock.ComputeCollisionBoxes("wall", "west", "oak", null, true, FullBoxes), Comparer);
+        Assert.Equal(expected, SidingWallBlock.ComputeCollisionBoxes("wall", "west", "oak", null, (true, false, false, false), FullBoxes), Comparer);
     }
 
     [Fact]
@@ -60,7 +60,7 @@ public class SidingWallBlockCollisionTests
             new Cuboidf(15f / 16, 0, 13f / 16, 1, 1, 15f / 16),
         };
 
-        Assert.Equal(expected, SidingWallBlock.ComputeCollisionBoxes("wall", "south", "oak", null, true, FullBoxes), Comparer);
+        Assert.Equal(expected, SidingWallBlock.ComputeCollisionBoxes("wall", "south", "oak", null, (true, false, false, false), FullBoxes), Comparer);
     }
 
     [Fact]
@@ -73,7 +73,7 @@ public class SidingWallBlockCollisionTests
             new Cuboidf(15f / 16, 0, 1f / 16, 1, 1, 3f / 16),
         };
 
-        Assert.Equal(expected, SidingWallBlock.ComputeCollisionBoxes("cornerout", "west", "oak", null, true, FullBoxes), Comparer);
+        Assert.Equal(expected, SidingWallBlock.ComputeCollisionBoxes("cornerout", "west", "oak", null, (true, false, false, false), FullBoxes), Comparer);
     }
 
     [Fact]
@@ -86,7 +86,7 @@ public class SidingWallBlockCollisionTests
             new Cuboidf(1f / 16, 0, 0, 3f / 16, 1, 1f / 16),
         };
 
-        Assert.Equal(expected, SidingWallBlock.ComputeCollisionBoxes("cornerout", "south", "oak", null, true, FullBoxes), Comparer);
+        Assert.Equal(expected, SidingWallBlock.ComputeCollisionBoxes("cornerout", "south", "oak", null, (true, false, false, false), FullBoxes), Comparer);
     }
 
     [Fact]
@@ -99,7 +99,7 @@ public class SidingWallBlockCollisionTests
             new Cuboidf(1f / 16, 15f / 16, 1f / 16, 3f / 16, 1, 15f / 16),
         };
 
-        Assert.Equal(expected, SidingWallBlock.ComputeCollisionBoxes("wall", "west", "oak", null, false, FullBoxes), Comparer);
+        Assert.Equal(expected, SidingWallBlock.ComputeCollisionBoxes("wall", "west", "oak", null, (false, false, false, false), FullBoxes), Comparer);
     }
 
     [Fact]
@@ -112,7 +112,7 @@ public class SidingWallBlockCollisionTests
             new Cuboidf(1f / 16, 15f / 16, 13f / 16, 15f / 16, 1, 15f / 16),
         };
 
-        Assert.Equal(expected, SidingWallBlock.ComputeCollisionBoxes("wall", "south", "oak", null, false, FullBoxes), Comparer);
+        Assert.Equal(expected, SidingWallBlock.ComputeCollisionBoxes("wall", "south", "oak", null, (false, false, false, false), FullBoxes), Comparer);
     }
 
     [Theory]
@@ -131,13 +131,13 @@ public class SidingWallBlockCollisionTests
     [Fact]
     public void FilledFrameReturnsFullBoxesUnchanged()
     {
-        Assert.Same(FullBoxes, SidingWallBlock.ComputeCollisionBoxes("wall", "west", "oak", "wattle", false, FullBoxes));
+        Assert.Same(FullBoxes, SidingWallBlock.ComputeCollisionBoxes("wall", "west", "oak", "wattle", (false, false, false, false), FullBoxes));
     }
 
     [Fact]
     public void MissingEntityFallsBackToFullBoxes()
     {
-        Assert.Same(FullBoxes, SidingWallBlock.ComputeCollisionBoxes("wall", "west", null, null, false, FullBoxes));
+        Assert.Same(FullBoxes, SidingWallBlock.ComputeCollisionBoxes("wall", "west", null, null, (false, false, false, false), FullBoxes));
     }
     // RunNeighbours reuses cornerout's table on the claim that the face counter-clockwise from
     // `side` is where the unrotated shape's z = 0 end lands once rotated. That is the whole basis
@@ -160,5 +160,43 @@ public class SidingWallBlockCollisionTests
             rotated,
             new[] { "west", "south", "east", "north" }.ToDictionary(side => side, side => SidingWallBlock.RunNeighbours(side).left.Code));
     }
+
+    // Unrotated, a window's posts sit at the two z ends and its head rail spans between them.
+    // Merging drops the post on the merged side only, so a run of unglazed windows is walk-
+    // through where the posts were - the collision has to follow what's actually drawn.
+    [Fact]
+    public void MergedWindowDropsOnlyThePostOnTheMergedSide()
+    {
+        // "west" is the unrotated case, so these come back exactly as the table lists them.
+        string leftPost = Describe(new Cuboidf(1f / 16, 0, 0, 3f / 16, 1, 1f / 16));
+        string rightPost = Describe(new Cuboidf(1f / 16, 0, 15f / 16, 3f / 16, 1, 1));
+        string headRail = Describe(new Cuboidf(1.25f / 16, 12f / 16, 0, 2.75f / 16, 1, 1));
+
+        Assert.Equal(
+            new Dictionary<(bool left, bool right), string[]>
+            {
+                [(false, false)] = [leftPost, rightPost, headRail],
+                [(true, false)] = [rightPost, headRail],
+                [(false, true)] = [leftPost, headRail],
+                [(true, true)] = [headRail],
+            },
+            new[] { (false, false), (true, false), (false, true), (true, true) }
+                .ToDictionary(m => m, m => SidingWallBlock.ComputeCollisionBoxes(
+                    "window", "west", "oak", null, (false, false, m.Item1, m.Item2), FullBoxes)
+                    .Select(Describe).ToArray()));
+    }
+
+    // A wall never merges sideways, so those flags must not take its posts away.
+    [Fact]
+    public void WallPostsSurviveTheHorizontalMergeFlags()
+    {
+        Assert.Equal(
+            SidingWallBlock.ComputeCollisionBoxes("wall", "west", "oak", null, (false, false, false, false), FullBoxes),
+            SidingWallBlock.ComputeCollisionBoxes("wall", "west", "oak", null, (false, false, true, true), FullBoxes),
+            Comparer);
+    }
+
+    private static string Describe(Cuboidf b) =>
+        $"{b.X1:F4},{b.Y1:F4},{b.Z1:F4}..{b.X2:F4},{b.Y2:F4},{b.Z2:F4}";
 
 }
