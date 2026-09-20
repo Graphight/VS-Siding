@@ -29,14 +29,14 @@ public class SidingWallEntityTests
         Assert.Equal(
             joins.ToDictionary(j => j, _ => new[] { "infill-pane" }),
             joins.ToDictionary(j => j, j => SidingWallEntity.SelectiveElements(
-                "wall", "oak", "glass", null, null, null, NoElementFinishes, j, transparentInfill: true)
+                "wall", "oak", "glass", null, null, null, NoElementFinishes, j, glazed: true)
                 .Where(SidingWallEntity.IsInfillElement).ToArray()));
 
         // Opaque infill is untouched: it still gets the slab plus a filler per merged side.
         Assert.Equal(
             new[] { "infill", "infill-top", "infill-bottom" },
             SidingWallEntity.SelectiveElements(
-                "wall", "oak", "wattle", null, null, null, NoElementFinishes, (true, true, false, false))
+                "wall", "oak", "wattle", null, null, null, NoElementFinishes, (true, true, false, false), glazed: false)
                 .Where(SidingWallEntity.IsInfillElement).ToArray());
     }
 
@@ -46,7 +46,7 @@ public class SidingWallEntityTests
     public void OnlyInfillElementsGoInTheTransparentHalf()
     {
         string[] elements = SidingWallEntity.SelectiveElements(
-            "wall", "oak", "glass", null, null, null, NoElementFinishes, (false, false, false, false), transparentInfill: true);
+            "wall", "oak", "glass", null, null, null, NoElementFinishes, (false, false, false, false), glazed: true);
 
         Assert.Equal(
             new Dictionary<string, bool>
@@ -83,7 +83,7 @@ public class SidingWallEntityTests
                 [(true, true, true, true)] = ["infill-pane"],
             },
             joins.ToDictionary(j => j, j => SidingWallEntity.SelectiveElements(
-                "wall", "oak", "glass", null, null, null, NoElementFinishes, j, transparentInfill: true)));
+                "wall", "oak", "glass", null, null, null, NoElementFinishes, j, glazed: true)));
     }
 
     // A cornerout's three posts are structural, so glazing never takes them - only its plates.
@@ -93,7 +93,7 @@ public class SidingWallEntityTests
         Assert.Equal(
             ["framing", "infill-pane"],
             SidingWallEntity.SelectiveElements(
-                "cornerout", "oak", "glass", null, null, null, NoElementFinishes, (true, true, false, false), transparentInfill: true));
+                "cornerout", "oak", "glass", null, null, null, NoElementFinishes, (true, true, false, false), glazed: true));
     }
 
     [Fact]
@@ -123,39 +123,39 @@ public class SidingWallEntityTests
     [Fact]
     public void SelectiveElementsSkipsUnbuiltParts()
     {
-        Assert.Equal(new string[0], SidingWallEntity.SelectiveElements("wall", null, null, null, null, null, NoElementFinishes, (false, false, false, false)));
+        Assert.Equal(new string[0], SidingWallEntity.SelectiveElements("wall", null, null, null, null, null, NoElementFinishes, (false, false, false, false), glazed: false));
         Assert.Equal(new[] { "front", "framing-left", "framing-right", "framing-top", "framing-bottom", "infill", "back" },
-            SidingWallEntity.SelectiveElements("wall", "oak", "wattle", "daub", null, "daub", NoElementFinishes, (false, false, false, false)));
+            SidingWallEntity.SelectiveElements("wall", "oak", "wattle", "daub", null, "daub", NoElementFinishes, (false, false, false, false), glazed: false));
         Assert.Equal(new[] { "framing-left", "framing-right", "framing-top", "framing-bottom" },
-            SidingWallEntity.SelectiveElements("wall", "oak", null, null, null, null, NoElementFinishes, (false, false, false, false)));
+            SidingWallEntity.SelectiveElements("wall", "oak", null, null, null, null, NoElementFinishes, (false, false, false, false), glazed: false));
     }
 
     [Fact]
     public void SelectiveElementsUsesFinishNamedElementsPerFace()
     {
         Assert.Equal(new[] { "front-weatherboard", "secondfront-weatherboard", "framing-left", "framing-right", "framing-top", "framing-bottom", "infill", "back-boards" },
-            SidingWallEntity.SelectiveElements("wall", "oak", "wattle", "planks", "planks", "planks", PlankFinishes, (false, false, false, false)));
+            SidingWallEntity.SelectiveElements("wall", "oak", "wattle", "planks", "planks", "planks", PlankFinishes, (false, false, false, false), glazed: false));
     }
 
     [Fact]
     public void SelectiveElementsForBottomOfAStackSkipsOnlyTheTopPlate()
     {
         Assert.Equal(new[] { "framing-left", "framing-right", "framing-bottom", "infill", "infill-top" },
-            SidingWallEntity.SelectiveElements("wall", "oak", "wattle", null, null, null, NoElementFinishes, (true, false, false, false)));
+            SidingWallEntity.SelectiveElements("wall", "oak", "wattle", null, null, null, NoElementFinishes, (true, false, false, false), glazed: false));
     }
 
     [Fact]
     public void SelectiveElementsForTopOfAStackSkipsOnlyTheBottomPlate()
     {
         Assert.Equal(new[] { "framing-left", "framing-right", "framing-top", "infill", "infill-bottom" },
-            SidingWallEntity.SelectiveElements("wall", "oak", "wattle", null, null, null, NoElementFinishes, (false, true, false, false)));
+            SidingWallEntity.SelectiveElements("wall", "oak", "wattle", null, null, null, NoElementFinishes, (false, true, false, false), glazed: false));
     }
 
     [Fact]
     public void SelectiveElementsForAFilledMiddleCellSkipsBothPlatesAndExtendsInfillBothWays()
     {
         Assert.Equal(new[] { "framing-left", "framing-right", "infill", "infill-top", "infill-bottom" },
-            SidingWallEntity.SelectiveElements("wall", "oak", "wattle", null, null, null, NoElementFinishes, (true, true, false, false)));
+            SidingWallEntity.SelectiveElements("wall", "oak", "wattle", null, null, null, NoElementFinishes, (true, true, false, false), glazed: false));
     }
 
     [Theory]
@@ -183,7 +183,7 @@ public class SidingWallEntityTests
     }
 
     // Anything the mesh is built from has to reach the key, or two differently-shaped walls share
-    // one cached mesh - a merged window and an unmerged one being the newest way to get that wrong.
+    // one cached mesh - a merged glazed cell and an unmerged one being the newest way to get that wrong.
     [Fact]
     public void CacheKeyDistinguishesEveryMeshInput()
     {
@@ -191,7 +191,6 @@ public class SidingWallEntityTests
         [
             SidingWallEntity.CacheKey("wall", "west", "oak", "wattle", "daub", "planks", "brick", (false, false, false, false)),
             SidingWallEntity.CacheKey("cornerout", "west", "oak", "wattle", "daub", "planks", "brick", (false, false, false, false)),
-            SidingWallEntity.CacheKey("window", "west", "oak", "wattle", "daub", "planks", "brick", (false, false, false, false)),
             SidingWallEntity.CacheKey("wall", "south", "oak", "wattle", "daub", "planks", "brick", (false, false, false, false)),
             SidingWallEntity.CacheKey("wall", "west", "veryaged", "wattle", "daub", "planks", "brick", (false, false, false, false)),
             SidingWallEntity.CacheKey("wall", "west", "oak", "glass-plain", "daub", "planks", "brick", (false, false, false, false)),

@@ -66,7 +66,7 @@ public class FinishElementGroupsTests
             from transparent in new[] { false, true }
             from name in SidingWallEntity.SelectiveElements(
                 layout, "oak", "glass", null, null, null, new JsonObject(new JObject()),
-                (above, below, left, right), transparent)
+                (above, below, left, right), glazed: transparent)
             select name;
 
         Assert.Equal([], asked.Distinct().Where(name => !names.Contains(name)).ToArray());

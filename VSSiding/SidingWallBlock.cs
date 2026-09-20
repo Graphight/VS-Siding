@@ -204,21 +204,21 @@ public class SidingWallBlock : Block
         string? finishKey = MatchConsumes(heldCode, Attributes["Finishes"]);
         if (finishKey == null) return base.OnBlockInteractStart(world, byPlayer, blockSel);
 
+        // Planks that can't finish this face still extend the wall via PlaceWallFrame, and held blocks still place.
+        bool heldPlaces = slot.Itemstack!.Class == EnumItemClass.Block || MatchConsumes(heldCode, Attributes["Framings"]) != null;
+
         // Glazing takes no finish: a slab over it would just hide the glass. Refusing here rather
         // than in ResolveFinishFace keeps breaking unchanged - PeelLayer still finds no finish on
         // a glazed cell and peels the glass out (decision 0013).
         if (IsTransparent(entity.Infill, Attributes["Infills"]))
         {
-            if (slot.Itemstack!.Class == EnumItemClass.Block || MatchConsumes(heldCode, Attributes["Framings"]) != null)
-                return base.OnBlockInteractStart(world, byPlayer, blockSel);
-            (byPlayer as IServerPlayer)?.SendIngameError("vssiding:wrongface", Lang.Get("vssiding:build-glazed"));
+            if (heldPlaces) return base.OnBlockInteractStart(world, byPlayer, blockSel);
+            (byPlayer as IServerPlayer)?.SendIngameError("vssiding:glazed", Lang.Get("vssiding:build-glazed"));
             return true;
         }
 
         string side = Variant["side"];
         string? face = ResolveFinishFace(Variant["layout"], side, blockSel.Face);
-        // Planks that can't finish this face still extend the wall via PlaceWallFrame, and held blocks still place.
-        bool heldPlaces = slot.Itemstack!.Class == EnumItemClass.Block || MatchConsumes(heldCode, Attributes["Framings"]) != null;
         if (face == null)
         {
             if (heldPlaces) return base.OnBlockInteractStart(world, byPlayer, blockSel);
