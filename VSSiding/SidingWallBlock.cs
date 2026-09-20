@@ -144,12 +144,11 @@ public class SidingWallBlock : Block
         return (left, left.Opposite);
     }
 
-    // Which cornerout a wall becomes when it's upgraded in place: the new leg goes on the end
-    // of the run the player clicked nearer. cornerout-`side` puts its second leg on the left
-    // end, and cornerout-`right` puts its own second leg back on `side` - so the leg it adds
-    // is the right end. Which end is nearer is the sign of the hit point's offset from the
-    // cell's centre along the left facing; the axis flips per side, so it can't be a fixed
-    // "coordinate < 0.5". Dead centre goes right, arbitrarily but consistently.
+    // Which cornerout a wall becomes when it's upgraded in place (decision 0026): the new leg
+    // goes on the end of the run clicked nearer. cornerout-`side` puts its second leg on the
+    // left end; cornerout-`right` puts its own second leg back on `side`, so the leg it adds
+    // is the right one. Nearness has to be a dot product rather than a fixed "coordinate <
+    // 0.5" because the run's axis and its direction both change with `side`. Ties go right.
     internal static string ResolveCornerUpgrade(string side, Vec3d hitPosition)
     {
         var (left, right) = RunNeighbours(side);
@@ -199,13 +198,10 @@ public class SidingWallBlock : Block
 
         if (entity.Infill == null)
         {
-            // A bare frame clicked in corner mode becomes a cornerout in place, so a T-junction
-            // found late doesn't mean breaking the wall and rebuilding it. Frames only: a
-            // cornerout's legs share Infill and Back (decision 0009), so upgrading a filled wall
-            // would build the new leg's layers for free. Front and back clicks only - an end,
-            // top or bottom click still falls through to PlaceWallFrame, which is how a corner
-            // goes on the end of a run. Free, because a fresh cornerout frame costs the same as
-            // a fresh wall frame.
+            // A bare frame clicked in corner mode becomes a cornerout in place, for a T-junction
+            // found once a partition reaches it (decision 0026). Nothing is charged: a fresh
+            // cornerout frame costs the same as a fresh wall frame. Everything this doesn't
+            // claim falls through to the infill match below, then to PlaceWallFrame.
             if (Variant["layout"] == "wall"
                 && ResolveLayout(PlaceWallFrame.ToolModeOf(slot)) == "cornerout"
                 && MatchConsumes(heldCode, Attributes["Framings"]) != null
@@ -215,11 +211,11 @@ public class SidingWallBlock : Block
                 var corner = world.GetBlock(new AssetLocation("vssiding", $"wall-cornerout-{cornerSide}"));
                 if (corner != null)
                 {
-                    // Keeps the block entity, and the engine repoints its Block at the new type,
-                    // so Framing survives and OnTesselation reads the cornerout layout.
+                    // Keeps the block entity, and the engine repoints its Block at the new
+                    // type, so Framing survives and OnTesselation reads the cornerout layout.
                     world.BlockAccessor.ExchangeBlock(corner.Id, blockSel.Position);
                     entity.MarkDirty(true);
-                    // Plates depend on the cells above and below sharing this one's layout
+                    // Plates key off the cells above and below sharing this one's layout
                     // (decision 0008), which the swap just changed.
                     MarkNeighboursDirty(world, blockSel.Position);
                     return true;

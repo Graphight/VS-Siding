@@ -38,8 +38,8 @@ public class PlaceWallFrame : CollectibleBehavior
     public override int GetToolMode(ItemSlot slot, IPlayer byPlayer, BlockSelection blockSel)
         => ToolModeOf(slot);
 
-    // SidingWallBlock reads the mode too, off a stack it holds rather than a behavior instance,
-    // so the attribute key lives here once rather than being spelled out at both call sites.
+    // SidingWallBlock reads the mode off a stack rather than a behavior instance, so the
+    // attribute key lives here once instead of being spelled out at both call sites.
     internal static int ToolModeOf(ItemSlot slot) => slot.Itemstack?.Attributes.GetInt("toolMode", 0) ?? 0;
 
     public override void SetToolMode(ItemSlot slot, IPlayer byPlayer, BlockSelection blockSel, int toolMode)
