@@ -54,14 +54,14 @@ public class SidingWallEntity : BlockEntity
     public override bool OnTesselation(ITerrainMeshPool mesher, ITesselatorAPI tesselator)
     {
         string layout = Block.Variant["layout"];
-        if (layout != "wall" && layout != "cornerout" && layout != "window") return false;
+        if (layout != "wall" && layout != "cornerout") return false;
         if (Api is not ICoreClientAPI capi) return false;
 
         var joins = ((SidingWallBlock)Block).NeighbourJoins(Api.World.BlockAccessor, Pos, Infill);
 
         // An empty selectiveElements array matches zero shape elements, not "no filter". For an
         // unbuilt wall that means falling back to the block's default JSON shape; for a built one
-        // it means drawing nothing, which is right for a window merged on all four sides.
+        // it means drawing nothing, which is right for glazing merged on all four sides.
         bool transparentInfill = SidingWallBlock.IsTransparent(Infill, Block.Attributes["Infills"]);
         string[] selectiveElements = SelectiveElements(layout, Framing, Infill, Front, SecondFront, Back, Block.Attributes["Finishes"], joins, transparentInfill);
         if (selectiveElements.Length == 0) return Framing != null;
@@ -127,17 +127,19 @@ public class SidingWallEntity : BlockEntity
         (bool above, bool below, bool left, bool right) joins, bool transparentInfill = false)
     {
         var (continuesAbove, continuesBelow) = (joins.above, joins.below);
-        // A window's shape has none of the finish or infill-filler elements - it takes no finish
-        // (ResolveFinishFace refuses one) and its pane is full-cell, so a dropped plate needs no
-        // filler. Naming an element the shape doesn't have would silently draw nothing.
-        if (layout == "window") return WindowElements(framing, infill, joins);
-
         var names = new List<string>();
         if (front != null) names.Add(finishes[front]["Elements"]["front"].AsString("front"));
         if (secondFront != null) names.Add("second" + finishes[secondFront]["Elements"]["front"].AsString("front"));
         if (framing != null)
         {
-            names.Add("framing");
+            // A wall's two posts drop individually wherever glazing merges sideways; a cornerout's
+            // three are structural and always drawn.
+            if (layout == "cornerout") names.Add("framing");
+            else
+            {
+                if (!joins.left) names.Add("framing-left");
+                if (!joins.right) names.Add("framing-right");
+            }
             if (!continuesAbove) names.Add("framing-top");
             if (!continuesBelow) names.Add("framing-bottom");
         }
@@ -156,22 +158,6 @@ public class SidingWallEntity : BlockEntity
             }
         }
         if (back != null) names.Add(finishes[back]["Elements"]["back"].AsString("back"));
-        return names.ToArray();
-    }
-
-    // Every member is dropped wherever the window merges, and the pane behind them is full-cell,
-    // so a run of windows comes out as one opening with its frame only around the outside.
-    private static string[] WindowElements(string? framing, string? infill, (bool above, bool below, bool left, bool right) joins)
-    {
-        var names = new List<string>();
-        if (framing != null)
-        {
-            if (!joins.left) names.Add("framing-left");
-            if (!joins.right) names.Add("framing-right");
-            if (!joins.above) names.Add("framing-top");
-            if (!joins.below) names.Add("framing-bottom");
-        }
-        if (infill != null) names.Add("infill");
         return names.ToArray();
     }
 

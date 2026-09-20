@@ -4,7 +4,7 @@
 	entityclass: "SidingWallEntity",
 	behaviors: [{name: "HorizontalOrientable", properties: { dropBlockFace: "west" }}],
 	variantgroups: [
-		{ code: "layout", states: ["wall", "cornerout", "window"] },
+		{ code: "layout", states: ["wall", "cornerout"] },
 		{ code: "side", loadFromProperties: "abstract/horizontalorientation" }
 	],
 	creativeinventory: { "general": ["*-west"], "decorative": ["*-west"] },
@@ -200,11 +200,7 @@
 		"*-cornerout-west": { base: "block/wall/cornerout", ignoreElements: ["infill-pane", "front-weatherboard", "secondfront-weatherboard", "front-shakes", "secondfront-shakes", "back-boards", "back-logs"], rotateY: 0 },
 		"*-cornerout-south": { base: "block/wall/cornerout", ignoreElements: ["infill-pane", "front-weatherboard", "secondfront-weatherboard", "front-shakes", "secondfront-shakes", "back-boards", "back-logs"], rotateY: 90 },
 		"*-cornerout-east": { base: "block/wall/cornerout", ignoreElements: ["infill-pane", "front-weatherboard", "secondfront-weatherboard", "front-shakes", "secondfront-shakes", "back-boards", "back-logs"], rotateY: 180 },
-		"*-cornerout-north": { base: "block/wall/cornerout", ignoreElements: ["infill-pane", "front-weatherboard", "secondfront-weatherboard", "front-shakes", "secondfront-shakes", "back-boards", "back-logs"], rotateY: 270 },
-		"*-window-west": { base: "block/wall/window", rotateY: 0 },
-		"*-window-south": { base: "block/wall/window", rotateY: 90 },
-		"*-window-east": { base: "block/wall/window", rotateY: 180 },
-		"*-window-north": { base: "block/wall/window", rotateY: 270 }
+		"*-cornerout-north": { base: "block/wall/cornerout", ignoreElements: ["infill-pane", "front-weatherboard", "secondfront-weatherboard", "front-shakes", "secondfront-shakes", "back-boards", "back-logs"], rotateY: 270 }
 	},
 	resistance: 1.2,
 	lightAbsorption: 0,
@@ -228,16 +224,6 @@
 	materialDensity: 600,
 	collisionSelectionBoxesbytype: {
 		"*-wall-*": [
-			{ x1: 0, y1: 0, z1: 0, x2: 0.25, y2: 1, z2: 1,
-				rotateYByType: {
-					"*-west": 0,
-					"*-south": 90,
-					"*-east": 180,
-					"*-north": 270
-				}
-			}
-		],
-		"*-window-*": [
 			{ x1: 0, y1: 0, z1: 0, x2: 0.25, y2: 1, z2: 1,
 				rotateYByType: {
 					"*-west": 0,

@@ -180,8 +180,8 @@
 	"finish-drystone-greenmarble": "Green Marble Drystone Finish",
 	"toolmode-wall": "Wall",
 	"toolmode-corner": "Corner",
-	"toolmode-window": "Window",
 	"build-wrong-face": "Click the wall's face",
+	"build-glazed": "Glazing takes no finish",
 	"build-already-finished": "That side is already finished",
 	"build-occupied": "Something is in the way",
 	"build-cant-afford": "Not enough material"

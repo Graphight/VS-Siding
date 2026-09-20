@@ -8,7 +8,7 @@
 ## Summary
 Glass becomes an infill material, so a siding wall can be glazed.
 Glazing seals the room like any filled wall but still lets light through, which needs the "sealed means opaque" rule from decision 0015 split in two.
-A framed opening — a `window` layout — is a second, separable step, and adjacent windows merge into one opening in both directions, so a wall of glass has no members inside it.
+Adjacent glazed cells merge in both directions, dropping every member between them, so a wall of glass has no posts or rails inside it.
 Doors need no frame at all: vanilla already does the job.
 
 ## Context
@@ -93,68 +93,33 @@ If the pass can't be mixed in one mesh, the fallback is two `mesher.AddMeshData`
 
 **Glass in a `cornerout` costs nothing extra** and is left allowed; it's a corner window.
 
-### Part 2 — the `window` layout, and merging
+### Part 2 — merging, and no `window` layout
 
-Part 1 gives glass that fills the whole cavity between posts.
-A sill and a head rail — a hole in a wall, not a wall made of glass — is a separate step, and worth treating as separable: if Part 1 looks good in play, Part 2 might not be wanted at all.
+The first draft of this proposal added a `window` layout: four more block variants, a shape file with a sill and a head rail, and a third tool mode.
+Playtesting killed it.
 
-**`layout` gains `window`**, so four more block variants, which means:
-- `collisionSelectionBoxesbytype` gains `*-window-*` (the same 0.25-deep slab as `*-wall-*`).
-- `SidingWallEntity.OnTesselation`'s `layout != "wall" && layout != "cornerout"` guard admits `window`.
-- `ResolveLayout` maps tool mode 2 to it; `PlaceWallFrame` adds a third `SkillItem` and `vssiding:toolmode-window`.
-- `FinishElementGroupsTests`'s `groupsByShape` covers the new shape.
+**The player reached for glass as an infill and got a window.**
+They never noticed the dedicated tool mode existed, because they didn't need it: a wall's own posts and plates already frame each pane, so glazed wall cells read as mullioned glazing straight away.
+A mode you have to discover in order to get what you already have is pure tax.
 
-Layout is already a variant axis for geometry (decision 0002), and a window's geometry differs, so this stays consistent with decision 0001.
+**And the behaviours weren't the layout's to begin with.**
+Merging and refusing finishes are properties of *glass*, not of a shape.
+A glazed wall should merge with the glazed wall beside it and should not take a plank slab over it, whichever layout it sits in.
+Attaching them to `layout == "window"` was a mis-assignment; they belong on `SidingWallBlock.IsTransparent`.
 
-**Merging is four independent neighbour checks, and nothing more.**
-`ContinuesFrame` already answers "is the neighbour the same layout, same side, and on the same side of the filled/empty line" — that is the merge test, unchanged.
-For a window, each of the four directions is just that test; 0008's `JoinsAbove` modulo is skipped, so a window doesn't count the cells below it and doesn't cascade.
+So there is no `window` layout. Glazing carries the behaviour:
 
-The two horizontal directions are the ones perpendicular to `side`, and the codebase already names one of them: `CorneroutSecondFace[side]` is the face counter-clockwise from `side`, which is the `z = 0` end of the unrotated shape (that's where `cornerout`'s second leg sits, `x 0.25..1, z 0..0.25`).
-So "left" is `CorneroutSecondFace[side]` and "right" is its opposite, no new table.
-A test should pin that against the rotation rather than leaving it to a comment.
+- **`NeighbourJoins` merges in all four directions when the infill is transparent**, dropping every member between one glazed cell and the next, with no alternating cross-beam. Opaque fill keeps decision 0008 exactly. `ContinuesGlazing` requires the neighbour to be glazed too, so a pane against a wattle-filled cell keeps its post — that is a join between two walls, not one sheet.
+- **A wall's two posts become `framing-left`/`framing-right`** so they can drop individually. "Left" is the `z = 0` end of the unrotated shape, which is `CorneroutSecondFace[side]` — the face counter-clockwise from `side`, where `cornerout`'s second leg sits. A test pins that against the rotation rather than leaving it to a comment.
+- **A `cornerout` keeps its three posts** and merges only up and down. Corners are structural, and a corner has nothing to merge along.
+- **Glazing takes no finish**, refused in `OnBlockInteractStart` rather than in `ResolveFinishFace`, so breaking is unchanged: `PeelLayer` still finds no finish on a glazed cell and peels the glass out (decision 0013).
+- **Collision needs nothing.** Merging requires transparent infill, and any infill already switches collision to the full slab, so the merge flags can never reach `FramingBoxes`. The horizontal collision work that the staged plan called for turned out to be unreachable and was deleted.
 
-**The shape: five elements, and members that overlap instead of mitring.**
-`shapes/block/wall/window.json`:
-- `framing-left`, `framing-right` — the full-height posts, at the frame's full depth. Drawn when that side doesn't merge.
-- `framing-top` — top plate plus head rail, spanning the full cell width, set back in `x` by a hair. Drawn when the cell above doesn't merge.
-- `framing-bottom` — bottom plate plus sill, same treatment.
-- `infill` — a flat, full-cell pane, set back behind the frame. Always drawn when there's an infill.
-
-The overlap is deliberate and is what keeps this to five elements.
-Posts run the full height and rails run the full width, so they intersect at the corners; being opaque wood at slightly different depths, the intersection is invisible and there are no coplanar faces to z-fight.
-Drop a post and the rails are already continuous into the neighbour's rails; drop a rail and the posts already are.
-No corner pieces, no nine-patch.
-
-The pane is full-cell for the same reason: where a member is dropped, the glass is simply already there, so no filler elements are needed at all — which is why `infill-top`/`infill-bottom` (decision 0008's fillers for the plain wall) have no counterpart here.
-It is flat rather than a thin slab so that two adjacent panes share an edge and not a pair of coincident transparent faces, which would z-fight.
-Zero-thickness elements are ordinary in vanilla block shapes (about 11,700 of them), so this is a normal thing to author.
-A pane that runs on behind its own frame is what real glazing does anyway.
-
-**`SelectiveElements` takes the layout.**
-It currently emits `framing` (which holds the posts for `wall`/`cornerout`) unconditionally, and a window has no unconditional framing at all.
-Rather than rely on "a name that isn't in the shape is harmlessly ignored" — true of nothing the code does today — it branches once on layout: windows emit the four conditional `framing-*` names and a bare `infill`, walls keep exactly today's list.
-
-**Collision.**
-`UnrotatedFramingBoxes` gains a `"window"` entry, and `FramingBoxes`'s key gains the two horizontal merge flags.
-This is not optional: `ComputeCollisionBoxes` indexes that dictionary and would throw on a framed-but-unglazed window without it.
-Two layouts × four sides × three flags is 64 precomputed entries, still trivial.
-The sill and head rail *do* collide, unlike 0008's bottom plates — 0008 excluded those so a player couldn't stand on one and be lifted into a doorway's top plate, which a mid-height sill can't do.
-
-**Invalidation is local, which is the nice part.**
-With no alternation, a window's mesh depends only on its four immediate neighbours.
-`OnNeighbourBlockChange` currently returns early for anything not in the same column; it must also mark the cell dirty when a run-axis neighbour changes.
-`MarkVerticalNeighboursDirty` gains the two run-axis neighbours — a plain `MarkDirty` each, no walk.
-`MarkStackDirtyFrom`'s whole-stack walk exists only to serve 0008's alternation, so it stays for walls and windows never need it.
-
-**Finishes on a window are refused** with the existing wrong-face error: `ResolveFinishFace` returns null for `layout == "window"`.
-A slab finish would cover the glass.
-That one line also does the right thing for breaking: `PeelLayer` sees a null face, finds no finishes, and peels the infill — so breaking a glazed window drops the glass and leaves the frame, decision 0013 unchanged.
-Trim around the opening is a nice later idea, not this session.
-
-**No restriction on which infill goes in which layout.**
-Wattle in a window frame is a shuttered opening; glass in a plain wall is Part 1's picture window and the point of shipping Part 1 alone.
-Two adjacent windows merge whenever `ContinuesFrame` says so, so a glazed one merges with a wattle-filled one; that's harmless, and a rule against it would be code nobody asked for.
+**Walls are not watertight by default, and never were.**
+Vanilla derives `GetLiquidBarrierHeightOnSide` from `SideSolid`, which decision 0002 turned off on every face so a thin wall doesn't cull its neighbours.
+Every siding wall has therefore reported a barrier of 0 since the first release — wattle and stone as much as glass.
+`SidingWallBlock` now overrides it and asks exactly what `GetRetention` asks: a wall that seals air seals water, glazing included.
+Changing infill is block-entity state rather than a block change, so it also has to call `TriggerNeighbourBlockUpdate`, or the water beside it never re-evaluates and the wall only starts damming when something unrelated happens nearby.
 
 ## Alternatives considered
 - **Door frame tool mode.** Vanilla doors already seal and already align (above); a frame would be decoration duplicating the posts either side.

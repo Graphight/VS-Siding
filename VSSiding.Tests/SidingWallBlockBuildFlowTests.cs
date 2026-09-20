@@ -60,8 +60,8 @@ public class SidingWallBlockBuildFlowTests
     public void ToolModesResolveToLayoutsAndAnythingElseToWall()
     {
         Assert.Equal(
-            new Dictionary<int, string> { [0] = "wall", [1] = "cornerout", [2] = "window", [3] = "wall", [-1] = "wall" },
-            new[] { 0, 1, 2, 3, -1 }.ToDictionary(mode => mode, SidingWallBlock.ResolveLayout));
+            new Dictionary<int, string> { [0] = "wall", [1] = "cornerout", [2] = "wall", [-1] = "wall" },
+            new[] { 0, 1, 2, -1 }.ToDictionary(mode => mode, SidingWallBlock.ResolveLayout));
     }
 
     private static readonly JsonObject Infills = Dict("""

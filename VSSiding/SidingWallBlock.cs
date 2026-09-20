@@ -40,13 +40,6 @@ public class SidingWallBlock : Block
                 new Cuboidf(1f / 16, 0, 15f / 16, 3f / 16, 1, 1),
             },
             new[] { new Cuboidf(1f / 16, 15f / 16, 1f / 16, 3f / 16, 1, 15f / 16) }),
-        ["window"] = (
-            new[]
-            {
-                new Cuboidf(1f / 16, 0, 0, 3f / 16, 1, 1f / 16),
-                new Cuboidf(1f / 16, 0, 15f / 16, 3f / 16, 1, 1),
-            },
-            new[] { new Cuboidf(1.25f / 16, 12f / 16, 0, 2.75f / 16, 1, 1) }),
         ["cornerout"] = (
             new[]
             {
@@ -62,31 +55,22 @@ public class SidingWallBlock : Block
     };
 
     // Built once up front so collision calls from client and server threads only ever read it.
-    private static readonly Dictionary<(string layout, string side, bool joinsAbove, bool joinsLeft, bool joinsRight), Cuboidf[]> FramingBoxes = BuildFramingBoxes();
+    private static readonly Dictionary<(string layout, string side, bool joinsAbove), Cuboidf[]> FramingBoxes = BuildFramingBoxes();
 
-    private static Dictionary<(string layout, string side, bool joinsAbove, bool joinsLeft, bool joinsRight), Cuboidf[]> BuildFramingBoxes()
+    private static Dictionary<(string layout, string side, bool joinsAbove), Cuboidf[]> BuildFramingBoxes()
     {
         var origin = new Vec3d(0.5, 0.5, 0.5);
-        var boxes = new Dictionary<(string layout, string side, bool joinsAbove, bool joinsLeft, bool joinsRight), Cuboidf[]>();
+        var boxes = new Dictionary<(string layout, string side, bool joinsAbove), Cuboidf[]>();
         foreach (var (layout, (posts, top)) in UnrotatedFramingBoxes)
         {
             foreach (string side in CorneroutSecondFace.Keys)
             {
                 float rotationYDeg = SidingWallEntity.RotationYDeg(side);
                 foreach (bool joinsAbove in new[] { false, true })
-                foreach (bool joinsLeft in new[] { false, true })
-                foreach (bool joinsRight in new[] { false, true })
                 {
-                    var unrotated = new List<Cuboidf>();
-                    for (int i = 0; i < posts.Length; i++)
-                    {
-                        // Only a window drops a post, and only the one on the side that merged.
-                        // Its two posts are listed z = 0 end first, matching RunNeighbours' left.
-                        if (layout == "window" && (i == 0 ? joinsLeft : joinsRight)) continue;
-                        unrotated.Add(posts[i]);
-                    }
+                    var unrotated = new List<Cuboidf>(posts);
                     if (!joinsAbove) unrotated.AddRange(top);
-                    boxes[(layout, side, joinsAbove, joinsLeft, joinsRight)] =
+                    boxes[(layout, side, joinsAbove)] =
                         unrotated.ConvertAll(box => box.RotatedCopy(0, rotationYDeg, 0, origin)).ToArray();
                 }
             }
@@ -95,13 +79,10 @@ public class SidingWallBlock : Block
     }
 
     // A frame with framing but no infill collides only on its posts and top plate (decision 0008).
-    // A merged window drops the posts it doesn't draw, so a run of them is walk-through.
+    // Merging never reaches here: it needs transparent infill, and any infill means the full slab.
     internal static Cuboidf[] ComputeCollisionBoxes(
-        string layout, string side, string? framing, string? infill,
-        (bool above, bool below, bool left, bool right) joins, Cuboidf[] fullBoxes)
-        => framing != null && infill == null
-            ? FramingBoxes[(layout, side, joins.above, joins.left, joins.right)]
-            : fullBoxes;
+        string layout, string side, string? framing, string? infill, bool joinsAbove, Cuboidf[] fullBoxes)
+        => framing != null && infill == null ? FramingBoxes[(layout, side, joinsAbove)] : fullBoxes;
 
     public override Cuboidf[] GetCollisionBoxes(IBlockAccessor blockAccessor, BlockPos pos)
         => FramedCollisionBoxes(blockAccessor, pos, base.GetCollisionBoxes(blockAccessor, pos));
@@ -115,30 +96,39 @@ public class SidingWallBlock : Block
         if (entity?.Framing == null || entity.Infill != null) return fullBoxes;
 
         var joins = NeighbourJoins(blockAccessor, pos, entity.Infill);
-        return ComputeCollisionBoxes(Variant["layout"], Variant["side"], entity.Framing, entity.Infill, joins, fullBoxes);
+        return ComputeCollisionBoxes(Variant["layout"], Variant["side"], entity.Framing, entity.Infill, joins.above, fullBoxes);
     }
 
     // Which neighbours this cell shares a member with, i.e. draws no plate or post against.
-    // A wall joins only up and down, and keeps a top plate every second cell as a cross-beam
-    // (decision 0008). A window drops every member between it and a matching neighbour, in all
-    // four directions, so a run of them reads as one opening however big it gets - no
-    // alternation, and nothing to count, which is why a window never cascades.
     internal (bool above, bool below, bool left, bool right) NeighbourJoins(
         IBlockAccessor blockAccessor, BlockPos pos, string? infill)
     {
-        bool continuesAbove = ContinuesFrame(blockAccessor, pos.UpCopy(), infill);
-        if (Variant["layout"] == "window")
+        // Glazing merges with the glazing around it in every direction, with no member between,
+        // so a run of it reads as one sheet however large. Opaque fill keeps decision 0008's
+        // alternating cross-beam. That is why this asks the infill and not the layout: merging
+        // belongs to glass, not to a shape. A cornerout's three posts stay put either way -
+        // corners are structural and a corner has nothing to merge along.
+        if (IsTransparent(infill, Attributes["Infills"]))
         {
+            bool above = ContinuesGlazing(blockAccessor, pos.UpCopy(), infill);
+            bool below = ContinuesGlazing(blockAccessor, pos.DownCopy(), infill);
+            if (Variant["layout"] == "cornerout") return (above, below, false, false);
             var (left, right) = RunNeighbours(Variant["side"]);
-            return (continuesAbove, ContinuesFrame(blockAccessor, pos.DownCopy(), infill),
-                ContinuesFrame(blockAccessor, pos.AddCopy(left), infill),
-                ContinuesFrame(blockAccessor, pos.AddCopy(right), infill));
+            return (above, below,
+                ContinuesGlazing(blockAccessor, pos.AddCopy(left), infill),
+                ContinuesGlazing(blockAccessor, pos.AddCopy(right), infill));
         }
 
         int cellsBelow = 0;
         for (BlockPos p = pos.DownCopy(); ContinuesFrame(blockAccessor, p, infill); p.Down()) cellsBelow++;
-        return (JoinsAbove(continuesAbove, cellsBelow), cellsBelow > 0, false, false);
+        return (JoinsAbove(ContinuesFrame(blockAccessor, pos.UpCopy(), infill), cellsBelow), cellsBelow > 0, false, false);
     }
+
+    // Glazing only merges into more glazing: against a wattle-filled neighbour the post stays,
+    // because that is a join between two different walls, not one continuous sheet.
+    private bool ContinuesGlazing(IBlockAccessor blockAccessor, BlockPos neighbourPos, string? infill)
+        => ContinuesFrame(blockAccessor, neighbourPos, infill)
+            && IsTransparent(blockAccessor.GetBlockEntity<SidingWallEntity>(neighbourPos)?.Infill, Attributes["Infills"]);
 
     internal static bool JoinsAbove(bool continuesAbove, int cellsBelow) => continuesAbove && cellsBelow % 2 == 0;
 
@@ -213,6 +203,17 @@ public class SidingWallBlock : Block
 
         string? finishKey = MatchConsumes(heldCode, Attributes["Finishes"]);
         if (finishKey == null) return base.OnBlockInteractStart(world, byPlayer, blockSel);
+
+        // Glazing takes no finish: a slab over it would just hide the glass. Refusing here rather
+        // than in ResolveFinishFace keeps breaking unchanged - PeelLayer still finds no finish on
+        // a glazed cell and peels the glass out (decision 0013).
+        if (IsTransparent(entity.Infill, Attributes["Infills"]))
+        {
+            if (slot.Itemstack!.Class == EnumItemClass.Block || MatchConsumes(heldCode, Attributes["Framings"]) != null)
+                return base.OnBlockInteractStart(world, byPlayer, blockSel);
+            (byPlayer as IServerPlayer)?.SendIngameError("vssiding:wrongface", Lang.Get("vssiding:build-glazed"));
+            return true;
+        }
 
         string side = Variant["side"];
         string? face = ResolveFinishFace(Variant["layout"], side, blockSel.Face);
@@ -293,9 +294,9 @@ public class SidingWallBlock : Block
         base.OnNeighbourBlockChange(world, pos, neibpos);
         if (neibpos.X != pos.X || neibpos.Z != pos.Z)
         {
-            // A window merges with the cells either side of it, so a change along its run redraws
-            // it. Just this cell: merging is local, so nothing propagates past the neighbour.
-            if (neibpos.Y == pos.Y && Variant["layout"] == "window")
+            // Glazing merges with the cells either side of it, so a change along the run redraws
+            // this one. Just this cell: merging is local, so nothing propagates past the neighbour.
+            if (neibpos.Y == pos.Y)
                 world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos)?.MarkDirty(true);
             return;
         }
@@ -309,8 +310,8 @@ public class SidingWallBlock : Block
         world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos.DownCopy())?.MarkDirty(true);
         MarkStackDirtyFrom(world, pos.UpCopy());
 
-        // A window also merges sideways, and only with the cell it touches - no walk needed.
-        if (world.BlockAccessor.GetBlock(pos) is not SidingWallBlock block || block.Variant["layout"] != "window") return;
+        // Glazing also merges sideways, and only with the cell it touches - no walk needed.
+        if (world.BlockAccessor.GetBlock(pos) is not SidingWallBlock block || block.Variant["layout"] == "cornerout") return;
         var (left, right) = RunNeighbours(block.Variant["side"]);
         world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos.AddCopy(left))?.MarkDirty(true);
         world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos.AddCopy(right))?.MarkDirty(true);
@@ -553,14 +554,9 @@ public class SidingWallBlock : Block
 
     internal static int ConsumeQuantity(JsonObject consumes) => consumes["quantity"].AsInt(1);
 
-    // Tool mode 0 is "wall", 1 is "corner", 2 is "window" - see decision 0005. Anything else
-    // falls back to "wall" rather than throwing on a stale/out-of-range stored mode.
-    internal static string ResolveLayout(int toolMode) => toolMode switch
-    {
-        1 => "cornerout",
-        2 => "window",
-        _ => "wall",
-    };
+    // Tool mode 0 is "wall", 1 is "corner" - see decision 0005. Anything else falls back to
+    // "wall" rather than throwing on a stale/out-of-range stored mode.
+    internal static string ResolveLayout(int toolMode) => toolMode == 1 ? "cornerout" : "wall";
 
     // Which finish layer a build-flow click's clicked face targets - the hugged side is
     // "front", the opposite side is "back", an end/top/bottom face is neither. A cornerout's
@@ -568,10 +564,6 @@ public class SidingWallBlock : Block
     // the first leg.
     internal static string? ResolveFinishFace(string layout, string side, BlockFacing clickedFace)
     {
-        // A window has no face to finish - a slab over the opening would just hide the glazing.
-        // Breaking gets the right answer from the same null: PeelLayer finds no finish and takes
-        // the infill, so a hit anywhere on a glazed window pulls the glass out (decision 0013).
-        if (layout == "window") return null;
         if (FinishFaceFor(side, clickedFace, "front") is string face) return face;
         return layout == "cornerout" ? FinishFaceFor(CorneroutSecondFace[side], clickedFace, "secondfront") : null;
     }

@@ -29,7 +29,6 @@ public class PlaceWallFrame : CollectibleBehavior
         {
             new SkillItem { Code = new AssetLocation("wall"), Name = Lang.Get("vssiding:toolmode-wall") },
             new SkillItem { Code = new AssetLocation("corner"), Name = Lang.Get("vssiding:toolmode-corner") },
-            new SkillItem { Code = new AssetLocation("window"), Name = Lang.Get("vssiding:toolmode-window") },
         });
     }
 
