@@ -46,3 +46,36 @@ Anything conditional needs either a per-combination mesh (which the cache alread
 - This is a performance proposal with no measurement behind it yet. It may well close as "measured, not worth it", and it should be allowed to.
 - The saving scales with how much siding is on screen, so the honest benchmark is a large build, not one wall.
 - A per-combination prune multiplies the mesh cache's distinct entries; the cache is keyed on materials and joins already, so check the entry count does not blow up.
+
+## Measured
+
+Quads declared per built cell, counted before any pruning.
+The count is `SelectiveElements` (`VSSiding/SidingWallEntity.cs`) run over each build combination, summing the `faces` entries of the elements it names in the committed shape JSON.
+That is the number of quads the tesselator writes into the chunk mesh for one cell, so it is what scales with how much siding is on screen.
+
+| Build state | `wall` | `cornerout` |
+| --- | --- | --- |
+| bare frame | 24 | 42 |
+| frame + wattle | 30 | 54 |
+| frame + wattle, mid-stack | 30 | 54 |
+| + plain slab finish, both faces | 42 | 78 |
+| + weatherboard, both faces | 132 | 258 |
+| + shakes, both faces | 252 | 498 |
+| glazed, unmerged | 26 | 46 |
+| glazed, merged all round | 2 | 22 |
+
+Whole files: `wall.json` declares 404 quads across its 36 elements, `cornerout.json` 754.
+No cell draws all of them — the biggest single combination is a shakes-clad `cornerout` at 498.
+
+**The cladding profiles are the whole cost.** A finished wall is 132 or 252 quads against a bare frame's 24, and `front-shakes` alone is 192 of them.
+Anything that does not touch the profiles is rounding error.
+
+**And the profiles bury their own faces.** A containment pass over the committed shapes says 62 of `wall.json`'s 404 quads and 130 of `cornerout.json`'s 754 sit flat against a box *of the same element name*: `front-shakes` 192 → 149, `front-weatherboard` 96 → 81, `back-logs` 30 → 26 (60 → 48 on `cornerout`).
+Same name means same `selectiveElements` group, so those boxes are always drawn together — no per-combination reasoning is needed for any of it.
+A shakes-clad wall goes 252 → 205, a weatherboarded one 132 → 117.
+
+**The burials this proposal named first are the small ones.** `infill` against the posts, `framing-top`/`framing-bottom` against them, the finish slab against the framing — together about 8 quads on a bare wall and 0 on a clad one, and each needs to know whether the burying element is drawn.
+So the ordering in the Design section above is backwards: the unconditional same-name rule is where the saving is, and the per-combination reasoning buys almost nothing.
+
+**No frame-time reading was taken.** That needs the game running and a built scene, and the quad counts alone were decisive enough to act on.
+It stays the honest end-to-end check if the saving ever needs defending in real frames rather than in quads.
