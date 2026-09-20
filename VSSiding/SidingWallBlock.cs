@@ -79,6 +79,7 @@ public class SidingWallBlock : Block
     }
 
     // A frame with framing but no infill collides only on its posts and top plate (decision 0008).
+    // Merging never reaches here: it needs transparent infill, and any infill means the full slab.
     internal static Cuboidf[] ComputeCollisionBoxes(
         string layout, string side, string? framing, string? infill, bool joinsAbove, Cuboidf[] fullBoxes)
         => framing != null && infill == null ? FramingBoxes[(layout, side, joinsAbove)] : fullBoxes;
@@ -94,28 +95,64 @@ public class SidingWallBlock : Block
         var entity = blockAccessor.GetBlockEntity<SidingWallEntity>(pos);
         if (entity?.Framing == null || entity.Infill != null) return fullBoxes;
 
-        var (joinsAbove, _) = StackJoins(blockAccessor, pos, entity.Infill);
-        return ComputeCollisionBoxes(Variant["layout"], Variant["side"], entity.Framing, entity.Infill, joinsAbove, fullBoxes);
+        var joins = NeighbourJoins(blockAccessor, pos, entity.Infill);
+        return ComputeCollisionBoxes(Variant["layout"], Variant["side"], entity.Framing, entity.Infill, joins.above, fullBoxes);
     }
 
-    // Whether the cell at pos shares its top/bottom with the frame above/below, i.e. draws no
-    // plate there. Every second cell up a stack keeps its top plate as a cross-beam.
-    internal (bool joinsAbove, bool joinsBelow) StackJoins(IBlockAccessor blockAccessor, BlockPos pos, string? infill)
+    // Which neighbours this cell shares a member with, i.e. draws no plate or post against.
+    internal (bool above, bool below, bool left, bool right) NeighbourJoins(
+        IBlockAccessor blockAccessor, BlockPos pos, string? infill)
     {
+        // Glazing merges with the glazing around it in every direction, with no member between,
+        // so a run of it reads as one sheet however large. Opaque fill keeps decision 0008's
+        // alternating cross-beam. That is why this asks the infill and not the layout: merging
+        // belongs to glass, not to a shape. A cornerout's three posts stay put either way -
+        // corners are structural and a corner has nothing to merge along.
+        if (IsTransparent(infill, Attributes["Infills"]))
+        {
+            bool above = ContinuesGlazing(blockAccessor, pos.UpCopy(), infill);
+            bool below = ContinuesGlazing(blockAccessor, pos.DownCopy(), infill);
+            if (Variant["layout"] == "cornerout") return (above, below, false, false);
+            var (left, right) = RunNeighbours(Variant["side"]);
+            return (above, below,
+                ContinuesGlazing(blockAccessor, pos.AddCopy(left), infill),
+                ContinuesGlazing(blockAccessor, pos.AddCopy(right), infill));
+        }
+
         int cellsBelow = 0;
         for (BlockPos p = pos.DownCopy(); ContinuesFrame(blockAccessor, p, infill); p.Down()) cellsBelow++;
-        return (JoinsAbove(ContinuesFrame(blockAccessor, pos.UpCopy(), infill), cellsBelow), cellsBelow > 0);
+        return (JoinsAbove(ContinuesFrame(blockAccessor, pos.UpCopy(), infill), cellsBelow), cellsBelow > 0, false, false);
     }
+
+    private bool ContinuesGlazing(IBlockAccessor blockAccessor, BlockPos neighbourPos, string? infill)
+        => SameRun(blockAccessor, neighbourPos)
+            && ContinuesGlazing(infill, blockAccessor.GetBlockEntity<SidingWallEntity>(neighbourPos), Attributes["Infills"]);
+
+    // Glazing only merges into more glazing: against a wattle-filled neighbour, or a bare frame,
+    // the post stays - that is a join between two different walls, not one continuous sheet.
+    internal static bool ContinuesGlazing(string? infill, SidingWallEntity? neighbour, JsonObject infills)
+        => SharesStack(infill, neighbour) && IsTransparent(neighbour?.Infill, infills);
 
     internal static bool JoinsAbove(bool continuesAbove, int cellsBelow) => continuesAbove && cellsBelow % 2 == 0;
 
-    private bool ContinuesFrame(IBlockAccessor blockAccessor, BlockPos neighbourPos, string? infill)
+    // The two horizontal directions a run extends along - the ones in the wall's own plane.
+    // "Left" is the z = 0 end of the unrotated shape, which is the face counter-clockwise from
+    // `side`: exactly where cornerout's second leg sits, so that table already names it.
+    internal static (BlockFacing left, BlockFacing right) RunNeighbours(string side)
     {
-        if (blockAccessor.GetBlock(neighbourPos) is not SidingWallBlock neighbourBlock) return false;
-        if (neighbourBlock.Variant["layout"] != Variant["layout"]) return false;
-        if (neighbourBlock.Variant["side"] != Variant["side"]) return false;
-        return SharesStack(infill, blockAccessor.GetBlockEntity<SidingWallEntity>(neighbourPos));
+        BlockFacing left = BlockFacing.FromCode(CorneroutSecondFace[side]);
+        return (left, left.Opposite);
     }
+
+    // Same shape, same face: a wall only ever joins another leg of the same run.
+    private bool SameRun(IBlockAccessor blockAccessor, BlockPos neighbourPos)
+        => blockAccessor.GetBlock(neighbourPos) is SidingWallBlock neighbour
+            && neighbour.Variant["layout"] == Variant["layout"]
+            && neighbour.Variant["side"] == Variant["side"];
+
+    private bool ContinuesFrame(IBlockAccessor blockAccessor, BlockPos neighbourPos, string? infill)
+        => SameRun(blockAccessor, neighbourPos)
+            && SharesStack(infill, blockAccessor.GetBlockEntity<SidingWallEntity>(neighbourPos));
 
     // Any framing counts, so mixed woods are one stack, but open and filled cells aren't:
     // a plate marks where a doorway frame meets filled wall (decision 0008).
@@ -172,10 +209,21 @@ public class SidingWallBlock : Block
         string? finishKey = MatchConsumes(heldCode, Attributes["Finishes"]);
         if (finishKey == null) return base.OnBlockInteractStart(world, byPlayer, blockSel);
 
-        string side = Variant["side"];
-        string? face = ResolveFinishFace(Variant["layout"], side, blockSel.Face);
         // Planks that can't finish this face still extend the wall via PlaceWallFrame, and held blocks still place.
         bool heldPlaces = slot.Itemstack!.Class == EnumItemClass.Block || MatchConsumes(heldCode, Attributes["Framings"]) != null;
+
+        // Glazing takes no finish: a slab over it would just hide the glass. Refusing here rather
+        // than in ResolveFinishFace keeps breaking unchanged - PeelLayer still finds no finish on
+        // a glazed cell and peels the glass out (decision 0013).
+        if (IsTransparent(entity.Infill, Attributes["Infills"]))
+        {
+            if (heldPlaces) return base.OnBlockInteractStart(world, byPlayer, blockSel);
+            (byPlayer as IServerPlayer)?.SendIngameError("vssiding:glazed", Lang.Get("vssiding:build-glazed"));
+            return true;
+        }
+
+        string side = Variant["side"];
+        string? face = ResolveFinishFace(Variant["layout"], side, blockSel.Face);
         if (face == null)
         {
             if (heldPlaces) return base.OnBlockInteractStart(world, byPlayer, blockSel);
@@ -216,7 +264,11 @@ public class SidingWallBlock : Block
         world.BlockAccessor.MarkAbsorptionChanged(0, GetLightAbsorption(world.BlockAccessor, pos), pos);
         // Infill changes retention, but rooms only recompute on a chunk-dirty event; exchanging the block for itself fires one.
         world.BlockAccessor.ExchangeBlock(Id, pos);
-        MarkVerticalNeighboursDirty(world, pos);
+        // It changes the liquid barrier too, and the block itself never changed, so the water
+        // beside it has no idea. Without this a wall only starts damming once something else
+        // nearby happens to make the neighbours recalculate - and only stops damming then too.
+        world.BlockAccessor.TriggerNeighbourBlockUpdate(pos);
+        MarkNeighboursDirty(world, pos);
     }
 
     // Shared by both build-flow steps (this class's layering, and PlaceWallFrame's framing)
@@ -245,16 +297,35 @@ public class SidingWallBlock : Block
     public override void OnNeighbourBlockChange(IWorldAccessor world, BlockPos pos, BlockPos neibpos)
     {
         base.OnNeighbourBlockChange(world, pos, neibpos);
-        if (neibpos.X != pos.X || neibpos.Z != pos.Z) return;
+        if (neibpos.X != pos.X || neibpos.Z != pos.Z)
+        {
+            // Only glazing merges sideways, and only along its own run, so those are the only
+            // horizontal neighbours that can change what this cell draws - an opaque wall never
+            // joins one. Just this cell: merging is local, nothing propagates past the neighbour.
+            if (neibpos.Y != pos.Y || Variant["layout"] == "cornerout") return;
+            var entity = world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos);
+            if (entity == null || !IsTransparent(entity.Infill, Attributes["Infills"])) return;
+            var (left, right) = RunNeighbours(Variant["side"]);
+            if (neibpos.Equals(pos.AddCopy(left)) || neibpos.Equals(pos.AddCopy(right))) entity.MarkDirty(true);
+            return;
+        }
         if (neibpos.Y == pos.Y + 1) world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos)?.MarkDirty(true);
         if (neibpos.Y == pos.Y - 1) MarkStackDirtyFrom(world, pos);
     }
 
-    // Setting Framing or Infill isn't a block change, so the stack around it has to be told.
-    internal static void MarkVerticalNeighboursDirty(IWorldAccessor world, BlockPos pos)
+    // Setting Framing or Infill isn't a block change, so the neighbours around it have to be told.
+    internal static void MarkNeighboursDirty(IWorldAccessor world, BlockPos pos)
     {
         world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos.DownCopy())?.MarkDirty(true);
         MarkStackDirtyFrom(world, pos.UpCopy());
+
+        // Unconditional, unlike OnNeighbourBlockChange's check on this cell's own glazing: this
+        // fires when infill changes, and peeling glass out has to redraw the neighbours that were
+        // merged with it - by which point this cell is no longer glazed. No walk either way.
+        if (world.BlockAccessor.GetBlock(pos) is not SidingWallBlock block || block.Variant["layout"] == "cornerout") return;
+        var (left, right) = RunNeighbours(block.Variant["side"]);
+        world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos.AddCopy(left))?.MarkDirty(true);
+        world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos.AddCopy(right))?.MarkDirty(true);
     }
 
     // Cross-beams alternate up a stack, so a change low down shifts every cell above it.
@@ -266,20 +337,34 @@ public class SidingWallBlock : Block
         }
     }
 
-    public override int GetRetention(BlockPos pos, BlockFacing facing, EnumRetentionType type)
+    // The faces this block's panels actually cover: the hugged side, plus a cornerout's second leg.
+    internal bool ClaimsFace(BlockFacing facing)
     {
         string side = Variant["side"];
-        string layout = Variant["layout"];
-
-        bool claimed = facing.Code == side;
-        if (!claimed && layout == "cornerout")
-        {
-            claimed = facing.Code == CorneroutSecondFace[side];
-        }
-
-        var entity = api.World.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos);
-        return ComputeRetention(claimed, entity?.Framing, entity?.Infill, Attributes["Framings"], Attributes["Infills"]);
+        if (facing.Code == side) return true;
+        return Variant["layout"] == "cornerout" && facing.Code == CorneroutSecondFace[side];
     }
+
+    public override int GetRetention(BlockPos pos, BlockFacing facing, EnumRetentionType type)
+    {
+        var entity = api.World.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos);
+        return ComputeRetention(ClaimsFace(facing), entity?.Framing, entity?.Infill, Attributes["Framings"], Attributes["Infills"]);
+    }
+
+    // Vanilla derives this from SideSolid, which is false on every face (decision 0002) so a thin
+    // wall doesn't cull its neighbours - leaving every siding wall with a barrier of 0 and water
+    // pouring through the fluid layer. A wall that seals air seals water too, so this asks exactly
+    // what GetRetention asks. Glazing counts: it retains, so it dams, light notwithstanding.
+    public override float GetLiquidBarrierHeightOnSide(BlockFacing face, BlockPos pos)
+    {
+        var entity = api.World.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos);
+        return ComputeLiquidBarrier(ClaimsFace(face), entity?.Framing, entity?.Infill, Attributes["Framings"], Attributes["Infills"]);
+    }
+
+    // Full height or nothing: a wall either dams its face or it doesn't. A cooling infill retains
+    // negatively but still dams, so this asks whether retention is non-zero, not what sign it has.
+    internal static float ComputeLiquidBarrier(bool claimed, string? framingKey, string? infillKey, JsonObject framings, JsonObject infills)
+        => ComputeRetention(claimed, framingKey, infillKey, framings, infills) != 0 ? 1f : 0f;
 
     // sidesolid is false on every face (decision 0002), so base.GetRetention can't be
     // delegated to. A wall seals only once framing and infill are both built and still
@@ -309,8 +394,18 @@ public class SidingWallBlock : Block
         return ComputeLightAbsorption(entity?.Framing, entity?.Infill, Attributes["Framings"], Attributes["Infills"]);
     }
 
+    // Sealing a room and blocking light are separate questions: glazing does the first and must
+    // not do the second. An infill marked Transparent absorbs nothing, which also takes its cell
+    // out of the room skylight patch (decision 0015), side AO (0016) and both 0018 patches, since
+    // all of them ask this.
     internal static int ComputeLightAbsorption(string? framingKey, string? infillKey, JsonObject framings, JsonObject infills)
-        => ComputeRetention(true, framingKey, infillKey, framings, infills) != 0 ? 99 : 0;
+        => ComputeRetention(true, framingKey, infillKey, framings, infills) != 0
+            && !IsTransparent(infillKey, infills) ? 99 : 0;
+
+    // Whether an infill is see-through: it decides both that absorption and which render pass
+    // the infill's mesh goes in (SidingWallEntity.OnTesselation).
+    internal static bool IsTransparent(string? infillKey, JsonObject infills)
+        => infillKey != null && infills[infillKey]["Transparent"].AsBool(false);
 
     // A sealed wall's cell stores outside sunlight (decision 0015); emitting side AO stops smooth lighting averaging it into neighbouring faces' corners.
     public override bool DoEmitSideAo(IGeometryTester caller, BlockFacing facing)
@@ -470,8 +565,8 @@ public class SidingWallBlock : Block
 
     internal static int ConsumeQuantity(JsonObject consumes) => consumes["quantity"].AsInt(1);
 
-    // Tool mode 0 is "wall", 1 is "corner" - see decision 0005. Anything else falls back
-    // to "wall" rather than throwing on a stale/out-of-range stored mode.
+    // Tool mode 0 is "wall", 1 is "corner" - see decision 0005. Anything else falls back to
+    // "wall" rather than throwing on a stale/out-of-range stored mode.
     internal static string ResolveLayout(int toolMode) => toolMode == 1 ? "cornerout" : "wall";
 
     // Which finish layer a build-flow click's clicked face targets - the hugged side is

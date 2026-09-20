@@ -17,7 +17,8 @@ public class SidingWallBlockRetentionTests
     private static readonly JsonObject Infills = Dict("""
     {
         "wattle": { "BlockMaterial": "Wood" },
-        "clay": { "BlockMaterial": "Soil" }
+        "clay": { "BlockMaterial": "Soil" },
+        "glass": { "BlockMaterial": "Glass", "Transparent": true }
     }
     """);
 
@@ -74,20 +75,57 @@ public class SidingWallBlockRetentionTests
                 ("item", new AssetLocation("game:clay-blue"), new Dictionary<string, string> { ["type"] = "blue" }),
                 ("item", new AssetLocation("game:clay-red"), new Dictionary<string, string> { ["type"] = "red" }),
                 ("item", new AssetLocation("game:clay-fire"), new Dictionary<string, string> { ["type"] = "fire" }),
+                ("block", new AssetLocation("game:glass-plain"), new Dictionary<string, string> { ["color"] = "plain" }),
+                ("block", new AssetLocation("game:glass-smoky"), new Dictionary<string, string> { ["color"] = "smoky" }),
             ]);
 
         var actual = infills.Properties().ToDictionary(p => p.Name,
             p => SidingWallBlock.ComputeRetention(true, "oak", p.Name, new JsonObject(attributes["Framings"]), new JsonObject(infills)));
 
-        Assert.Equal(new Dictionary<string, int> { ["wattle"] = 1, ["straw"] = 1, ["clay"] = -1, ["clay-red"] = -1, ["clay-fire"] = -1, ["stone-granite"] = -1 }, actual);
+        Assert.Equal(
+            new Dictionary<string, int>
+            {
+                ["wattle"] = 1, ["straw"] = 1, ["clay"] = -1, ["clay-red"] = -1, ["clay-fire"] = -1,
+                ["stone-granite"] = -1, ["glass-plain"] = 1, ["glass-smoky"] = 1,
+            },
+            actual);
     }
 
     [Fact]
-    public void OnlyASealedWallAbsorbsLight()
+    public void TransparentInfillSealsLikeAnyOther()
     {
-        var actual = new[] { (null, null), ("oak", null), ("oak", "wattle"), ("oak", "clay"), ("oak", "uninstalled") }
+        Assert.Equal(1, SidingWallBlock.ComputeRetention(true, "oak", "glass", Framings, Infills));
+    }
+
+    // Vanilla reads the liquid barrier off SideSolid, which decision 0002 turned off on every
+    // face - so without the override every wall leaked. Anything that seals air seals water,
+    // cooling infill and glazing included; an open frame and an unclaimed face do not.
+    [Fact]
+    public void OnlyASealedClaimedFaceDamsWater()
+    {
+        var cases = new (bool claimed, string? framing, string? infill)[]
+        {
+            (true, null, null),
+            (true, "oak", null),
+            (true, "oak", "wattle"),
+            (true, "oak", "clay"),
+            (true, "oak", "glass"),
+            (true, "oak", "uninstalled"),
+            (false, "oak", "wattle"),
+        };
+
+        Assert.Equal(
+            new[] { 0f, 0f, 1f, 1f, 1f, 0f, 0f },
+            cases.Select(c => SidingWallBlock.ComputeLiquidBarrier(c.claimed, c.framing, c.infill, Framings, Infills)));
+    }
+
+    // Glazing is the case that splits these two apart: sealed, so it retains, but not opaque.
+    [Fact]
+    public void OnlyAnOpaqueSealedWallAbsorbsLight()
+    {
+        var actual = new[] { (null, null), ("oak", null), ("oak", "wattle"), ("oak", "clay"), ("oak", "glass"), ("oak", "uninstalled") }
             .Select(w => SidingWallBlock.ComputeLightAbsorption(w.Item1, w.Item2, Framings, Infills));
 
-        Assert.Equal(new[] { 0, 0, 99, 99, 0 }, actual);
+        Assert.Equal(new[] { 0, 0, 99, 99, 0, 0 }, actual);
     }
 }

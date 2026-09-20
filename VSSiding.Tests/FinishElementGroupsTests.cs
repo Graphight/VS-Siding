@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Newtonsoft.Json.Linq;
+using Vintagestory.API.Datastructures;
 using Xunit;
 
 namespace VSSiding.Tests;
@@ -39,6 +40,56 @@ public class FinishElementGroupsTests
                 var ignored = variant.Value["ignoreElements"]?.Select(t => (string)t!).ToHashSet() ?? [];
                 offenders.AddRange(groups.Where(g => !ignored.Contains(g)).Select(g => $"{variant.Name} doesn't ignore '{g}'"));
             }
+        }
+
+        Assert.Equal([], offenders);
+    }
+
+    // Every element name SelectiveElements can produce has to exist in the shape it draws from,
+    // for every layout and every join state. A name the shape lacks draws nothing and says
+    // nothing - which is how glazing silently kept its seam-prone filler stack.
+    [Theory]
+    [InlineData("wall")]
+    [InlineData("cornerout")]
+    public void EveryElementSelectiveElementsCanAskForExistsInItsShape(string layout)
+    {
+        var repoRoot = MaterialTextureOpacityTests.GetAssemblyMetadata("RepoRoot");
+        var shapeJson = JObject.Parse(File.ReadAllText(
+            Path.Combine(repoRoot, "VSSiding", "assets", "vssiding", "shapes", "block", "wall", layout + ".json")));
+        var names = shapeJson["elements"]!.Select(e => (string)e["name"]!).ToHashSet();
+
+        var asked =
+            from above in new[] { false, true }
+            from below in new[] { false, true }
+            from left in new[] { false, true }
+            from right in new[] { false, true }
+            from transparent in new[] { false, true }
+            from name in SidingWallEntity.SelectiveElements(
+                layout, "oak", "glass", null, null, null, new JsonObject(new JObject()),
+                (above, below, left, right), glazed: transparent)
+            select name;
+
+        Assert.Equal([], asked.Distinct().Where(name => !names.Contains(name)).ToArray());
+    }
+
+    // Glazing's own elements - the pane and its bezel - exist only for a glazed cell, so none of
+    // them may ride along on the block's default JSON shape.
+    [Fact]
+    public void EveryVariantIgnoresTheGlazingOnlyElements()
+    {
+        var repoRoot = MaterialTextureOpacityTests.GetAssemblyMetadata("RepoRoot");
+        var assets = Path.Combine(repoRoot, "VSSiding", "assets", "vssiding");
+        var wallJson = JObject.Parse(File.ReadAllText(Path.Combine(assets, "blocktypes", "wall.json")));
+
+        var offenders = new List<string>();
+        foreach (var variant in ((JObject)wallJson["shapebytype"]!).Properties())
+        {
+            var shapeJson = JObject.Parse(File.ReadAllText(
+                Path.Combine(assets, "shapes", (string)variant.Value["base"]! + ".json")));
+            var glazingOnly = shapeJson["elements"]!.Select(e => (string)e["name"]!)
+                .Where(n => n == "infill-pane" || n.StartsWith("glazing")).Distinct();
+            var ignored = variant.Value["ignoreElements"]?.Select(t => (string)t!).ToHashSet() ?? [];
+            offenders.AddRange(glazingOnly.Where(n => !ignored.Contains(n)).Select(n => $"{variant.Name} draws '{n}'"));
         }
 
         Assert.Equal([], offenders);

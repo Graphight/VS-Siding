@@ -1,5 +1,10 @@
 using System.Collections.Generic;
 using Vintagestory.API.MathTools;
+using System;
+using System.Linq;
+using Vintagestory.API.Common;
+using Newtonsoft.Json.Linq;
+using Vintagestory.API.Datastructures;
 using Xunit;
 
 namespace VSSiding.Tests;
@@ -136,4 +141,48 @@ public class SidingWallBlockCollisionTests
     {
         Assert.Same(FullBoxes, SidingWallBlock.ComputeCollisionBoxes("wall", "west", null, null, false, FullBoxes));
     }
+
+    // RunNeighbours reuses cornerout's table on the claim that the face counter-clockwise from
+    // `side` is where the unrotated shape's z = 0 end lands once rotated. That is the whole basis
+    // for which neighbour glazing merges with, so it gets checked against the rotation itself
+    // rather than left to a comment - get it backwards and a sheet merges with the wrong cell.
+    [Fact]
+    public void GlazingRunLeftIsWhereTheUnrotatedZeroZEndPoints()
+    {
+        var origin = new Vec3d(0.5, 0.5, 0.5);
+        var zeroZEnd = new Cuboidf(0, 0, 0, 1, 1, 1f / 16);
+
+        var rotated = new[] { "west", "south", "east", "north" }.ToDictionary(side => side, side =>
+        {
+            Cuboidf box = zeroZEnd.RotatedCopy(0, SidingWallEntity.RotationYDeg(side), 0, origin);
+            int dx = Math.Sign((box.X1 + box.X2) / 2 - 0.5f), dz = Math.Sign((box.Z1 + box.Z2) / 2 - 0.5f);
+            return BlockFacing.HORIZONTALS.First(f => f.Normali.X == dx && f.Normali.Z == dz).Code;
+        });
+
+        Assert.Equal(
+            rotated,
+            new[] { "west", "south", "east", "north" }.ToDictionary(side => side, side => SidingWallBlock.RunNeighbours(side).left.Code));
+    }
+    // The rule that stops a glass sheet swallowing the post where it meets a solid wall. Only the
+    // block-level half of ContinuesGlazing (same layout, same side) needs a world; this is the
+    // half that decides, given two cells that are already on the same run.
+    [Theory]
+    [InlineData("glass", "oak", "glass", true)]      // glazing into glazing: the post goes
+    [InlineData("glass", "oak", "wattle", false)]    // glazing into opaque fill: the post stays
+    [InlineData("glass", "oak", null, false)]        // glazing into a bare frame: not the same wall
+    [InlineData("glass", null, "glass", false)]      // no framing next door at all
+    [InlineData("glass", "oak", "uninstalled", false)] // a key no longer in the dictionary
+    public void GlazingMergesOnlyIntoGlazing(string? infill, string? neighbourFraming, string? neighbourInfill, bool expected)
+    {
+        var infills = new JsonObject(JToken.Parse("""
+        {
+            "wattle": { "BlockMaterial": "Wood" },
+            "glass": { "BlockMaterial": "Glass", "Transparent": true }
+        }
+        """));
+        var neighbour = new SidingWallEntity { Framing = neighbourFraming, Infill = neighbourInfill };
+
+        Assert.Equal(expected, SidingWallBlock.ContinuesGlazing(infill, neighbour, infills));
+    }
+
 }

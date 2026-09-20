@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using Newtonsoft.Json.Linq;
 using Vintagestory.API.Common;
 using Vintagestory.API.Datastructures;
@@ -52,22 +54,14 @@ public class SidingWallBlockBuildFlowTests
         Assert.Equal(1, quantity);
     }
 
+    // A stale stored mode - a saved stack from a build with fewer tool modes, say - must land on
+    // a layout that exists rather than throwing, so anything unrecognised is a plain wall.
     [Fact]
-    public void ResolveLayoutZeroIsWall()
+    public void ToolModesResolveToLayoutsAndAnythingElseToWall()
     {
-        Assert.Equal("wall", SidingWallBlock.ResolveLayout(0));
-    }
-
-    [Fact]
-    public void ResolveLayoutOneIsCornerout()
-    {
-        Assert.Equal("cornerout", SidingWallBlock.ResolveLayout(1));
-    }
-
-    [Fact]
-    public void ResolveLayoutOutOfRangeFallsBackToWall()
-    {
-        Assert.Equal("wall", SidingWallBlock.ResolveLayout(2));
+        Assert.Equal(
+            new Dictionary<int, string> { [0] = "wall", [1] = "cornerout", [2] = "wall", [-1] = "wall" },
+            new[] { 0, 1, 2, -1 }.ToDictionary(mode => mode, SidingWallBlock.ResolveLayout));
     }
 
     private static readonly JsonObject Infills = Dict("""
