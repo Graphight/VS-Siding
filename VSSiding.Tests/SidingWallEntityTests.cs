@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json.Linq;
 using Vintagestory.API.Datastructures;
@@ -16,6 +17,28 @@ public class SidingWallEntityTests
         "planks": { "Elements": { "front": "front-weatherboard", "back": "back-boards" } }
     }
     """);
+
+    // Glazing splits the mesh in two by this predicate, so a name landing on the wrong side
+    // renders the frame see-through or the glass solid - neither of which throws.
+    [Fact]
+    public void OnlyInfillElementsGoInTheTransparentHalf()
+    {
+        string[] elements = SidingWallEntity.SelectiveElements(
+            "oak", "glass", "planks", "planks", "planks", PlankFinishes, continuesAbove: true, continuesBelow: true);
+
+        Assert.Equal(
+            new Dictionary<string, bool>
+            {
+                ["front-weatherboard"] = false,
+                ["secondfront-weatherboard"] = false,
+                ["framing"] = false,
+                ["infill"] = true,
+                ["infill-top"] = true,
+                ["infill-bottom"] = true,
+                ["back-boards"] = false,
+            },
+            elements.ToDictionary(name => name, SidingWallEntity.IsInfillElement));
+    }
 
     [Fact]
     public void UnsetKeySurvivesByteRoundTripAsNullNotEmptyString()

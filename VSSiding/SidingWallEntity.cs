@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
@@ -72,15 +73,42 @@ public class SidingWallEntity : BlockEntity
             Shape shape = Shape.TryGet(capi, new AssetLocation("vssiding", $"shapes/block/wall/{layout}.json"));
             var texSource = new SidingWallTexSource(
                 capi, this, Block.Attributes["Framings"], Block.Attributes["Infills"], Block.Attributes["Finishes"]);
-            tesselator.TesselateShape(
-                "vssiding-wall", shape, out MeshData modeldata, texSource,
-                new Vec3f(0, RotationYDeg(side), 0), 0, 0, 0, null,
-                selectiveElements);
-            return modeldata;
+            var rotation = new Vec3f(0, RotationYDeg(side), 0);
+
+            if (!SidingWallBlock.IsTransparent(Infill, Block.Attributes["Infills"]))
+                return Tesselate(tesselator, shape, texSource, rotation, selectiveElements);
+
+            // Glazing has to reach the transparent pool while its frame stays opaque, so the two
+            // are tesselated apart and the glass half restamped before they're merged - one mesh
+            // carrying a pass per quad, the same way vanilla's chiselled blocks mix materials.
+            MeshData glass = Tesselate(tesselator, shape, texSource, rotation, Array.FindAll(selectiveElements, IsInfillElement));
+            SetRenderPass(glass, EnumChunkRenderPass.Transparent);
+            MeshData frame = Tesselate(tesselator, shape, texSource, rotation, Array.FindAll(selectiveElements, name => !IsInfillElement(name)));
+            frame.AddMeshData(glass);
+            return frame;
         });
 
         mesher.AddMeshData(mesh);
         return true;
+    }
+
+    private static MeshData Tesselate(
+        ITesselatorAPI tesselator, Shape shape, ITexPositionSource texSource, Vec3f rotation, string[] selectiveElements)
+    {
+        tesselator.TesselateShape(
+            "vssiding-wall", shape, out MeshData modeldata, texSource, rotation, 0, 0, 0, null, selectiveElements);
+        return modeldata;
+    }
+
+    internal static bool IsInfillElement(string name) => name.StartsWith("infill");
+
+    // TesselateShape already writes one entry per quad - ShapeElement.RenderPass, which defaults
+    // to -1 and counts as opaque - so the frame half needs nothing and this only overwrites.
+    // The per-quad count has to stay exact either way: AddMeshData appends the two lists in step
+    // with the two vertex lists.
+    private static void SetRenderPass(MeshData mesh, EnumChunkRenderPass pass)
+    {
+        for (int quad = 0; quad < mesh.RenderPassCount; quad++) mesh.RenderPassesAndExtraBits[quad] = (short)pass;
     }
 
     internal static string CacheKey(

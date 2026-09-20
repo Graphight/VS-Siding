@@ -312,10 +312,15 @@ public class SidingWallBlock : Block
     // Sealing a room and blocking light are separate questions: glazing does the first and must
     // not do the second. An infill marked Transparent absorbs nothing, which also takes its cell
     // out of the room skylight patch (decision 0015), side AO (0016) and both 0018 patches, since
-    // all of them ask this. Only reached with a resolved infill key - ComputeRetention said so.
+    // all of them ask this.
     internal static int ComputeLightAbsorption(string? framingKey, string? infillKey, JsonObject framings, JsonObject infills)
         => ComputeRetention(true, framingKey, infillKey, framings, infills) != 0
-            && !infills[infillKey!]["Transparent"].AsBool(false) ? 99 : 0;
+            && !IsTransparent(infillKey, infills) ? 99 : 0;
+
+    // Whether an infill is see-through: it decides both that absorption and which render pass
+    // the infill's mesh goes in (SidingWallEntity.OnTesselation).
+    internal static bool IsTransparent(string? infillKey, JsonObject infills)
+        => infillKey != null && infills[infillKey]["Transparent"].AsBool(false);
 
     // A sealed wall's cell stores outside sunlight (decision 0015); emitting side AO stops smooth lighting averaging it into neighbouring faces' corners.
     public override bool DoEmitSideAo(IGeometryTester caller, BlockFacing facing)
