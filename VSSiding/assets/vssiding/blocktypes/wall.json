@@ -92,7 +92,7 @@
 			},
 			"brick": {
 				DisplayName: "vssiding:finish-brick",
-				Texture: "game:legacy/clay/brick/red1",
+				Texture: { base: "game:block/clay/brick/four/running/cream1", overlays: [ "game:block/clay/brick/four/running/red1" ] },
 				Elements: { front: "front-brick", back: "back-brick" },
 				Consumes: { type: "item", code: "game:burnedbrick-red", quantity: 2 },
 				Drops: [ { type: "item", code: "game:burnedbrick-red", quantity: { avg: 2, var: 0 } } ]

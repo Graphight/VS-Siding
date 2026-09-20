@@ -59,6 +59,17 @@ The proposal wondered whether a grid mapped on both u and v would want one.
 It does not: `UvRule.Positional` already maps v to the wall's height, which is what carries the courses across stacked walls, and `RunAxis` already maps u to the box's own position along the run, which is what stops each unit restarting the texture.
 Decision 0023's question — whether the rule belongs on the element or on the face — is still open, but this work did not force it.
 
+**Red brick moves onto the composite, which answers decision 0014's open question.**
+`brick` was the one brick finish still on `game:legacy/clay/brick/red1`, a texture kept from before composite textures worked.
+Relief forced the issue: the legacy tile runs its bond at the opposite parity *and* draws its mortar one pixel wide on the voxel boundary rather than filling a voxel, so it is on a half-voxel grid that whole-voxel geometry cannot land on.
+Checked against the generated boxes, every one of its recessed voxels fell on a painted brick.
+So `brick` now draws `four/running/cream1` with a `red1` overlay, exactly as the family draws every other colour, and one `front-brick` group serves them all.
+Decision 0014 asked whether red should move "for consistency with the other colours" and said to decide by eye; the answer is yes, for a reason it could not have had.
+
+**The entry keeps its `brick` key rather than being deleted in favour of the family's `brick-red`.**
+A wall stores its finish key, and `SidingWallTexSource` resolves a key that has left its dictionary to a null texture.
+Deleting the entry would therefore not merely change how existing red walls look, it would blank them.
+
 **Polished rock and daub stay flat.**
 Polished rock is smooth by definition and daub is a render. Relief on either would be relief the material does not have.
 
