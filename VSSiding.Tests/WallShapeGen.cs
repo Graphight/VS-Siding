@@ -36,18 +36,17 @@ public static class WallShapeGen
     // Both cladding textures draw a course every 4 voxels of a 16-voxel face.
     private const double CoursePitch = 4;
 
-    // Masonry does not lap, so neither cladding profile transfers. What it has instead is a grid,
-    // and the painted grid already sits on the voxel grid: clay/brick/four/running/cream1.png is
-    // 32px over a 16-voxel face, with mortar rows at px 6-7, 14-15, 22-23 and 30-31 - a course
-    // every 4 voxels with one voxel of mortar at its foot - and vertical joints half a unit apart
-    // course to course over 8-voxel units. So the model can agree with the paint exactly: one
-    // plane set back by MortarDepth carries the mortar, and unit lips stand proud of it on the
-    // block bound. A lip ends where the plane begins, so IsBuried culls its inward face.
+    // How far the mortar sits behind the unit faces. If it does not read at walking distance,
+    // this is the number to turn.
     private const double MortarDepth = 0.25;
 
     private static (double X, double Y, double Z) Corner(char depthAxis, double depth, double run, double y)
         => depthAxis == 'x' ? (depth, y, run) : (run, y, depth);
 
+    // Masonry does not lap, so neither cladding profile transfers; what it has instead is a grid,
+    // and the painted grid already sits on the voxel grid, so the model can agree with the paint
+    // exactly. One plane set back by MortarDepth carries the mortar and unit lips stand proud of
+    // it on the block bound - a lip ends where the plane begins, so IsBuried culls its inward face.
     // `outer` is the face the wall shows and `inner` the depth it is cut back to, so a back-slot
     // group is the same table with the two swapped. Units are laid out against the wall's own
     // 0..16 grid and then clipped to the run, because a leg that starts at 1 still has to put its
@@ -58,14 +57,14 @@ public static class WallShapeGen
     {
         char runAxis = depthAxis == 'x' ? 'z' : 'x';
         double lip = outer + Math.Sign(inner - outer) * MortarDepth;
-        (double Lo, double Hi) Span(double a, double b) => (Math.Min(a, b), Math.Max(a, b));
+        (double Lo, double Hi) MinMax(double a, double b) => (Math.Min(a, b), Math.Max(a, b));
 
-        var (planeLo, planeHi) = Span(lip, inner);
+        var (planeLo, planeHi) = MinMax(lip, inner);
         yield return new Element(name,
             Corner(depthAxis, planeLo, runLo, 0), Corner(depthAxis, planeHi, runHi, 16),
             slot, UvRule.Positional, RunAxis: runAxis);
 
-        var (lipLo, lipHi) = Span(outer, lip);
+        var (lipLo, lipHi) = MinMax(outer, lip);
         for (double y = 0; y < 16; y += coursePitch)
         {
             // The mortar line is the bottom voxel of a course, and the joints step half a unit
@@ -84,7 +83,6 @@ public static class WallShapeGen
         }
     }
 
-
     // Cobblestone and drystone paint no grid at all - row and column means across
     // stone/cobblestone/*.png and stone/drystone/*.png are flat, so there is nothing for modelled
     // joints to agree with. Decision 0022 hit this with irregular shake joints and the answer
@@ -99,7 +97,7 @@ public static class WallShapeGen
         [0.15, 0.3, 0, 0.2],
     ];
 
-    // The cell boundaries move course to course for the same reason the shakes' do - four identical
+    // The cell boundaries move row to row for the same reason the shakes' do - four identical
     // columns would read as one vertical seam.
     private static readonly double[][] RubbleCuts =
     [
@@ -208,6 +206,9 @@ public static class WallShapeGen
         new("back-logs", (3.5, 4.5, 0), (4, 7.5, 16), "back", UvRule.Flat, PositionalOverrides: ["east"]),
         new("back-logs", (3.5, 8.5, 0), (4, 11.5, 16), "back", UvRule.Flat, PositionalOverrides: ["east"]),
         new("back-logs", (3.5, 12.5, 0), (4, 15.5, 16), "back", UvRule.Flat, PositionalOverrides: ["east"]),
+        // clay/brick/four/running/cream1.png is 32px over a 16-voxel face: mortar rows at px 6-7,
+        // 14-15, 22-23 and 30-31 - a course every 4 voxels with one voxel of mortar at its foot -
+        // and two joints per course over 8-voxel units, with the bottom course offset.
         .. RunningBond("front-brick", "front", 4, 8, 'x', 0, 1, 0, 16),
         // stone/brick/{rock}1.png draws one vertical joint per course, not two: a single trough
         // at px 16 on the upper course and px 31 on the lower, flat everywhere else, across
