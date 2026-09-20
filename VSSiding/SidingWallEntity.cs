@@ -15,6 +15,11 @@ public class SidingWallEntity : BlockEntity
     public string? Front;
     public string? SecondFront;
     public string? Back;
+    // Null means "the finish entry's own Elements default" (decision 0027) - a style is only
+    // ever set by the plank style tool modes, so every other finish leaves all three null.
+    public string? FrontStyle;
+    public string? SecondFrontStyle;
+    public string? BackStyle;
 
     public override void ToTreeAttributes(ITreeAttribute tree)
     {
@@ -24,6 +29,9 @@ public class SidingWallEntity : BlockEntity
         tree.SetString("front", Front);
         tree.SetString("secondfront", SecondFront);
         tree.SetString("back", Back);
+        tree.SetString("frontstyle", FrontStyle);
+        tree.SetString("secondfrontstyle", SecondFrontStyle);
+        tree.SetString("backstyle", BackStyle);
     }
 
     public override void FromTreeAttributes(ITreeAttribute tree, IWorldAccessor worldAccessForResolve)
@@ -40,6 +48,9 @@ public class SidingWallEntity : BlockEntity
         Front = NullIfEmpty(tree.GetString("front", null));
         SecondFront = NullIfEmpty(tree.GetString("secondfront", null));
         Back = NullIfEmpty(tree.GetString("back", null));
+        FrontStyle = NullIfEmpty(tree.GetString("frontstyle", null));
+        SecondFrontStyle = NullIfEmpty(tree.GetString("secondfrontstyle", null));
+        BackStyle = NullIfEmpty(tree.GetString("backstyle", null));
     }
 
     // A ToBytes/FromBytes round trip (chunk save/reload, client sync) turns a null
@@ -63,11 +74,11 @@ public class SidingWallEntity : BlockEntity
         // built cell names at least one - glazing merged on every side still draws its pane. So
         // empty means nothing is built, and the block's default JSON shape stands in.
         bool glazed = SidingWallBlock.IsTransparent(Infill, Block.Attributes["Infills"]);
-        string[] selectiveElements = SelectiveElements(layout, Framing, Infill, Front, SecondFront, Back, Block.Attributes["Finishes"], joins, glazed);
+        string[] selectiveElements = SelectiveElements(layout, Framing, Infill, Front, SecondFront, Back, Block.Attributes["Finishes"], joins, glazed, Styles);
         if (selectiveElements.Length == 0) return false;
 
         string side = Block.Variant["side"];
-        string cacheKey = CacheKey(layout, side, Framing, Infill, Front, SecondFront, Back, joins);
+        string cacheKey = CacheKey(layout, side, Framing, Infill, Front, SecondFront, Back, joins, Styles);
 
         MeshData[] meshes = ObjectCacheUtil.GetOrCreate(capi, cacheKey, () =>
         {
@@ -114,21 +125,25 @@ public class SidingWallEntity : BlockEntity
         for (int quad = 0; quad < mesh.RenderPassCount; quad++) mesh.RenderPassesAndExtraBits[quad] = (short)pass;
     }
 
+    private (string? front, string? secondFront, string? back) Styles => (FrontStyle, SecondFrontStyle, BackStyle);
+
     internal static string CacheKey(
         string layout, string side, string? framing, string? infill, string? front, string? secondFront, string? back,
-        (bool above, bool below, bool left, bool right) joins)
-        => $"vssiding-wall-mesh-{layout}-{side}-{framing}-{infill}-{front}-{secondFront}-{back}-{joins.above}-{joins.below}-{joins.left}-{joins.right}";
+        (bool above, bool below, bool left, bool right) joins,
+        (string? front, string? secondFront, string? back) styles = default)
+        => $"vssiding-wall-mesh-{layout}-{side}-{framing}-{infill}-{front}-{secondFront}-{back}-{joins.above}-{joins.below}-{joins.left}-{joins.right}-{styles.front}-{styles.secondFront}-{styles.back}";
 
     // Unbuilt parts (null key) are left out so a frame-only wall shows just its frame.
     // A finish can name its own element per face (decision 0007) instead of the plain slab.
     // A join between stacked cells has no plates, so the infill extends across it (decision 0008).
     internal static string[] SelectiveElements(
         string layout, string? framing, string? infill, string? front, string? secondFront, string? back, JsonObject finishes,
-        (bool above, bool below, bool left, bool right) joins, bool glazed)
+        (bool above, bool below, bool left, bool right) joins, bool glazed,
+        (string? front, string? secondFront, string? back) styles = default)
     {
         var names = new List<string>();
-        if (front != null) names.Add(finishes[front]["Elements"]["front"].AsString("front"));
-        if (secondFront != null) names.Add("second" + finishes[secondFront]["Elements"]["front"].AsString("front"));
+        if (front != null) names.Add(FinishElement(finishes, front, "front", styles.front));
+        if (secondFront != null) names.Add("second" + FinishElement(finishes, secondFront, "front", styles.secondFront));
         if (framing != null)
         {
             // A cornerout's three posts are structural and always drawn; a wall's two drop
@@ -162,9 +177,14 @@ public class SidingWallEntity : BlockEntity
                 if (joins.below) names.Add("infill-bottom");
             }
         }
-        if (back != null) names.Add(finishes[back]["Elements"]["back"].AsString("back"));
+        if (back != null) names.Add(FinishElement(finishes, back, "back", styles.back));
         return names.ToArray();
     }
+
+    // A style names the element outright ({face}-{style}, the naming the groups already use);
+    // without one the finish entry's Elements default stands, which is decision 0007's behaviour.
+    private static string FinishElement(JsonObject finishes, string key, string face, string? style)
+        => style != null ? $"{face}-{style}" : finishes[key]["Elements"][face].AsString(face);
 
     // Same four angles as collisionSelectionBoxesbytype's rotateYByType in wall.json.
     internal static float RotationYDeg(string side) => side switch

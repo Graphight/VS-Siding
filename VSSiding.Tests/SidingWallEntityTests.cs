@@ -137,6 +137,15 @@ public class SidingWallEntityTests
             SidingWallEntity.SelectiveElements("wall", "oak", "wattle", "planks", "planks", "planks", PlankFinishes, (false, false, false, false), glazed: false));
     }
 
+    // A style overrides the entry's Elements default per face, and only for the faces it is set on.
+    [Fact]
+    public void SelectiveElementsPrefersThePerFaceStyleOverTheEntryDefault()
+    {
+        Assert.Equal(new[] { "front-boards", "secondfront-weatherboard", "framing-left", "framing-right", "framing-top", "framing-bottom", "infill", "back-weatherboard" },
+            SidingWallEntity.SelectiveElements("wall", "oak", "wattle", "planks", "planks", "planks", PlankFinishes, (false, false, false, false), glazed: false,
+                ("boards", null, "weatherboard")));
+    }
+
     [Fact]
     public void SelectiveElementsForBottomOfAStackSkipsOnlyTheTopPlate()
     {
@@ -201,6 +210,9 @@ public class SidingWallEntityTests
             SidingWallEntity.CacheKey("wall", "west", "oak", "wattle", "daub", "planks", "brick", (false, true, false, false)),
             SidingWallEntity.CacheKey("wall", "west", "oak", "wattle", "daub", "planks", "brick", (false, false, true, false)),
             SidingWallEntity.CacheKey("wall", "west", "oak", "wattle", "daub", "planks", "brick", (false, false, false, true)),
+            SidingWallEntity.CacheKey("wall", "west", "oak", "wattle", "daub", "planks", "brick", (false, false, false, false), ("boards", null, null)),
+            SidingWallEntity.CacheKey("wall", "west", "oak", "wattle", "daub", "planks", "brick", (false, false, false, false), (null, "boards", null)),
+            SidingWallEntity.CacheKey("wall", "west", "oak", "wattle", "daub", "planks", "brick", (false, false, false, false), (null, null, "weatherboard")),
         ];
 
         Assert.Equal(keys, keys.Distinct());
