@@ -36,5 +36,7 @@ public class SealedCellLightTests
         Assert.NotNull(AccessTools.Field(typeof(ChunkTesselator), "game"));
         Assert.NotNull(AccessTools.Field(typeof(ChunkTesselator), "currentChunkBlocksExt"));
         Assert.NotNull(AccessTools.Field(typeof(ChunkTesselator), "currentChunkRgbsExt"));
+        Assert.NotNull(AccessTools.Method(typeof(TCTCache), "CalcBlockFaceLight"));
+        Assert.NotNull(AccessTools.Field(typeof(TCTCache), "CurrentLightRGBByCorner"));
     }
 }
