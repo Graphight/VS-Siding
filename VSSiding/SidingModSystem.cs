@@ -106,8 +106,12 @@ public class SidingModSystem : ModSystem
 
             int x = i % size, z = i / size % size, y = i / (size * size);
             var (dx, dz) = SidingWallBlock.OpenSide(wall.Variant["layout"], wall.Variant["side"]);
+            // A border cell whose open side leaves the array opens away from this chunk, so its
+            // dead space - and the floor face that shows it - belongs to the neighbour, which
+            // has the same cell in its own interior and darkens it there.
             if (x + dx is < 0 or >= size || z + dz is < 0 or >= size) continue;
 
+            // chunkY carries the dimension above the world's 32768 blocks (vanilla: dim = chunkY / 1024).
             pos.Set(chunkX * 32 + x - 1, chunkY * 32 % 32768 + y - 1, chunkZ * 32 + z - 1);
             if (!wall.IsSealed(___game.BlockAccessor.GetBlockEntity(pos))) continue;
 
@@ -126,7 +130,7 @@ public class SidingModSystem : ModSystem
         int light = sealedCellRgbs![extNeibIndex3d];
         var corners = __instance.CurrentLightRGBByCorner;
         corners[0] = corners[1] = corners[2] = corners[3] = light;
-        __result = (long)light * 4;
+        __result = light * 4;   // int arithmetic, as vanilla's flat path returns it
         return false;
     }
 

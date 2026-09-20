@@ -52,4 +52,9 @@ Tessellation runs one chunk at a time per thread, so a chunk's own face-light ca
 - Side AO from decision 0016 is now likely redundant — the flat path ignores the ring the side AO was there to suppress — but it was not removed or retested. Removing it would also drop the odd pre-roof corner shading 0016 noted.
 - A sealed cell whose open side is a doorway takes the doorway's daylight, which may show as a bright sliver beside an opening. Seen in a night playtest, not diagnosed; the fix would be to take the darker of the open side and the room.
 - An open neighbour that is itself a sealed wall (a double-thickness wall) reads order-dependent light.
+- The postfix ignores `BuildExtendedChunkData`'s `skipChunkCenter`, so on the edge-only rebuild path it scans interior entries vanilla left stale from a previous chunk and looks up block entities for any siding blocks it finds there.
+  Nothing drawn on that path samples the interior — the refreshed shell is deeper than the one cell an edge face reaches — so this is wasted microseconds, not a wrong pixel.
+  Taking the parameter would mean reproducing vanilla's shell condition, and getting that subtly wrong brings the glow back; left until a profile asks for it.
+- A sealed wall cell in the extended array's border ring whose open side leaves the array is skipped.
+  That cell opens away from this chunk, so the floor face showing its dead space belongs to the neighbouring chunk, where the same cell is interior and is darkened normally.
 - `RoomSkylightPatchTests` and `SealedCellLightTests` assert the patched methods and fields still exist, so a game update fails the build rather than silently dropping the fix.

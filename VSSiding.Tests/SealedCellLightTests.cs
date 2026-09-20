@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using HarmonyLib;
 using Vintagestory.Client.NoObf;
 using Xunit;
@@ -38,5 +39,19 @@ public class SealedCellLightTests
         Assert.NotNull(AccessTools.Field(typeof(ChunkTesselator), "currentChunkRgbsExt"));
         Assert.NotNull(AccessTools.Method(typeof(TCTCache), "CalcBlockFaceLight"));
         Assert.NotNull(AccessTools.Field(typeof(TCTCache), "CurrentLightRGBByCorner"));
+    }
+
+    // Harmony binds the patches' parameters by name, so a vanilla rename would drop the fix at
+    // runtime with only a log line to show for it.
+    [Fact]
+    public void PatchedParameterNamesStillMatch()
+    {
+        var actual = AccessTools.Method(typeof(ChunkTesselator), "BuildExtendedChunkData")
+            .GetParameters().Select(p => p.Name).ToArray();
+        Assert.Equal(new[] { "curChunk", "chunkX", "chunkY", "chunkZ", "atMapEdge", "skipChunkCenter" }, actual);
+
+        var faceLight = AccessTools.Method(typeof(TCTCache), "CalcBlockFaceLight")
+            .GetParameters().Select(p => p.Name).ToArray();
+        Assert.Equal(new[] { "tileSide", "extNeibIndex3d" }, faceLight);
     }
 }
