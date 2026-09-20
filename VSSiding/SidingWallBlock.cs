@@ -199,6 +199,33 @@ public class SidingWallBlock : Block
 
         if (entity.Infill == null)
         {
+            // A bare frame clicked in corner mode becomes a cornerout in place, so a T-junction
+            // found late doesn't mean breaking the wall and rebuilding it. Frames only: a
+            // cornerout's legs share Infill and Back (decision 0009), so upgrading a filled wall
+            // would build the new leg's layers for free. Front and back clicks only - an end,
+            // top or bottom click still falls through to PlaceWallFrame, which is how a corner
+            // goes on the end of a run. Free, because a fresh cornerout frame costs the same as
+            // a fresh wall frame.
+            if (Variant["layout"] == "wall"
+                && ResolveLayout(PlaceWallFrame.ToolModeOf(slot)) == "cornerout"
+                && MatchConsumes(heldCode, Attributes["Framings"]) != null
+                && ResolveFinishFace("wall", Variant["side"], blockSel.Face) != null)
+            {
+                string cornerSide = ResolveCornerUpgrade(Variant["side"], blockSel.HitPosition);
+                var corner = world.GetBlock(new AssetLocation("vssiding", $"wall-cornerout-{cornerSide}"));
+                if (corner != null)
+                {
+                    // Keeps the block entity, and the engine repoints its Block at the new type,
+                    // so Framing survives and OnTesselation reads the cornerout layout.
+                    world.BlockAccessor.ExchangeBlock(corner.Id, blockSel.Position);
+                    entity.MarkDirty(true);
+                    // Plates depend on the cells above and below sharing this one's layout
+                    // (decision 0008), which the swap just changed.
+                    MarkNeighboursDirty(world, blockSel.Position);
+                    return true;
+                }
+            }
+
             string? infillKey = MatchConsumes(heldCode, Attributes["Infills"]);
             if (infillKey == null) return base.OnBlockInteractStart(world, byPlayer, blockSel);
 
