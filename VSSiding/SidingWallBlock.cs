@@ -245,8 +245,13 @@ public class SidingWallBlock : Block
         string? finishKey = MatchConsumes(heldCode, Attributes["Finishes"]);
         if (finishKey == null) return base.OnBlockInteractStart(world, byPlayer, blockSel);
 
+        // A style mode never frames and never places (decision 0027), so every refusal below is
+        // an error the player sees rather than a silent fallthrough to something else placing.
+        string? style = ResolveStyle(PlaceWallFrame.ToolModeOf(slot));
+
         // Planks that can't finish this face still extend the wall via PlaceWallFrame, and held blocks still place.
-        bool heldPlaces = slot.Itemstack!.Class == EnumItemClass.Block || MatchConsumes(heldCode, Attributes["Framings"]) != null;
+        bool heldPlaces = style == null
+            && (slot.Itemstack!.Class == EnumItemClass.Block || MatchConsumes(heldCode, Attributes["Framings"]) != null);
 
         // Glazing takes no finish: a slab over it would just hide the glass. Refusing here rather
         // than in ResolveFinishFace keeps breaking unchanged - PeelLayer still finds no finish on
@@ -267,6 +272,12 @@ public class SidingWallBlock : Block
             return true;
         }
 
+        if (style != null && !HasStyle(Attributes["Finishes"][finishKey], style))
+        {
+            (byPlayer as IServerPlayer)?.SendIngameError("vssiding:nostyle", Lang.Get("vssiding:build-no-style"));
+            return true;
+        }
+
         bool alreadyFinished = face switch
         {
             "front" => entity.Front != null,
@@ -275,6 +286,16 @@ public class SidingWallBlock : Block
         };
         if (alreadyFinished)
         {
+            // Restyling the same material is free - the boards are already on the wall and only
+            // their profile changes, so an existing partition is fixed without breaking it.
+            string? currentKey = face switch { "front" => entity.Front, "secondfront" => entity.SecondFront, _ => entity.Back };
+            string? currentStyle = face switch { "front" => entity.FrontStyle, "secondfront" => entity.SecondFrontStyle, _ => entity.BackStyle };
+            if (style != null && currentKey == finishKey && currentStyle != style)
+            {
+                SetFinish(entity, face, finishKey, style);
+                return true;
+            }
+
             if (heldPlaces) return base.OnBlockInteractStart(world, byPlayer, blockSel);
             (byPlayer as IServerPlayer)?.SendIngameError("vssiding:alreadyfinished", Lang.Get("vssiding:build-already-finished"));
             return true;
@@ -283,16 +304,26 @@ public class SidingWallBlock : Block
         var finishConsumes = Attributes["Finishes"][finishKey]["Consumes"];
         if (!TryAffordOrError(byPlayer, isCreative, slot.StackSize, finishConsumes)) return true;
 
-        switch (face)
-        {
-            case "front": entity.Front = finishKey; break;
-            case "secondfront": entity.SecondFront = finishKey; break;
-            default: entity.Back = finishKey; break;
-        }
-        entity.MarkDirty(true);
+        SetFinish(entity, face, finishKey, style);
         ConsumeHeld(slot, finishConsumes, isCreative);
         return true;
     }
+
+    private static void SetFinish(SidingWallEntity entity, string face, string finishKey, string? style)
+    {
+        switch (face)
+        {
+            case "front": entity.Front = finishKey; entity.FrontStyle = style; break;
+            case "secondfront": entity.SecondFront = finishKey; entity.SecondFrontStyle = style; break;
+            default: entity.Back = finishKey; entity.BackStyle = style; break;
+        }
+        entity.MarkDirty(true);
+    }
+
+    // Only a finish that lists a style can be asked for it; daub and brick have no board profile,
+    // so a style mode refuses them rather than naming an element their shape hasn't got.
+    internal static bool HasStyle(JsonObject finish, string style)
+        => Array.IndexOf(finish["Styles"].AsArray<string>(Array.Empty<string>()) ?? Array.Empty<string>(), style) >= 0;
 
     private void OnInfillChanged(IWorldAccessor world, SidingWallEntity entity, BlockPos pos)
     {
@@ -511,9 +542,9 @@ public class SidingWallBlock : Block
 
         switch (layer)
         {
-            case "front": entity.Front = null; break;
-            case "secondfront": entity.SecondFront = null; break;
-            case "back": entity.Back = null; break;
+            case "front": entity.Front = null; entity.FrontStyle = null; break;
+            case "secondfront": entity.SecondFront = null; entity.SecondFrontStyle = null; break;
+            case "back": entity.Back = null; entity.BackStyle = null; break;
             default:
                 entity.Infill = null;
                 OnInfillChanged(world, entity, pos);

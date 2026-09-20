@@ -122,6 +122,7 @@
 				DisplayName: "vssiding:finish-planks",
 				Texture: "game:block/wood/planks/oak1",
 				Elements: { front: "front-weatherboard", back: "back-boards" },
+				Styles: ["weatherboard", "boards"],
 				Consumes: { type: "item", code: "game:plank-oak", quantity: 2 },
 				Drops: [ { type: "item", code: "game:plank-oak", quantity: { avg: 2, var: 0 } } ]
 			},
@@ -129,6 +130,7 @@
 				DisplayName: "vssiding:finish-planks-veryaged",
 				Texture: "game:block/wood/planks/aged/veryaged1",
 				Elements: { front: "front-weatherboard", back: "back-boards" },
+				Styles: ["weatherboard", "boards"],
 				Consumes: { type: "item", code: "game:plank-veryaged", quantity: 2 },
 				Drops: [ { type: "item", code: "game:plank-veryaged", quantity: { avg: 2, var: 0 } } ]
 			}
@@ -139,6 +141,7 @@
 				DisplayName: "vssiding:finish-planks-{wood}",
 				Texture: "game:block/wood/planks/{wood}1",
 				Elements: { front: "front-weatherboard", back: "back-boards" },
+				Styles: ["weatherboard", "boards"],
 				Consumes: { type: "item", code: "game:plank-{wood}", quantity: 2 },
 				Drops: [ { type: "item", code: "game:plank-{wood}", quantity: { avg: 2, var: 0 } } ]
 			},

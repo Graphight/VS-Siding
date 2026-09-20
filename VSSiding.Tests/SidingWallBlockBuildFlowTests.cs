@@ -73,6 +73,25 @@ public class SidingWallBlockBuildFlowTests
             new[] { 0, 1, 2, 3, 4, -1 }.ToDictionary(mode => mode, SidingWallBlock.ResolveStyle));
     }
 
+    // A style mode only matches a finish that lists that style, so a masonry entry refuses it
+    // rather than asking its shape for a plank element it hasn't got.
+    [Fact]
+    public void OnlyAFinishListingAStyleOffersIt()
+    {
+        var planks = Dict("""{ "Styles": ["weatherboard", "boards"] }""");
+        var daub = Dict("{}");
+        Assert.Equal(
+            new[] { true, true, false, false, false },
+            new[]
+            {
+                SidingWallBlock.HasStyle(planks, "weatherboard"),
+                SidingWallBlock.HasStyle(planks, "boards"),
+                SidingWallBlock.HasStyle(planks, "shakes"),
+                SidingWallBlock.HasStyle(daub, "weatherboard"),
+                SidingWallBlock.HasStyle(daub, "boards"),
+            });
+    }
+
     private static readonly JsonObject Infills = Dict("""
     {
         "wattle": { "Consumes": { "type": "item", "code": "game:stick", "quantity": 4 } }
