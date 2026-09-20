@@ -85,8 +85,111 @@ public class WallShapeGenTests
         Assert.Equal(expected, actual);
     }
 
-    // UvRule.Course is the only arithmetic the generator carries, and the golden test cannot check
-    // it: that file is regenerated from this same generator, so a wrong courseTop would be blessed
+    // A box with no faces left is a box the tesselator draws nothing for, which is a silent hole
+    // rather than an error. The prune below is what could cause one.
+    [Theory]
+    [InlineData("wall")]
+    [InlineData("cornerout")]
+    public void NoElementIsPrunedDownToNothing(string layout)
+    {
+        Assert.Equal([], WallShapeGen.Generate(layout)["elements"]!
+            .Where(e => !((JObject)e["faces"]!).Properties().Any())
+            .Select(e => (string)e["name"]!)
+            .ToArray());
+    }
+
+    // The same-name prune is arithmetic the golden test cannot check either - `just shapes`
+    // reblesses that file from this same generator. The bottom course of shakes carries every
+    // case in four boxes: each one is 1 voxel tall and they abut along z at 5, 9 and 13, with
+    // depths 0, 0.2, 0.1 and 0.3 (a bigger x offset means a deeper recess, so a smaller number
+    // sticks out further). A face goes only where the neighbour covers it outright.
+    [Fact]
+    public void AShakeDropsOnlyTheFaceItsDeeperNeighbourCoversEntirely()
+    {
+        string[][] expected =
+        [
+            // Deepest of the four, so both neighbours leave a strip of it showing.
+            ["north", "east", "south", "west", "up", "down"],
+            // Boxed in at both ends by boxes that stand proud of it.
+            ["east", "west", "up", "down"],
+            ["north", "east", "south", "west", "up", "down"],
+            // The box at z 9 stands proud of this one, the cell edge is past z 16.
+            ["east", "south", "west", "up", "down"],
+        ];
+
+        Assert.Equal(expected, WallShapeGen.Generate("wall")["elements"]!
+            .Where(e => (string)e["name"]! == "front-shakes")
+            .Take(4)
+            .Select(e => ((JObject)e["faces"]!).Properties().Select(p => p.Name).ToArray())
+            .ToArray());
+    }
+
+    // What the prune is actually for: the quads one built cell hands the tesselator. Written out
+    // rather than recomputed, so a rule that stopped pruning - or started pruning a face that
+    // shows - moves a number here instead of passing quietly.
+    [Fact]
+    public void EachBuiltCellHandsTheTesselatorThisManyQuads()
+    {
+        var expected = new Dictionary<string, int>
+        {
+            ["wall bare frame"] = 24,
+            ["wall wattle"] = 30,
+            ["wall wattle, mid-stack"] = 30,
+            ["wall daub both faces"] = 42,
+            ["wall weatherboard both faces"] = 117,
+            ["wall shakes both faces"] = 205,
+            ["wall glazed"] = 26,
+            ["wall glazed, merged all round"] = 2,
+            ["cornerout bare frame"] = 42,
+            ["cornerout wattle"] = 54,
+            ["cornerout wattle, mid-stack"] = 54,
+            ["cornerout daub both faces"] = 77,
+            ["cornerout weatherboard both faces"] = 227,
+            ["cornerout shakes both faces"] = 400,
+            ["cornerout glazed"] = 46,
+            ["cornerout glazed, merged all round"] = 22,
+        };
+
+        var finishes = SidingWallEntityTests.Dict("""
+        {
+            "daub": {},
+            "planks": { "Elements": { "front": "front-weatherboard", "back": "back-boards" } },
+            "shakes": { "Elements": { "front": "front-shakes", "back": "back-logs" } }
+        }
+        """);
+
+        (string State, string? Infill, string? Finish, (bool, bool, bool, bool) Joins, bool Glazed)[] states =
+        [
+            ("bare frame", null, null, (false, false, false, false), false),
+            ("wattle", "wattle", null, (false, false, false, false), false),
+            ("wattle, mid-stack", "wattle", null, (true, true, false, false), false),
+            ("daub both faces", "wattle", "daub", (false, false, false, false), false),
+            ("weatherboard both faces", "wattle", "planks", (false, false, false, false), false),
+            ("shakes both faces", "wattle", "shakes", (false, false, false, false), false),
+            ("glazed", "glass", null, (false, false, false, false), true),
+            ("glazed, merged all round", "glass", null, (true, true, true, true), true),
+        ];
+
+        var actual = new Dictionary<string, int>();
+        foreach (var layout in new[] { "wall", "cornerout" })
+        {
+            var quads = WallShapeGen.Generate(layout)["elements"]!
+                .GroupBy(e => (string)e["name"]!)
+                .ToDictionary(g => g.Key, g => g.Sum(e => ((JObject)e["faces"]!).Properties().Count()));
+
+            foreach (var (state, infill, finish, joins, glazed) in states)
+            {
+                var names = SidingWallEntity.SelectiveElements(
+                    layout, "oak", infill, finish, layout == "cornerout" ? finish : null, finish,
+                    finishes, joins, glazed);
+                actual[$"{layout} {state}"] = names.Sum(n => quads[n]);
+            }
+        }
+
+        Assert.Equal(expected, actual);
+    }
+
+    // UvRule.Course is more arithmetic the golden test cannot check: that file is regenerated from this same generator, so a wrong courseTop would be blessed
     // by `just shapes` and still pass. These are the spans decision 0023 fixes, written out rather
     // than recomputed, so the rule is checked against something other than its own output.
     [Fact]

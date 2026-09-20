@@ -8,7 +8,7 @@ namespace VSSiding.Tests;
 
 public class SidingWallEntityTests
 {
-    private static JsonObject Dict(string json) => new(JToken.Parse(json));
+    internal static JsonObject Dict(string json) => new(JToken.Parse(json));
 
     private static readonly JsonObject NoElementFinishes = Dict("""{ "daub": {} }""");
 
