@@ -1,8 +1,8 @@
-# Upgrade frame to corner
+# 0026 — Upgrade frame to corner
 
-- Status: Draft
+- Status: Accepted
 - Created: 2026-09-16
-- Reflects: planning session on `plan-later-proposals-continued`; in-game T-junction attempt with walls on the outer faces; `PlaceWallFrame` and `SidingWallBlock.OnBlockInteractStart` as of 152c8fd; `IBlockAccessor.ExchangeBlock` in `VintagestoryAPI.dll` 1.21
+- Reflects: branch `upgrade-frame-to-corner`; `SidingWallBlock.ResolveCornerUpgrade` and `OnBlockInteractStart`; `PlaceWallFrame.ToolModeOf`; `IBlockAccessor.ExchangeBlock` and `BlockEntity.Block` in `VintagestoryAPI.xml` 1.21; decisions 0006, 0008 and 0009; the `upgrade-frame-to-corner` proposal
 
 ## Summary
 In `corner` tool mode, clicking an existing framing-only wall turns it into a `cornerout` in place, with the new leg on the end of the wall you clicked.
@@ -33,14 +33,22 @@ On a bare frame only framing matters, and the build order stays frame → corner
 A filled wall that should have been a corner is broken and rebuilt; breaking already returns every built layer (decision 0003), so that costs time, not material.
 
 **Which corner: the end of the wall the player clicked.**
-A wall with side `S` is one leg of two possible corners: `cornerout-S` (adds the leg `CorneroutSecondFace[S]`) or `cornerout-X` where `CorneroutSecondFace[X] == S` (adds the leg on the other end).
-`BlockSelection.HitPosition` along the wall's length says which end was nearer.
-Worked through for a `west` wall (runs along z): a hit at z < 0.5 adds the north leg, `cornerout-west`; z ≥ 0.5 adds the south leg, `cornerout-south`.
-Pure function `ResolveCornerUpgrade(string side, Vec3d hitPosition) → string cornerSide`, tested for all four sides and both ends.
+A wall with side `S` is one leg of two possible corners: `cornerout-S`, which adds the leg `CorneroutSecondFace[S]`, or `cornerout-X` where `CorneroutSecondFace[X] == S`, which adds the leg on the other end.
+`BlockSelection.HitPosition` says which end was nearer.
 
-**Swap: `IBlockAccessor.ExchangeBlock`**, which replaces the block without removing its block entity, so `Framing` survives.
-Then `MarkDirty(true)` to re-tesselate.
-First thing to verify: that the entity's `Block` reference follows the exchange, since `OnTesselation` reads `Block.Variant["layout"]`; if it doesn't, set it before marking dirty.
+Those two corners are exactly the two ends `RunNeighbours(S)` already returns, so `ResolveCornerUpgrade` reuses it rather than carrying a second per-side table: the `left` end gives `cornerout-S`, the `right` end gives `cornerout-{right.Code}`, and the new leg is always on the end clicked.
+Which end is nearer is the sign of the hit point's offset from the cell's centre along the `left` facing's normal.
+It has to be a dot product rather than a fixed "coordinate below 0.5", because both the run's axis and its direction change with `S`: a `west` wall's `left` is north, so a hit at z = 0.2 is the near end, but an `east` wall's `left` is *south*, so the same z = 0.2 is the far one.
+Dead centre goes right, arbitrarily but consistently.
+
+Pure function `ResolveCornerUpgrade(string side, Vec3d hitPosition) → string cornerSide`, tested for all four sides at both ends.
+
+**Swap: `IBlockAccessor.ExchangeBlock`**, which sets the block "without calling OnBlockRemoved or OnBlockPlaced, which prevents any block entity from being removed or placed" — so `Framing` survives.
+The entity's `Block` reference needed checking, since `OnTesselation` reads `Block.Variant["layout"]`, and it turns out to need no help: `VintagestoryAPI.xml` on `BlockEntity.Block` says "this property is updated by the engine if ExchangeBlock is called".
+So the swap is `ExchangeBlock`, then `MarkDirty(true)` to re-tesselate.
+
+`MarkNeighboursDirty` follows it, which the proposal missed.
+Whether a cell draws its plates depends on the cells above and below sharing its `layout` (decision 0008, via `SameRun`), and the swap just changed this cell's — without it the neighbours keep drawing yesterday's join until something else disturbs them.
 
 **No charge.**
 A fresh `wall` frame and a fresh `cornerout` frame cost the same `Consumes` and drop the same `Drops`, so an upgrade adds nothing to pay or refund.
@@ -56,8 +64,8 @@ A frame has no infill, so neither face is claimed until it's filled (decision 00
 - **Charge framing for the new leg.** Placing the same corner fresh costs the same as a wall, so charging here would make the upgrade dearer than getting it right first time.
 
 ## Consequences & open questions
-- `framing-only-collision` skips plates when the block above or below has the same `layout` and `side`. A corner upgraded in the middle of a wall stack would bring its plates back at both joins. That rule probably wants "the neighbour covers this wall's face", which a `cornerout` over a `wall` does; settle it in whichever of the two ships second.
+- `framing-only-collision` (decision 0008) skips plates when the block above or below has the same `layout` and `side`. A corner upgraded in the middle of a wall stack brings its plates back at both joins. That rule probably wants "the neighbour covers this wall's face", which a `cornerout` over a `wall` does; settle it in whichever of this and `finish-style-choice` ships second.
 - Front and back clicks in corner mode stop placing a corner in the cell in front of the wall. To do that deliberately, click the ground there instead.
 - `window-frames`' `window` layout can't be upgraded; only `wall` can.
 - Downgrading a corner back to a wall isn't planned. Break and re-place; ask again if it turns out to be common.
-- The same "build from the room side needs no T-junction corner" note belongs in the handbook page, so players don't need this at all for most builds.
+- The same "build from the room side needs no T-junction corner" note belongs in the handbook page, so players don't need this at all for most builds. There is no handbook page yet.

@@ -144,6 +144,18 @@ public class SidingWallBlock : Block
         return (left, left.Opposite);
     }
 
+    // Which cornerout a wall becomes when it's upgraded in place (decision 0026): the new leg
+    // goes on the end of the run clicked nearer. cornerout-`side` puts its second leg on the
+    // left end; cornerout-`right` puts its own second leg back on `side`, so the leg it adds
+    // is the right one. Nearness has to be a dot product rather than a fixed "coordinate <
+    // 0.5" because the run's axis and its direction both change with `side`. Ties go right.
+    internal static string ResolveCornerUpgrade(string side, Vec3d hitPosition)
+    {
+        var (left, right) = RunNeighbours(side);
+        double towardsLeft = (hitPosition.X - 0.5) * left.Normali.X + (hitPosition.Z - 0.5) * left.Normali.Z;
+        return towardsLeft > 0 ? side : right.Code;
+    }
+
     // Same shape, same face: a wall only ever joins another leg of the same run.
     private bool SameRun(IBlockAccessor blockAccessor, BlockPos neighbourPos)
         => blockAccessor.GetBlock(neighbourPos) is SidingWallBlock neighbour
@@ -186,6 +198,30 @@ public class SidingWallBlock : Block
 
         if (entity.Infill == null)
         {
+            // A bare frame clicked in corner mode becomes a cornerout in place, for a T-junction
+            // found once a partition reaches it (decision 0026). Nothing is charged: a fresh
+            // cornerout frame costs the same as a fresh wall frame. Everything this doesn't
+            // claim falls through to the infill match below, then to PlaceWallFrame.
+            if (Variant["layout"] == "wall"
+                && ResolveLayout(PlaceWallFrame.ToolModeOf(slot)) == "cornerout"
+                && MatchConsumes(heldCode, Attributes["Framings"]) != null
+                && ResolveFinishFace("wall", Variant["side"], blockSel.Face) != null)
+            {
+                string cornerSide = ResolveCornerUpgrade(Variant["side"], blockSel.HitPosition);
+                var corner = world.GetBlock(new AssetLocation("vssiding", $"wall-cornerout-{cornerSide}"));
+                if (corner != null)
+                {
+                    // Keeps the block entity, and the engine repoints its Block at the new
+                    // type, so Framing survives and OnTesselation reads the cornerout layout.
+                    world.BlockAccessor.ExchangeBlock(corner.Id, blockSel.Position);
+                    entity.MarkDirty(true);
+                    // Plates key off the cells above and below sharing this one's layout
+                    // (decision 0008), which the swap just changed.
+                    MarkNeighboursDirty(world, blockSel.Position);
+                    return true;
+                }
+            }
+
             string? infillKey = MatchConsumes(heldCode, Attributes["Infills"]);
             if (infillKey == null) return base.OnBlockInteractStart(world, byPlayer, blockSel);
 
