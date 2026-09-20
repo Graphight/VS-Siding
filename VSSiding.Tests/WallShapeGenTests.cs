@@ -150,13 +150,22 @@ public class WallShapeGenTests
             ["cornerout shakes front, daub elsewhere"] = 220,
             ["wall weatherboard front, shakes back"] = 137,
             ["cornerout weatherboard front, shakes back"] = 332,
+            ["wall brick both faces"] = 142,
+            ["wall ashlar both faces"] = 72,
+            ["wall rubble both faces"] = 198,
+            ["cornerout brick both faces"] = 256,
+            ["cornerout ashlar both faces"] = 136,
+            ["cornerout rubble both faces"] = 371,
         };
 
         var finishes = SidingWallEntityTests.Dict("""
         {
             "daub": {},
             "planks": { "Elements": { "front": "front-weatherboard", "back": "back-boards" } },
-            "shakes": { "Elements": { "front": "front-shakes", "back": "back-logs" } }
+            "shakes": { "Elements": { "front": "front-shakes", "back": "back-logs" } },
+            "brick": { "Elements": { "front": "front-brick", "back": "back-brick" } },
+            "ashlar": { "Elements": { "front": "front-ashlar", "back": "back-ashlar" } },
+            "rubble": { "Elements": { "front": "front-rubble", "back": "back-rubble" } }
         }
         """);
 
@@ -176,6 +185,9 @@ public class WallShapeGenTests
             ("glazed, merged all round", "glass", null, null, null, (true, true, true, true), true),
             ("shakes front, daub elsewhere", "wattle", "shakes", "daub", "daub", (false, false, false, false), false),
             ("weatherboard front, shakes back", "wattle", "planks", "shakes", "shakes", (false, false, false, false), false),
+            ("brick both faces", "wattle", "brick", "brick", "brick", (false, false, false, false), false),
+            ("ashlar both faces", "wattle", "ashlar", "ashlar", "ashlar", (false, false, false, false), false),
+            ("rubble both faces", "wattle", "rubble", "rubble", "rubble", (false, false, false, false), false),
         ];
 
         var actual = new Dictionary<string, int>();
@@ -196,6 +208,42 @@ public class WallShapeGenTests
 
         Assert.Equal(expected, actual);
     }
+
+    // A masonry unit has to sit where the texture paints one, and the golden file cannot say so -
+    // it is rewritten from this same generator. So the joints are written out by hand, read off
+    // the textures: clay/brick/four/running/cream1 puts two joints per 4-voxel course, half a unit
+    // apart course to course; stone/brick/{rock}1 puts one per 8-voxel course, at the opposite
+    // phase. Get the unit width or the phase wrong and a modelled joint lands mid-stone, which
+    // renders as a groove down the middle of a brick rather than as an error.
+    [Theory]
+    [InlineData("wall")]
+    [InlineData("cornerout")]
+    public void EveryMasonryUnitSitsBetweenThePaintedJoints(string layout)
+    {
+        (double Y0, double Y1, double Z0, double Z1)[] brick =
+        [
+            (1, 4, 0, 3), (1, 4, 4, 11), (1, 4, 12, 16),
+            (5, 8, 0, 7), (5, 8, 8, 15),
+            (9, 12, 0, 3), (9, 12, 4, 11), (9, 12, 12, 16),
+            (13, 16, 0, 7), (13, 16, 8, 15),
+        ];
+        (double Y0, double Y1, double Z0, double Z1)[] ashlar =
+        [
+            (1, 8, 0, 15),
+            (9, 16, 0, 7), (9, 16, 8, 16),
+        ];
+
+        Assert.Equal(brick, Lips(layout, "front-brick"));
+        Assert.Equal(ashlar, Lips(layout, "front-ashlar"));
+    }
+
+    // The unit lips, not the mortar plane behind them: the plane is the one box spanning the face.
+    private static (double Y0, double Y1, double Z0, double Z1)[] Lips(string layout, string group)
+        => WallShapeGen.Generate(layout)["elements"]!
+            .Where(e => (string)e["name"]! == group && (double)e["from"]![0]! == 0)
+            .Select(e => ((double)e["from"]![1]!, (double)e["to"]![1]!,
+                          (double)e["from"]![2]!, (double)e["to"]![2]!))
+            .ToArray();
 
     // These are the spans decision 0023 fixes. A wrong courseTop would restart the grain on every
     // step of the taper.

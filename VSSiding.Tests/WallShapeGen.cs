@@ -36,6 +36,98 @@ public static class WallShapeGen
     // Both cladding textures draw a course every 4 voxels of a 16-voxel face.
     private const double CoursePitch = 4;
 
+    // How far the mortar sits behind the unit faces. If it does not read at walking distance,
+    // this is the number to turn.
+    private const double MortarDepth = 0.25;
+
+    private static (double X, double Y, double Z) Corner(char depthAxis, double depth, double run, double y)
+        => depthAxis == 'x' ? (depth, y, run) : (run, y, depth);
+
+    // Masonry does not lap, so neither cladding profile transfers; what it has instead is a grid,
+    // and the painted grid already sits on the voxel grid, so the model can agree with the paint
+    // exactly. One plane set back by MortarDepth carries the mortar and unit lips stand proud of
+    // it on the block bound - a lip ends where the plane begins, so IsBuried culls its inward face.
+    // `outer` is the face the wall shows and `inner` the depth it is cut back to, so a back-slot
+    // group is the same table with the two swapped. Units are laid out against the wall's own
+    // 0..16 grid and then clipped to the run, because a leg that starts at 1 still has to put its
+    // joints where the texture paints them.
+    private static IEnumerable<Element> RunningBond(
+        string name, string slot, double coursePitch, double unitWidth,
+        char depthAxis, double outer, double inner, double runLo, double runHi, bool flipBond = false)
+    {
+        char runAxis = depthAxis == 'x' ? 'z' : 'x';
+        double lip = outer + Math.Sign(inner - outer) * MortarDepth;
+        (double Lo, double Hi) MinMax(double a, double b) => (Math.Min(a, b), Math.Max(a, b));
+
+        var (planeLo, planeHi) = MinMax(lip, inner);
+        yield return new Element(name,
+            Corner(depthAxis, planeLo, runLo, 0), Corner(depthAxis, planeHi, runHi, 16),
+            slot, UvRule.Positional, RunAxis: runAxis);
+
+        var (lipLo, lipHi) = MinMax(outer, lip);
+        for (double y = 0; y < 16; y += coursePitch)
+        {
+            // The mortar line is the bottom voxel of a course, and the joints step half a unit
+            // every other course - that is the running bond the texture draws. Which course gets
+            // the offset is the texture's business, not the bond's: brick starts offset and ashlar
+            // starts flush, so a shared flip would only move the error around.
+            double offset = ((y / coursePitch) % 2 == 0) != flipBond ? unitWidth / 2 : 0;
+            for (double u = offset - unitWidth; u < 16; u += unitWidth)
+            {
+                double lo = Math.Max(u, runLo), hi = Math.Min(u + unitWidth - 1, runHi);
+                if (hi <= lo) continue;
+                yield return new Element(name,
+                    Corner(depthAxis, lipLo, lo, y + 1), Corner(depthAxis, lipHi, hi, y + coursePitch),
+                    slot, UvRule.Positional, RunAxis: runAxis);
+            }
+        }
+    }
+
+    // Cobblestone and drystone paint no grid at all - row and column means across
+    // stone/cobblestone/*.png and stone/drystone/*.png are flat, so there is nothing for modelled
+    // joints to agree with. Decision 0022 hit this with irregular shake joints and the answer
+    // holds: no modelled joints, vary depth only, and let the step carry the texture without
+    // claiming to be a joint. Cells abut with no gaps, because a gap opens a line into the cavity.
+    // Depths are literal, never randomised, or the golden test goes flaky.
+    private static readonly double[][] RubbleDepths =
+    [
+        [0.2, 0, 0.3, 0.1],
+        [0, 0.25, 0.1, 0.3],
+        [0.3, 0.1, 0.2, 0],
+        [0.15, 0.3, 0, 0.2],
+    ];
+
+    // The cell boundaries move row to row for the same reason the shakes' do - four identical
+    // columns would read as one vertical seam.
+    private static readonly double[][] RubbleCuts =
+    [
+        [0, 5, 9, 13, 16],
+        [0, 4, 7, 12, 16],
+        [0, 6, 10, 13, 16],
+        [0, 3, 8, 12, 16],
+    ];
+
+    private static IEnumerable<Element> RubbleGrid(
+        string name, string slot, char depthAxis, double outer, double inner, double runLo, double runHi)
+    {
+        char runAxis = depthAxis == 'x' ? 'z' : 'x';
+        double dir = Math.Sign(inner - outer);
+        for (int row = 0; row < RubbleDepths.Length; row++)
+        {
+            var cuts = RubbleCuts[row];
+            for (int cell = 0; cell < cuts.Length - 1; cell++)
+            {
+                double lo = Math.Max(cuts[cell], runLo), hi = Math.Min(cuts[cell + 1], runHi);
+                if (hi <= lo) continue;
+                double face = outer + dir * RubbleDepths[row][cell];
+                yield return new Element(name,
+                    Corner(depthAxis, Math.Min(face, inner), lo, row * 4),
+                    Corner(depthAxis, Math.Max(face, inner), hi, row * 4 + 4),
+                    slot, UvRule.Positional, RunAxis: runAxis);
+            }
+        }
+    }
+
     private static readonly string[] AllFaces = ["north", "east", "south", "west", "up", "down"];
 
     private static readonly Element[] WallElements =
@@ -114,6 +206,23 @@ public static class WallShapeGen
         new("back-logs", (3.5, 4.5, 0), (4, 7.5, 16), "back", UvRule.Flat, PositionalOverrides: ["east"]),
         new("back-logs", (3.5, 8.5, 0), (4, 11.5, 16), "back", UvRule.Flat, PositionalOverrides: ["east"]),
         new("back-logs", (3.5, 12.5, 0), (4, 15.5, 16), "back", UvRule.Flat, PositionalOverrides: ["east"]),
+        // clay/brick/four/running/cream1.png is 32px over a 16-voxel face: mortar rows at px 6-7,
+        // 14-15, 22-23 and 30-31 - a course every 4 voxels with one voxel of mortar at its foot -
+        // and two joints per course over 8-voxel units, with the bottom course offset.
+        .. RunningBond("front-brick", "front", 4, 8, 'x', 0, 1, 0, 16),
+        // stone/brick/{rock}1.png draws one vertical joint per course, not two: a single trough
+        // at px 16 on the upper course and px 31 on the lower, flat everywhere else, across
+        // andesite, granite, basalt, limestone and sandstone alike. So its units are 16 voxels
+        // wide on an 8-voxel course, and the offset course is the upper one - the opposite phase
+        // to brick.
+        .. RunningBond("front-ashlar", "front", 8, 16, 'x', 0, 1, 0, 16, flipBond: true),
+        // The room side is the same table with outer and inner swapped, so the units stand proud
+        // toward x 4 instead of x 0. Without it a brick partition is flat on the face you live
+        // beside while the elevation it backs onto has relief.
+        .. RunningBond("back-brick", "back", 4, 8, 'x', 4, 3, 0, 16),
+        .. RunningBond("back-ashlar", "back", 8, 16, 'x', 4, 3, 0, 16, flipBond: true),
+        .. RubbleGrid("front-rubble", "front", 'x', 0, 1, 0, 16),
+        .. RubbleGrid("back-rubble", "back", 'x', 4, 3, 0, 16),
     ];
 
     private static readonly Element[] CornerOutElements =
@@ -249,6 +358,19 @@ public static class WallShapeGen
         new("back-logs", (3, 4.5, 3.5), (16, 7.5, 4), "back", UvRule.Flat, PositionalOverrides: ["south"]),
         new("back-logs", (3, 8.5, 3.5), (16, 11.5, 4), "back", UvRule.Flat, PositionalOverrides: ["south"]),
         new("back-logs", (3, 12.5, 3.5), (16, 15.5, 4), "back", UvRule.Flat, PositionalOverrides: ["south"]),
+        .. RunningBond("front-brick", "front", 4, 8, 'x', 0, 1, 0, 16),
+        .. RunningBond("secondfront-brick", "secondfront", 4, 8, 'z', 0, 1, 1, 16),
+        .. RunningBond("front-ashlar", "front", 8, 16, 'x', 0, 1, 0, 16, flipBond: true),
+        .. RunningBond("secondfront-ashlar", "secondfront", 8, 16, 'z', 0, 1, 1, 16, flipBond: true),
+        // A back group covers both legs, the way back-logs does.
+        .. RunningBond("back-brick", "back", 4, 8, 'x', 4, 3, 4, 16),
+        .. RunningBond("back-brick", "back", 4, 8, 'z', 4, 3, 3, 16),
+        .. RunningBond("back-ashlar", "back", 8, 16, 'x', 4, 3, 4, 16, flipBond: true),
+        .. RunningBond("back-ashlar", "back", 8, 16, 'z', 4, 3, 3, 16, flipBond: true),
+        .. RubbleGrid("front-rubble", "front", 'x', 0, 1, 0, 16),
+        .. RubbleGrid("secondfront-rubble", "secondfront", 'z', 0, 1, 1, 16),
+        .. RubbleGrid("back-rubble", "back", 'x', 4, 3, 4, 16),
+        .. RubbleGrid("back-rubble", "back", 'z', 4, 3, 3, 16),
     ];
 
     private static readonly (string Slot, string Texture)[] WallTextures =
