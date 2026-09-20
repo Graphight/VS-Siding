@@ -57,4 +57,31 @@ public class WallShapeGenTests
 
         Assert.Equal([], offenders);
     }
+
+    // RunAxis is the generator's other piece of arithmetic, and the golden test cannot check it
+    // either - that file is regenerated from this same generator. The rule is that a split segment
+    // samples the texture at its own position along the run, so u must equal the box's own run
+    // coordinates. Restarting each segment at 0 is the bug this catches.
+    [Theory]
+    [InlineData("wall", "front-shakes", 2)]
+    [InlineData("cornerout", "front-shakes", 2)]
+    [InlineData("cornerout", "secondfront-shakes", 0)]
+    public void EverySplitShakeSamplesTheTextureAtItsOwnPositionAlongTheRun(
+        string layout, string group, int runAxis)
+    {
+        var boxes = WallShapeGen.Generate(layout)["elements"]!
+            .Where(e => (string)e["name"]! == group)
+            .ToArray();
+        var face = runAxis == 2 ? "west" : "north";
+
+        var expected = boxes
+            .Select(e => ((double)e["from"]![runAxis]!, (double)e["to"]![runAxis]!))
+            .ToArray();
+        var actual = boxes
+            .Select(e => e["faces"]![face]!["uv"]!)
+            .Select(uv => ((double)uv[0]!, (double)uv[2]!))
+            .ToArray();
+
+        Assert.Equal(expected, actual);
+    }
 }
