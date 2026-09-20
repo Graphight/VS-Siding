@@ -10,7 +10,7 @@ An idea that's been thought through but not acted on. Mutable — edit freely, a
 
 Build order — each one should be demoable in game before the next starts.
 
-- [`finish-style-choice`](finish-style-choice.md) — `weatherboard` and `boards` tool modes on planks, so partitions and room-side walls get the right face.
+Nothing open.
 
 ## Parked
 
