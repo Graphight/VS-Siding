@@ -321,20 +321,34 @@ public class SidingWallBlock : Block
         }
     }
 
-    public override int GetRetention(BlockPos pos, BlockFacing facing, EnumRetentionType type)
+    // The faces this block's panels actually cover: the hugged side, plus a cornerout's second leg.
+    internal bool ClaimsFace(BlockFacing facing)
     {
         string side = Variant["side"];
-        string layout = Variant["layout"];
-
-        bool claimed = facing.Code == side;
-        if (!claimed && layout == "cornerout")
-        {
-            claimed = facing.Code == CorneroutSecondFace[side];
-        }
-
-        var entity = api.World.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos);
-        return ComputeRetention(claimed, entity?.Framing, entity?.Infill, Attributes["Framings"], Attributes["Infills"]);
+        if (facing.Code == side) return true;
+        return Variant["layout"] == "cornerout" && facing.Code == CorneroutSecondFace[side];
     }
+
+    public override int GetRetention(BlockPos pos, BlockFacing facing, EnumRetentionType type)
+    {
+        var entity = api.World.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos);
+        return ComputeRetention(ClaimsFace(facing), entity?.Framing, entity?.Infill, Attributes["Framings"], Attributes["Infills"]);
+    }
+
+    // Vanilla derives this from SideSolid, which is false on every face (decision 0002) so a thin
+    // wall doesn't cull its neighbours - leaving every siding wall with a barrier of 0 and water
+    // pouring through the fluid layer. A wall that seals air seals water too, so this asks exactly
+    // what GetRetention asks. Glazing counts: it retains, so it dams, light notwithstanding.
+    public override float GetLiquidBarrierHeightOnSide(BlockFacing face, BlockPos pos)
+    {
+        var entity = api.World.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos);
+        return ComputeLiquidBarrier(ClaimsFace(face), entity?.Framing, entity?.Infill, Attributes["Framings"], Attributes["Infills"]);
+    }
+
+    // Full height or nothing: a wall either dams its face or it doesn't. A cooling infill retains
+    // negatively but still dams, so this asks whether retention is non-zero, not what sign it has.
+    internal static float ComputeLiquidBarrier(bool claimed, string? framingKey, string? infillKey, JsonObject framings, JsonObject infills)
+        => ComputeRetention(claimed, framingKey, infillKey, framings, infills) != 0 ? 1f : 0f;
 
     // sidesolid is false on every face (decision 0002), so base.GetRetention can't be
     // delegated to. A wall seals only once framing and infill are both built and still

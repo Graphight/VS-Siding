@@ -45,6 +45,28 @@ public class SidingWallEntityTests
                 "window", "oak", "glass", "planks", "planks", "planks", PlankFinishes, j)));
     }
 
+    // Three stacked infill boxes share a face at each seam; for glass that blends twice and draws
+    // a bright line where a cross-beam would be. Glazing must take the single full-cell pane
+    // instead, in every join state, and the pane must still count as infill for the render split.
+    [Fact]
+    public void GlazingTakesOneFullCellPaneInsteadOfTheFillerStack()
+    {
+        var joins = new[] { (false, false, false, false), (true, false, false, false), (true, true, false, false) };
+
+        Assert.Equal(
+            joins.ToDictionary(j => j, _ => new[] { "infill-pane" }),
+            joins.ToDictionary(j => j, j => SidingWallEntity.SelectiveElements(
+                "wall", "oak", "glass", null, null, null, NoElementFinishes, j, transparentInfill: true)
+                .Where(SidingWallEntity.IsInfillElement).ToArray()));
+
+        // Opaque infill is untouched: it still gets the slab plus a filler per merged side.
+        Assert.Equal(
+            new[] { "infill", "infill-top", "infill-bottom" },
+            SidingWallEntity.SelectiveElements(
+                "wall", "oak", "wattle", null, null, null, NoElementFinishes, (true, true, false, false))
+                .Where(SidingWallEntity.IsInfillElement).ToArray());
+    }
+
     // Glazing splits the mesh in two by this predicate, so a name landing on the wrong side
     // renders the frame see-through or the glass solid - neither of which throws.
     [Fact]

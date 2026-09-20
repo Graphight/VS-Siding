@@ -45,27 +45,48 @@ public class FinishElementGroupsTests
         Assert.Equal([], offenders);
     }
 
-    // The window layout takes no finish, so it has no finish groups to ignore - what matters
-    // instead is that every element SelectiveElements can name for a window actually exists.
-    [Fact]
-    public void WindowShapeHasEveryElementSelectiveElementsAsksFor()
+    // Every element name SelectiveElements can produce has to exist in the shape it draws from,
+    // for every layout and every join state. A name the shape lacks draws nothing and says
+    // nothing - which is how glazing silently kept its seam-prone filler stack.
+    [Theory]
+    [InlineData("wall")]
+    [InlineData("cornerout")]
+    [InlineData("window")]
+    public void EveryElementSelectiveElementsCanAskForExistsInItsShape(string layout)
     {
         var repoRoot = MaterialTextureOpacityTests.GetAssemblyMetadata("RepoRoot");
         var shapeJson = JObject.Parse(File.ReadAllText(
-            Path.Combine(repoRoot, "VSSiding", "assets", "vssiding", "shapes", "block", "wall", "window.json")));
+            Path.Combine(repoRoot, "VSSiding", "assets", "vssiding", "shapes", "block", "wall", layout + ".json")));
         var names = shapeJson["elements"]!.Select(e => (string)e["name"]!).ToHashSet();
 
-        var everyJoin =
+        var asked =
             from above in new[] { false, true }
             from below in new[] { false, true }
             from left in new[] { false, true }
             from right in new[] { false, true }
-            select (above, below, left, right);
-        var asked = everyJoin
-            .SelectMany(j => SidingWallEntity.SelectiveElements(
-                "window", "oak", "glass", null, null, null, new JsonObject(new JObject()), j))
-            .Distinct();
+            from transparent in new[] { false, true }
+            from name in SidingWallEntity.SelectiveElements(
+                layout, "oak", "glass", null, null, null, new JsonObject(new JObject()),
+                (above, below, left, right), transparent)
+            select name;
 
-        Assert.Equal([], asked.Where(name => !names.Contains(name)).ToArray());
+        Assert.Equal([], asked.Distinct().Where(name => !names.Contains(name)).ToArray());
+    }
+
+    // The glazing pane must not ride along on the block's default JSON shape.
+    [Fact]
+    public void EveryWallAndCorneroutVariantIgnoresTheGlazingPane()
+    {
+        var repoRoot = MaterialTextureOpacityTests.GetAssemblyMetadata("RepoRoot");
+        var wallJson = JObject.Parse(File.ReadAllText(
+            Path.Combine(repoRoot, "VSSiding", "assets", "vssiding", "blocktypes", "wall.json")));
+
+        var offenders = ((JObject)wallJson["shapebytype"]!).Properties()
+            .Where(v => (string)v.Value["base"]! != "block/wall/window")
+            .Where(v => v.Value["ignoreElements"]?.Select(t => (string)t!).Contains("infill-pane") != true)
+            .Select(v => v.Name)
+            .ToArray();
+
+        Assert.Equal([], offenders);
     }
 }

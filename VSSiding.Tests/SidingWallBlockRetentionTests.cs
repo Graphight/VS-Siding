@@ -97,6 +97,28 @@ public class SidingWallBlockRetentionTests
         Assert.Equal(1, SidingWallBlock.ComputeRetention(true, "oak", "glass", Framings, Infills));
     }
 
+    // Vanilla reads the liquid barrier off SideSolid, which decision 0002 turned off on every
+    // face - so without the override every wall leaked. Anything that seals air seals water,
+    // cooling infill and glazing included; an open frame and an unclaimed face do not.
+    [Fact]
+    public void OnlyASealedClaimedFaceDamsWater()
+    {
+        var cases = new[]
+        {
+            (claimed: true, framing: (string?)null, infill: (string?)null),
+            (true, "oak", null),
+            (true, "oak", "wattle"),
+            (true, "oak", "clay"),
+            (true, "oak", "glass"),
+            (true, "oak", "uninstalled"),
+            (false, "oak", "wattle"),
+        };
+
+        Assert.Equal(
+            new[] { 0f, 0f, 1f, 1f, 1f, 0f, 0f },
+            cases.Select(c => SidingWallBlock.ComputeLiquidBarrier(c.Item1, c.Item2, c.Item3, Framings, Infills)));
+    }
+
     // Glazing is the case that splits these two apart: sealed, so it retains, but not opaque.
     [Fact]
     public void OnlyAnOpaqueSealedWallAbsorbsLight()

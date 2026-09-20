@@ -62,7 +62,8 @@ public class SidingWallEntity : BlockEntity
         // An empty selectiveElements array matches zero shape elements, not "no filter". For an
         // unbuilt wall that means falling back to the block's default JSON shape; for a built one
         // it means drawing nothing, which is right for a window merged on all four sides.
-        string[] selectiveElements = SelectiveElements(layout, Framing, Infill, Front, SecondFront, Back, Block.Attributes["Finishes"], joins);
+        bool transparentInfill = SidingWallBlock.IsTransparent(Infill, Block.Attributes["Infills"]);
+        string[] selectiveElements = SelectiveElements(layout, Framing, Infill, Front, SecondFront, Back, Block.Attributes["Finishes"], joins, transparentInfill);
         if (selectiveElements.Length == 0) return Framing != null;
 
         string side = Block.Variant["side"];
@@ -75,7 +76,7 @@ public class SidingWallEntity : BlockEntity
                 capi, this, Block.Attributes["Framings"], Block.Attributes["Infills"], Block.Attributes["Finishes"]);
             var rotation = new Vec3f(0, RotationYDeg(side), 0);
 
-            if (!SidingWallBlock.IsTransparent(Infill, Block.Attributes["Infills"]))
+            if (!transparentInfill)
                 return new[] { Tesselate(tesselator, shape, texSource, rotation, selectiveElements) };
 
             // Glazing has to reach the transparent pool while its frame stays opaque, so the two
@@ -123,7 +124,7 @@ public class SidingWallEntity : BlockEntity
     // A join between stacked cells has no plates, so the infill extends across it (decision 0008).
     internal static string[] SelectiveElements(
         string layout, string? framing, string? infill, string? front, string? secondFront, string? back, JsonObject finishes,
-        (bool above, bool below, bool left, bool right) joins)
+        (bool above, bool below, bool left, bool right) joins, bool transparentInfill = false)
     {
         var (continuesAbove, continuesBelow) = (joins.above, joins.below);
         // A window's shape has none of the finish or infill-filler elements - it takes no finish
@@ -142,9 +143,17 @@ public class SidingWallEntity : BlockEntity
         }
         if (infill != null)
         {
-            names.Add("infill");
-            if (continuesAbove) names.Add("infill-top");
-            if (continuesBelow) names.Add("infill-bottom");
+            // Glazing is one flat pane spanning the whole cell rather than a slab plus fillers.
+            // Three stacked boxes share a face at each seam, and two coincident transparent quads
+            // blend twice over - a bright line exactly where a cross-beam would be. One pane also
+            // meets the pane above it edge on, so a glazed stack has no seams at all.
+            if (transparentInfill) names.Add("infill-pane");
+            else
+            {
+                names.Add("infill");
+                if (continuesAbove) names.Add("infill-top");
+                if (continuesBelow) names.Add("infill-bottom");
+            }
         }
         if (back != null) names.Add(finishes[back]["Elements"]["back"].AsString("back"));
         return names.ToArray();
