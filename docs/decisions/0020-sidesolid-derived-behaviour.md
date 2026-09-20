@@ -6,7 +6,7 @@
 
 ## Summary
 `wall.json` sets `sidesolid: { all: false }` for one rendering reason, and vanilla reads that same flag to answer seven unrelated questions.
-All seven are now decided: three were already answered by earlier decisions, `CanAttachBlockAt` gets an override here, and the remaining four are deliberately left false.
+All seven are now decided: two were already answered by earlier decisions, `CanAttachBlockAt` gets an override here, and the remaining four are deliberately left false.
 
 ## Context
 Decision 0002 turned `sidesolid` off on every face so a 4/16-thick wall doesn't cull its neighbours' faces.
@@ -53,7 +53,7 @@ Overriding them blind would have been the easy move and the wrong one:
 
 **The rule this leaves behind**, now in `CLAUDE.md`:
 when the mod overrides a vanilla *property* to get a rendering result, grep the API for every consumer of that property before shipping, because vanilla overloads its properties across unrelated systems.
-`grep -o 'M:Vintagestory.API.Common.Block.<Member>[^"]*' "$VINTAGE_STORY/VintagestoryAPI.xml"` gives the signatures in seconds, and reading `Block` for `SideSolid` would have caught all three of the bugs above in minutes.
+Only the method bodies name a consumer, so that means the decompiled DLL and both `Block` and `BlockBehavior`; `VintagestoryAPI.xml` confirms a member you already suspect but cannot enumerate them.
 
 ## Alternatives considered
 - **Set `sidesolid: true` and fix the culling another way.** The culling is why 0002 turned it off; turning it back on returns the original bug and breaks the thin-wall look.
@@ -62,6 +62,6 @@ when the mod overrides a vanilla *property* to get a rendering result, grep the 
 - **A `liquidBarrierOnSides` JSON attribute instead of the override** (decision 0019's territory). Vanilla supports it, but it is static, and whether a wall dams depends on block-entity state.
 
 ## Consequences & open questions
-- Whether `blockFace` arrives as the wall's own face or the attaching block's is settled by playtest, not by the API docs, which say only "used by torches and other blocks". If attachment turns out inverted, the fix is `ClaimsFace(blockFace.Opposite)` and nothing else changes.
+- `blockFace` is the wall's own face, not the attaching block's. `BlockBehavior.CanAttachBlockAt` in `VintagestoryAPI.xml` says the default "tests for `SideSolid[blockFace.Index]`", and `SideSolid` is the receiving block's own per-face array, so `ClaimsFace(blockFace)` is right as written. Finding that took reading `BlockBehavior` as well as `Block` — the first draft of this decision left it open because its grep was scoped to `Block.`, which is exactly the mistake the rule above now warns against.
 - Attaching to the *top* of a wall still falls through to vanilla, which says no. Nobody has asked for it.
-- This list is 1.21's. A game update can add a consumer, so the grep belongs in the update checklist rather than being done once.
+- This list is 1.21's. A game update can add a consumer, so the sweep belongs in the update checklist rather than being done once.
