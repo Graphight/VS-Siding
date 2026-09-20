@@ -25,7 +25,8 @@ public class MaterialTextureOpacityTests
     }
 
     // Every texture a material draws, and whether it must be opaque: a composite's overlays
-    // draw over an opaque base, so only the base is held to that.
+    // draw over an opaque base, so only the base is held to that. A Transparent material -
+    // glazing - is see-through on purpose, so its texture is exempt but must still exist.
     private static IEnumerable<(string Code, bool MustBeOpaque)> CollectTextureCodes(JObject wallJson, string dictName, string familiesName,
         List<(string, AssetLocation, IDictionary<string, string>)> candidates)
     {
@@ -34,13 +35,14 @@ public class MaterialTextureOpacityTests
         if (attributes[familiesName] is JObject families) dict = MaterialFamilies.Expand(families, dict, candidates);
         foreach (var entry in dict.Properties())
         {
-            if (entry.Value["BackTexture"] is JValue back) yield return ((string)back!, true);
+            bool opaque = (bool?)entry.Value["Transparent"] != true;
+            if (entry.Value["BackTexture"] is JValue back) yield return ((string)back!, opaque);
             if (entry.Value["Texture"] is not JObject composite)
             {
-                yield return ((string)entry.Value["Texture"]!, true);
+                yield return ((string)entry.Value["Texture"]!, opaque);
                 continue;
             }
-            yield return ((string)composite["base"]!, true);
+            yield return ((string)composite["base"]!, opaque);
             foreach (var overlay in composite["overlays"] ?? new JArray())
                 yield return ((string)overlay!, false);
             foreach (var overlay in composite["blendedOverlays"] ?? new JArray())
@@ -101,6 +103,9 @@ public class MaterialTextureOpacityTests
             .Concat(Candidates(vintageStoryPath, "item", "itemtypes/resource/clay.json"))
             .Concat(Candidates(vintageStoryPath, "item", "itemtypes/resource/daub.json"))
             .Concat(Candidates(vintageStoryPath, "block", "blocktypes/wood/woodtyped/log.json", 1, "{0}-placed-{1}-ud"))
+            .Concat(Candidates(vintageStoryPath, "block", "blocktypes/glass/full-plain.json"))
+            .Concat(Candidates(vintageStoryPath, "block", "blocktypes/glass/full-colored.json"))
+            .Concat(Candidates(vintageStoryPath, "block", "blocktypes/glass/full-quartz.json"))
             .ToList();
         var textureCodes = CollectTextureCodes(wallJson, "Framings", "FramingFamilies", candidates)
             .Concat(CollectTextureCodes(wallJson, "Infills", "InfillFamilies", candidates))
