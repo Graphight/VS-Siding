@@ -31,6 +31,7 @@ But the complaint underneath was true: shakes had weatherboard's silhouette. Sam
 - Recessed, never proud: a shake's outward face never passes the block bound, so wall thickness is unchanged.
 - Shake boundaries move course to course. That is the stagger, and it is the only thing keeping the four courses from reading as one vertical seam.
 - The shakes abut with no gaps between them; the depth step alone carries the joint. A gap would open a line straight into the wall cavity.
+- Splitting a course means the segments have to keep sampling the texture where they sit. Left alone, each of the four restarts at u 0 and the texture's first strip repeats across the run, erasing the painted grain variation the split was meant to add detail to. `RunAxis` on the generator (decision 0021) is what keeps the strip continuous.
 - Every shake box stays `UvRule.Positional`. That is what carries painted courses across stacked walls.
 - Element names `front-shakes` / `secondfront-shakes` are unchanged, so the blocktype's `ignoreElements` lists and `SelectiveElements` need no edits.
 - This was affordable only because of decision 0021. The profile is 96 rows of element table producing 11,717 lines of JSON across the two shape files, and it was retuned once after a playtest by editing a table of depths and rerunning `just shapes`. By hand it would have been three element groups written out longhand, twice over — `cornerout` pays for every front profile on both legs.

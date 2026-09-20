@@ -22,6 +22,7 @@ The per-element escape hatches are the interesting part:
 
 - **`RotatedFaces`**: `back-boards` rotates its outward face 90 degrees to stand plank grain upright (decision 0017 names this). One face on `wall`, two on `cornerout`.
 - **`PositionalOverrides`**: `back-logs` position-maps only its outward face while the rest of the log stays Flat — a per-face mix, not a per-element rule. 5 elements per leg.
+- **`RunAxis`**: names the axis a group runs along, so a box cut out of a longer one samples the texture at its own position on that axis instead of restarting at 0. Without it a course split into four segments shows the texture's first strip four times. Added when the shake courses were split; the same trap catches any future profile that subdivides an element.
 - **`Faces`**: `infill-pane` declares two faces, not six.
 - **Slot is explicit per element** rather than derived from the name, because `glazing-*` draws from `#framing`.
 - **Face order is part of the contract**: the golden test compares `JToken.ToString()` strings, not `JToken.DeepEquals`, so it catches key reordering too.
