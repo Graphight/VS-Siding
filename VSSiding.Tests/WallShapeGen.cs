@@ -11,7 +11,7 @@ namespace VSSiding.Tests;
 // courses land on the stepped lips and carry across stacked walls; up/down stay Flat either way.
 // RunAxis names the axis a group runs along. A box cut out of a longer one then samples the texture
 // at its own position on that axis, so a course split into segments keeps one continuous strip.
-// Three cases need more: back-boards rotates its outward face 90 to stand plank grain upright,
+// Three cases need more: the flat board groups rotate their outward face 90 to stand plank grain upright,
 // back-logs position-maps only its outward face, and infill-pane draws two of the six faces.
 public enum UvRule
 {
@@ -147,6 +147,7 @@ public static class WallShapeGen
         new("glazing-bottom", (1.25, 0.25, 0), (2.75, 2, 16), "framing", UvRule.Flat),
         new("back", (3, 0, 0), (4, 16, 16), "back", UvRule.Flat),
         new("back-boards", (3, 0, 0), (4, 16, 16), "back", UvRule.Flat, RotatedFaces: ["east"]),
+        new("front-boards", (0, 0, 0), (1, 16, 16), "front", UvRule.Flat, RotatedFaces: ["west"]),
         new("front-weatherboard", (0, 0, 0), (1, 1, 16), "front", UvRule.Course),
         new("front-weatherboard", (0.25, 1, 0), (1, 2, 16), "front", UvRule.Course),
         new("front-weatherboard", (0.5, 2, 0), (1, 3, 16), "front", UvRule.Course),
@@ -163,6 +164,22 @@ public static class WallShapeGen
         new("front-weatherboard", (0.25, 13, 0), (1, 14, 16), "front", UvRule.Course),
         new("front-weatherboard", (0.5, 14, 0), (1, 15, 16), "front", UvRule.Course),
         new("front-weatherboard", (0.75, 15, 0), (1, 16, 16), "front", UvRule.Course),
+        new("back-weatherboard", (3, 0, 0), (4, 1, 16), "back", UvRule.Course),
+        new("back-weatherboard", (3, 1, 0), (3.75, 2, 16), "back", UvRule.Course),
+        new("back-weatherboard", (3, 2, 0), (3.5, 3, 16), "back", UvRule.Course),
+        new("back-weatherboard", (3, 3, 0), (3.25, 4, 16), "back", UvRule.Course),
+        new("back-weatherboard", (3, 4, 0), (4, 5, 16), "back", UvRule.Course),
+        new("back-weatherboard", (3, 5, 0), (3.75, 6, 16), "back", UvRule.Course),
+        new("back-weatherboard", (3, 6, 0), (3.5, 7, 16), "back", UvRule.Course),
+        new("back-weatherboard", (3, 7, 0), (3.25, 8, 16), "back", UvRule.Course),
+        new("back-weatherboard", (3, 8, 0), (4, 9, 16), "back", UvRule.Course),
+        new("back-weatherboard", (3, 9, 0), (3.75, 10, 16), "back", UvRule.Course),
+        new("back-weatherboard", (3, 10, 0), (3.5, 11, 16), "back", UvRule.Course),
+        new("back-weatherboard", (3, 11, 0), (3.25, 12, 16), "back", UvRule.Course),
+        new("back-weatherboard", (3, 12, 0), (4, 13, 16), "back", UvRule.Course),
+        new("back-weatherboard", (3, 13, 0), (3.75, 14, 16), "back", UvRule.Course),
+        new("back-weatherboard", (3, 14, 0), (3.5, 15, 16), "back", UvRule.Course),
+        new("back-weatherboard", (3, 15, 0), (3.25, 16, 16), "back", UvRule.Course),
         // Weatherboard's lap (proud butt, recessed body) stays, but each course is cut into four
         // shakes along its run, and a shake keeps its depth through both bands - butt at d, body at
         // 0.5 + d - so it reads as one tile rather than a banded strip. Depths run 0 to 0.3 of a
@@ -280,6 +297,40 @@ public static class WallShapeGen
         new("secondfront-weatherboard", (1, 15, 0.75), (16, 16, 1), "secondfront", UvRule.Course),
         new("back-boards", (3, 0, 4), (4, 16, 16), "back", UvRule.Flat, RotatedFaces: ["east"]),
         new("back-boards", (3, 0, 3), (16, 16, 4), "back", UvRule.Flat, null, null, ["south"]),
+        new("front-boards", (0, 0, 0), (1, 16, 16), "front", UvRule.Flat, RotatedFaces: ["west"]),
+        new("secondfront-boards", (1, 0, 0), (16, 16, 1), "secondfront", UvRule.Flat, null, null, ["north"]),
+        new("back-weatherboard", (3, 0, 4), (4, 1, 16), "back", UvRule.Course),
+        new("back-weatherboard", (3, 0, 3), (16, 1, 4), "back", UvRule.Course),
+        new("back-weatherboard", (3, 1, 4), (3.75, 2, 16), "back", UvRule.Course),
+        new("back-weatherboard", (3, 1, 3), (16, 2, 3.75), "back", UvRule.Course),
+        new("back-weatherboard", (3, 2, 4), (3.5, 3, 16), "back", UvRule.Course),
+        new("back-weatherboard", (3, 2, 3), (16, 3, 3.5), "back", UvRule.Course),
+        new("back-weatherboard", (3, 3, 4), (3.25, 4, 16), "back", UvRule.Course),
+        new("back-weatherboard", (3, 3, 3), (16, 4, 3.25), "back", UvRule.Course),
+        new("back-weatherboard", (3, 4, 4), (4, 5, 16), "back", UvRule.Course),
+        new("back-weatherboard", (3, 4, 3), (16, 5, 4), "back", UvRule.Course),
+        new("back-weatherboard", (3, 5, 4), (3.75, 6, 16), "back", UvRule.Course),
+        new("back-weatherboard", (3, 5, 3), (16, 6, 3.75), "back", UvRule.Course),
+        new("back-weatherboard", (3, 6, 4), (3.5, 7, 16), "back", UvRule.Course),
+        new("back-weatherboard", (3, 6, 3), (16, 7, 3.5), "back", UvRule.Course),
+        new("back-weatherboard", (3, 7, 4), (3.25, 8, 16), "back", UvRule.Course),
+        new("back-weatherboard", (3, 7, 3), (16, 8, 3.25), "back", UvRule.Course),
+        new("back-weatherboard", (3, 8, 4), (4, 9, 16), "back", UvRule.Course),
+        new("back-weatherboard", (3, 8, 3), (16, 9, 4), "back", UvRule.Course),
+        new("back-weatherboard", (3, 9, 4), (3.75, 10, 16), "back", UvRule.Course),
+        new("back-weatherboard", (3, 9, 3), (16, 10, 3.75), "back", UvRule.Course),
+        new("back-weatherboard", (3, 10, 4), (3.5, 11, 16), "back", UvRule.Course),
+        new("back-weatherboard", (3, 10, 3), (16, 11, 3.5), "back", UvRule.Course),
+        new("back-weatherboard", (3, 11, 4), (3.25, 12, 16), "back", UvRule.Course),
+        new("back-weatherboard", (3, 11, 3), (16, 12, 3.25), "back", UvRule.Course),
+        new("back-weatherboard", (3, 12, 4), (4, 13, 16), "back", UvRule.Course),
+        new("back-weatherboard", (3, 12, 3), (16, 13, 4), "back", UvRule.Course),
+        new("back-weatherboard", (3, 13, 4), (3.75, 14, 16), "back", UvRule.Course),
+        new("back-weatherboard", (3, 13, 3), (16, 14, 3.75), "back", UvRule.Course),
+        new("back-weatherboard", (3, 14, 4), (3.5, 15, 16), "back", UvRule.Course),
+        new("back-weatherboard", (3, 14, 3), (16, 15, 3.5), "back", UvRule.Course),
+        new("back-weatherboard", (3, 15, 4), (3.25, 16, 16), "back", UvRule.Course),
+        new("back-weatherboard", (3, 15, 3), (16, 16, 3.25), "back", UvRule.Course),
         // Same tiling as wall's front-shakes (see the comment there), on both legs. The front leg
         // runs along z with depth along x; the second leg runs along x with depth along z, so its
         // shakes recess from z 0 - the outward face - and its body sits at 0.5 + d the same way.
