@@ -312,10 +312,10 @@ public static class WallShapeGen
     private static double Axis((double X, double Y, double Z) corner, char axis)
         => axis == 'x' ? corner.X : axis == 'y' ? corner.Y : corner.Z;
 
-    // A face lying flat against a box of the same name is never seen, and never conditionally so:
-    // one name is one selectiveElements group, so those boxes are drawn together or not at all.
-    // Cover has to be total. Abutting shakes meet at a shared plane but sit at different depths,
-    // and the shallower one leaves a strip of its neighbour's face showing.
+    // One name is one selectiveElements group, so boxes sharing a name are drawn together or not
+    // at all - a face flat against one of them is never seen, whatever the cell is built from.
+    // Cover has to be total: abutting shakes meet at a shared plane but sit at different depths,
+    // and the recessed one leaves a strip of its neighbour's face showing.
     private static bool IsBuried(Element element, string face, Element[] sameName)
     {
         var (axis, high) = face switch

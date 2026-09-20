@@ -38,11 +38,11 @@ That needs the game running and a built scene; the quad counts were decisive on 
 
 **Same name is the whole safety argument.** A name is a `selectiveElements` group, so boxes sharing one are drawn together or not at all — `front-shakes` is 32 boxes under one name, either all in the mesh or none of it.
 That makes the prune unconditional: no reasoning about build state, join state, finish or glazing enters into it, and the rule cannot be wrong for a combination nobody thought to check.
-The proposal expected per-combination pruning to be the interesting part. It turned out to be unnecessary for everything worth having.
+The proposal expected per-combination pruning to be the interesting part, and it turned out to be unnecessary for everything worth having.
 
-**Cover has to be total.** Two shakes abut at a shared plane but sit at different depths, and the shallower one leaves a strip of its neighbour's face showing — that strip *is* the joint the profile is made of (decision 0022).
+**Cover has to be total.** Two shakes abut at a shared plane but sit at different depths, and the recessed one leaves a strip of its neighbour's face showing — that strip *is* the joint the profile is made of (decision 0022).
 So the test is containment on both cross axes, not merely a shared plane. Partial cover keeps the face.
-Concretely, in the bottom course: the box at z 0–5 keeps all six faces because both its neighbours are recessed behind it, while the box at z 5–9 loses north and south to neighbours that stand proud of it at both ends.
+Concretely, in the bottom course: the box at z 0–5 keeps all six faces because its one neighbour sits recessed behind it, while the box at z 5–9 loses north and south to neighbours standing proud of it at both ends.
 
 **It lives in the generator, so nothing is hand-maintained.** `EmitElement` filters through `IsBuried` before emitting; the element table is untouched, and `just shapes` rewrites both files.
 
@@ -60,6 +60,6 @@ Three assertions carry the real weight — the literal face lists of the four bo
 ## Consequences & open questions
 
 - A new cladding profile gets the prune for free, because the rule reads the element table rather than the shape file.
-- Both shape files shrank by roughly a third of their lines; the diff is machine-written either way.
-- The saving is about a fifth of a clad wall's quads and nothing at all on a bare frame or a glazed pane, so it shows up in exactly the builds that have the most siding on screen.
+- `wall.json` went from 4,669 lines to 4,111 and `cornerout.json` from 8,706 to 7,536, both machine-written either way.
+- The saving is a fifth of a shakes-clad wall's quads, a ninth of a weatherboarded one's, and nothing at all on a bare frame or a glazed pane, so it lands on the builds carrying the most siding.
 - The depth numbers in the shake table are a tuning knob, and turning one now changes which faces are pruned as well as how the wall looks. The literal face-list test is what makes that visible rather than silent.

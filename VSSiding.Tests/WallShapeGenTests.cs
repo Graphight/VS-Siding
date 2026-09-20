@@ -10,6 +10,9 @@ namespace VSSiding.Tests;
 // The element table in WallShapeGen is a hand-transcribed reading of the uv derivation rules,
 // checked against the committed shape files it is meant to replace. If it drifts from what the
 // game actually loads, this is where that would show up.
+// The golden test cannot check the generator's own arithmetic - `just shapes` reblesses that file
+// from this same generator, so a wrong rule would pass against its own output. Every assertion
+// below it is therefore written out by hand rather than recomputed (decision 0021).
 public class WallShapeGenTests
 {
     [Theory]
@@ -58,10 +61,8 @@ public class WallShapeGenTests
         Assert.Equal([], offenders);
     }
 
-    // RunAxis is the generator's other piece of arithmetic, and the golden test cannot check it
-    // either - that file is regenerated from this same generator. The rule is that a split segment
-    // samples the texture at its own position along the run, so u must equal the box's own run
-    // coordinates. Restarting each segment at 0 is the bug this catches.
+    // A split segment samples the texture at its own position along the run, so u must equal the
+    // box's own run coordinates. Restarting each segment at 0 is the bug this catches.
     [Theory]
     [InlineData("wall", "front-shakes", 2)]
     [InlineData("cornerout", "front-shakes", 2)]
@@ -85,8 +86,8 @@ public class WallShapeGenTests
         Assert.Equal(expected, actual);
     }
 
-    // A box with no faces left is a box the tesselator draws nothing for, which is a silent hole
-    // rather than an error. The prune below is what could cause one.
+    // A box with no faces left is a box the tesselator draws nothing for: a hole in the wall, not
+    // an error. Only the prune can cause one.
     [Theory]
     [InlineData("wall")]
     [InlineData("cornerout")]
@@ -98,22 +99,21 @@ public class WallShapeGenTests
             .ToArray());
     }
 
-    // The same-name prune is arithmetic the golden test cannot check either - `just shapes`
-    // reblesses that file from this same generator. The bottom course of shakes carries every
-    // case in four boxes: each one is 1 voxel tall and they abut along z at 5, 9 and 13, with
-    // depths 0, 0.2, 0.1 and 0.3 (a bigger x offset means a deeper recess, so a smaller number
-    // sticks out further). A face goes only where the neighbour covers it outright.
+    // The bottom course of shakes carries every case of the prune in four boxes. They abut along
+    // z at 5, 9 and 13, at depths 0, 0.2, 0.1 and 0.3 - a depth is an x offset from the outward
+    // face, so the smaller number is the one standing proud.
     [Fact]
     public void AShakeDropsOnlyTheFaceItsDeeperNeighbourCoversEntirely()
     {
         string[][] expected =
         [
-            // Deepest of the four, so both neighbours leave a strip of it showing.
+            // Proudest of the four, so its neighbour leaves a strip of it showing.
             ["north", "east", "south", "west", "up", "down"],
-            // Boxed in at both ends by boxes that stand proud of it.
+            // Recessed behind both neighbours, so it loses both.
             ["east", "west", "up", "down"],
+            // Proud of the boxes at z 5 and z 13 alike.
             ["north", "east", "south", "west", "up", "down"],
-            // The box at z 9 stands proud of this one, the cell edge is past z 16.
+            // Recessed behind z 9; past z 16 is the cell edge, with no neighbour in this mesh.
             ["east", "south", "west", "up", "down"],
         ];
 
@@ -124,9 +124,7 @@ public class WallShapeGenTests
             .ToArray());
     }
 
-    // What the prune is actually for: the quads one built cell hands the tesselator. Written out
-    // rather than recomputed, so a rule that stopped pruning - or started pruning a face that
-    // shows - moves a number here instead of passing quietly.
+    // What the prune is actually for: the quads one built cell hands the tesselator.
     [Fact]
     public void EachBuiltCellHandsTheTesselatorThisManyQuads()
     {
@@ -199,9 +197,8 @@ public class WallShapeGenTests
         Assert.Equal(expected, actual);
     }
 
-    // UvRule.Course is more arithmetic the golden test cannot check: that file is regenerated from this same generator, so a wrong courseTop would be blessed
-    // by `just shapes` and still pass. These are the spans decision 0023 fixes, written out rather
-    // than recomputed, so the rule is checked against something other than its own output.
+    // These are the spans decision 0023 fixes. A wrong courseTop would restart the grain on every
+    // step of the taper.
     [Fact]
     public void EachWeatherboardStepSamplesTheTextureOnceDownItsCourse()
     {
