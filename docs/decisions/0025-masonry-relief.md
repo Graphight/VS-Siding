@@ -28,7 +28,8 @@ All are 32px over a 16-voxel face, so 2px is one voxel.
 | texture | horizontal joints | vertical joints | reading |
 | --- | --- | --- | --- |
 | `clay/brick/four/running/cream1` | px 6‑7, 14‑15, 22‑23, 30‑31 | px 14‑15 / 30‑31 on even bands, 6‑7 / 22‑23 on odd | course every **4 voxels**, 1 voxel of mortar at its foot; **8-voxel** units, running bond, half-unit offset |
-| `stone/brick/andesite1` (ashlar) | px 13‑15, 29‑31 | px ~14‑17 on band 0, 28‑31 on band 1 | course every **8 voxels**, same 8-voxel running bond |
+| `stone/brick/{rock}1` (ashlar) | px 13‑15, 29‑31 | **one** trough per course: px 16 upper, px 31 lower, flat elsewhere | course every **8 voxels**, **16-voxel** units, offset on the *upper* course — the opposite phase to brick |
+| `legacy/clay/brick/red1` (the old `brick`) | px 6, 14, 22, 30, one pixel wide | opposite phase to `cream1`, one pixel wide | half-voxel grid; whole-voxel geometry cannot land on it, so this finish was moved off it |
 | `stone/cobblestone/*`, `stone/drystone/*` | none — row means flat | none — column means flat | no grid at all |
 
 **And here is the thing that made this cheap: the painted grid already sits on the voxel grid.**
@@ -42,7 +43,8 @@ Per face at brick's pitch that is 10 lips plus 1 plane — 11 boxes, against sha
 
 **One emitter, parameterised.**
 `RunningBond(name, slot, coursePitch, unitWidth, depthAxis, outer, inner, runLo, runHi)` produces every regular group.
-Ashlar is brick with `coursePitch` 8.
+Ashlar is brick with `coursePitch` 8, `unitWidth` 16 and `flipBond: true`.
+Which course carries the offset is the texture's business, not the bond's, so `flipBond` is a parameter rather than a shared correction: brick starts its bottom course offset and ashlar starts its flush, and one flip for both would only move the error around.
 A back-slot group is the same call with `outer` and `inner` swapped, so the units stand proud toward x 4 instead of x 0.
 Units are laid out against the wall's own 0..16 grid and then clipped to the run, because `cornerout`'s second leg starts at 1 and still has to put its joints where the texture paints them.
 
@@ -82,7 +84,10 @@ Polished rock is smooth by definition and daub is a render. Relief on either wou
 
 ## Consequences & open questions
 - **Not yet checked in play.** What to look at: brick beside ashlar for the two pitches; a stacked brick wall for course continuity across the block boundary; both `cornerout` legs; a masonry wall beside a shake wall, since telling the three relief treatments apart is the point; and whether the rubble grid reads as rubble or as noise.
+- **Ashlar's units are 16 voxels, and this decision first said 8.** The error was assuming brick's unit width carried over instead of reading the texture: `stone/brick/*` draws one trough per course, not two, and reading two put three of every four modelled joints mid-stone. Caught in review, before merge. The lesson is decision 0022's own, and it needed relearning: measure each texture, never infer one from its neighbour.
+- **A modelled ashlar joint sits about half a voxel left of the painted one.** The paint centres its joint on voxel 8 and on the tile boundary; whole-voxel lips put the recess at 7‑8 and 15‑16. Both courses are off by the same half voxel, so the bond reads consistently, and closing it would mean half-voxel boxes for a joint one pixel wide. Left as is.
+- **The joint stays 1 voxel wide for both bonds, and is not a parameter.** `cream1` paints exactly 1; `stone/brick/*` paints about 1.5 horizontally and half a voxel vertically, which 1 splits. A parameter with one value in it is not earning its place yet.
 - **Rubble is the gamble.** It is one commit, and dropping it is the fallback if it reads as noise. Brick and ashlar are not — they agree with the paint by measurement.
-- Cost: `wall.json` went 68 to 134 elements and `cornerout.json` 127 to 250. Roughly half of that is rubble's 4x4 grid across four slots.
+- Cost: `wall.json` went 68 to 130 elements and `cornerout.json` 127 to 244. Ashlar is the cheapest finish in the mod — 16-voxel units leave barely any lips — and rubble is much the dearest. Roughly half of that is rubble's 4x4 grid across four slots.
 - The depths in `RubbleDepths` and the cuts in `RubbleCuts` are a tuning knob, the same way the shake depths are: a table edit and a `just shapes`.
 - `MortarDepth` is one constant. If 0.25 of a voxel does not read at walking distance, that is the number to turn.

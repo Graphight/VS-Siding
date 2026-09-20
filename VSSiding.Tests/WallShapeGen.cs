@@ -54,7 +54,7 @@ public static class WallShapeGen
     // joints where the texture paints them.
     private static IEnumerable<Element> RunningBond(
         string name, string slot, double coursePitch, double unitWidth,
-        char depthAxis, double outer, double inner, double runLo, double runHi)
+        char depthAxis, double outer, double inner, double runLo, double runHi, bool flipBond = false)
     {
         char runAxis = depthAxis == 'x' ? 'z' : 'x';
         double lip = outer + Math.Sign(inner - outer) * MortarDepth;
@@ -69,8 +69,10 @@ public static class WallShapeGen
         for (double y = 0; y < 16; y += coursePitch)
         {
             // The mortar line is the bottom voxel of a course, and the joints step half a unit
-            // every other course - that is the running bond the texture draws.
-            double offset = (y / coursePitch) % 2 == 0 ? unitWidth / 2 : 0;
+            // every other course - that is the running bond the texture draws. Which course gets
+            // the offset is the texture's business, not the bond's: brick starts offset and ashlar
+            // starts flush, so a shared flip would only move the error around.
+            double offset = ((y / coursePitch) % 2 == 0) != flipBond ? unitWidth / 2 : 0;
             for (double u = offset - unitWidth; u < 16; u += unitWidth)
             {
                 double lo = Math.Max(u, runLo), hi = Math.Min(u + unitWidth - 1, runHi);
@@ -207,15 +209,17 @@ public static class WallShapeGen
         new("back-logs", (3.5, 8.5, 0), (4, 11.5, 16), "back", UvRule.Flat, PositionalOverrides: ["east"]),
         new("back-logs", (3.5, 12.5, 0), (4, 15.5, 16), "back", UvRule.Flat, PositionalOverrides: ["east"]),
         .. RunningBond("front-brick", "front", 4, 8, 'x', 0, 1, 0, 16),
-        // stone/brick/andesite1.png draws the same running bond over 8-voxel units, but its
-        // joints sit at px 13-15 and 29-31 - a course every 8 voxels, not 4. Same table, one
-        // different number, which is the whole reason the course pitch is a parameter.
-        .. RunningBond("front-ashlar", "front", 8, 8, 'x', 0, 1, 0, 16),
+        // stone/brick/{rock}1.png draws one vertical joint per course, not two: a single trough
+        // at px 16 on the upper course and px 31 on the lower, flat everywhere else, across
+        // andesite, granite, basalt, limestone and sandstone alike. So its units are 16 voxels
+        // wide on an 8-voxel course, and the offset course is the upper one - the opposite phase
+        // to brick.
+        .. RunningBond("front-ashlar", "front", 8, 16, 'x', 0, 1, 0, 16, flipBond: true),
         // The room side is the same table with outer and inner swapped, so the units stand proud
         // toward x 4 instead of x 0. Without it a brick partition is flat on the face you live
         // beside while the elevation it backs onto has relief.
         .. RunningBond("back-brick", "back", 4, 8, 'x', 4, 3, 0, 16),
-        .. RunningBond("back-ashlar", "back", 8, 8, 'x', 4, 3, 0, 16),
+        .. RunningBond("back-ashlar", "back", 8, 16, 'x', 4, 3, 0, 16, flipBond: true),
         .. RubbleGrid("front-rubble", "front", 'x', 0, 1, 0, 16),
         .. RubbleGrid("back-rubble", "back", 'x', 4, 3, 0, 16),
     ];
@@ -355,13 +359,13 @@ public static class WallShapeGen
         new("back-logs", (3, 12.5, 3.5), (16, 15.5, 4), "back", UvRule.Flat, PositionalOverrides: ["south"]),
         .. RunningBond("front-brick", "front", 4, 8, 'x', 0, 1, 0, 16),
         .. RunningBond("secondfront-brick", "secondfront", 4, 8, 'z', 0, 1, 1, 16),
-        .. RunningBond("front-ashlar", "front", 8, 8, 'x', 0, 1, 0, 16),
-        .. RunningBond("secondfront-ashlar", "secondfront", 8, 8, 'z', 0, 1, 1, 16),
+        .. RunningBond("front-ashlar", "front", 8, 16, 'x', 0, 1, 0, 16, flipBond: true),
+        .. RunningBond("secondfront-ashlar", "secondfront", 8, 16, 'z', 0, 1, 1, 16, flipBond: true),
         // A back group covers both legs, the way back-logs does.
         .. RunningBond("back-brick", "back", 4, 8, 'x', 4, 3, 4, 16),
         .. RunningBond("back-brick", "back", 4, 8, 'z', 4, 3, 3, 16),
-        .. RunningBond("back-ashlar", "back", 8, 8, 'x', 4, 3, 4, 16),
-        .. RunningBond("back-ashlar", "back", 8, 8, 'z', 4, 3, 3, 16),
+        .. RunningBond("back-ashlar", "back", 8, 16, 'x', 4, 3, 4, 16, flipBond: true),
+        .. RunningBond("back-ashlar", "back", 8, 16, 'z', 4, 3, 3, 16, flipBond: true),
         .. RubbleGrid("front-rubble", "front", 'x', 0, 1, 0, 16),
         .. RubbleGrid("secondfront-rubble", "secondfront", 'z', 0, 1, 1, 16),
         .. RubbleGrid("back-rubble", "back", 'x', 4, 3, 4, 16),
