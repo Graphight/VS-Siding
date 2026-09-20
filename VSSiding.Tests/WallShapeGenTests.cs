@@ -148,6 +148,10 @@ public class WallShapeGenTests
             ["cornerout shakes both faces"] = 400,
             ["cornerout glazed"] = 46,
             ["cornerout glazed, merged all round"] = 22,
+            ["wall shakes front, daub elsewhere"] = 185,
+            ["cornerout shakes front, daub elsewhere"] = 220,
+            ["wall weatherboard front, shakes back"] = 137,
+            ["cornerout weatherboard front, shakes back"] = 332,
         };
 
         var finishes = SidingWallEntityTests.Dict("""
@@ -158,16 +162,22 @@ public class WallShapeGenTests
         }
         """);
 
-        (string State, string? Infill, string? Finish, (bool, bool, bool, bool) Joins, bool Glazed)[] states =
+        // Front, second front and back are picked independently (decisions 0007 and 0009), so the
+        // last two rows give each face a different finish. The same-name prune is per element
+        // group, and those groups only stay independent if a mixed cell still names all three.
+        (string State, string? Infill, string? Front, string? SecondFront, string? Back,
+            (bool, bool, bool, bool) Joins, bool Glazed)[] states =
         [
-            ("bare frame", null, null, (false, false, false, false), false),
-            ("wattle", "wattle", null, (false, false, false, false), false),
-            ("wattle, mid-stack", "wattle", null, (true, true, false, false), false),
-            ("daub both faces", "wattle", "daub", (false, false, false, false), false),
-            ("weatherboard both faces", "wattle", "planks", (false, false, false, false), false),
-            ("shakes both faces", "wattle", "shakes", (false, false, false, false), false),
-            ("glazed", "glass", null, (false, false, false, false), true),
-            ("glazed, merged all round", "glass", null, (true, true, true, true), true),
+            ("bare frame", null, null, null, null, (false, false, false, false), false),
+            ("wattle", "wattle", null, null, null, (false, false, false, false), false),
+            ("wattle, mid-stack", "wattle", null, null, null, (true, true, false, false), false),
+            ("daub both faces", "wattle", "daub", "daub", "daub", (false, false, false, false), false),
+            ("weatherboard both faces", "wattle", "planks", "planks", "planks", (false, false, false, false), false),
+            ("shakes both faces", "wattle", "shakes", "shakes", "shakes", (false, false, false, false), false),
+            ("glazed", "glass", null, null, null, (false, false, false, false), true),
+            ("glazed, merged all round", "glass", null, null, null, (true, true, true, true), true),
+            ("shakes front, daub elsewhere", "wattle", "shakes", "daub", "daub", (false, false, false, false), false),
+            ("weatherboard front, shakes back", "wattle", "planks", "shakes", "shakes", (false, false, false, false), false),
         ];
 
         var actual = new Dictionary<string, int>();
@@ -177,10 +187,10 @@ public class WallShapeGenTests
                 .GroupBy(e => (string)e["name"]!)
                 .ToDictionary(g => g.Key, g => g.Sum(e => ((JObject)e["faces"]!).Properties().Count()));
 
-            foreach (var (state, infill, finish, joins, glazed) in states)
+            foreach (var (state, infill, front, secondFront, back, joins, glazed) in states)
             {
                 var names = SidingWallEntity.SelectiveElements(
-                    layout, "oak", infill, finish, layout == "cornerout" ? finish : null, finish,
+                    layout, "oak", infill, front, layout == "cornerout" ? secondFront : null, back,
                     finishes, joins, glazed);
                 actual[$"{layout} {state}"] = names.Sum(n => quads[n]);
             }
