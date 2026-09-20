@@ -103,9 +103,9 @@ public class SidingWallBlockRetentionTests
     [Fact]
     public void OnlyASealedClaimedFaceDamsWater()
     {
-        var cases = new[]
+        var cases = new (bool claimed, string? framing, string? infill)[]
         {
-            (claimed: true, framing: (string?)null, infill: (string?)null),
+            (true, null, null),
             (true, "oak", null),
             (true, "oak", "wattle"),
             (true, "oak", "clay"),
@@ -116,7 +116,7 @@ public class SidingWallBlockRetentionTests
 
         Assert.Equal(
             new[] { 0f, 0f, 1f, 1f, 1f, 0f, 0f },
-            cases.Select(c => SidingWallBlock.ComputeLiquidBarrier(c.Item1, c.Item2, c.Item3, Framings, Infills)));
+            cases.Select(c => SidingWallBlock.ComputeLiquidBarrier(c.claimed, c.framing, c.infill, Framings, Infills)));
     }
 
     // Glazing is the case that splits these two apart: sealed, so it retains, but not opaque.

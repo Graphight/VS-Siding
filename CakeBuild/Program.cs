@@ -7,7 +7,6 @@ using Cake.Common.Tools.DotNet.Clean;
 using Cake.Common.Tools.DotNet.Publish;
 using Cake.Core;
 using Cake.Frosting;
-using Cake.Json;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Vintagestory.API.Common;
@@ -30,14 +29,12 @@ public class BuildContext : FrostingContext
     public string BuildConfiguration { get; }
     public string Version { get; }
     public string Name { get; }
-    public bool SkipJsonValidation { get; }
 
     public BuildContext(ICakeContext context)
         : base(context)
     {
         BuildConfiguration = context.Argument("configuration", "Release");
-        SkipJsonValidation = context.Argument("skipJsonValidation", false);
-        var modInfo = context.DeserializeJsonFromFile<ModInfo>($"../{ProjectName}/modinfo.json");
+        var modInfo = JsonConvert.DeserializeObject<ModInfo>(File.ReadAllText($"../{ProjectName}/modinfo.json"))!;
         Version = modInfo.Version;
         Name = modInfo.ModID;
     }
@@ -48,11 +45,6 @@ public sealed class ValidateJsonTask : FrostingTask<BuildContext>
 {
     public override void Run(BuildContext context)
     {
-        if (context.SkipJsonValidation)
-        {
-            return;
-        }
-
         var jsonFiles = context.GetFiles($"../{BuildContext.ProjectName}/assets/**/*.json");
         foreach (var file in jsonFiles)
         {

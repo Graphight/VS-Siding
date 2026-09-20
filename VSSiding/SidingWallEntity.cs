@@ -59,12 +59,12 @@ public class SidingWallEntity : BlockEntity
 
         var joins = ((SidingWallBlock)Block).NeighbourJoins(Api.World.BlockAccessor, Pos, Infill);
 
-        // An empty selectiveElements array matches zero shape elements, not "no filter". For an
-        // unbuilt wall that means falling back to the block's default JSON shape; for a built one
-        // it means drawing nothing, which is right for glazing merged on all four sides.
+        // An empty selectiveElements array matches zero shape elements, not "no filter", and any
+        // built cell names at least one - glazing merged on every side still draws its pane. So
+        // empty means nothing is built, and the block's default JSON shape stands in.
         bool glazed = SidingWallBlock.IsTransparent(Infill, Block.Attributes["Infills"]);
         string[] selectiveElements = SelectiveElements(layout, Framing, Infill, Front, SecondFront, Back, Block.Attributes["Finishes"], joins, glazed);
-        if (selectiveElements.Length == 0) return Framing != null;
+        if (selectiveElements.Length == 0) return false;
 
         string side = Block.Variant["side"];
         string cacheKey = CacheKey(layout, side, Framing, Infill, Front, SecondFront, Back, joins);

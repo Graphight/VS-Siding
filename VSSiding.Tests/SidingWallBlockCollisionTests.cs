@@ -3,6 +3,8 @@ using Vintagestory.API.MathTools;
 using System;
 using System.Linq;
 using Vintagestory.API.Common;
+using Newtonsoft.Json.Linq;
+using Vintagestory.API.Datastructures;
 using Xunit;
 
 namespace VSSiding.Tests;
@@ -161,4 +163,26 @@ public class SidingWallBlockCollisionTests
             rotated,
             new[] { "west", "south", "east", "north" }.ToDictionary(side => side, side => SidingWallBlock.RunNeighbours(side).left.Code));
     }
+    // The rule that stops a glass sheet swallowing the post where it meets a solid wall. Only the
+    // block-level half of ContinuesGlazing (same layout, same side) needs a world; this is the
+    // half that decides, given two cells that are already on the same run.
+    [Theory]
+    [InlineData("glass", "oak", "glass", true)]      // glazing into glazing: the post goes
+    [InlineData("glass", "oak", "wattle", false)]    // glazing into opaque fill: the post stays
+    [InlineData("glass", "oak", null, false)]        // glazing into a bare frame: not the same wall
+    [InlineData("glass", null, "glass", false)]      // no framing next door at all
+    [InlineData("glass", "oak", "uninstalled", false)] // a key no longer in the dictionary
+    public void GlazingMergesOnlyIntoGlazing(string? infill, string? neighbourFraming, string? neighbourInfill, bool expected)
+    {
+        var infills = new JsonObject(JToken.Parse("""
+        {
+            "wattle": { "BlockMaterial": "Wood" },
+            "glass": { "BlockMaterial": "Glass", "Transparent": true }
+        }
+        """));
+        var neighbour = new SidingWallEntity { Framing = neighbourFraming, Infill = neighbourInfill };
+
+        Assert.Equal(expected, SidingWallBlock.ContinuesGlazing(infill, neighbour, infills));
+    }
+
 }

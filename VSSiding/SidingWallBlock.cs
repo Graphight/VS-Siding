@@ -124,11 +124,14 @@ public class SidingWallBlock : Block
         return (JoinsAbove(ContinuesFrame(blockAccessor, pos.UpCopy(), infill), cellsBelow), cellsBelow > 0, false, false);
     }
 
-    // Glazing only merges into more glazing: against a wattle-filled neighbour the post stays,
-    // because that is a join between two different walls, not one continuous sheet.
     private bool ContinuesGlazing(IBlockAccessor blockAccessor, BlockPos neighbourPos, string? infill)
-        => ContinuesFrame(blockAccessor, neighbourPos, infill)
-            && IsTransparent(blockAccessor.GetBlockEntity<SidingWallEntity>(neighbourPos)?.Infill, Attributes["Infills"]);
+        => SameRun(blockAccessor, neighbourPos)
+            && ContinuesGlazing(infill, blockAccessor.GetBlockEntity<SidingWallEntity>(neighbourPos), Attributes["Infills"]);
+
+    // Glazing only merges into more glazing: against a wattle-filled neighbour, or a bare frame,
+    // the post stays - that is a join between two different walls, not one continuous sheet.
+    internal static bool ContinuesGlazing(string? infill, SidingWallEntity? neighbour, JsonObject infills)
+        => SharesStack(infill, neighbour) && IsTransparent(neighbour?.Infill, infills);
 
     internal static bool JoinsAbove(bool continuesAbove, int cellsBelow) => continuesAbove && cellsBelow % 2 == 0;
 
@@ -141,13 +144,15 @@ public class SidingWallBlock : Block
         return (left, left.Opposite);
     }
 
+    // Same shape, same face: a wall only ever joins another leg of the same run.
+    private bool SameRun(IBlockAccessor blockAccessor, BlockPos neighbourPos)
+        => blockAccessor.GetBlock(neighbourPos) is SidingWallBlock neighbour
+            && neighbour.Variant["layout"] == Variant["layout"]
+            && neighbour.Variant["side"] == Variant["side"];
+
     private bool ContinuesFrame(IBlockAccessor blockAccessor, BlockPos neighbourPos, string? infill)
-    {
-        if (blockAccessor.GetBlock(neighbourPos) is not SidingWallBlock neighbourBlock) return false;
-        if (neighbourBlock.Variant["layout"] != Variant["layout"]) return false;
-        if (neighbourBlock.Variant["side"] != Variant["side"]) return false;
-        return SharesStack(infill, blockAccessor.GetBlockEntity<SidingWallEntity>(neighbourPos));
-    }
+        => SameRun(blockAccessor, neighbourPos)
+            && SharesStack(infill, blockAccessor.GetBlockEntity<SidingWallEntity>(neighbourPos));
 
     // Any framing counts, so mixed woods are one stack, but open and filled cells aren't:
     // a plate marks where a doorway frame meets filled wall (decision 0008).
@@ -294,10 +299,14 @@ public class SidingWallBlock : Block
         base.OnNeighbourBlockChange(world, pos, neibpos);
         if (neibpos.X != pos.X || neibpos.Z != pos.Z)
         {
-            // Glazing merges with the cells either side of it, so a change along the run redraws
-            // this one. Just this cell: merging is local, so nothing propagates past the neighbour.
-            if (neibpos.Y == pos.Y)
-                world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos)?.MarkDirty(true);
+            // Only glazing merges sideways, and only along its own run, so those are the only
+            // horizontal neighbours that can change what this cell draws - an opaque wall never
+            // joins one. Just this cell: merging is local, nothing propagates past the neighbour.
+            if (neibpos.Y != pos.Y || Variant["layout"] == "cornerout") return;
+            var entity = world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos);
+            if (entity == null || !IsTransparent(entity.Infill, Attributes["Infills"])) return;
+            var (left, right) = RunNeighbours(Variant["side"]);
+            if (neibpos.Equals(pos.AddCopy(left)) || neibpos.Equals(pos.AddCopy(right))) entity.MarkDirty(true);
             return;
         }
         if (neibpos.Y == pos.Y + 1) world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos)?.MarkDirty(true);
@@ -310,7 +319,9 @@ public class SidingWallBlock : Block
         world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos.DownCopy())?.MarkDirty(true);
         MarkStackDirtyFrom(world, pos.UpCopy());
 
-        // Glazing also merges sideways, and only with the cell it touches - no walk needed.
+        // Unconditional, unlike OnNeighbourBlockChange's check on this cell's own glazing: this
+        // fires when infill changes, and peeling glass out has to redraw the neighbours that were
+        // merged with it - by which point this cell is no longer glazed. No walk either way.
         if (world.BlockAccessor.GetBlock(pos) is not SidingWallBlock block || block.Variant["layout"] == "cornerout") return;
         var (left, right) = RunNeighbours(block.Variant["side"]);
         world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos.AddCopy(left))?.MarkDirty(true);
