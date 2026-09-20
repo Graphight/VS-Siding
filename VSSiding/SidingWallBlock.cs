@@ -338,12 +338,10 @@ public class SidingWallBlock : Block
     }
 
     // The faces this block's panels actually cover: the hugged side, plus a cornerout's second leg.
-    internal bool ClaimsFace(BlockFacing facing)
-    {
-        string side = Variant["side"];
-        if (facing.Code == side) return true;
-        return Variant["layout"] == "cornerout" && facing.Code == CorneroutSecondFace[side];
-    }
+    internal bool ClaimsFace(BlockFacing facing) => ClaimsFace(Variant["layout"], Variant["side"], facing.Code);
+
+    internal static bool ClaimsFace(string layout, string side, string faceCode)
+        => faceCode == side || (layout == "cornerout" && faceCode == CorneroutSecondFace[side]);
 
     public override int GetRetention(BlockPos pos, BlockFacing facing, EnumRetentionType type)
     {
@@ -365,6 +363,14 @@ public class SidingWallBlock : Block
     // negatively but still dams, so this asks whether retention is non-zero, not what sign it has.
     internal static float ComputeLiquidBarrier(bool claimed, string? framingKey, string? infillKey, JsonObject framings, JsonObject infills)
         => ComputeRetention(claimed, framingKey, infillKey, framings, infills) != 0 ? 1f : 0f;
+
+    // Another SideSolid consumer (decision 0020): with sidesolid off, nothing could be hung on any
+    // siding wall. attachmentArea is ignored - a sealed face is solid across its whole 16x16.
+    public override bool CanAttachBlockAt(IBlockAccessor blockAccessor, Block block, BlockPos pos, BlockFacing blockFace, Cuboidi? attachmentArea = null)
+    {
+        var entity = blockAccessor.GetBlockEntity<SidingWallEntity>(pos);
+        return ComputeRetention(ClaimsFace(blockFace), entity?.Framing, entity?.Infill, Attributes["Framings"], Attributes["Infills"]) != 0;
+    }
 
     // sidesolid is false on every face (decision 0002), so base.GetRetention can't be
     // delegated to. A wall seals only once framing and infill are both built and still
