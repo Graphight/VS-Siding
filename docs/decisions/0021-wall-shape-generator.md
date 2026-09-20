@@ -50,4 +50,6 @@ Decision 0022 covers the shakes question itself.
 - Adding a cladding profile is now a table edit rather than three hand-written element groups.
 - The `buried-shape-faces` proposal becomes a generator rule rather than a hand edit across 6,751 lines.
 - One-time cost already paid: the regeneration commit rewrote both files wholesale (semantically identical, verified).
-- The table is transcribed from the shapes it replaces, so the golden test is what makes it trustworthy — it is not decoration.
+- The table is transcribed from the shapes it replaces, so the golden test is what makes that transcription trustworthy — it is not decoration.
+- **But the golden test only proves what it can see, and its ground truth expires.** It compared the generator against hand-written files exactly once, at the commit before the regeneration. From then on it compares the generator against a file `just shapes` rewrites from that same generator, so it catches drift between the table and the committed JSON and nothing else. Any rule added afterwards would produce a self-consistent wrong shape file and stay green.
+- So new arithmetic in the emitter needs its own assertion, written as literal expected values rather than recomputed from the rule. `RunAxis` has one; the bounds test covers `from`/`to` but never opens `faces`, which is the gap that made this explicit.
