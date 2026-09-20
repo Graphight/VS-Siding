@@ -338,12 +338,10 @@ public class SidingWallBlock : Block
     }
 
     // The faces this block's panels actually cover: the hugged side, plus a cornerout's second leg.
-    internal bool ClaimsFace(BlockFacing facing)
-    {
-        string side = Variant["side"];
-        if (facing.Code == side) return true;
-        return Variant["layout"] == "cornerout" && facing.Code == CorneroutSecondFace[side];
-    }
+    internal bool ClaimsFace(BlockFacing facing) => ClaimsFace(Variant["layout"], Variant["side"], facing.Code);
+
+    internal static bool ClaimsFace(string layout, string side, string faceCode)
+        => faceCode == side || (layout == "cornerout" && faceCode == CorneroutSecondFace[side]);
 
     public override int GetRetention(BlockPos pos, BlockFacing facing, EnumRetentionType type)
     {
