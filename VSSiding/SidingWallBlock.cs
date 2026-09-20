@@ -144,6 +144,19 @@ public class SidingWallBlock : Block
         return (left, left.Opposite);
     }
 
+    // Which cornerout a wall becomes when it's upgraded in place: the new leg goes on the end
+    // of the run the player clicked nearer. cornerout-`side` puts its second leg on the left
+    // end, and cornerout-`right` puts its own second leg back on `side` - so the leg it adds
+    // is the right end. Which end is nearer is the sign of the hit point's offset from the
+    // cell's centre along the left facing; the axis flips per side, so it can't be a fixed
+    // "coordinate < 0.5". Dead centre goes right, arbitrarily but consistently.
+    internal static string ResolveCornerUpgrade(string side, Vec3d hitPosition)
+    {
+        var (left, right) = RunNeighbours(side);
+        double towardsLeft = (hitPosition.X - 0.5) * left.Normali.X + (hitPosition.Z - 0.5) * left.Normali.Z;
+        return towardsLeft > 0 ? side : right.Code;
+    }
+
     // Same shape, same face: a wall only ever joins another leg of the same run.
     private bool SameRun(IBlockAccessor blockAccessor, BlockPos neighbourPos)
         => blockAccessor.GetBlock(neighbourPos) is SidingWallBlock neighbour

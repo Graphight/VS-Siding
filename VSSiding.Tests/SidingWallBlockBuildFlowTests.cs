@@ -121,6 +121,40 @@ public class SidingWallBlockBuildFlowTests
         Assert.Equal(expected, SidingWallBlock.ResolveFinishFace(layout, side, BlockFacing.FromCode(clicked)));
     }
 
+    // Every wall is one leg of two possible corners, and the click picks which by which end of
+    // the run it landed nearer. The run's axis and its direction both change with `side`, so all
+    // four sides are here at both ends: a fixed "coordinate below 0.5" gets east and south wrong.
+    [Fact]
+    public void CornerUpgradePutsTheNewLegOnTheEndClicked()
+    {
+        var hits = new Dictionary<(string side, string end), Vec3d>
+        {
+            [("west", "north")] = new(0, 0.5, 0.2),
+            [("west", "south")] = new(0, 0.5, 0.8),
+            [("east", "north")] = new(1, 0.5, 0.2),
+            [("east", "south")] = new(1, 0.5, 0.8),
+            [("north", "west")] = new(0.2, 0.5, 0),
+            [("north", "east")] = new(0.8, 0.5, 0),
+            [("south", "west")] = new(0.2, 0.5, 1),
+            [("south", "east")] = new(0.8, 0.5, 1),
+        };
+
+        // Each value is the cornerout whose two legs are the wall's own face plus the end clicked.
+        Assert.Equal(
+            new Dictionary<(string, string), string>
+            {
+                [("west", "north")] = "west",
+                [("west", "south")] = "south",
+                [("east", "north")] = "north",
+                [("east", "south")] = "east",
+                [("north", "west")] = "west",
+                [("north", "east")] = "north",
+                [("south", "west")] = "south",
+                [("south", "east")] = "east",
+            },
+            hits.ToDictionary(hit => hit.Key, hit => SidingWallBlock.ResolveCornerUpgrade(hit.Key.side, hit.Value)));
+    }
+
     [Fact]
     public void CanAffordIsTrueWhenStackCoversQuantity()
     {
