@@ -40,6 +40,9 @@ The game loads the zip as-is; don't unpack it.
 
 **`*Families` dictionaries are templates, not materials.** `FramingFamilies`/`InfillFamilies`/`FinishFamilies` entries (e.g. `"{wood}"`) expand into one `Framings`/`Infills`/`Finishes` entry per matching item or block in `SidingModSystem.AssetsFinalize` (`MaterialFamilies.Expand`); explicit entries win. See decision 0010.
 
+
+**Overriding a vanilla property for a rendering result means grepping every consumer of it first.** Vanilla overloads its properties across unrelated systems: `sidesolid: false` was set so thin walls don't cull neighbours, and vanilla reads that same flag for retention, liquid barriers, attachment, snow, mob spawns and more — three shipped bugs before anyone read the list. `grep -o 'M:Vintagestory.API.Common.Block.<Member>[^"]*' "$VINTAGE_STORY/VintagestoryAPI.xml"` takes seconds. Redo it on a game update; decision 0020's table is 1.21's.
+
 ## Design docs
 
 `docs/proposals/` — draft ideas, each sized to one session, mutable.
