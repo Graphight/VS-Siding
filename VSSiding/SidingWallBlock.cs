@@ -367,9 +367,7 @@ public class SidingWallBlock : Block
         => ComputeRetention(claimed, framingKey, infillKey, framings, infills) != 0 ? 1f : 0f;
 
     // Another SideSolid consumer (decision 0020): with sidesolid off, nothing could be hung on any
-    // siding wall. A finished wall is a wall, so it holds a torch on the face its panels actually
-    // cover; a bare frame is not a wall and holds nothing. attachmentArea is ignored - a sealed
-    // face is solid across its whole 16x16.
+    // siding wall. attachmentArea is ignored - a sealed face is solid across its whole 16x16.
     public override bool CanAttachBlockAt(IBlockAccessor blockAccessor, Block block, BlockPos pos, BlockFacing blockFace, Cuboidi? attachmentArea = null)
     {
         var entity = blockAccessor.GetBlockEntity<SidingWallEntity>(pos);
