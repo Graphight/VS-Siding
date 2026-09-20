@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using Newtonsoft.Json.Linq;
 using Xunit;
@@ -15,9 +16,15 @@ public class WallShapeGenTests
     public void GeneratedShapeMatchesTheCommittedOne(string layout)
     {
         var repoRoot = MaterialTextureOpacityTests.GetAssemblyMetadata("RepoRoot");
-        var committed = JObject.Parse(File.ReadAllText(
-            Path.Combine(repoRoot, "VSSiding", "assets", "vssiding", "shapes", "block", "wall", layout + ".json")));
+        var path = Path.Combine(repoRoot, "VSSiding", "assets", "vssiding", "shapes", "block", "wall", layout + ".json");
 
+        if (Environment.GetEnvironmentVariable("SIDING_REGEN") == "1")
+        {
+            File.WriteAllText(path, WallShapeGen.Generate(layout).ToString());
+            return;
+        }
+
+        var committed = JObject.Parse(File.ReadAllText(path));
         Assert.Equal(committed.ToString(), WallShapeGen.Generate(layout).ToString());
     }
 }
