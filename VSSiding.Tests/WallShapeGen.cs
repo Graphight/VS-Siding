@@ -36,6 +36,52 @@ public static class WallShapeGen
     // Both cladding textures draw a course every 4 voxels of a 16-voxel face.
     private const double CoursePitch = 4;
 
+    // Masonry does not lap, so neither cladding profile transfers. What it has instead is a grid,
+    // and the painted grid already sits on the voxel grid: clay/brick/four/running/cream1.png is
+    // 32px over a 16-voxel face, with mortar rows at px 6-7, 14-15, 22-23 and 30-31 - a course
+    // every 4 voxels with one voxel of mortar at its foot - and vertical joints half a unit apart
+    // course to course over 8-voxel units. So the model can agree with the paint exactly: one
+    // plane set back by MortarDepth carries the mortar, and unit lips stand proud of it on the
+    // block bound. A lip ends where the plane begins, so IsBuried culls its inward face.
+    private const double MortarDepth = 0.25;
+
+    private static (double X, double Y, double Z) Corner(char depthAxis, double depth, double run, double y)
+        => depthAxis == 'x' ? (depth, y, run) : (run, y, depth);
+
+    // `outer` is the face the wall shows and `inner` the depth it is cut back to, so a back-slot
+    // group is the same table with the two swapped. Units are laid out against the wall's own
+    // 0..16 grid and then clipped to the run, because a leg that starts at 1 still has to put its
+    // joints where the texture paints them.
+    private static IEnumerable<Element> RunningBond(
+        string name, string slot, double coursePitch, double unitWidth,
+        char depthAxis, double outer, double inner, double runLo, double runHi)
+    {
+        char runAxis = depthAxis == 'x' ? 'z' : 'x';
+        double lip = outer + Math.Sign(inner - outer) * MortarDepth;
+        (double Lo, double Hi) Span(double a, double b) => (Math.Min(a, b), Math.Max(a, b));
+
+        var (planeLo, planeHi) = Span(lip, inner);
+        yield return new Element(name,
+            Corner(depthAxis, planeLo, runLo, 0), Corner(depthAxis, planeHi, runHi, 16),
+            slot, UvRule.Positional, RunAxis: runAxis);
+
+        var (lipLo, lipHi) = Span(outer, lip);
+        for (double y = 0; y < 16; y += coursePitch)
+        {
+            // The mortar line is the bottom voxel of a course, and the joints step half a unit
+            // every other course - that is the running bond the texture draws.
+            double offset = (y / coursePitch) % 2 == 0 ? unitWidth / 2 : 0;
+            for (double u = offset - unitWidth; u < 16; u += unitWidth)
+            {
+                double lo = Math.Max(u, runLo), hi = Math.Min(u + unitWidth - 1, runHi);
+                if (hi <= lo) continue;
+                yield return new Element(name,
+                    Corner(depthAxis, lipLo, lo, y + 1), Corner(depthAxis, lipHi, hi, y + coursePitch),
+                    slot, UvRule.Positional, RunAxis: runAxis);
+            }
+        }
+    }
+
     private static readonly string[] AllFaces = ["north", "east", "south", "west", "up", "down"];
 
     private static readonly Element[] WallElements =
@@ -114,6 +160,7 @@ public static class WallShapeGen
         new("back-logs", (3.5, 4.5, 0), (4, 7.5, 16), "back", UvRule.Flat, PositionalOverrides: ["east"]),
         new("back-logs", (3.5, 8.5, 0), (4, 11.5, 16), "back", UvRule.Flat, PositionalOverrides: ["east"]),
         new("back-logs", (3.5, 12.5, 0), (4, 15.5, 16), "back", UvRule.Flat, PositionalOverrides: ["east"]),
+        .. RunningBond("front-brick", "front", 4, 8, 'x', 0, 1, 0, 16),
     ];
 
     private static readonly Element[] CornerOutElements =
@@ -249,6 +296,8 @@ public static class WallShapeGen
         new("back-logs", (3, 4.5, 3.5), (16, 7.5, 4), "back", UvRule.Flat, PositionalOverrides: ["south"]),
         new("back-logs", (3, 8.5, 3.5), (16, 11.5, 4), "back", UvRule.Flat, PositionalOverrides: ["south"]),
         new("back-logs", (3, 12.5, 3.5), (16, 15.5, 4), "back", UvRule.Flat, PositionalOverrides: ["south"]),
+        .. RunningBond("front-brick", "front", 4, 8, 'x', 0, 1, 0, 16),
+        .. RunningBond("secondfront-brick", "secondfront", 4, 8, 'z', 0, 1, 1, 16),
     ];
 
     private static readonly (string Slot, string Texture)[] WallTextures =
