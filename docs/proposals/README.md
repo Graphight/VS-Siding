@@ -10,7 +10,7 @@ An idea that's been thought through but not acted on. Mutable — edit freely, a
 
 Build order — each one should be demoable in game before the next starts.
 
-- [`window-frames`](window-frames.md) — a `window` frame mode glazed with a glass infill; doors need nothing (vanilla seals them).
+- [`window-frames`](window-frames.md) — a glass infill that seals without going opaque, then a `window` frame mode whose openings merge into one in both directions; doors need nothing (vanilla seals them).
 - [`upgrade-frame-to-corner`](upgrade-frame-to-corner.md) — corner tool mode on an existing frame turns it into a `cornerout` in place, for T-junctions found late.
 - [`finish-style-choice`](finish-style-choice.md) — `weatherboard` and `boards` tool modes on planks, so partitions and room-side walls get the right face.
 
