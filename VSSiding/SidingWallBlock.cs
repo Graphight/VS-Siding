@@ -101,20 +101,42 @@ public class SidingWallBlock : Block
         var entity = blockAccessor.GetBlockEntity<SidingWallEntity>(pos);
         if (entity?.Framing == null || entity.Infill != null) return fullBoxes;
 
-        var (joinsAbove, _) = StackJoins(blockAccessor, pos, entity.Infill);
-        return ComputeCollisionBoxes(Variant["layout"], Variant["side"], entity.Framing, entity.Infill, joinsAbove, fullBoxes);
+        var joins = NeighbourJoins(blockAccessor, pos, entity.Infill);
+        return ComputeCollisionBoxes(Variant["layout"], Variant["side"], entity.Framing, entity.Infill, joins.above, fullBoxes);
     }
 
-    // Whether the cell at pos shares its top/bottom with the frame above/below, i.e. draws no
-    // plate there. Every second cell up a stack keeps its top plate as a cross-beam.
-    internal (bool joinsAbove, bool joinsBelow) StackJoins(IBlockAccessor blockAccessor, BlockPos pos, string? infill)
+    // Which neighbours this cell shares a member with, i.e. draws no plate or post against.
+    // A wall joins only up and down, and keeps a top plate every second cell as a cross-beam
+    // (decision 0008). A window drops every member between it and a matching neighbour, in all
+    // four directions, so a run of them reads as one opening however big it gets - no
+    // alternation, and nothing to count, which is why a window never cascades.
+    internal (bool above, bool below, bool left, bool right) NeighbourJoins(
+        IBlockAccessor blockAccessor, BlockPos pos, string? infill)
     {
+        bool continuesAbove = ContinuesFrame(blockAccessor, pos.UpCopy(), infill);
+        if (Variant["layout"] == "window")
+        {
+            var (left, right) = RunNeighbours(Variant["side"]);
+            return (continuesAbove, ContinuesFrame(blockAccessor, pos.DownCopy(), infill),
+                ContinuesFrame(blockAccessor, pos.AddCopy(left), infill),
+                ContinuesFrame(blockAccessor, pos.AddCopy(right), infill));
+        }
+
         int cellsBelow = 0;
         for (BlockPos p = pos.DownCopy(); ContinuesFrame(blockAccessor, p, infill); p.Down()) cellsBelow++;
-        return (JoinsAbove(ContinuesFrame(blockAccessor, pos.UpCopy(), infill), cellsBelow), cellsBelow > 0);
+        return (JoinsAbove(continuesAbove, cellsBelow), cellsBelow > 0, false, false);
     }
 
     internal static bool JoinsAbove(bool continuesAbove, int cellsBelow) => continuesAbove && cellsBelow % 2 == 0;
+
+    // The two horizontal directions a run extends along - the ones in the wall's own plane.
+    // "Left" is the z = 0 end of the unrotated shape, which is the face counter-clockwise from
+    // `side`: exactly where cornerout's second leg sits, so that table already names it.
+    internal static (BlockFacing left, BlockFacing right) RunNeighbours(string side)
+    {
+        BlockFacing left = BlockFacing.FromCode(CorneroutSecondFace[side]);
+        return (left, left.Opposite);
+    }
 
     private bool ContinuesFrame(IBlockAccessor blockAccessor, BlockPos neighbourPos, string? infill)
     {
@@ -223,7 +245,7 @@ public class SidingWallBlock : Block
         world.BlockAccessor.MarkAbsorptionChanged(0, GetLightAbsorption(world.BlockAccessor, pos), pos);
         // Infill changes retention, but rooms only recompute on a chunk-dirty event; exchanging the block for itself fires one.
         world.BlockAccessor.ExchangeBlock(Id, pos);
-        MarkVerticalNeighboursDirty(world, pos);
+        MarkNeighboursDirty(world, pos);
     }
 
     // Shared by both build-flow steps (this class's layering, and PlaceWallFrame's framing)
@@ -252,16 +274,29 @@ public class SidingWallBlock : Block
     public override void OnNeighbourBlockChange(IWorldAccessor world, BlockPos pos, BlockPos neibpos)
     {
         base.OnNeighbourBlockChange(world, pos, neibpos);
-        if (neibpos.X != pos.X || neibpos.Z != pos.Z) return;
+        if (neibpos.X != pos.X || neibpos.Z != pos.Z)
+        {
+            // A window merges with the cells either side of it, so a change along its run redraws
+            // it. Just this cell: merging is local, so nothing propagates past the neighbour.
+            if (neibpos.Y == pos.Y && Variant["layout"] == "window")
+                world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos)?.MarkDirty(true);
+            return;
+        }
         if (neibpos.Y == pos.Y + 1) world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos)?.MarkDirty(true);
         if (neibpos.Y == pos.Y - 1) MarkStackDirtyFrom(world, pos);
     }
 
-    // Setting Framing or Infill isn't a block change, so the stack around it has to be told.
-    internal static void MarkVerticalNeighboursDirty(IWorldAccessor world, BlockPos pos)
+    // Setting Framing or Infill isn't a block change, so the neighbours around it have to be told.
+    internal static void MarkNeighboursDirty(IWorldAccessor world, BlockPos pos)
     {
         world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos.DownCopy())?.MarkDirty(true);
         MarkStackDirtyFrom(world, pos.UpCopy());
+
+        // A window also merges sideways, and only with the cell it touches - no walk needed.
+        if (world.BlockAccessor.GetBlock(pos) is not SidingWallBlock block || block.Variant["layout"] != "window") return;
+        var (left, right) = RunNeighbours(block.Variant["side"]);
+        world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos.AddCopy(left))?.MarkDirty(true);
+        world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos.AddCopy(right))?.MarkDirty(true);
     }
 
     // Cross-beams alternate up a stack, so a change low down shifts every cell above it.

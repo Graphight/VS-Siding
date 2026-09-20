@@ -1,5 +1,8 @@
 using System.Collections.Generic;
 using Vintagestory.API.MathTools;
+using System;
+using System.Linq;
+using Vintagestory.API.Common;
 using Xunit;
 
 namespace VSSiding.Tests;
@@ -136,4 +139,26 @@ public class SidingWallBlockCollisionTests
     {
         Assert.Same(FullBoxes, SidingWallBlock.ComputeCollisionBoxes("wall", "west", null, null, false, FullBoxes));
     }
+    // RunNeighbours reuses cornerout's table on the claim that the face counter-clockwise from
+    // `side` is where the unrotated shape's z = 0 end lands once rotated. That is the whole basis
+    // for which neighbour a window merges with, so it gets checked against the rotation itself
+    // rather than left to a comment - get it backwards and windows merge with the wrong cell.
+    [Fact]
+    public void WindowRunLeftIsWhereTheUnrotatedZeroZEndPoints()
+    {
+        var origin = new Vec3d(0.5, 0.5, 0.5);
+        var zeroZEnd = new Cuboidf(0, 0, 0, 1, 1, 1f / 16);
+
+        var rotated = new[] { "west", "south", "east", "north" }.ToDictionary(side => side, side =>
+        {
+            Cuboidf box = zeroZEnd.RotatedCopy(0, SidingWallEntity.RotationYDeg(side), 0, origin);
+            int dx = Math.Sign((box.X1 + box.X2) / 2 - 0.5f), dz = Math.Sign((box.Z1 + box.Z2) / 2 - 0.5f);
+            return BlockFacing.HORIZONTALS.First(f => f.Normali.X == dx && f.Normali.Z == dz).Code;
+        });
+
+        Assert.Equal(
+            rotated,
+            new[] { "west", "south", "east", "north" }.ToDictionary(side => side, side => SidingWallBlock.RunNeighbours(side).left.Code));
+    }
+
 }

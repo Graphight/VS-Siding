@@ -7,7 +7,7 @@
  },
  "elements": [
   {
-   "name": "framing",
+   "name": "framing-left",
    "from": [
     1.0,
     0.0,
@@ -76,7 +76,7 @@
    }
   },
   {
-   "name": "framing",
+   "name": "framing-right",
    "from": [
     1.0,
     0.0,

@@ -24,19 +24,25 @@ public class SidingWallEntityTests
     [Fact]
     public void WindowTakesNeitherFinishesNorInfillFillers()
     {
-        var actual = new[] { (false, false), (true, false), (false, true), (true, true) }
-            .ToDictionary(j => j, j => SidingWallEntity.SelectiveElements(
-                "window", "oak", "glass", "planks", "planks", "planks", PlankFinishes, j.Item1, j.Item2));
+        var joins = new (bool above, bool below, bool left, bool right)[]
+        {
+            (false, false, false, false),
+            (false, false, true, false),
+            (true, false, false, true),
+            (true, true, true, true),
+        };
 
         Assert.Equal(
-            new Dictionary<(bool, bool), string[]>
+            new Dictionary<(bool, bool, bool, bool), string[]>
             {
-                [(false, false)] = ["framing", "framing-top", "framing-bottom", "infill"],
-                [(true, false)] = ["framing", "framing-bottom", "infill"],
-                [(false, true)] = ["framing", "framing-top", "infill"],
-                [(true, true)] = ["framing", "infill"],
+                [(false, false, false, false)] = ["framing-left", "framing-right", "framing-top", "framing-bottom", "infill"],
+                [(false, false, true, false)] = ["framing-right", "framing-top", "framing-bottom", "infill"],
+                [(true, false, false, true)] = ["framing-left", "framing-bottom", "infill"],
+                // Merged on all four sides: nothing but the glazing, so the run is one opening.
+                [(true, true, true, true)] = ["infill"],
             },
-            actual);
+            joins.ToDictionary(j => j, j => SidingWallEntity.SelectiveElements(
+                "window", "oak", "glass", "planks", "planks", "planks", PlankFinishes, j)));
     }
 
     // Glazing splits the mesh in two by this predicate, so a name landing on the wrong side
@@ -45,7 +51,7 @@ public class SidingWallEntityTests
     public void OnlyInfillElementsGoInTheTransparentHalf()
     {
         string[] elements = SidingWallEntity.SelectiveElements(
-            "wall", "oak", "glass", "planks", "planks", "planks", PlankFinishes, continuesAbove: true, continuesBelow: true);
+            "wall", "oak", "glass", "planks", "planks", "planks", PlankFinishes, (true, true, false, false));
 
         Assert.Equal(
             new Dictionary<string, bool>
@@ -88,39 +94,39 @@ public class SidingWallEntityTests
     [Fact]
     public void SelectiveElementsSkipsUnbuiltParts()
     {
-        Assert.Equal(new string[0], SidingWallEntity.SelectiveElements("wall", null, null, null, null, null, NoElementFinishes, false, false));
+        Assert.Equal(new string[0], SidingWallEntity.SelectiveElements("wall", null, null, null, null, null, NoElementFinishes, (false, false, false, false)));
         Assert.Equal(new[] { "front", "framing", "framing-top", "framing-bottom", "infill", "back" },
-            SidingWallEntity.SelectiveElements("wall", "oak", "wattle", "daub", null, "daub", NoElementFinishes, false, false));
+            SidingWallEntity.SelectiveElements("wall", "oak", "wattle", "daub", null, "daub", NoElementFinishes, (false, false, false, false)));
         Assert.Equal(new[] { "framing", "framing-top", "framing-bottom" },
-            SidingWallEntity.SelectiveElements("wall", "oak", null, null, null, null, NoElementFinishes, false, false));
+            SidingWallEntity.SelectiveElements("wall", "oak", null, null, null, null, NoElementFinishes, (false, false, false, false)));
     }
 
     [Fact]
     public void SelectiveElementsUsesFinishNamedElementsPerFace()
     {
         Assert.Equal(new[] { "front-weatherboard", "secondfront-weatherboard", "framing", "framing-top", "framing-bottom", "infill", "back-boards" },
-            SidingWallEntity.SelectiveElements("wall", "oak", "wattle", "planks", "planks", "planks", PlankFinishes, false, false));
+            SidingWallEntity.SelectiveElements("wall", "oak", "wattle", "planks", "planks", "planks", PlankFinishes, (false, false, false, false)));
     }
 
     [Fact]
     public void SelectiveElementsForBottomOfAStackSkipsOnlyTheTopPlate()
     {
         Assert.Equal(new[] { "framing", "framing-bottom", "infill", "infill-top" },
-            SidingWallEntity.SelectiveElements("wall", "oak", "wattle", null, null, null, NoElementFinishes, true, false));
+            SidingWallEntity.SelectiveElements("wall", "oak", "wattle", null, null, null, NoElementFinishes, (true, false, false, false)));
     }
 
     [Fact]
     public void SelectiveElementsForTopOfAStackSkipsOnlyTheBottomPlate()
     {
         Assert.Equal(new[] { "framing", "framing-top", "infill", "infill-bottom" },
-            SidingWallEntity.SelectiveElements("wall", "oak", "wattle", null, null, null, NoElementFinishes, false, true));
+            SidingWallEntity.SelectiveElements("wall", "oak", "wattle", null, null, null, NoElementFinishes, (false, true, false, false)));
     }
 
     [Fact]
     public void SelectiveElementsForAFilledMiddleCellSkipsBothPlatesAndExtendsInfillBothWays()
     {
         Assert.Equal(new[] { "framing", "infill", "infill-top", "infill-bottom" },
-            SidingWallEntity.SelectiveElements("wall", "oak", "wattle", null, null, null, NoElementFinishes, true, true));
+            SidingWallEntity.SelectiveElements("wall", "oak", "wattle", null, null, null, NoElementFinishes, (true, true, false, false)));
     }
 
     [Theory]
@@ -147,21 +153,28 @@ public class SidingWallEntityTests
         Assert.Equal(expectedDegrees, SidingWallEntity.RotationYDeg(side));
     }
 
+    // Anything the mesh is built from has to reach the key, or two differently-shaped walls share
+    // one cached mesh - a merged window and an unmerged one being the newest way to get that wrong.
     [Fact]
-    public void CacheKeyDiffersByLayoutForTheSameMaterials()
+    public void CacheKeyDistinguishesEveryMeshInput()
     {
-        string wallKey = SidingWallEntity.CacheKey("wall", "west", "oak", "wattle", "daub", "planks", "brick", false, false);
-        string cornerKey = SidingWallEntity.CacheKey("cornerout", "west", "oak", "wattle", "daub", "planks", "brick", false, false);
+        string[] keys =
+        [
+            SidingWallEntity.CacheKey("wall", "west", "oak", "wattle", "daub", "planks", "brick", (false, false, false, false)),
+            SidingWallEntity.CacheKey("cornerout", "west", "oak", "wattle", "daub", "planks", "brick", (false, false, false, false)),
+            SidingWallEntity.CacheKey("window", "west", "oak", "wattle", "daub", "planks", "brick", (false, false, false, false)),
+            SidingWallEntity.CacheKey("wall", "south", "oak", "wattle", "daub", "planks", "brick", (false, false, false, false)),
+            SidingWallEntity.CacheKey("wall", "west", "veryaged", "wattle", "daub", "planks", "brick", (false, false, false, false)),
+            SidingWallEntity.CacheKey("wall", "west", "oak", "glass-plain", "daub", "planks", "brick", (false, false, false, false)),
+            SidingWallEntity.CacheKey("wall", "west", "oak", "wattle", null, "planks", "brick", (false, false, false, false)),
+            SidingWallEntity.CacheKey("wall", "west", "oak", "wattle", "daub", null, "brick", (false, false, false, false)),
+            SidingWallEntity.CacheKey("wall", "west", "oak", "wattle", "daub", "planks", null, (false, false, false, false)),
+            SidingWallEntity.CacheKey("wall", "west", "oak", "wattle", "daub", "planks", "brick", (true, false, false, false)),
+            SidingWallEntity.CacheKey("wall", "west", "oak", "wattle", "daub", "planks", "brick", (false, true, false, false)),
+            SidingWallEntity.CacheKey("wall", "west", "oak", "wattle", "daub", "planks", "brick", (false, false, true, false)),
+            SidingWallEntity.CacheKey("wall", "west", "oak", "wattle", "daub", "planks", "brick", (false, false, false, true)),
+        ];
 
-        Assert.NotEqual(wallKey, cornerKey);
-    }
-
-    [Fact]
-    public void CacheKeyDiffersBySecondFront()
-    {
-        string withPlanks = SidingWallEntity.CacheKey("cornerout", "west", "oak", "wattle", "daub", "planks", "brick", false, false);
-        string withoutSecondFront = SidingWallEntity.CacheKey("cornerout", "west", "oak", "wattle", "daub", null, "brick", false, false);
-
-        Assert.NotEqual(withPlanks, withoutSecondFront);
+        Assert.Equal(keys, keys.Distinct());
     }
 }

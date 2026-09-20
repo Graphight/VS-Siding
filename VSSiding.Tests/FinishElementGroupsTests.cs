@@ -55,9 +55,15 @@ public class FinishElementGroupsTests
             Path.Combine(repoRoot, "VSSiding", "assets", "vssiding", "shapes", "block", "wall", "window.json")));
         var names = shapeJson["elements"]!.Select(e => (string)e["name"]!).ToHashSet();
 
-        var asked = new[] { (false, false), (true, false), (false, true), (true, true) }
+        var everyJoin =
+            from above in new[] { false, true }
+            from below in new[] { false, true }
+            from left in new[] { false, true }
+            from right in new[] { false, true }
+            select (above, below, left, right);
+        var asked = everyJoin
             .SelectMany(j => SidingWallEntity.SelectiveElements(
-                "window", "oak", "glass", null, null, null, new JsonObject(new JObject()), j.Item1, j.Item2))
+                "window", "oak", "glass", null, null, null, new JsonObject(new JObject()), j))
             .Distinct();
 
         Assert.Equal([], asked.Where(name => !names.Contains(name)).ToArray());

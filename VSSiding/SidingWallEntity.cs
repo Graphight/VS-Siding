@@ -57,16 +57,16 @@ public class SidingWallEntity : BlockEntity
         if (layout != "wall" && layout != "cornerout" && layout != "window") return false;
         if (Api is not ICoreClientAPI capi) return false;
 
-        var (continuesAbove, continuesBelow) = ((SidingWallBlock)Block).StackJoins(Api.World.BlockAccessor, Pos, Infill);
+        var joins = ((SidingWallBlock)Block).NeighbourJoins(Api.World.BlockAccessor, Pos, Infill);
 
-        // An empty selectiveElements array matches zero shape elements, not "no filter" -
-        // an unbuilt wall (true of every wall today, since nothing sets these keys yet)
-        // must fall back to the block's default JSON shape instead of tesselating nothing.
-        string[] selectiveElements = SelectiveElements(layout, Framing, Infill, Front, SecondFront, Back, Block.Attributes["Finishes"], continuesAbove, continuesBelow);
-        if (selectiveElements.Length == 0) return false;
+        // An empty selectiveElements array matches zero shape elements, not "no filter". For an
+        // unbuilt wall that means falling back to the block's default JSON shape; for a built one
+        // it means drawing nothing, which is right for a window merged on all four sides.
+        string[] selectiveElements = SelectiveElements(layout, Framing, Infill, Front, SecondFront, Back, Block.Attributes["Finishes"], joins);
+        if (selectiveElements.Length == 0) return Framing != null;
 
         string side = Block.Variant["side"];
-        string cacheKey = CacheKey(layout, side, Framing, Infill, Front, SecondFront, Back, continuesAbove, continuesBelow);
+        string cacheKey = CacheKey(layout, side, Framing, Infill, Front, SecondFront, Back, joins);
 
         MeshData mesh = ObjectCacheUtil.GetOrCreate(capi, cacheKey, () =>
         {
@@ -113,20 +113,21 @@ public class SidingWallEntity : BlockEntity
 
     internal static string CacheKey(
         string layout, string side, string? framing, string? infill, string? front, string? secondFront, string? back,
-        bool continuesAbove, bool continuesBelow)
-        => $"vssiding-wall-mesh-{layout}-{side}-{framing}-{infill}-{front}-{secondFront}-{back}-{continuesAbove}-{continuesBelow}";
+        (bool above, bool below, bool left, bool right) joins)
+        => $"vssiding-wall-mesh-{layout}-{side}-{framing}-{infill}-{front}-{secondFront}-{back}-{joins.above}-{joins.below}-{joins.left}-{joins.right}";
 
     // Unbuilt parts (null key) are left out so a frame-only wall shows just its frame.
     // A finish can name its own element per face (decision 0007) instead of the plain slab.
     // A join between stacked cells has no plates, so the infill extends across it (decision 0008).
     internal static string[] SelectiveElements(
         string layout, string? framing, string? infill, string? front, string? secondFront, string? back, JsonObject finishes,
-        bool continuesAbove, bool continuesBelow)
+        (bool above, bool below, bool left, bool right) joins)
     {
+        var (continuesAbove, continuesBelow) = (joins.above, joins.below);
         // A window's shape has none of the finish or infill-filler elements - it takes no finish
         // (ResolveFinishFace refuses one) and its pane is full-cell, so a dropped plate needs no
         // filler. Naming an element the shape doesn't have would silently draw nothing.
-        if (layout == "window") return WindowElements(framing, infill, continuesAbove, continuesBelow);
+        if (layout == "window") return WindowElements(framing, infill, joins);
 
         var names = new List<string>();
         if (front != null) names.Add(finishes[front]["Elements"]["front"].AsString("front"));
@@ -147,14 +148,17 @@ public class SidingWallEntity : BlockEntity
         return names.ToArray();
     }
 
-    private static string[] WindowElements(string? framing, string? infill, bool continuesAbove, bool continuesBelow)
+    // Every member is dropped wherever the window merges, and the pane behind them is full-cell,
+    // so a run of windows comes out as one opening with its frame only around the outside.
+    private static string[] WindowElements(string? framing, string? infill, (bool above, bool below, bool left, bool right) joins)
     {
         var names = new List<string>();
         if (framing != null)
         {
-            names.Add("framing");
-            if (!continuesAbove) names.Add("framing-top");
-            if (!continuesBelow) names.Add("framing-bottom");
+            if (!joins.left) names.Add("framing-left");
+            if (!joins.right) names.Add("framing-right");
+            if (!joins.above) names.Add("framing-top");
+            if (!joins.below) names.Add("framing-bottom");
         }
         if (infill != null) names.Add("infill");
         return names.ToArray();
