@@ -165,6 +165,11 @@ public static class WallShapeGen
         // joints sit at px 13-15 and 29-31 - a course every 8 voxels, not 4. Same table, one
         // different number, which is the whole reason the course pitch is a parameter.
         .. RunningBond("front-ashlar", "front", 8, 8, 'x', 0, 1, 0, 16),
+        // The room side is the same table with outer and inner swapped, so the units stand proud
+        // toward x 4 instead of x 0. Without it a brick partition is flat on the face you live
+        // beside while the elevation it backs onto has relief.
+        .. RunningBond("back-brick", "back", 4, 8, 'x', 4, 3, 0, 16),
+        .. RunningBond("back-ashlar", "back", 8, 8, 'x', 4, 3, 0, 16),
     ];
 
     private static readonly Element[] CornerOutElements =
@@ -304,6 +309,11 @@ public static class WallShapeGen
         .. RunningBond("secondfront-brick", "secondfront", 4, 8, 'z', 0, 1, 1, 16),
         .. RunningBond("front-ashlar", "front", 8, 8, 'x', 0, 1, 0, 16),
         .. RunningBond("secondfront-ashlar", "secondfront", 8, 8, 'z', 0, 1, 1, 16),
+        // A back group covers both legs, the way back-logs does.
+        .. RunningBond("back-brick", "back", 4, 8, 'x', 4, 3, 4, 16),
+        .. RunningBond("back-brick", "back", 4, 8, 'z', 4, 3, 3, 16),
+        .. RunningBond("back-ashlar", "back", 8, 8, 'x', 4, 3, 4, 16),
+        .. RunningBond("back-ashlar", "back", 8, 8, 'z', 4, 3, 3, 16),
     ];
 
     private static readonly (string Slot, string Texture)[] WallTextures =
