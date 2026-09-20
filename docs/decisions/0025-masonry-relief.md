@@ -42,7 +42,7 @@ The lip ends exactly where the plane begins, so decision 0024's `IsBuried` culls
 Per face at brick's pitch that is 10 lips plus 1 plane — 11 boxes, against shakes' 32.
 
 **One emitter, parameterised.**
-`RunningBond(name, slot, coursePitch, unitWidth, depthAxis, outer, inner, runLo, runHi)` produces every regular group.
+`RunningBond(name, slot, coursePitch, unitWidth, depthAxis, outer, inner, runLo, runHi, flipBond)` produces every regular group.
 Ashlar is brick with `coursePitch` 8, `unitWidth` 16 and `flipBond: true`.
 Which course carries the offset is the texture's business, not the bond's, so `flipBond` is a parameter rather than a shared correction: brick starts its bottom course offset and ashlar starts its flush, and one flip for both would only move the error around.
 A back-slot group is the same call with `outer` and `inner` swapped, so the units stand proud toward x 4 instead of x 0.
