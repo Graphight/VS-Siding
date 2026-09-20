@@ -54,7 +54,7 @@ public class SidingWallEntity : BlockEntity
     public override bool OnTesselation(ITerrainMeshPool mesher, ITesselatorAPI tesselator)
     {
         string layout = Block.Variant["layout"];
-        if (layout != "wall" && layout != "cornerout") return false;
+        if (layout != "wall" && layout != "cornerout" && layout != "window") return false;
         if (Api is not ICoreClientAPI capi) return false;
 
         var (continuesAbove, continuesBelow) = ((SidingWallBlock)Block).StackJoins(Api.World.BlockAccessor, Pos, Infill);
@@ -62,7 +62,7 @@ public class SidingWallEntity : BlockEntity
         // An empty selectiveElements array matches zero shape elements, not "no filter" -
         // an unbuilt wall (true of every wall today, since nothing sets these keys yet)
         // must fall back to the block's default JSON shape instead of tesselating nothing.
-        string[] selectiveElements = SelectiveElements(Framing, Infill, Front, SecondFront, Back, Block.Attributes["Finishes"], continuesAbove, continuesBelow);
+        string[] selectiveElements = SelectiveElements(layout, Framing, Infill, Front, SecondFront, Back, Block.Attributes["Finishes"], continuesAbove, continuesBelow);
         if (selectiveElements.Length == 0) return false;
 
         string side = Block.Variant["side"];
@@ -120,9 +120,14 @@ public class SidingWallEntity : BlockEntity
     // A finish can name its own element per face (decision 0007) instead of the plain slab.
     // A join between stacked cells has no plates, so the infill extends across it (decision 0008).
     internal static string[] SelectiveElements(
-        string? framing, string? infill, string? front, string? secondFront, string? back, JsonObject finishes,
+        string layout, string? framing, string? infill, string? front, string? secondFront, string? back, JsonObject finishes,
         bool continuesAbove, bool continuesBelow)
     {
+        // A window's shape has none of the finish or infill-filler elements - it takes no finish
+        // (ResolveFinishFace refuses one) and its pane is full-cell, so a dropped plate needs no
+        // filler. Naming an element the shape doesn't have would silently draw nothing.
+        if (layout == "window") return WindowElements(framing, infill, continuesAbove, continuesBelow);
+
         var names = new List<string>();
         if (front != null) names.Add(finishes[front]["Elements"]["front"].AsString("front"));
         if (secondFront != null) names.Add("second" + finishes[secondFront]["Elements"]["front"].AsString("front"));
@@ -139,6 +144,19 @@ public class SidingWallEntity : BlockEntity
             if (continuesBelow) names.Add("infill-bottom");
         }
         if (back != null) names.Add(finishes[back]["Elements"]["back"].AsString("back"));
+        return names.ToArray();
+    }
+
+    private static string[] WindowElements(string? framing, string? infill, bool continuesAbove, bool continuesBelow)
+    {
+        var names = new List<string>();
+        if (framing != null)
+        {
+            names.Add("framing");
+            if (!continuesAbove) names.Add("framing-top");
+            if (!continuesBelow) names.Add("framing-bottom");
+        }
+        if (infill != null) names.Add("infill");
         return names.ToArray();
     }
 

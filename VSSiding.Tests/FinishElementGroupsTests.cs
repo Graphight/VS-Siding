@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Newtonsoft.Json.Linq;
+using Vintagestory.API.Datastructures;
 using Xunit;
 
 namespace VSSiding.Tests;
@@ -42,5 +43,23 @@ public class FinishElementGroupsTests
         }
 
         Assert.Equal([], offenders);
+    }
+
+    // The window layout takes no finish, so it has no finish groups to ignore - what matters
+    // instead is that every element SelectiveElements can name for a window actually exists.
+    [Fact]
+    public void WindowShapeHasEveryElementSelectiveElementsAsksFor()
+    {
+        var repoRoot = MaterialTextureOpacityTests.GetAssemblyMetadata("RepoRoot");
+        var shapeJson = JObject.Parse(File.ReadAllText(
+            Path.Combine(repoRoot, "VSSiding", "assets", "vssiding", "shapes", "block", "wall", "window.json")));
+        var names = shapeJson["elements"]!.Select(e => (string)e["name"]!).ToHashSet();
+
+        var asked = new[] { (false, false), (true, false), (false, true), (true, true) }
+            .SelectMany(j => SidingWallEntity.SelectiveElements(
+                "window", "oak", "glass", null, null, null, new JsonObject(new JObject()), j.Item1, j.Item2))
+            .Distinct();
+
+        Assert.Equal([], asked.Where(name => !names.Contains(name)).ToArray());
     }
 }

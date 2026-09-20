@@ -40,6 +40,13 @@ public class SidingWallBlock : Block
                 new Cuboidf(1f / 16, 0, 15f / 16, 3f / 16, 1, 1),
             },
             new[] { new Cuboidf(1f / 16, 15f / 16, 1f / 16, 3f / 16, 1, 15f / 16) }),
+        ["window"] = (
+            new[]
+            {
+                new Cuboidf(1f / 16, 0, 0, 3f / 16, 1, 1f / 16),
+                new Cuboidf(1f / 16, 0, 15f / 16, 3f / 16, 1, 1),
+            },
+            new[] { new Cuboidf(1.25f / 16, 12f / 16, 0, 2.75f / 16, 1, 1) }),
         ["cornerout"] = (
             new[]
             {
@@ -480,9 +487,14 @@ public class SidingWallBlock : Block
 
     internal static int ConsumeQuantity(JsonObject consumes) => consumes["quantity"].AsInt(1);
 
-    // Tool mode 0 is "wall", 1 is "corner" - see decision 0005. Anything else falls back
-    // to "wall" rather than throwing on a stale/out-of-range stored mode.
-    internal static string ResolveLayout(int toolMode) => toolMode == 1 ? "cornerout" : "wall";
+    // Tool mode 0 is "wall", 1 is "corner", 2 is "window" - see decision 0005. Anything else
+    // falls back to "wall" rather than throwing on a stale/out-of-range stored mode.
+    internal static string ResolveLayout(int toolMode) => toolMode switch
+    {
+        1 => "cornerout",
+        2 => "window",
+        _ => "wall",
+    };
 
     // Which finish layer a build-flow click's clicked face targets - the hugged side is
     // "front", the opposite side is "back", an end/top/bottom face is neither. A cornerout's
@@ -490,6 +502,10 @@ public class SidingWallBlock : Block
     // the first leg.
     internal static string? ResolveFinishFace(string layout, string side, BlockFacing clickedFace)
     {
+        // A window has no face to finish - a slab over the opening would just hide the glazing.
+        // Breaking gets the right answer from the same null: PeelLayer finds no finish and takes
+        // the infill, so a hit anywhere on a glazed window pulls the glass out (decision 0013).
+        if (layout == "window") return null;
         if (FinishFaceFor(side, clickedFace, "front") is string face) return face;
         return layout == "cornerout" ? FinishFaceFor(CorneroutSecondFace[side], clickedFace, "secondfront") : null;
     }
