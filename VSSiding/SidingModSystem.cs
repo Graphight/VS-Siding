@@ -9,6 +9,7 @@ using Vintagestory.API.Config;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
+using Vintagestory.Client.NoObf;
 using Vintagestory.GameContent;
 
 namespace VSSiding;
@@ -25,15 +26,29 @@ public class SidingModSystem : ModSystem
 
         // Singleplayer runs client+server in one process, so patch once.
         if (Harmony.HasAnyPatches("vssiding")) return;
+        var harmony = new Harmony("vssiding");
         try
         {
-            new Harmony("vssiding").Patch(AccessTools.Method(typeof(RoomRegistry), "FindRoomForPosition"),
+            harmony.Patch(AccessTools.Method(typeof(RoomRegistry), "FindRoomForPosition"),
                 transpiler: new HarmonyMethod(typeof(SidingModSystem), nameof(RoomSkylightTranspiler)));
         }
         catch (Exception e)
         {
             // RoomSkylightPatchTests catches a changed method at build time; players keep the mod, minus the fix.
             api.Logger.Error("vssiding: room skylight patch skipped, sealed walls will count as sky: {0}", e);
+        }
+
+        // One fix in two halves - the postfix picks the light, the prefix makes faces use it - so they stand or fall together.
+        try
+        {
+            harmony.Patch(AccessTools.Method(typeof(ChunkTesselator), "BuildExtendedChunkData"),
+                postfix: new HarmonyMethod(typeof(SidingModSystem), nameof(SealedCellLightPostfix)));
+            harmony.Patch(AccessTools.Method(typeof(TCTCache), "CalcBlockFaceLight"),
+                prefix: new HarmonyMethod(typeof(SidingModSystem), nameof(SealedCellFaceLightPrefix)));
+        }
+        catch (Exception e)
+        {
+            api.Logger.Error("vssiding: sealed cell light patch skipped, sealed rooms will glow at the wall base: {0}", e);
         }
     }
 
@@ -66,6 +81,57 @@ public class SidingModSystem : ModSystem
 
         if (replaced != 1)
             throw new InvalidOperationException($"Expected exactly one IBlockAccessor.GetLightLevel call to replace, found {replaced}.");
+    }
+
+    // Both halves of the fix run on the tessellation thread, one chunk at a time, so what a
+    // chunk's postfix records is what its own face-light calls read back.
+    [ThreadStatic] private static bool[]? sealedCells;
+    [ThreadStatic] private static int[]? sealedCellRgbs;
+
+    // A sealed wall's cell stores the sunlight flowing in from outside (decision 0015), and the
+    // floor face under it samples that cell. Show the light of the cell the wall's dead space
+    // opens onto instead - the room, or the outdoors if the panels face in.
+    internal static void SealedCellLightPostfix(ClientMain ___game, Block[] ___currentChunkBlocksExt, int[] ___currentChunkRgbsExt,
+        int chunkX, int chunkY, int chunkZ)
+    {
+        const int size = 34;
+        var mask = sealedCells ??= new bool[___currentChunkBlocksExt.Length];
+        Array.Clear(mask);
+        sealedCellRgbs = ___currentChunkRgbsExt;
+
+        var pos = new BlockPos(chunkY / 1024);
+        for (int i = 0; i < ___currentChunkBlocksExt.Length; i++)
+        {
+            if (___currentChunkBlocksExt[i] is not SidingWallBlock wall) continue;
+
+            int x = i % size, z = i / size % size, y = i / (size * size);
+            var (dx, dz) = SidingWallBlock.OpenSide(wall.Variant["layout"], wall.Variant["side"]);
+            // A border cell whose open side leaves the array opens away from this chunk, so its
+            // dead space - and the floor face that shows it - belongs to the neighbour, which
+            // has the same cell in its own interior and darkens it there.
+            if (x + dx is < 0 or >= size || z + dz is < 0 or >= size) continue;
+
+            // chunkY carries the dimension above the world's 32768 blocks (vanilla: dim = chunkY / 1024).
+            pos.Set(chunkX * 32 + x - 1, chunkY * 32 % 32768 + y - 1, chunkZ * 32 + z - 1);
+            if (!wall.IsSealed(___game.BlockAccessor.GetBlockEntity(pos))) continue;
+
+            ___currentChunkRgbsExt[i] = ___currentChunkRgbsExt[i + dx + dz * size];
+            mask[i] = true;
+        }
+    }
+
+    // Smooth lighting averages a face's own sample with the cells ringing it, and for the floor
+    // face under a thin wall one of those is the sunlit cell just outside - which is the daylight
+    // that lit a sealed room's floor edges. Faces onto a sealed cell take the flat path instead.
+    internal static bool SealedCellFaceLightPrefix(TCTCache __instance, int extNeibIndex3d, ref long __result)
+    {
+        if (sealedCells is not { } mask || !mask[extNeibIndex3d]) return true;
+
+        int light = sealedCellRgbs![extNeibIndex3d];
+        var corners = __instance.CurrentLightRGBByCorner;
+        corners[0] = corners[1] = corners[2] = corners[3] = light;
+        __result = light * 4;   // int arithmetic, as vanilla's flat path returns it
+        return false;
     }
 
     // The server's CurrentBlockSelection is its own raytrace; the break packet's face only reaches this event.

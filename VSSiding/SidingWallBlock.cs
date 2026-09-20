@@ -319,8 +319,17 @@ public class SidingWallBlock : Block
     public override bool DoEmitSideAoByFlag(IGeometryTester caller, Vec3iAndFacingFlags vec, int flags)
         => IsSealed(caller.GetCurrentBlockEntityOnSide(vec)) || base.DoEmitSideAoByFlag(caller, vec, flags);
 
-    private bool IsSealed(BlockEntity? be)
+    internal bool IsSealed(BlockEntity? be)
         => be is SidingWallEntity entity && ComputeLightAbsorption(entity.Framing, entity.Infill, Attributes["Framings"], Attributes["Infills"]) > 0;
+
+    // The horizontal step from a wall cell to the cell its dead space opens onto: away from the panel, diagonally for a cornerout.
+    internal static (int dx, int dz) OpenSide(string layout, string side)
+    {
+        var open = BlockFacing.FromCode(side).Opposite.Normali;
+        if (layout != "cornerout") return (open.X, open.Z);
+        var second = BlockFacing.FromCode(CorneroutSecondFace[side]).Opposite.Normali;
+        return (open.X + second.X, open.Z + second.Z);
+    }
 
     // A sealed wall's cell stores the sunlight flowing in from outside, which RoomRegistry would count as sky (decision 0015).
     internal static int RoomSunlight(IBlockAccessor accessor, BlockPos pos, EnumLightLevelType type)
