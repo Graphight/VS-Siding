@@ -1,3 +1,4 @@
+using System.Linq;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
@@ -25,13 +26,17 @@ public class PlaceWallFrame : CollectibleBehavior
         base.OnLoaded(api);
         if (api is not ICoreClientAPI capi) return;
 
+        // The icon file is named after the mode's code, so the four tiles wire up in one pass.
+        // ModeIconsTests keeps the two sets in step - LoadSvg returns null on a missing file and
+        // the tile just draws blank.
         toolModes = ObjectCacheUtil.GetOrCreate(capi, "vssidingPlaceWallFrameToolModes", () => new[]
         {
             new SkillItem { Code = new AssetLocation("wall"), Name = Lang.Get("vssiding:toolmode-wall") },
             new SkillItem { Code = new AssetLocation("corner"), Name = Lang.Get("vssiding:toolmode-corner") },
             new SkillItem { Code = new AssetLocation("weatherboard"), Name = Lang.Get("vssiding:toolmode-weatherboard") },
             new SkillItem { Code = new AssetLocation("boards"), Name = Lang.Get("vssiding:toolmode-boards") },
-        });
+        }.Select(item => item.WithIcon(capi, capi.Gui.LoadSvg(
+            new AssetLocation("vssiding", $"textures/icons/{item.Code.Path}.svg"), 48, 48, 48, 48, null))).ToArray());
     }
 
     public override SkillItem[] GetToolModes(ItemSlot slot, IClientPlayer forPlayer, BlockSelection blockSel)
