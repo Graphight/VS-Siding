@@ -6,7 +6,7 @@
     "authors": [
         "Graphight"
     ],
-    "description": "Layered wall building: pick framing, infill, and finish materials for thinner, more realistic walls",
+    "description": "Layered wall building: hold a saw in your off hand and raise walls layer by layer, picking framing, infill, and finish materials for thinner, more realistic walls",
     "version": "0.1.0",
     "dependencies": {
         "game": "1.22.2"
