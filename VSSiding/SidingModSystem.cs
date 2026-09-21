@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection.Emit;
 using HarmonyLib;
 using Newtonsoft.Json.Linq;
+using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
 using Vintagestory.API.Datastructures;
@@ -16,6 +17,14 @@ namespace VSSiding;
 
 public class SidingModSystem : ModSystem
 {
+    private ICoreClientAPI? capi;
+
+    public override void StartClientSide(ICoreClientAPI api)
+    {
+        base.StartClientSide(api);
+        capi = api;
+    }
+
     public override void Start(ICoreAPI api)
     {
         base.Start(api);
@@ -55,6 +64,15 @@ public class SidingModSystem : ModSystem
     public override void Dispose()
     {
         new Harmony("vssiding").UnpatchAll("vssiding");
+        // PlaceWallFrame does have CollectibleBehavior.OnUnloaded, but it is patched onto every
+        // plank variant, so ~14 behavior instances share the one cached array and would each
+        // dispose it. ClientMain.Dispose runs the mod systems before its item loop, so freeing
+        // the icons here does it once, first.
+        if (capi?.ObjectCache.TryGetValue("vssidingPlaceWallFrameToolModes", out var cached) == true)
+        {
+            foreach (var item in (SkillItem[])cached) item.Dispose();
+            capi.ObjectCache.Remove("vssidingPlaceWallFrameToolModes");
+        }
         base.Dispose();
     }
 

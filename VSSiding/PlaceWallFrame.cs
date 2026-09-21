@@ -1,3 +1,4 @@
+using System.Linq;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
@@ -25,13 +26,17 @@ public class PlaceWallFrame : CollectibleBehavior
         base.OnLoaded(api);
         if (api is not ICoreClientAPI capi) return;
 
+        // -1 tints the icons white, as every vanilla mode picker does: the source art is black,
+        // and a null colour would keep that fill and skip the alpha premultiplication the skill
+        // item grid renders with. ModeIconsTests pins each file to its mode's code.
         toolModes = ObjectCacheUtil.GetOrCreate(capi, "vssidingPlaceWallFrameToolModes", () => new[]
         {
             new SkillItem { Code = new AssetLocation("wall"), Name = Lang.Get("vssiding:toolmode-wall") },
             new SkillItem { Code = new AssetLocation("corner"), Name = Lang.Get("vssiding:toolmode-corner") },
             new SkillItem { Code = new AssetLocation("weatherboard"), Name = Lang.Get("vssiding:toolmode-weatherboard") },
             new SkillItem { Code = new AssetLocation("boards"), Name = Lang.Get("vssiding:toolmode-boards") },
-        });
+        }.Select(item => item.WithIcon(capi, capi.Gui.LoadSvgWithPadding(
+            new AssetLocation("vssiding", $"textures/icons/{item.Code.Path}.svg"), 48, 48, 5, -1))).ToArray());
     }
 
     public override SkillItem[] GetToolModes(ItemSlot slot, IClientPlayer forPlayer, BlockSelection blockSel)
