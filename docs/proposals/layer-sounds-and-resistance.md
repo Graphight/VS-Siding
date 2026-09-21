@@ -16,7 +16,7 @@ sounds: { place: "game:block/planks", hit: "game:block/planks", break: "game:blo
 ```
 
 So an ashlar-faced wall over granite rubble chips away like a plank and *sounds* like a plank, and a fist takes it down as fast as a hammer would.
-Meanwhile decision 0013 already peels one layer at a time, so the game knows exactly which material the player is hitting — it just doesn't tell the ear.
+Decision 0013 already peels one layer at a time, so the code knows which material is being hit.
 
 Every material entry already carries `BlockMaterial` (`Wood`, `Soil`, `Glass`, `Stone`), which is what vanilla keys its own sounds and tool-suitability from.
 The hooks are per-position and all present in 1.22.2: `GetSounds(IBlockAccessor, BlockSelection, ItemStack)`, `GetResistance(IBlockAccessor, BlockPos)`, `GetBlockMaterial(IBlockAccessor, BlockPos, ItemStack)`.
@@ -34,7 +34,7 @@ Everything keys off the existing `BlockMaterial` field, so no new JSON per mater
 - **Per-material `resistance` and sound sets in the dictionaries.** 500 entries times three fields, hand-tuned, to express four buckets. The bucket *is* `BlockMaterial`.
 - **Resistance from the whole wall rather than the hit layer.** Simpler, and wrong in the direction that matters: it would make peeling a plank finish off a stone wall as slow as the stone.
 - **`requiredMiningTier` per layer.** Tempting for stone, but it means a player who boarded over rubble can't undo their own wall without a pickaxe they may not have brought. Suitability yes, a hard gate no.
-- **Leaving it.** Defensible — it's cosmetic. But it's the cheapest remaining "this mod feels finished" change, and the peel logic is already written.
+- **Leaving it.** Defensible, it's cosmetic. But the peel logic is already written, so the change is small.
 
 ## Consequences & open questions
 - `combustibleProps` is read off the block, not the position, so a granite wall still burns. That needs a different mechanism (or a `bytype` split) and is out of scope here; note it rather than fake it.

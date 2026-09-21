@@ -20,7 +20,7 @@ Each icon says what the *mode* does, drawn as a plan or elevation of the thing i
 - `wall` — one panel seen in plan: a single thin bar across the cell.
 - `corner` — the same bar plus its return, an L in plan. Reads as "two faces of one cell", which is what a `cornerout` is.
 - `weatherboard` — elevation: three or four overlapping horizontal boards, the tapered edge visible (decision 0023's profile).
-- `boards` — elevation: flush vertical boards, even gaps, no taper. The contrast with `weatherboard` is horizontal-lapped versus vertical-flush, so the two icons must differ in *both* directions and overlap, not just direction.
+- `boards` — elevation: flush vertical boards, even gaps, no taper. It must differ from `weatherboard` in both direction *and* overlap, or the two read the same at 32px.
 
 Wiring: in `PlaceWallFrame.OnLoaded`, inside the existing `ObjectCacheUtil.GetOrCreate`, call `.WithIcon(capi, capi.Gui.LoadSvg(new AssetLocation("vssiding:textures/icons/wall.svg"), 48, 48, 48, 48, null))` per item, and dispose them where the cached array is disposed.
 
@@ -28,9 +28,9 @@ Wiring: in `PlaceWallFrame.OnLoaded`, inside the existing `ObjectCacheUtil.GetOr
 - **Cairo draw delegates** (`DrawSkillIconDelegate`), which vanilla also uses. Code that has to be run to be seen; an SVG is a file you can open and look at.
 - **PNG icons.** They blur at other GUI scales, and the game has an SVG loader sitting right there.
 - **Rendering the block itself into the tile.** Prettier and wrong: every mode would show the same bare frame, because the mode picks what you *build next*, not what the block looks like now.
-- **Naming the modes and stopping.** That is today, and today reads as a broken UI.
+- **Naming the modes and stopping.** That is today, and it reads as a broken UI.
 
 ## Consequences & open questions
-- Whether the cached `SkillItem[]` is disposed anywhere today needs checking; a `LoadedTexture` per mode is four textures for the client's life, which is nothing, but leaking them on reload is sloppy.
+- Whether the cached `SkillItem[]` is disposed anywhere today needs checking, or four `LoadedTexture`s leak on every reload.
 - Icons are drawn at one colour, so anything relying on shading to read (a shadow under a lapped board) will flatten. Design for silhouette.
 - `modicon.png` for the mod list is art too, and deliberately not here; it belongs with `release-readiness`.

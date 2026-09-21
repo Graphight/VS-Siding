@@ -9,7 +9,7 @@ Bring `README.md` and `modinfo.json`'s description in line with what the mod act
 
 ## Context
 `README.md` still says **"Status: early scaffolding, no gameplay yet"** and "no custom heat simulation beyond that - a possible future extension, not a v1 goal", written before decisions 0004–0028 shipped the mesh, the build flow, four board styles, glazing, stone, masonry relief, the corner upgrade and the lighting fixes.
-It's the first thing anyone reads on the repo and it's actively false.
+It's the first thing anyone reads on the repo, and it's false.
 
 `modinfo.json`'s description is one line and fine, but names no gesture, so a player installing from ModDB still doesn't know about the saw.
 
@@ -19,8 +19,8 @@ It should say *where things live* and point at the decisions for why.
 ## Design
 Three edits, no new files:
 
-1. **`README.md`** — drop the status line (or say what's true: feature-complete, pre-release). Add a short "how you build a wall" paragraph with the saw gesture and the four modes, a "what a wall is made of" list (framings, infills, finish styles), and keep the build-from-source and licence sections as they are. No feature table; the handbook page is the player-facing document.
-2. **`modinfo.json`** — description gains the gesture in one clause, so the ModDB blurb is self-sufficient. Version and dependency floor are `release-readiness`'s business, not this one.
+1. **`README.md`** — drop the status line, or say what's true: feature-complete, pre-release. Add a "how you build a wall" paragraph (the saw gesture, the four modes) and a "what a wall is made of" list (framings, infills, finish styles). Build-from-source and licence stay as they are. No feature table.
+2. **`modinfo.json`** — the description gains the gesture in one clause, so the ModDB blurb stands on its own. Version and dependency floor belong to `release-readiness`.
 3. **`CLAUDE.md`** — keep the file-to-responsibility map and the three architecture rules (attribute dictionaries not variants, families are templates, check every consumer before overriding a vanilla property). Compress the per-decision narration: the decisions directory is the changelog and `ls` is its index.
 
 ## Alternatives considered

@@ -23,7 +23,7 @@ Collected from those decisions' own "Consequences & open questions":
 ## Design
 Do them in that order, each demoable, and stop when the rest stop being visible.
 
-(1) is a one-line change to the postfix: `Math.Min` of the open-side light and the room's, in whatever the RGB packing allows — which is the catch, because "darker" across three channels is not a single comparison. Pick per-channel min, and say so.
+(1) is a one-line change to the postfix: `Math.Min` of the open-side light and the room's. The catch is that "darker" across three packed channels is not one comparison. Pick per-channel min, and say so.
 
 (2) is an experiment before it is a change: comment out `DoEmitSideAo`/`DoEmitSideAoByFlag`, screenshot the same sealed room and the same pre-roof corner, keep the smaller code if the pixels match.
 
@@ -34,7 +34,7 @@ Do them in that order, each demoable, and stop when the rest stop being visible.
 (5) is a judgement call after (1)–(4) land, because the flat path may stop being noticeable once nothing beside it is wrong.
 
 ## Alternatives considered
-- **A real light-propagation patch** so a sealed cell never stores the outdoor light in the first place. The honest fix, in the deepest and most update-fragile place in the engine; 0018 chose the tessellation-time swap precisely to avoid it. Revisit only if these five resist.
+- **A real light-propagation patch** so a sealed cell never stores the outdoor light at all. The honest fix, in the most update-fragile place in the engine; 0018 chose the tessellation-time swap to avoid it. Revisit only if these five resist.
 - **Giving walls `lightAbsorption` for real.** Would fix the storage at the source and break glazing, which must transmit.
 - **Shipping as-is.** Defensible for 1, 4 and 5 — each is a sliver or a subtlety. Not for 3, if a window beside a wall is the common case, which it is.
 
