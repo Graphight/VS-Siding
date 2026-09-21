@@ -1,8 +1,8 @@
-# Handbook page
+# 0029 — Handbook page
 
-- Status: Draft
+- Status: Accepted
 - Created: 2026-09-20
-- Reflects: release polish planning, after decision 0028
+- Reflects: branch `handbook-page`, after decision 0028
 
 ## Summary
 A "Guides" page in the survival handbook that teaches the whole build flow — saw in the off hand, the four modes, layer by layer — plus a one-paragraph description on the wall block's own handbook page.
@@ -36,7 +36,15 @@ Translation needs no code.
 - **A tutorial-category page with live steps.** Vanilla's tutorial system tracks progress; that's a system to learn for a mod with one gesture.
 - **Leaving it to the ModDB page.** Nobody reads the web page while holding a saw.
 
+## What shipped
+`VSSiding/assets/vssiding/config/handbook/00-siding.json` — three lines, `pageCode`/`title`/`text` — plus `gamemechanicinfo-siding-title`/`-text` and `blockdesc-wall-*` in `en.json`.
+No C#.
+
+`<hk>` was dropped entirely: neither the off-hand slot nor the saw's mode picker is a bound key, and an unresolved tag prints raw.
+Plain words instead — "put a saw in your off-hand slot".
+The block blurb links back with `<a href="handbook://gamemechanicinfo-siding">`; the guide links to no block, so the wildcard `blockdesc-wall-*` covers both layouts the way `block-wall-*` already does.
+
 ## Consequences & open questions
 - The page hard-codes the mode list and the finish styles, so a new mode means editing prose.
-- Do the `<hk>` tags resolve for a *hotbar* off-hand slot, which is not a bound key? If not, say "off-hand slot" in plain words.
 - Handbook text has no images; the mode icons can't be inlined. If that hurts, the ModDB page carries screenshots instead.
+- Section 6 describes the furniture quirk as a workaround. If `furniture-against-thin-walls` ever lands, that paragraph goes.
