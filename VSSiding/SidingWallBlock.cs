@@ -461,6 +461,7 @@ public class SidingWallBlock : Block
     // Looking at a built wall names its layers - otherwise a boarded infill is unreadable
     // short of breaking it, and the infill is what decides cellar vs warm room (decision 0015).
     // Takes a translate delegate (the entity passes Lang.GetIfExists) so this needs no loaded Lang.
+    // System.Func is spelled out throughout: Vintagestory.API.Common declares a Func of its own.
     internal static string Describe(
         string? framing, string? infill, JsonObject framings, JsonObject infills,
         string layout, string side, string? front, string? secondFront, string? back, JsonObject finishes,
@@ -472,74 +473,59 @@ public class SidingWallBlock : Block
         sb.AppendLine("  " + DescribeLayer(infill, infills, "vssiding:tooltip-no-infill", translate));
         foreach (string line in DescribeFaces(layout, side, front, secondFront, back, finishes, translate))
             sb.AppendLine("  " + line);
-        sb.AppendLine("  " + DescribeSeal(framing, infill, framings, infills, translate));
+        sb.AppendLine("  " + Translate(SealKey(framing, infill, framings, infills), translate));
         return sb.ToString();
     }
 
     // The line a cellar builder actually reads: whether the wall seals the room at all, and
     // if so, whether the infill makes it a cooling wall (decision 0015).
-    private static string DescribeSeal(
-        string? framing, string? infill, JsonObject framings, JsonObject infills, System.Func<string, string?> translate)
-    {
-        string key = ComputeRetention(true, framing, infill, framings, infills) switch
+    private static string SealKey(string? framing, string? infill, JsonObject framings, JsonObject infills)
+        => ComputeRetention(true, framing, infill, framings, infills) switch
         {
             1 => "vssiding:tooltip-sealed",
             -1 => "vssiding:tooltip-sealed-cool",
             _ => "vssiding:tooltip-unsealed",
         };
-        return translate(key) ?? TitleCase(key);
-    }
 
-    // Directions in the order the plan groups by: Front, then Back, then (for a cornerout)
-    // SecondFront and its own Back - so a cornerout's two Back directions land on one line
-    // even though a SecondFront direction sits between them in this list.
+    // Faces are named by the direction they point - the only vocabulary that covers a cornerout's
+    // three finishable faces without inventing words for them. Both of its legs share one Back
+    // layer, so two directions carry the same finish; grouping by first appearance is what puts
+    // them on one line even with a SecondFront direction between them.
     private static IEnumerable<string> DescribeFaces(
         string layout, string side, string? front, string? secondFront, string? back, JsonObject finishes,
         System.Func<string, string?> translate)
     {
-        var directions = new List<(string direction, string? finish)> { (side, front), (BlockFacing.FromCode(side).Opposite.Code, back) };
+        var directions = new List<(string direction, string? finish)> { (side, front), (Opposite(side), back) };
         if (layout == "cornerout")
         {
             string secondSide = CorneroutSecondFace[side];
             directions.Add((secondSide, secondFront));
-            directions.Add((BlockFacing.FromCode(secondSide).Opposite.Code, back));
+            directions.Add((Opposite(secondSide), back));
         }
 
-        var groups = new List<(string? finish, List<string> directions)>();
-        foreach (var (direction, finish) in directions)
+        foreach (var group in directions.GroupBy(d => d.finish))
         {
-            var group = groups.Find(g => g.finish == finish);
-            if (group.directions == null)
-            {
-                group = (finish, new List<string>());
-                groups.Add(group);
-            }
-            group.directions.Add(direction);
-        }
-
-        foreach (var (finish, dirs) in groups)
-        {
-            string labels = string.Join(", ", dirs.Select(d => DescribeDirection(d, translate)));
-            string finishName = finish == null
-                ? translate("vssiding:tooltip-unfinished") ?? TitleCase("tooltip-unfinished")
-                : DescribeLayer(finish, finishes, "vssiding:tooltip-unfinished", translate);
-            yield return $"{labels}: {finishName}";
+            string labels = string.Join(", ", group.Select(d => Translate($"game:facing-{d.direction}", translate)));
+            yield return $"{labels}: {DescribeLayer(group.Key, finishes, "vssiding:tooltip-unfinished", translate)}";
         }
     }
 
-    private static string DescribeDirection(string direction, System.Func<string, string?> translate)
-        => translate($"game:facing-{direction}") ?? TitleCase(direction);
+    private static string Opposite(string side) => BlockFacing.FromCode(side).Opposite.Code;
 
     // A gap prints the "no-x" line; a built layer resolves its DisplayName, falling back to a
     // title-cased material key when the entry has no DisplayName or the key has no translation.
     private static string DescribeLayer(string? key, JsonObject materials, string missingLangKey, System.Func<string, string?> translate)
     {
-        if (key == null) return translate(missingLangKey) ?? TitleCase(missingLangKey);
+        if (key == null) return Translate(missingLangKey, translate);
 
         string? displayName = materials[key]["DisplayName"].AsString(null!);
-        string? resolved = displayName != null ? translate(displayName) : null;
-        return resolved ?? TitleCase(key);
+        return (displayName != null ? translate(displayName) : null) ?? TitleCase(key);
     }
+
+    // Our own keys ship in en.json beside the code, so a miss means a broken install: show the
+    // raw key rather than dressing it up. A material's DisplayName is the case worth dressing up,
+    // since a game update can add a wood the lang file has never heard of.
+    private static string Translate(string langKey, System.Func<string, string?> translate) => translate(langKey) ?? langKey;
 
     private static string TitleCase(string key)
         => string.Join(' ', key.Split('-').Select(word => word.Length == 0 ? word : char.ToUpperInvariant(word[0]) + word[1..]));
