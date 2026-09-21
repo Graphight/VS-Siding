@@ -13,7 +13,7 @@ The gesture is a plank in the main hand and a saw in the *off* hand (decisions 0
 A player who can't find the first click never sees the 500-odd materials behind it.
 
 Vanilla's own format is cheap: `assets/<domain>/config/handbook/NN-slug.json` holding `{ pageCode, title, text }`, two lang keys, and the game's loader picks up `config/handbook` from every domain.
-Text is the game's rich subset — `<strong>`, `<br>`, `<i>`, `<hk>shift</hk>` for key names, and `<a href="handbook://block-wall-wall-west">` to link a block page.
+Text is the game's rich subset: `<strong>`, `<br>`, `<i>`, `<hk>shift</hk>` for key names, `<a href="handbook://block-wall-wall-west">` to link a block page, and `<itemstack type="item">plank-oak|plank-birch</itemstack>` for inline item and block icons, which vanilla's own handbook pages use.
 Confirmed against 1.22.2's `assets/survival/config/handbook/` and the `config/handbook` asset path inside `VSSurvivalMod.dll`.
 
 ## Design
@@ -46,5 +46,6 @@ The block blurb links back with `<a href="handbook://gamemechanicinfo-siding">`;
 
 ## Consequences & open questions
 - The page hard-codes the mode list and the finish styles, so a new mode means editing prose.
-- Handbook text has no images; the mode icons can't be inlined. If that hurts, the ModDB page carries screenshots instead.
+- Material lists in the guide are plain words. `<itemstack>` would render real icons instead, and is the obvious upgrade if the page reads flat in play.
+- The saw's tool-mode icons still can't be inlined: `<itemstack>` renders an item or block, not an arbitrary texture, so `mode-icons` shows them in the mode picker only.
 - Section 6 describes the furniture quirk as a workaround. If `furniture-against-thin-walls` ever lands, that paragraph goes.
