@@ -17,6 +17,7 @@ Build order — each one should be demoable in game before the next starts.
 - `layer-sounds-and-resistance` — sound and break time from the layer you're hitting, instead of every wall being planks at 1.2.
 - `lighting-round-two` — the five leftovers decisions 0016/0018/0019 wrote down: doorway sliver, dead side AO, glazing's bright neighbour, double-thickness order, flat shading.
 - `furniture-against-thin-walls` — revived: measure the interior-partition gap in play before deciding between a handbook note, a second panel, or voxel merging.
+- `release-readiness` — modicon, version, dependency floor, save round-trip, and one whole house built for real (do the playtest first, bump the version last).
 
 ## Parked
 
