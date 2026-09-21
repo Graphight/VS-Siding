@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
+using Vintagestory.API.Config;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Util;
@@ -60,6 +62,14 @@ public class SidingWallEntity : BlockEntity
         {
             worldAccessForResolve.BlockAccessor.MarkBlockDirty(Pos);
         }
+    }
+
+    // Block.GetPlacedBlockInfo already calls this inside a try/catch and appends the
+    // blockdesc- line after it, so overriding here is the one hook rather than two.
+    public override void GetBlockInfo(IPlayer forPlayer, StringBuilder dsc)
+    {
+        base.GetBlockInfo(forPlayer, dsc);
+        dsc.Append(SidingWallBlock.Describe(Framing, Infill, Block.Attributes["Framings"], Block.Attributes["Infills"], key => Lang.GetIfExists(key)));
     }
 
     // Everything OnTesselation reads off this entity, which is exactly what CacheKey covers.

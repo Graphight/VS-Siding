@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
 using Vintagestory.API.Datastructures;
@@ -455,6 +457,33 @@ public class SidingWallBlock : Block
                 or EnumBlockMaterial.Soil or EnumBlockMaterial.Ceramic;
         return cooling ? -1 : 1;
     }
+
+    // Looking at a built wall names its layers - otherwise a boarded infill is unreadable
+    // short of breaking it, and the infill is what decides cellar vs warm room (decision 0015).
+    // Takes a translate delegate (the entity passes Lang.GetIfExists) so this needs no loaded Lang.
+    internal static string Describe(
+        string? framing, string? infill, JsonObject framings, JsonObject infills, System.Func<string, string?> translate)
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine();
+        sb.AppendLine("  " + DescribeLayer(framing, framings, "vssiding:tooltip-no-framing", translate));
+        sb.AppendLine("  " + DescribeLayer(infill, infills, "vssiding:tooltip-no-infill", translate));
+        return sb.ToString();
+    }
+
+    // A gap prints the "no-x" line; a built layer resolves its DisplayName, falling back to a
+    // title-cased material key when the entry has no DisplayName or the key has no translation.
+    private static string DescribeLayer(string? key, JsonObject materials, string missingLangKey, System.Func<string, string?> translate)
+    {
+        if (key == null) return translate(missingLangKey) ?? TitleCase(missingLangKey);
+
+        string? displayName = materials[key]["DisplayName"].AsString(null!);
+        string? resolved = displayName != null ? translate(displayName) : null;
+        return resolved ?? TitleCase(key);
+    }
+
+    private static string TitleCase(string key)
+        => string.Join(' ', key.Split('-').Select(word => word.Length == 0 ? word : char.ToUpperInvariant(word[0]) + word[1..]));
 
     public override int GetLightAbsorption(IBlockAccessor blockAccessor, BlockPos pos)
         => GetLightAbsorption(blockAccessor.GetChunkAtBlockPos(pos), pos);
