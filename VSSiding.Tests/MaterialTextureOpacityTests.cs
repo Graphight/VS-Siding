@@ -53,7 +53,7 @@ public class MaterialTextureOpacityTests
     // A vanilla item or block type's variants: one variant group's own states plus its
     // loadFromProperties list, minus skipVariants. Codes are "{code}-{value}" unless codeFormat
     // fills in the other groups, as for log-placed-{wood}-ud.
-    private static IEnumerable<(string, AssetLocation, IDictionary<string, string>)> Candidates(
+    internal static IEnumerable<(string, AssetLocation, IDictionary<string, string>)> Candidates(
         string vintageStoryPath, string type, string relativePath, int groupIndex = 0, string codeFormat = "{0}-{1}")
     {
         var survival = Path.Combine(vintageStoryPath, "assets", "survival");
@@ -86,15 +86,9 @@ public class MaterialTextureOpacityTests
         throw new FileNotFoundException($"Could not find texture file for '{textureCode}' under any of: {string.Join(", ", AssetDomainFolders)}");
     }
 
-    [Fact]
-    public void NoMaterialTextureHasPartialAlpha()
-    {
-        var vintageStoryPath = GetAssemblyMetadata("VintageStoryPath");
-        var repoRoot = GetAssemblyMetadata("RepoRoot");
-        var wallJsonPath = Path.Combine(repoRoot, "VSSiding", "assets", "vssiding", "blocktypes", "wall.json");
-        var wallJson = (JObject)JToken.Parse(File.ReadAllText(wallJsonPath));
-
-        var candidates = Candidates(vintageStoryPath, "item", "itemtypes/resource/plank.json")
+    // Every vanilla item/block type whose variants a *Families template can expand against.
+    internal static List<(string, AssetLocation, IDictionary<string, string>)> AllCandidates(string vintageStoryPath)
+        => Candidates(vintageStoryPath, "item", "itemtypes/resource/plank.json")
             .Concat(Candidates(vintageStoryPath, "block", "blocktypes/stone/cobble/cobblestone.json"))
             .Concat(Candidates(vintageStoryPath, "block", "blocktypes/stone/polished/polishedrock.json"))
             .Concat(Candidates(vintageStoryPath, "item", "itemtypes/resource/stonebrick.json"))
@@ -107,6 +101,16 @@ public class MaterialTextureOpacityTests
             .Concat(Candidates(vintageStoryPath, "block", "blocktypes/glass/full-colored.json"))
             .Concat(Candidates(vintageStoryPath, "block", "blocktypes/glass/full-quartz.json"))
             .ToList();
+
+    [Fact]
+    public void NoMaterialTextureHasPartialAlpha()
+    {
+        var vintageStoryPath = GetAssemblyMetadata("VintageStoryPath");
+        var repoRoot = GetAssemblyMetadata("RepoRoot");
+        var wallJsonPath = Path.Combine(repoRoot, "VSSiding", "assets", "vssiding", "blocktypes", "wall.json");
+        var wallJson = (JObject)JToken.Parse(File.ReadAllText(wallJsonPath));
+
+        var candidates = AllCandidates(vintageStoryPath);
         var textureCodes = CollectTextureCodes(wallJson, "Framings", "FramingFamilies", candidates)
             .Concat(CollectTextureCodes(wallJson, "Infills", "InfillFamilies", candidates))
             .Concat(CollectTextureCodes(wallJson, "Finishes", "FinishFamilies", candidates))
