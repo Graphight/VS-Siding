@@ -587,6 +587,94 @@ public class SidingWallBlock : Block
     internal static int RoomSunlight(IBlockAccessor accessor, BlockPos pos, EnumLightLevelType type)
         => accessor.GetBlock(pos) is SidingWallBlock wall && wall.GetLightAbsorption(accessor, pos) > 0 ? 0 : accessor.GetLightLevel(pos, type);
 
+    // Keyed by EnumBlockMaterial name (LayerSounds in wall.json), parsed once here rather than
+    // AsObject<BlockSounds>() per hit - that's a full Newtonsoft parse and GetSounds runs every tick.
+    private Dictionary<EnumBlockMaterial, BlockSounds>? layerSounds;
+
+    // Keyed by EnumBlockMaterial name (LayerResistance in wall.json); multiplies Resistance.
+    private Dictionary<EnumBlockMaterial, float>? layerResistance;
+
+    public override void OnLoaded(ICoreAPI api)
+    {
+        base.OnLoaded(api);
+        layerSounds = new Dictionary<EnumBlockMaterial, BlockSounds>();
+        var soundEntries = Attributes["LayerSounds"];
+        if (soundEntries.Exists)
+        {
+            foreach (var keyToken in soundEntries)
+            {
+                string key = keyToken.AsString()!;
+                if (Enum.TryParse(key, true, out EnumBlockMaterial material))
+                    layerSounds[material] = soundEntries[key].AsObject(new BlockSounds());
+            }
+        }
+
+        layerResistance = new Dictionary<EnumBlockMaterial, float>();
+        var resistanceEntries = Attributes["LayerResistance"];
+        if (resistanceEntries.Exists)
+        {
+            foreach (var keyToken in resistanceEntries)
+            {
+                string key = keyToken.AsString()!;
+                if (Enum.TryParse(key, true, out EnumBlockMaterial material))
+                    layerResistance[material] = resistanceEntries[key].AsFloat(1f);
+            }
+        }
+    }
+
+    // Which EnumBlockMaterial is under the cursor: resolves the clicked face to a finish layer
+    // (or the infill, or the frame) the same way OnBlockBroken decides what to peel.
+    internal EnumBlockMaterial HitLayerMaterial(IBlockAccessor accessor, BlockPos pos, BlockFacing? hitFace)
+    {
+        var entity = accessor.GetBlockEntity<SidingWallEntity>(pos);
+        if (entity == null) return BlockMaterial;
+
+        string? face = hitFace == null ? null : ResolveFinishFace(Variant["layout"], Variant["side"], hitFace);
+        string? layer = PeelLayer(face, entity.Infill, entity.Front, entity.SecondFront, entity.Back);
+        return LayerMaterialAt(layer, entity.Infill, entity.Front, entity.SecondFront, entity.Back);
+    }
+
+    private EnumBlockMaterial LayerMaterialAt(string? layer, string? infill, string? front, string? secondFront, string? back)
+        => LayerMaterial(layer, LayerKey(layer, infill, front, secondFront, back), Attributes["Infills"], Attributes["Finishes"], BlockMaterial);
+
+    // The fallback is a parameter rather than read from Sounds here, so GetSounds can defer to
+    // base.GetSounds while OnBlockBroken defers to Sounds.
+    internal static BlockSounds ResolveLayerSounds(EnumBlockMaterial material, Dictionary<EnumBlockMaterial, BlockSounds>? layerSounds, BlockSounds fallback)
+        => layerSounds != null && layerSounds.TryGetValue(material, out var sounds) ? sounds : fallback;
+
+    public override BlockSounds GetSounds(IBlockAccessor blockAccessor, BlockSelection blockSel, ItemStack? stack = null)
+    {
+        // Vanilla's own GetSounds ignores its arguments, so a caller is free to pass no selection.
+        if (blockSel?.Position == null) return base.GetSounds(blockAccessor, blockSel, stack);
+
+        var material = HitLayerMaterial(blockAccessor, blockSel.Position, blockSel.Face);
+        return ResolveLayerSounds(material, layerSounds, base.GetSounds(blockAccessor, blockSel, stack));
+    }
+
+    // Unknown/missing material falls through to the block's own Resistance, passed in by the caller.
+    internal static float ResolveLayerResistance(EnumBlockMaterial material, Dictionary<EnumBlockMaterial, float>? layerResistance, float resistance)
+        => layerResistance != null && layerResistance.TryGetValue(material, out var multiplier) ? resistance * multiplier : resistance;
+
+    // No hit face reaches this hook, so the layer under the cursor falls back to the topmost finish,
+    // then infill, then frame - PeelLayer's own fallback order with a null face.
+    public override float GetResistance(IBlockAccessor blockAccessor, BlockPos pos)
+    {
+        if (pos == null) return base.GetResistance(blockAccessor, pos);
+
+        var material = HitLayerMaterial(blockAccessor, pos, null);
+        return ResolveLayerResistance(material, layerResistance, base.GetResistance(blockAccessor, pos));
+    }
+
+    // pos may be null, with only a stack to go on, so that falls back to base. The API warns this
+    // may run off the main thread; the entity reads below are all immutable strings, so a racing
+    // build reads either the old layer or the new one, never a torn value.
+    public override EnumBlockMaterial GetBlockMaterial(IBlockAccessor blockAccessor, BlockPos pos, ItemStack? stack = null)
+    {
+        if (pos == null) return base.GetBlockMaterial(blockAccessor, pos, stack);
+
+        return HitLayerMaterial(blockAccessor, pos, null);
+    }
+
     // A player's break peels one layer (decision 0013); anything else, or a bare frame, breaks the block.
     internal static BlockSelection? ServerBreakSelection;
 
@@ -610,17 +698,17 @@ public class SidingWallBlock : Block
 
         if (world.Side == EnumAppSide.Server && byPlayer.WorldData.CurrentGameMode != EnumGameMode.Creative)
         {
-            string? key = layer switch
-            {
-                "front" => entity.Front,
-                "secondfront" => entity.SecondFront,
-                "back" => entity.Back,
-                _ => entity.Infill,
-            };
+            string? key = LayerKey(layer, entity.Infill, entity.Front, entity.SecondFront, entity.Back);
             var drops = new List<BlockDropItemStack>();
             AddDrops(drops, key, Attributes[layer == "infill" ? "Infills" : "Finishes"]);
             foreach (var stack in ResolveDrops(world, drops, dropQuantityMultiplier)) world.SpawnItemEntity(stack, pos);
-            if (Sounds != null) world.PlaySoundAt(Sounds.GetBreakSound(byPlayer), pos, 0.0, byPlayer);
+
+            if (Sounds != null)
+            {
+                var material = LayerMaterialAt(layer, entity.Infill, entity.Front, entity.SecondFront, entity.Back);
+                var breakSounds = ResolveLayerSounds(material, layerSounds, Sounds);
+                world.PlaySoundAt(breakSounds.GetBreakSound(byPlayer), pos, 0.0, byPlayer);
+            }
         }
         SpawnBlockBrokenParticles(pos, byPlayer);
 
@@ -686,6 +774,26 @@ public class SidingWallBlock : Block
         {
             if (drop.Code != null) drops.Add(drop);
         }
+    }
+
+    // Same layer names PeelLayer returns, resolved to the material key installed there.
+    internal static string? LayerKey(string? layer, string? infill, string? front, string? secondFront, string? back)
+        => layer switch
+        {
+            "front" => front,
+            "secondfront" => secondFront,
+            "back" => back,
+            _ => infill,
+        };
+
+    // Only "infill" and the finish layers look a material up. Framings are all planks and carry
+    // no BlockMaterial, so a frame falls through to the caller's fallback - the block's own Wood.
+    internal static EnumBlockMaterial LayerMaterial(string? layer, string? key, JsonObject infills, JsonObject finishes, EnumBlockMaterial fallback)
+    {
+        if (key == null) return fallback;
+        var dictionary = layer == "infill" ? infills : finishes;
+        string? materialName = dictionary[key]["BlockMaterial"].AsString(null!);
+        return Enum.TryParse(materialName, true, out EnumBlockMaterial material) ? material : fallback;
     }
 
     // Reverse build order: the hit face's finish, then any finish, then infill; null leaves only the frame.
