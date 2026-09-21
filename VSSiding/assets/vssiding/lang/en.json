@@ -186,6 +186,7 @@
 	"build-glazed": "Glazing takes no finish",
 	"build-already-finished": "That side is already finished",
 	"build-no-style": "That material has no board styles",
+	"build-needs-infill": "Fill the wall before finishing it",
 	"build-occupied": "Something is in the way",
 	"build-cant-afford": "Not enough material"
 }

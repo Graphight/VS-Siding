@@ -196,6 +196,17 @@ public class SidingWallBlock : Block
 
         bool isCreative = byPlayer.WorldData.CurrentGameMode == EnumGameMode.Creative;
 
+        // A style mode never frames and never places (decision 0027), so every refusal below is
+        // an error the player sees rather than a silent fallthrough to something else placing.
+        // Resolved before the infill branch, or a style-mode click on a bare frame would fall
+        // through that branch's "held item is not an infill" return and say nothing at all.
+        string? style = ResolveStyle(PlaceWallFrame.ToolModeOf(slot));
+        if (style != null && entity.Infill == null)
+        {
+            (byPlayer as IServerPlayer)?.SendIngameError("vssiding:needsinfill", Lang.Get("vssiding:build-needs-infill"));
+            return true;
+        }
+
         if (entity.Infill == null)
         {
             // A bare frame clicked in corner mode becomes a cornerout in place, for a T-junction
@@ -244,10 +255,6 @@ public class SidingWallBlock : Block
 
         string? finishKey = MatchConsumes(heldCode, Attributes["Finishes"]);
         if (finishKey == null) return base.OnBlockInteractStart(world, byPlayer, blockSel);
-
-        // A style mode never frames and never places (decision 0027), so every refusal below is
-        // an error the player sees rather than a silent fallthrough to something else placing.
-        string? style = ResolveStyle(PlaceWallFrame.ToolModeOf(slot));
 
         // Planks that can't finish this face still extend the wall via PlaceWallFrame, and held blocks still place.
         bool heldPlaces = style == null

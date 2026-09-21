@@ -37,7 +37,9 @@ Clicking a finishable face applies planks with the entry's `Elements` default, e
 
 **Style modes: finish only, and every refusal is loud.**
 `heldPlaces` — the escape hatch that lets planks fall through to `PlaceWallFrame` and held blocks fall through to vanilla placement — is switched off in a style mode, because in a style mode there is nothing to fall through *to*.
-So a style-mode click on an end face, a glazed cell, a frame with no infill or an already-finished face shows its existing ingame error instead of silently doing nothing.
+So a style-mode click on an end face, a glazed cell or an already-finished face shows its existing ingame error instead of silently doing nothing.
+A frame with no infill had no such error to show, and its refusal sits before the infill branch rather than after it: planks never match an `Infills` entry, so that branch returns on "the held item is not an infill" long before a style is resolved.
+It gets a new string, `build-needs-infill`, and a `Styles` entry the held material doesn't list gets `build-no-style`.
 
 **Restyling the same material is free.**
 A face already finished with the same finish key in the other style is restyled in place: no material charged, no break, no drop.
@@ -63,7 +65,7 @@ A style mode only matches entries listing that style, so daub and brick refuse i
 - **Separate finish entries per style** (`planks-weatherboard`, `planks-boards`). Two entries consuming the same item still shadow each other in `MatchConsumes` without the mode, and `material-families` would double every plank entry.
 - **A modifier key to toggle style.** Decision 0006 removed shift from the build flow for good reason.
 - **Style modes also place frames.** Then a player in `boards` mode clicking air builds a wall, which is the confusion decision 0007 fixed.
-- **Style modes fall through silently when they can't act.** A mode that does nothing and says nothing reads as a broken mod; the errors were already written.
+- **Style modes fall through silently when they can't act.** A mode that does nothing and says nothing reads as a broken mod; most of the errors were already written, and the one that was not is two lines.
 
 ## Consequences & open questions
 - Tool modes are stored as an index on the item stack. `window-frames` plans a third frame mode; whichever ships second must append rather than insert, or stacks saved in one mode wake up in another. Worth grouping frame modes before style modes once both exist, accepting one reset.
