@@ -472,7 +472,22 @@ public class SidingWallBlock : Block
         sb.AppendLine("  " + DescribeLayer(infill, infills, "vssiding:tooltip-no-infill", translate));
         foreach (string line in DescribeFaces(layout, side, front, secondFront, back, finishes, translate))
             sb.AppendLine("  " + line);
+        sb.AppendLine("  " + DescribeSeal(framing, infill, framings, infills, translate));
         return sb.ToString();
+    }
+
+    // The line a cellar builder actually reads: whether the wall seals the room at all, and
+    // if so, whether the infill makes it a cooling wall (decision 0015).
+    private static string DescribeSeal(
+        string? framing, string? infill, JsonObject framings, JsonObject infills, System.Func<string, string?> translate)
+    {
+        string key = ComputeRetention(true, framing, infill, framings, infills) switch
+        {
+            1 => "vssiding:tooltip-sealed",
+            -1 => "vssiding:tooltip-sealed-cool",
+            _ => "vssiding:tooltip-unsealed",
+        };
+        return translate(key) ?? TitleCase(key);
     }
 
     // Directions in the order the plan groups by: Front, then Back, then (for a cornerout)
