@@ -38,6 +38,7 @@ public class SidingWallEntity : BlockEntity
     {
         base.FromTreeAttributes(tree, worldAccessForResolve);
         string? oldInfill = Infill;
+        var oldMesh = MeshState;
         Framing = NullIfEmpty(tree.GetString("framing", null));
         Infill = NullIfEmpty(tree.GetString("infill", null));
         // Other clients learn of new infill only through this sync, so they relight here; Api is null on chunk load.
@@ -51,7 +52,20 @@ public class SidingWallEntity : BlockEntity
         FrontStyle = NullIfEmpty(tree.GetString("frontstyle", null));
         SecondFrontStyle = NullIfEmpty(tree.GetString("secondfrontstyle", null));
         BackStyle = NullIfEmpty(tree.GetString("backstyle", null));
+
+        // A chunk can be meshed before its block entities arrive, and nothing else redraws it
+        // afterwards: OnTesselation reads null state, returns false, and the cell keeps the
+        // block's default solid shape - flat slabs, no cladding relief - until something
+        // unrelated disturbs it. Redrawing on the sync that brought the state is that something.
+        if (Api?.Side == EnumAppSide.Client && MeshState != oldMesh)
+        {
+            worldAccessForResolve.BlockAccessor.MarkBlockDirty(Pos);
+        }
     }
+
+    // Everything OnTesselation reads off this entity, which is exactly what CacheKey covers.
+    private (string?, string?, string?, string?, string?, string?, string?, string?) MeshState
+        => (Framing, Infill, Front, SecondFront, Back, FrontStyle, SecondFrontStyle, BackStyle);
 
     // A ToBytes/FromBytes round trip (chunk save/reload, client sync) turns a null
     // SetString value into "" - normalize back to null so "unbuilt" survives a reload.
