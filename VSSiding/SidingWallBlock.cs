@@ -591,18 +591,35 @@ public class SidingWallBlock : Block
     // AsObject<BlockSounds>() per hit - that's a full Newtonsoft parse and GetSounds runs every tick.
     private Dictionary<EnumBlockMaterial, BlockSounds>? layerSounds;
 
+    // Keyed by EnumBlockMaterial name (LayerResistance in wall.json): multiplies the block's own
+    // Resistance so a stone face takes longer to break than a plank one.
+    private Dictionary<EnumBlockMaterial, float>? layerResistance;
+
     public override void OnLoaded(ICoreAPI api)
     {
         base.OnLoaded(api);
         layerSounds = new Dictionary<EnumBlockMaterial, BlockSounds>();
-        var entries = Attributes["LayerSounds"];
-        if (!entries.Exists) return;
-
-        foreach (var keyToken in entries)
+        var soundEntries = Attributes["LayerSounds"];
+        if (soundEntries.Exists)
         {
-            string key = keyToken.AsString()!;
-            if (Enum.TryParse(key, true, out EnumBlockMaterial material))
-                layerSounds[material] = entries[key].AsObject(new BlockSounds());
+            foreach (var keyToken in soundEntries)
+            {
+                string key = keyToken.AsString()!;
+                if (Enum.TryParse(key, true, out EnumBlockMaterial material))
+                    layerSounds[material] = soundEntries[key].AsObject(new BlockSounds());
+            }
+        }
+
+        layerResistance = new Dictionary<EnumBlockMaterial, float>();
+        var resistanceEntries = Attributes["LayerResistance"];
+        if (resistanceEntries.Exists)
+        {
+            foreach (var keyToken in resistanceEntries)
+            {
+                string key = keyToken.AsString()!;
+                if (Enum.TryParse(key, true, out EnumBlockMaterial material))
+                    layerResistance[material] = resistanceEntries[key].AsFloat(1f);
+            }
         }
     }
 
@@ -635,6 +652,20 @@ public class SidingWallBlock : Block
 
         var material = HitLayerMaterial(blockAccessor, blockSel.Position, blockSel.Face);
         return ResolveLayerSounds(material, layerSounds, base.GetSounds(blockAccessor, blockSel, stack));
+    }
+
+    // Unknown/missing material falls through to the block's own Resistance, passed in by the caller.
+    internal static float ResolveLayerResistance(EnumBlockMaterial material, Dictionary<EnumBlockMaterial, float>? layerResistance, float resistance)
+        => layerResistance != null && layerResistance.TryGetValue(material, out var multiplier) ? resistance * multiplier : resistance;
+
+    // No hit face reaches this hook, so the layer under the cursor falls back to the topmost finish,
+    // then infill, then frame - PeelLayer's own fallback order with a null face.
+    public override float GetResistance(IBlockAccessor blockAccessor, BlockPos pos)
+    {
+        if (pos == null) return base.GetResistance(blockAccessor, pos);
+
+        var material = HitLayerMaterial(blockAccessor, pos, null);
+        return ResolveLayerResistance(material, layerResistance, base.GetResistance(blockAccessor, pos));
     }
 
     // A player's break peels one layer (decision 0013); anything else, or a bare frame, breaks the block.
