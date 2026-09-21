@@ -462,14 +462,58 @@ public class SidingWallBlock : Block
     // short of breaking it, and the infill is what decides cellar vs warm room (decision 0015).
     // Takes a translate delegate (the entity passes Lang.GetIfExists) so this needs no loaded Lang.
     internal static string Describe(
-        string? framing, string? infill, JsonObject framings, JsonObject infills, System.Func<string, string?> translate)
+        string? framing, string? infill, JsonObject framings, JsonObject infills,
+        string layout, string side, string? front, string? secondFront, string? back, JsonObject finishes,
+        System.Func<string, string?> translate)
     {
         var sb = new StringBuilder();
         sb.AppendLine();
         sb.AppendLine("  " + DescribeLayer(framing, framings, "vssiding:tooltip-no-framing", translate));
         sb.AppendLine("  " + DescribeLayer(infill, infills, "vssiding:tooltip-no-infill", translate));
+        foreach (string line in DescribeFaces(layout, side, front, secondFront, back, finishes, translate))
+            sb.AppendLine("  " + line);
         return sb.ToString();
     }
+
+    // Directions in the order the plan groups by: Front, then Back, then (for a cornerout)
+    // SecondFront and its own Back - so a cornerout's two Back directions land on one line
+    // even though a SecondFront direction sits between them in this list.
+    private static IEnumerable<string> DescribeFaces(
+        string layout, string side, string? front, string? secondFront, string? back, JsonObject finishes,
+        System.Func<string, string?> translate)
+    {
+        var directions = new List<(string direction, string? finish)> { (side, front), (BlockFacing.FromCode(side).Opposite.Code, back) };
+        if (layout == "cornerout")
+        {
+            string secondSide = CorneroutSecondFace[side];
+            directions.Add((secondSide, secondFront));
+            directions.Add((BlockFacing.FromCode(secondSide).Opposite.Code, back));
+        }
+
+        var groups = new List<(string? finish, List<string> directions)>();
+        foreach (var (direction, finish) in directions)
+        {
+            var group = groups.Find(g => g.finish == finish);
+            if (group.directions == null)
+            {
+                group = (finish, new List<string>());
+                groups.Add(group);
+            }
+            group.directions.Add(direction);
+        }
+
+        foreach (var (finish, dirs) in groups)
+        {
+            string labels = string.Join(", ", dirs.Select(d => DescribeDirection(d, translate)));
+            string finishName = finish == null
+                ? translate("vssiding:tooltip-unfinished") ?? TitleCase("tooltip-unfinished")
+                : DescribeLayer(finish, finishes, "vssiding:tooltip-unfinished", translate);
+            yield return $"{labels}: {finishName}";
+        }
+    }
+
+    private static string DescribeDirection(string direction, System.Func<string, string?> translate)
+        => translate($"game:facing-{direction}") ?? TitleCase(direction);
 
     // A gap prints the "no-x" line; a built layer resolves its DisplayName, falling back to a
     // title-cased material key when the entry has no DisplayName or the key has no translation.

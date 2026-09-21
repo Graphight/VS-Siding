@@ -69,7 +69,10 @@ public class SidingWallEntity : BlockEntity
     public override void GetBlockInfo(IPlayer forPlayer, StringBuilder dsc)
     {
         base.GetBlockInfo(forPlayer, dsc);
-        dsc.Append(SidingWallBlock.Describe(Framing, Infill, Block.Attributes["Framings"], Block.Attributes["Infills"], key => Lang.GetIfExists(key)));
+        dsc.Append(SidingWallBlock.Describe(
+            Framing, Infill, Block.Attributes["Framings"], Block.Attributes["Infills"],
+            Block.Variant["layout"], Block.Variant["side"], Front, SecondFront, Back, Block.Attributes["Finishes"],
+            key => Lang.GetIfExists(key)));
     }
 
     // Everything OnTesselation reads off this entity, which is exactly what CacheKey covers.
