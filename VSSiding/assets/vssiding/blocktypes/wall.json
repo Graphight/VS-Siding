@@ -87,6 +87,7 @@
 			"daub": {
 				DisplayName: "vssiding:finish-daub",
 				Texture: "game:block/clay/daub/browngolden/normal1",
+				BlockMaterial: "Soil",
 				Consumes: { type: "item", code: "game:daubraw-browngolden", quantity: 2 },
 				Drops: [ { type: "item", code: "game:daubraw-browngolden", quantity: { avg: 2, var: 0 } } ]
 			},
@@ -94,6 +95,7 @@
 				DisplayName: "vssiding:finish-brick",
 				Texture: { base: "game:block/clay/brick/four/running/cream1", overlays: [ "game:block/clay/brick/four/running/red1" ] },
 				Elements: { front: "front-brick", back: "back-brick" },
+				BlockMaterial: "Ceramic",
 				Consumes: { type: "item", code: "game:burnedbrick-red", quantity: 2 },
 				Drops: [ { type: "item", code: "game:burnedbrick-red", quantity: { avg: 2, var: 0 } } ]
 			},
@@ -101,6 +103,7 @@
 				DisplayName: "vssiding:finish-brick-cream",
 				Texture: "game:block/clay/brick/four/running/cream1",
 				Elements: { front: "front-brick", back: "back-brick" },
+				BlockMaterial: "Ceramic",
 				Consumes: { type: "item", code: "game:burnedbrick-cream", quantity: 2 },
 				Drops: [ { type: "item", code: "game:burnedbrick-cream", quantity: { avg: 2, var: 0 } } ]
 			},
@@ -108,6 +111,7 @@
 				DisplayName: "vssiding:finish-brick-clinker",
 				Texture: "game:block/clay/brick/four/running/clinker1",
 				Elements: { front: "front-brick", back: "back-brick" },
+				BlockMaterial: "Ceramic",
 				Consumes: { type: "item", code: "game:burnedbrick-clinker", quantity: 2 },
 				Drops: [ { type: "item", code: "game:burnedbrick-clinker", quantity: { avg: 2, var: 0 } } ]
 			},
@@ -115,6 +119,7 @@
 				DisplayName: "vssiding:finish-brick-fire",
 				Texture: "game:block/clay/brick/four/running/fire1",
 				Elements: { front: "front-brick", back: "back-brick" },
+				BlockMaterial: "Ceramic",
 				Consumes: { type: "item", code: "game:burnedbrick-fire", quantity: 2 },
 				Drops: [ { type: "item", code: "game:burnedbrick-fire", quantity: { avg: 2, var: 0 } } ]
 			},
@@ -123,6 +128,7 @@
 				Texture: "game:block/wood/planks/oak1",
 				Elements: { front: "front-weatherboard", back: "back-boards" },
 				Styles: ["weatherboard", "boards"],
+				BlockMaterial: "Wood",
 				Consumes: { type: "item", code: "game:plank-oak", quantity: 2 },
 				Drops: [ { type: "item", code: "game:plank-oak", quantity: { avg: 2, var: 0 } } ]
 			},
@@ -131,6 +137,7 @@
 				Texture: "game:block/wood/planks/aged/veryaged1",
 				Elements: { front: "front-weatherboard", back: "back-boards" },
 				Styles: ["weatherboard", "boards"],
+				BlockMaterial: "Wood",
 				Consumes: { type: "item", code: "game:plank-veryaged", quantity: 2 },
 				Drops: [ { type: "item", code: "game:plank-veryaged", quantity: { avg: 2, var: 0 } } ]
 			}
@@ -142,6 +149,7 @@
 				Texture: "game:block/wood/planks/{wood}1",
 				Elements: { front: "front-weatherboard", back: "back-boards" },
 				Styles: ["weatherboard", "boards"],
+				BlockMaterial: "Wood",
 				Consumes: { type: "item", code: "game:plank-{wood}", quantity: 2 },
 				Drops: [ { type: "item", code: "game:plank-{wood}", quantity: { avg: 2, var: 0 } } ]
 			},
@@ -150,6 +158,7 @@
 				DisplayName: "vssiding:finish-cobblestone-{rock}",
 				Texture: "game:block/stone/cobblestone/{rock}1",
 				Elements: { front: "front-rubble", back: "back-rubble" },
+				BlockMaterial: "Stone",
 				Consumes: { type: "block", code: "game:cobblestone-{rock}", quantity: 1 },
 				Drops: [ { type: "block", code: "game:cobblestone-{rock}", quantity: { avg: 1, var: 0 } } ]
 			},
@@ -157,6 +166,7 @@
 				Match: { type: "block", code: "game:rockpolished-*", variant: "rock" },
 				DisplayName: "vssiding:finish-polished-{rock}",
 				Texture: "game:block/stone/polishedrock/{rock}",
+				BlockMaterial: "Stone",
 				Consumes: { type: "block", code: "game:rockpolished-{rock}", quantity: 1 },
 				Drops: [ { type: "block", code: "game:rockpolished-{rock}", quantity: { avg: 1, var: 0 } } ]
 			},
@@ -165,6 +175,7 @@
 				DisplayName: "vssiding:finish-ashlar-{rock}",
 				Texture: "game:block/stone/brick/{rock}1",
 				Elements: { front: "front-ashlar", back: "back-ashlar" },
+				BlockMaterial: "Stone",
 				Consumes: { type: "item", code: "game:stonebrick-{rock}", quantity: 2 },
 				Drops: [ { type: "item", code: "game:stonebrick-{rock}", quantity: { avg: 2, var: 0 } } ]
 			},
@@ -173,6 +184,7 @@
 				DisplayName: "vssiding:finish-drystone-{rock}",
 				Texture: "game:block/stone/drystone/{rock}1",
 				Elements: { front: "front-rubble", back: "back-rubble" },
+				BlockMaterial: "Stone",
 				Consumes: { type: "item", code: "game:stone-{rock}", quantity: 4 },
 				Drops: [ { type: "item", code: "game:stone-{rock}", quantity: { avg: 4, var: 0 } } ]
 			},
@@ -181,6 +193,7 @@
 				DisplayName: "vssiding:finish-brick-{type}",
 				Texture: { base: "game:block/clay/brick/four/running/cream1", overlays: [ "game:block/clay/brick/four/running/{type}1" ] },
 				Elements: { front: "front-brick", back: "back-brick" },
+				BlockMaterial: "Ceramic",
 				Consumes: { type: "item", code: "game:burnedbrick-{type}", quantity: 2 },
 				Drops: [ { type: "item", code: "game:burnedbrick-{type}", quantity: { avg: 2, var: 0 } } ]
 			},
@@ -188,6 +201,7 @@
 				Match: { type: "item", code: "game:daubraw-*", variant: "color" },
 				DisplayName: "vssiding:finish-daub-{color}",
 				Texture: "game:block/clay/daub/{color}/normal1",
+				BlockMaterial: "Soil",
 				Consumes: { type: "item", code: "game:daubraw-{color}", quantity: 2 },
 				Drops: [ { type: "item", code: "game:daubraw-{color}", quantity: { avg: 2, var: 0 } } ]
 			},
@@ -197,6 +211,7 @@
 				Texture: "game:block/wood/shingles/{wood}-top",
 				BackTexture: "game:block/wood/debarked/{wood}",
 				Elements: { front: "front-shakes", back: "back-logs" },
+				BlockMaterial: "Wood",
 				Consumes: { type: "block", code: "game:log-placed-{wood}-ud", quantity: 1 },
 				Drops: [ { type: "block", code: "game:log-placed-{wood}-ud", quantity: { avg: 1, var: 0 } } ]
 			}

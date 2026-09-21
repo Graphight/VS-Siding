@@ -610,13 +610,7 @@ public class SidingWallBlock : Block
 
         if (world.Side == EnumAppSide.Server && byPlayer.WorldData.CurrentGameMode != EnumGameMode.Creative)
         {
-            string? key = layer switch
-            {
-                "front" => entity.Front,
-                "secondfront" => entity.SecondFront,
-                "back" => entity.Back,
-                _ => entity.Infill,
-            };
+            string? key = LayerKey(layer, entity.Infill, entity.Front, entity.SecondFront, entity.Back);
             var drops = new List<BlockDropItemStack>();
             AddDrops(drops, key, Attributes[layer == "infill" ? "Infills" : "Finishes"]);
             foreach (var stack in ResolveDrops(world, drops, dropQuantityMultiplier)) world.SpawnItemEntity(stack, pos);
@@ -686,6 +680,27 @@ public class SidingWallBlock : Block
         {
             if (drop.Code != null) drops.Add(drop);
         }
+    }
+
+    // Same layer names PeelLayer returns, resolved to the material key installed there.
+    internal static string? LayerKey(string? layer, string? infill, string? front, string? secondFront, string? back)
+        => layer switch
+        {
+            "front" => front,
+            "secondfront" => secondFront,
+            "back" => back,
+            _ => infill,
+        };
+
+    // Which EnumBlockMaterial the hit layer is, for sounds/resistance/tool suitability to key off.
+    // Framings carry no BlockMaterial (decision: they're all planks, so the block's own
+    // blockmaterial: "Wood" already covers them) - only "infill" and finish layers look one up.
+    internal static EnumBlockMaterial LayerMaterial(string? layer, string? key, JsonObject infills, JsonObject finishes, EnumBlockMaterial fallback)
+    {
+        if (key == null) return fallback;
+        var dictionary = layer == "infill" ? infills : finishes;
+        string? materialName = dictionary[key]["BlockMaterial"].AsString(null!);
+        return Enum.TryParse(materialName, true, out EnumBlockMaterial material) ? material : fallback;
     }
 
     // Reverse build order: the hit face's finish, then any finish, then infill; null leaves only the frame.
