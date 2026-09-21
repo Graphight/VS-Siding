@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
 using Vintagestory.API.Datastructures;
@@ -455,6 +457,88 @@ public class SidingWallBlock : Block
                 or EnumBlockMaterial.Soil or EnumBlockMaterial.Ceramic;
         return cooling ? -1 : 1;
     }
+
+    // Looking at a built wall names its layers - otherwise a boarded infill is unreadable
+    // short of breaking it, and the infill is what decides cellar vs warm room (decision 0015).
+    // Takes a translate delegate (the entity passes Lang.GetIfExists) so this needs no loaded Lang.
+    // System.Func is spelled out throughout: Vintagestory.API.Common declares a Func of its own.
+    internal static string Describe(
+        string? framing, string? infill, JsonObject framings, JsonObject infills,
+        string layout, string side, string? front, string? secondFront, string? back, JsonObject finishes,
+        System.Func<string, string?> translate)
+    {
+        string? builtFraming = Installed(framing, framings);
+        string? builtInfill = Installed(infill, infills);
+
+        var sb = new StringBuilder();
+        sb.AppendLine();
+        sb.AppendLine("  " + DescribeLayer(builtFraming, framings, "vssiding:tooltip-no-framing", translate));
+        sb.AppendLine("  " + DescribeLayer(builtInfill, infills, "vssiding:tooltip-no-infill", translate));
+        foreach (string line in DescribeFaces(layout, side, front, secondFront, back, finishes, translate))
+            sb.AppendLine("  " + line);
+        sb.AppendLine("  " + Translate(SealKey(builtFraming, builtInfill, framings, infills), translate));
+        return sb.ToString();
+    }
+
+    // The line a cellar builder actually reads: whether the wall seals the room at all, and
+    // if so, whether the infill makes it a cooling wall (decision 0015).
+    private static string SealKey(string? framing, string? infill, JsonObject framings, JsonObject infills)
+        => ComputeRetention(true, framing, infill, framings, infills) switch
+        {
+            1 => "vssiding:tooltip-sealed",
+            -1 => "vssiding:tooltip-sealed-cool",
+            _ => "vssiding:tooltip-unsealed",
+        };
+
+    // Faces are named by the direction they point - the only vocabulary that covers a cornerout's
+    // three finishable faces without inventing words for them. Both of its legs share one Back
+    // layer, so two directions carry the same finish; grouping by first appearance is what puts
+    // them on one line even with a SecondFront direction between them.
+    private static IEnumerable<string> DescribeFaces(
+        string layout, string side, string? front, string? secondFront, string? back, JsonObject finishes,
+        System.Func<string, string?> translate)
+    {
+        string? builtFront = Installed(front, finishes), builtBack = Installed(back, finishes);
+        var directions = new List<(string direction, string? finish)> { (side, builtFront), (Opposite(side), builtBack) };
+        if (layout == "cornerout")
+        {
+            string secondSide = CorneroutSecondFace[side];
+            directions.Add((secondSide, Installed(secondFront, finishes)));
+            directions.Add((Opposite(secondSide), builtBack));
+        }
+
+        foreach (var group in directions.GroupBy(d => d.finish))
+        {
+            string labels = string.Join(", ", group.Select(d => Translate($"game:facing-{d.direction}", translate)));
+            yield return $"{labels}: {DescribeLayer(group.Key, finishes, "vssiding:tooltip-unfinished", translate)}";
+        }
+    }
+
+    private static string Opposite(string side) => BlockFacing.FromCode(side).Opposite.Code;
+
+    // An uninstalled material counts as not built, which is the invariant ComputeRetention already
+    // holds to. Without this a stale key renders as a title-cased pseudo-material while the seal
+    // line two rows below calls the same wall empty. Normalizing before the faces are grouped also
+    // keeps a stale finish in the same group as an unfinished one, rather than on a line of its own.
+    private static string? Installed(string? key, JsonObject materials) => key != null && materials[key].Exists ? key : null;
+
+    // A gap prints the "no-x" line; a built layer resolves its DisplayName, falling back to a
+    // title-cased material key when the entry has no DisplayName or the key has no translation.
+    private static string DescribeLayer(string? key, JsonObject materials, string missingLangKey, System.Func<string, string?> translate)
+    {
+        if (key == null) return Translate(missingLangKey, translate);
+
+        string? displayName = materials[key]["DisplayName"].AsString(null!);
+        return (displayName != null ? translate(displayName) : null) ?? TitleCase(key);
+    }
+
+    // Our own keys ship in en.json beside the code, so a miss means a broken install: show the
+    // raw key rather than dressing it up. A material's DisplayName is the case worth dressing up,
+    // since a game update can add a wood the lang file has never heard of.
+    private static string Translate(string langKey, System.Func<string, string?> translate) => translate(langKey) ?? langKey;
+
+    private static string TitleCase(string key)
+        => string.Join(' ', key.Split('-').Select(word => word.Length == 0 ? word : char.ToUpperInvariant(word[0]) + word[1..]));
 
     public override int GetLightAbsorption(IBlockAccessor blockAccessor, BlockPos pos)
         => GetLightAbsorption(blockAccessor.GetChunkAtBlockPos(pos), pos);
