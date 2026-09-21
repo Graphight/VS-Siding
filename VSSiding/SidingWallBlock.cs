@@ -591,8 +591,7 @@ public class SidingWallBlock : Block
     // AsObject<BlockSounds>() per hit - that's a full Newtonsoft parse and GetSounds runs every tick.
     private Dictionary<EnumBlockMaterial, BlockSounds>? layerSounds;
 
-    // Keyed by EnumBlockMaterial name (LayerResistance in wall.json): multiplies the block's own
-    // Resistance so a stone face takes longer to break than a plank one.
+    // Keyed by EnumBlockMaterial name (LayerResistance in wall.json); multiplies Resistance.
     private Dictionary<EnumBlockMaterial, float>? layerResistance;
 
     public override void OnLoaded(ICoreAPI api)
@@ -638,13 +637,11 @@ public class SidingWallBlock : Block
     private EnumBlockMaterial LayerMaterialAt(string? layer, string? infill, string? front, string? secondFront, string? back)
         => LayerMaterial(layer, LayerKey(layer, infill, front, secondFront, back), Attributes["Infills"], Attributes["Finishes"], BlockMaterial);
 
-    // Unknown/missing material falls through to the block's own Sounds, passed in by the caller
-    // rather than read here, so GetSounds can fall back to base.GetSounds and OnBlockBroken to Sounds.
+    // The fallback is a parameter rather than read from Sounds here, so GetSounds can defer to
+    // base.GetSounds while OnBlockBroken defers to Sounds.
     internal static BlockSounds ResolveLayerSounds(EnumBlockMaterial material, Dictionary<EnumBlockMaterial, BlockSounds>? layerSounds, BlockSounds fallback)
         => layerSounds != null && layerSounds.TryGetValue(material, out var sounds) ? sounds : fallback;
 
-    // Hit and break sound come from the layer under the cursor, not the block's own Wood sounds -
-    // a stone-faced wall shouldn't thud like a plank.
     public override BlockSounds GetSounds(IBlockAccessor blockAccessor, BlockSelection blockSel, ItemStack? stack = null)
     {
         // Vanilla's own GetSounds ignores its arguments, so a caller is free to pass no selection.
@@ -668,8 +665,9 @@ public class SidingWallBlock : Block
         return ResolveLayerResistance(material, layerResistance, base.GetResistance(blockAccessor, pos));
     }
 
-    // No face reaches this hook either (decision 0033's sweep), and pos may be null with only a
-    // stack to go on - both fall back to base, which is thread-safe since it just reads the field.
+    // pos may be null, with only a stack to go on, so that falls back to base. The API warns this
+    // may run off the main thread; the entity reads below are all immutable strings, so a racing
+    // build reads either the old layer or the new one, never a torn value.
     public override EnumBlockMaterial GetBlockMaterial(IBlockAccessor blockAccessor, BlockPos pos, ItemStack? stack = null)
     {
         if (pos == null) return base.GetBlockMaterial(blockAccessor, pos, stack);
@@ -788,9 +786,8 @@ public class SidingWallBlock : Block
             _ => infill,
         };
 
-    // Which EnumBlockMaterial the hit layer is, for sounds/resistance/tool suitability to key off.
-    // Framings carry no BlockMaterial (decision: they're all planks, so the block's own
-    // blockmaterial: "Wood" already covers them) - only "infill" and finish layers look one up.
+    // Only "infill" and the finish layers look a material up. Framings are all planks and carry
+    // no BlockMaterial, so a frame falls through to the caller's fallback - the block's own Wood.
     internal static EnumBlockMaterial LayerMaterial(string? layer, string? key, JsonObject infills, JsonObject finishes, EnumBlockMaterial fallback)
     {
         if (key == null) return fallback;
