@@ -35,11 +35,12 @@ The game loads the zip as-is; don't unpack it.
 Where things live. The decisions carry the *why*; `ls docs/decisions/` is the index.
 
 - `SidingModSystem` — registers the classes and `/sidingroom`, expands the material families, and owns the Harmony patches: the `RoomRegistry` skylight sample (0015), side AO (0016) and the two sealed-floor light patches (0018).
-- `SidingWallBlock` — shape, collision, retention, liquid barrier, drops (0002), and peeling one layer per break (0013).
-- `SidingWallEntity` — the per-wall `Framing`/`Infill`/`Front`/`Back`/`SecondFront` state (0003), its mesh, and the tooltip (0030).
+- `SidingWallBlock` — shape, collision, retention, liquid barrier, drops (0002), peeling one layer per break (0013), and `OnBlockInteractStart`, which does all the layering onto a standing frame (0005/0006), the in-place corner upgrade (0026) and the tooltip text (0030).
+- `SidingWallEntity` — the per-wall `Framing`/`Infill`/`Front`/`Back`/`SecondFront` state (0003), its mesh, and the `GetBlockInfo` hook that tooltip text comes back through.
 - `SidingWallTexSource` — resolves a material key to an atlas position at mesh-build time.
 - `MaterialFamilies` — `Expand`, called from `AssetsFinalize` (0010).
-- `PlaceWallFrame` — the saw-in-off-hand build gesture (0005/0006), the tool mode picker and its icons (0031), and the in-place corner upgrade (0026).
+- `PlaceWallFrame` — a `CollectibleBehavior` on every plank: raises the initial framing (0005/0006), and carries the saw's tool mode picker and its icons (0031).
+- `VSSiding.Tests/WallShapeGen` — generates the shapes `wall.json` and `cornerout.json` use (0021). It lives in the test project, not beside the assets it writes.
 
 `wall.json` carries the `Framings`/`Infills`/`Finishes` dictionaries every one of those keys looks up.
 
@@ -49,7 +50,7 @@ Where things live. The decisions carry the *why*; `ls docs/decisions/` is the in
 
 **`*Families` dictionaries are templates, not materials.** `FramingFamilies`/`InfillFamilies`/`FinishFamilies` entries (e.g. `"{wood}"`) expand into one `Framings`/`Infills`/`Finishes` entry per matching item or block in `SidingModSystem.AssetsFinalize` (`MaterialFamilies.Expand`); explicit entries win. See decision 0010.
 
-**Overriding a vanilla property for a rendering result means finding every consumer of it first.** Vanilla overloads its properties across unrelated systems: `sidesolid: false` was set so thin walls don't cull neighbours, and vanilla reads that same flag for retention, liquid barriers, attachment, snow, mob spawns and more — three shipped bugs before anyone read the list. Only the method bodies name a consumer, so this means the decompiled `VintagestoryAPI.dll`, grepping `Block` *and* `BlockBehavior` for the field. `VintagestoryAPI.xml` carries prose and signatures only, so it can confirm a member you already suspect but can never prove one absent — reflect over the assembly instead (decision 0031 shipped a comment denying a member that was there). Redo it on a game update; decision 0020's table is 1.21's.
+**Overriding a vanilla property for a rendering result means finding every consumer of it first.** Vanilla overloads its properties across unrelated systems: `sidesolid: false` was set so thin walls don't cull neighbours, and vanilla reads that same flag for retention, liquid barriers, attachment, snow, mob spawns and more — three shipped bugs before anyone read the list. Only the method bodies name a consumer, so this means the decompiled `VintagestoryAPI.dll`, grepping `Block` *and* `BlockBehavior` for the field. `VintagestoryAPI.xml` carries prose and signatures only, so it can confirm a member you already suspect but can never prove one absent — reflect over the assembly instead (decision 0031's work drafted a comment denying a member that was there, caught in review). Redo it on a game update; decision 0020's table is 1.21's.
 
 ## Design docs
 

@@ -30,6 +30,6 @@ Disposal lives in `SidingModSystem.Dispose`, which now keeps the `ICoreClientAPI
 - **Rendering the block into the tile.** Every mode would show the same bare frame, because the mode picks what you build *next*.
 
 ## Consequences & open questions
-- `VintagestoryAPI.xml` lists only documented members, so it can never prove one absent: `CollectibleBehavior.OnUnloaded` is in the DLL and not the XML, and this work shipped a comment claiming it did not exist. That is decision 0020's rule. Reflect over the assembly instead.
+- `VintagestoryAPI.xml` lists only documented members, so it can never prove one absent: `CollectibleBehavior.OnUnloaded` is in the DLL and not the XML, and this work drafted a comment claiming it did not exist. Review caught it before merge. That is decision 0020's rule; reflect over the assembly instead.
 - Icons are one colour, so anything relying on shading flattens. Design for silhouette.
 - `modicon.png` for the mod list is separate art, and belongs with `release-readiness`.
