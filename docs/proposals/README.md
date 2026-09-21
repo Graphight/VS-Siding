@@ -10,7 +10,6 @@ An idea that's been thought through but not acted on. Mutable — edit freely, a
 
 Build order — each one should be demoable in game before the next starts.
 
-- `docs-catch-up` — the README still says "early scaffolding, no gameplay yet"; fix that, the modinfo blurb and CLAUDE.md's accreted architecture section.
 - `layer-sounds-and-resistance` — sound and break time from the layer you're hitting, instead of every wall being planks at 1.2.
 - `lighting-round-two` — the five leftovers decisions 0016/0018/0019 wrote down: doorway sliver, dead side AO, glazing's bright neighbour, double-thickness order, flat shading.
 - `furniture-against-thin-walls` — revived: measure the interior-partition gap in play before deciding between a handbook note, a second panel, or voxel merging.
