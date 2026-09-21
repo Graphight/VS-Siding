@@ -2,7 +2,7 @@
 
 - Status: Draft
 - Created: 2026-09-20
-- Reflects: release polish planning, after decision 0027
+- Reflects: release polish planning, after decision 0028
 
 ## Summary
 Override `GetPlacedBlockInfo` so looking at a wall names its framing, its infill and each finished face, and tells you what the next click would add.

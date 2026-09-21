@@ -2,13 +2,13 @@
 
 - Status: Draft
 - Created: 2026-09-20
-- Reflects: release polish planning, after decision 0027
+- Reflects: release polish planning, after decision 0028
 
 ## Summary
 Bring `README.md` and `modinfo.json`'s description in line with what the mod actually does now, and make `CLAUDE.md`'s architecture section a map rather than a changelog of 28 decisions.
 
 ## Context
-`README.md` still says **"Status: early scaffolding, no gameplay yet"** and "no custom heat simulation beyond that - a possible future extension, not a v1 goal", written before decisions 0004–0027 shipped the mesh, the build flow, four board styles, glazing, stone, masonry relief, the corner upgrade and the lighting fixes.
+`README.md` still says **"Status: early scaffolding, no gameplay yet"** and "no custom heat simulation beyond that - a possible future extension, not a v1 goal", written before decisions 0004–0028 shipped the mesh, the build flow, four board styles, glazing, stone, masonry relief, the corner upgrade and the lighting fixes.
 It's the first thing anyone reads on the repo and it's actively false.
 
 `modinfo.json`'s description is one line and fine, but names no gesture, so a player installing from ModDB still doesn't know about the saw.

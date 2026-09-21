@@ -2,7 +2,7 @@
 
 - Status: Draft
 - Created: 2026-09-20
-- Reflects: release polish planning, after decision 0027
+- Reflects: release polish planning, after decision 0028
 
 ## Summary
 Make the sound and the break time of a wall come from the layer you are actually hitting, instead of every wall being planks at `resistance: 1.2`.

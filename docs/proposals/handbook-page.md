@@ -2,7 +2,7 @@
 
 - Status: Draft
 - Created: 2026-09-20
-- Reflects: release polish planning, after decision 0027
+- Reflects: release polish planning, after decision 0028
 
 ## Summary
 A "Guides" page in the survival handbook that teaches the whole build flow — saw in the off hand, the four modes, layer by layer — plus a one-paragraph description on the wall block's own handbook page.

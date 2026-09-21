@@ -2,7 +2,7 @@
 
 - Status: Draft
 - Created: 2026-09-20
-- Reflects: release polish planning, after decision 0027
+- Reflects: release polish planning, after decision 0028
 
 ## Summary
 Four flat SVG icons for the saw's tool modes — wall, corner, weatherboard, flat boards — loaded with `capi.Gui.LoadSvg` and hung on the `SkillItem`s in `PlaceWallFrame`.

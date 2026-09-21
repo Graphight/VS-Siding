@@ -2,7 +2,7 @@
 
 - Status: Draft
 - Created: 2026-09-20
-- Reflects: release polish planning, after decision 0027
+- Reflects: release polish planning, after decision 0028
 
 ## Summary
 The non-code list between "feature-complete" and "published on ModDB": a mod icon, a real version number, an honest dependency floor, a save-compatibility check, and one deliberate playtest pass.
@@ -25,6 +25,8 @@ Five items, none blocking the others:
 3. **Dependency floor**: check when each patched member last changed, set `game` to the oldest version that still has all three, and say in the ModDB description which version it was tested on. The patches already fail soft (each `try/catch` logs and drops the fix), so a wrong guess degrades rather than crashes — which is the argument for stating the floor honestly rather than defensively.
 4. **Save round-trip test**: build a world with every layer kind on the current build, note the walls, reload on the release build, confirm nothing reverts to a bare frame.
 5. **One house, built for real.** Exterior walls, an interior partition, a glazed run, a cellar, a corner found late and upgraded in place. This is the pass that will surface the lighting slivers (`lighting-round-two`) and size the furniture gap (`furniture-against-thin-walls`) — so it is worth doing *before* committing to either.
+
+   It also carries the in-play check decision 0028 asked for and nothing has yet discharged: a stacked weatherboard wall for the block boundary, a `cornerout`'s two legs, and a weatherboard wall standing beside a shake wall. 0028 shipped the positional UVs untested in play, exactly as 0023 shipped the taper untested, and that is how 0023's repeating-motif bug survived to be found by the next decision. If the sixteen slices read as too busy, 0028 names the knob: the art, not the rule.
 
 ## Alternatives considered
 - **Publishing at `0.1.0` and iterating.** Honest, and it reads as abandoned-in-progress to anyone browsing.
