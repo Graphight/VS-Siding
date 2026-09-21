@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Newtonsoft.Json.Linq;
 using Xunit;
 
@@ -45,5 +46,27 @@ public class MaterialDisplayNameTests
         }
 
         Assert.Equal(Array.Empty<string>(), missing);
+    }
+
+    // The tooltip's own lang keys are literals in the source, not entries in wall.json, so the
+    // DisplayName sweep above never sees them - a typo in one ships a raw key to a player. Read
+    // them back out of the source rather than restating the list here, where the same typo would
+    // just be copied across and pass.
+    [Fact]
+    public void EveryTooltipLangKeyInTheSourceResolves()
+    {
+        var repoRoot = MaterialTextureOpacityTests.GetAssemblyMetadata("RepoRoot");
+        var lang = (JObject)JToken.Parse(File.ReadAllText(
+            Path.Combine(repoRoot, "VSSiding", "assets", "vssiding", "lang", "en.json")));
+
+        var keys = Directory.EnumerateFiles(Path.Combine(repoRoot, "VSSiding"), "*.cs", SearchOption.AllDirectories)
+            .SelectMany(file => Regex.Matches(File.ReadAllText(file), @"vssiding:(tooltip-[a-z-]+)"))
+            .Select(match => match.Groups[1].Value)
+            .Distinct()
+            .OrderBy(key => key)
+            .ToList();
+
+        Assert.NotEmpty(keys);
+        Assert.Equal(Array.Empty<string>(), keys.Where(key => lang[key] == null).ToArray());
     }
 }

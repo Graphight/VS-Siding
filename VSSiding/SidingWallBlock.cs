@@ -467,13 +467,16 @@ public class SidingWallBlock : Block
         string layout, string side, string? front, string? secondFront, string? back, JsonObject finishes,
         System.Func<string, string?> translate)
     {
+        string? builtFraming = Installed(framing, framings);
+        string? builtInfill = Installed(infill, infills);
+
         var sb = new StringBuilder();
         sb.AppendLine();
-        sb.AppendLine("  " + DescribeLayer(framing, framings, "vssiding:tooltip-no-framing", translate));
-        sb.AppendLine("  " + DescribeLayer(infill, infills, "vssiding:tooltip-no-infill", translate));
+        sb.AppendLine("  " + DescribeLayer(builtFraming, framings, "vssiding:tooltip-no-framing", translate));
+        sb.AppendLine("  " + DescribeLayer(builtInfill, infills, "vssiding:tooltip-no-infill", translate));
         foreach (string line in DescribeFaces(layout, side, front, secondFront, back, finishes, translate))
             sb.AppendLine("  " + line);
-        sb.AppendLine("  " + Translate(SealKey(framing, infill, framings, infills), translate));
+        sb.AppendLine("  " + Translate(SealKey(builtFraming, builtInfill, framings, infills), translate));
         return sb.ToString();
     }
 
@@ -495,12 +498,13 @@ public class SidingWallBlock : Block
         string layout, string side, string? front, string? secondFront, string? back, JsonObject finishes,
         System.Func<string, string?> translate)
     {
-        var directions = new List<(string direction, string? finish)> { (side, front), (Opposite(side), back) };
+        string? builtFront = Installed(front, finishes), builtBack = Installed(back, finishes);
+        var directions = new List<(string direction, string? finish)> { (side, builtFront), (Opposite(side), builtBack) };
         if (layout == "cornerout")
         {
             string secondSide = CorneroutSecondFace[side];
-            directions.Add((secondSide, secondFront));
-            directions.Add((Opposite(secondSide), back));
+            directions.Add((secondSide, Installed(secondFront, finishes)));
+            directions.Add((Opposite(secondSide), builtBack));
         }
 
         foreach (var group in directions.GroupBy(d => d.finish))
@@ -511,6 +515,12 @@ public class SidingWallBlock : Block
     }
 
     private static string Opposite(string side) => BlockFacing.FromCode(side).Opposite.Code;
+
+    // An uninstalled material counts as not built, which is the invariant ComputeRetention already
+    // holds to. Without this a stale key renders as a title-cased pseudo-material while the seal
+    // line two rows below calls the same wall empty. Normalizing before the faces are grouped also
+    // keeps a stale finish in the same group as an unfinished one, rather than on a line of its own.
+    private static string? Installed(string? key, JsonObject materials) => key != null && materials[key].Exists ? key : null;
 
     // A gap prints the "no-x" line; a built layer resolves its DisplayName, falling back to a
     // title-cased material key when the entry has no DisplayName or the key has no translation.

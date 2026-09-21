@@ -138,4 +138,25 @@ public class SidingWallTooltipTests
             "\n  Oak Framing\n  Wattle Infill\n  West: Daub Finish\n  East, North, South: unfinished\n  Seals the room\n",
             Describe(layout: "cornerout", front: "daub"));
     }
+
+    // ComputeRetention already treats a key missing from its dictionary as not built, so the
+    // layer lines have to agree - otherwise a wall reads "Ghostwattle" and "Doesn't seal the
+    // room" at once, with nothing on screen connecting the two.
+    [Fact]
+    public void UninstalledInfillReadsAsNotBuilt()
+    {
+        Assert.Equal(
+            "\n  Oak Framing\n  No infill\n  West, East: unfinished\n  Doesn't seal the room\n",
+            Describe(infill: "ghostwattle"));
+    }
+
+    // Normalizing before the grouping is what keeps this on one line: a stale finish key that
+    // merely rendered as "unfinished" would still group apart from a genuinely bare face.
+    [Fact]
+    public void UninstalledFinishGroupsWithTheUnfinishedFaces()
+    {
+        Assert.Equal(
+            "\n  Oak Framing\n  Wattle Infill\n  West, East: unfinished\n  Seals the room\n",
+            Describe(front: "ghostdaub"));
+    }
 }
