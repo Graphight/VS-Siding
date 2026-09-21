@@ -1,5 +1,6 @@
 {
 	"block-wall-*": "Siding Wall",
+	"blockdesc-wall-*": "A thin layered wall: framing, an infill between the timbers, and a finish on each face. See <a href=\"handbook://gamemechanicinfo-siding\">Siding Walls</a> for how to build one.",
 	"framing-oak": "Oak Framing",
 	"framing-birch": "Birch Framing",
 	"framing-maple": "Maple Framing",
