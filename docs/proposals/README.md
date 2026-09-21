@@ -10,7 +10,6 @@ An idea that's been thought through but not acted on. Mutable — edit freely, a
 
 Build order — each one should be demoable in game before the next starts.
 
-- `wall-tooltip-layers` — looking at a wall names its framing, infill and finished faces, and what the next click would add.
 - `mode-icons` — four SVG icons for the saw's tool modes, so the mode picker stops being four blank tiles.
 - `docs-catch-up` — the README still says "early scaffolding, no gameplay yet"; fix that, the modinfo blurb and CLAUDE.md's accreted architecture section.
 - `layer-sounds-and-resistance` — sound and break time from the layer you're hitting, instead of every wall being planks at 1.2.
