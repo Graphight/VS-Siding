@@ -13,6 +13,12 @@ The infill is behind a finish once a face is boarded, so there is no way to tell
 
 The entity already holds every key (`Framing`/`Infill`/`Front`/`Back`/`SecondFront`) and every key already has a `DisplayName` in the attribute dictionaries.
 So: read the entity, `Lang.Get` each key's `DisplayName`, print the layers present, and name the first gap ("no infill", "front unfinished").
+
+**This would be the first code to render a `DisplayName`.** Nothing in `VSSiding/*.cs` or the tests reads the field today — the mesh path wants `Texture`, drops want `Drops` — so 500-odd entries carry a display name that has never been resolved, and the path is unproven rather than merely untested.
+That matters because the names are not all hand-written: `MaterialFamilies.Expand` matches `Match: { code: "game:plank-*" }` against the live registry and substitutes into a template (`"vssiding:framing-{wood}"`), while `lang/en.json` enumerates today's vanilla woods and rocks by hand.
+A wood added by a game update, or one patched into the `game` domain by another mod, expands into a `Framings` entry whose lang key does not exist, and `Lang.Get` hands back the raw key.
+So the tooltip must fall back to something readable — the material key itself, title-cased — rather than printing `vssiding:framing-foo` at a player.
+The same fallback belongs wherever a `DisplayName` is resolved, which for now is only here.
 Order it as the build order, so the tooltip doubles as the next-step hint.
 
 One line about sealing — sealed or not, cooling or not — comes free from the same keys via `ComputeRetention`, and is the thing a cellar builder actually wants to read.
@@ -27,3 +33,4 @@ One line about sealing — sealed or not, cooling or not — comes free from the
 - Tooltip length: framing, infill, two faces and a seal line is five lines, which is long beside vanilla's one. Probably collapse the finishes onto one line and only name a face when it differs from its opposite.
 - `cornerout` has three finishable faces (`Front`, `SecondFront`, `Back`), so the face naming must read in terms a player sees, not the field names.
 - Whether the client's copy of the entity is populated at tooltip time on a fresh chunk load is worth a look; if not, an unfinished-looking wall would be a lie for a frame or two.
+- A missing lang key is also worth a startup warning, next to the ones `MaterialFamilies.Expand` already logs, so an unmapped material shows up in the log rather than only in a tooltip nobody screenshots.
