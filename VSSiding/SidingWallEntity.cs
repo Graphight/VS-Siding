@@ -15,8 +15,7 @@ public class SidingWallEntity : BlockEntity
     public string? Front;
     public string? SecondFront;
     public string? Back;
-    // Null means "the finish entry's own Elements default" (decision 0027) - a style is only
-    // ever set by the plank style tool modes, so every other finish leaves all three null.
+    // Null means "the finish entry's own Elements default" (decision 0027).
     public string? FrontStyle;
     public string? SecondFrontStyle;
     public string? BackStyle;
@@ -195,8 +194,7 @@ public class SidingWallEntity : BlockEntity
         return names.ToArray();
     }
 
-    // A style names the element outright ({face}-{style}, the naming the groups already use);
-    // without one the finish entry's Elements default stands, which is decision 0007's behaviour.
+    // A style names its element outright; without one the entry's Elements default stands.
     private static string FinishElement(JsonObject finishes, string key, string face, string? style)
         => style != null ? $"{face}-{style}" : finishes[key]["Elements"][face].AsString(face);
 

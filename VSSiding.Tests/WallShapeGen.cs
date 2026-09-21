@@ -9,8 +9,8 @@ namespace VSSiding.Tests;
 // Each face reads two of the three axes - north/south (x, y), east/west (z, y), up/down (x, z) -
 // and Flat pins that pair at 0. Positional instead maps v to the wall's height (16 - y), so painted
 // courses land on the stepped lips and carry across stacked walls; up/down stay Flat either way.
-// Every clad group is Positional: a board's grain is sampled where the board sits on the wall, so
-// the sixteen weatherboard laps of a block read as sixteen different boards (decision 0028).
+// The weatherboard groups are Positional too, so a lap's grain is sampled where the lap sits and
+// the sixteen laps of a block read as sixteen different boards (decision 0028).
 // RunAxis names the axis a group runs along. A box cut out of a longer one then samples the texture
 // at its own position on that axis, so a course split into segments keeps one continuous strip.
 // Three cases need more: the flat board groups rotate their outward face 90 to stand plank grain upright,

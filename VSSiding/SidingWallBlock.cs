@@ -196,10 +196,9 @@ public class SidingWallBlock : Block
 
         bool isCreative = byPlayer.WorldData.CurrentGameMode == EnumGameMode.Creative;
 
-        // A style mode never frames and never places (decision 0027), so every refusal below is
-        // an error the player sees rather than a silent fallthrough to something else placing.
-        // Resolved before the infill branch, or a style-mode click on a bare frame would fall
-        // through that branch's "held item is not an infill" return and say nothing at all.
+        // A style mode only finishes (decision 0027), so every refusal below is an error the
+        // player sees rather than a silent fallthrough. Resolved above the infill branch, which
+        // would otherwise return on "held item is not an infill" and say nothing at all.
         string? style = ResolveStyle(PlaceWallFrame.ToolModeOf(slot));
         if (style != null && entity.Infill == null)
         {
@@ -285,18 +284,12 @@ public class SidingWallBlock : Block
             return true;
         }
 
-        bool alreadyFinished = face switch
+        string? currentKey = face switch { "front" => entity.Front, "secondfront" => entity.SecondFront, _ => entity.Back };
+        string? currentStyle = face switch { "front" => entity.FrontStyle, "secondfront" => entity.SecondFrontStyle, _ => entity.BackStyle };
+        if (currentKey != null)
         {
-            "front" => entity.Front != null,
-            "secondfront" => entity.SecondFront != null,
-            _ => entity.Back != null
-        };
-        if (alreadyFinished)
-        {
-            // Restyling the same material is free - the boards are already on the wall and only
-            // their profile changes, so an existing partition is fixed without breaking it.
-            string? currentKey = face switch { "front" => entity.Front, "secondfront" => entity.SecondFront, _ => entity.Back };
-            string? currentStyle = face switch { "front" => entity.FrontStyle, "secondfront" => entity.SecondFrontStyle, _ => entity.BackStyle };
+            // Restyling the same material is free: only the profile changes, so there is nothing
+            // to charge for and nothing to drop.
             if (style != null && currentKey == finishKey && currentStyle != style)
             {
                 SetFinish(entity, face, finishKey, style);
@@ -327,10 +320,10 @@ public class SidingWallBlock : Block
         entity.MarkDirty(true);
     }
 
-    // Only a finish that lists a style can be asked for it; daub and brick have no board profile,
-    // so a style mode refuses them rather than naming an element their shape hasn't got.
+    // Only a finish that lists a style can be asked for it, so a style mode refuses daub and
+    // brick rather than naming an element their shape hasn't got.
     internal static bool HasStyle(JsonObject finish, string style)
-        => Array.IndexOf(finish["Styles"].AsArray<string>(Array.Empty<string>()) ?? Array.Empty<string>(), style) >= 0;
+        => Array.IndexOf(finish["Styles"].AsArray<string>([]) ?? [], style) >= 0;
 
     private void OnInfillChanged(IWorldAccessor world, SidingWallEntity entity, BlockPos pos)
     {
