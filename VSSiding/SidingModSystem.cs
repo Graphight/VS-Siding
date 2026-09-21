@@ -64,8 +64,10 @@ public class SidingModSystem : ModSystem
     public override void Dispose()
     {
         new Harmony("vssiding").UnpatchAll("vssiding");
-        // CollectibleBehavior has no unload hook, so PlaceWallFrame's cached mode icons are
-        // freed here instead - otherwise four LoadedTextures leak on every reload.
+        // PlaceWallFrame does have CollectibleBehavior.OnUnloaded, but it is patched onto every
+        // plank variant, so ~14 behavior instances share the one cached array and would each
+        // dispose it. ClientMain.Dispose runs the mod systems before its item loop, so freeing
+        // the icons here does it once, first.
         if (capi?.ObjectCache.TryGetValue("vssidingPlaceWallFrameToolModes", out var cached) == true)
         {
             foreach (var item in (SkillItem[])cached) item.Dispose();
