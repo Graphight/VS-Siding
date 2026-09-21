@@ -16,11 +16,11 @@ Build order — each one should be demoable in game before the next starts.
 - `docs-catch-up` — the README still says "early scaffolding, no gameplay yet"; fix that, the modinfo blurb and CLAUDE.md's accreted architecture section.
 - `layer-sounds-and-resistance` — sound and break time from the layer you're hitting, instead of every wall being planks at 1.2.
 - `lighting-round-two` — the five leftovers decisions 0016/0018/0019 wrote down: doorway sliver, dead side AO, glazing's bright neighbour, double-thickness order, flat shading.
+- `furniture-against-thin-walls` — revived: measure the interior-partition gap in play before deciding between a handbook note, a second panel, or voxel merging.
 
 ## Parked
 
 Thought through and deliberately not planned; the reason is what would have to change to revive it.
 
 - `multiple-walls-per-cell` — a `cornerout` already covers any two adjacent faces of a cell, which is every L corner and every T-junction. What's left is two walls on *opposite* faces of one cell, 0.75 apart, which no ordinary building needs, and the inside-corner notch, which decision 0002 already calls cosmetic. Revive if players show a real build that needs it.
-- `furniture-against-thin-walls` — placement is gated by cell occupancy, so nothing goes in the empty 3/4 of a wall's cell. But a wall built from inside the room hugs the room-side face: furniture in the next cell sits flush against it, and the wall's own cell falls outside the room. The only real loss is one side of an interior partition. The fix (chisel-style voxel merging of a wall and another block into one entity) is far bigger than that loss. Revive if the partition case turns out to matter in play, and say so in the handbook page meanwhile.
 - `auto-corners` — walls picking their own corner piece from neighbours, fence-style. Great in theory, but players building something unusual would spend their time fighting the auto-correct over the pieces they placed on purpose. Placing corners by hand, plus decision 0026's in-place upgrade for ones found late, keeps the player in charge. Revive only if hand-placed corners turn out to be the main complaint in play.
