@@ -54,7 +54,12 @@ The decompiled bodies call the virtual method instead.
 The XML doc prose for `GetBlastResistance` even *says* "BlockMaterial", and the real body calls `GetBlockMaterial(...)` — a concrete case of `CLAUDE.md`'s rule that the XML is prose and only the DLL is truth.
 The consequence is a bonus, not a bug: a stone-faced wall now resists blasts like stone.
 
-`GetBlockMaterial(accessor, pos, stack)` falls back to `base` when `pos` is null, and is allocation-free and thread-safe, since the API doc warns it may run off the main thread.
+`GetBlockMaterial(accessor, pos, stack)` falls back to `base` when `pos` is null, since the API doc says a null `pos` comes with a non-null `stack`.
+
+The API doc also warns the method may run off the main thread, and the `pos`-carrying branch is the one that has to answer for that: it reads the block entity off the accessor, not just a field.
+That path is safe, but only benignly so.
+Every value it touches is an immutable string, so a build racing on the main thread yields either the old layer or the new one, never a torn read.
+A wrong-but-valid answer for one tick costs a mis-keyed sound; it is not worth a lock.
 
 ## Alternatives considered
 - **Per-material resistance/sound in the dictionaries.** 500 entries times three fields, hand-tuned, to express four buckets. The bucket *is* `BlockMaterial`.
