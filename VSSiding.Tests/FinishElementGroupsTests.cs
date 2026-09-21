@@ -20,8 +20,13 @@ public class FinishElementGroupsTests
         var attributes = (JObject)wallJson["attributes"]!;
 
         var entries = ((JObject)attributes["Finishes"]!).Properties().Concat(((JObject)attributes["FinishFamilies"]!).Properties());
-        var fronts = entries.Select(e => (string?)e.Value["Elements"]?["front"]).OfType<string>().Distinct().ToList();
-        var backs = entries.Select(e => (string?)e.Value["Elements"]?["back"]).OfType<string>().Distinct().ToList();
+        // A Styles entry names {face}-{style} outright (decision 0027), so those groups have to
+        // exist and be ignored exactly like the Elements defaults do.
+        var styles = entries.SelectMany(e => e.Value["Styles"]?.Select(t => (string)t!) ?? []).Distinct().ToList();
+        var fronts = entries.Select(e => (string?)e.Value["Elements"]?["front"]).OfType<string>()
+            .Concat(styles.Select(style => "front-" + style)).Distinct().ToList();
+        var backs = entries.Select(e => (string?)e.Value["Elements"]?["back"]).OfType<string>()
+            .Concat(styles.Select(style => "back-" + style)).Distinct().ToList();
         var groupsByShape = new Dictionary<string, List<string>>
         {
             ["block/wall/wall"] = fronts.Concat(backs).ToList(),

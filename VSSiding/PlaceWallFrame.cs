@@ -29,6 +29,8 @@ public class PlaceWallFrame : CollectibleBehavior
         {
             new SkillItem { Code = new AssetLocation("wall"), Name = Lang.Get("vssiding:toolmode-wall") },
             new SkillItem { Code = new AssetLocation("corner"), Name = Lang.Get("vssiding:toolmode-corner") },
+            new SkillItem { Code = new AssetLocation("weatherboard"), Name = Lang.Get("vssiding:toolmode-weatherboard") },
+            new SkillItem { Code = new AssetLocation("boards"), Name = Lang.Get("vssiding:toolmode-boards") },
         });
     }
 
@@ -59,11 +61,14 @@ public class PlaceWallFrame : CollectibleBehavior
         string? framingKey = SidingWallBlock.MatchConsumes(slot.Itemstack.Collectible.Code, wallBlock.Attributes["Framings"]);
         if (framingKey == null) return;
 
+        // A style mode never frames (decision 0027). Checked above the afford check, or a style
+        // mode with too few planks would error about a framing cost nobody is being charged.
+        string? layout = SidingWallBlock.ResolveLayout(GetToolMode(slot, byPlayer, blockSel));
+        if (layout == null) return;
+
         var consumes = wallBlock.Attributes["Framings"][framingKey]["Consumes"];
         bool isCreative = byPlayer.WorldData.CurrentGameMode == EnumGameMode.Creative;
         if (!SidingWallBlock.TryAffordOrError(byPlayer, isCreative, slot.Itemstack.StackSize, consumes)) return;
-
-        string layout = SidingWallBlock.ResolveLayout(GetToolMode(slot, byPlayer, blockSel));
         var placeholder = world.GetBlock(new AssetLocation("vssiding", $"wall-{layout}-west"));
         if (placeholder == null) return;
 

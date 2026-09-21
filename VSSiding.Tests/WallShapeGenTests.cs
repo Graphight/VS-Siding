@@ -245,17 +245,19 @@ public class WallShapeGenTests
                           (double)e["from"]![2]!, (double)e["to"]![2]!))
             .ToArray();
 
-    // These are the spans decision 0023 fixes. A wrong courseTop would restart the grain on every
-    // step of the taper.
-    [Fact]
-    public void EachWeatherboardStepSamplesTheTextureOnceDownItsCourse()
+    // Decision 0028: each lap samples the texture where it sits on the wall, so the sixteen laps
+    // of a block are sixteen different slices rather than the top course repeated four times.
+    // A rule that went back to course-relative v would show the same four pixel rows per board.
+    [Theory]
+    [InlineData("front-weatherboard", "west")]
+    [InlineData("back-weatherboard", "east")]
+    public void EveryWeatherboardLapSamplesItsOwnSliceOfTheTexture(string group, string outward)
     {
-        (double V0, double V1)[] perCourse = [(3, 4), (2, 3), (1, 2), (0, 1)];
-        var expected = Enumerable.Range(0, 4).SelectMany(_ => perCourse).ToArray();
+        var expected = Enumerable.Range(0, 16).Select(y => (15.0 - y, 16.0 - y)).ToArray();
 
         var actual = WallShapeGen.Generate("wall")["elements"]!
-            .Where(e => (string)e["name"]! == "front-weatherboard")
-            .Select(e => e["faces"]!["west"]!["uv"]!)
+            .Where(e => (string)e["name"]! == group)
+            .Select(e => e["faces"]![outward]!["uv"]!)
             .Select(uv => ((double)uv[1]!, (double)uv[3]!))
             .ToArray();
 
