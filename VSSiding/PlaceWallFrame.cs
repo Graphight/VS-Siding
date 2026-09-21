@@ -26,10 +26,9 @@ public class PlaceWallFrame : CollectibleBehavior
         base.OnLoaded(api);
         if (api is not ICoreClientAPI capi) return;
 
-        // The icon file is named after the mode's code, so the four tiles wire up in one pass.
-        // ModeIconsTests keeps the two sets in step - LoadSvg returns null on a missing file and
-        // the tile just draws blank. -1 is white: the source art is black like vanilla's own
-        // icons, and every vanilla mode picker tints it at load rather than in the file.
+        // -1 tints the icons white, as every vanilla mode picker does: the source art is black,
+        // and a null colour would keep that fill and skip the alpha premultiplication the skill
+        // item grid renders with. ModeIconsTests pins each file to its mode's code.
         toolModes = ObjectCacheUtil.GetOrCreate(capi, "vssidingPlaceWallFrameToolModes", () => new[]
         {
             new SkillItem { Code = new AssetLocation("wall"), Name = Lang.Get("vssiding:toolmode-wall") },
