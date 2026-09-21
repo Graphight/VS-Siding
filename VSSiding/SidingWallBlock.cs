@@ -668,6 +668,15 @@ public class SidingWallBlock : Block
         return ResolveLayerResistance(material, layerResistance, base.GetResistance(blockAccessor, pos));
     }
 
+    // No face reaches this hook either (decision 0033's sweep), and pos may be null with only a
+    // stack to go on - both fall back to base, which is thread-safe since it just reads the field.
+    public override EnumBlockMaterial GetBlockMaterial(IBlockAccessor blockAccessor, BlockPos pos, ItemStack? stack = null)
+    {
+        if (pos == null) return base.GetBlockMaterial(blockAccessor, pos, stack);
+
+        return HitLayerMaterial(blockAccessor, pos, null);
+    }
+
     // A player's break peels one layer (decision 0013); anything else, or a bare frame, breaks the block.
     internal static BlockSelection? ServerBreakSelection;
 
