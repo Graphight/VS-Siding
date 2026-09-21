@@ -25,4 +25,20 @@ public class ModeIconsTests
         Assert.Equal(new[] { "boards", "corner", "wall", "weatherboard" }, modes);
         Assert.Equal(modes, icons);
     }
+
+    // The handbook's saw mode list draws the same four files inline. IconComponent prefixes the
+    // path with textures/ and silently falls through to DrawIcon when the asset is missing, so a
+    // wrong path here shows as a stray vanilla icon rather than an error.
+    [Fact]
+    public void TheHandbookModeListDrawsTheSameFourIcons()
+    {
+        var repoRoot = MaterialTextureOpacityTests.GetAssemblyMetadata("RepoRoot");
+        var lang = File.ReadAllText(Path.Combine(repoRoot, "VSSiding", "assets", "vssiding", "lang", "en.json"));
+        var referenced = Regex.Matches(lang, @"<icon path=\\""vssiding:icons/(\w+)\.svg\\"">")
+            .Select(m => m.Groups[1].Value).OrderBy(code => code).ToList();
+
+        Assert.Equal(new[] { "boards", "corner", "wall", "weatherboard" }, referenced.OrderBy(c => c));
+        Assert.All(referenced, code => Assert.True(File.Exists(Path.Combine(
+            repoRoot, "VSSiding", "assets", "vssiding", "textures", "icons", code + ".svg"))));
+    }
 }
