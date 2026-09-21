@@ -587,6 +587,56 @@ public class SidingWallBlock : Block
     internal static int RoomSunlight(IBlockAccessor accessor, BlockPos pos, EnumLightLevelType type)
         => accessor.GetBlock(pos) is SidingWallBlock wall && wall.GetLightAbsorption(accessor, pos) > 0 ? 0 : accessor.GetLightLevel(pos, type);
 
+    // Keyed by EnumBlockMaterial name (LayerSounds in wall.json), parsed once here rather than
+    // AsObject<BlockSounds>() per hit - that's a full Newtonsoft parse and GetSounds runs every tick.
+    private Dictionary<EnumBlockMaterial, BlockSounds>? layerSounds;
+
+    public override void OnLoaded(ICoreAPI api)
+    {
+        base.OnLoaded(api);
+        layerSounds = new Dictionary<EnumBlockMaterial, BlockSounds>();
+        var entries = Attributes["LayerSounds"];
+        if (!entries.Exists) return;
+
+        foreach (var keyToken in entries)
+        {
+            string key = keyToken.AsString()!;
+            if (Enum.TryParse(key, true, out EnumBlockMaterial material))
+                layerSounds[material] = entries[key].AsObject(new BlockSounds());
+        }
+    }
+
+    // Which EnumBlockMaterial is under the cursor: resolves the clicked face to a finish layer
+    // (or the infill, or the frame) the same way OnBlockBroken decides what to peel.
+    internal EnumBlockMaterial HitLayerMaterial(IBlockAccessor accessor, BlockPos pos, BlockFacing? hitFace)
+    {
+        var entity = accessor.GetBlockEntity<SidingWallEntity>(pos);
+        if (entity == null) return BlockMaterial;
+
+        string? face = hitFace == null ? null : ResolveFinishFace(Variant["layout"], Variant["side"], hitFace);
+        string? layer = PeelLayer(face, entity.Infill, entity.Front, entity.SecondFront, entity.Back);
+        return LayerMaterialAt(layer, entity.Infill, entity.Front, entity.SecondFront, entity.Back);
+    }
+
+    private EnumBlockMaterial LayerMaterialAt(string? layer, string? infill, string? front, string? secondFront, string? back)
+        => LayerMaterial(layer, LayerKey(layer, infill, front, secondFront, back), Attributes["Infills"], Attributes["Finishes"], BlockMaterial);
+
+    // Unknown/missing material falls through to the block's own Sounds, passed in by the caller
+    // rather than read here, so GetSounds can fall back to base.GetSounds and OnBlockBroken to Sounds.
+    internal static BlockSounds ResolveLayerSounds(EnumBlockMaterial material, Dictionary<EnumBlockMaterial, BlockSounds>? layerSounds, BlockSounds fallback)
+        => layerSounds != null && layerSounds.TryGetValue(material, out var sounds) ? sounds : fallback;
+
+    // Hit and break sound come from the layer under the cursor, not the block's own Wood sounds -
+    // a stone-faced wall shouldn't thud like a plank.
+    public override BlockSounds GetSounds(IBlockAccessor blockAccessor, BlockSelection blockSel, ItemStack? stack = null)
+    {
+        // Vanilla's own GetSounds ignores its arguments, so a caller is free to pass no selection.
+        if (blockSel?.Position == null) return base.GetSounds(blockAccessor, blockSel, stack);
+
+        var material = HitLayerMaterial(blockAccessor, blockSel.Position, blockSel.Face);
+        return ResolveLayerSounds(material, layerSounds, base.GetSounds(blockAccessor, blockSel, stack));
+    }
+
     // A player's break peels one layer (decision 0013); anything else, or a bare frame, breaks the block.
     internal static BlockSelection? ServerBreakSelection;
 
@@ -614,7 +664,13 @@ public class SidingWallBlock : Block
             var drops = new List<BlockDropItemStack>();
             AddDrops(drops, key, Attributes[layer == "infill" ? "Infills" : "Finishes"]);
             foreach (var stack in ResolveDrops(world, drops, dropQuantityMultiplier)) world.SpawnItemEntity(stack, pos);
-            if (Sounds != null) world.PlaySoundAt(Sounds.GetBreakSound(byPlayer), pos, 0.0, byPlayer);
+
+            if (Sounds != null)
+            {
+                var material = LayerMaterialAt(layer, entity.Infill, entity.Front, entity.SecondFront, entity.Back);
+                var breakSounds = ResolveLayerSounds(material, layerSounds, Sounds);
+                world.PlaySoundAt(breakSounds.GetBreakSound(byPlayer), pos, 0.0, byPlayer);
+            }
         }
         SpawnBlockBrokenParticles(pos, byPlayer);
 

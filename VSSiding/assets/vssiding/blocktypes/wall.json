@@ -215,6 +215,13 @@
 				Consumes: { type: "block", code: "game:log-placed-{wood}-ud", quantity: 1 },
 				Drops: [ { type: "block", code: "game:log-placed-{wood}-ud", quantity: { avg: 1, var: 0 } } ]
 			}
+		},
+		LayerSounds: {
+			"Wood": { place: "game:block/planks", hit: "game:block/planks", break: "game:block/planks", walk: "game:walk/wood" },
+			"Soil": { place: "game:block/planks", hit: "game:block/dirt", break: "game:block/dirt", walk: "game:walk/grass" },
+			"Stone": { place: "game:block/planks", hit: "game:block/rock-hit-pickaxe", break: "game:block/rock-break-pickaxe", walk: "game:walk/stone" },
+			"Ceramic": { place: "game:block/planks", hit: "game:block/ceramichit", break: "game:block/ceramicplace", walk: "game:walk/stone" },
+			"Glass": { place: "game:block/planks", hit: "game:block/glass", break: "game:block/glass", walk: "game:walk/stone" }
 		}
 	},
 	drawtype: "json",
