@@ -8,14 +8,13 @@
 `README.md` and `modinfo.json` describe the shipped mod, and `CLAUDE.md`'s architecture section is a file-to-responsibility map instead of a per-decision narration.
 
 ## Context
-The README still said "early scaffolding, no gameplay yet" and called room retention "a possible future extension, not a v1 goal", both written before decisions 0004–0031 shipped.
-It is the first thing anyone reads on the repo, and it was false.
+The README still said "early scaffolding, no gameplay yet" and called room retention "a possible future extension, not a v1 goal", both written before decisions 0004–0031 shipped and both false.
 `modinfo.json` named no gesture, so a player installing from ModDB never learned about the saw.
 `CLAUDE.md`'s architecture section had grown a clause per decision and retold what the decisions already say.
 
 ## Design
 The README drops the status line outright rather than replacing it.
-Release state lives in `modinfo.json` and on the ModDB page, so there is nothing to keep in sync and no claim to have to mean later.
+Release state already lives in `modinfo.json` and on the ModDB page, so a second copy could only go stale.
 It gains a "building a wall" section and a materials list, and points players at the in-game handbook page rather than duplicating it.
 
 `CLAUDE.md` keeps the three rules that exist nowhere else in full — attribute dictionaries not variants (0001), `*Families` are templates (0010), find every consumer before overriding a vanilla property (0020) — and compresses everything else to a map with decision numbers.
@@ -31,4 +30,4 @@ The glazing paragraph went because 0019 carries all of it; the `SideSolid` XML r
 
 ## Consequences & open questions
 - The material lists in the README are named by family, not enumerated. A new family means one more line there; the ~500 expanded keys stay out.
-- `CLAUDE.md` now cites decision numbers without restating them, so it is only useful next to `docs/decisions/`. That is the intended trade.
+- `CLAUDE.md` now cites decision numbers without restating them, so it is only useful next to `docs/decisions/`.
