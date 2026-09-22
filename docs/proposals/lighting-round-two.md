@@ -21,17 +21,29 @@ Collected from those decisions' own "Consequences & open questions":
 5. **Flat shading on sealed faces.** 0018's prefix takes the flat path, so faces onto a wall lose smooth gradation. Accepted as a cost, not yet judged in play.
 
 ## Design
-Do them in that order, each demoable, and stop when the rest stop being visible.
+Checked against the decompiled `TCTCache.CalcBlockFaceLight` before any code, and two of the five premises did not survive.
+What follows is written as predictions, so the playtest checks them rather than confirms them.
 
-(1) is a one-line change to the postfix: `Math.Min` of the open-side light and the room's. The catch is that "darker" across three packed channels is not one comparison. Pick per-channel min, and say so.
+(2) **Side AO is not dead code.**
+In the smooth path, a ring cell that emits side AO gets its light replaced by the face's own sample, so it drops out of the corner average.
+0018's postfix gives a sealed cell the light of its open side, and when the panels face *in*, the open side is outdoors.
+Take side AO away and the room's floor row beside that wall averages daylight back in.
+Prediction: removing side AO brings the glow back in a room whose panels face in; a panels-out room looks the same either way, so testing only that one would wrongly pass the removal.
 
-(2) is an experiment before it is a change: comment out `DoEmitSideAo`/`DoEmitSideAoByFlag`, screenshot the same sealed room and the same pre-roof corner, keep the smaller code if the pixels match.
+(4) **Double walls differ by about one light level.**
+The outer cell reads the inner cell either before or after its rewrite.
+Before, the inner cell holds the room's light minus one, since the outer cell absorbs everything it passes on; after, it holds the room's light.
+Prediction: invisible in play, no fix needed.
 
-(3) needs a decision, not a patch: either glazing joins the patched set (and then a glazed wall's own cell goes dark, which is wrong — it genuinely transmits light), or the *neighbouring* sealed cells stop sampling the glazed cell. The second is right and is a condition in the postfix, not a new patch.
+(1) and (3) **have no traced cause.**
+The postfix only ever reads a sealed cell's open side, which runs across the wall, never along it.
+So "the darker of the open side and the room" has no room to compare against, and "sealed cells stop sampling the glazed cell" describes something the code never does.
+Both need a reproduction before any fix is designed.
 
-(4) wants the postfix to resolve chains: if the open neighbour is itself sealed, follow to *its* open side, with a hop limit. Two hops covers every wall anyone builds.
+(5) stays a judgement call in play once the others are settled.
 
-(5) is a judgement call after (1)–(4) land, because the flat path may stop being noticeable once nothing beside it is wrong.
+The playtest scene: a sealed room with panels out, one with panels in, a doorway, a window beside a sealed wall, and a double-thickness wall, each at noon and midnight.
+Then the same panels-in room and a pre-roof corner again on a throwaway build with side AO off.
 
 ## Alternatives considered
 - **A real light-propagation patch** so a sealed cell never stores the outdoor light at all. The honest fix, in the most update-fragile place in the engine; 0018 chose the tessellation-time swap to avoid it. Revisit only if these five resist.

@@ -564,7 +564,8 @@ public class SidingWallBlock : Block
     internal static bool IsTransparent(string? infillKey, JsonObject infills)
         => infillKey != null && infills[infillKey]["Transparent"].AsBool(false);
 
-    // A sealed wall's cell stores outside sunlight (decision 0015); emitting side AO stops smooth lighting averaging it into neighbouring faces' corners.
+    // Emitting side AO keeps a sealed cell's light out of neighbouring faces' smooth-lighting corners.
+    // That light is the open side's (decision 0018), which is daylight when the panels face in.
     public override bool DoEmitSideAo(IGeometryTester caller, BlockFacing facing)
         => IsSealed(caller.GetCurrentBlockEntityOnSide(facing.Opposite)) || base.DoEmitSideAo(caller, facing);
 
