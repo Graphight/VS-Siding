@@ -140,17 +140,25 @@ public class SidingModSystem : ModSystem
 
     // Smooth lighting averages a face's own sample with the cells ringing it, and for the floor
     // face under a thin wall one of those is the sunlit cell just outside - which is the daylight
-    // that lit a sealed room's floor edges. Faces onto a sealed cell take the flat path instead.
+    // that lit a sealed room's floor edges. Faces onto a sealed cell take the flat path instead,
+    // dimmed by the occlusion vanilla gives a face onto a side-AO cell, or the dead space reads
+    // brighter than the AO-shaded floor beside it.
     internal static bool SealedCellFaceLightPrefix(TCTCache __instance, int extNeibIndex3d, ref long __result)
     {
         if (sealedCells is not { } mask || !mask[extNeibIndex3d]) return true;
 
         int light = sealedCellRgbs![extNeibIndex3d];
+        if (__instance.aoAndSmoothShadows) light = Occlude(light, __instance.occ);
         var corners = __instance.CurrentLightRGBByCorner;
         corners[0] = corners[1] = corners[2] = corners[3] = light;
         __result = light * 4;   // int arithmetic, as vanilla's flat path returns it
         return false;
     }
+
+    // Scales all four packed bytes, sunlight included, as TCTCache.CornerAoRGB does.
+    internal static int Occlude(int rgb, float factor)
+        => ((int)(((rgb >> 24) & 0xFF) * factor) << 24) | ((int)(((rgb >> 16) & 0xFF) * factor) << 16)
+            | ((int)(((rgb >> 8) & 0xFF) * factor) << 8) | (int)((rgb & 0xFF) * factor);
 
     // The server's CurrentBlockSelection is its own raytrace; the break packet's face only reaches this event.
     public override void StartServerSide(ICoreServerAPI api)

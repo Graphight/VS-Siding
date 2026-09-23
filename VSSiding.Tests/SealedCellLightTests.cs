@@ -31,6 +31,10 @@ public class SealedCellLightTests
     }
 
     [Fact]
+    public void OccludeScalesEveryByteIncludingSunlight()
+        => Assert.Equal(unchecked((int)0x7F_44_22_00), SidingModSystem.Occlude(unchecked((int)0xFF_88_44_00), 0.5f));
+
+    [Fact]
     public void PatchTargetsStillExist()
     {
         Assert.NotNull(AccessTools.Method(typeof(ChunkTesselator), "BuildExtendedChunkData"));
@@ -39,6 +43,8 @@ public class SealedCellLightTests
         Assert.NotNull(AccessTools.Field(typeof(ChunkTesselator), "currentChunkRgbsExt"));
         Assert.NotNull(AccessTools.Method(typeof(TCTCache), "CalcBlockFaceLight"));
         Assert.NotNull(AccessTools.Field(typeof(TCTCache), "CurrentLightRGBByCorner"));
+        Assert.NotNull(AccessTools.Field(typeof(TCTCache), "occ"));
+        Assert.NotNull(AccessTools.Field(typeof(TCTCache), "aoAndSmoothShadows"));
     }
 
     // Harmony binds the patches' parameters by name, so a vanilla rename would drop the fix at
