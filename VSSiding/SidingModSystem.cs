@@ -165,13 +165,14 @@ public class SidingModSystem : ModSystem
     // face under a thin wall one of those is the sunlit cell just outside - which is the daylight
     // that lit a sealed room's floor edges. Faces onto a sealed cell take the flat path instead,
     // dimmed by the occlusion vanilla gives a face onto a side-AO cell, or the dead space reads
-    // brighter than the AO-shaded floor beside it (decision 0034).
-    internal static bool SealedCellFaceLightPrefix(TCTCache __instance, int extNeibIndex3d, ref long __result)
+    // brighter than the AO-shaded floor beside it (decision 0034). Where vanilla already takes its
+    // own flat path it reads the rewritten light unaided, so those faces are left to it.
+    internal static bool SealedCellFaceLightPrefix(TCTCache __instance, int tileSide, int extNeibIndex3d, ref long __result)
     {
         if (sealedCells is not { } mask || !mask[extNeibIndex3d]) return true;
+        if (!__instance.aoAndSmoothShadows || !__instance.block.SideAo[tileSide]) return true;
 
-        int light = sealedCellRgbs![extNeibIndex3d];
-        if (__instance.aoAndSmoothShadows) light = Occlude(light, __instance.occ);
+        int light = Occlude(sealedCellRgbs![extNeibIndex3d], __instance.occ);
         var corners = __instance.CurrentLightRGBByCorner;
         corners[0] = corners[1] = corners[2] = corners[3] = light;
         __result = light * 4;   // int arithmetic, as vanilla's flat path returns it

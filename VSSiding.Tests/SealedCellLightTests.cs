@@ -45,6 +45,7 @@ public class SealedCellLightTests
         Assert.NotNull(AccessTools.Field(typeof(TCTCache), "CurrentLightRGBByCorner"));
         Assert.NotNull(AccessTools.Field(typeof(TCTCache), "occ"));
         Assert.NotNull(AccessTools.Field(typeof(TCTCache), "aoAndSmoothShadows"));
+        Assert.NotNull(AccessTools.Field(typeof(TCTCache), "block"));
     }
 
     // Harmony binds the patches' parameters by name, so a vanilla rename would drop the fix at
