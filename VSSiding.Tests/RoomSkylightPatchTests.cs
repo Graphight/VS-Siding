@@ -2,6 +2,7 @@ using System.Linq;
 using HarmonyLib;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
+using Vintagestory.Common;
 using Vintagestory.GameContent;
 using Xunit;
 
@@ -29,7 +30,7 @@ public class RoomSkylightPatchTests
     [Fact]
     public void RainFallDistanceStillTakesPos()
     {
-        var actual = AccessTools.Method(typeof(Vintagestory.Common.BlockAccessorBase), "GetDistanceToRainFall")
+        var actual = AccessTools.Method(typeof(BlockAccessorBase), "GetDistanceToRainFall")
             .GetParameters().Select(p => p.Name).ToArray();
         Assert.Equal(new[] { "pos", "horziontalSearchWidth", "verticalSearchWidth" }, actual);
     }

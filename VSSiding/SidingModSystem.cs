@@ -75,7 +75,7 @@ public class SidingModSystem : ModSystem
     // The search to open sky checks only the block it steps into, never the one it leaves, since
     // nobody stands inside a solid block. A siding wall's dead space is walkable, so from there the
     // first step goes out through the panel and the wind plays at full volume. Start from the cell
-    // the dead space opens onto instead, as decision 0018 does for its light.
+    // the dead space opens onto instead (decision 0034).
     internal static void RainFallFromOpenSidePrefix(IBlockAccessor __instance, ref BlockPos pos)
     {
         if (__instance.GetBlock(pos) is not SidingWallBlock wall) return;
@@ -165,7 +165,7 @@ public class SidingModSystem : ModSystem
     // face under a thin wall one of those is the sunlit cell just outside - which is the daylight
     // that lit a sealed room's floor edges. Faces onto a sealed cell take the flat path instead,
     // dimmed by the occlusion vanilla gives a face onto a side-AO cell, or the dead space reads
-    // brighter than the AO-shaded floor beside it.
+    // brighter than the AO-shaded floor beside it (decision 0034).
     internal static bool SealedCellFaceLightPrefix(TCTCache __instance, int extNeibIndex3d, ref long __result)
     {
         if (sealedCells is not { } mask || !mask[extNeibIndex3d]) return true;

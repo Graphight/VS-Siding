@@ -573,8 +573,7 @@ public class SidingWallBlock : Block
     public override bool DoEmitSideAoByFlag(IGeometryTester caller, Vec3iAndFacingFlags vec, int flags)
         => IsSealed(caller.GetCurrentBlockEntityOnSide(vec)) || base.DoEmitSideAoByFlag(caller, vec, flags);
 
-    // The relight returns early when old and new absorption match, so the old value has to be
-    // the real one: passing 0 made opening a sealed wall (or glazing it) a no-op and left the room dark.
+    // The relight skips when old and new absorption match, so opening a wall needs the old infill's real value (decision 0034).
     internal void MarkAbsorptionChanged(IBlockAccessor accessor, BlockPos pos, string? framing, string? oldInfill)
         => accessor.MarkAbsorptionChanged(
             ComputeLightAbsorption(framing, oldInfill, Attributes["Framings"], Attributes["Infills"]),
