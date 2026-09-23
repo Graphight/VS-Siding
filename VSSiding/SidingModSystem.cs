@@ -11,6 +11,7 @@ using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
 using Vintagestory.Client.NoObf;
+using Vintagestory.Common;
 using Vintagestory.GameContent;
 
 namespace VSSiding;
@@ -59,6 +60,28 @@ public class SidingModSystem : ModSystem
         {
             api.Logger.Error("vssiding: sealed cell light patch skipped, sealed rooms will glow at the wall base: {0}", e);
         }
+
+        try
+        {
+            harmony.Patch(AccessTools.Method(typeof(BlockAccessorBase), nameof(BlockAccessorBase.GetDistanceToRainFall)),
+                prefix: new HarmonyMethod(typeof(SidingModSystem), nameof(RainFallFromOpenSidePrefix)));
+        }
+        catch (Exception e)
+        {
+            api.Logger.Error("vssiding: rain fall distance patch skipped, wind will sound outdoors inside a wall's dead space: {0}", e);
+        }
+    }
+
+    // The search to open sky checks only the block it steps into, never the one it leaves, since
+    // nobody stands inside a solid block. A siding wall's dead space is walkable, so from there the
+    // first step goes out through the panel and the wind plays at full volume. Start from the cell
+    // the dead space opens onto instead, as decision 0018 does for its light.
+    internal static void RainFallFromOpenSidePrefix(IBlockAccessor __instance, ref BlockPos pos)
+    {
+        if (__instance.GetBlock(pos) is not SidingWallBlock wall) return;
+        if (wall.GetRetention(pos, BlockFacing.FromCode(wall.Variant["side"]), EnumRetentionType.Sound) == 0) return;
+        var (dx, dz) = SidingWallBlock.OpenSide(wall.Variant["layout"], wall.Variant["side"]);
+        pos = pos.AddCopy(dx, 0, dz);
     }
 
     public override void Dispose()

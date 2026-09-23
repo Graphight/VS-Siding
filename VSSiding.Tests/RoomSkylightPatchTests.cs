@@ -24,4 +24,13 @@ public class RoomSkylightPatchTests
         Assert.DoesNotContain(patched, i => i.Calls(getLightLevel));
         Assert.Single(patched, i => i.Calls(roomSunlight));
     }
+
+    // The rain fall prefix rewrites its argument by name, so a vanilla rename would drop the fix.
+    [Fact]
+    public void RainFallDistanceStillTakesPos()
+    {
+        var actual = AccessTools.Method(typeof(Vintagestory.Common.BlockAccessorBase), "GetDistanceToRainFall")
+            .GetParameters().Select(p => p.Name).ToArray();
+        Assert.Equal(new[] { "pos", "horziontalSearchWidth", "verticalSearchWidth" }, actual);
+    }
 }
