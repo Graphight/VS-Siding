@@ -34,8 +34,8 @@ The game loads the zip as-is; don't unpack it.
 
 Where things live. The decisions carry the *why*; `ls docs/decisions/` is the index.
 
-- `SidingModSystem` — registers the classes and `/sidingroom`, expands the material families, and owns the Harmony patches: the `RoomRegistry` skylight sample (0015), side AO (0016) and the two sealed-floor light patches (0018).
-- `SidingWallBlock` — shape, collision, retention, liquid barrier, drops (0002), peeling one layer per break (0013), and `OnBlockInteractStart`, which does all the layering onto a standing frame (0005/0006), the in-place corner upgrade (0026) and the tooltip text (0030).
+- `SidingModSystem` — registers the classes and `/sidingroom`, expands the material families, and owns the Harmony patches: the `RoomRegistry` skylight sample (0015), the two sealed-floor light patches (0018, occluded in 0034) and the rain-fall distance that drives wind volume (0034).
+- `SidingWallBlock` — shape, collision, retention, liquid barrier, drops (0002), side AO on sealed cells (0016, kept in 0034), peeling one layer per break (0013), and `OnBlockInteractStart`, which does all the layering onto a standing frame (0005/0006), the in-place corner upgrade (0026) and the tooltip text (0030).
 - `SidingWallEntity` — the per-wall `Framing`/`Infill`/`Front`/`Back`/`SecondFront` state (0003), its mesh, and the `GetBlockInfo` hook that tooltip text comes back through.
 - `SidingWallTexSource` — resolves a material key to an atlas position at mesh-build time.
 - `MaterialFamilies` — `Expand`, called from `AssetsFinalize` (0010).

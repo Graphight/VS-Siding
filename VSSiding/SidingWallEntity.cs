@@ -45,7 +45,7 @@ public class SidingWallEntity : BlockEntity
         // Other clients learn of new infill only through this sync, so they relight here; Api is null on chunk load.
         if (Api?.Side == EnumAppSide.Client && Infill != oldInfill)
         {
-            worldAccessForResolve.BlockAccessor.MarkAbsorptionChanged(0, Block.GetLightAbsorption(worldAccessForResolve.BlockAccessor, Pos), Pos);
+            ((SidingWallBlock)Block).MarkAbsorptionChanged(worldAccessForResolve.BlockAccessor, Pos, Framing, oldInfill);
         }
         Front = NullIfEmpty(tree.GetString("front", null));
         SecondFront = NullIfEmpty(tree.GetString("secondfront", null));

@@ -11,6 +11,7 @@ using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
 using Vintagestory.Client.NoObf;
+using Vintagestory.Common;
 using Vintagestory.GameContent;
 
 namespace VSSiding;
@@ -59,6 +60,28 @@ public class SidingModSystem : ModSystem
         {
             api.Logger.Error("vssiding: sealed cell light patch skipped, sealed rooms will glow at the wall base: {0}", e);
         }
+
+        try
+        {
+            harmony.Patch(AccessTools.Method(typeof(BlockAccessorBase), nameof(BlockAccessorBase.GetDistanceToRainFall)),
+                prefix: new HarmonyMethod(typeof(SidingModSystem), nameof(RainFallFromOpenSidePrefix)));
+        }
+        catch (Exception e)
+        {
+            api.Logger.Error("vssiding: rain fall distance patch skipped, wind will sound outdoors inside a wall's dead space: {0}", e);
+        }
+    }
+
+    // The search to open sky checks only the block it steps into, never the one it leaves, since
+    // nobody stands inside a solid block. A siding wall's dead space is walkable, so from there the
+    // first step goes out through the panel and the wind plays at full volume. Start from the cell
+    // the dead space opens onto instead (decision 0034).
+    internal static void RainFallFromOpenSidePrefix(IBlockAccessor __instance, ref BlockPos pos)
+    {
+        if (__instance.GetBlock(pos) is not SidingWallBlock wall) return;
+        if (wall.GetRetention(pos, BlockFacing.FromCode(wall.Variant["side"]), EnumRetentionType.Sound) == 0) return;
+        var (dx, dz) = SidingWallBlock.OpenSide(wall.Variant["layout"], wall.Variant["side"]);
+        pos = pos.AddCopy(dx, 0, dz);
     }
 
     public override void Dispose()
@@ -140,17 +163,26 @@ public class SidingModSystem : ModSystem
 
     // Smooth lighting averages a face's own sample with the cells ringing it, and for the floor
     // face under a thin wall one of those is the sunlit cell just outside - which is the daylight
-    // that lit a sealed room's floor edges. Faces onto a sealed cell take the flat path instead.
-    internal static bool SealedCellFaceLightPrefix(TCTCache __instance, int extNeibIndex3d, ref long __result)
+    // that lit a sealed room's floor edges. Faces onto a sealed cell take the flat path instead,
+    // dimmed by the occlusion vanilla gives a face onto a side-AO cell, or the dead space reads
+    // brighter than the AO-shaded floor beside it (decision 0034). Where vanilla already takes its
+    // own flat path it reads the rewritten light unaided, so those faces are left to it.
+    internal static bool SealedCellFaceLightPrefix(TCTCache __instance, int tileSide, int extNeibIndex3d, ref long __result)
     {
         if (sealedCells is not { } mask || !mask[extNeibIndex3d]) return true;
+        if (!__instance.aoAndSmoothShadows || !__instance.block.SideAo[tileSide]) return true;
 
-        int light = sealedCellRgbs![extNeibIndex3d];
+        int light = Occlude(sealedCellRgbs![extNeibIndex3d], __instance.occ);
         var corners = __instance.CurrentLightRGBByCorner;
         corners[0] = corners[1] = corners[2] = corners[3] = light;
         __result = light * 4;   // int arithmetic, as vanilla's flat path returns it
         return false;
     }
+
+    // Scales all four packed bytes, sunlight included, as TCTCache.CornerAoRGB does.
+    internal static int Occlude(int rgb, float factor)
+        => ((int)(((rgb >> 24) & 0xFF) * factor) << 24) | ((int)(((rgb >> 16) & 0xFF) * factor) << 16)
+            | ((int)(((rgb >> 8) & 0xFF) * factor) << 8) | (int)((rgb & 0xFF) * factor);
 
     // The server's CurrentBlockSelection is its own raytrace; the break packet's face only reaches this event.
     public override void StartServerSide(ICoreServerAPI api)

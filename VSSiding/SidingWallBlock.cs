@@ -248,8 +248,9 @@ public class SidingWallBlock : Block
             var consumes = Attributes["Infills"][infillKey]["Consumes"];
             if (!TryAffordOrError(byPlayer, isCreative, slot.StackSize, consumes)) return true;
 
+            string? oldInfill = entity.Infill;
             entity.Infill = infillKey;
-            OnInfillChanged(world, entity, blockSel.Position);
+            OnInfillChanged(world, entity, blockSel.Position, oldInfill);
             ConsumeHeld(slot, consumes, isCreative);
             return true;
         }
@@ -327,10 +328,10 @@ public class SidingWallBlock : Block
     internal static bool HasStyle(JsonObject finish, string style)
         => Array.IndexOf(finish["Styles"].AsArray<string>([]) ?? [], style) >= 0;
 
-    private void OnInfillChanged(IWorldAccessor world, SidingWallEntity entity, BlockPos pos)
+    private void OnInfillChanged(IWorldAccessor world, SidingWallEntity entity, BlockPos pos, string? oldInfill)
     {
         entity.MarkDirty(true);
-        world.BlockAccessor.MarkAbsorptionChanged(0, GetLightAbsorption(world.BlockAccessor, pos), pos);
+        MarkAbsorptionChanged(world.BlockAccessor, pos, entity.Framing, oldInfill);
         // Infill changes retention, but rooms only recompute on a chunk-dirty event; exchanging the block for itself fires one.
         world.BlockAccessor.ExchangeBlock(Id, pos);
         // It changes the liquid barrier too, and the block itself never changed, so the water
@@ -564,12 +565,19 @@ public class SidingWallBlock : Block
     internal static bool IsTransparent(string? infillKey, JsonObject infills)
         => infillKey != null && infills[infillKey]["Transparent"].AsBool(false);
 
-    // A sealed wall's cell stores outside sunlight (decision 0015); emitting side AO stops smooth lighting averaging it into neighbouring faces' corners.
+    // Emitting side AO keeps a sealed cell's light out of neighbouring faces' smooth-lighting corners.
+    // That light is the open side's (decision 0018), which is daylight when the panels face in.
     public override bool DoEmitSideAo(IGeometryTester caller, BlockFacing facing)
         => IsSealed(caller.GetCurrentBlockEntityOnSide(facing.Opposite)) || base.DoEmitSideAo(caller, facing);
 
     public override bool DoEmitSideAoByFlag(IGeometryTester caller, Vec3iAndFacingFlags vec, int flags)
         => IsSealed(caller.GetCurrentBlockEntityOnSide(vec)) || base.DoEmitSideAoByFlag(caller, vec, flags);
+
+    // The relight skips when old and new absorption match, so opening a wall needs the old infill's real value (decision 0034).
+    internal void MarkAbsorptionChanged(IBlockAccessor accessor, BlockPos pos, string? framing, string? oldInfill)
+        => accessor.MarkAbsorptionChanged(
+            ComputeLightAbsorption(framing, oldInfill, Attributes["Framings"], Attributes["Infills"]),
+            GetLightAbsorption(accessor, pos), pos);
 
     internal bool IsSealed(BlockEntity? be)
         => be is SidingWallEntity entity && ComputeLightAbsorption(entity.Framing, entity.Infill, Attributes["Framings"], Attributes["Infills"]) > 0;
@@ -718,8 +726,9 @@ public class SidingWallBlock : Block
             case "secondfront": entity.SecondFront = null; entity.SecondFrontStyle = null; break;
             case "back": entity.Back = null; entity.BackStyle = null; break;
             default:
+                string? oldInfill = entity.Infill;
                 entity.Infill = null;
-                OnInfillChanged(world, entity, pos);
+                OnInfillChanged(world, entity, pos, oldInfill);
                 return;
         }
         entity.MarkDirty(true);
