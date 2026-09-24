@@ -26,6 +26,8 @@ Readers never write `LiveModData`, because they run on the lighting, tesselation
 
 **Host changes.** A prefix on `WorldChunk.BreakAllDecorFast` — called on every solid-block `SetBlock`, with the new id already written into `chunk.Data[index3d]` — classifies the change: air or replaceable restores the wall a tick later (state re-read via `FromTreeAttributes`, re-checked in case something else changed the cell first), another hostable block keeps the guest, and anything else drops the wall's layers as items and removes the guest.
 `ExchangeBlock` bypasses `BreakAllDecorFast` entirely, so a firepit's lit/unlit exchange and a torch's burnout keep their guest for free, as the proposal expected.
+Breaking a host does leave the cell as air for that one tick, and the server's `TriggerNeighbourBlocksUpdate` runs inside it, so `CanAttachBlockAt` also answers for air (or clutter) still holding a guest record; otherwise a torch on the wall's far side would drop before the wall came back.
+Blocks the wall can replace (tall grass, loose stones, snow layer) are not hostable, since the restore would take them over on the next tick.
 
 **Rendering** goes through the JSON tesselator's own mesh-pool helper.
 A postfix on `ChunkTesselator.TesselateBlock` runs after the host's mesh, points `vars` at the guest wall at the cell's unshifted position, and calls the transient entity's `OnTesselation`.

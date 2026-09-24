@@ -497,7 +497,9 @@ public class SidingModSystem : ModSystem
     // re-walking SelectionBoxes on every call.
     internal static double[][]? FaceShiftByBlock;
 
-    // Most blocks are hostable (decision 0035). Excluded: our own walls, anything that already culls
+    // Most blocks are hostable (decision 0035). Excluded: our own walls, anything the wall can
+    // replace (tall grass, loose stones, snow layer - ClassifyHostChange would restore the wall over
+    // it on the next tick, eating the item), anything that already culls
     // a neighbour (SideSolid), fluid-layer blocks, anything not a plain JSON shape (cubes, crosses,
     // liquids, microblocks all draw or collide in ways this offset was never checked against), beds
     // (a "part" variant) and multiblock fillers, doors (1.22's are BlockGeneric with a "Door" BE
@@ -563,9 +565,10 @@ public class SidingModSystem : ModSystem
         return (dx, dz);
     }
 
-    private static bool IsHostable(Block block)
+    internal static bool IsHostable(Block block)
     {
         if (block is SidingWallBlock) return false;
+        if (block.Replaceable >= 6000) return false;
         if (block.SideSolid.Any) return false;
         if (block.ForFluidsLayer) return false;
         if (block.DrawType is not (EnumDrawType.JSON or EnumDrawType.JSONAndSnowLayer or EnumDrawType.JSONAndWater)) return false;
