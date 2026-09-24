@@ -144,6 +144,18 @@ public class SidingModSystem : ModSystem
         {
             api.Logger.Error("vssiding: mining crack decal shift patch skipped, the crack overlay will show three-quarters clear of a snapped block: {0}", e);
         }
+
+        // ExchangeBlock (firepit lit/unlit, torch burnout) never calls BreakAllDecorFast, so those
+        // keep their guest with no code here (furniture-against-thin-walls, decision 0035 pending).
+        try
+        {
+            harmony.Patch(AccessTools.Method(typeof(WorldChunk), nameof(WorldChunk.BreakAllDecorFast)),
+                prefix: new HarmonyMethod(typeof(SidingModSystem), nameof(HostChangePrefix)));
+        }
+        catch (Exception e)
+        {
+            api.Logger.Error("vssiding: host change patch skipped, breaking hosted furniture will not restore or drop its guest wall: {0}", e);
+        }
     }
 
     // The renderer keeps the Vec3d its caller passed in for its lifetime, so it gets an offset copy
@@ -416,6 +428,81 @@ public class SidingModSystem : ModSystem
     internal static void ShiftTowardWall(ChunkTesselator tesselator, Block block)
     {
         if (Hostable is not { } hostable || block.BlockId >= hostable.Length || !hostable[block.BlockId]) return;
+    }
+
+    // What BreakAllDecorFast's prefix does with a guest once it sees the new block written into the
+    // chunk (furniture-against-thin-walls, decision 0035 pending). Kept as a pure function of the
+    // three inputs so HostChangeTests can exercise it with plain Block instances.
+    internal enum HostChange { Restore, Keep, Drop }
+
+    internal static HostChange ClassifyHostChange(Block newBlock, Block guestWallBlock, bool[]? hostable)
+    {
+        if (newBlock.BlockId == 0 || newBlock.IsReplacableBy(guestWallBlock)) return HostChange.Restore;
+        if (hostable != null && newBlock.BlockId < hostable.Length && hostable[newBlock.BlockId]) return HostChange.Keep;
+        return HostChange.Drop;
+    }
+
+    // BreakAllDecorFast runs on every solid-block SetBlock (BlockAccessorBase.SetSolidBlockInternal,
+    // plus the bulk and movable accessors), with the new id already written into the chunk and the
+    // old block's OnBlockRemoved still to come - the one place that sees every way a hosted cell can
+    // change, without having to patch every tool that can break or place over one.
+    internal static void HostChangePrefix(WorldChunk __instance, IWorldAccessor world, BlockPos pos)
+    {
+        if (world.Side != EnumAppSide.Server) return;
+        var guest = GuestWalls.GuestAt(world.Api, __instance, pos);
+        if (guest == null) return;
+
+        Block newBlock = world.BlockAccessor.GetBlock(pos, BlockLayersAccess.Solid);
+        switch (ClassifyHostChange(newBlock, guest.Block, Hostable))
+        {
+            case HostChange.Restore:
+                // Deferred so the old host's OnBlockRemoved (a chest dropping its contents) finishes
+                // first - it runs right after this prefix returns, and would otherwise fire against
+                // the wall instead of the block it actually broke.
+                world.RegisterCallback(_ => RestoreGuestWall(world, pos), 0);
+                break;
+            case HostChange.Drop:
+                if (guest.Block is SidingWallBlock guestWall)
+                {
+                    var drops = SidingWallBlock.ComputeDrops(
+                        guest.Framing, guest.Infill, guest.Front, guest.SecondFront, guest.Back,
+                        guestWall.Attributes["Framings"], guestWall.Attributes["Infills"], guestWall.Attributes["Finishes"]);
+                    foreach (var stack in guestWall.ResolveDrops(world, drops, 1f)) world.SpawnItemEntity(stack, pos);
+                }
+                GuestWalls.Set(__instance, pos, null);
+                break;
+            case HostChange.Keep:
+                break;
+        }
+    }
+
+    // Re-checks the cell and the guest before touching either - the cell could have taken another
+    // hostable block in the meantime, and the deferred callback could outlive the guest itself.
+    // Clears the guest before SetBlock: with the guest still recorded under a placed, non-hostable
+    // wall, this same prefix would see the freshly-placed wall's own SetBlock next and drop the
+    // layers it hasn't restored yet.
+    private static void RestoreGuestWall(IWorldAccessor world, BlockPos pos)
+    {
+        IWorldChunk? chunk = world.BlockAccessor.GetChunkAtBlockPos(pos);
+        if (chunk == null) return;
+        var guest = GuestWalls.GuestAt(world.Api, chunk, pos);
+        if (guest == null) return;
+        Block current = world.BlockAccessor.GetBlock(pos, BlockLayersAccess.Solid);
+        if (ClassifyHostChange(current, guest.Block, Hostable) != HostChange.Restore) return;
+
+        GuestWalls.Set(chunk, pos, null);
+        world.BlockAccessor.SetBlock(guest.Block.BlockId, pos);
+
+        // The fresh entity starts with no infill, so relight and redraw it exactly as a saw would
+        // when laying infill onto a bare frame (OnInfillChanged), instead of duplicating that here.
+        if (guest.Block is SidingWallBlock wallBlock
+            && world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos) is { } entity)
+        {
+            var tree = new TreeAttribute();
+            guest.ToTreeAttributes(tree);
+            entity.FromTreeAttributes(tree, world);
+            wallBlock.OnInfillChanged(world, entity, pos, null);
+        }
     }
 
     // The same query as ShiftTowardWall, off an IBlockAccessor instead of the tesselator's extended

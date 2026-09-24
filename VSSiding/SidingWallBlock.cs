@@ -400,7 +400,11 @@ public class SidingWallBlock : Block
     internal static bool HasStyle(JsonObject finish, string style)
         => Array.IndexOf(finish["Styles"].AsArray<string>([]) ?? [], style) >= 0;
 
-    private void OnInfillChanged(IWorldAccessor world, SidingWallEntity entity, BlockPos pos, string? oldInfill)
+    // Internal so the guest-wall restore path (SidingModSystem's host change prefix) can relight
+    // and redraw a freshly restored wall the same way a saw layering infill does, rather than
+    // duplicating MarkAbsorptionChanged/MarkNeighboursDirty by hand (furniture-against-thin-walls,
+    // decision 0035 pending).
+    internal void OnInfillChanged(IWorldAccessor world, SidingWallEntity entity, BlockPos pos, string? oldInfill)
     {
         entity.MarkDirty(true);
         MarkAbsorptionChanged(world.BlockAccessor, pos, entity.Framing, oldInfill);
@@ -824,7 +828,9 @@ public class SidingWallBlock : Block
         return ResolveDrops(world, drops, dropQuantityMultiplier);
     }
 
-    private ItemStack[] ResolveDrops(IWorldAccessor world, List<BlockDropItemStack> drops, float dropQuantityMultiplier)
+    // Internal so the host change prefix can spawn a dropped guest wall's layers the same way a
+    // real break does (furniture-against-thin-walls, decision 0035 pending).
+    internal ItemStack[] ResolveDrops(IWorldAccessor world, List<BlockDropItemStack> drops, float dropQuantityMultiplier)
     {
         var stacks = new List<ItemStack>();
         foreach (var drop in drops)
