@@ -231,6 +231,16 @@ public class SidingModSystem : ModSystem
         {
             api.Logger.Error("vssiding: ground storage patch skipped, pots and other ground-stored items can't be set down in a wall's cell: {0}", e);
         }
+
+        try
+        {
+            harmony.Patch(AccessTools.Method(typeof(SystemMouseInWorldInteractions), "OnBlockBuild"),
+                transpiler: new HarmonyMethod(typeof(SidingModSystem), nameof(BlockBuildTranspiler)));
+        }
+        catch (Exception e)
+        {
+            api.Logger.Error("vssiding: block build patch skipped, a block clicked onto a wall's outer face or top will land in the wall's own cell instead: {0}", e);
+        }
     }
 
     private static readonly AccessTools.FieldRef<AnimatableRenderer, Vec3d> AnimatablePos =
@@ -768,6 +778,36 @@ public class SidingModSystem : ModSystem
     // restoring here means no neighbour - a torch on the far side, the water beside it - ever sees
     // the cell as air, and the client gets the wall back in the same tick instead of flashing empty.
     internal static void NeighbourUpdatePrefix(ServerMain __instance, BlockPos pos) => RestoreGuestWall(__instance, pos);
+
+    // IsReplacableBy answers two questions for vanilla. CanPlaceBlock and the server's placement check
+    // ask it of the cell a block is going into, and a wall says yes to anything hostable so it can
+    // take the wall's cell. The client's OnBlockBuild asks it of the block the player clicked, to
+    // decide whether the click places into that cell or the one beyond the face, and there a wall
+    // must say no: a torch on a wall's outer face, a chest on its top, belong past the face, not
+    // in the wall's own cell. The open side's inner face never gets here - TryHost takes that click.
+    internal static bool ClickedIsReplacableBy(Block clicked, Block placing)
+        => clicked is not SidingWallBlock && clicked.IsReplacableBy(placing);
+
+    internal static IEnumerable<CodeInstruction> BlockBuildTranspiler(IEnumerable<CodeInstruction> instructions)
+    {
+        var isReplacableBy = AccessTools.Method(typeof(Block), nameof(Block.IsReplacableBy));
+        var clicked = AccessTools.Method(typeof(SidingModSystem), nameof(ClickedIsReplacableBy));
+
+        int replaced = 0;
+        foreach (var instruction in instructions)
+        {
+            if (!instruction.Calls(isReplacableBy))
+            {
+                yield return instruction;
+                continue;
+            }
+            replaced++;
+            yield return new CodeInstruction(OpCodes.Call, clicked).MoveLabelsFrom(instruction);
+        }
+
+        if (replaced != 1)
+            throw new InvalidOperationException($"Expected exactly one Block.IsReplacableBy call in SystemMouseInWorldInteractions.OnBlockBuild, found {replaced}.");
+    }
 
     // Sneak-clicking a floor's top face sets a pot, a crock or any other ground-storable item down as
     // a groundstorage block, but only into a cell whose block has Replaceable >= 6000 - never a wall.

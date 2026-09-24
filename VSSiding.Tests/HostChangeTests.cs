@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using HarmonyLib;
 using Vintagestory.API.Common;
+using Vintagestory.Client.NoObf;
 using Vintagestory.Common;
 using System.Linq;
 using Vintagestory.API.MathTools;
@@ -56,5 +57,45 @@ public class HostChangeTests
         var groundStorable = AccessTools.Method(typeof(CollectibleBehaviorGroundStorable), nameof(CollectibleBehaviorGroundStorable.Interact));
         Assert.Equal(new[] { "itemslot", "byEntity", "blockSel", "entitySel", "firstEvent", "handHandling", "handling" },
             groundStorable.GetParameters().Select(p => p.Name));
+    }
+
+    // A wall that would take the held block as a placement target, the way SidingWallBlock does
+    // for anything hostable once the Hostable table is built.
+    private class WillingWall : SidingWallBlock
+    {
+        public override bool IsReplacableBy(Block block) => true;
+    }
+
+    // A click on a wall places beyond the clicked face, as vanilla did before walls took hostable
+    // blocks into their own cell; anything else keeps its own answer.
+    [Fact]
+    public void ClickedWallsNeverTakeTheClickIntoTheirOwnCell()
+    {
+        var chest = new Block { BlockId = 3 };
+        var actual = new[]
+        {
+            ClickedIsReplacableBy(new WillingWall(), chest),
+            ClickedIsReplacableBy(new Block { Replaceable = 6000 }, chest),
+            ClickedIsReplacableBy(new Block(), chest),
+        };
+
+        Assert.Equal(new[] { false, true, false }, actual);
+    }
+
+    [Fact]
+    public void BlockBuildAsksTheClickedBlockThroughTheWallAwareCheck()
+    {
+        var original = AccessTools.Method(typeof(SystemMouseInWorldInteractions), "OnBlockBuild");
+        var patched = BlockBuildTranspiler(PatchProcessor.GetOriginalInstructions(original)).ToList();
+
+        var isReplacableBy = AccessTools.Method(typeof(Block), nameof(Block.IsReplacableBy));
+        var clicked = AccessTools.Method(typeof(SidingModSystem), nameof(ClickedIsReplacableBy));
+        Assert.DoesNotContain(patched, i => i.Calls(isReplacableBy));
+        Assert.Single(patched, i => i.Calls(clicked));
+
+        // Applying it for real makes the runtime verify the rewritten IL.
+        var harmony = new Harmony("vssiding.tests.blockbuild");
+        try { harmony.Patch(original, transpiler: new HarmonyMethod(typeof(SidingModSystem), nameof(BlockBuildTranspiler))); }
+        finally { harmony.UnpatchAll("vssiding.tests.blockbuild"); }
     }
 }
