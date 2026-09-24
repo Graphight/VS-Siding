@@ -23,8 +23,8 @@ public class SidingModSystem : ModSystem
 {
     // Static rather than an instance field: GuestPanelPostfix is a static Harmony postfix with no
     // other way back to the running mod system, and singleplayer's one client process only ever
-    // has the one ICoreClientAPI anyway.
-    private static ICoreClientAPI? capi;
+    // has the one ICoreClientAPI anyway. Internal: GuestLightPatches' side AO postfixes need it too.
+    internal static ICoreClientAPI? capi;
 
     public override void StartClientSide(ICoreClientAPI api)
     {
@@ -126,6 +126,15 @@ public class SidingModSystem : ModSystem
         catch (Exception e)
         {
             api.Logger.Error("vssiding: guest sealing patches skipped entirely, a hosted block's wall will stop sealing its room and damming water: {0}", e);
+        }
+
+        try
+        {
+            GuestLightPatches.PatchAll(harmony, api);
+        }
+        catch (Exception e)
+        {
+            api.Logger.Error("vssiding: guest light patches skipped entirely, a hosted block's wall will stop absorbing light and casting side AO: {0}", e);
         }
 
         // Renderers that draw a snapped block from a position of their own, outside chunk
@@ -308,8 +317,11 @@ public class SidingModSystem : ModSystem
     // the dead space opens onto instead (decision 0034).
     internal static void RainFallFromOpenSidePrefix(IBlockAccessor __instance, ref BlockPos pos)
     {
-        if (__instance.GetBlock(pos) is not SidingWallBlock wall) return;
-        if (wall.GetRetention(pos, BlockFacing.FromCode(wall.Variant["side"]), EnumRetentionType.Sound) == 0) return;
+        var found = SidingWallBlock.WallAt(__instance, pos);
+        if (found == null) return;
+        var (wall, entity) = found.Value;
+        int retention = SidingWallBlock.ComputeRetention(true, entity.Framing, entity.Infill, wall.Attributes["Framings"], wall.Attributes["Infills"]);
+        if (retention == 0) return;
         var (dx, dz) = SidingWallBlock.OpenSide(wall.Variant["layout"], wall.Variant["side"]);
         pos = pos.AddCopy(dx, 0, dz);
     }
@@ -389,6 +401,50 @@ public class SidingModSystem : ModSystem
             ___currentChunkRgbsExt[i] = ___currentChunkRgbsExt[i + dx + dz * size];
             mask[i] = true;
         }
+
+        // A hosted block's cell must darken exactly like a sealed wall cell, but a per-cell guest
+        // lookup across all 39,304 entries would mean thousands of dictionary probes in a meadow
+        // chunk full of hostable tall grass. Enumerate the guests this chunk and its 26 neighbours
+        // actually hold instead (GuestWalls.GuestsIn), mapping each into the extended array with
+        // the loop's own border rules (furniture-against-thin-walls, decision 0035 pending).
+        for (int ndy = -1; ndy <= 1; ndy++)
+        for (int ndz = -1; ndz <= 1; ndz++)
+        for (int ndx = -1; ndx <= 1; ndx++)
+        {
+            IWorldChunk? neighbourChunk = ___game.WorldMap.GetChunk(chunkX + ndx, chunkY + ndy, chunkZ + ndz);
+            if (neighbourChunk == null) continue;
+
+            foreach (var (guestPos, guest) in GuestWalls.GuestsIn(___game.Api, neighbourChunk, chunkX + ndx, chunkY + ndy, chunkZ + ndz))
+            {
+                if (guest.Block is not SidingWallBlock wall || !TryExtendedIndex(guestPos, chunkX, chunkY, chunkZ, out int extIndex)) continue;
+
+                var (dx, dz) = SidingWallBlock.OpenSide(wall.Variant["layout"], wall.Variant["side"]);
+                int x = extIndex % size, z = extIndex / size % size;
+                if (x + dx is < 0 or >= size || z + dz is < 0 or >= size) continue;
+                if (!wall.IsSealed(guest)) continue;
+
+                ___currentChunkRgbsExt[extIndex] = ___currentChunkRgbsExt[extIndex + dx + dz * size];
+                mask[extIndex] = true;
+            }
+        }
+    }
+
+    // The extended array's own index math (BuildExtendedChunkData's 34-wide cube, bordered by one
+    // cell of the neighbouring chunks on every side), as a pure function so it can be unit-tested
+    // without a chunk or a tessellator: a guest position outside the one-cell border falls in a
+    // chunk this postfix isn't the one darkening, so it returns false rather than an out-of-range index.
+    internal static bool TryExtendedIndex(BlockPos guestPos, int chunkX, int chunkY, int chunkZ, out int extIndex)
+    {
+        int localX = guestPos.X - chunkX * 32;
+        int localY = guestPos.Y - chunkY * 32 % 32768;
+        int localZ = guestPos.Z - chunkZ * 32;
+        if (localX is < -1 or > 32 || localY is < -1 or > 32 || localZ is < -1 or > 32)
+        {
+            extIndex = -1;
+            return false;
+        }
+        extIndex = MapUtil.Index3d(localX + 1, localY + 1, localZ + 1, 34, 34);
+        return true;
     }
 
     // Smooth lighting averages a face's own sample with the cells ringing it, and for the floor
@@ -615,7 +671,7 @@ public class SidingModSystem : ModSystem
                         guestWall.Attributes["Framings"], guestWall.Attributes["Infills"], guestWall.Attributes["Finishes"]);
                     foreach (var stack in guestWall.ResolveDrops(world, drops, 1f)) world.SpawnItemEntity(stack, pos);
                 }
-                GuestWalls.Set(__instance, pos, null);
+                GuestWalls.Set(world, __instance, pos, null);
                 break;
             case HostChange.Keep:
                 break;
@@ -636,7 +692,7 @@ public class SidingModSystem : ModSystem
         Block current = world.BlockAccessor.GetBlock(pos, BlockLayersAccess.Solid);
         if (ClassifyHostChange(current, guest.Block, Hostable) != HostChange.Restore) return;
 
-        GuestWalls.Set(chunk, pos, null);
+        GuestWalls.Set(world, chunk, pos, null);
         world.BlockAccessor.SetBlock(guest.Block.BlockId, pos);
 
         // The fresh entity starts with no infill, so relight and redraw it exactly as a saw would

@@ -60,8 +60,26 @@ public static class GuestWalls
     {
         IWorldChunk? chunk = capi.World.BlockAccessor.GetChunkAtBlockPos(packet.Pos);
         if (chunk == null) return;
+
+        // A client may get the host block's own SetBlock before this packet, relight without the
+        // guest, and never catch up otherwise - MarkAbsorptionChanged skips a no-op old == new
+        // (decision 0034), so the relight has to happen here too, not just on the server.
+        int oldAbsorption = GuestAbsorption(capi, chunk, packet.Pos);
         Replace(chunk, packet.Pos, packet.Record);
+        int newAbsorption = GuestAbsorption(capi, chunk, packet.Pos);
+        if (oldAbsorption != newAbsorption) capi.World.BlockAccessor.MarkAbsorptionChanged(oldAbsorption, newAbsorption, packet.Pos);
+
         capi.World.BlockAccessor.MarkBlockDirty(packet.Pos);
+    }
+
+    // The guest layer's own contribution to a cell's light absorption - the host block's own value
+    // never changes here, only whether it has a guest and what that guest's is (decision 0035 pending).
+    private static int GuestAbsorption(ICoreAPI api, IWorldChunk chunk, BlockPos pos)
+    {
+        SidingWallEntity? guest = GuestAt(api, chunk, pos);
+        return guest?.Block is SidingWallBlock wall
+            ? SidingWallBlock.ComputeLightAbsorption(guest.Framing, guest.Infill, wall.Attributes["Framings"], wall.Attributes["Infills"])
+            : 0;
     }
 
     // Decoded once per stored blob, not once per lookup - the blob rarely changes and this runs on
@@ -143,11 +161,37 @@ public static class GuestWalls
 
     // Called on the server when furniture takes a wall's cell (stage 3) or gives it back (stage
     // 4): replaces the record, marks the chunk modified so it saves, and broadcasts the change to
-    // every client with the chunk loaded.
-    public static void Set(IWorldChunk chunk, BlockPos pos, GuestRecord? record)
+    // every client with the chunk loaded. Relights the cell around the swap - MarkAbsorptionChanged
+    // skips a no-op old == new (decision 0034), so this needs the guest's real absorption before
+    // and after, not 0, or hosting a sealed wall would never light the room it just opened.
+    public static void Set(IWorldAccessor world, IWorldChunk chunk, BlockPos pos, GuestRecord? record)
     {
+        int oldAbsorption = GuestAbsorption(world.Api, chunk, pos);
         Replace(chunk, pos, record);
+        int newAbsorption = GuestAbsorption(world.Api, chunk, pos);
+        if (oldAbsorption != newAbsorption) world.BlockAccessor.MarkAbsorptionChanged(oldAbsorption, newAbsorption, pos);
+
         chunk.MarkModified();
         serverChannel?.BroadcastPacket(new GuestSyncPacket { Pos = pos, Record = record });
+    }
+
+    // Every guest a chunk holds, as absolute positions - for a consumer that must not do a
+    // per-cell lookup across a whole extended chunk scan (SealedCellLightPostfix, decision 0034):
+    // tall grass is hostable, so a meadow chunk would do thousands of guest lookups otherwise.
+    // chunkX/chunkY/chunkZ follow the tessellator's own convention (chunkY carries the dimension,
+    // decision 0018's postfix already relies on it).
+    public static IEnumerable<(BlockPos pos, SidingWallEntity entity)> GuestsIn(
+        ICoreAPI api, IWorldChunk chunk, int chunkX, int chunkY, int chunkZ)
+    {
+        var guests = Guests(chunk);
+        if (guests == null) yield break;
+
+        int size = GlobalConstants.ChunkSize;
+        foreach (var (index, record) in guests)
+        {
+            int x = index % size, z = index / size % size, y = index / (size * size);
+            var pos = new BlockPos(chunkX * size + x, chunkY * size % 32768 + y, chunkZ * size + z, chunkY / 1024);
+            yield return (pos, DecodedFor(api).GetValue(record, r => Decode(api, r, pos)));
+        }
     }
 }
