@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
 using Newtonsoft.Json.Linq;
@@ -92,6 +93,125 @@ public class SidingModSystem : ModSystem
         {
             api.Logger.Error("vssiding: gap shift collision patches skipped entirely, snapped furniture will not collide or select where it renders: {0}", e);
         }
+
+        // Renderers that draw a snapped block from a position of their own, outside chunk
+        // tesselation, so GapShiftAt's shift has to be reapplied to each one by hand.
+        try
+        {
+            harmony.Patch(AccessTools.Constructor(typeof(AnimatableRenderer),
+                    new[] { typeof(ICoreClientAPI), typeof(Vec3d), typeof(Vec3f), typeof(AnimatorBase),
+                        typeof(Dictionary<string, AnimationMetaData>), typeof(MeshData), typeof(EnumRenderStage) }),
+                prefix: new HarmonyMethod(typeof(SidingModSystem), nameof(AnimatableRendererPrefix)));
+        }
+        catch (Exception e)
+        {
+            api.Logger.Error("vssiding: chest/trunk lid animation shift patch skipped, the lid will animate three-quarters clear of a snapped chest: {0}", e);
+        }
+
+        // Each of these builds its model matrix as ModelMat.Identity().Translate(pos - camera, ...),
+        // with pos a whole-block BlockPos, so the fraction goes into the matrix instead.
+        foreach (var renderer in new[] { typeof(FirepitContentsRenderer), typeof(PotInFirepitRenderer), typeof(BlockEntitySignRenderer) })
+        {
+            try
+            {
+                harmony.Patch(AccessTools.Method(renderer, "OnRenderFrame"),
+                    transpiler: new HarmonyMethod(typeof(SidingModSystem), nameof(RendererMatrixTranspiler)));
+            }
+            catch (Exception e)
+            {
+                api.Logger.Error("vssiding: {0} shift patch skipped, it will draw three-quarters clear of a snapped block: {1}", renderer.Name, e);
+            }
+        }
+
+        try
+        {
+            harmony.Patch(AccessTools.Method(typeof(Block), nameof(Block.OnAsyncClientParticleTick)),
+                transpiler: new HarmonyMethod(typeof(SidingModSystem), nameof(ParticleSpawnTranspiler)));
+        }
+        catch (Exception e)
+        {
+            api.Logger.Error("vssiding: block particle shift patch skipped, a snapped torch's flame will burn three-quarters clear of it: {0}", e);
+        }
+    }
+
+    // The renderer keeps the Vec3d its caller passed in for its lifetime, so it gets an offset copy
+    // rather than a shift in place. The shift is fixed at construction; a wall appearing or
+    // disappearing mid-animation does not move it, and a chest lid swings in under a second.
+    internal static void AnimatableRendererPrefix(ICoreClientAPI capi, ref Vec3d pos)
+    {
+        var blockPos = pos.AsBlockPos;
+        var (dx, dz) = GapShiftAt(capi.World.BlockAccessor, blockPos, capi.World.BlockAccessor.GetBlock(blockPos));
+        if (dx == 0 && dz == 0) return;
+        pos = pos.AddCopy((float)dx, 0, (float)dz);
+    }
+
+    // Inserted after every Matrixf.Identity() in the renderer's OnRenderFrame. Translations
+    // commute, so shifting first moves everything the renderer then draws at pos.
+    internal static Matrixf ShiftMatrix(Matrixf matrix, ICoreClientAPI api, BlockPos pos)
+    {
+        var (dx, dz) = GapShiftAt(api.World.BlockAccessor, pos, api.World.BlockAccessor.GetBlock(pos));
+        return dx == 0 && dz == 0 ? matrix : matrix.Translate(dx, 0, dz);
+    }
+
+    internal static IEnumerable<CodeInstruction> RendererMatrixTranspiler(IEnumerable<CodeInstruction> instructions, MethodBase original)
+    {
+        var renderer = original.DeclaringType!;
+        var apiField = AccessTools.Field(renderer, "api") ?? AccessTools.Field(renderer, "capi");
+        var posField = AccessTools.Field(renderer, "pos");
+        var identity = AccessTools.Method(typeof(Matrixf), nameof(Matrixf.Identity));
+        var shift = AccessTools.Method(typeof(SidingModSystem), nameof(ShiftMatrix));
+
+        int inserted = 0;
+        foreach (var instruction in instructions)
+        {
+            yield return instruction;
+            if (!instruction.Calls(identity)) continue;
+            inserted++;
+            yield return new CodeInstruction(OpCodes.Ldarg_0);
+            yield return new CodeInstruction(OpCodes.Ldfld, apiField);
+            yield return new CodeInstruction(OpCodes.Ldarg_0);
+            yield return new CodeInstruction(OpCodes.Ldfld, posField);
+            yield return new CodeInstruction(OpCodes.Call, shift);
+        }
+
+        if (inserted == 0)
+            throw new InvalidOperationException($"{renderer.Name}.OnRenderFrame no longer calls Matrixf.Identity().");
+    }
+
+    // Block.OnAsyncClientParticleTick rewrites basePos from pos on every tick right before
+    // spawning, so nudging it here holds for that one spawn and never accumulates.
+    internal static int SpawnShifted(IAsyncParticleManager manager, IParticlePropertiesProvider particles, Block block, BlockPos pos)
+    {
+        if (particles is AdvancedParticleProperties advanced)
+        {
+            var (dx, dz) = GapShiftAt(manager.BlockAccess, pos, block);
+            advanced.basePos.X += dx;
+            advanced.basePos.Z += dz;
+        }
+        return manager.Spawn(particles);
+    }
+
+    internal static IEnumerable<CodeInstruction> ParticleSpawnTranspiler(IEnumerable<CodeInstruction> instructions)
+    {
+        var spawn = AccessTools.Method(typeof(IAsyncParticleManager), nameof(IAsyncParticleManager.Spawn));
+        var spawnShifted = AccessTools.Method(typeof(SidingModSystem), nameof(SpawnShifted));
+
+        int replaced = 0;
+        foreach (var instruction in instructions)
+        {
+            if (!instruction.Calls(spawn))
+            {
+                yield return instruction;
+                continue;
+            }
+            replaced++;
+            yield return new CodeInstruction(OpCodes.Ldarg_0).MoveLabelsFrom(instruction);
+            yield return new CodeInstruction(OpCodes.Ldarg_2);
+            yield return new CodeInstruction(OpCodes.Call, spawnShifted);
+        }
+
+        if (replaced != 1)
+            throw new InvalidOperationException($"Expected exactly one IAsyncParticleManager.Spawn call in Block.OnAsyncClientParticleTick, found {replaced}.");
     }
 
     // The search to open sky checks only the block it steps into, never the one it leaves, since
