@@ -157,14 +157,12 @@ public class SidingModSystem : ModSystem
         // tesselation, so GapShiftAt's shift has to be reapplied to each one by hand.
         try
         {
-            harmony.Patch(AccessTools.Constructor(typeof(AnimatableRenderer),
-                    new[] { typeof(ICoreClientAPI), typeof(Vec3d), typeof(Vec3f), typeof(AnimatorBase),
-                        typeof(Dictionary<string, AnimationMetaData>), typeof(MeshData), typeof(EnumRenderStage) }),
-                prefix: new HarmonyMethod(typeof(SidingModSystem), nameof(AnimatableRendererPrefix)));
+            harmony.Patch(AccessTools.Method(typeof(AnimatableRenderer), nameof(AnimatableRenderer.OnRenderFrame)),
+                transpiler: new HarmonyMethod(typeof(SidingModSystem), nameof(AnimatableRendererTranspiler)));
         }
         catch (Exception e)
         {
-            api.Logger.Error("vssiding: chest/trunk lid animation shift patch skipped, a hosted chest's lid will animate unshifted, inside the panel: {0}", e);
+            api.Logger.Error("vssiding: animated block shift patch skipped, a hosted chest will sink into its guest wall's panel while its lid moves: {0}", e);
         }
 
         // Each of these builds its model matrix as ModelMat.Identity().Translate(pos - camera, ...),
@@ -235,15 +233,41 @@ public class SidingModSystem : ModSystem
         }
     }
 
-    // The renderer keeps the Vec3d its caller passed in for its lifetime, so it gets an offset copy
-    // rather than a shift in place. The shift is fixed at construction; a wall appearing or
-    // disappearing mid-animation does not move it, and a chest lid swings in under a second.
-    internal static void AnimatableRendererPrefix(ICoreClientAPI capi, ref Vec3d pos)
+    private static readonly AccessTools.FieldRef<AnimatableRenderer, Vec3d> AnimatablePos =
+        AccessTools.FieldRefAccess<AnimatableRenderer, Vec3d>("pos");
+    private static readonly AccessTools.FieldRef<AnimatableRenderer, ICoreClientAPI> AnimatableCapi =
+        AccessTools.FieldRefAccess<AnimatableRenderer, ICoreClientAPI>("capi");
+
+    // A chest builds its AnimatableRenderer once, the first time its mesh is made, and keeps it for
+    // life - on a freshly hosted chest that can be before the guest record reaches the client, so a
+    // shift fixed at construction stays zero and the opening chest sinks into the panel. Read per
+    // frame instead, right after OnRenderFrame resets ModelMat: translations commute, so shifting
+    // first moves everything it then draws at pos.
+    internal static float[] ShiftAnimatable(float[] modelMat, AnimatableRenderer renderer)
     {
-        var blockPos = pos.AsBlockPos;
-        var (dx, dz) = GapShiftAt(capi.World.BlockAccessor, blockPos, capi.World.BlockAccessor.GetBlock(blockPos));
-        if (dx == 0 && dz == 0) return;
-        pos = pos.AddCopy((float)dx, 0, (float)dz);
+        var accessor = AnimatableCapi(renderer).World.BlockAccessor;
+        var blockPos = AnimatablePos(renderer).AsBlockPos;
+        var (dx, dz) = GapShiftAt(accessor, blockPos, accessor.GetBlock(blockPos));
+        return dx == 0 && dz == 0 ? modelMat : Mat4f.Translate(modelMat, modelMat, (float)dx, 0, (float)dz);
+    }
+
+    internal static IEnumerable<CodeInstruction> AnimatableRendererTranspiler(IEnumerable<CodeInstruction> instructions)
+    {
+        var identity = AccessTools.Method(typeof(Mat4f), nameof(Mat4f.Identity), new[] { typeof(float[]) });
+        var shift = AccessTools.Method(typeof(SidingModSystem), nameof(ShiftAnimatable));
+
+        int inserted = 0;
+        foreach (var instruction in instructions)
+        {
+            yield return instruction;
+            if (!instruction.Calls(identity)) continue;
+            inserted++;
+            yield return new CodeInstruction(OpCodes.Ldarg_0);
+            yield return new CodeInstruction(OpCodes.Call, shift);
+        }
+
+        if (inserted != 1)
+            throw new InvalidOperationException($"Expected exactly one Mat4f.Identity call in AnimatableRenderer.OnRenderFrame, found {inserted}.");
     }
 
     // Inserted after every Matrixf.Identity() in the renderer's OnRenderFrame. Translations

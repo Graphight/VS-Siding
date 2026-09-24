@@ -16,12 +16,24 @@ namespace VSSiding.Tests;
 public class GapShiftRendererPatchTests
 {
     [Fact]
-    public void AnimatableRendererConstructorStillTakesPos()
-        => Assert.NotNull(AccessTools.Constructor(typeof(AnimatableRenderer), new[]
-        {
-            typeof(ICoreClientAPI), typeof(Vec3d), typeof(Vec3f), typeof(AnimatorBase),
-            typeof(Dictionary<string, AnimationMetaData>), typeof(MeshData), typeof(EnumRenderStage),
-        }));
+    public void AnimatableRendererShiftsRightAfterItsModelMatrixIsReset()
+    {
+        var original = AccessTools.Method(typeof(AnimatableRenderer), nameof(AnimatableRenderer.OnRenderFrame));
+        var patched = SidingModSystem.AnimatableRendererTranspiler(PatchProcessor.GetOriginalInstructions(original)).ToList();
+
+        var identity = AccessTools.Method(typeof(Mat4f), nameof(Mat4f.Identity), new[] { typeof(float[]) });
+        var shift = AccessTools.Method(typeof(SidingModSystem), nameof(SidingModSystem.ShiftAnimatable));
+        var identityAt = patched.FindIndex(i => i.Calls(identity));
+
+        Assert.Equal(identityAt + 2, patched.FindIndex(i => i.Calls(shift)));
+
+        // Applying it for real makes the runtime verify the rewritten IL, which the list above can't.
+        var harmony = new Harmony("vssiding.tests.animatable");
+        try { harmony.Patch(original, transpiler: new HarmonyMethod(typeof(SidingModSystem), nameof(SidingModSystem.AnimatableRendererTranspiler))); }
+        finally { harmony.UnpatchAll("vssiding.tests.animatable"); }
+        Assert.NotNull(AccessTools.Field(typeof(AnimatableRenderer), "pos"));
+        Assert.NotNull(AccessTools.Field(typeof(AnimatableRenderer), "capi"));
+    }
 
     [Theory]
     [InlineData(typeof(FirepitContentsRenderer))]
