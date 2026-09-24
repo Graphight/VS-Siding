@@ -22,12 +22,17 @@ Vanilla then finds what it expects at that position, and everything the wall use
 A decor would still need mod data for the material keys (decision 0001) and vanilla breaks every decor on a host change, so it bought nothing the proposal's spike was meant to find.
 Readers never write `LiveModData`, because they run on the lighting, tesselation and physics threads; every lookup takes the caller's own side-correct `api`, because singleplayer runs client and server in one process and a wrong side's accessor would silently read the other's state.
 
-**Placement never goes through air.** `SidingWallBlock.IsReplacableBy` answers yes while a `[ThreadStatic]` hosting flag is up, so `Block.CanPlaceBlock`'s own check turns the held block's `TryPlaceBlock` into a single `SetBlock` from wall to host; the guest record is written before that swap, so nothing ever reads the cell as air or as neither block.
+**Placement never goes through air, and any placement hosts.** `SidingWallBlock.IsReplacableBy` answers yes to every hostable block, so `Block.CanPlaceBlock`'s own check turns placement into a single `SetBlock` from wall to host.
+`HostChangePrefix` sees a hostable block replacing a wall while the wall's entity is still in place, and writes that state as the guest in the same call.
+So a right-click on the panel's inner face (`TryHost`, which places into the wall's cell where vanilla would use the cell in front), a click on the floor in the gap, and a sneak-placement all host alike.
+Pots are `Unplaceable` blocks that go down as ground storage, whose placement insists on `Replaceable >= 6000`; a prefix on `CollectibleBehaviorGroundStorable.Interact` sends a wall's cell through `BlockGroundStorage.CreateStorage` instead, and the same prefix hosts it.
 
 **Host changes.** A prefix on `WorldChunk.BreakAllDecorFast` — called on every solid-block `SetBlock`, with the new id already written into `chunk.Data[index3d]` — classifies the change: air or replaceable restores the wall a tick later (state re-read via `FromTreeAttributes`, re-checked in case something else changed the cell first), another hostable block keeps the guest, and anything else drops the wall's layers as items and removes the guest.
 `ExchangeBlock` bypasses `BreakAllDecorFast` entirely, so a firepit's lit/unlit exchange and a torch's burnout keep their guest for free, as the proposal expected.
-Breaking a host does leave the cell as air for that one tick, and the server's `TriggerNeighbourBlocksUpdate` runs inside it, so `CanAttachBlockAt` also answers for air (or clutter) still holding a guest record; otherwise a torch on the wall's far side would drop before the wall came back.
-Blocks the wall can replace (tall grass, loose stones, snow layer) are not hostable, since the restore would take them over on the next tick.
+A player's break restores the wall straight away, in a prefix on the server's `TriggerNeighbourBlocksUpdate`, which runs once the break is done and before any neighbour is told; the deferred callback is left for every other way a host goes.
+Otherwise the cell sits as air for a tick: the wall flashes out on the client, and a torch on the wall's far side drops before the wall comes back.
+For those other paths, `CanAttachBlockAt` also answers for air (or clutter) still holding a guest record.
+Blocks the wall can replace (tall grass, loose stones, snow layer) are not hostable, since the restore would take them over on the next tick, and neither are `Unplaceable` ones.
 
 **Rendering** goes through the JSON tesselator's own mesh-pool helper.
 A postfix on `ChunkTesselator.TesselateBlock` runs after the host's mesh, points `vars` at the guest wall at the cell's unshifted position, and calls the transient entity's `OnTesselation`.
@@ -62,5 +67,6 @@ Each needs a cheap bail-out, and each group whose answer isn't idempotent needs 
 - Recheck on a game update, alongside decision 0020's list: `WorldChunk.BreakAllDecorFast`, `ChunkTesselator.TesselateBlock` (postfix and the `finalZ` anchor), the `TCTCache` and `JsonTesselator` members, the renderer anchors, and the overrides `EveryOverridePatches` walks.
 The patch-target tests fail on most of these.
 - Playtest is still pending for everything visual: panel placement, offsets, and the tooltip line, across save/reload and a host exchange, in a real build rather than a flat creative room.
-- Out of scope, as the proposal left it: multi-cell furniture, other mods' renderers, blocks overriding `OnAsyncClientParticleTick`.
-- A sneak-click still places in the front cell rather than hosting, because sneak bypasses `OnBlockInteractStart`; that keeps the old placement one keypress away, which answers the proposal's open question.
+- Out of scope, as the proposal left it: multi-cell furniture (a trunk, a bed), other mods' renderers, blocks overriding `OnAsyncClientParticleTick`.
+- The client predicts a break locally before the server's restore arrives, so the wall may still flicker for a frame or two in multiplayer latency.
+- A sneak-click on the panel still places in the front cell, because sneak bypasses `OnBlockInteractStart`; that keeps the old placement one keypress away, which answers the proposal's open question.
