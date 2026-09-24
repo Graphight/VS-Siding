@@ -67,19 +67,29 @@ public class HostChangeTests
     }
 
     // A click on a wall places beyond the clicked face, as vanilla did before walls took hostable
-    // blocks into their own cell; anything else keeps its own answer.
+    // blocks into their own cell, except on the open side's inner face, where it hosts; anything
+    // else keeps its own answer. The torch case: a saw in the off hand skips TryHost, so this is
+    // what hangs a torch on the panel's inner face.
     [Fact]
-    public void ClickedWallsNeverTakeTheClickIntoTheirOwnCell()
+    public void ClickedWallsTakeOnlyTheirInnerFaceIntoTheirOwnCell()
     {
-        var chest = new Block { BlockId = 3 };
+        var wall = new WillingWall();
+        wall.VariantStrict["layout"] = "wall";
+        wall.VariantStrict["side"] = "north";
+        var torch = new Block { BlockId = 3 };
+        BlockSelection On(BlockFacing face) => new() { Face = face };
+
         var actual = new[]
         {
-            ClickedIsReplacableBy(new WillingWall(), chest),
-            ClickedIsReplacableBy(new Block { Replaceable = 6000 }, chest),
-            ClickedIsReplacableBy(new Block(), chest),
+            ClickedIsReplacableBy(wall, torch, On(BlockFacing.SOUTH)),
+            ClickedIsReplacableBy(wall, torch, On(BlockFacing.NORTH)),
+            ClickedIsReplacableBy(wall, torch, On(BlockFacing.UP)),
+            ClickedIsReplacableBy(wall, torch, On(BlockFacing.EAST)),
+            ClickedIsReplacableBy(new Block { Replaceable = 6000 }, torch, On(BlockFacing.UP)),
+            ClickedIsReplacableBy(new Block(), torch, On(BlockFacing.UP)),
         };
 
-        Assert.Equal(new[] { false, true, false }, actual);
+        Assert.Equal(new[] { true, false, false, false, true, false }, actual);
     }
 
     [Fact]

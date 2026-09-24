@@ -783,10 +783,13 @@ public class SidingModSystem : ModSystem
     // ask it of the cell a block is going into, and a wall says yes to anything hostable so it can
     // take the wall's cell. The client's OnBlockBuild asks it of the block the player clicked, to
     // decide whether the click places into that cell or the one beyond the face, and there a wall
-    // must say no: a torch on a wall's outer face, a chest on its top, belong past the face, not
-    // in the wall's own cell. The open side's inner face never gets here - TryHost takes that click.
-    internal static bool ClickedIsReplacableBy(Block clicked, Block placing)
-        => clicked is not SidingWallBlock && clicked.IsReplacableBy(placing);
+    // says no except on its open side's inner face: a torch on a wall's outer face, a chest on its
+    // top, belong past the face, while a torch on the inner face hangs in the wall's own cell.
+    // TryHost takes that inner-face click too, but only with no saw in the off hand.
+    internal static bool ClickedIsReplacableBy(Block clicked, Block placing, BlockSelection blockSel)
+        => (clicked is not SidingWallBlock
+                || SidingWallBlock.ResolveFinishFace(clicked.Variant["layout"], clicked.Variant["side"], blockSel.Face) == "back")
+            && clicked.IsReplacableBy(placing);
 
     internal static IEnumerable<CodeInstruction> BlockBuildTranspiler(IEnumerable<CodeInstruction> instructions)
     {
@@ -802,7 +805,8 @@ public class SidingModSystem : ModSystem
                 continue;
             }
             replaced++;
-            yield return new CodeInstruction(OpCodes.Call, clicked).MoveLabelsFrom(instruction);
+            yield return new CodeInstruction(OpCodes.Ldarg_1).MoveLabelsFrom(instruction);
+            yield return new CodeInstruction(OpCodes.Call, clicked);
         }
 
         if (replaced != 1)
