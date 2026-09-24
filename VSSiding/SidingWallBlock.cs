@@ -686,37 +686,30 @@ public class SidingWallBlock : Block
     // How far a qualifying block snaps toward the panel across the dead space (decision 0035, furniture-against-thin-walls).
     internal const double GapShiftDistance = 0.75;
 
-    // Which of a cell's four horizontal neighbours is a straight wall whose dead space opens back
-    // onto it - and by how much a block standing in the cell should shift toward that wall's panel.
-    // Two qualifying neighbours cancel out (both open onto the same cell only in a corridor a block
-    // wide, and there is no single panel to snap to); a face-attached block only follows a shift
-    // toward the face it's actually attached to.
+    // How far a block standing in a cell shifts toward the panels of the straight walls whose dead
+    // space opens back onto it. Each axis is independent: a room's inside corner has one such wall
+    // to the north and one to the west, and the block slides into the corner, across the three
+    // cells' dead space. Two walls opening onto the cell from opposite sides cancel on that axis -
+    // there is no single panel to sit against. A face-attached block follows only the wall it
+    // hangs on, since sliding along that wall toward the other would move it off its mount.
     internal static (double dx, double dz) GapShift(IReadOnlyDictionary<BlockFacing, (string layout, string side)?> neighbours, BlockFacing? attachedToward)
     {
-        BlockFacing? qualifying = null;
+        int sx = 0, sz = 0;
         foreach (var facing in BlockFacing.HORIZONTALS)
         {
-            if (!neighbours.TryGetValue(facing, out var variant) || variant is not { layout: "wall" } wall) continue;
-            var (odx, odz) = OpenSide(wall.layout, wall.side);
-            if (odx != -facing.Normali.X || odz != -facing.Normali.Z) continue;
-            if (qualifying != null) return (0, 0);
-            qualifying = facing;
+            if (!OpensOnto(neighbours, facing)) continue;
+            if (attachedToward != null && attachedToward != facing) continue;
+            sx += facing.Normali.X;
+            sz += facing.Normali.Z;
         }
-
-        if (qualifying == null) return (0, 0);
-        if (attachedToward != null && attachedToward != qualifying) return (0, 0);
-        return (qualifying.Normali.X * GapShiftDistance, qualifying.Normali.Z * GapShiftDistance);
+        return (sx * GapShiftDistance, sz * GapShiftDistance);
     }
 
-    // The inverse of GapShift's last line: which horizontal facing a (dx, dz) shift came from, so
-    // GapShiftCollisionPatches can cache shifted box copies per facing instead of per exact offset.
-    internal static BlockFacing? GapShiftFacing(double dx, double dz)
+    private static bool OpensOnto(IReadOnlyDictionary<BlockFacing, (string layout, string side)?> neighbours, BlockFacing facing)
     {
-        foreach (var facing in BlockFacing.HORIZONTALS)
-        {
-            if (facing.Normali.X * GapShiftDistance == dx && facing.Normali.Z * GapShiftDistance == dz) return facing;
-        }
-        return null;
+        if (!neighbours.TryGetValue(facing, out var variant) || variant is not { layout: "wall" } wall) return false;
+        var (odx, odz) = OpenSide(wall.layout, wall.side);
+        return odx == -facing.Normali.X && odz == -facing.Normali.Z;
     }
 
     // A sealed wall's cell stores the sunlight flowing in from outside, which RoomRegistry would count as sky (decision 0015).

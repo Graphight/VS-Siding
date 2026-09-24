@@ -23,16 +23,16 @@ public class GapShiftCollisionPatchesTests
             new Cuboidf(0.25f, 0, 1f, 0.75f, 0.5f, 1.5f),
         };
 
-        Assert.Equal(expected, GapShiftCollisionPatches.Shifted(original, BlockFacing.SOUTH));
+        Assert.Equal(expected, GapShiftCollisionPatches.Shifted(original, 0, 1));
     }
 
     [Fact]
-    public void ShiftedCachesTheResultPerOriginalArrayAndFacing()
+    public void ShiftedCachesTheResultPerOriginalArrayAndDirection()
     {
         var original = new[] { new Cuboidf(0, 0, 0, 1, 1, 1) };
 
-        var first = GapShiftCollisionPatches.Shifted(original, BlockFacing.NORTH);
-        var second = GapShiftCollisionPatches.Shifted(original, BlockFacing.NORTH);
+        var first = GapShiftCollisionPatches.Shifted(original, 0, -1);
+        var second = GapShiftCollisionPatches.Shifted(original, 0, -1);
 
         Assert.Same(first, second);
     }

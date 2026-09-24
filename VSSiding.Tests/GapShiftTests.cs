@@ -48,7 +48,7 @@ public class GapShiftTests
     }
 
     [Fact]
-    public void TwoQualifyingNeighboursCancelOut()
+    public void OppositeQualifyingNeighboursCancelOut()
     {
         var neighbours = With(BlockFacing.NORTH, "wall", "north");
         neighbours[BlockFacing.SOUTH] = ("wall", "south");
@@ -63,14 +63,37 @@ public class GapShiftTests
         Assert.Equal((0d, 0d), SidingWallBlock.GapShift(neighbours, BlockFacing.EAST));
     }
 
+    // The playtest case: a room's inside corner, the north and west walls both opening onto the cell.
     [Fact]
-    public void GapShiftFacingRecoversTheFacingFromTheOffset()
+    public void AnInsideCornerSlidesFreeStandingBlocksIntoTheCorner()
     {
-        Assert.Equal(BlockFacing.NORTH, SidingWallBlock.GapShiftFacing(0, -0.75));
-        Assert.Equal(BlockFacing.EAST, SidingWallBlock.GapShiftFacing(0.75, 0));
-        Assert.Equal(BlockFacing.SOUTH, SidingWallBlock.GapShiftFacing(0, 0.75));
-        Assert.Equal(BlockFacing.WEST, SidingWallBlock.GapShiftFacing(-0.75, 0));
-        Assert.Null(SidingWallBlock.GapShiftFacing(0, 0));
+        var neighbours = With(BlockFacing.NORTH, "wall", "north");
+        neighbours[BlockFacing.WEST] = ("wall", "west");
+        Assert.Equal((-0.75d, -0.75d), SidingWallBlock.GapShift(neighbours, null));
+    }
+
+    [Fact]
+    public void InAnInsideCornerAnAttachedBlockFollowsOnlyItsOwnWall()
+    {
+        var neighbours = With(BlockFacing.NORTH, "wall", "north");
+        neighbours[BlockFacing.WEST] = ("wall", "west");
+
+        var actual = new[]
+        {
+            SidingWallBlock.GapShift(neighbours, BlockFacing.NORTH),
+            SidingWallBlock.GapShift(neighbours, BlockFacing.WEST),
+            SidingWallBlock.GapShift(neighbours, BlockFacing.SOUTH),
+        };
+
+        Assert.Equal(new[] { (0d, -0.75d), (-0.75d, 0d), (0d, 0d) }, actual);
+    }
+
+    [Fact]
+    public void AnAttachedBlockBetweenOppositeWallsFollowsItsOwn()
+    {
+        var neighbours = With(BlockFacing.NORTH, "wall", "north");
+        neighbours[BlockFacing.SOUTH] = ("wall", "south");
+        Assert.Equal((0d, 0.75d), SidingWallBlock.GapShift(neighbours, BlockFacing.SOUTH));
     }
 
     [Fact]

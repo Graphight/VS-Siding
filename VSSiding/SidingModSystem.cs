@@ -374,12 +374,12 @@ public class SidingModSystem : ModSystem
     internal static bool[]? GapShiftEligible;
     internal static BlockFacing?[]? GapShiftAttachedToward;
 
-    // Furniture-against-thin-walls (decision 0035 pending): most blocks qualify to snap toward a
-    // wall's open face. Excluded: our own walls, anything that already culls a neighbour
-    // (SideSolid), fluid-layer blocks, anything not a plain JSON shape (cubes, crosses, liquids,
-    // microblocks all draw or collide in ways this offset was never checked against), multiblocks
-    // and beds (a "part" variant), doors (their BE tracks open/closed by position) and mechanical
-    // power blocks (BlockMPBase networks by position too).
+    // Most blocks qualify to snap toward a wall's open face (decision 0035). Excluded: our own
+    // walls, anything that already culls a neighbour (SideSolid), fluid-layer blocks, anything not
+    // a plain JSON shape (cubes, crosses, liquids, microblocks all draw or collide in ways this
+    // offset was never checked against), beds (a "part" variant) and multiblock fillers, doors
+    // (1.22's are BlockGeneric with a "Door" BE behaviour, so the class check alone misses them)
+    // and mechanical power blocks (BlockMPBase networks by position).
     private static void BuildGapShiftTables(ICoreAPI api)
     {
         int maxId = api.World.Blocks.Where(b => b != null).Max(b => b.BlockId);
@@ -405,7 +405,8 @@ public class SidingModSystem : ModSystem
         if (block.DrawType is not (EnumDrawType.JSON or EnumDrawType.JSONAndSnowLayer or EnumDrawType.JSONAndWater)) return false;
         if (block is BlockMicroBlock) return false;
         if (block.Variant.ContainsKey("part")) return false;
-        if (block is BlockDoor) return false;
+        if (block is BlockBaseDoor || block.BlockEntityBehaviors.Any(b => b.Name == "Door")) return false;
+        if (block is BlockMultiblock) return false;
         if (block is BlockMPBase) return false;
         return true;
     }

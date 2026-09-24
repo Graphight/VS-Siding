@@ -24,6 +24,7 @@ internal static class GapShiftCollisionPatches
     // that breaks the moment a shift and an unrelated box happen to look alike.
     [ThreadStatic] private static int depth;
 
+    // Per original array, one shifted copy per (sign dx, sign dz) - nine slots, the centre unused.
     private static readonly ConditionalWeakTable<Cuboidf[], Cuboidf[]?[]> ShiftCache = new();
 
     internal static void PatchAll(Harmony harmony, ICoreAPI api)
@@ -89,19 +90,18 @@ internal static class GapShiftCollisionPatches
             || args[0] is not IBlockAccessor blockAccessor || args[1] is not BlockPos pos) return;
 
         var (dx, dz) = SidingModSystem.GapShiftAt(blockAccessor, pos, instance);
-        var facing = SidingWallBlock.GapShiftFacing(dx, dz);
-        if (facing == null) return;
+        if (dx == 0 && dz == 0) return;
 
-        shifted = Shifted(result, facing);
+        shifted = Shifted(result, Math.Sign(dx), Math.Sign(dz));
     }
 
-    internal static Cuboidf[] Shifted(Cuboidf[] original, BlockFacing facing)
+    internal static Cuboidf[] Shifted(Cuboidf[] original, int sx, int sz)
     {
-        var perFacing = ShiftCache.GetValue(original, _ => new Cuboidf[BlockFacing.HORIZONTALS.Length][]);
-        return perFacing[facing.Index] ??= original
+        var perDirection = ShiftCache.GetValue(original, _ => new Cuboidf[9][]);
+        return perDirection[(sx + 1) * 3 + sz + 1] ??= original
             .Select(box => box.OffsetCopy(
-                (float)(facing.Normali.X * SidingWallBlock.GapShiftDistance), 0,
-                (float)(facing.Normali.Z * SidingWallBlock.GapShiftDistance)))
+                (float)(sx * SidingWallBlock.GapShiftDistance), 0,
+                (float)(sz * SidingWallBlock.GapShiftDistance)))
             .ToArray();
     }
 }
