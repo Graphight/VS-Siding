@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 using HarmonyLib;
 using Vintagestory.API.Common;
@@ -10,13 +8,12 @@ using Vintagestory.API.MathTools;
 
 namespace VSSiding;
 
-// Furniture-against-thin-walls (decision 0035 pending), stage 3: a block that renders shifted onto
-// a wall's panel (SidingModSystem's TesselateBlock transpiler, stage 2) must collide and select
-// where it's drawn, not where its cell's true bounds are. Every declaring override of
-// GetCollisionBoxes/GetSelectionBoxes across loaded assemblies gets the same prefix/postfix, so a
-// mod's own block subclass is covered without knowing about it. SidingWallBlock itself is skipped -
-// its own overrides append the neighbour's already-shifted boxes separately, and a wall never
-// shifts itself.
+// Furniture-against-thin-walls (decision 0035 pending): a block that renders shifted onto a wall's
+// panel (SidingModSystem's TesselateBlock transpiler) must collide and select where it's drawn, not
+// where its cell's true bounds are. EveryOverridePatches patches GetCollisionBoxes/GetSelectionBoxes
+// on every declaring override across loaded assemblies, so a mod's own block subclass is covered
+// without knowing about it. SidingWallBlock itself is skipped - its own overrides append the
+// neighbour's already-shifted boxes separately, and a wall never shifts itself.
 internal static class GapShiftCollisionPatches
 {
     // A subclass override that calls base.GetCollisionBoxes runs both the base's patched method and
@@ -36,43 +33,10 @@ internal static class GapShiftCollisionPatches
         var finalizer = new HarmonyMethod(typeof(GapShiftCollisionPatches), nameof(Finalizer));
         var collisionPostfix = new HarmonyMethod(typeof(GapShiftCollisionPatches), nameof(PostfixCollision));
         var selectionPostfix = new HarmonyMethod(typeof(GapShiftCollisionPatches), nameof(PostfixSelection));
+        var parameterTypes = new[] { typeof(IBlockAccessor), typeof(BlockPos) };
 
-        var blockTypes = new List<Type> { typeof(Block) };
-        blockTypes.AddRange(AppDomain.CurrentDomain.GetAssemblies().SelectMany(SafeGetTypes)
-            .Where(t => t.IsSubclassOf(typeof(Block)) && !t.IsAbstract && t != typeof(SidingWallBlock)));
-
-        foreach (var type in blockTypes)
-        {
-            PatchDeclared(harmony, api, type, nameof(Block.GetCollisionBoxes), prefix, collisionPostfix, finalizer);
-            PatchDeclared(harmony, api, type, nameof(Block.GetSelectionBoxes), prefix, selectionPostfix, finalizer);
-        }
-    }
-
-    private static void PatchDeclared(Harmony harmony, ICoreAPI api, Type type, string methodName,
-        HarmonyMethod prefix, HarmonyMethod postfix, HarmonyMethod finalizer)
-    {
-        var method = type.GetMethod(methodName, BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly,
-            null, new[] { typeof(IBlockAccessor), typeof(BlockPos) }, null);
-        if (method == null) return;
-
-        try
-        {
-            harmony.Patch(method, prefix: prefix, postfix: postfix, finalizer: finalizer);
-        }
-        catch (Exception e)
-        {
-            api.Logger.Warning("vssiding: gap shift collision patch skipped on {0}.{1}, furniture snapped onto a wall's panel may pass through or miss selection there: {2}",
-                method.DeclaringType, methodName, e);
-        }
-    }
-
-    // Tolerates a mod assembly whose client types can't load on the server (or vice versa) -
-    // AppDomain enumeration must survive that to reach every other assembly's block types.
-    private static IEnumerable<Type> SafeGetTypes(Assembly assembly)
-    {
-        try { return assembly.GetTypes(); }
-        catch (ReflectionTypeLoadException e) { return e.Types.Where(t => t != null)!; }
-        catch { return Type.EmptyTypes; }
+        EveryOverridePatches.PatchEveryOverride(harmony, api, nameof(Block.GetCollisionBoxes), parameterTypes, prefix, collisionPostfix, finalizer);
+        EveryOverridePatches.PatchEveryOverride(harmony, api, nameof(Block.GetSelectionBoxes), parameterTypes, prefix, selectionPostfix, finalizer);
     }
 
     private static void Prefix() => depth++;

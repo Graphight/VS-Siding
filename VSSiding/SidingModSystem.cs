@@ -110,6 +110,15 @@ public class SidingModSystem : ModSystem
             api.Logger.Error("vssiding: gap shift collision patches skipped entirely, snapped furniture will not collide or select where it renders: {0}", e);
         }
 
+        try
+        {
+            GuestTooltipPatches.PatchAll(harmony, api);
+        }
+        catch (Exception e)
+        {
+            api.Logger.Error("vssiding: guest tooltip patches skipped entirely, looking at hosted furniture will not mention its guest wall: {0}", e);
+        }
+
         // Renderers that draw a snapped block from a position of their own, outside chunk
         // tesselation, so GapShiftAt's shift has to be reapplied to each one by hand.
         try
