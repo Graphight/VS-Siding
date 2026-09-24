@@ -12,8 +12,7 @@ using Vintagestory.API.Util;
 
 namespace VSSiding;
 
-// A wall's state once furniture takes its cell (decision 0035
-// pending). Rides chunk mod data exactly as ModSystemSupportBeamPlacer's SupportBeamsData does:
+// A wall's state once furniture takes its cell (decision 0035). Rides chunk mod data exactly as ModSystemSupportBeamPlacer's SupportBeamsData does:
 // LiveModData loads it lazily from GetModdata, and ServerChunk flushes LiveModData back into
 // ModData before both the chunk save and the client chunk packet - so initial client sync is
 // free, and only live edits need the network channel below.

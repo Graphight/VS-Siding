@@ -87,7 +87,7 @@ public class SidingModSystem : ModSystem
         }
         catch (Exception e)
         {
-            api.Logger.Error("vssiding: gap shift patch skipped, furniture against a wall's open side will stand three-quarters clear: {0}", e);
+            api.Logger.Error("vssiding: off-panel shift patch skipped, hosted furniture will render into its guest wall's panel: {0}", e);
         }
 
         try
@@ -107,7 +107,7 @@ public class SidingModSystem : ModSystem
         }
         catch (Exception e)
         {
-            api.Logger.Error("vssiding: gap shift collision patches skipped entirely, snapped furniture will not collide or select where it renders: {0}", e);
+            api.Logger.Error("vssiding: guest box patches skipped entirely, hosted furniture will not collide or select where it renders, and its guest wall's panel will not collide or select at all: {0}", e);
         }
 
         try
@@ -146,7 +146,7 @@ public class SidingModSystem : ModSystem
             api.Logger.Error("vssiding: panel interaction patches skipped entirely, clicking or mining a hosted block's panel will reach the furniture behind it: {0}", e);
         }
 
-        // Renderers that draw a snapped block from a position of their own, outside chunk
+        // Renderers that draw a hosted block from a position of their own, outside chunk
         // tesselation, so GapShiftAt's shift has to be reapplied to each one by hand.
         try
         {
@@ -157,7 +157,7 @@ public class SidingModSystem : ModSystem
         }
         catch (Exception e)
         {
-            api.Logger.Error("vssiding: chest/trunk lid animation shift patch skipped, the lid will animate three-quarters clear of a snapped chest: {0}", e);
+            api.Logger.Error("vssiding: chest/trunk lid animation shift patch skipped, a hosted chest's lid will animate unshifted, inside the panel: {0}", e);
         }
 
         // Each of these builds its model matrix as ModelMat.Identity().Translate(pos - camera, ...),
@@ -171,7 +171,7 @@ public class SidingModSystem : ModSystem
             }
             catch (Exception e)
             {
-                api.Logger.Error("vssiding: {0} shift patch skipped, it will draw three-quarters clear of a snapped block: {1}", renderer.Name, e);
+                api.Logger.Error("vssiding: {0} shift patch skipped, it will draw unshifted, inside a hosted block's panel: {1}", renderer.Name, e);
             }
         }
 
@@ -182,7 +182,7 @@ public class SidingModSystem : ModSystem
         }
         catch (Exception e)
         {
-            api.Logger.Error("vssiding: block particle shift patch skipped, a snapped torch's flame will burn three-quarters clear of it: {0}", e);
+            api.Logger.Error("vssiding: block particle shift patch skipped, a hosted torch's flame will burn unshifted, inside the panel: {0}", e);
         }
 
         try
@@ -192,7 +192,7 @@ public class SidingModSystem : ModSystem
         }
         catch (Exception e)
         {
-            api.Logger.Error("vssiding: mining crack decal shift patch skipped, the crack overlay will show three-quarters clear of a snapped block: {0}", e);
+            api.Logger.Error("vssiding: mining crack decal shift patch skipped, the crack overlay will show unshifted on a hosted block: {0}", e);
         }
 
         // ExchangeBlock (firepit lit/unlit, torch burnout) never calls BreakAllDecorFast, so those
