@@ -99,7 +99,7 @@ internal static class GuestSealingPatches
         }
 
         SidingWallEntity? entity = ClaimingGuestAt(__instance, pos, blockFace.Code, restorePending: true);
-        if (entity == null && !__result) entity = GuestAcrossFace(__instance, blockAccessor, pos, blockFace);
+        if (entity == null && !__result) entity = GuestAcrossFace(blockAccessor, pos, blockFace);
         if (entity == null) return;
 
         var wall = (SidingWallBlock)entity.Block;
@@ -111,19 +111,15 @@ internal static class GuestSealingPatches
     // the one past the panel and ask THAT block whether it can hold the attachment - pos is that far
     // cell, blockFace points back across the panel. The far cell (often air) knows nothing about the
     // panel, so this looks at the neighbouring cell in that same direction (pos + blockFace, the
-    // furniture's own cell) instead: if a guest lives there and its panel faces back at pos, the
-    // wall's own rule answers, exactly as ClaimingGuestAt does for the furniture's own claimed faces.
-    // __instance here is whatever stands in the far cell, so unlike ClaimingGuestAt this never checks
-    // Hostable against it - only the neighbour, where the guest itself lives, is checked.
-    private static SidingWallEntity? GuestAcrossFace(Block queriedBlock, IBlockAccessor blockAccessor, BlockPos pos, BlockFacing blockFace)
+    // furniture's own cell) instead: if a panel there faces back at pos, the wall's own rule answers,
+    // exactly as ClaimingGuestAt does for the furniture's own claimed faces. WallAt, not just the
+    // guest store: a torch hosted by a click on the panel is checked before the SetBlock that turns
+    // the wall into its guest, so at that moment the panel is still the real wall.
+    private static SidingWallEntity? GuestAcrossFace(IBlockAccessor blockAccessor, BlockPos pos, BlockFacing blockFace)
     {
-        BlockPos neighbourPos = pos.AddCopy(blockFace);
-        ICoreAPI? api = SidingModSystem.ApiRef(queriedBlock) ?? SidingModSystem.ApiRef(blockAccessor.GetBlock(neighbourPos));
-        if (api == null) return null;
-
-        SidingWallEntity? guest = GuestWalls.GuestAt(api, neighbourPos);
-        return guest?.Block is SidingWallBlock wall && ClaimsFaceTowardPos(wall.Variant["layout"], wall.Variant["side"], blockFace.Code)
-            ? guest : null;
+        if (SidingWallBlock.WallAt(blockAccessor, pos.AddCopy(blockFace)) is not { } found) return null;
+        var (wall, entity) = found;
+        return ClaimsFaceTowardPos(wall.Variant["layout"], wall.Variant["side"], blockFace.Code) ? entity : null;
     }
 
     // The geometric half of GuestAcrossFace, pulled out so it can be checked without a world: does
