@@ -517,11 +517,22 @@ public class SidingWallBlock : Block
 
     // Another SideSolid consumer (decision 0020): with sidesolid off, nothing could be hung on any
     // siding wall. attachmentArea is ignored - a sealed face is solid across its whole 16x16.
+    // A straight wall's open face counts too (furniture-against-thin-walls): the panel is what a
+    // torch or sign standing in the gap-front cell actually presses against once GapShift snaps it
+    // there. GetRetention and GetLiquidBarrierHeightOnSide keep asking ClaimsFace alone - the open
+    // face isn't a face this wall's panels cover, so rooms and liquids must not treat it as sealed.
     public override bool CanAttachBlockAt(IBlockAccessor blockAccessor, Block block, BlockPos pos, BlockFacing blockFace, Cuboidi? attachmentArea = null)
     {
         var entity = blockAccessor.GetBlockEntity<SidingWallEntity>(pos);
-        return ComputeRetention(ClaimsFace(blockFace), entity?.Framing, entity?.Infill, Attributes["Framings"], Attributes["Infills"]) != 0;
+        bool accepts = AcceptsAttachment(Variant["layout"], Variant["side"], blockFace.Code);
+        return ComputeRetention(accepts, entity?.Framing, entity?.Infill, Attributes["Framings"], Attributes["Infills"]) != 0;
     }
+
+    // ClaimsFace plus a straight wall's open face - the one its dead space opens onto, opposite the
+    // hugged side. A cornerout's dead space is boxed in by its two panels, so it gets nothing extra.
+    internal static bool AcceptsAttachment(string layout, string side, string faceCode)
+        => ClaimsFace(layout, side, faceCode)
+            || (layout == "wall" && faceCode == BlockFacing.FromCode(side).Opposite.Code);
 
     // sidesolid is false on every face (decision 0002), so base.GetRetention can't be
     // delegated to. A wall seals only once framing and infill are both built and still
