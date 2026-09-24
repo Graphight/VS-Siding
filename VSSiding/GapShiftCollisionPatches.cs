@@ -10,10 +10,12 @@ namespace VSSiding;
 
 // Furniture-against-thin-walls (decision 0035 pending): a block that renders shifted onto a wall's
 // panel (SidingModSystem's TesselateBlock transpiler) must collide and select where it's drawn, not
-// where its cell's true bounds are. EveryOverridePatches patches GetCollisionBoxes/GetSelectionBoxes
-// on every declaring override across loaded assemblies, so a mod's own block subclass is covered
-// without knowing about it. SidingWallBlock itself is skipped - its own overrides append the
-// neighbour's already-shifted boxes separately, and a wall never shifts itself.
+// where its cell's true bounds are - and it must also collide against the panel it's sitting beside,
+// which its own boxes never describe. EveryOverridePatches patches GetCollisionBoxes/
+// GetParticleCollisionBoxes/GetSelectionBoxes on every declaring override across loaded assemblies,
+// so a mod's own block subclass is covered without knowing about it. SidingWallBlock itself is
+// skipped - its own overrides already return exactly the panel's boxes, and a wall never shifts
+// or hosts itself.
 internal static class GapShiftCollisionPatches
 {
     // A subclass override that calls base.GetCollisionBoxes runs both the base's patched method and
@@ -27,15 +29,21 @@ internal static class GapShiftCollisionPatches
     // and main threads all query boxes and may add the same entry at once.
     private static readonly ConditionalWeakTable<Cuboidf[], ConcurrentDictionary<(double dx, double dz), Cuboidf[]>> ShiftCache = new();
 
+    // Per (host array, panel array) pair, one concatenated copy - a per-tick path, so the append
+    // is cached the same way as the shift above rather than reallocating every call.
+    private static readonly ConditionalWeakTable<Cuboidf[], ConcurrentDictionary<Cuboidf[], Cuboidf[]>> CombineCache = new();
+
     internal static void PatchAll(Harmony harmony, ICoreAPI api)
     {
         var prefix = new HarmonyMethod(typeof(GapShiftCollisionPatches), nameof(Prefix));
         var finalizer = new HarmonyMethod(typeof(GapShiftCollisionPatches), nameof(Finalizer));
         var collisionPostfix = new HarmonyMethod(typeof(GapShiftCollisionPatches), nameof(PostfixCollision));
+        var particlePostfix = new HarmonyMethod(typeof(GapShiftCollisionPatches), nameof(PostfixParticleCollision));
         var selectionPostfix = new HarmonyMethod(typeof(GapShiftCollisionPatches), nameof(PostfixSelection));
         var parameterTypes = new[] { typeof(IBlockAccessor), typeof(BlockPos) };
 
         EveryOverridePatches.PatchEveryOverride(harmony, api, nameof(Block.GetCollisionBoxes), parameterTypes, prefix, collisionPostfix, finalizer);
+        EveryOverridePatches.PatchEveryOverride(harmony, api, nameof(Block.GetParticleCollisionBoxes), parameterTypes, prefix, particlePostfix, finalizer);
         EveryOverridePatches.PatchEveryOverride(harmony, api, nameof(Block.GetSelectionBoxes), parameterTypes, prefix, selectionPostfix, finalizer);
     }
 
@@ -43,11 +51,32 @@ internal static class GapShiftCollisionPatches
 
     private static void Finalizer() => depth--;
 
+    // A hosted block's own boxes are shifted off the panel; the panel itself still
+    // occupies the cell and has to collide too, so its boxes are appended once the outermost
+    // frame's shift is done. GetCollisionBoxes' fullBoxes mirrors the wall's own override
+    // (Block.CollisionBoxes); GetParticleCollisionBoxes' mirrors ParticleCollisionBoxes ?? CollisionBoxes.
     private static void PostfixCollision(Block __instance, ref Cuboidf[] __result, object[] __args)
-        => Shift(__instance, __result, __args, out __result);
+        => __result = ShiftAndAppendPanel(__instance, __result, __args, wall => wall.CollisionBoxes);
+
+    private static void PostfixParticleCollision(Block __instance, ref Cuboidf[] __result, object[] __args)
+        => __result = ShiftAndAppendPanel(__instance, __result, __args, wall => wall.ParticleCollisionBoxes ?? wall.CollisionBoxes);
 
     private static void PostfixSelection(Block __instance, ref Cuboidf[] __result, object[] __args)
         => Shift(__instance, __result, __args, out __result);
+
+    private static Cuboidf[] ShiftAndAppendPanel(Block instance, Cuboidf[] result, object[] args, System.Func<SidingWallBlock, Cuboidf[]> fullBoxesOf)
+    {
+        Shift(instance, result, args, out var shifted);
+        // Re-checked rather than trusted from Shift: an inner frame's shift is a no-op, and so is
+        // its append - only the outermost frame acts (same depth guard as the shift itself).
+        if (depth != 1 || args[0] is not IBlockAccessor blockAccessor || args[1] is not BlockPos pos) return shifted;
+
+        if (SidingWallBlock.WallAt(blockAccessor, pos) is not { } found) return shifted;
+        var (guestWall, guestEntity) = found;
+
+        var panelBoxes = guestWall.PanelCollisionBoxes(blockAccessor, pos, guestEntity, fullBoxesOf(guestWall));
+        return Combined(shifted, panelBoxes);
+    }
 
     private static void Shift(Block instance, Cuboidf[] result, object[] args, out Cuboidf[] shifted)
     {
@@ -66,5 +95,14 @@ internal static class GapShiftCollisionPatches
     {
         return ShiftCache.GetValue(original, _ => new ConcurrentDictionary<(double, double), Cuboidf[]>())
             .GetOrAdd((dx, dz), _ => original.Select(box => box.OffsetCopy((float)dx, 0, (float)dz)).ToArray());
+    }
+
+    // A torch or sign collides with nothing and hands back null, so a hosted one still gets the panel.
+    internal static Cuboidf[] Combined(Cuboidf[]? hostBoxes, Cuboidf[] panelBoxes)
+    {
+        if (panelBoxes.Length == 0) return hostBoxes!;
+        if (hostBoxes is not { Length: > 0 }) return panelBoxes;
+        return CombineCache.GetValue(hostBoxes, _ => new ConcurrentDictionary<Cuboidf[], Cuboidf[]>())
+            .GetOrAdd(panelBoxes, _ => hostBoxes.Concat(panelBoxes).ToArray());
     }
 }

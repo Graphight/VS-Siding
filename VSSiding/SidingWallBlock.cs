@@ -95,7 +95,17 @@ public class SidingWallBlock : Block
     private Cuboidf[] FramedCollisionBoxes(IBlockAccessor blockAccessor, BlockPos pos, Cuboidf[] fullBoxes)
     {
         var entity = blockAccessor.GetBlockEntity<SidingWallEntity>(pos);
-        if (entity?.Framing == null || entity.Infill != null) return fullBoxes;
+        return entity == null ? fullBoxes : PanelCollisionBoxes(blockAccessor, pos, entity, fullBoxes);
+    }
+
+    // The panel's own collision, independent of whichever cell it's asked for: framing only
+    // collides on its posts and top plate (decision 0008), otherwise the full panel. Used by the
+    // wall's own overrides above and, for a hosted cell, by GapShiftCollisionPatches, which passes
+    // the guest entity and the guest wall's own (unshifted) boxes for a cell the wall no longer
+    // occupies (furniture-against-thin-walls, decision 0035 pending).
+    internal Cuboidf[] PanelCollisionBoxes(IBlockAccessor blockAccessor, BlockPos pos, SidingWallEntity entity, Cuboidf[] fullBoxes)
+    {
+        if (entity.Framing == null || entity.Infill != null) return fullBoxes;
 
         var joins = NeighbourJoins(blockAccessor, pos, entity.Infill);
         return ComputeCollisionBoxes(Variant["layout"], Variant["side"], entity.Framing, entity.Infill, joins.above, fullBoxes);
