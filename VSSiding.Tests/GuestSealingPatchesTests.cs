@@ -95,4 +95,35 @@ public class GuestSealingPatchesTests
         Assert.NotNull(typeof(BlockGroundStorage).GetMethod(nameof(Block.CanAttachBlockAt),
             BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly, null, signature, null));
     }
+
+    // The outside torch: breaking a hosted chest leaves air for a tick before the wall comes back,
+    // and the server asks that air whether the torch on the wall's far side can stay. Only the
+    // attach check (restorePending) answers for it; the hot paths keep reading the Hostable table.
+    [Fact]
+    public void MayHoldGuestCoversTheAirABrokenHostLeaves()
+    {
+        var air = new Block { BlockId = 0, Replaceable = 9999 };
+        var tallgrass = new Block { BlockId = 1, Replaceable = 6000 };
+        var chest = new Block { BlockId = 2 };
+        var stone = new Block { BlockId = 3 };
+        bool[] hostable = { false, false, true, false };
+
+        var expected = new Dictionary<(string, bool), bool>
+        {
+            [("air", false)] = false, [("air", true)] = true,
+            [("tallgrass", false)] = false, [("tallgrass", true)] = true,
+            [("chest", false)] = true, [("chest", true)] = true,
+            [("stone", false)] = false, [("stone", true)] = false,
+        };
+
+        var blocks = new Dictionary<string, Block> { ["air"] = air, ["tallgrass"] = tallgrass, ["chest"] = chest, ["stone"] = stone };
+        var actual = new Dictionary<(string, bool), bool>();
+        foreach (var (name, block) in blocks)
+        {
+            foreach (bool restorePending in new[] { false, true })
+                actual[(name, restorePending)] = GuestSealingPatches.MayHoldGuest(block, hostable, restorePending);
+        }
+
+        Assert.Equal(expected, actual);
+    }
 }

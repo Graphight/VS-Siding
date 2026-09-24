@@ -47,9 +47,9 @@ internal static class GuestSealingPatches
     // None of the three overrides carries a world accessor, so the guest lookup goes through the
     // host block's own api field, exactly as GapShiftAt's does off a physics tick's accessor. Null
     // unless the host is hostable, has a guest, and that guest claims faceCode.
-    private static SidingWallEntity? ClaimingGuestAt(Block host, BlockPos pos, string faceCode)
+    private static SidingWallEntity? ClaimingGuestAt(Block host, BlockPos pos, string faceCode, bool restorePending = false)
     {
-        if (SidingModSystem.Hostable is not { } hostable || host.BlockId >= hostable.Length || !hostable[host.BlockId]) return null;
+        if (!MayHoldGuest(host, SidingModSystem.Hostable, restorePending)) return null;
 
         ICoreAPI? api = SidingModSystem.ApiRef(host);
         if (api == null) return null;
@@ -58,6 +58,15 @@ internal static class GuestSealingPatches
         return entity?.Block is SidingWallBlock wall && SidingWallBlock.ClaimsFace(wall.Variant["layout"], wall.Variant["side"], faceCode)
             ? entity : null;
     }
+
+    // A hosted block holds a guest, and so does the air (or ground clutter) a broken host leaves for
+    // the tick until HostChangePrefix's deferred restore. The server's TriggerNeighbourBlocksUpdate
+    // runs synchronously after the break, so a torch on the wall's far side asks that air whether it
+    // can stay. Only CanAttachBlockAt pays for the wider check: it's off the hot paths, and it's the
+    // one consumer whose wrong answer in that tick is permanent.
+    internal static bool MayHoldGuest(Block block, bool[]? hostable, bool restorePending)
+        => (hostable != null && block.BlockId < hostable.Length && hostable[block.BlockId])
+            || (restorePending && (block.BlockId == 0 || block.Replaceable >= 6000));
 
     private static void RetentionPostfix(Block __instance, object[] __args, ref int __result)
     {
@@ -89,7 +98,7 @@ internal static class GuestSealingPatches
             return;
         }
 
-        SidingWallEntity? entity = ClaimingGuestAt(__instance, pos, blockFace.Code);
+        SidingWallEntity? entity = ClaimingGuestAt(__instance, pos, blockFace.Code, restorePending: true);
         if (entity == null && !__result) entity = GuestAcrossFace(__instance, blockAccessor, pos, blockFace);
         if (entity == null) return;
 
