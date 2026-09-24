@@ -83,6 +83,15 @@ public class SidingModSystem : ModSystem
         {
             api.Logger.Error("vssiding: gap shift patch skipped, furniture against a wall's open side will stand three-quarters clear: {0}", e);
         }
+
+        try
+        {
+            GapShiftCollisionPatches.PatchAll(harmony, api);
+        }
+        catch (Exception e)
+        {
+            api.Logger.Error("vssiding: gap shift collision patches skipped entirely, snapped furniture will not collide or select where it renders: {0}", e);
+        }
     }
 
     // The search to open sky checks only the block it steps into, never the one it leaves, since
@@ -292,6 +301,39 @@ public class SidingModSystem : ModSystem
         var (dx, dz) = SidingWallBlock.GapShift(neighbours, attachedToward);
         vars.finalX += (float)dx;
         vars.finalZ += (float)dz;
+    }
+
+    [ThreadStatic] private static BlockPos? GapShiftScratchPos;
+
+    // The same rule as ShiftTowardWall, off an IBlockAccessor instead of the tesselator's extended
+    // chunk cache, for GapShiftCollisionPatches (collision/selection run every physics tick and
+    // off the render thread, so they can't reach into ChunkTesselator's per-frame state). Checks
+    // the eligibility array before touching the world, then the four horizontal neighbours for a
+    // SidingWallBlock before building the dictionary GapShift wants - a scratch BlockPos avoids an
+    // AddCopy allocation for that neighbour check.
+    internal static (double dx, double dz) GapShiftAt(IBlockAccessor blockAccessor, BlockPos pos, Block block)
+    {
+        if (GapShiftEligible is not { } eligible || block.BlockId >= eligible.Length || !eligible[block.BlockId]) return (0, 0);
+
+        var scratch = GapShiftScratchPos ??= new BlockPos(pos.dimension);
+        bool nextToWall = false;
+        foreach (var facing in BlockFacing.HORIZONTALS)
+        {
+            scratch.Set(pos.X + facing.Normali.X, pos.Y, pos.Z + facing.Normali.Z);
+            if (blockAccessor.GetBlock(scratch) is SidingWallBlock) { nextToWall = true; break; }
+        }
+        if (!nextToWall) return (0, 0);
+
+        var neighbours = new Dictionary<BlockFacing, (string, string)?>();
+        foreach (var facing in BlockFacing.HORIZONTALS)
+        {
+            scratch.Set(pos.X + facing.Normali.X, pos.Y, pos.Z + facing.Normali.Z);
+            neighbours[facing] = blockAccessor.GetBlock(scratch) is SidingWallBlock wall
+                ? (wall.Variant["layout"], wall.Variant["side"])
+                : null;
+        }
+
+        return SidingWallBlock.GapShift(neighbours, GapShiftAttachedToward?[block.BlockId]);
     }
 
     // Inserts the ShiftTowardWall call right after vars.finalZ = vars.lz is set (the int lz widens

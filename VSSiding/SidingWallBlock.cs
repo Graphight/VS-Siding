@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
+using HarmonyLib;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
 using Vintagestory.API.Datastructures;
@@ -87,10 +89,66 @@ public class SidingWallBlock : Block
         => framing != null && infill == null ? FramingBoxes[(layout, side, joinsAbove)] : fullBoxes;
 
     public override Cuboidf[] GetCollisionBoxes(IBlockAccessor blockAccessor, BlockPos pos)
-        => FramedCollisionBoxes(blockAccessor, pos, base.GetCollisionBoxes(blockAccessor, pos));
+        => AppendGapFrontBoxes(blockAccessor, pos, FramedCollisionBoxes(blockAccessor, pos, base.GetCollisionBoxes(blockAccessor, pos)),
+            (accessor, neighbourPos) => accessor.GetBlock(neighbourPos).GetCollisionBoxes(accessor, neighbourPos));
 
     public override Cuboidf[] GetParticleCollisionBoxes(IBlockAccessor blockAccessor, BlockPos pos)
         => FramedCollisionBoxes(blockAccessor, pos, base.GetParticleCollisionBoxes(blockAccessor, pos));
+
+    public override Cuboidf[] GetSelectionBoxes(IBlockAccessor blockAccessor, BlockPos pos)
+        => AppendGapFrontBoxes(blockAccessor, pos, base.GetSelectionBoxes(blockAccessor, pos),
+            (accessor, neighbourPos) => accessor.GetBlock(neighbourPos).GetSelectionBoxes(accessor, neighbourPos), asDecor: true);
+
+    // A straight wall's dead space opens onto the cell across its panel - CachingCollisionTester
+    // only walks cells an entity's box actually overlaps, so without this an entity standing in
+    // that dead space would pass straight through a chest snapped onto the panel from the far
+    // side. Only appended when the neighbour actually shifts toward this wall (GapShiftAt already
+    // answers "toward what"; a second qualifying wall on the far side of the neighbour cancels its
+    // shift to zero, and then there's nothing to append). `getNeighbourBoxes` picks collision vs
+    // selection boxes - both already shifted, since the neighbour block's own override is patched
+    // by GapShiftCollisionPatches. Selection boxes come back as DecorSelectionBox copies so aiming
+    // through the wall at the back half of the snapped block redirects the hit to it
+    // (AABBIntersectionTest.RayIntersectsBlockSelectionBox honours DecorSelectionBox.PosAdjust the
+    // same way the decor system's own boxes do - confirmed no other consumer treats it specially).
+    private Cuboidf[] AppendGapFrontBoxes(
+        IBlockAccessor blockAccessor, BlockPos pos, Cuboidf[] boxes,
+        System.Func<IBlockAccessor, BlockPos, Cuboidf[]> getNeighbourBoxes, bool asDecor = false)
+    {
+        if (Variant["layout"] != "wall") return boxes;
+        var (dx, dz) = OpenSide(Variant["layout"], Variant["side"]);
+        var neighbourPos = pos.AddCopy(dx, 0, dz);
+        var neighbour = blockAccessor.GetBlock(neighbourPos);
+        if (neighbour is SidingWallBlock) return boxes;
+
+        var (sdx, sdz) = SidingModSystem.GapShiftAt(blockAccessor, neighbourPos, neighbour);
+        if (sdx == 0 && sdz == 0) return boxes;
+
+        var neighbourBoxes = getNeighbourBoxes(blockAccessor, neighbourPos);
+        if (neighbourBoxes is not { Length: > 0 }) return boxes;
+
+        var extra = asDecor
+            ? neighbourBoxes.Select(box => MakeDecorBox(box, dx, dz)).ToArray()
+            : neighbourBoxes.Select(box => box.OffsetCopy(dx, 0, dz)).ToArray();
+        // A PosAdjust hit keeps its index into this array as the BlockSelection's SelectionBoxIndex,
+        // and shelves and ground storage pick their slot by it - so the redirected boxes go first,
+        // where index i is the neighbour's own box i. The wall never reads its own index.
+        return asDecor ? extra.Concat(boxes).ToArray() : boxes.Concat(extra).ToArray();
+    }
+
+    // DecorSelectionBox is internal to Vintagestory.API.Common, so it has to be built through
+    // reflection rather than named directly.
+    private static readonly Type DecorSelectionBoxType = AccessTools.TypeByName("Vintagestory.API.Common.DecorSelectionBox");
+    private static readonly ConstructorInfo DecorSelectionBoxCtor = AccessTools.Constructor(
+        DecorSelectionBoxType, new[] { typeof(float), typeof(float), typeof(float), typeof(float), typeof(float), typeof(float) });
+    private static readonly FieldInfo DecorSelectionBoxPosAdjust = AccessTools.Field(DecorSelectionBoxType, "PosAdjust");
+
+    private static Cuboidf MakeDecorBox(Cuboidf box, int dx, int dz)
+    {
+        var shifted = box.OffsetCopy(dx, 0, dz);
+        var decor = (Cuboidf)DecorSelectionBoxCtor.Invoke(new object[] { shifted.X1, shifted.Y1, shifted.Z1, shifted.X2, shifted.Y2, shifted.Z2 });
+        DecorSelectionBoxPosAdjust.SetValue(decor, new Vec3i(dx, 0, dz));
+        return decor;
+    }
 
     private Cuboidf[] FramedCollisionBoxes(IBlockAccessor blockAccessor, BlockPos pos, Cuboidf[] fullBoxes)
     {
@@ -637,6 +695,17 @@ public class SidingWallBlock : Block
         if (qualifying == null) return (0, 0);
         if (attachedToward != null && attachedToward != qualifying) return (0, 0);
         return (qualifying.Normali.X * GapShiftDistance, qualifying.Normali.Z * GapShiftDistance);
+    }
+
+    // The inverse of GapShift's last line: which horizontal facing a (dx, dz) shift came from, so
+    // GapShiftCollisionPatches can cache shifted box copies per facing instead of per exact offset.
+    internal static BlockFacing? GapShiftFacing(double dx, double dz)
+    {
+        foreach (var facing in BlockFacing.HORIZONTALS)
+        {
+            if (facing.Normali.X * GapShiftDistance == dx && facing.Normali.Z * GapShiftDistance == dz) return facing;
+        }
+        return null;
     }
 
     // A sealed wall's cell stores the sunlight flowing in from outside, which RoomRegistry would count as sky (decision 0015).

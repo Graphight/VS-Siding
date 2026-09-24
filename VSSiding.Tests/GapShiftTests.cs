@@ -64,6 +64,16 @@ public class GapShiftTests
     }
 
     [Fact]
+    public void GapShiftFacingRecoversTheFacingFromTheOffset()
+    {
+        Assert.Equal(BlockFacing.NORTH, SidingWallBlock.GapShiftFacing(0, -0.75));
+        Assert.Equal(BlockFacing.EAST, SidingWallBlock.GapShiftFacing(0.75, 0));
+        Assert.Equal(BlockFacing.SOUTH, SidingWallBlock.GapShiftFacing(0, 0.75));
+        Assert.Equal(BlockFacing.WEST, SidingWallBlock.GapShiftFacing(-0.75, 0));
+        Assert.Null(SidingWallBlock.GapShiftFacing(0, 0));
+    }
+
+    [Fact]
     public void EveryFacingShiftsTowardItsOwnQualifyingWall()
     {
         var expected = new Dictionary<BlockFacing, (double, double)>
