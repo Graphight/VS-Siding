@@ -554,7 +554,7 @@ public class SidingModSystem : ModSystem
 
     // Most blocks are hostable (decision 0035). Excluded: our own walls, anything the wall can
     // replace (tall grass, loose stones, snow layer - ClassifyHostChange would restore the wall over
-    // it on the next tick, eating the item), anything marked Unplaceable (a pot goes down as ground storage, which is hostable itself), anything that already culls
+    // it on the next tick, eating the item), anything marked Unplaceable (a pot goes down as ground storage, which is hostable itself), plants (flowers, ferns, mushrooms: nobody hosts one, and each would cost a guest lookup on the light and tesselation paths across every meadow), anything that already culls
     // a neighbour (SideSolid), fluid-layer blocks, anything not a plain JSON shape (cubes, crosses,
     // liquids, microblocks all draw or collide in ways this offset was never checked against), beds
     // (a "part" variant), multiblocks (a trunk: its behaviour would drop a filler into the next wall cell with no guest, losing that wall's layers) and their fillers, doors (1.22's are BlockGeneric with a "Door" BE
@@ -625,6 +625,7 @@ public class SidingModSystem : ModSystem
         if (block is SidingWallBlock) return false;
         if (block.Replaceable >= 6000) return false;
         if (block.HasBehavior<BlockBehaviorUnplaceable>()) return false;
+        if (block.BlockMaterial is EnumBlockMaterial.Plant or EnumBlockMaterial.Leaves) return false;
         if (block.SideSolid.Any) return false;
         if (block.ForFluidsLayer) return false;
         if (block.DrawType is not (EnumDrawType.JSON or EnumDrawType.JSONAndSnowLayer or EnumDrawType.JSONAndWater)) return false;
@@ -719,7 +720,6 @@ public class SidingModSystem : ModSystem
     internal static void HostChangePrefix(WorldChunk __instance, IWorldAccessor world, BlockPos pos)
     {
         if (world.Side != EnumAppSide.Server) return;
-        Block newBlock = world.BlockAccessor.GetBlock(pos, BlockLayersAccess.Solid);
         var guest = GuestWalls.GuestAt(world.Api, __instance, pos);
         if (guest == null)
         {
@@ -727,10 +727,13 @@ public class SidingModSystem : ModSystem
             // gap, a sneak-placement or ground storage alike (SidingWallBlock.IsReplacableBy lets
             // them all through). The wall's entity is still in place here, since its OnBlockRemoved
             // only runs after this prefix, so its state becomes the guest's.
-            if (IsHostableId(newBlock.BlockId) && __instance.GetLocalBlockEntityAtBlockPos(pos) is SidingWallEntity wall)
+            if (__instance.GetLocalBlockEntityAtBlockPos(pos) is SidingWallEntity wall
+                && IsHostableId(world.BlockAccessor.GetBlock(pos, BlockLayersAccess.Solid).BlockId))
                 GuestWalls.Set(world, __instance, pos, GuestWalls.Encode(wall));
             return;
         }
+
+        Block newBlock = world.BlockAccessor.GetBlock(pos, BlockLayersAccess.Solid);
 
         switch (ClassifyHostChange(newBlock, guest.Block, Hostable))
         {

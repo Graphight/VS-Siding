@@ -77,9 +77,10 @@ internal static class GapShiftCollisionPatches
         Shift(instance, result, args, out var shifted);
         // Re-checked rather than trusted from Shift: an inner frame's shift is a no-op, and so is
         // its append - only the outermost frame acts (same depth guard as the shift itself).
-        // A real wall reaches here through its own base.GetCollisionBoxes/GetSelectionBoxes, and
-        // WallAt would answer the wall itself - it would append a second, marked copy of its own panel.
-        if (instance is SidingWallBlock || depth != 1
+        // Only a hostable block can stand over a guest, and this runs on every collision query in
+        // the world, so that table read comes before any lookup. It also keeps a real wall out: it
+        // reaches here through its own base.GetCollisionBoxes, and WallAt would answer the wall itself.
+        if (!SidingModSystem.IsHostableId(instance.BlockId) || depth != 1
             || args[0] is not IBlockAccessor blockAccessor || args[1] is not BlockPos pos) return shifted;
 
         if (SidingWallBlock.WallAt(blockAccessor, pos) is not { } found) return shifted;
