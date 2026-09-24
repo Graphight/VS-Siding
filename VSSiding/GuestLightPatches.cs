@@ -64,18 +64,20 @@ internal static class GuestLightPatches
     // the block being asked sits at its (posX, posY, posZ) offset by facing.Opposite - exactly where
     // SidingWallBlock's own override reads its entity via GetCurrentBlockEntityOnSide. Client-only:
     // side AO only ever runs on the tessellation thread.
-    private static void SideAoPostfix(IGeometryTester caller, BlockFacing facing, ref bool __result)
+    private static void SideAoPostfix(Block __instance, IGeometryTester caller, BlockFacing facing, ref bool __result)
     {
-        if (__result || SidingModSystem.capi is not { } capi || caller is not TCTCache tct) return;
+        if (__result || SidingModSystem.Hostable is not { } hostable || __instance.BlockId >= hostable.Length || !hostable[__instance.BlockId]
+            || SidingModSystem.capi is not { } capi || caller is not TCTCache tct) return;
 
         var pos = new BlockPos(tct.posX, tct.posY, tct.posZ, tct.dimension).Offset(facing.Opposite);
         SidingWallEntity? guest = GuestWalls.GuestAt(capi, pos);
         if (guest?.Block is SidingWallBlock wall) __result |= wall.IsSealed(guest);
     }
 
-    private static void SideAoByFlagPostfix(IGeometryTester caller, Vec3iAndFacingFlags vec, ref bool __result)
+    private static void SideAoByFlagPostfix(Block __instance, IGeometryTester caller, Vec3iAndFacingFlags vec, ref bool __result)
     {
-        if (__result || SidingModSystem.capi is not { } capi || caller is not TCTCache tct) return;
+        if (__result || SidingModSystem.Hostable is not { } hostable || __instance.BlockId >= hostable.Length || !hostable[__instance.BlockId]
+            || SidingModSystem.capi is not { } capi || caller is not TCTCache tct) return;
 
         var pos = new BlockPos(tct.posX + vec.X, tct.posY + vec.Y, tct.posZ + vec.Z, tct.dimension);
         SidingWallEntity? guest = GuestWalls.GuestAt(capi, pos);
