@@ -119,6 +119,15 @@ public class SidingModSystem : ModSystem
             api.Logger.Error("vssiding: guest tooltip patches skipped entirely, looking at hosted furniture will not mention its guest wall: {0}", e);
         }
 
+        try
+        {
+            GuestSealingPatches.PatchAll(harmony, api);
+        }
+        catch (Exception e)
+        {
+            api.Logger.Error("vssiding: guest sealing patches skipped entirely, a hosted block's wall will stop sealing its room and damming water: {0}", e);
+        }
+
         // Renderers that draw a snapped block from a position of their own, outside chunk
         // tesselation, so GapShiftAt's shift has to be reapplied to each one by hand.
         try
@@ -644,8 +653,9 @@ public class SidingModSystem : ModSystem
 
     // CollectibleObject.api is protected, set on whichever side's Block instance this is - the same
     // reason GuestWalls.Decode takes an ICoreAPI rather than assuming one, so a lookup off the block
-    // itself always lands on the right side's chunk data.
-    private static readonly AccessTools.FieldRef<CollectibleObject, ICoreAPI> ApiRef =
+    // itself always lands on the right side's chunk data. Internal: GuestSealingPatches reads it too,
+    // off a host block that (unlike GapShiftAt's callers) never has a world accessor to hand.
+    internal static readonly AccessTools.FieldRef<CollectibleObject, ICoreAPI> ApiRef =
         AccessTools.FieldRefAccess<CollectibleObject, ICoreAPI>("api");
 
     // The same query as ShiftTowardWall, off an IBlockAccessor instead of the tesselator's extended
