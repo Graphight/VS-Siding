@@ -667,10 +667,6 @@ public class SidingWallBlock : Block
         return (open.X + second.X, open.Z + second.Z);
     }
 
-    // How far a hosted block sits off the panel across the dead space (furniture-against-thin-walls,
-    // decision 0035 pending). Unused until stage 6 retargets the offset toolkit onto it.
-    internal const double GapShiftDistance = 0.75;
-
     // A sealed wall's cell stores the sunlight flowing in from outside, which RoomRegistry would count as sky (decision 0015).
     internal static int RoomSunlight(IBlockAccessor accessor, BlockPos pos, EnumLightLevelType type)
         => accessor.GetBlock(pos) is SidingWallBlock wall && wall.GetLightAbsorption(accessor, pos) > 0 ? 0 : accessor.GetLightLevel(pos, type);

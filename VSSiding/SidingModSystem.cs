@@ -398,9 +398,21 @@ public class SidingModSystem : ModSystem
 
     // Indexed by BlockId: whether the block can be hosted on a wall's panel (furniture-against-thin-walls,
     // decision 0035 pending). Built once after blocks load so terrain tesselation costs one array
-    // read per block. The offset toolkit below (ShiftTowardWall, GapShiftAt) reads this table but
-    // shifts nothing yet - that comes with stage 6, once there's a hosted block to shift.
+    // read per block. The offset toolkit below (ShiftTowardWall, GapShiftAt) reads this table.
     internal static bool[]? Hostable;
+
+    // The four horizontal faces, in the order FaceShiftByBlock's per-block arrays are indexed.
+    private static readonly string[] HorizontalFaces = { "north", "east", "south", "west" };
+    private static readonly Dictionary<string, int> HorizontalFaceIndex =
+        HorizontalFaces.Select((face, i) => (face, i)).ToDictionary(t => t.face, t => t.i);
+
+    // A quarter block - the panel's own thickness (decision 0002).
+    internal const double PanelThickness = 4.0 / 16;
+
+    // Indexed by BlockId, then by HorizontalFaceIndex: how far a hosted block shifts away from that
+    // face, built once alongside Hostable so ShiftTowardWall/GapShiftAt read an array instead of
+    // re-walking SelectionBoxes on every call.
+    internal static double[][]? FaceShiftByBlock;
 
     // Most blocks are hostable (decision 0035). Excluded: our own walls, anything that already culls
     // a neighbour (SideSolid), fluid-layer blocks, anything not a plain JSON shape (cubes, crosses,
@@ -412,14 +424,60 @@ public class SidingModSystem : ModSystem
     {
         int maxId = api.World.Blocks.Where(b => b != null).Max(b => b.BlockId);
         var hostable = new bool[maxId + 1];
+        var faceShift = new double[maxId + 1][];
 
         foreach (var block in api.World.Blocks)
         {
             if (block == null) continue;
             hostable[block.BlockId] = IsHostable(block);
+            if (!hostable[block.BlockId]) continue;
+
+            var boxes = block.SelectionBoxes ?? block.CollisionBoxes;
+            faceShift[block.BlockId] = HorizontalFaces.Select(face => FaceShift(boxes, face)).ToArray();
         }
 
         Hostable = hostable;
+        FaceShiftByBlock = faceShift;
+    }
+
+    // How far the panel thickness reaches past whatever inset the block's own default boxes already
+    // give that face - never negative, since a box already standing clear of the face needs no shift.
+    private static double FaceShift(Cuboidf[]? boxes, string faceCode) => Math.Max(0, PanelThickness - Inset(boxes, faceCode));
+
+    // How far a block's boxes already stand off one face: the boxes' own extent inward from that
+    // face's plane. No boxes (a null SelectionBoxes/CollisionBoxes pair) reads as a full cube - no
+    // inset at all, so the block gets the full panel-thickness shift, same as a torch's thin box.
+    private static double Inset(Cuboidf[]? boxes, string faceCode)
+    {
+        if (boxes is not { Length: > 0 }) return 0;
+        return faceCode switch
+        {
+            "north" => boxes.Min(b => b.Z1),
+            "south" => 1 - boxes.Max(b => b.Z2),
+            "west" => boxes.Min(b => b.X1),
+            "east" => 1 - boxes.Max(b => b.X2),
+            _ => 0,
+        };
+    }
+
+    // Sums the shift away from each claimed face - a straight wall claims one, a cornerout's guest
+    // claims two, so this is the one place both axes come together. Pure and unit-tested directly
+    // against a block's own boxes (PanelOffsetTests); GapShiftAt/ShiftTowardWall get the same answer
+    // from FaceShiftByBlock's precomputed table instead of walking boxes on every call.
+    internal static (double dx, double dz) PanelOffset(Cuboidf[]? boxes, IEnumerable<string> claimedFaces)
+        => Combine(claimedFaces, face => FaceShift(boxes, face));
+
+    private static (double dx, double dz) Combine(IEnumerable<string> claimedFaces, System.Func<string, double> shiftOf)
+    {
+        double dx = 0, dz = 0;
+        foreach (var faceCode in claimedFaces)
+        {
+            double shift = shiftOf(faceCode);
+            var normal = BlockFacing.FromCode(faceCode).Opposite.Normali;
+            dx += normal.X * shift;
+            dz += normal.Z * shift;
+        }
+        return (dx, dz);
     }
 
     private static bool IsHostable(Block block)
@@ -436,12 +494,25 @@ public class SidingModSystem : ModSystem
         return true;
     }
 
+    // TCTCache.vars is internal to Vintagestory.Client.NoObf, with no InternalsVisibleTo reaching
+    // this assembly, so it takes a field-ref same as GuestPanelPostfix's ___vars gets from Harmony -
+    // the difference is ShiftTowardWall is called directly from transpiled IL, not patched itself.
+    private static readonly AccessTools.FieldRef<ChunkTesselator, TCTCache> VarsRef =
+        AccessTools.FieldRefAccess<ChunkTesselator, TCTCache>("vars");
+
     // Transpiled onto ChunkTesselator.TesselateBlock right after it stores vars.finalZ (see
     // GapShiftTranspiler), so both plain JSON meshes and block-entity OnTesselation meshes -
-    // everything reading vars.finalX/finalZ downstream - pick up the shift once stage 6 gives one.
+    // everything reading vars.finalX/finalZ downstream - land on the panel a hosted block shifts to.
     internal static void ShiftTowardWall(ChunkTesselator tesselator, Block block)
     {
         if (Hostable is not { } hostable || block.BlockId >= hostable.Length || !hostable[block.BlockId]) return;
+        if (capi == null) return;
+
+        var vars = VarsRef(tesselator);
+        var pos = new BlockPos(vars.posX, vars.posY, vars.posZ, vars.dimension);
+        var (dx, dz) = GapShiftAt(capi.World.BlockAccessor, pos, block);
+        vars.finalX += (float)dx;
+        vars.finalZ += (float)dz;
     }
 
     // A guest wall never gets a TesselateBlock call of its own - the chunk array holds its host's
@@ -562,14 +633,27 @@ public class SidingModSystem : ModSystem
         }
     }
 
+    // CollectibleObject.api is protected, set on whichever side's Block instance this is - the same
+    // reason GuestWalls.Decode takes an ICoreAPI rather than assuming one, so a lookup off the block
+    // itself always lands on the right side's chunk data.
+    private static readonly AccessTools.FieldRef<CollectibleObject, ICoreAPI> ApiRef =
+        AccessTools.FieldRefAccess<CollectibleObject, ICoreAPI>("api");
+
     // The same query as ShiftTowardWall, off an IBlockAccessor instead of the tesselator's extended
     // chunk cache, for GapShiftCollisionPatches (collision/selection run every physics tick and off
-    // the render thread, so they can't reach into ChunkTesselator's per-frame state). Returns zero
-    // until stage 6 retargets it onto a hosted block's panel offset.
+    // the render thread, so they can't reach into ChunkTesselator's per-frame state). blockAccessor
+    // is unused beyond the Hostable check - the guest lookup goes through the block's own api field,
+    // since a physics tick's accessor doesn't carry one.
     internal static (double dx, double dz) GapShiftAt(IBlockAccessor blockAccessor, BlockPos pos, Block block)
     {
         if (Hostable is not { } hostable || block.BlockId >= hostable.Length || !hostable[block.BlockId]) return (0, 0);
-        return (0, 0);
+
+        ICoreAPI? api = ApiRef(block);
+        if (api == null || GuestWalls.GuestAt(api, pos)?.Block is not SidingWallBlock wall) return (0, 0);
+
+        var shifts = FaceShiftByBlock![block.BlockId];
+        var claimed = HorizontalFaces.Where(face => SidingWallBlock.ClaimsFace(wall.Variant["layout"], wall.Variant["side"], face));
+        return Combine(claimed, face => shifts[HorizontalFaceIndex[face]]);
     }
 
     // Inserts the ShiftTowardWall call right after vars.finalZ = vars.lz is set (the int lz widens

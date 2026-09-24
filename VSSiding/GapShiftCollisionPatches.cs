@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -24,8 +25,10 @@ internal static class GapShiftCollisionPatches
     // that breaks the moment a shift and an unrelated box happen to look alike.
     [ThreadStatic] private static int depth;
 
-    // Per original array, one shifted copy per (sign dx, sign dz) - nine slots, the centre unused.
-    private static readonly ConditionalWeakTable<Cuboidf[], Cuboidf[]?[]> ShiftCache = new();
+    // Per original array, one shifted copy per exact (dx, dz) - several hostable blocks can share
+    // one static box array, but each shifts by its own inset. Concurrent because physics, render
+    // and main threads all query boxes and may add the same entry at once.
+    private static readonly ConditionalWeakTable<Cuboidf[], ConcurrentDictionary<(double dx, double dz), Cuboidf[]>> ShiftCache = new();
 
     internal static void PatchAll(Harmony harmony, ICoreAPI api)
     {
@@ -92,16 +95,12 @@ internal static class GapShiftCollisionPatches
         var (dx, dz) = SidingModSystem.GapShiftAt(blockAccessor, pos, instance);
         if (dx == 0 && dz == 0) return;
 
-        shifted = Shifted(result, Math.Sign(dx), Math.Sign(dz));
+        shifted = Shifted(result, dx, dz);
     }
 
-    internal static Cuboidf[] Shifted(Cuboidf[] original, int sx, int sz)
+    internal static Cuboidf[] Shifted(Cuboidf[] original, double dx, double dz)
     {
-        var perDirection = ShiftCache.GetValue(original, _ => new Cuboidf[9][]);
-        return perDirection[(sx + 1) * 3 + sz + 1] ??= original
-            .Select(box => box.OffsetCopy(
-                (float)(sx * SidingWallBlock.GapShiftDistance), 0,
-                (float)(sz * SidingWallBlock.GapShiftDistance)))
-            .ToArray();
+        return ShiftCache.GetValue(original, _ => new ConcurrentDictionary<(double, double), Cuboidf[]>())
+            .GetOrAdd((dx, dz), _ => original.Select(box => box.OffsetCopy((float)dx, 0, (float)dz)).ToArray());
     }
 }
