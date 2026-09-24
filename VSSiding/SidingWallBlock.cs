@@ -1,10 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
-using HarmonyLib;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
 using Vintagestory.API.Datastructures;
@@ -89,66 +87,10 @@ public class SidingWallBlock : Block
         => framing != null && infill == null ? FramingBoxes[(layout, side, joinsAbove)] : fullBoxes;
 
     public override Cuboidf[] GetCollisionBoxes(IBlockAccessor blockAccessor, BlockPos pos)
-        => AppendGapFrontBoxes(blockAccessor, pos, FramedCollisionBoxes(blockAccessor, pos, base.GetCollisionBoxes(blockAccessor, pos)),
-            (accessor, neighbourPos) => accessor.GetBlock(neighbourPos).GetCollisionBoxes(accessor, neighbourPos));
+        => FramedCollisionBoxes(blockAccessor, pos, base.GetCollisionBoxes(blockAccessor, pos));
 
     public override Cuboidf[] GetParticleCollisionBoxes(IBlockAccessor blockAccessor, BlockPos pos)
         => FramedCollisionBoxes(blockAccessor, pos, base.GetParticleCollisionBoxes(blockAccessor, pos));
-
-    public override Cuboidf[] GetSelectionBoxes(IBlockAccessor blockAccessor, BlockPos pos)
-        => AppendGapFrontBoxes(blockAccessor, pos, base.GetSelectionBoxes(blockAccessor, pos),
-            (accessor, neighbourPos) => accessor.GetBlock(neighbourPos).GetSelectionBoxes(accessor, neighbourPos), asDecor: true);
-
-    // A straight wall's dead space opens onto the cell across its panel - CachingCollisionTester
-    // only walks cells an entity's box actually overlaps, so without this an entity standing in
-    // that dead space would pass straight through a chest snapped onto the panel from the far
-    // side. Only appended when the neighbour actually shifts toward this wall (GapShiftAt already
-    // answers "toward what"; a second qualifying wall on the far side of the neighbour cancels its
-    // shift to zero, and then there's nothing to append). `getNeighbourBoxes` picks collision vs
-    // selection boxes - both already shifted, since the neighbour block's own override is patched
-    // by GapShiftCollisionPatches. Selection boxes come back as DecorSelectionBox copies so aiming
-    // through the wall at the back half of the snapped block redirects the hit to it
-    // (AABBIntersectionTest.RayIntersectsBlockSelectionBox honours DecorSelectionBox.PosAdjust the
-    // same way the decor system's own boxes do - confirmed no other consumer treats it specially).
-    private Cuboidf[] AppendGapFrontBoxes(
-        IBlockAccessor blockAccessor, BlockPos pos, Cuboidf[] boxes,
-        System.Func<IBlockAccessor, BlockPos, Cuboidf[]> getNeighbourBoxes, bool asDecor = false)
-    {
-        if (Variant["layout"] != "wall") return boxes;
-        var (dx, dz) = OpenSide(Variant["layout"], Variant["side"]);
-        var neighbourPos = pos.AddCopy(dx, 0, dz);
-        var neighbour = blockAccessor.GetBlock(neighbourPos);
-        if (neighbour is SidingWallBlock) return boxes;
-
-        var (sdx, sdz) = SidingModSystem.GapShiftAt(blockAccessor, neighbourPos, neighbour);
-        if (sdx == 0 && sdz == 0) return boxes;
-
-        var neighbourBoxes = getNeighbourBoxes(blockAccessor, neighbourPos);
-        if (neighbourBoxes is not { Length: > 0 }) return boxes;
-
-        var extra = asDecor
-            ? neighbourBoxes.Select(box => MakeDecorBox(box, dx, dz)).ToArray()
-            : neighbourBoxes.Select(box => box.OffsetCopy(dx, 0, dz)).ToArray();
-        // A PosAdjust hit keeps its index into this array as the BlockSelection's SelectionBoxIndex,
-        // and shelves and ground storage pick their slot by it - so the redirected boxes go first,
-        // where index i is the neighbour's own box i. The wall never reads its own index.
-        return asDecor ? extra.Concat(boxes).ToArray() : boxes.Concat(extra).ToArray();
-    }
-
-    // DecorSelectionBox is internal to Vintagestory.API.Common, so it has to be built through
-    // reflection rather than named directly.
-    private static readonly Type DecorSelectionBoxType = AccessTools.TypeByName("Vintagestory.API.Common.DecorSelectionBox");
-    private static readonly ConstructorInfo DecorSelectionBoxCtor = AccessTools.Constructor(
-        DecorSelectionBoxType, new[] { typeof(float), typeof(float), typeof(float), typeof(float), typeof(float), typeof(float) });
-    private static readonly FieldInfo DecorSelectionBoxPosAdjust = AccessTools.Field(DecorSelectionBoxType, "PosAdjust");
-
-    private static Cuboidf MakeDecorBox(Cuboidf box, int dx, int dz)
-    {
-        var shifted = box.OffsetCopy(dx, 0, dz);
-        var decor = (Cuboidf)DecorSelectionBoxCtor.Invoke(new object[] { shifted.X1, shifted.Y1, shifted.Z1, shifted.X2, shifted.Y2, shifted.Z2 });
-        DecorSelectionBoxPosAdjust.SetValue(decor, new Vec3i(dx, 0, dz));
-        return decor;
-    }
 
     private Cuboidf[] FramedCollisionBoxes(IBlockAccessor blockAccessor, BlockPos pos, Cuboidf[] fullBoxes)
     {
@@ -441,29 +383,6 @@ public class SidingWallBlock : Block
         if (neibpos.Y == pos.Y - 1) MarkStackDirtyFrom(world, pos);
     }
 
-    // Placing or removing a straight wall changes whether the cell its dead space opens onto
-    // renders snapped to the panel (SidingModSystem's TesselateBlock transpiler), and that cell can
-    // sit in a different chunk than the one just marked dirty by the block change itself.
-    public override void OnBlockPlaced(IWorldAccessor world, BlockPos blockPos, ItemStack? byItemStack = null)
-    {
-        base.OnBlockPlaced(world, blockPos, byItemStack);
-        MarkGapFrontDirty(world, blockPos);
-    }
-
-    public override void OnBlockRemoved(IWorldAccessor world, BlockPos pos)
-    {
-        base.OnBlockRemoved(world, pos);
-        MarkGapFrontDirty(world, pos);
-    }
-
-    // cornerout's dead space is boxed in by two panels, so there's no single open face to shift onto.
-    private void MarkGapFrontDirty(IWorldAccessor world, BlockPos pos)
-    {
-        if (Variant["layout"] != "wall") return;
-        var (dx, dz) = OpenSide(Variant["layout"], Variant["side"]);
-        world.BlockAccessor.MarkBlockDirty(pos.AddCopy(dx, 0, dz));
-    }
-
     // Setting Framing or Infill isn't a block change, so the neighbours around it have to be told.
     internal static void MarkNeighboursDirty(IWorldAccessor world, BlockPos pos)
     {
@@ -517,22 +436,11 @@ public class SidingWallBlock : Block
 
     // Another SideSolid consumer (decision 0020): with sidesolid off, nothing could be hung on any
     // siding wall. attachmentArea is ignored - a sealed face is solid across its whole 16x16.
-    // A straight wall's open face counts too (furniture-against-thin-walls): the panel is what a
-    // torch or sign standing in the gap-front cell actually presses against once GapShift snaps it
-    // there. GetRetention and GetLiquidBarrierHeightOnSide keep asking ClaimsFace alone - the open
-    // face isn't a face this wall's panels cover, so rooms and liquids must not treat it as sealed.
     public override bool CanAttachBlockAt(IBlockAccessor blockAccessor, Block block, BlockPos pos, BlockFacing blockFace, Cuboidi? attachmentArea = null)
     {
         var entity = blockAccessor.GetBlockEntity<SidingWallEntity>(pos);
-        bool accepts = AcceptsAttachment(Variant["layout"], Variant["side"], blockFace.Code);
-        return ComputeRetention(accepts, entity?.Framing, entity?.Infill, Attributes["Framings"], Attributes["Infills"]) != 0;
+        return ComputeRetention(ClaimsFace(blockFace), entity?.Framing, entity?.Infill, Attributes["Framings"], Attributes["Infills"]) != 0;
     }
-
-    // ClaimsFace plus a straight wall's open face - the one its dead space opens onto, opposite the
-    // hugged side. A cornerout's dead space is boxed in by its two panels, so it gets nothing extra.
-    internal static bool AcceptsAttachment(string layout, string side, string faceCode)
-        => ClaimsFace(layout, side, faceCode)
-            || (layout == "wall" && faceCode == BlockFacing.FromCode(side).Opposite.Code);
 
     // sidesolid is false on every face (decision 0002), so base.GetRetention can't be
     // delegated to. A wall seals only once framing and infill are both built and still
@@ -683,34 +591,9 @@ public class SidingWallBlock : Block
         return (open.X + second.X, open.Z + second.Z);
     }
 
-    // How far a qualifying block snaps toward the panel across the dead space (decision 0035, furniture-against-thin-walls).
+    // How far a hosted block sits off the panel across the dead space (furniture-against-thin-walls,
+    // decision 0035 pending). Unused until stage 6 retargets the offset toolkit onto it.
     internal const double GapShiftDistance = 0.75;
-
-    // How far a block standing in a cell shifts toward the panels of the straight walls whose dead
-    // space opens back onto it. Each axis is independent: a room's inside corner has one such wall
-    // to the north and one to the west, and the block slides into the corner, across the three
-    // cells' dead space. Two walls opening onto the cell from opposite sides cancel on that axis -
-    // there is no single panel to sit against. A face-attached block follows only the wall it
-    // hangs on, since sliding along that wall toward the other would move it off its mount.
-    internal static (double dx, double dz) GapShift(IReadOnlyDictionary<BlockFacing, (string layout, string side)?> neighbours, BlockFacing? attachedToward)
-    {
-        int sx = 0, sz = 0;
-        foreach (var facing in BlockFacing.HORIZONTALS)
-        {
-            if (!OpensOnto(neighbours, facing)) continue;
-            if (attachedToward != null && attachedToward != facing) continue;
-            sx += facing.Normali.X;
-            sz += facing.Normali.Z;
-        }
-        return (sx * GapShiftDistance, sz * GapShiftDistance);
-    }
-
-    private static bool OpensOnto(IReadOnlyDictionary<BlockFacing, (string layout, string side)?> neighbours, BlockFacing facing)
-    {
-        if (!neighbours.TryGetValue(facing, out var variant) || variant is not { layout: "wall" } wall) return false;
-        var (odx, odz) = OpenSide(wall.layout, wall.side);
-        return odx == -facing.Normali.X && odz == -facing.Normali.Z;
-    }
 
     // A sealed wall's cell stores the sunlight flowing in from outside, which RoomRegistry would count as sky (decision 0015).
     internal static int RoomSunlight(IBlockAccessor accessor, BlockPos pos, EnumLightLevelType type)

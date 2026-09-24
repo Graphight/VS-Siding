@@ -368,36 +368,33 @@ public class SidingModSystem : ModSystem
         => ((int)(((rgb >> 24) & 0xFF) * factor) << 24) | ((int)(((rgb >> 16) & 0xFF) * factor) << 16)
             | ((int)(((rgb >> 8) & 0xFF) * factor) << 8) | (int)((rgb & 0xFF) * factor);
 
-    // Indexed by BlockId: whether the block snaps toward a wall's panel when its cell qualifies
-    // (SidingWallBlock.GapShift), and which way a face-attached block is attached, if at all.
-    // Built once after blocks load so terrain tesselation costs one array read per block.
-    internal static bool[]? GapShiftEligible;
-    internal static BlockFacing?[]? GapShiftAttachedToward;
+    // Indexed by BlockId: whether the block can be hosted on a wall's panel (furniture-against-thin-walls,
+    // decision 0035 pending). Built once after blocks load so terrain tesselation costs one array
+    // read per block. The offset toolkit below (ShiftTowardWall, GapShiftAt) reads this table but
+    // shifts nothing yet - that comes with stage 6, once there's a hosted block to shift.
+    internal static bool[]? Hostable;
 
-    // Most blocks qualify to snap toward a wall's open face (decision 0035). Excluded: our own
-    // walls, anything that already culls a neighbour (SideSolid), fluid-layer blocks, anything not
-    // a plain JSON shape (cubes, crosses, liquids, microblocks all draw or collide in ways this
-    // offset was never checked against), beds (a "part" variant) and multiblock fillers, doors
-    // (1.22's are BlockGeneric with a "Door" BE behaviour, so the class check alone misses them)
-    // and mechanical power blocks (BlockMPBase networks by position).
-    private static void BuildGapShiftTables(ICoreAPI api)
+    // Most blocks are hostable (decision 0035). Excluded: our own walls, anything that already culls
+    // a neighbour (SideSolid), fluid-layer blocks, anything not a plain JSON shape (cubes, crosses,
+    // liquids, microblocks all draw or collide in ways this offset was never checked against), beds
+    // (a "part" variant) and multiblock fillers, doors (1.22's are BlockGeneric with a "Door" BE
+    // behaviour, so the class check alone misses them) and mechanical power blocks (BlockMPBase
+    // networks by position).
+    private static void BuildHostableTable(ICoreAPI api)
     {
         int maxId = api.World.Blocks.Where(b => b != null).Max(b => b.BlockId);
-        var eligible = new bool[maxId + 1];
-        var attachedToward = new BlockFacing?[maxId + 1];
+        var hostable = new bool[maxId + 1];
 
         foreach (var block in api.World.Blocks)
         {
             if (block == null) continue;
-            eligible[block.BlockId] = GapShiftQualifies(block);
-            if (eligible[block.BlockId]) attachedToward[block.BlockId] = GapShiftAttachedTowardOf(block);
+            hostable[block.BlockId] = IsHostable(block);
         }
 
-        GapShiftEligible = eligible;
-        GapShiftAttachedToward = attachedToward;
+        Hostable = hostable;
     }
 
-    private static bool GapShiftQualifies(Block block)
+    private static bool IsHostable(Block block)
     {
         if (block is SidingWallBlock) return false;
         if (block.SideSolid.Any) return false;
@@ -411,92 +408,22 @@ public class SidingModSystem : ModSystem
         return true;
     }
 
-    // BlockGroundAndSideAttachable (torches, lanterns): "orientation" names the face the item was
-    // clicked against, so the support wall sits in the opposite direction ("up" means ground-placed,
-    // free-standing). BlockBehaviorHorizontalAttachable (toolrack, shelf): the block's own code ends
-    // in the facing that points at its support wall (Block.CodeWithParts in TryAttachTo/CanBlockStay).
-    private static BlockFacing? GapShiftAttachedTowardOf(Block block)
-    {
-        if (block is BlockGroundAndSideAttachable)
-        {
-            string? orientation = block.Variant["orientation"];
-            if (orientation == null || orientation == "up") return null;
-            return BlockFacing.FromCode(orientation)?.Opposite;
-        }
-
-        if (block.HasBehavior<BlockBehaviorHorizontalAttachable>())
-        {
-            return BlockFacing.FromCode(block.Code.Path.Split('-')[^1]);
-        }
-
-        return null;
-    }
-
-    private static readonly AccessTools.FieldRef<ChunkTesselator, TCTCache> GapShiftVars =
-        AccessTools.FieldRefAccess<ChunkTesselator, TCTCache>("vars");
-    private static readonly AccessTools.FieldRef<ChunkTesselator, Block[]> GapShiftBlocksExt =
-        AccessTools.FieldRefAccess<ChunkTesselator, Block[]>("currentChunkBlocksExt");
-
     // Transpiled onto ChunkTesselator.TesselateBlock right after it stores vars.finalZ (see
     // GapShiftTranspiler), so both plain JSON meshes and block-entity OnTesselation meshes -
-    // everything reading vars.finalX/finalZ downstream - pick up the shift.
+    // everything reading vars.finalX/finalZ downstream - pick up the shift once stage 6 gives one.
     internal static void ShiftTowardWall(ChunkTesselator tesselator, Block block)
     {
-        if (GapShiftEligible is not { } eligible || block.BlockId >= eligible.Length || !eligible[block.BlockId]) return;
-
-        var vars = GapShiftVars(tesselator);
-        var blocksExt = GapShiftBlocksExt(tesselator);
-        bool nextToWall = false;
-        foreach (var facing in BlockFacing.HORIZONTALS)
-        {
-            nextToWall |= blocksExt[vars.extIndex3d + TileSideEnum.MoveIndex[facing.Index]] is SidingWallBlock;
-        }
-        if (!nextToWall) return;
-
-        var neighbours = new Dictionary<BlockFacing, (string, string)?>();
-        foreach (var facing in BlockFacing.HORIZONTALS)
-        {
-            var neighbour = blocksExt[vars.extIndex3d + TileSideEnum.MoveIndex[facing.Index]];
-            neighbours[facing] = neighbour is SidingWallBlock wall ? (wall.Variant["layout"], wall.Variant["side"]) : null;
-        }
-
-        var attachedToward = GapShiftAttachedToward?[block.BlockId];
-        var (dx, dz) = SidingWallBlock.GapShift(neighbours, attachedToward);
-        vars.finalX += (float)dx;
-        vars.finalZ += (float)dz;
+        if (Hostable is not { } hostable || block.BlockId >= hostable.Length || !hostable[block.BlockId]) return;
     }
 
-    [ThreadStatic] private static BlockPos? GapShiftScratchPos;
-
-    // The same rule as ShiftTowardWall, off an IBlockAccessor instead of the tesselator's extended
-    // chunk cache, for GapShiftCollisionPatches (collision/selection run every physics tick and
-    // off the render thread, so they can't reach into ChunkTesselator's per-frame state). Checks
-    // the eligibility array before touching the world, then the four horizontal neighbours for a
-    // SidingWallBlock before building the dictionary GapShift wants - a scratch BlockPos avoids an
-    // AddCopy allocation for that neighbour check.
+    // The same query as ShiftTowardWall, off an IBlockAccessor instead of the tesselator's extended
+    // chunk cache, for GapShiftCollisionPatches (collision/selection run every physics tick and off
+    // the render thread, so they can't reach into ChunkTesselator's per-frame state). Returns zero
+    // until stage 6 retargets it onto a hosted block's panel offset.
     internal static (double dx, double dz) GapShiftAt(IBlockAccessor blockAccessor, BlockPos pos, Block block)
     {
-        if (GapShiftEligible is not { } eligible || block.BlockId >= eligible.Length || !eligible[block.BlockId]) return (0, 0);
-
-        var scratch = GapShiftScratchPos ??= new BlockPos(pos.dimension);
-        bool nextToWall = false;
-        foreach (var facing in BlockFacing.HORIZONTALS)
-        {
-            scratch.Set(pos.X + facing.Normali.X, pos.Y, pos.Z + facing.Normali.Z);
-            if (blockAccessor.GetBlock(scratch) is SidingWallBlock) { nextToWall = true; break; }
-        }
-        if (!nextToWall) return (0, 0);
-
-        var neighbours = new Dictionary<BlockFacing, (string, string)?>();
-        foreach (var facing in BlockFacing.HORIZONTALS)
-        {
-            scratch.Set(pos.X + facing.Normali.X, pos.Y, pos.Z + facing.Normali.Z);
-            neighbours[facing] = blockAccessor.GetBlock(scratch) is SidingWallBlock wall
-                ? (wall.Variant["layout"], wall.Variant["side"])
-                : null;
-        }
-
-        return SidingWallBlock.GapShift(neighbours, GapShiftAttachedToward?[block.BlockId]);
+        if (Hostable is not { } hostable || block.BlockId >= hostable.Length || !hostable[block.BlockId]) return (0, 0);
+        return (0, 0);
     }
 
     // Inserts the ShiftTowardWall call right after vars.finalZ = vars.lz is set (the int lz widens
@@ -558,7 +485,7 @@ public class SidingModSystem : ModSystem
     public override void AssetsFinalize(ICoreAPI api)
     {
         base.AssetsFinalize(api);
-        BuildGapShiftTables(api);
+        BuildHostableTable(api);
 
         // Server side only from here: the client receives the expanded block attributes with the block list (decision 0010).
         if (api.Side != EnumAppSide.Server) return;
