@@ -34,6 +34,8 @@ public class IsHostableTests
     {
         var bed = Open(new Block());
         bed.VariantStrict["part"] = "head";
+        var pot = Open(new Block());
+        pot.BlockBehaviors = new BlockBehavior[] { new BlockBehaviorUnplaceable(pot) };
 
         var blocks = new Dictionary<string, Block>
         {
@@ -43,6 +45,7 @@ public class IsHostableTests
             ["cross plant"] = Open(new Block { DrawType = EnumDrawType.Cross }),
             ["fluid"] = Open(new FluidBlock()),
             ["bed half"] = bed,
+            ["unplaceable pot"] = pot,
             ["door"] = Open(new Block { BlockEntityBehaviors = new[] { new BlockEntityBehaviorType { Name = "Door" } } }),
             ["multiblock filler"] = Open(new BlockMultiblock()),
             ["mechanical power"] = Open(new PowerBlock()),
@@ -57,6 +60,7 @@ public class IsHostableTests
             ["cross plant"] = false,
             ["fluid"] = false,
             ["bed half"] = false,
+            ["unplaceable pot"] = false,
             ["door"] = false,
             ["multiblock filler"] = false,
             ["mechanical power"] = false,

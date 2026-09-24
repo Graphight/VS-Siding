@@ -223,6 +223,16 @@ public class SidingModSystem : ModSystem
         {
             api.Logger.Error("vssiding: neighbour update patch skipped, breaking hosted furniture will leave its cell empty for a tick and drop what hangs on the wall's far side: {0}", e);
         }
+
+        try
+        {
+            harmony.Patch(AccessTools.Method(typeof(CollectibleBehaviorGroundStorable), nameof(CollectibleBehaviorGroundStorable.Interact)),
+                prefix: new HarmonyMethod(typeof(SidingModSystem), nameof(GroundStorageIntoWallPrefix)));
+        }
+        catch (Exception e)
+        {
+            api.Logger.Error("vssiding: ground storage patch skipped, pots and other ground-stored items can't be set down in a wall's cell: {0}", e);
+        }
     }
 
     // The renderer keeps the Vec3d its caller passed in for its lifetime, so it gets an offset copy
@@ -520,7 +530,7 @@ public class SidingModSystem : ModSystem
 
     // Most blocks are hostable (decision 0035). Excluded: our own walls, anything the wall can
     // replace (tall grass, loose stones, snow layer - ClassifyHostChange would restore the wall over
-    // it on the next tick, eating the item), anything that already culls
+    // it on the next tick, eating the item), anything marked Unplaceable (a pot goes down as ground storage, which is hostable itself), anything that already culls
     // a neighbour (SideSolid), fluid-layer blocks, anything not a plain JSON shape (cubes, crosses,
     // liquids, microblocks all draw or collide in ways this offset was never checked against), beds
     // (a "part" variant) and multiblock fillers, doors (1.22's are BlockGeneric with a "Door" BE
@@ -590,6 +600,7 @@ public class SidingModSystem : ModSystem
     {
         if (block is SidingWallBlock) return false;
         if (block.Replaceable >= 6000) return false;
+        if (block.HasBehavior<BlockBehaviorUnplaceable>()) return false;
         if (block.SideSolid.Any) return false;
         if (block.ForFluidsLayer) return false;
         if (block.DrawType is not (EnumDrawType.JSON or EnumDrawType.JSONAndSnowLayer or EnumDrawType.JSONAndWater)) return false;
@@ -730,6 +741,26 @@ public class SidingModSystem : ModSystem
     // restoring here means no neighbour - a torch on the far side, the water beside it - ever sees
     // the cell as air, and the client gets the wall back in the same tick instead of flashing empty.
     internal static void NeighbourUpdatePrefix(ServerMain __instance, BlockPos pos) => RestoreGuestWall(__instance, pos);
+
+    // Sneak-clicking a floor's top face sets a pot, a crock or any other ground-storable item down as
+    // a groundstorage block, but only into a cell whose block has Replaceable >= 6000 - never a wall.
+    // Into a wall's cell it goes the same way, through BlockGroundStorage.CreateStorage, and
+    // HostChangePrefix makes the wall its guest. Every other case is left to vanilla.
+    internal static bool GroundStorageIntoWallPrefix(EntityAgent byEntity, BlockSelection blockSel,
+        ref EnumHandHandling handHandling, ref EnumHandling handling)
+    {
+        IWorldAccessor? world = byEntity?.World;
+        if (world == null || blockSel == null || !byEntity!.Controls.ShiftKey || blockSel.Face != BlockFacing.UP) return true;
+        if (world.BlockAccessor.GetBlock(blockSel.Position.UpCopy()) is not SidingWallBlock) return true;
+        if (world.GetBlock(new AssetLocation("groundstorage")) is not BlockGroundStorage storage || !IsHostableId(storage.BlockId)) return true;
+        if (byEntity is not EntityPlayer entityPlayer || world.PlayerByUid(entityPlayer.PlayerUID) is not { } player) return true;
+        if (!world.BlockAccessor.GetBlock(blockSel.Position).CanAttachBlockAt(world.BlockAccessor, storage, blockSel.Position, BlockFacing.UP)) return true;
+        if (!storage.CreateStorage(world, blockSel, player)) return true;
+
+        handHandling = EnumHandHandling.PreventDefault;
+        handling = EnumHandling.PreventSubsequent;
+        return false;
+    }
 
     private static void RestoreGuestWall(IWorldAccessor world, BlockPos pos)
     {

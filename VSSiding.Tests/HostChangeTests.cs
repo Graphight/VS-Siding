@@ -4,6 +4,7 @@ using Vintagestory.API.Common;
 using Vintagestory.Common;
 using System.Linq;
 using Vintagestory.API.MathTools;
+using Vintagestory.GameContent;
 using Vintagestory.Server;
 using Xunit;
 using static VSSiding.SidingModSystem;
@@ -49,8 +50,11 @@ public class HostChangeTests
     {
         Assert.NotNull(AccessTools.Method(typeof(WorldChunk), nameof(WorldChunk.BreakAllDecorFast)));
 
-        // The prefix binds its parameter by name, so the name is part of the target.
+        // Both prefixes bind their parameters by name, so the names are part of the target.
         var neighbourUpdate = AccessTools.Method(typeof(ServerMain), nameof(ServerMain.TriggerNeighbourBlocksUpdate), new[] { typeof(BlockPos) });
         Assert.Equal(new[] { "pos" }, neighbourUpdate.GetParameters().Select(p => p.Name));
+        var groundStorable = AccessTools.Method(typeof(CollectibleBehaviorGroundStorable), nameof(CollectibleBehaviorGroundStorable.Interact));
+        Assert.Equal(new[] { "itemslot", "byEntity", "blockSel", "entitySel", "firstEvent", "handHandling", "handling" },
+            groundStorable.GetParameters().Select(p => p.Name));
     }
 }
