@@ -533,7 +533,7 @@ public class SidingModSystem : ModSystem
     // it on the next tick, eating the item), anything marked Unplaceable (a pot goes down as ground storage, which is hostable itself), anything that already culls
     // a neighbour (SideSolid), fluid-layer blocks, anything not a plain JSON shape (cubes, crosses,
     // liquids, microblocks all draw or collide in ways this offset was never checked against), beds
-    // (a "part" variant) and multiblock fillers, doors (1.22's are BlockGeneric with a "Door" BE
+    // (a "part" variant), multiblocks (a trunk: its behaviour would drop a filler into the next wall cell with no guest, losing that wall's layers) and their fillers, doors (1.22's are BlockGeneric with a "Door" BE
     // behaviour, so the class check alone misses them) and mechanical power blocks (BlockMPBase
     // networks by position).
     private static void BuildHostableTable(ICoreAPI api)
@@ -607,7 +607,7 @@ public class SidingModSystem : ModSystem
         if (block is BlockMicroBlock) return false;
         if (block.Variant.ContainsKey("part")) return false;
         if (block is BlockBaseDoor || block.BlockEntityBehaviors.Any(b => b.Name == "Door")) return false;
-        if (block is BlockMultiblock) return false;
+        if (block is BlockMultiblock || block.HasBehavior<BlockBehaviorMultiblock>()) return false;
         if (block is BlockMPBase) return false;
         return true;
     }

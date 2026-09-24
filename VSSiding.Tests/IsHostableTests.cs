@@ -34,6 +34,8 @@ public class IsHostableTests
     {
         var bed = Open(new Block());
         bed.VariantStrict["part"] = "head";
+        var trunk = Open(new Block());
+        trunk.BlockBehaviors = new BlockBehavior[] { new BlockBehaviorMultiblock(trunk) };
         var pot = Open(new Block());
         pot.BlockBehaviors = new BlockBehavior[] { new BlockBehaviorUnplaceable(pot) };
 
@@ -48,6 +50,7 @@ public class IsHostableTests
             ["unplaceable pot"] = pot,
             ["door"] = Open(new Block { BlockEntityBehaviors = new[] { new BlockEntityBehaviorType { Name = "Door" } } }),
             ["multiblock filler"] = Open(new BlockMultiblock()),
+            ["trunk"] = trunk,
             ["mechanical power"] = Open(new PowerBlock()),
             ["siding wall"] = Open(new SidingWallBlock()),
         };
@@ -63,6 +66,7 @@ public class IsHostableTests
             ["unplaceable pot"] = false,
             ["door"] = false,
             ["multiblock filler"] = false,
+            ["trunk"] = false,
             ["mechanical power"] = false,
             ["siding wall"] = false,
         };
