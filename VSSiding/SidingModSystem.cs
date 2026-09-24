@@ -338,6 +338,7 @@ public class SidingModSystem : ModSystem
     public override void Dispose()
     {
         new Harmony("vssiding").UnpatchAll("vssiding");
+        EveryOverridePatches.Forget();
         // PlaceWallFrame does have CollectibleBehavior.OnUnloaded, but it is patched onto every
         // plank variant, so ~14 behavior instances share the one cached array and would each
         // dispose it. ClientMain.Dispose runs the mod systems before its item loop, so freeing
