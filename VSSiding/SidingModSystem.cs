@@ -15,6 +15,7 @@ using Vintagestory.API.Server;
 using Vintagestory.Client.NoObf;
 using Vintagestory.Common;
 using Vintagestory.GameContent;
+using Vintagestory.Server;
 using Vintagestory.GameContent.Mechanics;
 
 namespace VSSiding;
@@ -211,6 +212,16 @@ public class SidingModSystem : ModSystem
         catch (Exception e)
         {
             api.Logger.Error("vssiding: host change patch skipped, breaking hosted furniture will not restore or drop its guest wall: {0}", e);
+        }
+
+        try
+        {
+            harmony.Patch(AccessTools.Method(typeof(ServerMain), nameof(ServerMain.TriggerNeighbourBlocksUpdate), new[] { typeof(BlockPos) }),
+                prefix: new HarmonyMethod(typeof(SidingModSystem), nameof(NeighbourUpdatePrefix)));
+        }
+        catch (Exception e)
+        {
+            api.Logger.Error("vssiding: neighbour update patch skipped, breaking hosted furniture will leave its cell empty for a tick and drop what hangs on the wall's far side: {0}", e);
         }
     }
 
@@ -678,9 +689,10 @@ public class SidingModSystem : ModSystem
         switch (ClassifyHostChange(newBlock, guest.Block, Hostable))
         {
             case HostChange.Restore:
-                // Deferred so the old host's OnBlockRemoved (a chest dropping its contents) finishes
-                // first - it runs right after this prefix returns, and would otherwise fire against
-                // the wall instead of the block it actually broke.
+                // Not here: the old host's OnBlockRemoved (a chest dropping its contents) runs right
+                // after this prefix returns, and would otherwise fire against the wall. A player's
+                // break restores in NeighbourUpdatePrefix, before any neighbour is told; this
+                // callback covers every other way a host goes (explosions, other mods).
                 world.RegisterCallback(_ => RestoreGuestWall(world, pos), 0);
                 break;
             case HostChange.Drop:
@@ -703,6 +715,11 @@ public class SidingModSystem : ModSystem
     // Clears the guest before SetBlock: with the guest still recorded under a placed, non-hostable
     // wall, this same prefix would see the freshly-placed wall's own SetBlock next and drop the
     // layers it hasn't restored yet.
+    // The server runs TriggerNeighbourBlocksUpdate straight after a player's break completes, so
+    // restoring here means no neighbour - a torch on the far side, the water beside it - ever sees
+    // the cell as air, and the client gets the wall back in the same tick instead of flashing empty.
+    internal static void NeighbourUpdatePrefix(ServerMain __instance, BlockPos pos) => RestoreGuestWall(__instance, pos);
+
     private static void RestoreGuestWall(IWorldAccessor world, BlockPos pos)
     {
         IWorldChunk? chunk = world.BlockAccessor.GetChunkAtBlockPos(pos);

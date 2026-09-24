@@ -2,6 +2,9 @@ using System.Collections.Generic;
 using HarmonyLib;
 using Vintagestory.API.Common;
 using Vintagestory.Common;
+using System.Linq;
+using Vintagestory.API.MathTools;
+using Vintagestory.Server;
 using Xunit;
 using static VSSiding.SidingModSystem;
 
@@ -45,5 +48,9 @@ public class HostChangeTests
     public void PatchTargetsStillExist()
     {
         Assert.NotNull(AccessTools.Method(typeof(WorldChunk), nameof(WorldChunk.BreakAllDecorFast)));
+
+        // The prefix binds its parameter by name, so the name is part of the target.
+        var neighbourUpdate = AccessTools.Method(typeof(ServerMain), nameof(ServerMain.TriggerNeighbourBlocksUpdate), new[] { typeof(BlockPos) });
+        Assert.Equal(new[] { "pos" }, neighbourUpdate.GetParameters().Select(p => p.Name));
     }
 }
