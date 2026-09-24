@@ -21,7 +21,10 @@ namespace VSSiding;
 
 public class SidingModSystem : ModSystem
 {
-    private ICoreClientAPI? capi;
+    // Static rather than an instance field: GuestPanelPostfix is a static Harmony postfix with no
+    // other way back to the running mod system, and singleplayer's one client process only ever
+    // has the one ICoreClientAPI anyway.
+    private static ICoreClientAPI? capi;
 
     public override void StartClientSide(ICoreClientAPI api)
     {
@@ -85,6 +88,17 @@ public class SidingModSystem : ModSystem
         catch (Exception e)
         {
             api.Logger.Error("vssiding: gap shift patch skipped, furniture against a wall's open side will stand three-quarters clear: {0}", e);
+        }
+
+        try
+        {
+            harmony.Patch(AccessTools.Method(typeof(ChunkTesselator), "TesselateBlock",
+                    new[] { typeof(Block), typeof(int), typeof(int), typeof(int), typeof(int), typeof(int) }),
+                postfix: new HarmonyMethod(typeof(SidingModSystem), nameof(GuestPanelPostfix)));
+        }
+        catch (Exception e)
+        {
+            api.Logger.Error("vssiding: guest panel render patch skipped, a hosted block's wall will show no panel beside it: {0}", e);
         }
 
         try
@@ -428,6 +442,49 @@ public class SidingModSystem : ModSystem
     internal static void ShiftTowardWall(ChunkTesselator tesselator, Block block)
     {
         if (Hostable is not { } hostable || block.BlockId >= hostable.Length || !hostable[block.BlockId]) return;
+    }
+
+    // A guest wall never gets a TesselateBlock call of its own - the chunk array holds its host's
+    // id at this cell, not the wall's - so its panel rides in right after the host's own call,
+    // through the same TCTCache the JSON tesselator (jsonTesselator, set at ChunkTesselator
+    // construction) just built its mesh with. Pointed briefly at the wall - block, blockId, the
+    // unshifted lx/ly/lz position (stage 6 moves the host off it, not the panel), RenderPass and
+    // VertexFlags - and restored in the finally so the next block in the loop starts clean.
+    internal static void GuestPanelPostfix(ChunkTesselator __instance, TCTCache ___vars, ClientMain ___game, Block block)
+    {
+        if (Hostable is not { } hostable || block.BlockId >= hostable.Length || !hostable[block.BlockId]) return;
+        if (capi == null) return;
+
+        var pos = new BlockPos(___vars.posX, ___vars.posY, ___vars.posZ, ___vars.dimension);
+        SidingWallEntity? guest = GuestWalls.GuestAt(capi, pos);
+        if (guest == null) return;
+
+        Block hostBlock = ___vars.block;
+        int hostBlockId = ___vars.blockId;
+        float hostFinalX = ___vars.finalX, hostFinalY = ___vars.finalY, hostFinalZ = ___vars.finalZ;
+        EnumChunkRenderPass hostRenderPass = ___vars.RenderPass;
+        int hostVertexFlags = ___vars.VertexFlags;
+        try
+        {
+            ___vars.block = guest.Block;
+            ___vars.blockId = guest.Block.BlockId;
+            ___vars.finalX = ___vars.lx;
+            ___vars.finalY = ___vars.ly;
+            ___vars.finalZ = ___vars.lz;
+            ___vars.RenderPass = guest.Block.RenderPass;
+            ___vars.VertexFlags = guest.Block.VertexFlags.All;
+            guest.OnTesselation(__instance.jsonTesselator.helper, ___game.TesselatorManager.Tesselator);
+        }
+        finally
+        {
+            ___vars.block = hostBlock;
+            ___vars.blockId = hostBlockId;
+            ___vars.finalX = hostFinalX;
+            ___vars.finalY = hostFinalY;
+            ___vars.finalZ = hostFinalZ;
+            ___vars.RenderPass = hostRenderPass;
+            ___vars.VertexFlags = hostVertexFlags;
+        }
     }
 
     // What BreakAllDecorFast's prefix does with a guest once it sees the new block written into the
