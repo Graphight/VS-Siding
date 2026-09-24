@@ -3,7 +3,7 @@ using Vintagestory.API.Common;
 
 namespace VSSiding;
 
-// Furniture-against-thin-walls (decision 0035 pending): the panel GapShiftCollisionPatches adds to
+// Furniture-against-thin-walls (decision 0035): the panel GapShiftCollisionPatches adds to
 // GetSelectionBoxes gives a hosted cell something to click on beside the furniture, but a click
 // landing there has to go nowhere - decision 0013 already faced the breaking half of this (there is
 // no BlockSelection on OnBlockBroken, hence ServerBreakSelection), so breaking is swallowed in the

@@ -102,7 +102,7 @@ public class SidingWallBlock : Block
     // collides on its posts and top plate (decision 0008), otherwise the full panel. Used by the
     // wall's own overrides above and, for a hosted cell, by GapShiftCollisionPatches, which passes
     // the guest entity and the guest wall's own (unshifted) boxes for a cell the wall no longer
-    // occupies (furniture-against-thin-walls, decision 0035 pending).
+    // occupies (decision 0035).
     internal Cuboidf[] PanelCollisionBoxes(IBlockAccessor blockAccessor, BlockPos pos, SidingWallEntity entity, Cuboidf[] fullBoxes)
     {
         if (entity.Framing == null || entity.Infill != null) return fullBoxes;
@@ -172,7 +172,7 @@ public class SidingWallBlock : Block
 
     // Same shape, same face: a wall only ever joins another leg of the same run. Routed through
     // WallAt so a hosted block's cell still reads as its guest wall (furniture-against-thin-walls,
-    // decision 0035 pending) - otherwise hosting the middle of a stack would split it in two.
+    // decision 0035) - otherwise hosting the middle of a stack would split it in two.
     private SidingWallEntity? SameRunNeighbour(IBlockAccessor blockAccessor, BlockPos neighbourPos)
     {
         var found = WallAt(blockAccessor, neighbourPos);
@@ -199,7 +199,7 @@ public class SidingWallBlock : Block
 
     // Set only for the duration of TryHost's own TryPlaceBlock call below, so IsReplacableBy
     // can say yes to the held block without opening the wall up to being replaced any other
-    // way (furniture-against-thin-walls, decision 0035 pending).
+    // way (decision 0035).
     [ThreadStatic] private static bool hostingInProgress;
 
     public override bool IsReplacableBy(Block block)
@@ -419,7 +419,7 @@ public class SidingWallBlock : Block
     // Internal so the guest-wall restore path (SidingModSystem's host change prefix) can relight
     // and redraw a freshly restored wall the same way a saw layering infill does, rather than
     // duplicating MarkAbsorptionChanged/MarkNeighboursDirty by hand (furniture-against-thin-walls,
-    // decision 0035 pending).
+    // decision 0035).
     internal void OnInfillChanged(IWorldAccessor world, SidingWallEntity entity, BlockPos pos, string? oldInfill)
     {
         entity.MarkDirty(true);
@@ -684,7 +684,7 @@ public class SidingWallBlock : Block
     }
 
     // The real wall at a cell, or the wall a hosted block there is guest to (furniture-against-thin-walls,
-    // decision 0035 pending). Every lighting and wind consumer that used to ask the cell's own block
+    // decision 0035). Every lighting and wind consumer that used to ask the cell's own block
     // routes through this instead, so a hosted chest's cell still answers as the wall underneath it.
     // The guest lookup goes through the host block's own api field, same as GapShiftAt's - a
     // lighting or room-registry call carries no world reference of its own to prefer.
@@ -870,7 +870,7 @@ public class SidingWallBlock : Block
     }
 
     // Internal so the host change prefix can spawn a dropped guest wall's layers the same way a
-    // real break does (furniture-against-thin-walls, decision 0035 pending).
+    // real break does (decision 0035).
     internal ItemStack[] ResolveDrops(IWorldAccessor world, List<BlockDropItemStack> drops, float dropQuantityMultiplier)
     {
         var stacks = new List<ItemStack>();

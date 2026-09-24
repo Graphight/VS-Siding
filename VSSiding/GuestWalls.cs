@@ -12,11 +12,11 @@ using Vintagestory.API.Util;
 
 namespace VSSiding;
 
-// A wall's state once furniture takes its cell (furniture-against-thin-walls, decision 0035
+// A wall's state once furniture takes its cell (decision 0035
 // pending). Rides chunk mod data exactly as ModSystemSupportBeamPlacer's SupportBeamsData does:
 // LiveModData loads it lazily from GetModdata, and ServerChunk flushes LiveModData back into
 // ModData before both the chunk save and the client chunk packet - so initial client sync is
-// free, and only live edits (from stage 3 on) need the network channel below.
+// free, and only live edits need the network channel below.
 public static class GuestWalls
 {
     private const string ChannelName = "vssiding-guests";
@@ -73,7 +73,7 @@ public static class GuestWalls
     }
 
     // The guest layer's own contribution to a cell's light absorption - the host block's own value
-    // never changes here, only whether it has a guest and what that guest's is (decision 0035 pending).
+    // never changes here, only whether it has a guest and what that guest's is (decision 0035).
     private static int GuestAbsorption(ICoreAPI api, IWorldChunk chunk, BlockPos pos)
     {
         SidingWallEntity? guest = GuestAt(api, chunk, pos);
@@ -159,8 +159,7 @@ public static class GuestWalls
         chunk.LiveModData[ModDataKey] = next;
     }
 
-    // Called on the server when furniture takes a wall's cell (stage 3) or gives it back (stage
-    // 4): replaces the record, marks the chunk modified so it saves, and broadcasts the change to
+    // Called on the server when furniture takes a wall's cell or gives it back: replaces the record, marks the chunk modified so it saves, and broadcasts the change to
     // every client with the chunk loaded. Relights the cell around the swap - MarkAbsorptionChanged
     // skips a no-op old == new (decision 0034), so this needs the guest's real absorption before
     // and after, not 0, or hosting a sealed wall would never light the room it just opened.

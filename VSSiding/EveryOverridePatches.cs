@@ -8,7 +8,7 @@ using Vintagestory.API.Common;
 namespace VSSiding;
 
 // Lifted out of GapShiftCollisionPatches, whose GetCollisionBoxes/GetSelectionBoxes patches were
-// its only consumer until the tooltip postfix (furniture-against-thin-walls, decision 0035
+// its only consumer until the tooltip postfix (decision 0035
 // pending) needed the same trick for GetPlacedBlockInfo: patch every declaring override of a named
 // method on Block and every non-abstract Block subclass in every loaded assembly, so a mod's own
 // block subclass is covered without knowing about it. SidingWallBlock is always skipped - it has

@@ -6,7 +6,7 @@ using Vintagestory.API.MathTools;
 
 namespace VSSiding;
 
-// Furniture-against-thin-walls (decision 0035 pending): furniture hosting a wall's cell hides that
+// Furniture-against-thin-walls (decision 0035): furniture hosting a wall's cell hides that
 // wall from a look-block query as much as it hides it from view, so the tooltip needs its own
 // reminder. A postfix on every declaring override of GetPlacedBlockInfo across loaded assemblies
 // (EveryOverridePatches) appends the guest's own description, reusing SidingWallEntity.GetBlockInfo

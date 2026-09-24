@@ -196,7 +196,7 @@ public class SidingModSystem : ModSystem
         }
 
         // ExchangeBlock (firepit lit/unlit, torch burnout) never calls BreakAllDecorFast, so those
-        // keep their guest with no code here (furniture-against-thin-walls, decision 0035 pending).
+        // keep their guest with no code here (decision 0035).
         try
         {
             harmony.Patch(AccessTools.Method(typeof(WorldChunk), nameof(WorldChunk.BreakAllDecorFast)),
@@ -415,7 +415,7 @@ public class SidingModSystem : ModSystem
         // lookup across all 39,304 entries would mean thousands of dictionary probes in a meadow
         // chunk full of hostable tall grass. Enumerate the guests this chunk and its 26 neighbours
         // actually hold instead (GuestWalls.GuestsIn), mapping each into the extended array with
-        // the loop's own border rules (furniture-against-thin-walls, decision 0035 pending).
+        // the loop's own border rules (decision 0035).
         for (int ndy = -1; ndy <= 1; ndy++)
         for (int ndz = -1; ndz <= 1; ndz++)
         for (int ndx = -1; ndx <= 1; ndx++)
@@ -480,7 +480,7 @@ public class SidingModSystem : ModSystem
             | ((int)(((rgb >> 8) & 0xFF) * factor) << 8) | (int)((rgb & 0xFF) * factor);
 
     // Indexed by BlockId: whether the block can be hosted on a wall's panel (furniture-against-thin-walls,
-    // decision 0035 pending). Built once after blocks load so terrain tesselation costs one array
+    // decision 0035). Built once after blocks load so terrain tesselation costs one array
     // read per block. The offset toolkit below (ShiftTowardWall, GapShiftAt) reads this table.
     internal static bool[]? Hostable;
 
@@ -602,7 +602,7 @@ public class SidingModSystem : ModSystem
     // id at this cell, not the wall's - so its panel rides in right after the host's own call,
     // through the same TCTCache the JSON tesselator (jsonTesselator, set at ChunkTesselator
     // construction) just built its mesh with. Pointed briefly at the wall - block, blockId, the
-    // unshifted lx/ly/lz position (stage 6 moves the host off it, not the panel), RenderPass and
+    // unshifted lx/ly/lz position (the off-panel offset moves the host, not the panel), RenderPass and
     // VertexFlags - and restored in the finally so the next block in the loop starts clean.
     internal static void GuestPanelPostfix(ChunkTesselator __instance, TCTCache ___vars, ClientMain ___game, Block block)
     {
@@ -642,7 +642,7 @@ public class SidingModSystem : ModSystem
     }
 
     // What BreakAllDecorFast's prefix does with a guest once it sees the new block written into the
-    // chunk (furniture-against-thin-walls, decision 0035 pending). Kept as a pure function of the
+    // chunk (decision 0035). Kept as a pure function of the
     // three inputs so HostChangeTests can exercise it with plain Block instances.
     internal enum HostChange { Restore, Keep, Drop }
 

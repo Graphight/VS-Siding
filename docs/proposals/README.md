@@ -10,7 +10,6 @@ An idea that's been thought through but not acted on. Mutable — edit freely, a
 
 Build order — each one should be demoable in game before the next starts.
 
-- `furniture-against-thin-walls` — the guest wall: furniture truly occupies a wall's dead space and the wall rides along as a guest record re-patched into rooms, liquids, light and boxes; snap-flush was built, played and rejected.
 - `release-readiness` — modicon, version, dependency floor, save round-trip, and one whole house built for real (do the playtest first, bump the version last).
 
 ## Parked

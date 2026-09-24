@@ -5,7 +5,7 @@ using Vintagestory.API.MathTools;
 
 namespace VSSiding;
 
-// Furniture-against-thin-walls (decision 0035 pending): once furniture hosts a wall's cell, the
+// Furniture-against-thin-walls (decision 0035): once furniture hosts a wall's cell, the
 // host block is what vanilla asks about that cell's retention, liquid barrier and attachability -
 // so on the faces the guest wall claims, the answer has to keep being the wall's, or a hosted
 // chest would leak a sealed room and pass water through it. Postfixes on every declaring override

@@ -7,7 +7,7 @@ using Vintagestory.Client.NoObf;
 
 namespace VSSiding;
 
-// Furniture-against-thin-walls (decision 0035 pending): once furniture hosts a wall's cell, the
+// Furniture-against-thin-walls (decision 0035): once furniture hosts a wall's cell, the
 // host block is what vanilla asks about that cell's light absorption and side AO - so a hosted
 // chest would let daylight through a sealed room, and its cell would stop shading the corners
 // decision 0016 relies on. Postfixes on every declaring override of the four methods

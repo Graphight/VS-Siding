@@ -8,8 +8,8 @@ using Vintagestory.API.MathTools;
 
 namespace VSSiding;
 
-// Furniture-against-thin-walls (decision 0035 pending): a block that renders shifted onto a wall's
-// panel (SidingModSystem's TesselateBlock transpiler) must collide and select where it's drawn, not
+// Furniture-against-thin-walls (decision 0035): a hosted block renders shifted off its guest wall's
+// panel (SidingModSystem's TesselateBlock transpiler), so it must collide and select where it's drawn, not
 // where its cell's true bounds are - and it must also collide against the panel it's sitting beside,
 // which its own boxes never describe. EveryOverridePatches patches GetCollisionBoxes/
 // GetParticleCollisionBoxes/GetSelectionBoxes on every declaring override across loaded assemblies,
