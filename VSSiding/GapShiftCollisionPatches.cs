@@ -33,6 +33,10 @@ internal static class GapShiftCollisionPatches
     // is cached the same way as the shift above rather than reallocating every call.
     private static readonly ConditionalWeakTable<Cuboidf[], ConcurrentDictionary<Cuboidf[], Cuboidf[]>> CombineCache = new();
 
+    // Per panel array, one PanelSelectionBox copy - IsPanelHit tells a click on the panel apart
+    // from a click on the furniture by type, not by re-deriving which boxes came from where.
+    private static readonly ConditionalWeakTable<Cuboidf[], Cuboidf[]> PanelSelectionCache = new();
+
     internal static void PatchAll(Harmony harmony, ICoreAPI api)
     {
         var prefix = new HarmonyMethod(typeof(GapShiftCollisionPatches), nameof(Prefix));
@@ -61,22 +65,33 @@ internal static class GapShiftCollisionPatches
     private static void PostfixParticleCollision(Block __instance, ref Cuboidf[] __result, object[] __args)
         => __result = ShiftAndAppendPanel(__instance, __result, __args, wall => wall.ParticleCollisionBoxes ?? wall.CollisionBoxes);
 
+    // Selection appends the panel's own SelectionBoxes, marked so IsPanelHit can recognise them -
+    // after the host's boxes, so the host's own indices (which shelves and ground storage use to
+    // pick a slot) are unchanged.
     private static void PostfixSelection(Block __instance, ref Cuboidf[] __result, object[] __args)
-        => Shift(__instance, __result, __args, out __result);
+        => __result = ShiftAndAppendPanel(__instance, __result, __args, wall => wall.SelectionBoxes, MarkedForPanel);
 
-    private static Cuboidf[] ShiftAndAppendPanel(Block instance, Cuboidf[] result, object[] args, System.Func<SidingWallBlock, Cuboidf[]> fullBoxesOf)
+    private static Cuboidf[] ShiftAndAppendPanel(Block instance, Cuboidf[] result, object[] args,
+        System.Func<SidingWallBlock, Cuboidf[]> fullBoxesOf, System.Func<Cuboidf[], Cuboidf[]>? markPanel = null)
     {
         Shift(instance, result, args, out var shifted);
         // Re-checked rather than trusted from Shift: an inner frame's shift is a no-op, and so is
         // its append - only the outermost frame acts (same depth guard as the shift itself).
-        if (depth != 1 || args[0] is not IBlockAccessor blockAccessor || args[1] is not BlockPos pos) return shifted;
+        // A real wall reaches here through its own base.GetCollisionBoxes/GetSelectionBoxes, and
+        // WallAt would answer the wall itself - it would append a second, marked copy of its own panel.
+        if (instance is SidingWallBlock || depth != 1
+            || args[0] is not IBlockAccessor blockAccessor || args[1] is not BlockPos pos) return shifted;
 
         if (SidingWallBlock.WallAt(blockAccessor, pos) is not { } found) return shifted;
         var (guestWall, guestEntity) = found;
 
         var panelBoxes = guestWall.PanelCollisionBoxes(blockAccessor, pos, guestEntity, fullBoxesOf(guestWall));
+        if (markPanel != null) panelBoxes = markPanel(panelBoxes);
         return Combined(shifted, panelBoxes);
     }
+
+    private static Cuboidf[] MarkedForPanel(Cuboidf[] panelBoxes)
+        => PanelSelectionCache.GetValue(panelBoxes, boxes => boxes.Select(box => (Cuboidf)new PanelSelectionBox(box)).ToArray());
 
     private static void Shift(Block instance, Cuboidf[] result, object[] args, out Cuboidf[] shifted)
     {
@@ -104,5 +119,26 @@ internal static class GapShiftCollisionPatches
         if (hostBoxes is not { Length: > 0 }) return panelBoxes;
         return CombineCache.GetValue(hostBoxes, _ => new ConcurrentDictionary<Cuboidf[], Cuboidf[]>())
             .GetOrAdd(panelBoxes, _ => hostBoxes.Concat(panelBoxes).ToArray());
+    }
+
+    // True when the player's raytraced index (AABBIntersectionTest.RayIntersectsBlockSelectionBox,
+    // which walks the same GetSelectionBoxes array in the same order) landed on the panel rather
+    // than the furniture - PanelInteractionPatches uses this to swallow both interaction and
+    // breaking. host.GetSelectionBoxes is already patched, so it includes the panel.
+    internal static bool IsPanelHit(Block host, IBlockAccessor accessor, BlockSelection sel)
+    {
+        Cuboidf[]? boxes = host.GetSelectionBoxes(accessor, sel.Position);
+        return boxes != null && sel.SelectionBoxIndex >= 0 && sel.SelectionBoxIndex < boxes.Length
+            && boxes[sel.SelectionBoxIndex] is PanelSelectionBox;
+    }
+}
+
+// A selection box that is the guest wall's panel, not the host's own bounds - Combined appends
+// these after the host's boxes, and IsPanelHit tells them apart by type instead of re-deriving
+// which boxes came from where.
+internal sealed class PanelSelectionBox : Cuboidf
+{
+    internal PanelSelectionBox(Cuboidf box) : base(box.X1, box.Y1, box.Z1, box.X2, box.Y2, box.Z2)
+    {
     }
 }

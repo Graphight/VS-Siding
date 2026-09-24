@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Reflection;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
@@ -101,4 +102,20 @@ public class GapShiftCollisionPatchesTests
 
         Assert.Same(first, second);
     }
+
+    [Fact]
+    public void CombinedPutsHostBoxesFirstAndPanelSelectionBoxesAfterWithEqualGeometry()
+    {
+        Cuboidf[] host = { new(0, 0, 0, 1, 1, 1), new(0, 0, 0.25f, 1, 0.5f, 0.75f) };
+        Cuboidf[] panel = { new PanelSelectionBox(new Cuboidf(0, 0, 0, 1, 1, 0.25f)) };
+
+        Cuboidf[] result = GapShiftCollisionPatches.Combined(host, panel);
+
+        var expectedGeometry = host.Concat(panel).Select(Geometry);
+        Assert.Equal(expectedGeometry, result.Select(Geometry));
+        Assert.All(result.Skip(host.Length), box => Assert.IsType<PanelSelectionBox>(box));
+    }
+
+    private static (float, float, float, float, float, float) Geometry(Cuboidf box)
+        => (box.X1, box.Y1, box.Z1, box.X2, box.Y2, box.Z2);
 }

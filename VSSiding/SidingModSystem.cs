@@ -137,6 +137,15 @@ public class SidingModSystem : ModSystem
             api.Logger.Error("vssiding: guest light patches skipped entirely, a hosted block's wall will stop absorbing light and casting side AO: {0}", e);
         }
 
+        try
+        {
+            PanelInteractionPatches.PatchAll(harmony, api);
+        }
+        catch (Exception e)
+        {
+            api.Logger.Error("vssiding: panel interaction patches skipped entirely, clicking or mining a hosted block's panel will reach the furniture behind it: {0}", e);
+        }
+
         // Renderers that draw a snapped block from a position of their own, outside chunk
         // tesselation, so GapShiftAt's shift has to be reapplied to each one by hand.
         try
@@ -770,8 +779,17 @@ public class SidingModSystem : ModSystem
     {
         GuestWalls.StartServerSide(api);
 
-        api.Event.BreakBlock += (IServerPlayer _, BlockSelection blockSel, ref float _, ref EnumHandling _)
-            => SidingWallBlock.ServerBreakSelection = blockSel;
+        api.Event.BreakBlock += (IServerPlayer _, BlockSelection blockSel, ref float _, ref EnumHandling handling) =>
+        {
+            SidingWallBlock.ServerBreakSelection = blockSel;
+
+            // Creative breaks skip OnGettingBroken entirely, so a panel hit is caught here too -
+            // the only hook that sees both the BlockSelection (for IsPanelHit) and a handling flag
+            // that can prevent the break outright.
+            Block host = api.World.BlockAccessor.GetBlock(blockSel.Position);
+            if (GapShiftCollisionPatches.IsPanelHit(host, api.World.BlockAccessor, blockSel))
+                handling = EnumHandling.PreventDefault;
+        };
 
         api.ChatCommands.Create("sidingroom")
             .WithDescription("Prints the room counts and light level at the player's feet")
