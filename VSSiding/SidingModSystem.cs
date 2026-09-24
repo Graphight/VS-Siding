@@ -26,10 +26,16 @@ public class SidingModSystem : ModSystem
     // has the one ICoreClientAPI anyway. Internal: GuestLightPatches' side AO postfixes need it too.
     internal static ICoreClientAPI? capi;
 
+    // Dispose's own copy: singleplayer disposes the server's instance too, on the server thread, and
+    // the static above would hand it the client's api - freeing GL textures off the GL thread, which
+    // segfaults the game on exit.
+    private ICoreClientAPI? clientApi;
+
     public override void StartClientSide(ICoreClientAPI api)
     {
         base.StartClientSide(api);
         capi = api;
+        clientApi = api;
         GuestWalls.StartClientSide(api);
     }
 
@@ -343,11 +349,12 @@ public class SidingModSystem : ModSystem
         // plank variant, so ~14 behavior instances share the one cached array and would each
         // dispose it. ClientMain.Dispose runs the mod systems before its item loop, so freeing
         // the icons here does it once, first.
-        if (capi?.ObjectCache.TryGetValue("vssidingPlaceWallFrameToolModes", out var cached) == true)
+        if (clientApi?.ObjectCache.TryGetValue("vssidingPlaceWallFrameToolModes", out var cached) == true)
         {
             foreach (var item in (SkillItem[])cached) item.Dispose();
-            capi.ObjectCache.Remove("vssidingPlaceWallFrameToolModes");
+            clientApi.ObjectCache.Remove("vssidingPlaceWallFrameToolModes");
         }
+        if (clientApi != null) capi = null;
         base.Dispose();
     }
 
