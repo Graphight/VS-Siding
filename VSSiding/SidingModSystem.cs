@@ -503,6 +503,8 @@ public class SidingModSystem : ModSystem
     // read per block. The offset toolkit below (ShiftTowardWall, GapShiftAt) reads this table.
     internal static bool[]? Hostable;
 
+    internal static bool IsHostableId(int blockId) => Hostable is { } hostable && blockId < hostable.Length && hostable[blockId];
+
     // The four horizontal faces, in the order FaceShiftByBlock's per-block arrays are indexed.
     private static readonly string[] HorizontalFaces = { "north", "east", "south", "west" };
     private static readonly Dictionary<string, int> HorizontalFaceIndex =
@@ -682,10 +684,19 @@ public class SidingModSystem : ModSystem
     internal static void HostChangePrefix(WorldChunk __instance, IWorldAccessor world, BlockPos pos)
     {
         if (world.Side != EnumAppSide.Server) return;
-        var guest = GuestWalls.GuestAt(world.Api, __instance, pos);
-        if (guest == null) return;
-
         Block newBlock = world.BlockAccessor.GetBlock(pos, BlockLayersAccess.Solid);
+        var guest = GuestWalls.GuestAt(world.Api, __instance, pos);
+        if (guest == null)
+        {
+            // A hostable block replacing a wall - from a click on the panel, on the floor in the
+            // gap, a sneak-placement or ground storage alike (SidingWallBlock.IsReplacableBy lets
+            // them all through). The wall's entity is still in place here, since its OnBlockRemoved
+            // only runs after this prefix, so its state becomes the guest's.
+            if (IsHostableId(newBlock.BlockId) && __instance.GetLocalBlockEntityAtBlockPos(pos) is SidingWallEntity wall)
+                GuestWalls.Set(world, __instance, pos, GuestWalls.Encode(wall));
+            return;
+        }
+
         switch (ClassifyHostChange(newBlock, guest.Block, Hostable))
         {
             case HostChange.Restore:

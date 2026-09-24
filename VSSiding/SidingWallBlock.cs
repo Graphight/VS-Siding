@@ -197,62 +197,28 @@ public class SidingWallBlock : Block
         return offhandCode != null && WildcardUtil.Match(SawCode, offhandCode);
     }
 
-    // Set only for the duration of TryHost's own TryPlaceBlock call below, so IsReplacableBy
-    // can say yes to the held block without opening the wall up to being replaced any other
-    // way (decision 0035).
-    [ThreadStatic] private static bool hostingInProgress;
-
+    // Any hostable block may take a wall's cell, whichever way it's placed - a click on the panel,
+    // on the floor in the gap, a sneak-placement, ground storage. SidingModSystem.HostChangePrefix
+    // turns the wall's state into a guest in the same SetBlock, so neighbours never see air.
     public override bool IsReplacableBy(Block block)
-    {
-        if (hostingInProgress && SidingModSystem.Hostable is { } hostable
-            && block.BlockId < hostable.Length && hostable[block.BlockId])
-        {
-            return true;
-        }
-        return base.IsReplacableBy(block);
-    }
+        => SidingModSystem.IsHostableId(block.BlockId) || base.IsReplacableBy(block);
 
-    // Right-click on the wall's open side with a hostable block and no saw takes the cell:
-    // the wall's own state becomes a guest record (GuestWalls), and the held block replaces
-    // the wall in one SetBlock via IsReplacableBy above, so neighbours never see air. The
-    // client only reports the interaction handled - Vintagestory.API.Common.Block.TryPlaceBlock
-    // must run once, on the server, or the client would place the held block into the front
-    // cell itself before the server ever gets to swap the wall out.
+    // Right-click on the wall's open side with a hostable block and no saw places that block in the
+    // wall's own cell, where vanilla would put it in the cell in front. The client only reports the
+    // interaction handled - TryPlaceBlock must run once, on the server, or the client would place
+    // the held block into the front cell itself before the server ever gets to swap the wall out.
     private bool TryHost(IWorldAccessor world, IPlayer byPlayer, BlockSelection blockSel)
     {
         ItemSlot slot = byPlayer.InventoryManager.ActiveHotbarSlot;
         Block? heldBlock = slot.Itemstack?.Block;
-        if (heldBlock == null) return false;
-        if (SidingModSystem.Hostable is not { } hostable
-            || heldBlock.BlockId >= hostable.Length || !hostable[heldBlock.BlockId])
-        {
-            return false;
-        }
+        if (heldBlock == null || !SidingModSystem.IsHostableId(heldBlock.BlockId)) return false;
         if (ResolveFinishFace(Variant["layout"], Variant["side"], blockSel.Face) != "back") return false;
 
         if (world.Side == EnumAppSide.Client) return true;
 
-        var entity = world.BlockAccessor.GetBlockEntity<SidingWallEntity>(blockSel.Position);
-        IWorldChunk? chunk = world.BlockAccessor.GetChunkAtBlockPos(blockSel.Position);
-        if (entity == null || chunk == null) return false;
-
-        GuestWalls.Set(world, chunk, blockSel.Position, GuestWalls.Encode(entity));
-
         string failureCode = "";
-        bool placed;
-        hostingInProgress = true;
-        try
+        if (!heldBlock.TryPlaceBlock(world, byPlayer, slot.Itemstack!, blockSel, ref failureCode))
         {
-            placed = heldBlock.TryPlaceBlock(world, byPlayer, slot.Itemstack!, blockSel, ref failureCode);
-        }
-        finally
-        {
-            hostingInProgress = false;
-        }
-
-        if (!placed)
-        {
-            GuestWalls.Set(world, chunk, blockSel.Position, null);
             (byPlayer as IServerPlayer)?.SendIngameError(failureCode, Lang.Get("placefailure-" + failureCode));
             return true;
         }
