@@ -5,6 +5,7 @@ using HarmonyLib;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
+using Vintagestory.Client.NoObf;
 using Vintagestory.GameContent;
 using Xunit;
 
@@ -50,5 +51,17 @@ public class GapShiftRendererPatchTests
         var spawnShifted = AccessTools.Method(typeof(SidingModSystem), nameof(SidingModSystem.SpawnShifted));
         Assert.DoesNotContain(patched, i => i.Calls(spawn));
         Assert.Single(patched, i => i.Calls(spawnShifted));
+    }
+
+    [Fact]
+    public void DecalTesselationRunsThroughTheShift()
+    {
+        var original = AccessTools.Method(typeof(SystemRenderDecals), "UpdateDecal");
+        var patched = SidingModSystem.DecalTesselationTranspiler(PatchProcessor.GetOriginalInstructions(original)).ToList();
+
+        var onDecalTesselation = AccessTools.Method(typeof(Block), nameof(Block.OnDecalTesselation));
+        var shifted = AccessTools.Method(typeof(SidingModSystem), nameof(SidingModSystem.DecalTesselationShifted));
+        Assert.DoesNotContain(patched, i => i.Calls(onDecalTesselation));
+        Assert.Single(patched, i => i.Calls(shifted));
     }
 }

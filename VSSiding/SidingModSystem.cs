@@ -132,6 +132,16 @@ public class SidingModSystem : ModSystem
         {
             api.Logger.Error("vssiding: block particle shift patch skipped, a snapped torch's flame will burn three-quarters clear of it: {0}", e);
         }
+
+        try
+        {
+            harmony.Patch(AccessTools.Method(typeof(SystemRenderDecals), "UpdateDecal"),
+                transpiler: new HarmonyMethod(typeof(SidingModSystem), nameof(DecalTesselationTranspiler)));
+        }
+        catch (Exception e)
+        {
+            api.Logger.Error("vssiding: mining crack decal shift patch skipped, the crack overlay will show three-quarters clear of a snapped block: {0}", e);
+        }
     }
 
     // The renderer keeps the Vec3d its caller passed in for its lifetime, so it gets an offset copy
@@ -212,6 +222,38 @@ public class SidingModSystem : ModSystem
 
         if (replaced != 1)
             throw new InvalidOperationException($"Expected exactly one IAsyncParticleManager.Spawn call in Block.OnAsyncClientParticleTick, found {replaced}.");
+    }
+
+    // UpdateDecal calls this with the mesh still in block-local coordinates, then translates it by
+    // decal.pos itself a few lines later. Shifting the mesh here, before that translation, lands the
+    // crack overlay on the panel the same way the block itself was shifted at tesselation time.
+    internal static void DecalTesselationShifted(Block block, IWorldAccessor world, MeshData decalMesh, BlockPos pos)
+    {
+        block.OnDecalTesselation(world, decalMesh, pos);
+        var (dx, dz) = GapShiftAt(world.BlockAccessor, pos, block);
+        if (dx == 0 && dz == 0) return;
+        decalMesh.Translate((float)dx, 0, (float)dz);
+    }
+
+    internal static IEnumerable<CodeInstruction> DecalTesselationTranspiler(IEnumerable<CodeInstruction> instructions)
+    {
+        var onDecalTesselation = AccessTools.Method(typeof(Block), nameof(Block.OnDecalTesselation));
+        var shifted = AccessTools.Method(typeof(SidingModSystem), nameof(DecalTesselationShifted));
+
+        int replaced = 0;
+        foreach (var instruction in instructions)
+        {
+            if (!instruction.Calls(onDecalTesselation))
+            {
+                yield return instruction;
+                continue;
+            }
+            replaced++;
+            yield return new CodeInstruction(OpCodes.Call, shifted).MoveLabelsFrom(instruction);
+        }
+
+        if (replaced != 1)
+            throw new InvalidOperationException($"Expected exactly one Block.OnDecalTesselation call in SystemRenderDecals.UpdateDecal, found {replaced}.");
     }
 
     // The search to open sky checks only the block it steps into, never the one it leaves, since
