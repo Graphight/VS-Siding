@@ -5,6 +5,7 @@ using System.Reflection.Emit;
 using HarmonyLib;
 using Newtonsoft.Json.Linq;
 using Vintagestory.API.Client;
+using Vintagestory.API.Client.Tesselation;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
 using Vintagestory.API.Datastructures;
@@ -13,6 +14,7 @@ using Vintagestory.API.Server;
 using Vintagestory.Client.NoObf;
 using Vintagestory.Common;
 using Vintagestory.GameContent;
+using Vintagestory.GameContent.Mechanics;
 
 namespace VSSiding;
 
@@ -69,6 +71,17 @@ public class SidingModSystem : ModSystem
         catch (Exception e)
         {
             api.Logger.Error("vssiding: rain fall distance patch skipped, wind will sound outdoors inside a wall's dead space: {0}", e);
+        }
+
+        try
+        {
+            harmony.Patch(AccessTools.Method(typeof(ChunkTesselator), "TesselateBlock",
+                    new[] { typeof(Block), typeof(int), typeof(int), typeof(int), typeof(int), typeof(int) }),
+                transpiler: new HarmonyMethod(typeof(SidingModSystem), nameof(GapShiftTranspiler)));
+        }
+        catch (Exception e)
+        {
+            api.Logger.Error("vssiding: gap shift patch skipped, furniture against a wall's open side will stand three-quarters clear: {0}", e);
         }
     }
 
@@ -184,6 +197,137 @@ public class SidingModSystem : ModSystem
         => ((int)(((rgb >> 24) & 0xFF) * factor) << 24) | ((int)(((rgb >> 16) & 0xFF) * factor) << 16)
             | ((int)(((rgb >> 8) & 0xFF) * factor) << 8) | (int)((rgb & 0xFF) * factor);
 
+    // Indexed by BlockId: whether the block snaps toward a wall's panel when its cell qualifies
+    // (SidingWallBlock.GapShift), and which way a face-attached block is attached, if at all.
+    // Built once after blocks load so terrain tesselation costs one array read per block.
+    internal static bool[]? GapShiftEligible;
+    internal static BlockFacing?[]? GapShiftAttachedToward;
+
+    // Furniture-against-thin-walls (decision 0035 pending): most blocks qualify to snap toward a
+    // wall's open face. Excluded: our own walls, anything that already culls a neighbour
+    // (SideSolid), fluid-layer blocks, anything not a plain JSON shape (cubes, crosses, liquids,
+    // microblocks all draw or collide in ways this offset was never checked against), multiblocks
+    // and beds (a "part" variant), doors (their BE tracks open/closed by position) and mechanical
+    // power blocks (BlockMPBase networks by position too).
+    private static void BuildGapShiftTables(ICoreAPI api)
+    {
+        int maxId = api.World.Blocks.Where(b => b != null).Max(b => b.BlockId);
+        var eligible = new bool[maxId + 1];
+        var attachedToward = new BlockFacing?[maxId + 1];
+
+        foreach (var block in api.World.Blocks)
+        {
+            if (block == null) continue;
+            eligible[block.BlockId] = GapShiftQualifies(block);
+            if (eligible[block.BlockId]) attachedToward[block.BlockId] = GapShiftAttachedTowardOf(block);
+        }
+
+        GapShiftEligible = eligible;
+        GapShiftAttachedToward = attachedToward;
+    }
+
+    private static bool GapShiftQualifies(Block block)
+    {
+        if (block is SidingWallBlock) return false;
+        if (block.SideSolid.Any) return false;
+        if (block.ForFluidsLayer) return false;
+        if (block.DrawType is not (EnumDrawType.JSON or EnumDrawType.JSONAndSnowLayer or EnumDrawType.JSONAndWater)) return false;
+        if (block is BlockMicroBlock) return false;
+        if (block.Variant.ContainsKey("part")) return false;
+        if (block is BlockDoor) return false;
+        if (block is BlockMPBase) return false;
+        return true;
+    }
+
+    // BlockGroundAndSideAttachable (torches, lanterns): "orientation" names the face the item was
+    // clicked against, so the support wall sits in the opposite direction ("up" means ground-placed,
+    // free-standing). BlockBehaviorHorizontalAttachable (toolrack, shelf): the block's own code ends
+    // in the facing that points at its support wall (Block.CodeWithParts in TryAttachTo/CanBlockStay).
+    private static BlockFacing? GapShiftAttachedTowardOf(Block block)
+    {
+        if (block is BlockGroundAndSideAttachable)
+        {
+            string? orientation = block.Variant["orientation"];
+            if (orientation == null || orientation == "up") return null;
+            return BlockFacing.FromCode(orientation)?.Opposite;
+        }
+
+        if (block.HasBehavior<BlockBehaviorHorizontalAttachable>())
+        {
+            return BlockFacing.FromCode(block.Code.Path.Split('-')[^1]);
+        }
+
+        return null;
+    }
+
+    private static readonly AccessTools.FieldRef<ChunkTesselator, TCTCache> GapShiftVars =
+        AccessTools.FieldRefAccess<ChunkTesselator, TCTCache>("vars");
+    private static readonly AccessTools.FieldRef<ChunkTesselator, Block[]> GapShiftBlocksExt =
+        AccessTools.FieldRefAccess<ChunkTesselator, Block[]>("currentChunkBlocksExt");
+
+    // Transpiled onto ChunkTesselator.TesselateBlock right after it stores vars.finalZ (see
+    // GapShiftTranspiler), so both plain JSON meshes and block-entity OnTesselation meshes -
+    // everything reading vars.finalX/finalZ downstream - pick up the shift.
+    internal static void ShiftTowardWall(ChunkTesselator tesselator, Block block)
+    {
+        if (GapShiftEligible is not { } eligible || block.BlockId >= eligible.Length || !eligible[block.BlockId]) return;
+
+        var vars = GapShiftVars(tesselator);
+        var blocksExt = GapShiftBlocksExt(tesselator);
+        bool nextToWall = false;
+        foreach (var facing in BlockFacing.HORIZONTALS)
+        {
+            nextToWall |= blocksExt[vars.extIndex3d + TileSideEnum.MoveIndex[facing.Index]] is SidingWallBlock;
+        }
+        if (!nextToWall) return;
+
+        var neighbours = new Dictionary<BlockFacing, (string, string)?>();
+        foreach (var facing in BlockFacing.HORIZONTALS)
+        {
+            var neighbour = blocksExt[vars.extIndex3d + TileSideEnum.MoveIndex[facing.Index]];
+            neighbours[facing] = neighbour is SidingWallBlock wall ? (wall.Variant["layout"], wall.Variant["side"]) : null;
+        }
+
+        var attachedToward = GapShiftAttachedToward?[block.BlockId];
+        var (dx, dz) = SidingWallBlock.GapShift(neighbours, attachedToward);
+        vars.finalX += (float)dx;
+        vars.finalZ += (float)dz;
+    }
+
+    // Inserts the ShiftTowardWall call right after vars.finalZ = vars.lz is set (the int lz widens
+    // to float via conv.r4 first) - the point Place On Slabs's own TesselateBlock transpiler anchors
+    // on too, for the equivalent vertical offset - so a game update that moves it fails the build
+    // via GapShiftPatchTests rather than silently no-opping. RandomDrawOffset stores to finalZ too,
+    // further down, so the anchor also checks the value being stored came from vars.lz, not just
+    // any store to the field.
+    internal static IEnumerable<CodeInstruction> GapShiftTranspiler(IEnumerable<CodeInstruction> instructions)
+    {
+        var lzField = AccessTools.Field(typeof(TCTCache), nameof(TCTCache.lz));
+        var finalZField = AccessTools.Field(typeof(TCTCache), nameof(TCTCache.finalZ));
+        var shiftMethod = AccessTools.Method(typeof(SidingModSystem), nameof(ShiftTowardWall));
+
+        var list = instructions.ToList();
+        int inserted = 0;
+        for (int i = 0; i < list.Count; i++)
+        {
+            if (i < 2 || !list[i].StoresField(finalZField)
+                || list[i - 1].opcode != OpCodes.Conv_R4 || !list[i - 2].LoadsField(lzField)) continue;
+            inserted++;
+            list.InsertRange(i + 1, new[]
+            {
+                new CodeInstruction(OpCodes.Ldarg_0),
+                new CodeInstruction(OpCodes.Ldarg_1),
+                new CodeInstruction(OpCodes.Call, shiftMethod),
+            });
+            break;
+        }
+
+        if (inserted != 1)
+            throw new InvalidOperationException($"Expected exactly one vars.finalZ = vars.lz store to follow, found {inserted}.");
+
+        return list;
+    }
+
     // The server's CurrentBlockSelection is its own raytrace; the break packet's face only reaches this event.
     public override void StartServerSide(ICoreServerAPI api)
     {
@@ -206,10 +350,12 @@ public class SidingModSystem : ModSystem
             });
     }
 
-    // Server side only: the client receives the expanded block attributes with the block list (decision 0010).
     public override void AssetsFinalize(ICoreAPI api)
     {
         base.AssetsFinalize(api);
+        BuildGapShiftTables(api);
+
+        // Server side only from here: the client receives the expanded block attributes with the block list (decision 0010).
         if (api.Side != EnumAppSide.Server) return;
 
         var candidates = api.World.Items.Where(i => i?.Code != null)

@@ -383,6 +383,29 @@ public class SidingWallBlock : Block
         if (neibpos.Y == pos.Y - 1) MarkStackDirtyFrom(world, pos);
     }
 
+    // Placing or removing a straight wall changes whether the cell its dead space opens onto
+    // renders snapped to the panel (SidingModSystem's TesselateBlock transpiler), and that cell can
+    // sit in a different chunk than the one just marked dirty by the block change itself.
+    public override void OnBlockPlaced(IWorldAccessor world, BlockPos blockPos, ItemStack? byItemStack = null)
+    {
+        base.OnBlockPlaced(world, blockPos, byItemStack);
+        MarkGapFrontDirty(world, blockPos);
+    }
+
+    public override void OnBlockRemoved(IWorldAccessor world, BlockPos pos)
+    {
+        base.OnBlockRemoved(world, pos);
+        MarkGapFrontDirty(world, pos);
+    }
+
+    // cornerout's dead space is boxed in by two panels, so there's no single open face to shift onto.
+    private void MarkGapFrontDirty(IWorldAccessor world, BlockPos pos)
+    {
+        if (Variant["layout"] != "wall") return;
+        var (dx, dz) = OpenSide(Variant["layout"], Variant["side"]);
+        world.BlockAccessor.MarkBlockDirty(pos.AddCopy(dx, 0, dz));
+    }
+
     // Setting Framing or Infill isn't a block change, so the neighbours around it have to be told.
     internal static void MarkNeighboursDirty(IWorldAccessor world, BlockPos pos)
     {
@@ -589,6 +612,31 @@ public class SidingWallBlock : Block
         if (layout != "cornerout") return (open.X, open.Z);
         var second = BlockFacing.FromCode(CorneroutSecondFace[side]).Opposite.Normali;
         return (open.X + second.X, open.Z + second.Z);
+    }
+
+    // How far a qualifying block snaps toward the panel across the dead space (decision 0035, furniture-against-thin-walls).
+    internal const double GapShiftDistance = 0.75;
+
+    // Which of a cell's four horizontal neighbours is a straight wall whose dead space opens back
+    // onto it - and by how much a block standing in the cell should shift toward that wall's panel.
+    // Two qualifying neighbours cancel out (both open onto the same cell only in a corridor a block
+    // wide, and there is no single panel to snap to); a face-attached block only follows a shift
+    // toward the face it's actually attached to.
+    internal static (double dx, double dz) GapShift(IReadOnlyDictionary<BlockFacing, (string layout, string side)?> neighbours, BlockFacing? attachedToward)
+    {
+        BlockFacing? qualifying = null;
+        foreach (var facing in BlockFacing.HORIZONTALS)
+        {
+            if (!neighbours.TryGetValue(facing, out var variant) || variant is not { layout: "wall" } wall) continue;
+            var (odx, odz) = OpenSide(wall.layout, wall.side);
+            if (odx != -facing.Normali.X || odz != -facing.Normali.Z) continue;
+            if (qualifying != null) return (0, 0);
+            qualifying = facing;
+        }
+
+        if (qualifying == null) return (0, 0);
+        if (attachedToward != null && attachedToward != qualifying) return (0, 0);
+        return (qualifying.Normali.X * GapShiftDistance, qualifying.Normali.Z * GapShiftDistance);
     }
 
     // A sealed wall's cell stores the sunlight flowing in from outside, which RoomRegistry would count as sky (decision 0015).
