@@ -27,6 +27,7 @@ public class SidingModSystem : ModSystem
     {
         base.StartClientSide(api);
         capi = api;
+        GuestWalls.StartClientSide(api);
     }
 
     public override void Start(ICoreAPI api)
@@ -36,6 +37,7 @@ public class SidingModSystem : ModSystem
         api.RegisterBlockClass("SidingWallBlock", typeof(SidingWallBlock));
         api.RegisterBlockEntityClass("SidingWallEntity", typeof(SidingWallEntity));
         api.RegisterCollectibleBehaviorClass("vssiding.PlaceWallFrame", typeof(PlaceWallFrame));
+        GuestWalls.Start(api);
 
         // Singleplayer runs client+server in one process, so patch once.
         if (Harmony.HasAnyPatches("vssiding")) return;
@@ -463,6 +465,8 @@ public class SidingModSystem : ModSystem
     // The server's CurrentBlockSelection is its own raytrace; the break packet's face only reaches this event.
     public override void StartServerSide(ICoreServerAPI api)
     {
+        GuestWalls.StartServerSide(api);
+
         api.Event.BreakBlock += (IServerPlayer _, BlockSelection blockSel, ref float _, ref EnumHandling _)
             => SidingWallBlock.ServerBreakSelection = blockSel;
 
