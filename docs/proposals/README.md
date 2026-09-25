@@ -8,9 +8,7 @@ An idea that's been thought through but not acted on. Mutable: edit freely, argu
 
 ## Open
 
-Build order: each one should be demoable in game before the next starts.
-
-- `release-readiness`: modicon, version, dependency floor, save round-trip, and one whole house built for real (do the playtest first, bump the version last).
+None.
 
 ## Parked
 
