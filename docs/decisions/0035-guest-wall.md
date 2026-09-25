@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Created: 2026-09-20
-- Reflects: branch `furniture-against-thin-walls`; commits `8182fa1`, `62c09b0`, `59b54eb`, `7ee7fe3`, `d2b1a99`, `9984cb1`, `9aa8c94`, `42904b1`, `15ec276`, `0f00189`, `ca24d39`, `075a30c`, the twelve commits since the snap-flush prototype; vanilla 1.22 decompiled source
+- Reflects: branch `furniture-against-thin-walls` (PR #41); vanilla 1.22 decompiled source
 
 ## Summary
 Furniture placed into a wall's dead space becomes the real block in that cell.
@@ -19,7 +19,7 @@ Vanilla then finds what it expects at that position, and everything the wall use
 **Storage is chunk mod data, and no spike was needed.** `GuestWalls` keys a `[ProtoContract]` `GuestRecord` (the wall's block code plus its `SidingWallEntity` tree bytes) by chunk-local index3d in `LiveModData["vssiding:guests"]`, loaded lazily from `ModData` exactly as `ModSystemSupportBeamPlacer`'s support-beam data is.
 `ServerChunk` already flushes `LiveModData` into `ModData` on save and on the client chunk packet, so initial sync is free; a live edit rides its own network channel.
 `GuestAt(chunk or accessor, pos)` builds a transient `SidingWallEntity` (`Block`, `Pos`, `Api` set) so the existing `Compute*`/`OnTesselation` code runs unchanged.
-A decor would still need mod data for the material keys (decision 0001) and vanilla breaks every decor on a host change, so it bought nothing the proposal's spike was meant to find.
+A decor would still need mod data for the material keys (decision 0001), and vanilla breaks every decor on a host change.
 Readers never write `LiveModData`, because they run on the lighting, tesselation and physics threads; every lookup takes the caller's own side-correct `api`, because singleplayer runs client and server in one process and a wrong side's accessor would silently read the other's state.
 
 **Placement never goes through air, and any placement hosts.** `SidingWallBlock.IsReplacableBy` answers yes to every hostable block, so `Block.CanPlaceBlock`'s own check turns placement into a single `SetBlock` from wall to host.
@@ -29,10 +29,9 @@ Vanilla also asks the *clicked* block `IsReplacableBy` in the client's `OnBlockB
 Pots are `Unplaceable` blocks that go down as ground storage, whose placement insists on `Replaceable >= 6000`; a prefix on `CollectibleBehaviorGroundStorable.Interact` sends a wall's cell through `BlockGroundStorage.CreateStorage` instead, and the same prefix hosts it.
 
 **Host changes.** A prefix on `WorldChunk.BreakAllDecorFast` — called on every solid-block `SetBlock`, with the new id already written into `chunk.Data[index3d]` — classifies the change: air or replaceable restores the wall a tick later (state re-read via `FromTreeAttributes`, re-checked in case something else changed the cell first), another hostable block keeps the guest, and anything else drops the wall's layers as items and removes the guest.
-`ExchangeBlock` bypasses `BreakAllDecorFast` entirely, so a firepit's lit/unlit exchange and a torch's burnout keep their guest for free, as the proposal expected.
+`ExchangeBlock` bypasses `BreakAllDecorFast` entirely, so a firepit's lit/unlit exchange and a torch's burnout keep their guest for free.
 A player's break restores the wall straight away, in a prefix on the server's `TriggerNeighbourBlocksUpdate`, which runs once the break is done and before any neighbour is told; the deferred callback is left for every other way a host goes.
-Otherwise the cell sits as air for a tick: the wall flashes out on the client, and a torch on the wall's far side drops before the wall comes back.
-For those other paths, `CanAttachBlockAt` also answers for air (or clutter) still holding a guest record.
+On those other paths the cell sits as air for a tick, so `CanAttachBlockAt` also answers for air (or clutter) still holding a guest record, or a torch on the wall's far side would drop.
 Blocks the wall can replace (tall grass, loose stones, snow layer) are not hostable, since the restore would take them over on the next tick, and neither are `Unplaceable` ones.
 
 **Rendering** goes through the JSON tesselator's own mesh-pool helper.
@@ -65,9 +64,10 @@ It restores `vars` afterwards, so the next block starts clean.
 ## Consequences & open questions
 - The patch surface is now large: `EveryOverridePatches` covers thirteen methods across every loaded `Block` subclass.
 Each needs a cheap bail-out, and each group whose answer isn't idempotent needs its own re-entrancy depth guard, since an override calling `base.` runs both patched methods.
-- Recheck on a game update, alongside decision 0020's list: `WorldChunk.BreakAllDecorFast`, `ChunkTesselator.TesselateBlock` (postfix and the `finalZ` anchor), the `TCTCache` and `JsonTesselator` members, the renderer anchors, and the overrides `EveryOverridePatches` walks.
+- Recheck on a game update, alongside decision 0020's list: `WorldChunk.BreakAllDecorFast`, `ServerMain.TriggerNeighbourBlocksUpdate`, `CollectibleBehaviorGroundStorable.Interact`, `SystemMouseInWorldInteractions.OnBlockBuild`, `ChunkTesselator.TesselateBlock` (postfix and the `finalZ` anchor), the `TCTCache` and `JsonTesselator` members, the renderer anchors, and the overrides `EveryOverridePatches` walks.
 The patch-target tests fail on most of these.
-- Playtest is still pending for everything visual: panel placement, offsets, and the tooltip line, across save/reload and a host exchange, in a real build rather than a flat creative room.
+- Played: hosting from the panel, the off-panel offset, a chest's lid, torches on both faces, a chest on a wall's top, and exiting the world.
+Not yet played: floor and pot placement in the gap, save/reload, a host exchange, and `/sidingroom` beside a hosted chest.
 - Out of scope, as the proposal left it: multi-cell furniture (a trunk, a bed), other mods' renderers, blocks overriding `OnAsyncClientParticleTick`.
 - The client predicts a break locally before the server's restore arrives, so the wall may still flicker for a frame or two in multiplayer latency.
-- A sneak-click on the panel still places in the front cell, because sneak bypasses `OnBlockInteractStart`; that keeps the old placement one keypress away, which answers the proposal's open question.
+- A sneak-click on the panel's inner face hosts too, through `OnBlockBuild`; furniture goes into the front cell by clicking the floor there.
