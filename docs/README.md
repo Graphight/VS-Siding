@@ -4,8 +4,8 @@ Feature-level design notes: enough structure to capture *why* something is shape
 
 Two stages, split by directory so a doc's status is obvious from where it lives:
 
-- **`proposals/`** — an idea, not yet acted on. Mutable. Edit freely, argue in the doc, change your mind.
-- **`decisions/`** — numbered, what actually shipped (or was deliberately rejected). Accepted decisions are immutable.
+- **`proposals/`**: an idea, not yet acted on. Mutable. Edit freely, argue in the doc, change your mind.
+- **`decisions/`**: numbered, what actually shipped (or was deliberately rejected). Accepted decisions are immutable.
 
 A proposal **graduates** into a decision when we act on it: give it the next `NNNN`, move it to `decisions/`, set its status to `Accepted`, delete the proposal file.
 
