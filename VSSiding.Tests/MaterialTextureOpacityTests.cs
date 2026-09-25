@@ -36,7 +36,9 @@ public class MaterialTextureOpacityTests
         foreach (var entry in dict.Properties())
         {
             bool opaque = (bool?)entry.Value["Transparent"] != true;
-            if (entry.Value["BackTexture"] is JValue back) yield return ((string)back!, opaque);
+            if (entry.Value["StyleTextures"] is JObject styleTextures)
+                foreach (var styleTexture in styleTextures.Properties())
+                    yield return ((string)styleTexture.Value!, opaque);
             if (entry.Value["Texture"] is not JObject composite)
             {
                 yield return ((string)entry.Value["Texture"]!, opaque);

@@ -33,7 +33,8 @@ public class SidingWallTexSource : ITexPositionSource
         {
             CompositeTexture texture = ResolveTexture(
                 textureCode, entity.Framing, entity.Infill, entity.Front, entity.SecondFront, entity.Back,
-                framings, infills, finishes) ?? new CompositeTexture(new AssetLocation("game:block/wood/planks/oak1"));
+                framings, infills, finishes, entity.FrontStyle, entity.SecondFrontStyle, entity.BackStyle)
+                ?? new CompositeTexture(new AssetLocation("game:block/wood/planks/oak1"));
             var atlas = capi.BlockTextureAtlas;
             // The plain indexer only finds textures some other block/item already caused to
             // be packed into the atlas - most of our material textures aren't declared by
@@ -49,26 +50,42 @@ public class SidingWallTexSource : ITexPositionSource
     // this is a defensive fallback, not the expected path.
     internal static CompositeTexture? ResolveTexture(
         string slotCode, string? framing, string? infill, string? front, string? secondFront, string? back,
-        JsonObject framings, JsonObject infills, JsonObject finishes)
+        JsonObject framings, JsonObject infills, JsonObject finishes,
+        string? frontStyle = null, string? secondFrontStyle = null, string? backStyle = null)
     {
-        (string? key, JsonObject dictionary) = slotCode switch
+        (string? key, JsonObject dictionary, string face, string? style) = slotCode switch
         {
-            "framing" => (framing, framings),
-            "infill" => (infill, infills),
-            "front" => (front, finishes),
-            "secondfront" => (secondFront, finishes),
-            "back" => (back, finishes),
-            _ => (null, finishes),
+            "framing" => (framing, framings, "framing", null),
+            "infill" => (infill, infills, "infill", null),
+            // secondfront reads the front face's Elements default (decision 0027's naming), so its
+            // style falls back the same way.
+            "front" => (front, finishes, "front", frontStyle),
+            "secondfront" => (secondFront, finishes, "front", secondFrontStyle),
+            "back" => (back, finishes, "back", backStyle),
+            _ => (null, finishes, slotCode, null),
         };
         if (key == null) return null;
 
         var entry = dictionary[key];
         if (!entry.Exists) return null;
 
-        var texture = slotCode == "back" && entry["BackTexture"].Exists ? entry["BackTexture"] : entry["Texture"];
+        string? resolvedStyle = style ?? StyleSuffix(entry, face);
+        var texture = resolvedStyle != null && entry["StyleTextures"][resolvedStyle].Exists
+            ? entry["StyleTextures"][resolvedStyle]
+            : entry["Texture"];
         if (texture.Token?.Type == JTokenType.Object)
             return texture.AsObject<CompositeTexture>() is { Base: not null } composite ? composite : null;
         string? path = texture.AsString(null!);
         return path == null ? null : new CompositeTexture(new AssetLocation(path));
+    }
+
+    // Mirrors SidingWallEntity.FinishElement's fallback: without an explicit style, the style is
+    // whatever follows "{face}-" in the entry's own Elements default, or none if that default
+    // names no style (e.g. a plain "front"/"back" with no per-style geometry).
+    private static string? StyleSuffix(JsonObject entry, string face)
+    {
+        string elementName = entry["Elements"][face].AsString(face);
+        string prefix = face + "-";
+        return elementName.StartsWith(prefix) ? elementName[prefix.Length..] : null;
     }
 }

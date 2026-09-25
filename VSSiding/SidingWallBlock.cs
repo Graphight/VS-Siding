@@ -248,16 +248,6 @@ public class SidingWallBlock : Block
 
         bool isCreative = byPlayer.WorldData.CurrentGameMode == EnumGameMode.Creative;
 
-        // A style mode only finishes (decision 0027), so every refusal below is an error the
-        // player sees rather than a silent fallthrough. Resolved above the infill branch, which
-        // would otherwise return on "held item is not an infill" and say nothing at all.
-        string? style = ResolveStyle(PlaceWallFrame.ToolModeOf(slot));
-        if (style != null && entity.Infill == null)
-        {
-            (byPlayer as IServerPlayer)?.SendIngameError("vssiding:needsinfill", Lang.Get("vssiding:build-needs-infill"));
-            return true;
-        }
-
         if (entity.Infill == null)
         {
             // A bare frame clicked in corner mode becomes a cornerout in place, for a T-junction
@@ -265,7 +255,7 @@ public class SidingWallBlock : Block
             // cornerout frame costs the same as a fresh wall frame. Everything this doesn't
             // claim falls through to the infill match below, then to PlaceWallFrame.
             if (Variant["layout"] == "wall"
-                && ResolveLayout(PlaceWallFrame.ToolModeOf(slot)) == "cornerout"
+                && SidingModePicker.Layout(byPlayer) == "cornerout"
                 && MatchConsumes(heldCode, Attributes["Framings"]) != null
                 && ResolveFinishFace("wall", Variant["side"], blockSel.Face) != null)
             {
@@ -308,9 +298,12 @@ public class SidingWallBlock : Block
         string? finishKey = MatchConsumes(heldCode, Attributes["Finishes"]);
         if (finishKey == null) return base.OnBlockInteractStart(world, byPlayer, blockSel);
 
+        // The picker's chosen style is used only if this finish lists it; otherwise the entry's
+        // default applies.
+        string? style = SidingModePicker.FinishChoices(byPlayer).FirstOrDefault(s => HasStyle(Attributes["Finishes"][finishKey], s));
+
         // Planks that can't finish this face still extend the wall via PlaceWallFrame, and held blocks still place.
-        bool heldPlaces = style == null
-            && (slot.Itemstack!.Class == EnumItemClass.Block || MatchConsumes(heldCode, Attributes["Framings"]) != null);
+        bool heldPlaces = slot.Itemstack!.Class == EnumItemClass.Block || MatchConsumes(heldCode, Attributes["Framings"]) != null;
 
         // Glazing takes no finish: a slab over it would just hide the glass. Refusing here rather
         // than in ResolveFinishFace keeps breaking unchanged - PeelLayer still finds no finish on
@@ -328,12 +321,6 @@ public class SidingWallBlock : Block
         {
             if (heldPlaces) return base.OnBlockInteractStart(world, byPlayer, blockSel);
             (byPlayer as IServerPlayer)?.SendIngameError("vssiding:wrongface", Lang.Get("vssiding:build-wrong-face"));
-            return true;
-        }
-
-        if (style != null && !HasStyle(Attributes["Finishes"][finishKey], style))
-        {
-            (byPlayer as IServerPlayer)?.SendIngameError("vssiding:nostyle", Lang.Get("vssiding:build-no-style"));
             return true;
         }
 
@@ -373,8 +360,8 @@ public class SidingWallBlock : Block
         entity.MarkDirty(true);
     }
 
-    // Only a finish that lists a style can be asked for it, so a style mode refuses daub and
-    // brick rather than naming an element their shape hasn't got.
+    // Only a finish that lists a style can be asked for it, so a picked board style on daub or
+    // brick falls back to the entry's default rather than naming an element its shape hasn't got.
     internal static bool HasStyle(JsonObject finish, string style)
         => Array.IndexOf(finish["Styles"].AsArray<string>([]) ?? [], style) >= 0;
 
@@ -913,21 +900,6 @@ public class SidingWallBlock : Block
     }
 
     internal static int ConsumeQuantity(JsonObject consumes) => consumes["quantity"].AsInt(1);
-
-    // Tool mode 0 is "wall", 1 is "corner" - see decision 0005. Modes 2 and 3 pick a plank
-    // finish style (decision 0027) and frame nothing at all, so they resolve to no layout.
-    // Anything else falls back to "wall" rather than throwing on a stale/out-of-range mode.
-    internal static string? ResolveLayout(int toolMode)
-        => ResolveStyle(toolMode) != null ? null : toolMode == 1 ? "cornerout" : "wall";
-
-    // The style modes are appended after the frame modes, never inserted among them: the mode is
-    // stored as an index on the item stack, so renumbering wakes saved stacks up in another mode.
-    internal static string? ResolveStyle(int toolMode) => toolMode switch
-    {
-        2 => "weatherboard",
-        3 => "boards",
-        _ => null,
-    };
 
     // Which finish layer a build-flow click's clicked face targets - the hugged side is
     // "front", the opposite side is "back", an end/top/bottom face is neither. A cornerout's

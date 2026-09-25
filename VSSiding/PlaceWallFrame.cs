@@ -1,56 +1,19 @@
-using System.Linq;
-using Vintagestory.API.Client;
 using Vintagestory.API.Common;
-using Vintagestory.API.Config;
 using Vintagestory.API.MathTools;
-using Vintagestory.API.Util;
 
 namespace VSSiding;
 
 // Patched onto game:itemtypes/resource/plank.json - see docs/decisions/0005/0006. A saw in
 // the off hand tells this apart from Roofing's own plank-placing behavior (and is also the
 // whole build flow's "you're building" signal, see SidingWallBlock.HasSawInOffhand); the
-// tool mode picks wall vs cornerout, and placement itself is handed to the placeholder wall
-// block so its existing HorizontalOrientable behavior does the "hug the player's side"
-// orientation.
+// picker's framing row picks wall vs cornerout, and placement itself is handed to the
+// placeholder wall block so its existing HorizontalOrientable behavior does the "hug the
+// player's side" orientation.
 public class PlaceWallFrame : CollectibleBehavior
 {
-    private SkillItem[]? toolModes;
-
     public PlaceWallFrame(CollectibleObject collObj) : base(collObj)
     {
     }
-
-    public override void OnLoaded(ICoreAPI api)
-    {
-        base.OnLoaded(api);
-        if (api is not ICoreClientAPI capi) return;
-
-        // -1 tints the icons white, as every vanilla mode picker does: the source art is black,
-        // and a null colour would keep that fill and skip the alpha premultiplication the skill
-        // item grid renders with. ModeIconsTests pins each file to its mode's code.
-        toolModes = ObjectCacheUtil.GetOrCreate(capi, "vssidingPlaceWallFrameToolModes", () => new[]
-        {
-            new SkillItem { Code = new AssetLocation("wall"), Name = Lang.Get("vssiding:toolmode-wall") },
-            new SkillItem { Code = new AssetLocation("corner"), Name = Lang.Get("vssiding:toolmode-corner") },
-            new SkillItem { Code = new AssetLocation("weatherboard"), Name = Lang.Get("vssiding:toolmode-weatherboard") },
-            new SkillItem { Code = new AssetLocation("boards"), Name = Lang.Get("vssiding:toolmode-boards") },
-        }.Select(item => item.WithIcon(capi, capi.Gui.LoadSvgWithPadding(
-            new AssetLocation("vssiding", $"textures/icons/{item.Code.Path}.svg"), 48, 48, 5, -1))).ToArray());
-    }
-
-    public override SkillItem[] GetToolModes(ItemSlot slot, IClientPlayer forPlayer, BlockSelection blockSel)
-        => toolModes!;
-
-    public override int GetToolMode(ItemSlot slot, IPlayer byPlayer, BlockSelection blockSel)
-        => ToolModeOf(slot);
-
-    // SidingWallBlock reads the mode off a stack rather than a behavior instance, so the
-    // attribute key lives here once instead of being spelled out at both call sites.
-    internal static int ToolModeOf(ItemSlot slot) => slot.Itemstack?.Attributes.GetInt("toolMode", 0) ?? 0;
-
-    public override void SetToolMode(ItemSlot slot, IPlayer byPlayer, BlockSelection blockSel, int toolMode)
-        => slot.Itemstack.Attributes.SetInt("toolMode", toolMode);
 
     public override void OnHeldInteractStart(ItemSlot slot, EntityAgent byEntity, BlockSelection blockSel, EntitySelection entitySel, bool firstEvent, ref EnumHandHandling handHandling, ref EnumHandling handling)
     {
@@ -66,10 +29,7 @@ public class PlaceWallFrame : CollectibleBehavior
         string? framingKey = SidingWallBlock.MatchConsumes(slot.Itemstack.Collectible.Code, wallBlock.Attributes["Framings"]);
         if (framingKey == null) return;
 
-        // A style mode never frames (decision 0027). Checked above the afford check, or a style
-        // mode with too few planks would error about a framing cost nobody is being charged.
-        string? layout = SidingWallBlock.ResolveLayout(GetToolMode(slot, byPlayer, blockSel));
-        if (layout == null) return;
+        string layout = SidingModePicker.Layout(byPlayer);
 
         var consumes = wallBlock.Attributes["Framings"][framingKey]["Consumes"];
         bool isCreative = byPlayer.WorldData.CurrentGameMode == EnumGameMode.Creative;

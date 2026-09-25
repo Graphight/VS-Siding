@@ -46,6 +46,7 @@ public class SidingModSystem : ModSystem
         api.RegisterBlockEntityClass("SidingWallEntity", typeof(SidingWallEntity));
         api.RegisterCollectibleBehaviorClass("vssiding.PlaceWallFrame", typeof(PlaceWallFrame));
         GuestWalls.Start(api);
+        SidingModePicker.Start(api);
 
         // Singleplayer runs client+server in one process, so patch once.
         if (Harmony.HasAnyPatches("vssiding")) return;
@@ -249,6 +250,15 @@ public class SidingModSystem : ModSystem
         {
             api.Logger.Error("vssiding: trunk footprint patch skipped, a trunk may straddle a corner, opposite wall faces, or a wall and an open cell, and sit misaligned with its panels: {0}", e);
         }
+
+        try
+        {
+            SidingModePicker.PatchDialog(harmony);
+        }
+        catch (Exception e)
+        {
+            api.Logger.Error("vssiding: mode picker patch skipped, a saw in the off hand opens no siding mode picker: {0}", e);
+        }
     }
 
     private static readonly AccessTools.FieldRef<AnimatableRenderer, Vec3d> AnimatablePos =
@@ -406,14 +416,14 @@ public class SidingModSystem : ModSystem
     {
         new Harmony("vssiding").UnpatchAll("vssiding");
         EveryOverridePatches.Forget();
-        // PlaceWallFrame does have CollectibleBehavior.OnUnloaded, but it is patched onto every
-        // plank variant, so ~14 behavior instances share the one cached array and would each
-        // dispose it. ClientMain.Dispose runs the mod systems before its item loop, so freeing
-        // the icons here does it once, first.
-        if (clientApi?.ObjectCache.TryGetValue("vssidingPlaceWallFrameToolModes", out var cached) == true)
+        // SidingModePicker's icons live in the object cache with no owner to free them.
+        foreach (var cacheKey in new[] { "vssidingModePickerLitIcons", "vssidingModePickerDimIcons" })
         {
-            foreach (var item in (SkillItem[])cached) item.Dispose();
-            clientApi.ObjectCache.Remove("vssidingPlaceWallFrameToolModes");
+            if (clientApi?.ObjectCache.TryGetValue(cacheKey, out var cached) == true)
+            {
+                foreach (var item in (SkillItem[])cached) item.Dispose();
+                clientApi.ObjectCache.Remove(cacheKey);
+            }
         }
         if (clientApi != null) capi = null;
         base.Dispose();
@@ -950,6 +960,7 @@ public class SidingModSystem : ModSystem
     public override void StartServerSide(ICoreServerAPI api)
     {
         GuestWalls.StartServerSide(api);
+        SidingModePicker.StartServerSide(api);
 
         api.Event.BreakBlock += (IServerPlayer _, BlockSelection blockSel, ref float _, ref EnumHandling handling) =>
         {
