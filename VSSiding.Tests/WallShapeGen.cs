@@ -126,11 +126,9 @@ public static class WallShapeGen
         }
     }
 
-    // A log course is a thin backing sliver against the framing, then a proud band toward the
-    // outward face, four bands stacked with a one-voxel reveal between so the sliver shows through
-    // as the gap. Front and back read as the same table with outer and inner swapped, the way brick
-    // and ashlar do above; a leg restricts runLo/runHi the same way too, since a log has no joints
-    // along its run to crop.
+    // A log face is a backing plane on the inner half, then four proud bands on the outer half with
+    // a one-voxel reveal between, where the plane shows through. As with RunningBond, a back group is
+    // the same call with outer and inner swapped, and a cornerout leg narrows runLo/runHi.
     private static IEnumerable<Element> Logs(
         string name, string slot, char depthAxis, double outer, double inner, string outwardFace,
         double runLo, double runHi)
@@ -152,8 +150,8 @@ public static class WallShapeGen
         }
     }
 
-    // Mirrors a depth-x relief table across the wall's centreline (x 0..4), so a back or second face
-    // reads the same irregular joints as the front without a second hand-authored table.
+    // Mirror a relief table across the wall's depth (0..4 on x or z), so back-shakes reads the same
+    // irregular joints as the front without a second hand-authored table.
     private static Element MirrorDepthX(Element e, string name, string slot) => e with
     {
         Name = name,
@@ -170,8 +168,7 @@ public static class WallShapeGen
         To = (e.To.X, e.To.Y, 4 - e.From.Z),
     };
 
-    // Crops a mirrored run to the leg it belongs to, the way RunningBond's units do: a back group
-    // only covers its own leg once mirrored past the corner post.
+    // Crops a mirrored cornerout table to one leg's run, as RunningBond's runLo/runHi do.
     private static IEnumerable<Element> ClipRun(IEnumerable<Element> elements, char runAxis, double runLo, double runHi)
     {
         foreach (var e in elements)
@@ -283,9 +280,6 @@ public static class WallShapeGen
         new("back-weatherboard", (3, 14, 0), (3.5, 15, 16), "back", UvRule.Positional),
         new("back-weatherboard", (3, 15, 0), (3.25, 16, 16), "back", UvRule.Positional),
         .. FrontShakesElements,
-        // A back group is the same table with outer and inner swapped, per Logs' own comment; a
-        // front group mirrors the same table across the centreline instead, since its relief is
-        // painted, not proud-and-recessed courses.
         .. Logs("back-logs", "back", 'x', 4, 3, "east", 0, 16),
         .. Logs("front-logs", "front", 'x', 0, 1, "west", 0, 16),
         .. FrontShakesElements.Select(e => MirrorDepthX(e, "back-shakes", "back")),
@@ -308,8 +302,7 @@ public static class WallShapeGen
         .. RubbleGrid("back-rubble", "back", 'x', 4, 3, 0, 16),
     ];
 
-    // Same tiling as wall's front-shakes (see FrontShakesElements' comment), tuned for the corner:
-    // the front leg's shakes ease off the join at z 0.5/4.5/8.5/12.5 instead of butting flush.
+    // Wall's front-shakes, except each body course's first shake starts at z 0.5 rather than 0.
     private static readonly Element[] CornerFrontShakesLeg1 =
     [
         new("front-shakes", (0, 0, 0), (1, 1, 5), "front", UvRule.Positional, RunAxis: 'z'),
@@ -481,9 +474,7 @@ public static class WallShapeGen
         // courses.
         .. CornerFrontShakesLeg1,
         .. CornerSecondFrontShakesLeg2,
-        // A back group covers both legs, the way back-logs does, and front-logs/secondfront-logs
-        // don't need the split - the outside corner is convex, so a leg's own cladding runs
-        // uninterrupted the way its front-shakes does above.
+        // A back group covers both legs, as back-brick does below.
         .. Logs("back-logs", "back", 'x', 4, 3, "east", 4, 16),
         .. Logs("front-logs", "front", 'x', 0, 1, "west", 0, 16),
         .. Logs("back-logs", "back", 'z', 4, 3, "south", 3, 16),

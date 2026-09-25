@@ -195,7 +195,8 @@ public static class SidingModePicker
     internal static string ChoiceOf(IPlayer player, int row)
     {
         var (key, options, allowNone) = Rows[row];
-        return player.Entity.WatchedAttributes.GetString(key, allowNone ? "" : options[0]) ?? (allowNone ? "" : options[0]);
+        string fallback = allowNone ? "" : options[0];
+        return player.Entity.WatchedAttributes.GetString(key, fallback) ?? fallback;
     }
 
     // The framing row never comes back null - "corner" upgrades to cornerout, anything else frames a

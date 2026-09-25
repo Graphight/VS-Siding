@@ -299,7 +299,7 @@ public class SidingWallBlock : Block
         if (finishKey == null) return base.OnBlockInteractStart(world, byPlayer, blockSel);
 
         // The picker's chosen style is used only if this finish lists it; otherwise the entry's
-        // default applies, exactly as a frame click always has.
+        // default applies.
         string? style = SidingModePicker.FinishChoices(byPlayer).FirstOrDefault(s => HasStyle(Attributes["Finishes"][finishKey], s));
 
         // Planks that can't finish this face still extend the wall via PlaceWallFrame, and held blocks still place.
@@ -360,7 +360,7 @@ public class SidingWallBlock : Block
         entity.MarkDirty(true);
     }
 
-    // Only a finish that lists a style can be asked for it, so a style-mode click on daub or
+    // Only a finish that lists a style can be asked for it, so a picked board style on daub or
     // brick falls back to the entry's default rather than naming an element its shape hasn't got.
     internal static bool HasStyle(JsonObject finish, string style)
         => Array.IndexOf(finish["Styles"].AsArray<string>([]) ?? [], style) >= 0;

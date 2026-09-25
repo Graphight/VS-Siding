@@ -5,10 +5,10 @@ namespace VSSiding;
 
 // Patched onto game:itemtypes/resource/plank.json - see docs/decisions/0005/0006. A saw in
 // the off hand tells this apart from Roofing's own plank-placing behavior (and is also the
-// whole build flow's "you're building" signal, see SidingWallBlock.HasSawInOffhand).
-// Placement itself is handed to the placeholder wall block so its existing
-// HorizontalOrientable behavior does the "hug the player's side" orientation; the tool mode
-// picker itself lives in SidingModePicker, whose framing row picks wall vs cornerout.
+// whole build flow's "you're building" signal, see SidingWallBlock.HasSawInOffhand); the
+// picker's framing row picks wall vs cornerout, and placement itself is handed to the
+// placeholder wall block so its existing HorizontalOrientable behavior does the "hug the
+// player's side" orientation.
 public class PlaceWallFrame : CollectibleBehavior
 {
     public PlaceWallFrame(CollectibleObject collObj) : base(collObj)

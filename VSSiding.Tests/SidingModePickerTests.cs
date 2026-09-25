@@ -6,10 +6,8 @@ namespace VSSiding.Tests;
 
 public class SidingModePickerTests
 {
-    // The framing row comes first (wall, corner), the boards row second (weatherboard, boards), the
-    // logs row third (shakes, logs) - a flat picker index walks the rows in that
-    // order. An out-of-range index (a stale index from a shorter picker) comes back (-1, -1) rather
-    // than throwing.
+    // A flat picker index walks the rows in order: framing (wall, corner), boards (weatherboard,
+    // boards), logs (shakes, logs). Out of range comes back (-1, -1) rather than throwing.
     [Fact]
     public void LocateMapsAFlatIndexToItsRowAndOption()
     {
@@ -32,8 +30,8 @@ public class SidingModePickerTests
             });
     }
 
-    // The titled layout reaches into GuiDialogToolMode's private members by name, so a game update
-    // that renames one would silently drop back to vanilla's untitled rows.
+    // The picker reaches into GuiDialogToolMode's private members by name, so a game update that
+    // renames one would leave a saw in the off hand opening no picker, with only a log line to say so.
     [Fact]
     public void TheDialogLayoutPatchStillFindsItsVanillaMembers()
     {

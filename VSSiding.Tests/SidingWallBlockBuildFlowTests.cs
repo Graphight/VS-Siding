@@ -54,8 +54,8 @@ public class SidingWallBlockBuildFlowTests
         Assert.Equal(1, quantity);
     }
 
-    // A style mode only matches a finish that lists that style, so a masonry entry refuses it
-    // rather than asking its shape for a plank element it hasn't got.
+    // A picked style only applies to a finish that lists it, so a masonry entry falls back to its
+    // default rather than asking its shape for a plank element it hasn't got.
     [Fact]
     public void OnlyAFinishListingAStyleOffersIt()
     {

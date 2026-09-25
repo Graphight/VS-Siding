@@ -42,7 +42,8 @@ Where things live. The decisions carry the *why*; `ls docs/decisions/` is the in
 - `GuestWalls`: the guest store, holding a wall's state once furniture hosts its cell, riding chunk mod data to the client and a network channel for live edits (0035).
 - `EveryOverridePatches`, `GapShiftCollisionPatches`, `GuestTooltipPatches`, `GuestSealingPatches`, `GuestLightPatches`, `PanelInteractionPatches`: the guest wall's consumer patches, covering every declaring `Block` subclass override, re-answered for a hosted cell's tooltip, sealing, light, collision, selection and swallowed interaction (0035).
 - `MaterialFamilies`: `Expand`, called from `AssetsFinalize` (0010).
-- `PlaceWallFrame`: a `CollectibleBehavior` on every plank that raises the initial framing (0005/0006) and carries the saw's tool mode picker and its icons (0031).
+- `PlaceWallFrame`: a `CollectibleBehavior` on every plank that raises the initial framing (0005/0006).
+- `SidingModePicker`: the saw's mode picker, opened by vanilla's tool mode hotkey whenever a saw is in the off hand; rows of framing, board and log styles stored per player, patched into `GuiDialogToolMode` with its own pick channel, icons from 0031.
 - `VSSiding.Tests/WallShapeGen`: generates the shapes `wall.json` and `cornerout.json` use (0021). It lives in the test project, not beside the assets it writes.
 
 `wall.json` carries the `Framings`/`Infills`/`Finishes` dictionaries every one of those keys looks up.

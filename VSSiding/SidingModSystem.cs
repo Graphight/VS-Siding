@@ -257,7 +257,7 @@ public class SidingModSystem : ModSystem
         }
         catch (Exception e)
         {
-            api.Logger.Error("vssiding: mode picker layout patch skipped, a saw in the off hand opens no siding mode picker: {0}", e);
+            api.Logger.Error("vssiding: mode picker patch skipped, a saw in the off hand opens no siding mode picker: {0}", e);
         }
     }
 

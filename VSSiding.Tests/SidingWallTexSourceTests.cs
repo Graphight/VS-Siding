@@ -27,7 +27,7 @@ public class SidingWallTexSourceTests
         "planks": { "Texture": "game:block/wood/planks/aged1" },
         "shakes": {
             "Texture": "game:block/wood/shingles/oak-top",
-            "StyleTextures": { "shakes": "game:block/wood/shingles/oak-top", "logs": "game:block/wood/debarked/oak" },
+            "StyleTextures": { "logs": "game:block/wood/debarked/oak" },
             "Elements": { "front": "front-shakes", "back": "back-logs" }
         },
         "brick": { "Texture": "game:block/clay/brick/four/running/red1" },
