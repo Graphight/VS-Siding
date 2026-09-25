@@ -16,6 +16,8 @@ Logs have no tool-mode behaviour today, so the proposal adds one and works out t
 The infill panel's `Flat` UV rule restarts the texture at each element's own base instead of the block's own height, so the proposal switches it to `Positional`, the same fix decision 0028 already made for weatherboard.
 - `fireproof-infill`: decision 0033 noted a wall still burns like a plank no matter its infill, because `GetCombustibleProperties` is never overridden and always answers with the block's own wood-plank numbers.
 The proposal overrides it to reuse `HitLayerMaterial`, the same peeled-layer lookup `GetResistance`/`GetBlockMaterial` already use, so only a `Wood`-tagged layer stays flammable.
+- `guest-furniture-collision`: decision 0036 found, unresolved, that a hosted chest or trunk collides only on its sides and lets a player walk in through the front.
+The off-panel shift pushes the box into the room-side cell, which vanilla's collision tester never asks, so the proposal clamps the shifted boxes to their own cell.
 
 ## Parked
 
