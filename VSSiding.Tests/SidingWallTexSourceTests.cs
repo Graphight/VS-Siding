@@ -25,7 +25,11 @@ public class SidingWallTexSourceTests
     {
         "daub": { "Texture": "game:block/clay/daub/browngolden/normal1" },
         "planks": { "Texture": "game:block/wood/planks/aged1" },
-        "shakes": { "Texture": "game:block/wood/shingles/oak-top", "BackTexture": "game:block/wood/debarked/oak" },
+        "shakes": {
+            "Texture": "game:block/wood/shingles/oak-top",
+            "StyleTextures": { "shakes": "game:block/wood/shingles/oak-top", "logs": "game:block/wood/debarked/oak" },
+            "Elements": { "front": "front-shakes", "back": "back-logs" }
+        },
         "brick": { "Texture": "game:block/clay/brick/four/running/red1" },
         "overlay-brick": {
             "Texture": {
@@ -91,7 +95,7 @@ public class SidingWallTexSourceTests
     }
 
     [Fact]
-    public void BackTextureOverridesTextureOnTheBackOnly()
+    public void StyleTexturesFollowEachSlotsDefaultStyle()
     {
         var actual = new[] { "front", "secondfront", "back" }
             .Select(slot => SidingWallTexSource.ResolveTexture(slot, "oak", "wattle", "shakes", "shakes", "shakes", Framings, Infills, Finishes)!.Base);
@@ -101,6 +105,22 @@ public class SidingWallTexSourceTests
             new AssetLocation("game:block/wood/shingles/oak-top"),
             new AssetLocation("game:block/wood/shingles/oak-top"),
             new AssetLocation("game:block/wood/debarked/oak"),
+        }, actual);
+    }
+
+    [Fact]
+    public void ExplicitStyleOverridesTheDefaultOnEachSlot()
+    {
+        var actual = new[] { "front", "secondfront", "back" }
+            .Select(slot => SidingWallTexSource.ResolveTexture(
+                slot, "oak", "wattle", "shakes", "shakes", "shakes", Framings, Infills, Finishes,
+                frontStyle: "logs", secondFrontStyle: "logs", backStyle: "shakes")!.Base);
+
+        Assert.Equal(new[]
+        {
+            new AssetLocation("game:block/wood/debarked/oak"),
+            new AssetLocation("game:block/wood/debarked/oak"),
+            new AssetLocation("game:block/wood/shingles/oak-top"),
         }, actual);
     }
 

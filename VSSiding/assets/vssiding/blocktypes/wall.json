@@ -209,7 +209,7 @@
 				Match: { type: "block", code: "game:log-placed-*-ud", variant: "wood" },
 				DisplayName: "vssiding:finish-shakes-{wood}",
 				Texture: "game:block/wood/shingles/{wood}-top",
-				BackTexture: "game:block/wood/debarked/{wood}",
+				StyleTextures: { shakes: "game:block/wood/shingles/{wood}-top", logs: "game:block/wood/debarked/{wood}" },
 				Elements: { front: "front-shakes", back: "back-logs" },
 				Styles: ["shakes", "logs"],
 				BlockMaterial: "Wood",
