@@ -2,11 +2,11 @@
     "$schema": "https://moddbcdn.vintagestory.at/schema/modinfo.latest.json",
     "type": "Code",
     "modid": "vssiding",
-    "name": "Siding",
+    "name": "VS Siding Mod",
     "authors": [
         "Graphight"
     ],
-    "description": "Layered wall building: hold a saw in your off hand and raise walls layer by layer, picking framing, infill, and finish materials for thinner, more realistic walls",
+    "description": "Layered wall building: framing, infill, and finish materials for thinner, more realistic walls",
     "version": "1.0.0",
     "dependencies": {
         "game": "1.22.7"
