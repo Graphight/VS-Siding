@@ -18,11 +18,11 @@ A contributor reading the README or CONTRIBUTING never learned that `just test` 
 ## Design
 `just` is the primary path in all three docs, and `./build.sh`/`build.ps1` stay as the fallback, as `CLAUDE.md` already had it.
 
-`README.md` shows `just` and `just build`, links `just`, and names the script fallback.
+`README.md` shows `just build` and `just deploy`, says plain `just` runs `deploy`, links `just`, and names the script fallback.
 The `VINTAGE_STORY`/`Directory.Build.props.user` paragraph is unchanged; it applies either way.
 
 `CONTRIBUTING.md`'s branch example runs `just build`, not `just deploy`: a contributor mid-branch should not have their live `Mods` folder replaced.
-"Before you open a PR" runs `just build` and `just test`, gives the no-`just` equivalents, and says to run `just shapes` after changing `WallShapeGen`.
+"Before you open a PR" runs `just build` and `just test`, gives the no-`just` equivalents, names `just deploy` as the way to try a branch in game, and says to run `just shapes` after changing `WallShapeGen`.
 
 `CLAUDE.md` gains `just shapes` in its command block.
 

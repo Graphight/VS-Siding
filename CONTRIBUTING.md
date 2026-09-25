@@ -48,6 +48,7 @@ just test
 ```
 
 Needs [`just`](https://github.com/casey/just); without it, `./build.sh` (or `build.ps1`) runs the same build and `dotnet test VSSiding.sln` the tests.
+To try the branch in game, `just deploy` (or plain `just`) builds and swaps the installed `vssiding` zip in your `Mods` folder for this one.
 Changed `WallShapeGen`? Run `just shapes` to rewrite the committed shape JSON from it (decision 0021).
 
 Check the real exit status: a truncated or piped log can look reassuring and still exit non-zero.

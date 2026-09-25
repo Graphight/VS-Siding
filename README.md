@@ -45,10 +45,11 @@ Handbook:
 ## Building from Source
 
 ```bash
-just          # build, then install into the game's Mods folder
 just build    # build only
+just deploy   # build, then install into the game's Mods folder
 ```
 
+Plain `just` runs `just deploy`.
 Needs [`just`](https://github.com/casey/just).
 Without it, `./build.sh` (or `build.ps1` on Windows) runs the same build.
 
