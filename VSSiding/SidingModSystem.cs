@@ -894,6 +894,11 @@ public class SidingModSystem : ModSystem
     internal static readonly AccessTools.FieldRef<CollectibleObject, ICoreAPI> ApiRef =
         AccessTools.FieldRefAccess<CollectibleObject, ICoreAPI>("api");
 
+    // A trunk's filler draws nothing and takes its boxes from the trunk (a mirrored copy of the trunk's own),
+    // not from its own default-cube row in FaceShiftByBlock, so it shifts by the trunk's own inset.
+    internal static Block ShiftSource(IBlockAccessor accessor, BlockPos pos, Block block)
+        => block is BlockMultiblock filler ? accessor.GetBlock(pos.AddCopy(filler.OffsetInv)) : block;
+
     // How far a hosted block at pos shifts off its guest's panel; zero for anything not hosted.
     internal static (double dx, double dz) GapShiftAt(BlockPos pos, Block block)
     {
@@ -902,7 +907,9 @@ public class SidingModSystem : ModSystem
         ICoreAPI? api = ApiRef(block);
         if (api == null || GuestWalls.GuestAt(api, pos)?.Block is not SidingWallBlock wall) return (0, 0);
 
-        var shifts = FaceShiftByBlock![block.BlockId];
+        Block shiftSource = ShiftSource(api.World.BlockAccessor, pos, block);
+        if (FaceShiftByBlock is not { } faceShift || shiftSource.BlockId >= faceShift.Length
+            || faceShift[shiftSource.BlockId] is not { } shifts) return (0, 0);
         var claimed = HorizontalFaces.Where(face => SidingWallBlock.ClaimsFace(wall.Variant["layout"], wall.Variant["side"], face));
         return Combine(claimed, face => shifts[HorizontalFaceIndex[face]]);
     }
