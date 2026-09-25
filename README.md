@@ -1,5 +1,7 @@
 # Siding - Layered Wall Building for Vintage Story
 
+![external-logo](docs/screenshots/ExternalLogo.jpg)
+
 A Vintage Story mod that replaces solid one-block walls with a thin, layered wall system: pick a framing material, an infill material, and a finish for each face, and build walls that read like actual construction instead of a stack of full blocks.
 
 Inspired by how the [Roofing](https://mods.vintagestory.at/show/mod/30143) mod handles pitched roofs: one shared shape, material swapped in via config, instead of hand-authoring every combination.
