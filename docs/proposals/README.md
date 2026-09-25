@@ -18,6 +18,8 @@ The infill panel's `Flat` UV rule restarts the texture at each element's own bas
 The proposal overrides it to reuse `HitLayerMaterial`, the same peeled-layer lookup `GetResistance`/`GetBlockMaterial` already use, so only a `Wood`-tagged layer stays flammable.
 - `guest-furniture-collision`: decision 0036 found, unresolved, that a hosted chest or trunk collides only on its sides and lets a player walk in through the front.
 The off-panel shift pushes the box into the room-side cell, which vanilla's collision tester never asks, so the proposal clamps the shifted boxes to their own cell.
+- `chiselling-walls`: a siding wall's `drawtype: "json"` and non-cube shape fail vanilla's chisel check before any wall-specific logic runs, so a chisel silently does nothing.
+The proposal opts into vanilla's collision-box chiselling, as plank slabs do, then rebuilds the microblock's materials from the wall's layers.
 
 ## Parked
 
