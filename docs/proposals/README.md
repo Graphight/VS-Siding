@@ -8,7 +8,8 @@ An idea that's been thought through but not acted on. Mutable: edit freely, argu
 
 ## Open
 
-None.
+- `just-workflow-docs`: `README.md` and `CONTRIBUTING.md` only show `./build.sh` and raw `dotnet`, while `CLAUDE.md` already documents `just build`/`just test`/`just deploy`.
+The proposal brings the other two docs in line.
 
 ## Parked
 
