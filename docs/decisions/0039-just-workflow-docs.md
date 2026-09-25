@@ -35,4 +35,3 @@ Each doc keeps its own voice (the README terse, CONTRIBUTING a checklist) rather
 
 ## Consequences & open questions
 - A new `justfile` recipe now means up to three doc edits, not one.
-- The proposal said `just shapes` rewrites `wall.json` and `cornerout.json`; it rewrites the shape files those block types use, and the docs say that.
