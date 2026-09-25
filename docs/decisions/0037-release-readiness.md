@@ -29,9 +29,15 @@ The proposal wanted a wall in section, but the house is what the playtest produc
 
 **Game floor `1.22.7`.**
 The proposal asked for the oldest version that still has every patched member.
-That question stopped being answerable by reading: `SidingModSystem` patches about fourteen vanilla methods, and several are transpilers that match IL, which can change between patch releases while every member keeps its name.
+That question stopped being answerable by reading: `SidingModSystem` patches sixteen vanilla methods directly, plus `EveryOverridePatches`' fan-out, and several are transpilers that match IL, which can change between patch releases while every member keeps its name.
 The only version the mod has been played on is `1.22.7`, so that is the floor.
-Every patch is wrapped in a `try/catch` that logs and drops its fix, so a player on a later build loses a fix rather than crashing.
+Decision 0020's consumer sweep, last done on `1.22.2` (0033), was not redone.
+The test suite, which builds against the installed `1.22.7` DLLs, and the playtest stand in for it.
+
+The floor has no ceiling, so what a later build does matters.
+Every `harmony.Patch` call sits in a `try/catch`, so a patch that no longer applies is skipped with a log line and the mod runs without that fix.
+The four private-field lookups in `SidingModSystem` are the exception: `AnimatableRenderer.pos` and `capi`, `ChunkTesselator.vars` and `CollectibleObject.api`, read through `static readonly` `FieldRefAccess` fields.
+Harmony throws when the field is missing, so a later build renaming one fails the type initializer, and the mod with it, rather than one fix.
 
 **Version `1.0.0`, last.**
 Bumped in its own commit right before publishing; `just deploy` already deletes the old `vssiding_*.zip`.
@@ -49,4 +55,5 @@ The page description is pasted from `README.md`, so the two drift only if someon
 ## Consequences & open questions
 - Players on `1.22.0` to `1.22.6` can't load the mod. If that turns out to matter, testing one older build lowers the floor.
 - A game update means redoing decision 0020's consumer sweep and rerunning the tests before claiming it works.
+- Moving the four field lookups behind the same `try/catch` would make a renamed field cost one fix instead of the mod. Not done for `1.0.0`; revisit if a game update renames one.
 - No proposals are open.
