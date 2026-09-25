@@ -21,13 +21,18 @@ public class FootprintHostsTests
     [Fact]
     public void ATwoWallFootprintHostsOnlyAlongTheTrunksLongAxis()
     {
+        var hosts = new HashSet<(string trunk, string wall)>
+        {
+            ("north", "north"), ("north", "south"), ("south", "north"), ("south", "south"),
+            ("east", "east"), ("east", "west"), ("west", "east"), ("west", "west"),
+        };
+
         var expected = new Dictionary<(string trunk, string wall), bool>();
         var actual = new Dictionary<(string trunk, string wall), bool>();
         foreach (var trunkSide in Sides)
         foreach (var wallSide in Sides)
         {
-            bool alongX = trunkSide is "north" or "south";
-            expected[(trunkSide, wallSide)] = alongX == (wallSide is "north" or "south");
+            expected[(trunkSide, wallSide)] = hosts.Contains((trunkSide, wallSide));
             actual[(trunkSide, wallSide)] = SidingModSystem.FootprintHosts(trunkSide, new Block[] { Wall("wall", wallSide), Wall("wall", wallSide) });
         }
 

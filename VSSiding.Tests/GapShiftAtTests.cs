@@ -27,7 +27,7 @@ public class GapShiftAtTests
     [Fact]
     public void AFillerResolvesToTheBlockAtItsOffsetInv()
     {
-        var controller = new Block { Code = new AssetLocation("vssiding", "trunk-controller") };
+        var controller = new Block();
         var filler = new BlockMultiblock { OffsetInv = new Vec3i(1, 0, 0) };
         var accessor = DispatchProxy.Create<IBlockAccessor, ControllerAccessor>();
         var proxy = (ControllerAccessor)(object)accessor;
@@ -43,7 +43,7 @@ public class GapShiftAtTests
     [Fact]
     public void AnyOtherBlockResolvesToItself()
     {
-        var block = new Block { Code = new AssetLocation("vssiding", "wall-oak-west") };
+        var block = new Block();
         var accessor = DispatchProxy.Create<IBlockAccessor, ControllerAccessor>();
         var pos = new BlockPos(5, 60, 9, 0);
 

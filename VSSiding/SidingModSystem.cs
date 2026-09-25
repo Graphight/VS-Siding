@@ -655,19 +655,12 @@ public class SidingModSystem : ModSystem
         return true;
     }
 
-    // The wall sides a trunk's footprint runs along: a north or south trunk spans two cells along x,
-    // as a wall claiming the north or south face does; an east or west trunk spans z.
-    private static readonly Dictionary<string, string[]> TrunkAxisSides = new()
-    {
-        ["north"] = new[] { "north", "south" },
-        ["south"] = new[] { "north", "south" },
-        ["east"] = new[] { "east", "west" },
-        ["west"] = new[] { "east", "west" },
-    };
+    // A north or south trunk spans two cells along x, as a wall claiming the north or south face does.
+    private static bool AlongX(string side) => side is "north" or "south";
 
-    // Whether a multiblock's footprint is safe to host: no wall in it, or every cell a straight wall
-    // (never a cornerout) sharing one side that runs along the trunk's long axis. A wall paired with
-    // an ordinary open cell is refused too - the trunk would take that cell with no guest to restore.
+    // Whether a trunk's footprint is safe to host: no wall in it, or every cell a straight wall (never
+    // a cornerout) sharing one side along the trunk's long axis. A wall beside an open cell is refused
+    // too, since the trunk's shift comes from its controller cell's guest alone.
     internal static bool FootprintHosts(string trunkSide, IReadOnlyList<Block> cells)
     {
         if (!cells.Any(c => c is SidingWallBlock)) return true;
@@ -676,7 +669,7 @@ public class SidingModSystem : ModSystem
         var sides = cells.Cast<SidingWallBlock>().Select(wall => wall.Variant["side"]).Distinct().ToList();
         if (sides.Count != 1) return false;
 
-        return TrunkAxisSides.TryGetValue(trunkSide, out var axisSides) && axisSides.Contains(sides[0]);
+        return AlongX(trunkSide) == AlongX(sides[0]);
     }
 
     // IsReplacableBy has no position, so each wall answers alone; only here is the whole footprint
@@ -904,8 +897,8 @@ public class SidingModSystem : ModSystem
     internal static readonly AccessTools.FieldRef<CollectibleObject, ICoreAPI> ApiRef =
         AccessTools.FieldRefAccess<CollectibleObject, ICoreAPI>("api");
 
-    // A trunk's filler draws nothing and takes its boxes from the trunk (a mirrored copy of the trunk's own),
-    // not from its own default-cube row in FaceShiftByBlock, so it shifts by the trunk's own inset.
+    // A trunk's filler draws nothing and takes the trunk's boxes, mirrored, so it shifts by the
+    // trunk's inset rather than by its own default cube's.
     internal static Block ShiftSource(IBlockAccessor accessor, BlockPos pos, Block block)
         => block is BlockMultiblock filler ? accessor.GetBlock(pos.AddCopy(filler.OffsetInv)) : block;
 
@@ -917,9 +910,7 @@ public class SidingModSystem : ModSystem
         ICoreAPI? api = ApiRef(block);
         if (api == null || GuestWalls.GuestAt(api, pos)?.Block is not SidingWallBlock wall) return (0, 0);
 
-        Block shiftSource = ShiftSource(api.World.BlockAccessor, pos, block);
-        if (FaceShiftByBlock is not { } faceShift || shiftSource.BlockId >= faceShift.Length
-            || faceShift[shiftSource.BlockId] is not { } shifts) return (0, 0);
+        if (FaceShiftByBlock![ShiftSource(api.World.BlockAccessor, pos, block).BlockId] is not { } shifts) return (0, 0);
         var claimed = HorizontalFaces.Where(face => SidingWallBlock.ClaimsFace(wall.Variant["layout"], wall.Variant["side"], face));
         return Combine(claimed, face => shifts[HorizontalFaceIndex[face]]);
     }

@@ -33,12 +33,10 @@ public class GapShiftCollisionPatchesTests
     {
         var original = new Cuboidf[] { new CuboidfWithId(0, 0.5, 0, 1, 0.5625, 0.6875) { Id = "0-0-0" } };
 
-        var shifted = GapShiftCollisionPatches.Shifted(original, 0, 0.25);
+        var shifted = Assert.IsType<CuboidfWithId>(GapShiftCollisionPatches.Shifted(original, 0, 0.25).Single());
 
-        var expected = (0f, 0.5f, 0.25f, 1f, 0.5625f, 0.9375f, "0-0-0");
-        Assert.Equal(expected, shifted.Select(box => box is CuboidfWithId withId
-            ? (withId.X1, withId.Y1, withId.Z1, withId.X2, withId.Y2, withId.Z2, withId.Id)
-            : default).Single());
+        Assert.Equal((0f, 0.5f, 0.25f, 1f, 0.5625f, 0.9375f, "0-0-0"),
+            (shifted.X1, shifted.Y1, shifted.Z1, shifted.X2, shifted.Y2, shifted.Z2, shifted.Id));
     }
 
     [Fact]
