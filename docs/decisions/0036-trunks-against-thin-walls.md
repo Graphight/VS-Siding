@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Created: 2026-09-24
-- Reflects: branch `trunks-against-thin-walls` (commits `b9953a0`, `a85d185`); vanilla 1.22 decompiled source
+- Reflects: branch `trunks-against-thin-walls` (commits `b9953a0`, `a85d185`, `a3b653a`, `3e06e7d`); vanilla 1.22 decompiled source
 
 ## Summary
 A trunk placed along a straight wall run takes both walls' cells, and each wall becomes a guest as in decision 0035.
@@ -41,8 +41,8 @@ Its shelves (`BEBehaviorDisplay`) pick a slot by `BlockSelection.SelectionBoxId`
 - **Allow a footprint of one wall and one air cell.** Refused: the shift would have to come from whichever cell holds a guest, with no wall to answer for the other.
 
 ## Consequences & open questions
-- Not yet played in game. Still to check: host from both ends of a two-wall run, check both panels draw, check breaking restores both walls (the aimed-at cell restores in `NeighbourUpdatePrefix`, the other on the deferred callback so it may flash a tick), check the lid opens into the room, check `/sidingroom` counts both walls, and check the filler's collision against the model.
-- Lid direction is not restricted; the player's facing decides it, as for any trunk.
+- Played: a trunk hosted from both ends of a two-wall run, with both panels drawn and the trunk off them; breaking it restores both walls; `/sidingroom` counts both; the filler's collision matches the model; wall plus air, a corner and a cross-axis wall are refused; cabinets on all four sides sit off the panel with working shelves; a top slab still goes in front.
+- Lid direction is not restricted; the player's facing decides it, as for any trunk. Not checked on its own in play.
 - Beds stay out: a head/foot `part` pair meeting a wall head-on doesn't fit this shape.
 - Tables share the cabinet's solid top but have no block entity, so they stay out.
 - Recheck on a game update, alongside decision 0035's list: `BlockBehaviorMultiblock.CanPlaceBlock` (its parameter names are pinned in `HostChangeTests`), the filler's JSON drawtype, and the trunk's `IMultiBlockColSelBoxes`.
