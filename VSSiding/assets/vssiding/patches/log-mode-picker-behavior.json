@@ -1,8 +1,0 @@
-[
-	{
-		"op": "add",
-		"file": "game:blocktypes/wood/woodtyped/log.json",
-		"path": "/behaviorsByType/*/-",
-		"value": { "name": "vssiding.SidingModePicker" }
-	}
-]

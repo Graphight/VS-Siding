@@ -45,8 +45,8 @@ public class SidingModSystem : ModSystem
         api.RegisterBlockClass("SidingWallBlock", typeof(SidingWallBlock));
         api.RegisterBlockEntityClass("SidingWallEntity", typeof(SidingWallEntity));
         api.RegisterCollectibleBehaviorClass("vssiding.PlaceWallFrame", typeof(PlaceWallFrame));
-        api.RegisterCollectibleBehaviorClass("vssiding.SidingModePicker", typeof(SidingModePicker));
         GuestWalls.Start(api);
+        SidingModePicker.Start(api);
 
         // Singleplayer runs client+server in one process, so patch once.
         if (Harmony.HasAnyPatches("vssiding")) return;
@@ -250,6 +250,15 @@ public class SidingModSystem : ModSystem
         {
             api.Logger.Error("vssiding: trunk footprint patch skipped, a trunk may straddle a corner, opposite wall faces, or a wall and an open cell, and sit misaligned with its panels: {0}", e);
         }
+
+        try
+        {
+            SidingModePicker.PatchDialog(harmony);
+        }
+        catch (Exception e)
+        {
+            api.Logger.Error("vssiding: mode picker layout patch skipped, a saw in the off hand opens no siding mode picker: {0}", e);
+        }
     }
 
     private static readonly AccessTools.FieldRef<AnimatableRenderer, Vec3d> AnimatablePos =
@@ -407,10 +416,7 @@ public class SidingModSystem : ModSystem
     {
         new Harmony("vssiding").UnpatchAll("vssiding");
         EveryOverridePatches.Forget();
-        // SidingModePicker does have CollectibleBehavior.OnUnloaded, but it is patched onto every
-        // plank variant and every placed log, so dozens of behavior instances share the two cached
-        // arrays and would each dispose them. ClientMain.Dispose runs the mod systems before its
-        // item loop, so freeing the icons here does it once, first.
+        // SidingModePicker's icons live in the object cache with no owner to free them.
         foreach (var cacheKey in new[] { "vssidingModePickerLitIcons", "vssidingModePickerDimIcons" })
         {
             if (clientApi?.ObjectCache.TryGetValue(cacheKey, out var cached) == true)
@@ -954,6 +960,7 @@ public class SidingModSystem : ModSystem
     public override void StartServerSide(ICoreServerAPI api)
     {
         GuestWalls.StartServerSide(api);
+        SidingModePicker.StartServerSide(api);
 
         api.Event.BreakBlock += (IServerPlayer _, BlockSelection blockSel, ref float _, ref EnumHandling handling) =>
         {

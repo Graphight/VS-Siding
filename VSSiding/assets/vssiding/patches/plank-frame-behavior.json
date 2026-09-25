@@ -4,11 +4,5 @@
 		"file": "game:itemtypes/resource/plank.json",
 		"path": "/behaviors/-",
 		"value": { "name": "vssiding.PlaceWallFrame" }
-	},
-	{
-		"op": "add",
-		"file": "game:itemtypes/resource/plank.json",
-		"path": "/behaviors/-",
-		"value": { "name": "vssiding.SidingModePicker" }
 	}
 ]
