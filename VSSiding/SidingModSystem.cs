@@ -239,6 +239,16 @@ public class SidingModSystem : ModSystem
         {
             api.Logger.Error("vssiding: block build patch skipped, a block clicked onto a wall's outer face or top will land in the wall's own cell instead: {0}", e);
         }
+
+        try
+        {
+            harmony.Patch(AccessTools.Method(typeof(BlockBehaviorMultiblock), nameof(BlockBehaviorMultiblock.CanPlaceBlock)),
+                postfix: new HarmonyMethod(typeof(SidingModSystem), nameof(MultiblockFootprintPostfix)));
+        }
+        catch (Exception e)
+        {
+            api.Logger.Error("vssiding: trunk footprint patch skipped, a trunk will take a wall's cell with no guest wall to restore: {0}", e);
+        }
     }
 
     private static readonly AccessTools.FieldRef<AnimatableRenderer, Vec3d> AnimatablePos =
@@ -556,9 +566,10 @@ public class SidingModSystem : ModSystem
     // would take the cell back next tick, eating the item); Unplaceable blocks (a pot goes down as
     // ground storage, which is hostable itself); plants, which nobody hosts and every meadow would
     // pay a guest lookup for; anything that culls a neighbour (SideSolid); fluid-layer blocks;
-    // anything not a plain JSON shape; beds (a "part" variant); multiblocks and their fillers (a
-    // trunk's filler would take the next wall's cell with no guest); doors (1.22's are BlockGeneric
-    // with a "Door" BE behaviour); and mechanical power blocks, which network by position.
+    // anything not a plain JSON shape; beds (a "part" variant); doors (1.22's are BlockGeneric with
+    // a "Door" BE behaviour); and mechanical power blocks, which network by position. Multiblocks
+    // other than a trunk and its filler stay out (paintings, banners, mannequins, machines): the
+    // footprint rule in the CanPlaceBlock postfix is what makes a trunk's filler safe to host.
     private static void BuildHostableTable(ICoreAPI api)
     {
         int maxId = api.World.Blocks.Where(b => b != null).Max(b => b.BlockId);
@@ -629,9 +640,53 @@ public class SidingModSystem : ModSystem
         if (block is BlockMicroBlock) return false;
         if (block.Variant.ContainsKey("part")) return false;
         if (block is BlockBaseDoor || block.BlockEntityBehaviors.Any(b => b.Name == "Door")) return false;
-        if (block is BlockMultiblock || block.HasBehavior<BlockBehaviorMultiblock>()) return false;
+        if (block is not (BlockMultiblock or BlockGenericTypedContainerTrunk) && block.HasBehavior<BlockBehaviorMultiblock>()) return false;
         if (block is BlockMPBase) return false;
         return true;
+    }
+
+    // The wall sides a trunk's footprint runs along: a north or south trunk spans two cells along x,
+    // as a wall claiming the north or south face does; an east or west trunk spans z.
+    private static readonly Dictionary<string, string[]> TrunkAxisSides = new()
+    {
+        ["north"] = new[] { "north", "south" },
+        ["south"] = new[] { "north", "south" },
+        ["east"] = new[] { "east", "west" },
+        ["west"] = new[] { "east", "west" },
+    };
+
+    // Whether a multiblock's footprint is safe to host: no wall in it, or every cell a straight wall
+    // (never a cornerout) sharing one side that runs along the trunk's long axis. A wall paired with
+    // an ordinary open cell is refused too - the trunk would take that cell with no guest to restore.
+    internal static bool FootprintHosts(string trunkSide, IReadOnlyList<Block> cells)
+    {
+        if (!cells.Any(c => c is SidingWallBlock)) return true;
+        if (!cells.All(c => c is SidingWallBlock wall && wall.Variant["layout"] == "wall")) return false;
+
+        var sides = cells.Cast<SidingWallBlock>().Select(wall => wall.Variant["side"]).Distinct().ToList();
+        if (sides.Count != 1) return false;
+
+        return TrunkAxisSides.TryGetValue(trunkSide, out var axisSides) && axisSides.Contains(sides[0]);
+    }
+
+    // IsReplacableBy has no position, so each wall answers alone; only here is the whole footprint
+    // in view. IsHostable admits no Multiblock block but a trunk, so ordinary multiblocks pass untouched.
+    internal static void MultiblockFootprintPostfix(BlockBehaviorMultiblock __instance, IWorldAccessor world,
+        BlockSelection blockSel, ref bool __result, ref EnumHandling handling, ref string failureCode)
+    {
+        if (!__result || !IsHostableId(__instance.block.BlockId)) return;
+
+        var cells = new List<Block>();
+        __instance.IterateOverEach(blockSel.Position, mpos =>
+        {
+            cells.Add(world.BlockAccessor.GetBlock(mpos));
+            return true;
+        });
+
+        if (FootprintHosts(__instance.block.Variant["side"], cells)) return;
+        __result = false;
+        handling = EnumHandling.PreventDefault;
+        failureCode = "notenoughspace";
     }
 
     // ChunkTesselator.vars isn't public; ShiftTowardWall is called from transpiled IL, so it can't
