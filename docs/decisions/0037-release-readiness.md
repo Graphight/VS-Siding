@@ -1,6 +1,6 @@
 # 0037 — Release readiness
 
-- Status: Accepted
+- Status: Accepted; game floor superseded by 0038
 - Created: 2026-09-24
 - Reflects: branch `release-readiness`; one playtest house on game 1.22.7
 
