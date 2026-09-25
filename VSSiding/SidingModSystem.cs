@@ -408,9 +408,9 @@ public class SidingModSystem : ModSystem
         new Harmony("vssiding").UnpatchAll("vssiding");
         EveryOverridePatches.Forget();
         // SidingModePicker does have CollectibleBehavior.OnUnloaded, but it is patched onto every
-        // plank variant, so ~14 behavior instances share the two cached arrays and would each
-        // dispose them. ClientMain.Dispose runs the mod systems before its item loop, so freeing
-        // the icons here does it once, first.
+        // plank variant and every placed log, so dozens of behavior instances share the two cached
+        // arrays and would each dispose them. ClientMain.Dispose runs the mod systems before its
+        // item loop, so freeing the icons here does it once, first.
         foreach (var cacheKey in new[] { "vssidingModePickerLitIcons", "vssidingModePickerDimIcons" })
         {
             if (clientApi?.ObjectCache.TryGetValue(cacheKey, out var cached) == true)

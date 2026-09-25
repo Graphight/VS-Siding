@@ -9,12 +9,13 @@ using Vintagestory.API.Util;
 
 namespace VSSiding;
 
-// Patched onto game:itemtypes/resource/plank.json - see docs/proposals/sectioned-mode-picker.md. Owns
-// the saw's mode picker: a framing row (wall, corner) and a boards row (weatherboard, boards), each a
-// new line in the grid (vanilla's GuiDialogToolMode starts a row at every SkillItem.Linebreak). The
-// choice lives on the player, in Entity.WatchedAttributes, not the item stack - so two stacks of the
-// same planks, or swapping a saw for a log, never disagree. PlaceWallFrame reads the framing row
-// through Layout below and keeps placement only.
+// Patched onto game:itemtypes/resource/plank.json and game:blocktypes/wood/woodtyped/log.json - see
+// docs/proposals/sectioned-mode-picker.md. Owns the saw's mode picker: a framing row (wall, corner), a
+// boards row (weatherboard, boards) and a logs row (shakes, logs), each a new line in the grid
+// (vanilla's GuiDialogToolMode starts a row at every SkillItem.Linebreak). The choice lives on the
+// player, in Entity.WatchedAttributes, not the item stack - so two stacks of the same planks, or
+// swapping a saw for a log, never disagree. PlaceWallFrame reads the framing row through Layout below
+// and keeps placement only.
 public class SidingModePicker : CollectibleBehavior
 {
     // Row definitions as plain data, so a later row (logs) is one more entry here. Framing is never
@@ -24,6 +25,7 @@ public class SidingModePicker : CollectibleBehavior
     {
         ("vssidingFraming", new[] { "wall", "corner" }, false),
         ("vssidingBoards", new[] { "weatherboard", "boards" }, true),
+        ("vssidingLogs", new[] { "shakes", "logs" }, true),
     };
 
     private SkillItem[]? litIcons;
