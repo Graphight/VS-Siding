@@ -247,7 +247,7 @@ public class SidingModSystem : ModSystem
         }
         catch (Exception e)
         {
-            api.Logger.Error("vssiding: trunk footprint patch skipped, a trunk will take a wall's cell with no guest wall to restore: {0}", e);
+            api.Logger.Error("vssiding: trunk footprint patch skipped, a trunk may straddle a corner, opposite wall faces, or a wall and an open cell, and sit misaligned with its panels: {0}", e);
         }
     }
 
