@@ -45,6 +45,8 @@ public class IsHostableTests
         {
             ["furniture"] = Open(new Block()),
             ["solid cube"] = new Block(),
+            ["cabinet"] = new Block { SideSolid = new SmallBoolArray(BlockFacing.UP.Flag), EntityClass = "Generic" },
+            ["top slab"] = new Block { SideSolid = new SmallBoolArray(BlockFacing.UP.Flag) },
             ["tall grass"] = Open(new Block { Replaceable = 6000 }),
             ["flower"] = Open(new Block { Replaceable = 3000, BlockMaterial = EnumBlockMaterial.Plant }),
             ["cross plant"] = Open(new Block { DrawType = EnumDrawType.Cross }),
@@ -63,6 +65,8 @@ public class IsHostableTests
         {
             ["furniture"] = true,
             ["solid cube"] = false,
+            ["cabinet"] = true,
+            ["top slab"] = false,
             ["tall grass"] = false,
             ["flower"] = false,
             ["cross plant"] = false,

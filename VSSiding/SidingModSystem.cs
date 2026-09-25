@@ -565,7 +565,8 @@ public class SidingModSystem : ModSystem
     // Excluded: our own walls; anything the wall can replace (tall grass, loose stones: the restore
     // would take the cell back next tick, eating the item); Unplaceable blocks (a pot goes down as
     // ground storage, which is hostable itself); plants, which nobody hosts and every meadow would
-    // pay a guest lookup for; anything that culls a neighbour (SideSolid); fluid-layer blocks;
+    // pay a guest lookup for; anything with a solid side (a full cube, a slab, a metal sheet), except
+    // a solid top on a block with a block entity (a cabinet you set things on); fluid-layer blocks;
     // anything not a plain JSON shape; beds (a "part" variant); doors (1.22's are BlockGeneric with
     // a "Door" BE behaviour); and mechanical power blocks, which network by position. Multiblocks
     // other than a trunk and its filler stay out (paintings, banners, mannequins, machines): the
@@ -582,12 +583,21 @@ public class SidingModSystem : ModSystem
             hostable[block.BlockId] = IsHostable(block);
             if (!hostable[block.BlockId]) continue;
 
-            var boxes = block.SelectionBoxes ?? block.CollisionBoxes;
-            faceShift[block.BlockId] = HorizontalFaces.Select(face => FaceShift(boxes, face)).ToArray();
+            faceShift[block.BlockId] = FaceShifts(block);
         }
 
         Hostable = hostable;
         FaceShiftByBlock = faceShift;
+    }
+
+    // A RotateablePlaceable block (a cabinet) turns its boxes by its block entity's angle, so its
+    // default boxes don't say which face meets the wall; it takes its largest shift on every face,
+    // right unless its front is the side against the wall.
+    internal static double[] FaceShifts(Block block)
+    {
+        var boxes = block.SelectionBoxes ?? block.CollisionBoxes;
+        var shifts = HorizontalFaces.Select(face => FaceShift(boxes, face)).ToArray();
+        return block.HasBehavior<BlockBehaviorRotateablePlaceable>() ? shifts.Select(_ => shifts.Max()).ToArray() : shifts;
     }
 
     // How far the panel thickness reaches past whatever inset the block's own default boxes already
@@ -634,7 +644,7 @@ public class SidingModSystem : ModSystem
         if (block.Replaceable >= 6000) return false;
         if (block.HasBehavior<BlockBehaviorUnplaceable>()) return false;
         if (block.BlockMaterial is EnumBlockMaterial.Plant or EnumBlockMaterial.Leaves) return false;
-        if (block.SideSolid.Any) return false;
+        if (block.SideSolid.Any && !(block.SideSolid.Value() == BlockFacing.UP.Flag && block.EntityClass != null)) return false;
         if (block.ForFluidsLayer) return false;
         if (block.DrawType is not (EnumDrawType.JSON or EnumDrawType.JSONAndSnowLayer or EnumDrawType.JSONAndWater)) return false;
         if (block is BlockMicroBlock) return false;
