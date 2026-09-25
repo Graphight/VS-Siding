@@ -29,6 +29,11 @@ A filler only ever lands on a wall after the footprint rule has already passed f
 
 **The one fix.** `GapShiftAt` resolves a filler to its controller (`ShiftSource`, `pos + OffsetInv`) and reads the controller's `FaceShiftByBlock` row, since the filler's own default-cube row would shift a full 4/16 where the trunk's 1/16 inset gives 3/16.
 
+**Cabinets, found in the same playtest.** A cabinet's `sidesolid` is top only, and `IsHostable` refused any solid side, a rule meant for full cubes.
+A solid top alone is now allowed on a block with a block entity (vanilla gives any block with `entityBehaviors` the `Generic` class), which keeps top slabs, metal sheets and linen out.
+A cabinet turns its boxes by its `RotateablePlaceable` block entity's angle, so its default boxes can't say which face meets the wall; such a block takes its largest shift on every face, which is wrong only when its doors face the wall.
+Its shelves (`BEBehaviorDisplay`) pick a slot by `BlockSelection.SelectionBoxId`, which the raytrace reads from a `CuboidfWithId`; the box shift in `GapShiftCollisionPatches.Shifted` returned plain `Cuboidf` copies and dropped it, so shifted boxes now keep their id.
+
 ## Alternatives considered
 - **Leave trunks in the cell in front.** Today's behaviour before this decision: a trunk against a wall stands three quarters off it, the gap decision 0035 set out to close.
 - **Host only the controller's cell.** The filler still needs the second wall's cell; half a trunk can't sit off one panel.
@@ -39,4 +44,5 @@ A filler only ever lands on a wall after the footprint rule has already passed f
 - Not yet played in game. Still to check: host from both ends of a two-wall run, check both panels draw, check breaking restores both walls (the aimed-at cell restores in `NeighbourUpdatePrefix`, the other on the deferred callback so it may flash a tick), check the lid opens into the room, check `/sidingroom` counts both walls, and check the filler's collision against the model.
 - Lid direction is not restricted; the player's facing decides it, as for any trunk.
 - Beds stay out: a head/foot `part` pair meeting a wall head-on doesn't fit this shape.
+- Tables share the cabinet's solid top but have no block entity, so they stay out.
 - Recheck on a game update, alongside decision 0035's list: `BlockBehaviorMultiblock.CanPlaceBlock` (its parameter names are pinned in `HostChangeTests`), the filler's JSON drawtype, and the trunk's `IMultiBlockColSelBoxes`.
