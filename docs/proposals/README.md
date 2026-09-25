@@ -18,6 +18,8 @@ The proposal adds a deck layer that fills the cell's open part at floor height w
 The proposal adds `hboards` to the boards row of the picker: the same slab with the rotation dropped, plus an icon, a `Styles` entry and lang, and a playtest to confirm which way the plank texture runs unrotated.
 - `hosted-light-sources`: a torch or lantern hosted in a sealed wall's cell lights nothing, because `GuestLightPatches` raises the cell's absorption to the wall's 99 and vanilla's block-light walk subtracts the source cell's own absorption before light leaves it.
 The proposal exempts the source's own cell only while vanilla walks that source's light, so sunlight still meets the sealed wall.
+- `creatures-off-walls`: most vanilla animals step 1.1251 blocks, so they climb a 1.0-tall wall and walk along its thin top.
+The proposal adds `canStep: false` to `wall.json`, the attribute vanilla fences use, which both the pathfinder and the step-up physics honour.
 
 ## Parked
 
