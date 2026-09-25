@@ -66,10 +66,7 @@ public class PlaceWallFrame : CollectibleBehavior
         string? framingKey = SidingWallBlock.MatchConsumes(slot.Itemstack.Collectible.Code, wallBlock.Attributes["Framings"]);
         if (framingKey == null) return;
 
-        // A style mode never frames (decision 0027). Checked above the afford check, or a style
-        // mode with too few planks would error about a framing cost nobody is being charged.
-        string? layout = SidingWallBlock.ResolveLayout(GetToolMode(slot, byPlayer, blockSel));
-        if (layout == null) return;
+        string layout = SidingWallBlock.ResolveLayout(GetToolMode(slot, byPlayer, blockSel));
 
         var consumes = wallBlock.Attributes["Framings"][framingKey]["Consumes"];
         bool isCreative = byPlayer.WorldData.CurrentGameMode == EnumGameMode.Creative;
