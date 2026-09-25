@@ -22,6 +22,22 @@ Framing plus infill is a complete wall, and seals a room the way solid blocks do
 The infill decides whether it counts as a cooling (cellar) wall: rubble stone and clay do, wattle and straw do not.
 Glass seals the same way but lets daylight through.
 
+## Screenshots
+
+The framing:
+![framing-screenshot](docs/screenshots/Framing.png)
+
+Saw Mode picker:
+![saw-mode-picker](docs/screenshots/SawModePicker.png)
+
+The finishes:
+![finishes-inside](docs/screenshots/FinishingsInside.png)
+![finishes-3D-texture](docs/screenshots/Finishings3DTexture.png)
+![finishes-corner](docs/screenshots/FinishingsCorner.png)
+
+Handbook:
+![handbook-entry](docs/screenshots/HandbookEntry.png)
+
 ---
 
 ## Building from Source
