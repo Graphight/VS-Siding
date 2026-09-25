@@ -10,6 +10,8 @@ An idea that's been thought through but not acted on. Mutable: edit freely, argu
 
 - `just-workflow-docs`: `README.md` and `CONTRIBUTING.md` only show `./build.sh` and raw `dotnet`, while `CLAUDE.md` already documents `just build`/`just test`/`just deploy`.
 The proposal brings the other two docs in line.
+- `shake-styles`: a finished log wall is always shakes outside and hewn logs inside, the same front/back mismatch decision 0027 fixed for planks.
+Logs have no tool-mode behaviour today, so the proposal adds one and works out the missing `front-logs`/`back-shakes` geometry.
 
 ## Parked
 
