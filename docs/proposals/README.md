@@ -16,6 +16,8 @@ The proposal overrides it to reuse `HitLayerMaterial`, the same peeled-layer loo
 The proposal adds a deck layer that fills the cell's open part at floor height with the held plank or slab, built from a new picker row; a sill beam of full blocks is the workaround until then.
 - `horizontal-boards`: a player asked for flat boards running sideways; today's `boards` style is one slab per face with its texture turned 90° for vertical grain (decision 0007).
 The proposal adds `hboards` to the boards row of the picker: the same slab with the rotation dropped, plus an icon, a `Styles` entry and lang, and a playtest to confirm which way the plank texture runs unrotated.
+- `hosted-light-sources`: a torch or lantern hosted in a sealed wall's cell lights nothing, because `GuestLightPatches` raises the cell's absorption to the wall's 99 and vanilla's block-light walk subtracts the source cell's own absorption before light leaves it.
+The proposal exempts the source's own cell only while vanilla walks that source's light, so sunlight still meets the sealed wall.
 
 ## Parked
 
