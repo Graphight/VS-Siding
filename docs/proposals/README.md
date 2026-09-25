@@ -12,6 +12,8 @@ An idea that's been thought through but not acted on. Mutable: edit freely, argu
 The infill panel's `Flat` UV rule restarts the texture at each element's own base instead of the block's own height, so the proposal switches it to `Positional`, the same fix decision 0028 already made for weatherboard.
 - `fireproof-infill`: decision 0033 noted a wall still burns like a plank no matter its infill, because `GetCombustibleProperties` is never overridden and always answers with the block's own wood-plank numbers.
 The proposal overrides it to reuse `HitLayerMaterial`, the same peeled-layer lookup `GetResistance`/`GetBlockMaterial` already use, so only a `Wood`-tagged layer stays flammable.
+- `floors-between-storeys`: an upper floor stops at the wall's cell and leaves a 12/16 slot along every wall, down to the storey below.
+The proposal adds a deck layer that fills the cell's open part at floor height with the held plank or slab, built from a new picker row; a sill beam of full blocks is the workaround until then.
 
 ## Parked
 
