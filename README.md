@@ -45,8 +45,13 @@ Handbook:
 ## Building from Source
 
 ```bash
-./build.sh
+just build    # build only
+just deploy   # build, then install into the game's Mods folder
 ```
+
+Plain `just` runs `just deploy`.
+Needs [`just`](https://github.com/casey/just).
+Without it, `./build.sh` (or `build.ps1` on Windows) runs the same build.
 
 Requires the `VINTAGE_STORY` environment variable to point at your Vintage Story install (or a `Directory.Build.props.user` copied from `Directory.Build.props.user.example`).
 

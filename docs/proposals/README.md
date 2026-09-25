@@ -8,8 +8,6 @@ An idea that's been thought through but not acted on. Mutable: edit freely, argu
 
 ## Open
 
-- `just-workflow-docs`: `README.md` and `CONTRIBUTING.md` only show `./build.sh` and raw `dotnet`, while `CLAUDE.md` already documents `just build`/`just test`/`just deploy`.
-The proposal brings the other two docs in line.
 - `sectioned-mode-picker`: the saw's mode picker becomes rows of toggles, framing, boards and logs, with choices stored per character.
 Logs gain the style choice planks got in decision 0027.
 - `opaque-infill-seam`: a two-high wall of straw, wattle, clay or rubble shows a seam at the join where decision 0008 drops the middle plate.

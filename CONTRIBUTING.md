@@ -9,7 +9,7 @@ That holds even for a one-line docs fix and even when working alone: every chang
 ```sh
 git checkout -b <short-topic-name>
 # ... work, in small cherry-pickable commits ...
-./build.sh
+just build
 git push -u origin HEAD
 gh pr create
 ```
@@ -43,8 +43,13 @@ Keep the *why* in `docs/decisions/`, not restated in source comments.
 ## Before you open a PR
 
 ```sh
-./build.sh
+just build
+just test
 ```
+
+Needs [`just`](https://github.com/casey/just); without it, `./build.sh` (or `build.ps1`) runs the same build and `dotnet test VSSiding.sln` the tests.
+To try the branch in game, `just deploy` (or plain `just`) builds and swaps the installed `vssiding` zip in your `Mods` folder for this one.
+Changed `WallShapeGen`? Run `just shapes` (without `just`, `SIDING_REGEN=1 dotnet test VSSiding.sln`) to rewrite the committed shape JSON from it (decision 0021).
 
 Check the real exit status: a truncated or piped log can look reassuring and still exit non-zero.
 

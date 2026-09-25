@@ -18,6 +18,7 @@ Framing plus infill is a complete wall: it seals rooms through vanilla's per-fac
 just            # build, then install into the game's Mods folder (same as `just deploy`)
 just build      # build only
 just test
+just shapes     # rewrite the committed shapes/block/wall/*.json from WallShapeGen (0021)
 ```
 Needs [`just`](https://github.com/casey/just); recipes run on macOS and Windows.
 `just build` runs the Cake build (`CakeBuild/Program.cs`): validates JSON in `VSSiding/assets/`, `dotnet publish`es Release, packages into `Releases/vssiding/`, zips it.
