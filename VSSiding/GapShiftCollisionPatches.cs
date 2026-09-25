@@ -8,20 +8,11 @@ using Vintagestory.API.MathTools;
 
 namespace VSSiding;
 
-// Furniture-against-thin-walls (decision 0035): a hosted block renders shifted off its guest wall's
-// panel (SidingModSystem's TesselateBlock transpiler), so it must collide and select where it's drawn, not
-// where its cell's true bounds are - and it must also collide against the panel it's sitting beside,
-// which its own boxes never describe. EveryOverridePatches patches GetCollisionBoxes/
-// GetParticleCollisionBoxes/GetSelectionBoxes on every declaring override across loaded assemblies,
-// so a mod's own block subclass is covered without knowing about it. SidingWallBlock itself is
-// skipped - its own overrides already return exactly the panel's boxes, and a wall never shifts
-// or hosts itself.
+// A hosted block renders shifted off its guest wall's panel, so it collides and selects where it's
+// drawn, and the panel beside it collides and selects too (decision 0035).
 internal static class GapShiftCollisionPatches
 {
-    // A subclass override that calls base.GetCollisionBoxes runs both the base's patched method and
-    // its own, which would shift twice. Counting re-entrancy per thread and only shifting at the
-    // outermost frame is more robust than a bounds heuristic (e.g. "Y1 already looks shifted") -
-    // that breaks the moment a shift and an unrelated box happen to look alike.
+    // An override calling base.GetCollisionBoxes runs the postfix twice; only the outermost shifts.
     [ThreadStatic] private static int depth;
 
     // Per original array, one shifted copy per exact (dx, dz) - several hostable blocks can share
@@ -29,12 +20,10 @@ internal static class GapShiftCollisionPatches
     // and main threads all query boxes and may add the same entry at once.
     private static readonly ConditionalWeakTable<Cuboidf[], ConcurrentDictionary<(double dx, double dz), Cuboidf[]>> ShiftCache = new();
 
-    // Per (host array, panel array) pair, one concatenated copy - a per-tick path, so the append
-    // is cached the same way as the shift above rather than reallocating every call.
+    // Per (host array, panel array) pair, one concatenated copy: this runs every physics tick.
     private static readonly ConditionalWeakTable<Cuboidf[], ConcurrentDictionary<Cuboidf[], Cuboidf[]>> CombineCache = new();
 
-    // Per panel array, one PanelSelectionBox copy - IsPanelHit tells a click on the panel apart
-    // from a click on the furniture by type, not by re-deriving which boxes came from where.
+    // Per panel array, one PanelSelectionBox copy.
     private static readonly ConditionalWeakTable<Cuboidf[], Cuboidf[]> PanelSelectionCache = new();
 
     internal static void PatchAll(Harmony harmony, ICoreAPI api)
@@ -55,19 +44,15 @@ internal static class GapShiftCollisionPatches
 
     private static void Finalizer() => depth--;
 
-    // A hosted block's own boxes are shifted off the panel; the panel itself still
-    // occupies the cell and has to collide too, so its boxes are appended once the outermost
-    // frame's shift is done. GetCollisionBoxes' fullBoxes mirrors the wall's own override
-    // (Block.CollisionBoxes); GetParticleCollisionBoxes' mirrors ParticleCollisionBoxes ?? CollisionBoxes.
+    // Each passes the full boxes the wall's own override would start from.
     private static void PostfixCollision(Block __instance, ref Cuboidf[] __result, object[] __args)
         => __result = ShiftAndAppendPanel(__instance, __result, __args, wall => wall.CollisionBoxes);
 
     private static void PostfixParticleCollision(Block __instance, ref Cuboidf[] __result, object[] __args)
         => __result = ShiftAndAppendPanel(__instance, __result, __args, wall => wall.ParticleCollisionBoxes ?? wall.CollisionBoxes);
 
-    // Selection appends the panel's own SelectionBoxes, marked so IsPanelHit can recognise them -
-    // after the host's boxes, so the host's own indices (which shelves and ground storage use to
-    // pick a slot) are unchanged.
+    // The panel's boxes go after the host's, so the host's own indices (which shelves and ground
+    // storage use to pick a slot) are unchanged.
     private static void PostfixSelection(Block __instance, ref Cuboidf[] __result, object[] __args)
         => __result = ShiftAndAppendPanel(__instance, __result, __args, wall => wall.SelectionBoxes, MarkedForPanel);
 
@@ -75,11 +60,8 @@ internal static class GapShiftCollisionPatches
         System.Func<SidingWallBlock, Cuboidf[]> fullBoxesOf, System.Func<Cuboidf[], Cuboidf[]>? markPanel = null)
     {
         Shift(instance, result, args, out var shifted);
-        // Re-checked rather than trusted from Shift: an inner frame's shift is a no-op, and so is
-        // its append - only the outermost frame acts (same depth guard as the shift itself).
-        // Only a hostable block can stand over a guest, and this runs on every collision query in
-        // the world, so that table read comes before any lookup. It also keeps a real wall out: it
-        // reaches here through its own base.GetCollisionBoxes, and WallAt would answer the wall itself.
+        // Hostable first: this runs on every collision query in the world. It also keeps a real
+        // wall, reaching here through its own base call, from appending a copy of its own panel.
         if (!SidingModSystem.IsHostableId(instance.BlockId) || depth != 1
             || args[0] is not IBlockAccessor blockAccessor || args[1] is not BlockPos pos) return shifted;
 
@@ -97,11 +79,11 @@ internal static class GapShiftCollisionPatches
     private static void Shift(Block instance, Cuboidf[] result, object[] args, out Cuboidf[] shifted)
     {
         shifted = result;
-        // __args because BlockMultiblock and others don't all spell the parameters the same way.
+        // __args, because overrides don't all spell the parameters the same way.
         if (depth != 1 || result is not { Length: > 0 }
             || args[0] is not IBlockAccessor blockAccessor || args[1] is not BlockPos pos) return;
 
-        var (dx, dz) = SidingModSystem.GapShiftAt(blockAccessor, pos, instance);
+        var (dx, dz) = SidingModSystem.GapShiftAt(pos, instance);
         if (dx == 0 && dz == 0) return;
 
         shifted = Shifted(result, dx, dz);
@@ -122,10 +104,7 @@ internal static class GapShiftCollisionPatches
             .GetOrAdd(panelBoxes, _ => hostBoxes.Concat(panelBoxes).ToArray());
     }
 
-    // True when the player's raytraced index (AABBIntersectionTest.RayIntersectsBlockSelectionBox,
-    // which walks the same GetSelectionBoxes array in the same order) landed on the panel rather
-    // than the furniture - PanelInteractionPatches uses this to swallow both interaction and
-    // breaking. host.GetSelectionBoxes is already patched, so it includes the panel.
+    // True when the player's selection box index lands on the panel rather than the furniture.
     internal static bool IsPanelHit(Block host, IBlockAccessor accessor, BlockSelection sel)
     {
         Cuboidf[]? boxes = host.GetSelectionBoxes(accessor, sel.Position);
@@ -134,9 +113,7 @@ internal static class GapShiftCollisionPatches
     }
 }
 
-// A selection box that is the guest wall's panel, not the host's own bounds - Combined appends
-// these after the host's boxes, and IsPanelHit tells them apart by type instead of re-deriving
-// which boxes came from where.
+// A selection box on the guest wall's panel, told apart from the host's own boxes by type.
 internal sealed class PanelSelectionBox : Cuboidf
 {
     internal PanelSelectionBox(Cuboidf box) : base(box.X1, box.Y1, box.Z1, box.X2, box.Y2, box.Z2)

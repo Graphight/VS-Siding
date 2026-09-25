@@ -5,18 +5,11 @@ using Vintagestory.API.MathTools;
 
 namespace VSSiding;
 
-// Furniture-against-thin-walls (decision 0035): once furniture hosts a wall's cell, the
-// host block is what vanilla asks about that cell's retention, liquid barrier and attachability -
-// so on the faces the guest wall claims, the answer has to keep being the wall's, or a hosted
-// chest would leak a sealed room and pass water through it. Postfixes on every declaring override
-// of the three methods, same EveryOverridePatches trick as GuestTooltipPatches.
+// Once furniture hosts a wall's cell, vanilla asks the host about that cell's retention, liquid
+// barrier and attachability, so on the guest's claimed faces the answer stays the wall's (decision 0035).
 internal static class GuestSealingPatches
 {
-    // One depth counter shared by all three methods rather than one each: nothing on this branch
-    // ever calls one of these three from within another, so there is no cross-method re-entrancy to
-    // tell apart, only the base-calls-base kind EveryOverridePatches.PatchEveryOverride's own
-    // pattern already guards against per method (GuestTooltipPatches explains why that guard is
-    // needed at all).
+    // One counter for all three: none calls another, so only base calls nest.
     [ThreadStatic] private static int depth;
 
     internal static void PatchAll(Harmony harmony, ICoreAPI api)
@@ -44,9 +37,7 @@ internal static class GuestSealingPatches
 
     private static void Finalizer() => depth--;
 
-    // None of the three overrides carries a world accessor, so the guest lookup goes through the
-    // host block's own api field, exactly as GapShiftAt's does off a physics tick's accessor. Null
-    // unless the host is hostable, has a guest, and that guest claims faceCode.
+    // Null unless the host holds a guest that claims faceCode.
     private static SidingWallEntity? ClaimingGuestAt(Block host, BlockPos pos, string faceCode, bool restorePending = false)
     {
         if (!MayHoldGuest(host, SidingModSystem.Hostable, restorePending)) return null;
@@ -59,11 +50,9 @@ internal static class GuestSealingPatches
             ? entity : null;
     }
 
-    // A hosted block holds a guest, and so does the air (or ground clutter) a broken host leaves for
-    // the tick until HostChangePrefix's deferred restore. The server's TriggerNeighbourBlocksUpdate
-    // runs synchronously after the break, so a torch on the wall's far side asks that air whether it
-    // can stay. Only CanAttachBlockAt pays for the wider check: it's off the hot paths, and it's the
-    // one consumer whose wrong answer in that tick is permanent.
+    // A hosted block holds a guest, and so does the air a broken host leaves until the deferred
+    // restore. Only CanAttachBlockAt asks about that air: it's off the hot paths, and a wrong answer
+    // in that tick drops a torch on the wall's far side for good.
     internal static bool MayHoldGuest(Block block, bool[]? hostable, bool restorePending)
         => (hostable != null && block.BlockId < hostable.Length && hostable[block.BlockId])
             || (restorePending && (block.BlockId == 0 || block.Replaceable >= 6000));
@@ -106,15 +95,10 @@ internal static class GuestSealingPatches
         __result = SidingWallBlock.ComputeRetention(true, entity.Framing, entity.Infill, wall.Attributes["Framings"], wall.Attributes["Infills"]) != 0;
     }
 
-    // A hosted torch attaches by clicking the panel's own inner face, so vanilla's TryAttachTo
-    // (BlockGroundAndSideAttachable) and BlockSign.TryPlaceBlock both resolve the attaching cell to
-    // the one past the panel and ask THAT block whether it can hold the attachment - pos is that far
-    // cell, blockFace points back across the panel. The far cell (often air) knows nothing about the
-    // panel, so this looks at the neighbouring cell in that same direction (pos + blockFace, the
-    // furniture's own cell) instead: if a panel there faces back at pos, the wall's own rule answers,
-    // exactly as ClaimingGuestAt does for the furniture's own claimed faces. WallAt, not just the
-    // guest store: a torch hosted by a click on the panel is checked before the SetBlock that turns
-    // the wall into its guest, so at that moment the panel is still the real wall.
+    // A torch or sign placed on the panel's inner face asks the cell past the panel (pos, often air)
+    // whether it can attach, with blockFace pointing back across it. The panel lives in pos + blockFace,
+    // so that cell's wall answers. WallAt, not just the guest store: the check runs before the
+    // SetBlock that turns the wall into a guest.
     private static SidingWallEntity? GuestAcrossFace(IBlockAccessor blockAccessor, BlockPos pos, BlockFacing blockFace)
     {
         if (SidingWallBlock.WallAt(blockAccessor, pos.AddCopy(blockFace)) is not { } found) return null;
@@ -122,9 +106,7 @@ internal static class GuestSealingPatches
         return ClaimsFaceTowardPos(wall.Variant["layout"], wall.Variant["side"], blockFace.Code) ? entity : null;
     }
 
-    // The geometric half of GuestAcrossFace, pulled out so it can be checked without a world: does
-    // the guest's panel stand behind the queried face as seen from the far side, i.e. does the guest
-    // claim the face pointing back the other way.
+    // Whether the wall's panel faces back across blockFaceCode, i.e. claims its opposite.
     internal static bool ClaimsFaceTowardPos(string layout, string side, string blockFaceCode)
         => SidingWallBlock.ClaimsFace(layout, side, BlockFacing.FromCode(blockFaceCode).Opposite.Code);
 }

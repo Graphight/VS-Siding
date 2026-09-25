@@ -3,12 +3,8 @@ using Vintagestory.API.Common;
 
 namespace VSSiding;
 
-// Furniture-against-thin-walls (decision 0035): the panel GapShiftCollisionPatches adds to
-// GetSelectionBoxes gives a hosted cell something to click on beside the furniture, but a click
-// landing there has to go nowhere - decision 0013 already faced the breaking half of this (there is
-// no BlockSelection on OnBlockBroken, hence ServerBreakSelection), so breaking is swallowed in the
-// server's BreakBlock event handler (SidingModSystem.StartServerSide) instead of here. This file
-// only swallows interaction and the mining-progress half of breaking.
+// A click or mining on a hosted cell's panel reaches nothing (decision 0035). A creative break is
+// swallowed in the server's BreakBlock handler (SidingModSystem.StartServerSide) instead.
 internal static class PanelInteractionPatches
 {
     internal static void PatchAll(Harmony harmony, ICoreAPI api)
@@ -22,9 +18,7 @@ internal static class PanelInteractionPatches
             null, new HarmonyMethod(typeof(PanelInteractionPatches), nameof(GettingBrokenPostfix)), null);
     }
 
-    // No depth guard: an inner base call only runs when the outer frame ran the original (which a
-    // panel hit here never does, since __result is set and the prefix returns false), so there is
-    // no re-entrant frame to tell apart from the real one - the answer is the same at every level.
+    // No depth guard: a panel hit skips the original, so no base call runs underneath.
     private static bool InteractPrefix(Block __instance, object[] __args, ref bool __result)
     {
         if (__args[0] is not IWorldAccessor world || __args[2] is not BlockSelection blockSel) return true;
@@ -36,10 +30,7 @@ internal static class PanelInteractionPatches
         return false;
     }
 
-    // Survival mining time on a panel hit never advances, on either side, so a player can't reach
-    // the furniture by grinding down the wall in front of it. Same no-depth-guard reasoning as
-    // InteractPrefix: the postfix is idempotent, so running once or three times gives the same
-    // remainingResistance either way.
+    // Mining a panel hit never advances. Idempotent, so no depth guard.
     private static void GettingBrokenPostfix(Block __instance, object[] __args, ref float __result)
     {
         if (__args[0] is not IPlayer player || __args[1] is not BlockSelection blockSel || __args[3] is not float remainingResistance) return;

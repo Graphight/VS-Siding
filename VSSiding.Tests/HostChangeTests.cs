@@ -14,8 +14,7 @@ namespace VSSiding.Tests;
 
 public class HostChangeTests
 {
-    // A plain wall a guest could restore into - not replaceable by anything (Block's default
-    // Replaceable of 0), same as SidingWallBlock never overrides IsReplacableBy for that case.
+    // A plain wall a guest could restore into: Block's default Replaceable of 0 replaces nothing.
     private static readonly Block GuestWall = new() { BlockId = 1, Code = new AssetLocation("vssiding", "wall-oak-west") };
 
     // Air's real Replaceable (9999) makes IsReplacableBy return true for anything.
@@ -66,10 +65,8 @@ public class HostChangeTests
         public override bool IsReplacableBy(Block block) => true;
     }
 
-    // A click on a wall places beyond the clicked face, as vanilla did before walls took hostable
-    // blocks into their own cell, except on the open side's inner face, where it hosts; anything
-    // else keeps its own answer. The torch case: a saw in the off hand skips TryHost, so this is
-    // what hangs a torch on the panel's inner face.
+    // A click on a wall places beyond the clicked face, except on the open side's inner face, where
+    // it hosts: with a saw in the off hand, TryHost is skipped and this is what hangs a torch there.
     [Fact]
     public void ClickedWallsTakeOnlyTheirInnerFaceIntoTheirOwnCell()
     {

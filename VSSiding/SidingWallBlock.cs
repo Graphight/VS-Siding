@@ -98,11 +98,8 @@ public class SidingWallBlock : Block
         return entity == null ? fullBoxes : PanelCollisionBoxes(blockAccessor, pos, entity, fullBoxes);
     }
 
-    // The panel's own collision, independent of whichever cell it's asked for: framing only
-    // collides on its posts and top plate (decision 0008), otherwise the full panel. Used by the
-    // wall's own overrides above and, for a hosted cell, by GapShiftCollisionPatches, which passes
-    // the guest entity and the guest wall's own (unshifted) boxes for a cell the wall no longer
-    // occupies (decision 0035).
+    // Framing alone collides on its posts and top plate (decision 0008), otherwise the full panel.
+    // GapShiftCollisionPatches passes a guest's entity for a hosted cell (decision 0035).
     internal Cuboidf[] PanelCollisionBoxes(IBlockAccessor blockAccessor, BlockPos pos, SidingWallEntity entity, Cuboidf[] fullBoxes)
     {
         if (entity.Framing == null || entity.Infill != null) return fullBoxes;
@@ -170,9 +167,8 @@ public class SidingWallBlock : Block
         return towardsLeft > 0 ? side : right.Code;
     }
 
-    // Same shape, same face: a wall only ever joins another leg of the same run. Routed through
-    // WallAt so a hosted block's cell still reads as its guest wall (furniture-against-thin-walls,
-    // decision 0035) - otherwise hosting the middle of a stack would split it in two.
+    // Same shape, same face: a wall only ever joins another leg of the same run. WallAt, so a
+    // hosted cell in the middle of a stack doesn't split it in two (decision 0035).
     private SidingWallEntity? SameRunNeighbour(IBlockAccessor blockAccessor, BlockPos neighbourPos)
     {
         var found = WallAt(blockAccessor, neighbourPos);
@@ -382,10 +378,6 @@ public class SidingWallBlock : Block
     internal static bool HasStyle(JsonObject finish, string style)
         => Array.IndexOf(finish["Styles"].AsArray<string>([]) ?? [], style) >= 0;
 
-    // Internal so the guest-wall restore path (SidingModSystem's host change prefix) can relight
-    // and redraw a freshly restored wall the same way a saw layering infill does, rather than
-    // duplicating MarkAbsorptionChanged/MarkNeighboursDirty by hand (furniture-against-thin-walls,
-    // decision 0035).
     internal void OnInfillChanged(IWorldAccessor world, SidingWallEntity entity, BlockPos pos, string? oldInfill)
     {
         entity.MarkDirty(true);
@@ -649,11 +641,7 @@ public class SidingWallBlock : Block
         return (open.X + second.X, open.Z + second.Z);
     }
 
-    // The real wall at a cell, or the wall a hosted block there is guest to (furniture-against-thin-walls,
-    // decision 0035). Every lighting and wind consumer that used to ask the cell's own block
-    // routes through this instead, so a hosted chest's cell still answers as the wall underneath it.
-    // The guest lookup goes through the host block's own api field, same as GapShiftAt's - a
-    // lighting or room-registry call carries no world reference of its own to prefer.
+    // The real wall at a cell, or the guest wall of a hosted block there (decision 0035).
     internal static (SidingWallBlock wall, SidingWallEntity entity)? WallAt(IBlockAccessor accessor, BlockPos pos)
     {
         Block block = accessor.GetBlock(pos);
@@ -663,7 +651,7 @@ public class SidingWallBlock : Block
             return entity == null ? null : (wall, entity);
         }
 
-        if (SidingModSystem.Hostable is not { } hostable || block.BlockId >= hostable.Length || !hostable[block.BlockId]) return null;
+        if (!SidingModSystem.IsHostableId(block.BlockId)) return null;
 
         ICoreAPI? api = SidingModSystem.ApiRef(block);
         if (api == null) return null;
@@ -835,8 +823,6 @@ public class SidingWallBlock : Block
         return ResolveDrops(world, drops, dropQuantityMultiplier);
     }
 
-    // Internal so the host change prefix can spawn a dropped guest wall's layers the same way a
-    // real break does (decision 0035).
     internal ItemStack[] ResolveDrops(IWorldAccessor world, List<BlockDropItemStack> drops, float dropQuantityMultiplier)
     {
         var stacks = new List<ItemStack>();

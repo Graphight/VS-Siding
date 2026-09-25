@@ -22,9 +22,7 @@ namespace VSSiding;
 
 public class SidingModSystem : ModSystem
 {
-    // Static rather than an instance field: GuestPanelPostfix is a static Harmony postfix with no
-    // other way back to the running mod system, and singleplayer's one client process only ever
-    // has the one ICoreClientAPI anyway. Internal: GuestLightPatches' side AO postfixes need it too.
+    // Static so the Harmony patches, which have no way back to this instance, can reach it.
     internal static ICoreClientAPI? capi;
 
     // Dispose's own copy: singleplayer disposes the server's instance too, on the server thread, and
@@ -248,16 +246,14 @@ public class SidingModSystem : ModSystem
     private static readonly AccessTools.FieldRef<AnimatableRenderer, ICoreClientAPI> AnimatableCapi =
         AccessTools.FieldRefAccess<AnimatableRenderer, ICoreClientAPI>("capi");
 
-    // A chest builds its AnimatableRenderer once, the first time its mesh is made, and keeps it for
-    // life - on a freshly hosted chest that can be before the guest record reaches the client, so a
-    // shift fixed at construction stays zero and the opening chest sinks into the panel. Read per
-    // frame instead, right after OnRenderFrame resets ModelMat: translations commute, so shifting
-    // first moves everything it then draws at pos.
+    // Read per frame, right after OnRenderFrame resets ModelMat: a chest builds its renderer once,
+    // possibly before its guest record reaches the client, so a shift fixed at construction would
+    // stay zero. Translations commute, so shifting first moves everything it then draws at pos.
     internal static float[] ShiftAnimatable(float[] modelMat, AnimatableRenderer renderer)
     {
         var accessor = AnimatableCapi(renderer).World.BlockAccessor;
         var blockPos = AnimatablePos(renderer).AsBlockPos;
-        var (dx, dz) = GapShiftAt(accessor, blockPos, accessor.GetBlock(blockPos));
+        var (dx, dz) = GapShiftAt(blockPos, accessor.GetBlock(blockPos));
         return dx == 0 && dz == 0 ? modelMat : Mat4f.Translate(modelMat, modelMat, (float)dx, 0, (float)dz);
     }
 
@@ -284,7 +280,7 @@ public class SidingModSystem : ModSystem
     // commute, so shifting first moves everything the renderer then draws at pos.
     internal static Matrixf ShiftMatrix(Matrixf matrix, ICoreClientAPI api, BlockPos pos)
     {
-        var (dx, dz) = GapShiftAt(api.World.BlockAccessor, pos, api.World.BlockAccessor.GetBlock(pos));
+        var (dx, dz) = GapShiftAt(pos, api.World.BlockAccessor.GetBlock(pos));
         return dx == 0 && dz == 0 ? matrix : matrix.Translate(dx, 0, dz);
     }
 
@@ -319,7 +315,7 @@ public class SidingModSystem : ModSystem
     {
         if (particles is AdvancedParticleProperties advanced)
         {
-            var (dx, dz) = GapShiftAt(manager.BlockAccess, pos, block);
+            var (dx, dz) = GapShiftAt(pos, block);
             advanced.basePos.X += dx;
             advanced.basePos.Z += dz;
         }
@@ -355,7 +351,7 @@ public class SidingModSystem : ModSystem
     internal static void DecalTesselationShifted(Block block, IWorldAccessor world, MeshData decalMesh, BlockPos pos)
     {
         block.OnDecalTesselation(world, decalMesh, pos);
-        var (dx, dz) = GapShiftAt(world.BlockAccessor, pos, block);
+        var (dx, dz) = GapShiftAt(pos, block);
         if (dx == 0 && dz == 0) return;
         decalMesh.Translate((float)dx, 0, (float)dz);
     }
@@ -474,11 +470,9 @@ public class SidingModSystem : ModSystem
             mask[i] = true;
         }
 
-        // A hosted block's cell must darken exactly like a sealed wall cell, but a per-cell guest
-        // lookup across all 39,304 entries would mean thousands of dictionary probes in a meadow
-        // chunk full of hostable tall grass. Enumerate the guests this chunk and its 26 neighbours
-        // actually hold instead (GuestWalls.GuestsIn), mapping each into the extended array with
-        // the loop's own border rules (decision 0035).
+        // A hosted block's cell darkens like a sealed wall cell (decision 0035). The guests this
+        // chunk and its 26 neighbours hold are enumerated rather than looked up per cell across
+        // all 39,304 entries, and mapped into the extended array with the loop's own border rules.
         for (int ndy = -1; ndy <= 1; ndy++)
         for (int ndz = -1; ndz <= 1; ndz++)
         for (int ndx = -1; ndx <= 1; ndx++)
@@ -501,10 +495,8 @@ public class SidingModSystem : ModSystem
         }
     }
 
-    // The extended array's own index math (BuildExtendedChunkData's 34-wide cube, bordered by one
-    // cell of the neighbouring chunks on every side), as a pure function so it can be unit-tested
-    // without a chunk or a tessellator: a guest position outside the one-cell border falls in a
-    // chunk this postfix isn't the one darkening, so it returns false rather than an out-of-range index.
+    // The extended array's index (BuildExtendedChunkData's 34-wide cube, one cell of each
+    // neighbouring chunk on every side); false for a position outside that border.
     internal static bool TryExtendedIndex(BlockPos guestPos, int chunkX, int chunkY, int chunkZ, out int extIndex)
     {
         int localX = guestPos.X - chunkX * 32;
@@ -542,9 +534,8 @@ public class SidingModSystem : ModSystem
         => ((int)(((rgb >> 24) & 0xFF) * factor) << 24) | ((int)(((rgb >> 16) & 0xFF) * factor) << 16)
             | ((int)(((rgb >> 8) & 0xFF) * factor) << 8) | (int)((rgb & 0xFF) * factor);
 
-    // Indexed by BlockId: whether the block can be hosted on a wall's panel (furniture-against-thin-walls,
-    // decision 0035). Built once after blocks load so terrain tesselation costs one array
-    // read per block. The offset toolkit below (ShiftTowardWall, GapShiftAt) reads this table.
+    // Indexed by BlockId: whether the block can take a wall's cell (decision 0035). Built once after
+    // blocks load, so every hot-path patch bails on one array read.
     internal static bool[]? Hostable;
 
     internal static bool IsHostableId(int blockId) => Hostable is { } hostable && blockId < hostable.Length && hostable[blockId];
@@ -558,18 +549,16 @@ public class SidingModSystem : ModSystem
     internal const double PanelThickness = 4.0 / 16;
 
     // Indexed by BlockId, then by HorizontalFaceIndex: how far a hosted block shifts away from that
-    // face, built once alongside Hostable so ShiftTowardWall/GapShiftAt read an array instead of
-    // re-walking SelectionBoxes on every call.
+    // face, built alongside Hostable.
     internal static double[][]? FaceShiftByBlock;
 
-    // Most blocks are hostable (decision 0035). Excluded: our own walls, anything the wall can
-    // replace (tall grass, loose stones, snow layer - ClassifyHostChange would restore the wall over
-    // it on the next tick, eating the item), anything marked Unplaceable (a pot goes down as ground storage, which is hostable itself), plants (flowers, ferns, mushrooms: nobody hosts one, and each would cost a guest lookup on the light and tesselation paths across every meadow), anything that already culls
-    // a neighbour (SideSolid), fluid-layer blocks, anything not a plain JSON shape (cubes, crosses,
-    // liquids, microblocks all draw or collide in ways this offset was never checked against), beds
-    // (a "part" variant), multiblocks (a trunk: its behaviour would drop a filler into the next wall cell with no guest, losing that wall's layers) and their fillers, doors (1.22's are BlockGeneric with a "Door" BE
-    // behaviour, so the class check alone misses them) and mechanical power blocks (BlockMPBase
-    // networks by position).
+    // Excluded: our own walls; anything the wall can replace (tall grass, loose stones: the restore
+    // would take the cell back next tick, eating the item); Unplaceable blocks (a pot goes down as
+    // ground storage, which is hostable itself); plants, which nobody hosts and every meadow would
+    // pay a guest lookup for; anything that culls a neighbour (SideSolid); fluid-layer blocks;
+    // anything not a plain JSON shape; beds (a "part" variant); multiblocks and their fillers (a
+    // trunk's filler would take the next wall's cell with no guest); doors (1.22's are BlockGeneric
+    // with a "Door" BE behaviour); and mechanical power blocks, which network by position.
     private static void BuildHostableTable(ICoreAPI api)
     {
         int maxId = api.World.Blocks.Where(b => b != null).Max(b => b.BlockId);
@@ -610,10 +599,8 @@ public class SidingModSystem : ModSystem
         };
     }
 
-    // Sums the shift away from each claimed face - a straight wall claims one, a cornerout's guest
-    // claims two, so this is the one place both axes come together. Pure and unit-tested directly
-    // against a block's own boxes (PanelOffsetTests); GapShiftAt/ShiftTowardWall get the same answer
-    // from FaceShiftByBlock's precomputed table instead of walking boxes on every call.
+    // Sums the shift away from each claimed face: a straight wall claims one, a cornerout two.
+    // GapShiftAt gets the same answer from FaceShiftByBlock instead of walking boxes every call.
     internal static (double dx, double dz) PanelOffset(Cuboidf[]? boxes, IEnumerable<string> claimedFaces)
         => Combine(claimedFaces, face => FaceShift(boxes, face));
 
@@ -647,9 +634,8 @@ public class SidingModSystem : ModSystem
         return true;
     }
 
-    // TCTCache.vars is internal to Vintagestory.Client.NoObf, with no InternalsVisibleTo reaching
-    // this assembly, so it takes a field-ref same as GuestPanelPostfix's ___vars gets from Harmony -
-    // the difference is ShiftTowardWall is called directly from transpiled IL, not patched itself.
+    // ChunkTesselator.vars isn't public; ShiftTowardWall is called from transpiled IL, so it can't
+    // take ___vars from Harmony the way GuestPanelPostfix does.
     private static readonly AccessTools.FieldRef<ChunkTesselator, TCTCache> VarsRef =
         AccessTools.FieldRefAccess<ChunkTesselator, TCTCache>("vars");
 
@@ -658,26 +644,21 @@ public class SidingModSystem : ModSystem
     // everything reading vars.finalX/finalZ downstream - land on the panel a hosted block shifts to.
     internal static void ShiftTowardWall(ChunkTesselator tesselator, Block block)
     {
-        if (Hostable is not { } hostable || block.BlockId >= hostable.Length || !hostable[block.BlockId]) return;
-        if (capi == null) return;
+        if (!IsHostableId(block.BlockId)) return;
 
         var vars = VarsRef(tesselator);
         var pos = new BlockPos(vars.posX, vars.posY, vars.posZ, vars.dimension);
-        var (dx, dz) = GapShiftAt(capi.World.BlockAccessor, pos, block);
+        var (dx, dz) = GapShiftAt(pos, block);
         vars.finalX += (float)dx;
         vars.finalZ += (float)dz;
     }
 
-    // A guest wall never gets a TesselateBlock call of its own - the chunk array holds its host's
-    // id at this cell, not the wall's - so its panel rides in right after the host's own call,
-    // through the same TCTCache the JSON tesselator (jsonTesselator, set at ChunkTesselator
-    // construction) just built its mesh with. Pointed briefly at the wall - block, blockId, the
-    // unshifted lx/ly/lz position (the off-panel offset moves the host, not the panel), RenderPass and
-    // VertexFlags - and restored in the finally so the next block in the loop starts clean.
+    // A guest wall gets no TesselateBlock call of its own (the chunk holds its host's id), so its
+    // panel rides in after the host's, through the JSON tesselator's helper and the same TCTCache,
+    // pointed briefly at the wall at the unshifted position and restored for the next block.
     internal static void GuestPanelPostfix(ChunkTesselator __instance, TCTCache ___vars, ClientMain ___game, Block block)
     {
-        if (Hostable is not { } hostable || block.BlockId >= hostable.Length || !hostable[block.BlockId]) return;
-        if (capi == null) return;
+        if (!IsHostableId(block.BlockId) || capi == null) return;
 
         var pos = new BlockPos(___vars.posX, ___vars.posY, ___vars.posZ, ___vars.dimension);
         SidingWallEntity? guest = GuestWalls.GuestAt(capi, pos);
@@ -711,9 +692,7 @@ public class SidingModSystem : ModSystem
         }
     }
 
-    // What BreakAllDecorFast's prefix does with a guest once it sees the new block written into the
-    // chunk (decision 0035). Kept as a pure function of the
-    // three inputs so HostChangeTests can exercise it with plain Block instances.
+    // What HostChangePrefix does with a guest once it sees the new block written into the chunk.
     internal enum HostChange { Restore, Keep, Drop }
 
     internal static HostChange ClassifyHostChange(Block newBlock, Block guestWallBlock, bool[]? hostable)
@@ -769,11 +748,6 @@ public class SidingModSystem : ModSystem
         }
     }
 
-    // Re-checks the cell and the guest before touching either - the cell could have taken another
-    // hostable block in the meantime, and the deferred callback could outlive the guest itself.
-    // Clears the guest before SetBlock: with the guest still recorded under a placed, non-hostable
-    // wall, this same prefix would see the freshly-placed wall's own SetBlock next and drop the
-    // layers it hasn't restored yet.
     // The server runs TriggerNeighbourBlocksUpdate straight after a player's break completes, so
     // restoring here means no neighbour - a torch on the far side, the water beside it - ever sees
     // the cell as air, and the client gets the wall back in the same tick instead of flashing empty.
@@ -833,6 +807,9 @@ public class SidingModSystem : ModSystem
         return false;
     }
 
+    // Re-checks the cell and the guest first: the cell may have taken another hostable block, and
+    // the deferred callback may outlive the guest. Clears the guest before SetBlock, or
+    // HostChangePrefix would see the restored wall's own SetBlock over a guest and drop its layers.
     private static void RestoreGuestWall(IWorldAccessor world, BlockPos pos)
     {
         IWorldChunk? chunk = world.BlockAccessor.GetChunkAtBlockPos(pos);
@@ -857,21 +834,15 @@ public class SidingModSystem : ModSystem
         }
     }
 
-    // CollectibleObject.api is protected, set on whichever side's Block instance this is - the same
-    // reason GuestWalls.Decode takes an ICoreAPI rather than assuming one, so a lookup off the block
-    // itself always lands on the right side's chunk data. Internal: GuestSealingPatches reads it too,
-    // off a host block that (unlike GapShiftAt's callers) never has a world accessor to hand.
+    // CollectibleObject.api is protected, and set to whichever side owns this Block instance, so a
+    // guest lookup off a block that came with no world reference still reads the right side's data.
     internal static readonly AccessTools.FieldRef<CollectibleObject, ICoreAPI> ApiRef =
         AccessTools.FieldRefAccess<CollectibleObject, ICoreAPI>("api");
 
-    // The same query as ShiftTowardWall, off an IBlockAccessor instead of the tesselator's extended
-    // chunk cache, for GapShiftCollisionPatches (collision/selection run every physics tick and off
-    // the render thread, so they can't reach into ChunkTesselator's per-frame state). blockAccessor
-    // is unused beyond the Hostable check - the guest lookup goes through the block's own api field,
-    // since a physics tick's accessor doesn't carry one.
-    internal static (double dx, double dz) GapShiftAt(IBlockAccessor blockAccessor, BlockPos pos, Block block)
+    // How far a hosted block at pos shifts off its guest's panel; zero for anything not hosted.
+    internal static (double dx, double dz) GapShiftAt(BlockPos pos, Block block)
     {
-        if (Hostable is not { } hostable || block.BlockId >= hostable.Length || !hostable[block.BlockId]) return (0, 0);
+        if (!IsHostableId(block.BlockId)) return (0, 0);
 
         ICoreAPI? api = ApiRef(block);
         if (api == null || GuestWalls.GuestAt(api, pos)?.Block is not SidingWallBlock wall) return (0, 0);
@@ -882,11 +853,8 @@ public class SidingModSystem : ModSystem
     }
 
     // Inserts the ShiftTowardWall call right after vars.finalZ = vars.lz is set (the int lz widens
-    // to float via conv.r4 first) - the point Place On Slabs's own TesselateBlock transpiler anchors
-    // on too, for the equivalent vertical offset - so a game update that moves it fails the build
-    // via GapShiftPatchTests rather than silently no-opping. RandomDrawOffset stores to finalZ too,
-    // further down, so the anchor also checks the value being stored came from vars.lz, not just
-    // any store to the field.
+    // to float via conv.r4 first), the anchor Place On Slabs uses for its vertical offset.
+    // RandomDrawOffset stores to finalZ further down, so the anchor also checks the value came from vars.lz.
     internal static IEnumerable<CodeInstruction> GapShiftTranspiler(IEnumerable<CodeInstruction> instructions)
     {
         var lzField = AccessTools.Field(typeof(TCTCache), nameof(TCTCache.lz));

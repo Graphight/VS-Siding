@@ -11,7 +11,7 @@ using Xunit;
 
 namespace VSSiding.Tests;
 
-// The renderers that draw a snapped block outside chunk tesselation. A game update that renames a
+// The renderers that draw a hosted block outside chunk tesselation. A game update that renames a
 // field or drops the anchor call fails here rather than silently leaving the draw unshifted.
 public class GapShiftRendererPatchTests
 {

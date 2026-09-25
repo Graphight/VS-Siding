@@ -6,18 +6,10 @@ using Vintagestory.API.MathTools;
 
 namespace VSSiding;
 
-// Furniture-against-thin-walls (decision 0035): furniture hosting a wall's cell hides that
-// wall from a look-block query as much as it hides it from view, so the tooltip needs its own
-// reminder. A postfix on every declaring override of GetPlacedBlockInfo across loaded assemblies
-// (EveryOverridePatches) appends the guest's own description, reusing SidingWallEntity.GetBlockInfo
-// (which already wraps SidingWallBlock.Describe) rather than calling Describe with ten arguments
-// again.
+// Hosted furniture's tooltip appends its guest wall's description (decision 0035).
 internal static class GuestTooltipPatches
 {
-    // An override that calls base.GetPlacedBlockInfo runs both the base's patched method and its
-    // own; only the outermost frame should look up and append the guest, same reasoning as
-    // GapShiftCollisionPatches - a separate counter because a tooltip call must not read as nested
-    // inside an unrelated collision query, or vice versa.
+    // An override calling base.GetPlacedBlockInfo runs the postfix twice; only the outermost appends.
     [ThreadStatic] private static int depth;
 
     internal static void PatchAll(Harmony harmony, ICoreAPI api)
@@ -33,12 +25,11 @@ internal static class GuestTooltipPatches
 
     private static void Finalizer() => depth--;
 
-    // __args rather than named parameters, as in GapShiftCollisionPatches: Harmony binds by name, and
-    // a mod's override that spells them differently would refuse the whole patch.
+    // __args, because Harmony binds by name and a mod's override may spell the parameters differently.
     private static void Postfix(Block __instance, object[] __args, ref string __result)
     {
         if (depth != 1 || __args[0] is not IWorldAccessor world || __args[1] is not BlockPos pos || __args[2] is not IPlayer forPlayer) return;
-        if (SidingModSystem.Hostable is not { } hostable || __instance.BlockId >= hostable.Length || !hostable[__instance.BlockId]) return;
+        if (!SidingModSystem.IsHostableId(__instance.BlockId)) return;
 
         SidingWallEntity? guest = GuestWalls.GuestAt(world.Api, pos);
         if (guest == null) return;
