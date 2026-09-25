@@ -239,6 +239,16 @@ public class SidingModSystem : ModSystem
         {
             api.Logger.Error("vssiding: block build patch skipped, a block clicked onto a wall's outer face or top will land in the wall's own cell instead: {0}", e);
         }
+
+        try
+        {
+            harmony.Patch(AccessTools.Method(typeof(BlockBehaviorMultiblock), nameof(BlockBehaviorMultiblock.CanPlaceBlock)),
+                postfix: new HarmonyMethod(typeof(SidingModSystem), nameof(MultiblockFootprintPostfix)));
+        }
+        catch (Exception e)
+        {
+            api.Logger.Error("vssiding: trunk footprint patch skipped, a trunk may straddle a corner, opposite wall faces, or a wall and an open cell, and sit misaligned with its panels: {0}", e);
+        }
     }
 
     private static readonly AccessTools.FieldRef<AnimatableRenderer, Vec3d> AnimatablePos =
@@ -555,10 +565,12 @@ public class SidingModSystem : ModSystem
     // Excluded: our own walls; anything the wall can replace (tall grass, loose stones: the restore
     // would take the cell back next tick, eating the item); Unplaceable blocks (a pot goes down as
     // ground storage, which is hostable itself); plants, which nobody hosts and every meadow would
-    // pay a guest lookup for; anything that culls a neighbour (SideSolid); fluid-layer blocks;
-    // anything not a plain JSON shape; beds (a "part" variant); multiblocks and their fillers (a
-    // trunk's filler would take the next wall's cell with no guest); doors (1.22's are BlockGeneric
-    // with a "Door" BE behaviour); and mechanical power blocks, which network by position.
+    // pay a guest lookup for; anything with a solid side (a full cube, a slab, a metal sheet), except
+    // a solid top on a block with a block entity (a cabinet you set things on); fluid-layer blocks;
+    // anything not a plain JSON shape; beds (a "part" variant); doors (1.22's are BlockGeneric with
+    // a "Door" BE behaviour); and mechanical power blocks, which network by position. Multiblocks
+    // other than a trunk and its filler stay out (paintings, banners, mannequins, machines): the
+    // footprint rule in the CanPlaceBlock postfix is what makes a trunk's filler safe to host.
     private static void BuildHostableTable(ICoreAPI api)
     {
         int maxId = api.World.Blocks.Where(b => b != null).Max(b => b.BlockId);
@@ -571,12 +583,21 @@ public class SidingModSystem : ModSystem
             hostable[block.BlockId] = IsHostable(block);
             if (!hostable[block.BlockId]) continue;
 
-            var boxes = block.SelectionBoxes ?? block.CollisionBoxes;
-            faceShift[block.BlockId] = HorizontalFaces.Select(face => FaceShift(boxes, face)).ToArray();
+            faceShift[block.BlockId] = FaceShifts(block);
         }
 
         Hostable = hostable;
         FaceShiftByBlock = faceShift;
+    }
+
+    // A RotateablePlaceable block (a cabinet) turns its boxes by its block entity's angle, so its
+    // default boxes don't say which face meets the wall; it takes its largest shift on every face,
+    // right unless its front is the side against the wall.
+    internal static double[] FaceShifts(Block block)
+    {
+        var boxes = block.SelectionBoxes ?? block.CollisionBoxes;
+        var shifts = HorizontalFaces.Select(face => FaceShift(boxes, face)).ToArray();
+        return block.HasBehavior<BlockBehaviorRotateablePlaceable>() ? shifts.Select(_ => shifts.Max()).ToArray() : shifts;
     }
 
     // How far the panel thickness reaches past whatever inset the block's own default boxes already
@@ -623,15 +644,52 @@ public class SidingModSystem : ModSystem
         if (block.Replaceable >= 6000) return false;
         if (block.HasBehavior<BlockBehaviorUnplaceable>()) return false;
         if (block.BlockMaterial is EnumBlockMaterial.Plant or EnumBlockMaterial.Leaves) return false;
-        if (block.SideSolid.Any) return false;
+        if (block.SideSolid.Any && !(block.SideSolid.Value() == BlockFacing.UP.Flag && block.EntityClass != null)) return false;
         if (block.ForFluidsLayer) return false;
         if (block.DrawType is not (EnumDrawType.JSON or EnumDrawType.JSONAndSnowLayer or EnumDrawType.JSONAndWater)) return false;
         if (block is BlockMicroBlock) return false;
         if (block.Variant.ContainsKey("part")) return false;
         if (block is BlockBaseDoor || block.BlockEntityBehaviors.Any(b => b.Name == "Door")) return false;
-        if (block is BlockMultiblock || block.HasBehavior<BlockBehaviorMultiblock>()) return false;
+        if (block is not (BlockMultiblock or BlockGenericTypedContainerTrunk) && block.HasBehavior<BlockBehaviorMultiblock>()) return false;
         if (block is BlockMPBase) return false;
         return true;
+    }
+
+    // A north or south trunk spans two cells along x, as a wall claiming the north or south face does.
+    private static bool AlongX(string side) => side is "north" or "south";
+
+    // Whether a trunk's footprint is safe to host: no wall in it, or every cell a straight wall (never
+    // a cornerout) sharing one side along the trunk's long axis. A wall beside an open cell is refused
+    // too, since the trunk's shift comes from its controller cell's guest alone.
+    internal static bool FootprintHosts(string trunkSide, IReadOnlyList<Block> cells)
+    {
+        if (!cells.Any(c => c is SidingWallBlock)) return true;
+        if (!cells.All(c => c is SidingWallBlock wall && wall.Variant["layout"] == "wall")) return false;
+
+        var sides = cells.Cast<SidingWallBlock>().Select(wall => wall.Variant["side"]).Distinct().ToList();
+        if (sides.Count != 1) return false;
+
+        return AlongX(trunkSide) == AlongX(sides[0]);
+    }
+
+    // IsReplacableBy has no position, so each wall answers alone; only here is the whole footprint
+    // in view. IsHostable admits no Multiblock block but a trunk, so ordinary multiblocks pass untouched.
+    internal static void MultiblockFootprintPostfix(BlockBehaviorMultiblock __instance, IWorldAccessor world,
+        BlockSelection blockSel, ref bool __result, ref EnumHandling handling, ref string failureCode)
+    {
+        if (!__result || !IsHostableId(__instance.block.BlockId)) return;
+
+        var cells = new List<Block>();
+        __instance.IterateOverEach(blockSel.Position, mpos =>
+        {
+            cells.Add(world.BlockAccessor.GetBlock(mpos));
+            return true;
+        });
+
+        if (FootprintHosts(__instance.block.Variant["side"], cells)) return;
+        __result = false;
+        handling = EnumHandling.PreventDefault;
+        failureCode = "notenoughspace";
     }
 
     // ChunkTesselator.vars isn't public; ShiftTowardWall is called from transpiled IL, so it can't
@@ -839,6 +897,11 @@ public class SidingModSystem : ModSystem
     internal static readonly AccessTools.FieldRef<CollectibleObject, ICoreAPI> ApiRef =
         AccessTools.FieldRefAccess<CollectibleObject, ICoreAPI>("api");
 
+    // A trunk's filler draws nothing and takes the trunk's boxes, mirrored, so it shifts by the
+    // trunk's inset rather than by its own default cube's.
+    internal static Block ShiftSource(IBlockAccessor accessor, BlockPos pos, Block block)
+        => block is BlockMultiblock filler ? accessor.GetBlock(pos.AddCopy(filler.OffsetInv)) : block;
+
     // How far a hosted block at pos shifts off its guest's panel; zero for anything not hosted.
     internal static (double dx, double dz) GapShiftAt(BlockPos pos, Block block)
     {
@@ -847,7 +910,7 @@ public class SidingModSystem : ModSystem
         ICoreAPI? api = ApiRef(block);
         if (api == null || GuestWalls.GuestAt(api, pos)?.Block is not SidingWallBlock wall) return (0, 0);
 
-        var shifts = FaceShiftByBlock![block.BlockId];
+        if (FaceShiftByBlock![ShiftSource(api.World.BlockAccessor, pos, block).BlockId] is not { } shifts) return (0, 0);
         var claimed = HorizontalFaces.Where(face => SidingWallBlock.ClaimsFace(wall.Variant["layout"], wall.Variant["side"], face));
         return Combine(claimed, face => shifts[HorizontalFaceIndex[face]]);
     }

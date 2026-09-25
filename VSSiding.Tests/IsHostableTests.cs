@@ -34,7 +34,9 @@ public class IsHostableTests
     {
         var bed = Open(new Block());
         bed.VariantStrict["part"] = "head";
-        var trunk = Open(new Block());
+        var painting = Open(new Block());
+        painting.BlockBehaviors = new BlockBehavior[] { new BlockBehaviorMultiblock(painting) };
+        var trunk = Open(new BlockGenericTypedContainerTrunk());
         trunk.BlockBehaviors = new BlockBehavior[] { new BlockBehaviorMultiblock(trunk) };
         var pot = Open(new Block());
         pot.BlockBehaviors = new BlockBehavior[] { new BlockBehaviorUnplaceable(pot) };
@@ -43,6 +45,8 @@ public class IsHostableTests
         {
             ["furniture"] = Open(new Block()),
             ["solid cube"] = new Block(),
+            ["cabinet"] = new Block { SideSolid = new SmallBoolArray(BlockFacing.UP.Flag), EntityClass = "Generic" },
+            ["top slab"] = new Block { SideSolid = new SmallBoolArray(BlockFacing.UP.Flag) },
             ["tall grass"] = Open(new Block { Replaceable = 6000 }),
             ["flower"] = Open(new Block { Replaceable = 3000, BlockMaterial = EnumBlockMaterial.Plant }),
             ["cross plant"] = Open(new Block { DrawType = EnumDrawType.Cross }),
@@ -52,6 +56,7 @@ public class IsHostableTests
             ["door"] = Open(new Block { BlockEntityBehaviors = new[] { new BlockEntityBehaviorType { Name = "Door" } } }),
             ["multiblock filler"] = Open(new BlockMultiblock()),
             ["trunk"] = trunk,
+            ["painting"] = painting,
             ["mechanical power"] = Open(new PowerBlock()),
             ["siding wall"] = Open(new SidingWallBlock()),
         };
@@ -60,6 +65,8 @@ public class IsHostableTests
         {
             ["furniture"] = true,
             ["solid cube"] = false,
+            ["cabinet"] = true,
+            ["top slab"] = false,
             ["tall grass"] = false,
             ["flower"] = false,
             ["cross plant"] = false,
@@ -67,8 +74,9 @@ public class IsHostableTests
             ["bed half"] = false,
             ["unplaceable pot"] = false,
             ["door"] = false,
-            ["multiblock filler"] = false,
-            ["trunk"] = false,
+            ["multiblock filler"] = true,
+            ["trunk"] = true,
+            ["painting"] = false,
             ["mechanical power"] = false,
             ["siding wall"] = false,
         };

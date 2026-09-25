@@ -56,6 +56,9 @@ public class HostChangeTests
         var groundStorable = AccessTools.Method(typeof(CollectibleBehaviorGroundStorable), nameof(CollectibleBehaviorGroundStorable.Interact));
         Assert.Equal(new[] { "itemslot", "byEntity", "blockSel", "entitySel", "firstEvent", "handHandling", "handling" },
             groundStorable.GetParameters().Select(p => p.Name));
+        var canPlaceBlock = AccessTools.Method(typeof(BlockBehaviorMultiblock), nameof(BlockBehaviorMultiblock.CanPlaceBlock));
+        Assert.Equal(new[] { "world", "byPlayer", "blockSel", "handling", "failureCode" },
+            canPlaceBlock.GetParameters().Select(p => p.Name));
     }
 
     // A wall that would take the held block as a placement target, the way SidingWallBlock does
