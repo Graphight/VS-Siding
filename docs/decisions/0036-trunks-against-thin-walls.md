@@ -42,6 +42,7 @@ Its shelves (`BEBehaviorDisplay`) pick a slot by `BlockSelection.SelectionBoxId`
 
 ## Consequences & open questions
 - Played: a trunk hosted from both ends of a two-wall run, with both panels drawn and the trunk off them; breaking it restores both walls; `/sidingroom` counts both; the filler's collision matches the model; wall plus air, a corner and a cross-axis wall are refused; cabinets on all four sides sit off the panel with working shelves; a top slab still goes in front.
+- Known in play, cause not investigated: a hosted chest or trunk collides only on its sides, so a player can walk in through its front face and out the side. Not game-breaking, and left alone to keep this change small.
 - Lid direction is not restricted; the player's facing decides it, as for any trunk. Not checked on its own in play.
 - Beds stay out: a head/foot `part` pair meeting a wall head-on doesn't fit this shape.
 - Tables share the cabinet's solid top but have no block entity, so they stay out.
