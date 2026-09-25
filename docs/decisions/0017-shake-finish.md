@@ -1,6 +1,6 @@
 # Shake finish
 
-- Status: Accepted
+- Status: Accepted; BackTexture superseded by 0040
 - Created: 2026-09-16
 - Reflects: `shake-finish` proposal; decision 0007's weatherboard elements; vanilla 1.21 `textures/block/wood/shingles/` and `blocktypes/wood/woodtyped/log.json`; graduated on branch `shake-finish`; playtest on branch `shake-finish` at fc0ad49
 

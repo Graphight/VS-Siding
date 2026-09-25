@@ -8,8 +8,6 @@ An idea that's been thought through but not acted on. Mutable: edit freely, argu
 
 ## Open
 
-- `sectioned-mode-picker`: the saw's mode picker becomes rows of toggles, framing, boards and logs, with choices stored per character.
-Logs gain the style choice planks got in decision 0027.
 - `opaque-infill-seam`: a two-high wall of straw, wattle, clay or rubble shows a seam at the join where decision 0008 drops the middle plate.
 The infill panel's `Flat` UV rule restarts the texture at each element's own base instead of the block's own height, so the proposal switches it to `Positional`, the same fix decision 0028 already made for weatherboard.
 - `fireproof-infill`: decision 0033 noted a wall still burns like a plank no matter its infill, because `GetCombustibleProperties` is never overridden and always answers with the block's own wood-plank numbers.
