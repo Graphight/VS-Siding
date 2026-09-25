@@ -126,7 +126,111 @@ public static class WallShapeGen
         }
     }
 
+    // A log course is a thin backing sliver against the framing, then a proud band toward the
+    // outward face, four bands stacked with a one-voxel reveal between so the sliver shows through
+    // as the gap. Front and back read as the same table with outer and inner swapped, the way brick
+    // and ashlar do above; a leg restricts runLo/runHi the same way too, since a log has no joints
+    // along its run to crop.
+    private static IEnumerable<Element> Logs(
+        string name, string slot, char depthAxis, double outer, double inner, string outwardFace,
+        double runLo, double runHi)
+    {
+        (double Lo, double Hi) MinMax(double a, double b) => (Math.Min(a, b), Math.Max(a, b));
+        double mid = (outer + inner) / 2;
+
+        var (planeLo, planeHi) = MinMax(inner, mid);
+        yield return new Element(name,
+            Corner(depthAxis, planeLo, runLo, 0), Corner(depthAxis, planeHi, runHi, 16), slot, UvRule.Flat);
+
+        var (bandLo, bandHi) = MinMax(mid, outer);
+        for (int i = 0; i < 4; i++)
+        {
+            double y0 = 0.5 + i * 4, y1 = 3.5 + i * 4;
+            yield return new Element(name,
+                Corner(depthAxis, bandLo, runLo, y0), Corner(depthAxis, bandHi, runHi, y1),
+                slot, UvRule.Flat, PositionalOverrides: [outwardFace]);
+        }
+    }
+
+    // Mirrors a depth-x relief table across the wall's centreline (x 0..4), so a back or second face
+    // reads the same irregular joints as the front without a second hand-authored table.
+    private static Element MirrorDepthX(Element e, string name, string slot) => e with
+    {
+        Name = name,
+        Slot = slot,
+        From = (4 - e.To.X, e.From.Y, e.From.Z),
+        To = (4 - e.From.X, e.To.Y, e.To.Z),
+    };
+
+    private static Element MirrorDepthZ(Element e, string name, string slot) => e with
+    {
+        Name = name,
+        Slot = slot,
+        From = (e.From.X, e.From.Y, 4 - e.To.Z),
+        To = (e.To.X, e.To.Y, 4 - e.From.Z),
+    };
+
+    // Crops a mirrored run to the leg it belongs to, the way RunningBond's units do: a back group
+    // only covers its own leg once mirrored past the corner post.
+    private static IEnumerable<Element> ClipRun(IEnumerable<Element> elements, char runAxis, double runLo, double runHi)
+    {
+        foreach (var e in elements)
+        {
+            double lo = runAxis == 'x' ? e.From.X : e.From.Z;
+            double hi = runAxis == 'x' ? e.To.X : e.To.Z;
+            double clo = Math.Max(lo, runLo), chi = Math.Min(hi, runHi);
+            if (chi <= clo) continue;
+            yield return e with
+            {
+                From = runAxis == 'x' ? (clo, e.From.Y, e.From.Z) : (e.From.X, e.From.Y, clo),
+                To = runAxis == 'x' ? (chi, e.To.Y, e.To.Z) : (e.To.X, e.To.Y, chi),
+            };
+        }
+    }
+
     private static readonly string[] AllFaces = ["north", "east", "south", "west", "up", "down"];
+
+    // Weatherboard's lap (proud butt, recessed body) stays, but each course is cut into four
+    // shakes along its run, and a shake keeps its depth through both bands - butt at d, body at
+    // 0.5 + d - so it reads as one tile rather than a banded strip. Depths run 0 to 0.3 of a
+    // voxel, recessed never proud, and the boundaries move course to course for the stagger.
+    // The painted joints are irregular, so the shakes abut and the depth step alone carries the
+    // joint; a gap would open a line straight into the wall.
+    private static readonly Element[] FrontShakesElements =
+    [
+        new("front-shakes", (0, 0, 0), (1, 1, 5), "front", UvRule.Positional, RunAxis: 'z'),
+        new("front-shakes", (0.2, 0, 5), (1, 1, 9), "front", UvRule.Positional, RunAxis: 'z'),
+        new("front-shakes", (0.1, 0, 9), (1, 1, 13), "front", UvRule.Positional, RunAxis: 'z'),
+        new("front-shakes", (0.3, 0, 13), (1, 1, 16), "front", UvRule.Positional, RunAxis: 'z'),
+        new("front-shakes", (0.5, 1, 0), (1, 4, 5), "front", UvRule.Positional, RunAxis: 'z'),
+        new("front-shakes", (0.7, 1, 5), (1, 4, 9), "front", UvRule.Positional, RunAxis: 'z'),
+        new("front-shakes", (0.6, 1, 9), (1, 4, 13), "front", UvRule.Positional, RunAxis: 'z'),
+        new("front-shakes", (0.8, 1, 13), (1, 4, 16), "front", UvRule.Positional, RunAxis: 'z'),
+        new("front-shakes", (0.15, 4, 0), (1, 5, 4), "front", UvRule.Positional, RunAxis: 'z'),
+        new("front-shakes", (0, 4, 4), (1, 5, 7), "front", UvRule.Positional, RunAxis: 'z'),
+        new("front-shakes", (0.3, 4, 7), (1, 5, 12), "front", UvRule.Positional, RunAxis: 'z'),
+        new("front-shakes", (0.1, 4, 12), (1, 5, 16), "front", UvRule.Positional, RunAxis: 'z'),
+        new("front-shakes", (0.65, 5, 0), (1, 8, 4), "front", UvRule.Positional, RunAxis: 'z'),
+        new("front-shakes", (0.5, 5, 4), (1, 8, 7), "front", UvRule.Positional, RunAxis: 'z'),
+        new("front-shakes", (0.8, 5, 7), (1, 8, 12), "front", UvRule.Positional, RunAxis: 'z'),
+        new("front-shakes", (0.6, 5, 12), (1, 8, 16), "front", UvRule.Positional, RunAxis: 'z'),
+        new("front-shakes", (0.25, 8, 0), (1, 9, 6), "front", UvRule.Positional, RunAxis: 'z'),
+        new("front-shakes", (0.1, 8, 6), (1, 9, 10), "front", UvRule.Positional, RunAxis: 'z'),
+        new("front-shakes", (0, 8, 10), (1, 9, 13), "front", UvRule.Positional, RunAxis: 'z'),
+        new("front-shakes", (0.2, 8, 13), (1, 9, 16), "front", UvRule.Positional, RunAxis: 'z'),
+        new("front-shakes", (0.75, 9, 0), (1, 12, 6), "front", UvRule.Positional, RunAxis: 'z'),
+        new("front-shakes", (0.6, 9, 6), (1, 12, 10), "front", UvRule.Positional, RunAxis: 'z'),
+        new("front-shakes", (0.5, 9, 10), (1, 12, 13), "front", UvRule.Positional, RunAxis: 'z'),
+        new("front-shakes", (0.7, 9, 13), (1, 12, 16), "front", UvRule.Positional, RunAxis: 'z'),
+        new("front-shakes", (0.1, 12, 0), (1, 13, 3), "front", UvRule.Positional, RunAxis: 'z'),
+        new("front-shakes", (0.3, 12, 3), (1, 13, 8), "front", UvRule.Positional, RunAxis: 'z'),
+        new("front-shakes", (0.15, 12, 8), (1, 13, 12), "front", UvRule.Positional, RunAxis: 'z'),
+        new("front-shakes", (0, 12, 12), (1, 13, 16), "front", UvRule.Positional, RunAxis: 'z'),
+        new("front-shakes", (0.6, 13, 0), (1, 16, 3), "front", UvRule.Positional, RunAxis: 'z'),
+        new("front-shakes", (0.8, 13, 3), (1, 16, 8), "front", UvRule.Positional, RunAxis: 'z'),
+        new("front-shakes", (0.65, 13, 8), (1, 16, 12), "front", UvRule.Positional, RunAxis: 'z'),
+        new("front-shakes", (0.5, 13, 12), (1, 16, 16), "front", UvRule.Positional, RunAxis: 'z'),
+    ];
 
     private static readonly Element[] WallElements =
     [
@@ -178,49 +282,13 @@ public static class WallShapeGen
         new("back-weatherboard", (3, 13, 0), (3.75, 14, 16), "back", UvRule.Positional),
         new("back-weatherboard", (3, 14, 0), (3.5, 15, 16), "back", UvRule.Positional),
         new("back-weatherboard", (3, 15, 0), (3.25, 16, 16), "back", UvRule.Positional),
-        // Weatherboard's lap (proud butt, recessed body) stays, but each course is cut into four
-        // shakes along its run, and a shake keeps its depth through both bands - butt at d, body at
-        // 0.5 + d - so it reads as one tile rather than a banded strip. Depths run 0 to 0.3 of a
-        // voxel, recessed never proud, and the boundaries move course to course for the stagger.
-        // The painted joints are irregular, so the shakes abut and the depth step alone carries the
-        // joint; a gap would open a line straight into the wall.
-        new("front-shakes", (0, 0, 0), (1, 1, 5), "front", UvRule.Positional, RunAxis: 'z'),
-        new("front-shakes", (0.2, 0, 5), (1, 1, 9), "front", UvRule.Positional, RunAxis: 'z'),
-        new("front-shakes", (0.1, 0, 9), (1, 1, 13), "front", UvRule.Positional, RunAxis: 'z'),
-        new("front-shakes", (0.3, 0, 13), (1, 1, 16), "front", UvRule.Positional, RunAxis: 'z'),
-        new("front-shakes", (0.5, 1, 0), (1, 4, 5), "front", UvRule.Positional, RunAxis: 'z'),
-        new("front-shakes", (0.7, 1, 5), (1, 4, 9), "front", UvRule.Positional, RunAxis: 'z'),
-        new("front-shakes", (0.6, 1, 9), (1, 4, 13), "front", UvRule.Positional, RunAxis: 'z'),
-        new("front-shakes", (0.8, 1, 13), (1, 4, 16), "front", UvRule.Positional, RunAxis: 'z'),
-        new("front-shakes", (0.15, 4, 0), (1, 5, 4), "front", UvRule.Positional, RunAxis: 'z'),
-        new("front-shakes", (0, 4, 4), (1, 5, 7), "front", UvRule.Positional, RunAxis: 'z'),
-        new("front-shakes", (0.3, 4, 7), (1, 5, 12), "front", UvRule.Positional, RunAxis: 'z'),
-        new("front-shakes", (0.1, 4, 12), (1, 5, 16), "front", UvRule.Positional, RunAxis: 'z'),
-        new("front-shakes", (0.65, 5, 0), (1, 8, 4), "front", UvRule.Positional, RunAxis: 'z'),
-        new("front-shakes", (0.5, 5, 4), (1, 8, 7), "front", UvRule.Positional, RunAxis: 'z'),
-        new("front-shakes", (0.8, 5, 7), (1, 8, 12), "front", UvRule.Positional, RunAxis: 'z'),
-        new("front-shakes", (0.6, 5, 12), (1, 8, 16), "front", UvRule.Positional, RunAxis: 'z'),
-        new("front-shakes", (0.25, 8, 0), (1, 9, 6), "front", UvRule.Positional, RunAxis: 'z'),
-        new("front-shakes", (0.1, 8, 6), (1, 9, 10), "front", UvRule.Positional, RunAxis: 'z'),
-        new("front-shakes", (0, 8, 10), (1, 9, 13), "front", UvRule.Positional, RunAxis: 'z'),
-        new("front-shakes", (0.2, 8, 13), (1, 9, 16), "front", UvRule.Positional, RunAxis: 'z'),
-        new("front-shakes", (0.75, 9, 0), (1, 12, 6), "front", UvRule.Positional, RunAxis: 'z'),
-        new("front-shakes", (0.6, 9, 6), (1, 12, 10), "front", UvRule.Positional, RunAxis: 'z'),
-        new("front-shakes", (0.5, 9, 10), (1, 12, 13), "front", UvRule.Positional, RunAxis: 'z'),
-        new("front-shakes", (0.7, 9, 13), (1, 12, 16), "front", UvRule.Positional, RunAxis: 'z'),
-        new("front-shakes", (0.1, 12, 0), (1, 13, 3), "front", UvRule.Positional, RunAxis: 'z'),
-        new("front-shakes", (0.3, 12, 3), (1, 13, 8), "front", UvRule.Positional, RunAxis: 'z'),
-        new("front-shakes", (0.15, 12, 8), (1, 13, 12), "front", UvRule.Positional, RunAxis: 'z'),
-        new("front-shakes", (0, 12, 12), (1, 13, 16), "front", UvRule.Positional, RunAxis: 'z'),
-        new("front-shakes", (0.6, 13, 0), (1, 16, 3), "front", UvRule.Positional, RunAxis: 'z'),
-        new("front-shakes", (0.8, 13, 3), (1, 16, 8), "front", UvRule.Positional, RunAxis: 'z'),
-        new("front-shakes", (0.65, 13, 8), (1, 16, 12), "front", UvRule.Positional, RunAxis: 'z'),
-        new("front-shakes", (0.5, 13, 12), (1, 16, 16), "front", UvRule.Positional, RunAxis: 'z'),
-        new("back-logs", (3, 0, 0), (3.5, 16, 16), "back", UvRule.Flat),
-        new("back-logs", (3.5, 0.5, 0), (4, 3.5, 16), "back", UvRule.Flat, PositionalOverrides: ["east"]),
-        new("back-logs", (3.5, 4.5, 0), (4, 7.5, 16), "back", UvRule.Flat, PositionalOverrides: ["east"]),
-        new("back-logs", (3.5, 8.5, 0), (4, 11.5, 16), "back", UvRule.Flat, PositionalOverrides: ["east"]),
-        new("back-logs", (3.5, 12.5, 0), (4, 15.5, 16), "back", UvRule.Flat, PositionalOverrides: ["east"]),
+        .. FrontShakesElements,
+        // A back group is the same table with outer and inner swapped, per Logs' own comment; a
+        // front group mirrors the same table across the centreline instead, since its relief is
+        // painted, not proud-and-recessed courses.
+        .. Logs("back-logs", "back", 'x', 4, 3, "east", 0, 16),
+        .. Logs("front-logs", "front", 'x', 0, 1, "west", 0, 16),
+        .. FrontShakesElements.Select(e => MirrorDepthX(e, "back-shakes", "back")),
         // clay/brick/four/running/cream1.png is 32px over a 16-voxel face: mortar rows at px 6-7,
         // 14-15, 22-23 and 30-31 - a course every 4 voxels with one voxel of mortar at its foot -
         // and two joints per course over 8-voxel units, with the bottom course offset.
@@ -238,6 +306,83 @@ public static class WallShapeGen
         .. RunningBond("back-ashlar", "back", 8, 16, 'x', 4, 3, 0, 16, flipBond: true),
         .. RubbleGrid("front-rubble", "front", 'x', 0, 1, 0, 16),
         .. RubbleGrid("back-rubble", "back", 'x', 4, 3, 0, 16),
+    ];
+
+    // Same tiling as wall's front-shakes (see FrontShakesElements' comment), tuned for the corner:
+    // the front leg's shakes ease off the join at z 0.5/4.5/8.5/12.5 instead of butting flush.
+    private static readonly Element[] CornerFrontShakesLeg1 =
+    [
+        new("front-shakes", (0, 0, 0), (1, 1, 5), "front", UvRule.Positional, RunAxis: 'z'),
+        new("front-shakes", (0.2, 0, 5), (1, 1, 9), "front", UvRule.Positional, RunAxis: 'z'),
+        new("front-shakes", (0.1, 0, 9), (1, 1, 13), "front", UvRule.Positional, RunAxis: 'z'),
+        new("front-shakes", (0.3, 0, 13), (1, 1, 16), "front", UvRule.Positional, RunAxis: 'z'),
+        new("front-shakes", (0.5, 1, 0.5), (1, 4, 5), "front", UvRule.Positional, RunAxis: 'z'),
+        new("front-shakes", (0.7, 1, 5), (1, 4, 9), "front", UvRule.Positional, RunAxis: 'z'),
+        new("front-shakes", (0.6, 1, 9), (1, 4, 13), "front", UvRule.Positional, RunAxis: 'z'),
+        new("front-shakes", (0.8, 1, 13), (1, 4, 16), "front", UvRule.Positional, RunAxis: 'z'),
+        new("front-shakes", (0.15, 4, 0), (1, 5, 4), "front", UvRule.Positional, RunAxis: 'z'),
+        new("front-shakes", (0, 4, 4), (1, 5, 7), "front", UvRule.Positional, RunAxis: 'z'),
+        new("front-shakes", (0.3, 4, 7), (1, 5, 12), "front", UvRule.Positional, RunAxis: 'z'),
+        new("front-shakes", (0.1, 4, 12), (1, 5, 16), "front", UvRule.Positional, RunAxis: 'z'),
+        new("front-shakes", (0.65, 5, 0.5), (1, 8, 4), "front", UvRule.Positional, RunAxis: 'z'),
+        new("front-shakes", (0.5, 5, 4), (1, 8, 7), "front", UvRule.Positional, RunAxis: 'z'),
+        new("front-shakes", (0.8, 5, 7), (1, 8, 12), "front", UvRule.Positional, RunAxis: 'z'),
+        new("front-shakes", (0.6, 5, 12), (1, 8, 16), "front", UvRule.Positional, RunAxis: 'z'),
+        new("front-shakes", (0.25, 8, 0), (1, 9, 6), "front", UvRule.Positional, RunAxis: 'z'),
+        new("front-shakes", (0.1, 8, 6), (1, 9, 10), "front", UvRule.Positional, RunAxis: 'z'),
+        new("front-shakes", (0, 8, 10), (1, 9, 13), "front", UvRule.Positional, RunAxis: 'z'),
+        new("front-shakes", (0.2, 8, 13), (1, 9, 16), "front", UvRule.Positional, RunAxis: 'z'),
+        new("front-shakes", (0.75, 9, 0.5), (1, 12, 6), "front", UvRule.Positional, RunAxis: 'z'),
+        new("front-shakes", (0.6, 9, 6), (1, 12, 10), "front", UvRule.Positional, RunAxis: 'z'),
+        new("front-shakes", (0.5, 9, 10), (1, 12, 13), "front", UvRule.Positional, RunAxis: 'z'),
+        new("front-shakes", (0.7, 9, 13), (1, 12, 16), "front", UvRule.Positional, RunAxis: 'z'),
+        new("front-shakes", (0.1, 12, 0), (1, 13, 3), "front", UvRule.Positional, RunAxis: 'z'),
+        new("front-shakes", (0.3, 12, 3), (1, 13, 8), "front", UvRule.Positional, RunAxis: 'z'),
+        new("front-shakes", (0.15, 12, 8), (1, 13, 12), "front", UvRule.Positional, RunAxis: 'z'),
+        new("front-shakes", (0, 12, 12), (1, 13, 16), "front", UvRule.Positional, RunAxis: 'z'),
+        new("front-shakes", (0.6, 13, 0.5), (1, 16, 3), "front", UvRule.Positional, RunAxis: 'z'),
+        new("front-shakes", (0.8, 13, 3), (1, 16, 8), "front", UvRule.Positional, RunAxis: 'z'),
+        new("front-shakes", (0.65, 13, 8), (1, 16, 12), "front", UvRule.Positional, RunAxis: 'z'),
+        new("front-shakes", (0.5, 13, 12), (1, 16, 16), "front", UvRule.Positional, RunAxis: 'z'),
+    ];
+
+    // The second leg runs along x with depth along z, so its shakes recess from z 0 - the outward
+    // face - and its body sits at 0.5 + d the same way; its own RunAxis keeps the texture running
+    // across its split courses.
+    private static readonly Element[] CornerSecondFrontShakesLeg2 =
+    [
+        new("secondfront-shakes", (1, 0, 0), (5, 1, 1), "secondfront", UvRule.Positional, RunAxis: 'x'),
+        new("secondfront-shakes", (5, 0, 0.2), (9, 1, 1), "secondfront", UvRule.Positional, RunAxis: 'x'),
+        new("secondfront-shakes", (9, 0, 0.1), (13, 1, 1), "secondfront", UvRule.Positional, RunAxis: 'x'),
+        new("secondfront-shakes", (13, 0, 0.3), (16, 1, 1), "secondfront", UvRule.Positional, RunAxis: 'x'),
+        new("secondfront-shakes", (1, 1, 0.5), (5, 4, 1), "secondfront", UvRule.Positional, RunAxis: 'x'),
+        new("secondfront-shakes", (5, 1, 0.7), (9, 4, 1), "secondfront", UvRule.Positional, RunAxis: 'x'),
+        new("secondfront-shakes", (9, 1, 0.6), (13, 4, 1), "secondfront", UvRule.Positional, RunAxis: 'x'),
+        new("secondfront-shakes", (13, 1, 0.8), (16, 4, 1), "secondfront", UvRule.Positional, RunAxis: 'x'),
+        new("secondfront-shakes", (1, 4, 0.15), (4, 5, 1), "secondfront", UvRule.Positional, RunAxis: 'x'),
+        new("secondfront-shakes", (4, 4, 0), (7, 5, 1), "secondfront", UvRule.Positional, RunAxis: 'x'),
+        new("secondfront-shakes", (7, 4, 0.3), (12, 5, 1), "secondfront", UvRule.Positional, RunAxis: 'x'),
+        new("secondfront-shakes", (12, 4, 0.1), (16, 5, 1), "secondfront", UvRule.Positional, RunAxis: 'x'),
+        new("secondfront-shakes", (1, 5, 0.65), (4, 8, 1), "secondfront", UvRule.Positional, RunAxis: 'x'),
+        new("secondfront-shakes", (4, 5, 0.5), (7, 8, 1), "secondfront", UvRule.Positional, RunAxis: 'x'),
+        new("secondfront-shakes", (7, 5, 0.8), (12, 8, 1), "secondfront", UvRule.Positional, RunAxis: 'x'),
+        new("secondfront-shakes", (12, 5, 0.6), (16, 8, 1), "secondfront", UvRule.Positional, RunAxis: 'x'),
+        new("secondfront-shakes", (1, 8, 0.25), (6, 9, 1), "secondfront", UvRule.Positional, RunAxis: 'x'),
+        new("secondfront-shakes", (6, 8, 0.1), (10, 9, 1), "secondfront", UvRule.Positional, RunAxis: 'x'),
+        new("secondfront-shakes", (10, 8, 0), (13, 9, 1), "secondfront", UvRule.Positional, RunAxis: 'x'),
+        new("secondfront-shakes", (13, 8, 0.2), (16, 9, 1), "secondfront", UvRule.Positional, RunAxis: 'x'),
+        new("secondfront-shakes", (1, 9, 0.75), (6, 12, 1), "secondfront", UvRule.Positional, RunAxis: 'x'),
+        new("secondfront-shakes", (6, 9, 0.6), (10, 12, 1), "secondfront", UvRule.Positional, RunAxis: 'x'),
+        new("secondfront-shakes", (10, 9, 0.5), (13, 12, 1), "secondfront", UvRule.Positional, RunAxis: 'x'),
+        new("secondfront-shakes", (13, 9, 0.7), (16, 12, 1), "secondfront", UvRule.Positional, RunAxis: 'x'),
+        new("secondfront-shakes", (1, 12, 0.1), (3, 13, 1), "secondfront", UvRule.Positional, RunAxis: 'x'),
+        new("secondfront-shakes", (3, 12, 0.3), (8, 13, 1), "secondfront", UvRule.Positional, RunAxis: 'x'),
+        new("secondfront-shakes", (8, 12, 0.15), (12, 13, 1), "secondfront", UvRule.Positional, RunAxis: 'x'),
+        new("secondfront-shakes", (12, 12, 0), (16, 13, 1), "secondfront", UvRule.Positional, RunAxis: 'x'),
+        new("secondfront-shakes", (1, 13, 0.6), (3, 16, 1), "secondfront", UvRule.Positional, RunAxis: 'x'),
+        new("secondfront-shakes", (3, 13, 0.8), (8, 16, 1), "secondfront", UvRule.Positional, RunAxis: 'x'),
+        new("secondfront-shakes", (8, 13, 0.65), (12, 16, 1), "secondfront", UvRule.Positional, RunAxis: 'x'),
+        new("secondfront-shakes", (12, 13, 0.5), (16, 16, 1), "secondfront", UvRule.Positional, RunAxis: 'x'),
     ];
 
     private static readonly Element[] CornerOutElements =
@@ -329,84 +474,22 @@ public static class WallShapeGen
         new("back-weatherboard", (3, 14, 3), (16, 15, 3.5), "back", UvRule.Positional),
         new("back-weatherboard", (3, 15, 4), (3.25, 16, 16), "back", UvRule.Positional),
         new("back-weatherboard", (3, 15, 3), (16, 16, 3.25), "back", UvRule.Positional),
-        // Same tiling as wall's front-shakes (see the comment there), on both legs. The front leg
-        // runs along z with depth along x; the second leg runs along x with depth along z, so its
-        // shakes recess from z 0 - the outward face - and its body sits at 0.5 + d the same way.
-        // Each leg's RunAxis is what keeps the texture running across its own split courses.
-        new("front-shakes", (0, 0, 0), (1, 1, 5), "front", UvRule.Positional, RunAxis: 'z'),
-        new("front-shakes", (0.2, 0, 5), (1, 1, 9), "front", UvRule.Positional, RunAxis: 'z'),
-        new("front-shakes", (0.1, 0, 9), (1, 1, 13), "front", UvRule.Positional, RunAxis: 'z'),
-        new("front-shakes", (0.3, 0, 13), (1, 1, 16), "front", UvRule.Positional, RunAxis: 'z'),
-        new("front-shakes", (0.5, 1, 0.5), (1, 4, 5), "front", UvRule.Positional, RunAxis: 'z'),
-        new("front-shakes", (0.7, 1, 5), (1, 4, 9), "front", UvRule.Positional, RunAxis: 'z'),
-        new("front-shakes", (0.6, 1, 9), (1, 4, 13), "front", UvRule.Positional, RunAxis: 'z'),
-        new("front-shakes", (0.8, 1, 13), (1, 4, 16), "front", UvRule.Positional, RunAxis: 'z'),
-        new("secondfront-shakes", (1, 0, 0), (5, 1, 1), "secondfront", UvRule.Positional, RunAxis: 'x'),
-        new("secondfront-shakes", (5, 0, 0.2), (9, 1, 1), "secondfront", UvRule.Positional, RunAxis: 'x'),
-        new("secondfront-shakes", (9, 0, 0.1), (13, 1, 1), "secondfront", UvRule.Positional, RunAxis: 'x'),
-        new("secondfront-shakes", (13, 0, 0.3), (16, 1, 1), "secondfront", UvRule.Positional, RunAxis: 'x'),
-        new("secondfront-shakes", (1, 1, 0.5), (5, 4, 1), "secondfront", UvRule.Positional, RunAxis: 'x'),
-        new("secondfront-shakes", (5, 1, 0.7), (9, 4, 1), "secondfront", UvRule.Positional, RunAxis: 'x'),
-        new("secondfront-shakes", (9, 1, 0.6), (13, 4, 1), "secondfront", UvRule.Positional, RunAxis: 'x'),
-        new("secondfront-shakes", (13, 1, 0.8), (16, 4, 1), "secondfront", UvRule.Positional, RunAxis: 'x'),
-        new("front-shakes", (0.15, 4, 0), (1, 5, 4), "front", UvRule.Positional, RunAxis: 'z'),
-        new("front-shakes", (0, 4, 4), (1, 5, 7), "front", UvRule.Positional, RunAxis: 'z'),
-        new("front-shakes", (0.3, 4, 7), (1, 5, 12), "front", UvRule.Positional, RunAxis: 'z'),
-        new("front-shakes", (0.1, 4, 12), (1, 5, 16), "front", UvRule.Positional, RunAxis: 'z'),
-        new("front-shakes", (0.65, 5, 0.5), (1, 8, 4), "front", UvRule.Positional, RunAxis: 'z'),
-        new("front-shakes", (0.5, 5, 4), (1, 8, 7), "front", UvRule.Positional, RunAxis: 'z'),
-        new("front-shakes", (0.8, 5, 7), (1, 8, 12), "front", UvRule.Positional, RunAxis: 'z'),
-        new("front-shakes", (0.6, 5, 12), (1, 8, 16), "front", UvRule.Positional, RunAxis: 'z'),
-        new("secondfront-shakes", (1, 4, 0.15), (4, 5, 1), "secondfront", UvRule.Positional, RunAxis: 'x'),
-        new("secondfront-shakes", (4, 4, 0), (7, 5, 1), "secondfront", UvRule.Positional, RunAxis: 'x'),
-        new("secondfront-shakes", (7, 4, 0.3), (12, 5, 1), "secondfront", UvRule.Positional, RunAxis: 'x'),
-        new("secondfront-shakes", (12, 4, 0.1), (16, 5, 1), "secondfront", UvRule.Positional, RunAxis: 'x'),
-        new("secondfront-shakes", (1, 5, 0.65), (4, 8, 1), "secondfront", UvRule.Positional, RunAxis: 'x'),
-        new("secondfront-shakes", (4, 5, 0.5), (7, 8, 1), "secondfront", UvRule.Positional, RunAxis: 'x'),
-        new("secondfront-shakes", (7, 5, 0.8), (12, 8, 1), "secondfront", UvRule.Positional, RunAxis: 'x'),
-        new("secondfront-shakes", (12, 5, 0.6), (16, 8, 1), "secondfront", UvRule.Positional, RunAxis: 'x'),
-        new("front-shakes", (0.25, 8, 0), (1, 9, 6), "front", UvRule.Positional, RunAxis: 'z'),
-        new("front-shakes", (0.1, 8, 6), (1, 9, 10), "front", UvRule.Positional, RunAxis: 'z'),
-        new("front-shakes", (0, 8, 10), (1, 9, 13), "front", UvRule.Positional, RunAxis: 'z'),
-        new("front-shakes", (0.2, 8, 13), (1, 9, 16), "front", UvRule.Positional, RunAxis: 'z'),
-        new("front-shakes", (0.75, 9, 0.5), (1, 12, 6), "front", UvRule.Positional, RunAxis: 'z'),
-        new("front-shakes", (0.6, 9, 6), (1, 12, 10), "front", UvRule.Positional, RunAxis: 'z'),
-        new("front-shakes", (0.5, 9, 10), (1, 12, 13), "front", UvRule.Positional, RunAxis: 'z'),
-        new("front-shakes", (0.7, 9, 13), (1, 12, 16), "front", UvRule.Positional, RunAxis: 'z'),
-        new("secondfront-shakes", (1, 8, 0.25), (6, 9, 1), "secondfront", UvRule.Positional, RunAxis: 'x'),
-        new("secondfront-shakes", (6, 8, 0.1), (10, 9, 1), "secondfront", UvRule.Positional, RunAxis: 'x'),
-        new("secondfront-shakes", (10, 8, 0), (13, 9, 1), "secondfront", UvRule.Positional, RunAxis: 'x'),
-        new("secondfront-shakes", (13, 8, 0.2), (16, 9, 1), "secondfront", UvRule.Positional, RunAxis: 'x'),
-        new("secondfront-shakes", (1, 9, 0.75), (6, 12, 1), "secondfront", UvRule.Positional, RunAxis: 'x'),
-        new("secondfront-shakes", (6, 9, 0.6), (10, 12, 1), "secondfront", UvRule.Positional, RunAxis: 'x'),
-        new("secondfront-shakes", (10, 9, 0.5), (13, 12, 1), "secondfront", UvRule.Positional, RunAxis: 'x'),
-        new("secondfront-shakes", (13, 9, 0.7), (16, 12, 1), "secondfront", UvRule.Positional, RunAxis: 'x'),
-        new("front-shakes", (0.1, 12, 0), (1, 13, 3), "front", UvRule.Positional, RunAxis: 'z'),
-        new("front-shakes", (0.3, 12, 3), (1, 13, 8), "front", UvRule.Positional, RunAxis: 'z'),
-        new("front-shakes", (0.15, 12, 8), (1, 13, 12), "front", UvRule.Positional, RunAxis: 'z'),
-        new("front-shakes", (0, 12, 12), (1, 13, 16), "front", UvRule.Positional, RunAxis: 'z'),
-        new("front-shakes", (0.6, 13, 0.5), (1, 16, 3), "front", UvRule.Positional, RunAxis: 'z'),
-        new("front-shakes", (0.8, 13, 3), (1, 16, 8), "front", UvRule.Positional, RunAxis: 'z'),
-        new("front-shakes", (0.65, 13, 8), (1, 16, 12), "front", UvRule.Positional, RunAxis: 'z'),
-        new("front-shakes", (0.5, 13, 12), (1, 16, 16), "front", UvRule.Positional, RunAxis: 'z'),
-        new("secondfront-shakes", (1, 12, 0.1), (3, 13, 1), "secondfront", UvRule.Positional, RunAxis: 'x'),
-        new("secondfront-shakes", (3, 12, 0.3), (8, 13, 1), "secondfront", UvRule.Positional, RunAxis: 'x'),
-        new("secondfront-shakes", (8, 12, 0.15), (12, 13, 1), "secondfront", UvRule.Positional, RunAxis: 'x'),
-        new("secondfront-shakes", (12, 12, 0), (16, 13, 1), "secondfront", UvRule.Positional, RunAxis: 'x'),
-        new("secondfront-shakes", (1, 13, 0.6), (3, 16, 1), "secondfront", UvRule.Positional, RunAxis: 'x'),
-        new("secondfront-shakes", (3, 13, 0.8), (8, 16, 1), "secondfront", UvRule.Positional, RunAxis: 'x'),
-        new("secondfront-shakes", (8, 13, 0.65), (12, 16, 1), "secondfront", UvRule.Positional, RunAxis: 'x'),
-        new("secondfront-shakes", (12, 13, 0.5), (16, 16, 1), "secondfront", UvRule.Positional, RunAxis: 'x'),
-        new("back-logs", (3, 0, 4), (3.5, 16, 16), "back", UvRule.Flat),
-        new("back-logs", (3.5, 0.5, 4), (4, 3.5, 16), "back", UvRule.Flat, PositionalOverrides: ["east"]),
-        new("back-logs", (3.5, 4.5, 4), (4, 7.5, 16), "back", UvRule.Flat, PositionalOverrides: ["east"]),
-        new("back-logs", (3.5, 8.5, 4), (4, 11.5, 16), "back", UvRule.Flat, PositionalOverrides: ["east"]),
-        new("back-logs", (3.5, 12.5, 4), (4, 15.5, 16), "back", UvRule.Flat, PositionalOverrides: ["east"]),
-        new("back-logs", (3, 0, 3), (16, 16, 3.5), "back", UvRule.Flat),
-        new("back-logs", (3, 0.5, 3.5), (16, 3.5, 4), "back", UvRule.Flat, PositionalOverrides: ["south"]),
-        new("back-logs", (3, 4.5, 3.5), (16, 7.5, 4), "back", UvRule.Flat, PositionalOverrides: ["south"]),
-        new("back-logs", (3, 8.5, 3.5), (16, 11.5, 4), "back", UvRule.Flat, PositionalOverrides: ["south"]),
-        new("back-logs", (3, 12.5, 3.5), (16, 15.5, 4), "back", UvRule.Flat, PositionalOverrides: ["south"]),
+        // Same tiling as wall's front-shakes (see FrontShakesElements' comment), on both legs. The
+        // front leg runs along z with depth along x; the second leg runs along x with depth along
+        // z, so its shakes recess from z 0 - the outward face - and its body sits at 0.5 + d the
+        // same way. Each leg's RunAxis is what keeps the texture running across its own split
+        // courses.
+        .. CornerFrontShakesLeg1,
+        .. CornerSecondFrontShakesLeg2,
+        // A back group covers both legs, the way back-logs does, and front-logs/secondfront-logs
+        // don't need the split - the outside corner is convex, so a leg's own cladding runs
+        // uninterrupted the way its front-shakes does above.
+        .. Logs("back-logs", "back", 'x', 4, 3, "east", 4, 16),
+        .. Logs("front-logs", "front", 'x', 0, 1, "west", 0, 16),
+        .. Logs("back-logs", "back", 'z', 4, 3, "south", 3, 16),
+        .. Logs("secondfront-logs", "secondfront", 'z', 0, 1, "north", 1, 16),
+        .. ClipRun(CornerFrontShakesLeg1.Select(e => MirrorDepthX(e, "back-shakes", "back")), 'z', 4, 16),
+        .. ClipRun(CornerSecondFrontShakesLeg2.Select(e => MirrorDepthZ(e, "back-shakes", "back")), 'x', 3, 16),
         .. RunningBond("front-brick", "front", 4, 8, 'x', 0, 1, 0, 16),
         .. RunningBond("secondfront-brick", "secondfront", 4, 8, 'z', 0, 1, 1, 16),
         .. RunningBond("front-ashlar", "front", 8, 16, 'x', 0, 1, 0, 16, flipBond: true),
