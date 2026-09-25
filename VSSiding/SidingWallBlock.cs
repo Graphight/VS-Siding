@@ -95,7 +95,14 @@ public class SidingWallBlock : Block
     private Cuboidf[] FramedCollisionBoxes(IBlockAccessor blockAccessor, BlockPos pos, Cuboidf[] fullBoxes)
     {
         var entity = blockAccessor.GetBlockEntity<SidingWallEntity>(pos);
-        if (entity?.Framing == null || entity.Infill != null) return fullBoxes;
+        return entity == null ? fullBoxes : PanelCollisionBoxes(blockAccessor, pos, entity, fullBoxes);
+    }
+
+    // Framing alone collides on its posts and top plate (decision 0008), otherwise the full panel.
+    // GapShiftCollisionPatches passes a guest's entity for a hosted cell (decision 0035).
+    internal Cuboidf[] PanelCollisionBoxes(IBlockAccessor blockAccessor, BlockPos pos, SidingWallEntity entity, Cuboidf[] fullBoxes)
+    {
+        if (entity.Framing == null || entity.Infill != null) return fullBoxes;
 
         var joins = NeighbourJoins(blockAccessor, pos, entity.Infill);
         return ComputeCollisionBoxes(Variant["layout"], Variant["side"], entity.Framing, entity.Infill, joins.above, fullBoxes);
@@ -127,8 +134,10 @@ public class SidingWallBlock : Block
     }
 
     private bool ContinuesGlazing(IBlockAccessor blockAccessor, BlockPos neighbourPos, string? infill)
-        => SameRun(blockAccessor, neighbourPos)
-            && ContinuesGlazing(infill, blockAccessor.GetBlockEntity<SidingWallEntity>(neighbourPos), Attributes["Infills"]);
+    {
+        var neighbour = SameRunNeighbour(blockAccessor, neighbourPos);
+        return neighbour != null && ContinuesGlazing(infill, neighbour, Attributes["Infills"]);
+    }
 
     // Glazing only merges into more glazing: against a wattle-filled neighbour, or a bare frame,
     // the post stays - that is a join between two different walls, not one continuous sheet.
@@ -158,15 +167,18 @@ public class SidingWallBlock : Block
         return towardsLeft > 0 ? side : right.Code;
     }
 
-    // Same shape, same face: a wall only ever joins another leg of the same run.
-    private bool SameRun(IBlockAccessor blockAccessor, BlockPos neighbourPos)
-        => blockAccessor.GetBlock(neighbourPos) is SidingWallBlock neighbour
-            && neighbour.Variant["layout"] == Variant["layout"]
-            && neighbour.Variant["side"] == Variant["side"];
+    // Same shape, same face: a wall only ever joins another leg of the same run. WallAt, so a
+    // hosted cell in the middle of a stack doesn't split it in two (decision 0035).
+    private SidingWallEntity? SameRunNeighbour(IBlockAccessor blockAccessor, BlockPos neighbourPos)
+    {
+        var found = WallAt(blockAccessor, neighbourPos);
+        if (found == null) return null;
+        var (wall, entity) = found.Value;
+        return wall.Variant["layout"] == Variant["layout"] && wall.Variant["side"] == Variant["side"] ? entity : null;
+    }
 
     private bool ContinuesFrame(IBlockAccessor blockAccessor, BlockPos neighbourPos, string? infill)
-        => SameRun(blockAccessor, neighbourPos)
-            && SharesStack(infill, blockAccessor.GetBlockEntity<SidingWallEntity>(neighbourPos));
+        => SharesStack(infill, SameRunNeighbour(blockAccessor, neighbourPos));
 
     // Any framing counts, so mixed woods are one stack, but open and filled cells aren't:
     // a plate marks where a doorway frame meets filled wall (decision 0008).
@@ -181,13 +193,51 @@ public class SidingWallBlock : Block
         return offhandCode != null && WildcardUtil.Match(SawCode, offhandCode);
     }
 
+    // Any hostable block may take a wall's cell, whichever way it's placed - a click on the panel,
+    // on the floor in the gap, a sneak-placement, ground storage. SidingModSystem.HostChangePrefix
+    // turns the wall's state into a guest in the same SetBlock, so neighbours never see air.
+    public override bool IsReplacableBy(Block block)
+        => SidingModSystem.IsHostableId(block.BlockId) || base.IsReplacableBy(block);
+
+    // Right-click on the wall's open side with a hostable block and no saw places that block in the
+    // wall's own cell, where vanilla would put it in the cell in front. The client only reports the
+    // interaction handled - TryPlaceBlock must run once, on the server, or the client would place
+    // the held block into the front cell itself before the server ever gets to swap the wall out.
+    private bool TryHost(IWorldAccessor world, IPlayer byPlayer, BlockSelection blockSel)
+    {
+        ItemSlot slot = byPlayer.InventoryManager.ActiveHotbarSlot;
+        Block? heldBlock = slot.Itemstack?.Block;
+        if (heldBlock == null || !SidingModSystem.IsHostableId(heldBlock.BlockId)) return false;
+        if (ResolveFinishFace(Variant["layout"], Variant["side"], blockSel.Face) != "back") return false;
+
+        if (world.Side == EnumAppSide.Client) return true;
+
+        string failureCode = "";
+        if (!heldBlock.TryPlaceBlock(world, byPlayer, slot.Itemstack!, blockSel, ref failureCode))
+        {
+            (byPlayer as IServerPlayer)?.SendIngameError(failureCode, Lang.Get("placefailure-" + failureCode));
+            return true;
+        }
+
+        bool isCreative = byPlayer.WorldData.CurrentGameMode == EnumGameMode.Creative;
+        if (!isCreative) slot.TakeOut(1);
+        slot.MarkDirty();
+        if (heldBlock.Sounds != null) world.PlaySoundAt(heldBlock.Sounds.Place, blockSel.Position, -0.5, byPlayer);
+
+        return true;
+    }
+
     // A saw in the off hand layers infill onto a framed wall, then finishes onto a filled
     // one - which face was clicked picks Front vs Back. Returns true for every handled
     // branch (including the wrong-face error) so vanilla's "place block against" fallthrough
     // doesn't also fire. Plain right-click, not shift - see decision 0006.
     public override bool OnBlockInteractStart(IWorldAccessor world, IPlayer byPlayer, BlockSelection blockSel)
     {
-        if (!HasSawInOffhand(byPlayer)) return base.OnBlockInteractStart(world, byPlayer, blockSel);
+        if (!HasSawInOffhand(byPlayer))
+        {
+            if (TryHost(world, byPlayer, blockSel)) return true;
+            return base.OnBlockInteractStart(world, byPlayer, blockSel);
+        }
 
         ItemSlot slot = byPlayer.InventoryManager.ActiveHotbarSlot;
         AssetLocation? heldCode = slot.Itemstack?.Collectible.Code;
@@ -328,7 +378,7 @@ public class SidingWallBlock : Block
     internal static bool HasStyle(JsonObject finish, string style)
         => Array.IndexOf(finish["Styles"].AsArray<string>([]) ?? [], style) >= 0;
 
-    private void OnInfillChanged(IWorldAccessor world, SidingWallEntity entity, BlockPos pos, string? oldInfill)
+    internal void OnInfillChanged(IWorldAccessor world, SidingWallEntity entity, BlockPos pos, string? oldInfill)
     {
         entity.MarkDirty(true);
         MarkAbsorptionChanged(world.BlockAccessor, pos, entity.Framing, oldInfill);
@@ -591,9 +641,34 @@ public class SidingWallBlock : Block
         return (open.X + second.X, open.Z + second.Z);
     }
 
+    // The real wall at a cell, or the guest wall of a hosted block there (decision 0035).
+    internal static (SidingWallBlock wall, SidingWallEntity entity)? WallAt(IBlockAccessor accessor, BlockPos pos)
+    {
+        Block block = accessor.GetBlock(pos);
+        if (block is SidingWallBlock wall)
+        {
+            var entity = accessor.GetBlockEntity<SidingWallEntity>(pos);
+            return entity == null ? null : (wall, entity);
+        }
+
+        if (!SidingModSystem.IsHostableId(block.BlockId)) return null;
+
+        ICoreAPI? api = SidingModSystem.ApiRef(block);
+        if (api == null) return null;
+
+        SidingWallEntity? guest = GuestWalls.GuestAt(api, pos);
+        return guest?.Block is SidingWallBlock guestWall ? (guestWall, guest) : null;
+    }
+
     // A sealed wall's cell stores the sunlight flowing in from outside, which RoomRegistry would count as sky (decision 0015).
     internal static int RoomSunlight(IBlockAccessor accessor, BlockPos pos, EnumLightLevelType type)
-        => accessor.GetBlock(pos) is SidingWallBlock wall && wall.GetLightAbsorption(accessor, pos) > 0 ? 0 : accessor.GetLightLevel(pos, type);
+    {
+        var found = WallAt(accessor, pos);
+        if (found == null) return accessor.GetLightLevel(pos, type);
+        var (wall, entity) = found.Value;
+        int absorption = ComputeLightAbsorption(entity.Framing, entity.Infill, wall.Attributes["Framings"], wall.Attributes["Infills"]);
+        return absorption > 0 ? 0 : accessor.GetLightLevel(pos, type);
+    }
 
     // Keyed by EnumBlockMaterial name (LayerSounds in wall.json), parsed once here rather than
     // AsObject<BlockSounds>() per hit - that's a full Newtonsoft parse and GetSounds runs every tick.
@@ -748,7 +823,7 @@ public class SidingWallBlock : Block
         return ResolveDrops(world, drops, dropQuantityMultiplier);
     }
 
-    private ItemStack[] ResolveDrops(IWorldAccessor world, List<BlockDropItemStack> drops, float dropQuantityMultiplier)
+    internal ItemStack[] ResolveDrops(IWorldAccessor world, List<BlockDropItemStack> drops, float dropQuantityMultiplier)
     {
         var stacks = new List<ItemStack>();
         foreach (var drop in drops)
