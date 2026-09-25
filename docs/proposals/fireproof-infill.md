@@ -11,7 +11,7 @@ The fix reuses that machinery exactly: override it to return `HitLayerMaterial`'
 No new JSON attribute is needed — every `Infills`/`Finishes` entry already carries `BlockMaterial` (decision 0033 tagged them all), and only the `Wood` bucket is naturally flammable.
 
 ## Context
-`GetCombustibleProperties` is one virtual method with three call shapes: `(world, itemstack, null)` for an item in a slot, and `(world, null, pos)` for a block in the world.
+`GetCombustibleProperties` is one virtual method with two call shapes: `(world, itemstack, null)` for an item in a slot, and `(world, null, pos)` for a block in the world.
 `Block` never overrides it, so `SidingWallBlock` falls through to `CollectibleObject`'s body, which ignores every argument and returns the `CombustibleProps` field set from `combustibleProps` in `wall.json` (line 260) — always present, always the plank numbers, on every material combination.
 
 ### Consumer sweep
@@ -56,7 +56,8 @@ A bare frame (no infill, no finish) still answers `Wood` through the same fallba
 
 ## Alternatives considered
 - **A new `Fireproof: true`/`Combustible: false` attribute per material.** Redundant: `BlockMaterial` already partitions exactly the two states this needs (`Wood` vs. everything else), and decision 0033 already back-filled it onto every `Infills`/`Finishes` entry. A second flag would have to be kept in sync with the first for no behavioural gain.
-- **Check the infill alone, ignoring the finish.** Rejected because it would special-case fire against the precedent `GetResistance`/`GetBlockMaterial` already set: those answer from the same peeled-layer order, and a stone-faced-but-wood-cored wall already resists blasts like stone (0033) — flammability should follow the same rule, not a bespoke one.
+- **Check the infill alone, ignoring the finish.** The current leaning is against it, since `GetResistance`/`GetBlockMaterial` already answer in peel order (0033) and fire would be the one exception.
+Still open below: it is what the request asked for.
 - **Peel one layer off a burning wall instead of deleting the whole block.** Would make fire damage feel like decision 0013's break-peel, but requires intercepting `BEBehaviorBurning.OnFireDeath`, an instance delegate on the *fire* block's behaviour, not an override on `SidingWallBlock`. Out of scope for a per-position combustibility answer; could be its own proposal if whole-block deletion turns out to feel wrong in play.
 - **Leave `combustibleProps` off entirely so no siding wall ever burns.** Rejected: framing is always wood, and an all-wood-and-straw wall burning is correct; the bug is only that stone/clay/glass never protected anything.
 

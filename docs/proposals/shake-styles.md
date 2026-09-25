@@ -18,7 +18,8 @@ Elements: { front: "front-shakes", back: "back-logs" },
 ```
 with no `Styles` key.
 Compare `planks-{wood}` a few lines above, which carries `Styles: ["weatherboard", "boards"]`.
-`SidingWallBlock.ResolveStyle`/`HasStyle` (decision 0027) only offer a style mode when the finish entry lists it, so a saw click in `weatherboard` or `boards` mode on a shake face errors `build-no-style` today — there is nothing to restyle to.
+The finish entry comes from the held item (`MatchConsumes(heldCode, ...)`, `SidingWallBlock.cs:308`), and a held log has no tool modes, so no style ever reaches it.
+A shake finish always lands as `front-shakes` on the front and `back-logs` on the back.
 
 The two faces are not symmetric options.
 `front-shakes` (`WallShapeGen.cs` lines 187-218) is decision 0022's tiled relief profile: four shakes per course, six courses, each with its own butt/body depth pair, position-mapped UVs so painted courses land on the stepped lips and carry across stacked walls.

@@ -58,7 +58,9 @@ The three boxes then sample three adjoining slices of one continuous 0..16 textu
 
 **`RunAxis` is not needed here.** `RunAxis` (0021) exists for a box that is a slice cut out of a longer run along a horizontal axis (shake courses, running bond); infill's three boxes are stacked along y, and `Positional` already measures y directly, so no `RunAxis` value applies to this axis.
 
-**The golden test moves with it**, per 0021's rule that new UV arithmetic needs its own literal-value assertion: the infill-group tests in `VSSiding.Tests` currently pinning `Flat`'s v 0-14/0-1/0-1 are replaced with `Positional`'s v 1-15/0-1/15-16, and `just shapes` regenerates both committed JSON files.
+**A literal-value test pins the new UVs.**
+Today only the whole-file golden comparison covers infill, and `just shapes` rewrites the file it compares against, so it passes by construction.
+Per 0021's rule, a test in the shape of 0028's `EveryWeatherboardLapSamplesItsOwnSliceOfTheTexture` (`WallShapeGenTests.cs:254`) asserts v 1-15, 0-1 and 15-16 for the three infill groups in both shapes.
 
 ## Alternatives considered
 - **Leave `infill` `Flat` but make the extension slivers sample from where the main box left off (a per-element v offset).** Works arithmetically but is bespoke machinery only these two elements would use, where 0028 already established the general answer — measure against the block's own y — for exactly this class of problem.
@@ -72,6 +74,6 @@ The three boxes then sample three adjoining slices of one continuous 0..16 textu
 - No shape or collision geometry changes — `ComputeCollisionBoxes`, `FramingBoxes` and 0008's cross-beam counting are all untouched; this is a texture-mapping fix only.
 
 ## Stages
-1. **UV rule change:** flip `infill`, `infill-top`, `infill-bottom` to `UvRule.Positional` in both element tables; update the golden-test literal UVs; run `just shapes` to regenerate `wall.json` and `cornerout.json`.
+1. **UV rule change:** flip `infill`, `infill-top`, `infill-bottom` to `UvRule.Positional` in both element tables; add the literal-value UV test; run `just shapes` to regenerate `wall.json` and `cornerout.json`.
 2. **Playtest:** a two-high (and taller) stack of each opaque infill against decision 0008's cross-beam pattern, a `cornerout`'s two legs, and a mixed stack (infill changing partway up) for any new mismatch at a material boundary.
 3. **Graduate** as a decision extending 0008, alongside 0028.
