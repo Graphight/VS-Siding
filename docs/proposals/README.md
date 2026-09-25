@@ -14,6 +14,8 @@ The infill panel's `Flat` UV rule restarts the texture at each element's own bas
 The proposal overrides it to reuse `HitLayerMaterial`, the same peeled-layer lookup `GetResistance`/`GetBlockMaterial` already use, so only a `Wood`-tagged layer stays flammable.
 - `floors-between-storeys`: an upper floor stops at the wall's cell and leaves a 12/16 slot along every wall, down to the storey below.
 The proposal adds a deck layer that fills the cell's open part at floor height with the held plank or slab, built from a new picker row; a sill beam of full blocks is the workaround until then.
+- `horizontal-boards`: a player asked for flat boards running sideways; today's `boards` style is one slab per face with its texture turned 90° for vertical grain (decision 0007).
+The proposal adds `hboards` to the boards row of the picker: the same slab with the rotation dropped, plus an icon, a `Styles` entry and lang, and a playtest to confirm which way the plank texture runs unrotated.
 
 ## Parked
 
