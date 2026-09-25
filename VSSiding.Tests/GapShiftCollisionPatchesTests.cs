@@ -29,6 +29,19 @@ public class GapShiftCollisionPatchesTests
     }
 
     [Fact]
+    public void ShiftedKeepsASelectionBoxsId()
+    {
+        var original = new Cuboidf[] { new CuboidfWithId(0, 0.5, 0, 1, 0.5625, 0.6875) { Id = "0-0-0" } };
+
+        var shifted = GapShiftCollisionPatches.Shifted(original, 0, 0.25);
+
+        var expected = (0f, 0.5f, 0.25f, 1f, 0.5625f, 0.9375f, "0-0-0");
+        Assert.Equal(expected, shifted.Select(box => box is CuboidfWithId withId
+            ? (withId.X1, withId.Y1, withId.Z1, withId.X2, withId.Y2, withId.Z2, withId.Id)
+            : default).Single());
+    }
+
+    [Fact]
     public void ShiftedCachesTheResultPerOriginalArrayAndExactOffset()
     {
         var original = new[] { new Cuboidf(0, 0, 0, 1, 1, 1) };
