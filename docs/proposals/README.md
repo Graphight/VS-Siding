@@ -12,6 +12,8 @@ An idea that's been thought through but not acted on. Mutable: edit freely, argu
 The proposal brings the other two docs in line.
 - `shake-styles`: a finished log wall is always shakes outside and hewn logs inside, the same front/back mismatch decision 0027 fixed for planks.
 Logs have no tool-mode behaviour today, so the proposal adds one and works out the missing `front-logs`/`back-shakes` geometry.
+- `opaque-infill-seam`: a two-high wall of straw, wattle, clay or rubble shows a seam at the join where decision 0008 drops the middle plate.
+The infill panel's `Flat` UV rule restarts the texture at each element's own base instead of the block's own height, so the proposal switches it to `Positional`, the same fix decision 0028 already made for weatherboard.
 
 ## Parked
 
