@@ -5,7 +5,7 @@ using Xunit;
 
 namespace VSSiding.Tests;
 
-// PlaceWallFrame builds each icon's path out of the mode's own code, and the loader returns null
+// SidingModePicker builds each icon's path out of the mode's own code, and the loader returns null
 // rather than throwing when the file isn't there - a renamed mode or a misspelt file ships as a
 // blank tile with nothing in the log.
 public class ModeIconsTests
@@ -14,9 +14,9 @@ public class ModeIconsTests
     public void EveryToolModeHasAnIconAndEveryIconHasAToolMode()
     {
         var repoRoot = MaterialTextureOpacityTests.GetAssemblyMetadata("RepoRoot");
-        var source = File.ReadAllText(Path.Combine(repoRoot, "VSSiding", "PlaceWallFrame.cs"));
-        var modes = Regex.Matches(source, @"new SkillItem \{ Code = new AssetLocation\(""(\w+)""\)")
-            .Select(m => m.Groups[1].Value).OrderBy(code => code).ToList();
+        var source = File.ReadAllText(Path.Combine(repoRoot, "VSSiding", "SidingModePicker.cs"));
+        var modes = Regex.Matches(source, @"""(\w+)"", new\[\] \{ ""(\w+)"", ""(\w+)"" \}")
+            .SelectMany(m => new[] { m.Groups[2].Value, m.Groups[3].Value }).OrderBy(code => code).ToList();
 
         var icons = Directory.EnumerateFiles(
                 Path.Combine(repoRoot, "VSSiding", "assets", "vssiding", "textures", "icons"), "*.svg")

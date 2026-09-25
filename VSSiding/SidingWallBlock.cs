@@ -255,7 +255,7 @@ public class SidingWallBlock : Block
             // cornerout frame costs the same as a fresh wall frame. Everything this doesn't
             // claim falls through to the infill match below, then to PlaceWallFrame.
             if (Variant["layout"] == "wall"
-                && ResolveLayout(PlaceWallFrame.ToolModeOf(slot)) == "cornerout"
+                && SidingModePicker.Layout(byPlayer) == "cornerout"
                 && MatchConsumes(heldCode, Attributes["Framings"]) != null
                 && ResolveFinishFace("wall", Variant["side"], blockSel.Face) != null)
             {
@@ -298,10 +298,9 @@ public class SidingWallBlock : Block
         string? finishKey = MatchConsumes(heldCode, Attributes["Finishes"]);
         if (finishKey == null) return base.OnBlockInteractStart(world, byPlayer, blockSel);
 
-        // The mode's style is used only if this finish lists it; otherwise the entry's default
-        // applies, exactly as a frame mode's click always has.
-        string? requestedStyle = ResolveStyle(PlaceWallFrame.ToolModeOf(slot));
-        string? style = requestedStyle != null && HasStyle(Attributes["Finishes"][finishKey], requestedStyle) ? requestedStyle : null;
+        // The picker's chosen style is used only if this finish lists it; otherwise the entry's
+        // default applies, exactly as a frame click always has.
+        string? style = SidingModePicker.FinishChoices(byPlayer).FirstOrDefault(s => HasStyle(Attributes["Finishes"][finishKey], s));
 
         // Planks that can't finish this face still extend the wall via PlaceWallFrame, and held blocks still place.
         bool heldPlaces = slot.Itemstack!.Class == EnumItemClass.Block || MatchConsumes(heldCode, Attributes["Framings"]) != null;
@@ -901,21 +900,6 @@ public class SidingWallBlock : Block
     }
 
     internal static int ConsumeQuantity(JsonObject consumes) => consumes["quantity"].AsInt(1);
-
-    // Tool mode 0 is "wall", 1 is "corner" - see decision 0005. A style mode (2, 3) frames
-    // like "wall" too: modes stopped being verbs, so a saw-in-offhand click always frames
-    // where there's nothing to finish. Anything else falls back to "wall" rather than
-    // throwing on a stale/out-of-range mode.
-    internal static string ResolveLayout(int toolMode) => toolMode == 1 ? "cornerout" : "wall";
-
-    // The style modes are appended after the frame modes, never inserted among them: the mode is
-    // stored as an index on the item stack, so renumbering wakes saved stacks up in another mode.
-    internal static string? ResolveStyle(int toolMode) => toolMode switch
-    {
-        2 => "weatherboard",
-        3 => "boards",
-        _ => null,
-    };
 
     // Which finish layer a build-flow click's clicked face targets - the hugged side is
     // "front", the opposite side is "back", an end/top/bottom face is neither. A cornerout's
