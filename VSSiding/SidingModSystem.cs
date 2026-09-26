@@ -234,6 +234,16 @@ public class SidingModSystem : ModSystem
 
         try
         {
+            harmony.Patch(AccessTools.Method(typeof(BEBehaviorBurning), nameof(BEBehaviorBurning.KillFire)),
+                prefix: new HarmonyMethod(typeof(SidingModSystem), nameof(BurnLayerPrefix)));
+        }
+        catch (Exception e)
+        {
+            api.Logger.Error("vssiding: fire patch skipped, a fire burning out against a wall will delete the whole wall instead of one layer: {0}", e);
+        }
+
+        try
+        {
             harmony.Patch(AccessTools.Method(typeof(CollectibleBehaviorGroundStorable), nameof(CollectibleBehaviorGroundStorable.Interact)),
                 prefix: new HarmonyMethod(typeof(SidingModSystem), nameof(GroundStorageIntoWallPrefix)));
         }
@@ -788,6 +798,17 @@ public class SidingModSystem : ModSystem
         if (newBlock.BlockId == 0 || newBlock.IsReplacableBy(guestWallBlock)) return HostChange.Restore;
         if (hostable != null && newBlock.BlockId < hostable.Length && hostable[newBlock.BlockId]) return HostChange.Keep;
         return HostChange.Drop;
+    }
+
+    // Vanilla's burnout deletes the fuel block outright; a wall with a layer to lose keeps the
+    // block and loses the layer, and the fire just goes out.
+    internal static void BurnLayerPrefix(BEBehaviorBurning __instance, ref bool consumeFuel)
+    {
+        BlockPos? fuelPos = __instance.FuelPos;
+        if (!consumeFuel || fuelPos == null || fuelPos == __instance.FirePos) return;
+
+        var world = __instance.Api.World;
+        if (world.BlockAccessor.GetBlock(fuelPos) is SidingWallBlock wall && wall.TryBurnLayer(world, fuelPos)) consumeFuel = false;
     }
 
     // BreakAllDecorFast runs on every solid-block SetBlock (BlockAccessorBase.SetSolidBlockInternal,
