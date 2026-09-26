@@ -40,6 +40,7 @@ public class SidingWallTooltipTests
         ["vssiding:finish-planks"] = "Planks Finish",
         ["vssiding:tooltip-no-framing"] = "No framing",
         ["vssiding:tooltip-no-infill"] = "No infill",
+        ["vssiding:tooltip-deck"] = "Deck: {0}",
         ["vssiding:tooltip-unfinished"] = "unfinished",
         ["vssiding:tooltip-sealed"] = "Seals the room",
         ["vssiding:tooltip-sealed-cool"] = "Seals the room and keeps it cool",
@@ -53,16 +54,24 @@ public class SidingWallTooltipTests
     // Every wall here hugs "west", so "west" is the front face and "east" the back; a cornerout
     // adds "north" as its second front, leaving "south" as that leg's share of the same back.
     private static string Describe(
-        string? framing = "oak", string? infill = "wattle", string layout = "wall",
+        string? framing = "oak", string? infill = "wattle", string? deck = null, string layout = "wall",
         string? front = null, string? secondFront = null, string? back = null)
         => SidingWallBlock.Describe(
-            framing, infill, Framings, Infills, layout, "west", front, secondFront, back, Finishes,
+            framing, infill, deck, Framings, Infills, layout, "west", front, secondFront, back, Finishes,
             key => Lang.GetValueOrDefault(key));
 
     [Fact]
     public void BuiltFramingAndInfillNameTheirMaterials()
     {
         Assert.Equal("\n  Oak Framing\n  Wattle Infill\n  West, East: unfinished\n  Seals the room\n", Describe());
+    }
+
+    [Fact]
+    public void BuiltDeckNamesItsFramingMaterial()
+    {
+        Assert.Equal(
+            "\n  Oak Framing\n  Wattle Infill\n  Deck: Oak Framing\n  West, East: unfinished\n  Seals the room\n",
+            Describe(deck: "oak"));
     }
 
     [Fact]

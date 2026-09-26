@@ -195,6 +195,7 @@
 	"build-cant-afford": "Not enough material",
 	"tooltip-no-framing": "No framing",
 	"tooltip-no-infill": "No infill",
+	"tooltip-deck": "Deck: {0}",
 	"tooltip-unfinished": "unfinished",
 	"tooltip-sealed": "Seals the room",
 	"tooltip-sealed-cool": "Seals the room and keeps it cool",

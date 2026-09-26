@@ -21,6 +21,8 @@ public class SidingWallEntity : BlockEntity
     public string? FrontStyle;
     public string? SecondFrontStyle;
     public string? BackStyle;
+    // A Framings key, same dictionary as Framing (the deck is timber, not its own material list).
+    public string? Deck;
 
     public override void ToTreeAttributes(ITreeAttribute tree)
     {
@@ -33,6 +35,7 @@ public class SidingWallEntity : BlockEntity
         tree.SetString("frontstyle", FrontStyle);
         tree.SetString("secondfrontstyle", SecondFrontStyle);
         tree.SetString("backstyle", BackStyle);
+        tree.SetString("deck", Deck);
     }
 
     public override void FromTreeAttributes(ITreeAttribute tree, IWorldAccessor worldAccessForResolve)
@@ -53,6 +56,7 @@ public class SidingWallEntity : BlockEntity
         FrontStyle = NullIfEmpty(tree.GetString("frontstyle", null));
         SecondFrontStyle = NullIfEmpty(tree.GetString("secondfrontstyle", null));
         BackStyle = NullIfEmpty(tree.GetString("backstyle", null));
+        Deck = NullIfEmpty(tree.GetString("deck", null));
 
         // A chunk can be meshed before its block entities arrive, and nothing else redraws it
         // afterwards: OnTesselation reads null state, returns false, and the cell keeps the
@@ -70,14 +74,14 @@ public class SidingWallEntity : BlockEntity
     {
         base.GetBlockInfo(forPlayer, dsc);
         dsc.Append(SidingWallBlock.Describe(
-            Framing, Infill, Block.Attributes["Framings"], Block.Attributes["Infills"],
+            Framing, Infill, Deck, Block.Attributes["Framings"], Block.Attributes["Infills"],
             Block.Variant["layout"], Block.Variant["side"], Front, SecondFront, Back, Block.Attributes["Finishes"],
             key => Lang.GetIfExists(key)));
     }
 
     // Everything OnTesselation reads off this entity, which is exactly what CacheKey covers.
-    private (string?, string?, string?, string?, string?, string?, string?, string?) MeshState
-        => (Framing, Infill, Front, SecondFront, Back, FrontStyle, SecondFrontStyle, BackStyle);
+    private (string?, string?, string?, string?, string?, string?, string?, string?, string?) MeshState
+        => (Framing, Infill, Front, SecondFront, Back, FrontStyle, SecondFrontStyle, BackStyle, Deck);
 
     // A ToBytes/FromBytes round trip (chunk save/reload, client sync) turns a null
     // SetString value into "" - normalize back to null so "unbuilt" survives a reload.
@@ -104,7 +108,7 @@ public class SidingWallEntity : BlockEntity
         if (selectiveElements.Length == 0) return false;
 
         string side = Block.Variant["side"];
-        string cacheKey = CacheKey(layout, side, Framing, Infill, Front, SecondFront, Back, joins, Styles);
+        string cacheKey = CacheKey(layout, side, Framing, Infill, Front, SecondFront, Back, joins, Styles, Deck);
 
         MeshData[] meshes = ObjectCacheUtil.GetOrCreate(capi, cacheKey, () =>
         {
@@ -156,8 +160,8 @@ public class SidingWallEntity : BlockEntity
     internal static string CacheKey(
         string layout, string side, string? framing, string? infill, string? front, string? secondFront, string? back,
         (bool above, bool below, bool left, bool right) joins,
-        (string? front, string? secondFront, string? back) styles = default)
-        => $"vssiding-wall-mesh-{layout}-{side}-{framing}-{infill}-{front}-{secondFront}-{back}-{joins.above}-{joins.below}-{joins.left}-{joins.right}-{styles.front}-{styles.secondFront}-{styles.back}";
+        (string? front, string? secondFront, string? back) styles = default, string? deck = null)
+        => $"vssiding-wall-mesh-{layout}-{side}-{framing}-{infill}-{front}-{secondFront}-{back}-{joins.above}-{joins.below}-{joins.left}-{joins.right}-{styles.front}-{styles.secondFront}-{styles.back}-{deck}";
 
     // Unbuilt parts (null key) are left out so a frame-only wall shows just its frame.
     // A finish can name its own element per face (decision 0007) instead of the plain slab.

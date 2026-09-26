@@ -501,17 +501,21 @@ public class SidingWallBlock : Block
     // Takes a translate delegate (the entity passes Lang.GetIfExists) so this needs no loaded Lang.
     // System.Func is spelled out throughout: Vintagestory.API.Common declares a Func of its own.
     internal static string Describe(
-        string? framing, string? infill, JsonObject framings, JsonObject infills,
+        string? framing, string? infill, string? deck, JsonObject framings, JsonObject infills,
         string layout, string side, string? front, string? secondFront, string? back, JsonObject finishes,
         System.Func<string, string?> translate)
     {
         string? builtFraming = Installed(framing, framings);
         string? builtInfill = Installed(infill, infills);
+        string? builtDeck = Installed(deck, framings);
 
         var sb = new StringBuilder();
         sb.AppendLine();
         sb.AppendLine("  " + DescribeLayer(builtFraming, framings, "vssiding:tooltip-no-framing", translate));
         sb.AppendLine("  " + DescribeLayer(builtInfill, infills, "vssiding:tooltip-no-infill", translate));
+        // Opt-in, so no line at all without one: "No deck" would be on nearly every wall.
+        if (builtDeck != null)
+            sb.AppendLine("  " + string.Format(Translate("vssiding:tooltip-deck", translate), DescribeLayer(builtDeck, framings, "", translate)));
         foreach (string line in DescribeFaces(layout, side, front, secondFront, back, finishes, translate))
             sb.AppendLine("  " + line);
         sb.AppendLine("  " + Translate(SealKey(builtFraming, builtInfill, framings, infills), translate));
