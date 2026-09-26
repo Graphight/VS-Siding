@@ -247,8 +247,7 @@ public static class WallShapeGen
         new("glazing-top", (1.25, 14, 0), (2.75, 15.75, 16), "framing", UvRule.Flat),
         new("glazing-bottom", (1.25, 0.25, 0), (2.75, 2, 16), "framing", UvRule.Flat),
         new("back", (3, 0, 0), (4, 16, 16), "back", UvRule.Flat),
-        // The deck fills the open 12/16 flush with the top of the cell, so an upper floor meets
-        // it level (proposal floors-between-storeys).
+        // Flush with the top of the cell, so a floor beside it meets it level.
         new("deck", (4, 12, 0), (16, 16, 16), "deck", UvRule.Flat),
         new("back-boards", (3, 0, 0), (4, 16, 16), "back", UvRule.Flat, RotatedFaces: ["east"]),
         new("front-boards", (0, 0, 0), (1, 16, 16), "front", UvRule.Flat, RotatedFaces: ["west"]),
@@ -404,7 +403,7 @@ public static class WallShapeGen
         new("infill-pane", (3, 0, 2), (16, 16, 2), "infill", UvRule.Flat, Faces: ["north", "south"]),
         new("framing", (15, 0, 1), (16, 16, 3), "framing", UvRule.Flat),
         new("back", (3, 0, 3), (16, 16, 4), "back", UvRule.Flat),
-        // The open square beside both legs, the same rim joist as wall's deck.
+        // The open square beside both legs.
         new("deck", (4, 12, 4), (16, 16, 16), "deck", UvRule.Flat),
         new("front-weatherboard", (0, 0, 0), (1, 1, 16), "front", UvRule.Positional),
         new("front-weatherboard", (0.25, 1, 0.5), (1, 2, 16), "front", UvRule.Positional),

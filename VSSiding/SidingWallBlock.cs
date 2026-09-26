@@ -56,8 +56,7 @@ public class SidingWallBlock : Block
             }),
     };
 
-    // Unrotated ("west") deck box per layout, matching the deck element WallShapeGen adds: flush
-    // with the top of the cell, filling the open 12/16 behind the panel (floors-between-storeys).
+    // Unrotated ("west") deck box per layout, matching WallShapeGen's deck element.
     private static readonly Dictionary<string, Cuboidf> UnrotatedDeckBoxes = new()
     {
         ["wall"] = new Cuboidf(4f / 16, 12f / 16, 0, 1, 1, 1),
@@ -111,9 +110,7 @@ public class SidingWallBlock : Block
         string layout, string side, string? framing, string? infill, bool joinsAbove, Cuboidf[] fullBoxes)
         => framing != null && infill == null ? FramingBoxes[(layout, side, joinsAbove)] : fullBoxes;
 
-    // A deck's box joins whatever the frame/fill state already collides on: the frame-only boxes
-    // don't reach into the open 12/16 it fills, and the filled path's full-cube box is defined
-    // independently of the deck's own geometry (floors-between-storeys).
+    // The deck sits in the open 12/16, outside both the frame's boxes and the panel's.
     internal static Cuboidf[] AddDeckBox(Cuboidf[] boxes, string layout, string side, string? deck)
         => deck == null ? boxes : boxes.Append(DeckBoxes[(layout, side)]).ToArray();
 
@@ -259,10 +256,7 @@ public class SidingWallBlock : Block
         if (heldBlock == null || !SidingModSystem.IsHostableId(heldBlock.BlockId)) return false;
         if (ResolveFinishFace(Variant["layout"], Variant["side"], blockSel.Face) != "back") return false;
 
-        // The deck fills the cell's dead space - there's nowhere left for furniture to go.
-        // IsReplacableBy has no position to check this itself (SidingModSystem.HostChangePrefix
-        // is the backstop for placements that reach it another way), but this is the one
-        // deliberate host click, so refusing here means no swallowed interaction either.
+        // Furniture would sit where the deck is. Other ways in drop the deck (HostChangePrefix).
         if (world.BlockAccessor.GetBlockEntity<SidingWallEntity>(blockSel.Position)?.Deck != null) return false;
 
         if (world.Side == EnumAppSide.Client) return true;
@@ -303,9 +297,8 @@ public class SidingWallBlock : Block
 
         bool isCreative = byPlayer.WorldData.CurrentGameMode == EnumGameMode.Creative;
 
-        // Deck lit, planks in hand, no deck yet: any face click adds one in place, ahead of both
-        // the corner upgrade and infill/finishing below - planks are also a finish, and this isn't
-        // that. floors-between-storeys.
+        // With the deck lit, planks on any face add a deck in place. Ahead of finishing, since
+        // planks are a finish too.
         if (entity.Deck == null && SidingModePicker.Deck(byPlayer) && MatchConsumes(heldCode, Attributes["Framings"]) is { } deckKey)
         {
             var deckOccupants = world.GetIntersectingEntities(
@@ -319,12 +312,7 @@ public class SidingWallBlock : Block
             var deckConsumes = Attributes["Framings"][deckKey]["Consumes"];
             if (!TryAffordOrError(byPlayer, isCreative, slot.StackSize, deckConsumes)) return true;
 
-            entity.Deck = deckKey;
-            entity.MarkDirty(true);
-            MarkNeighboursDirty(world, blockSel.Position);
-            // Deck retention answers on the UP face; rooms only recompute on a chunk-dirty event,
-            // so exchange the block for itself to fire one - OnInfillChanged's trick.
-            world.BlockAccessor.ExchangeBlock(Id, blockSel.Position);
+            SetDeck(world, entity, blockSel.Position, deckKey);
             ConsumeHeld(slot, deckConsumes, isCreative);
             return true;
         }
@@ -579,12 +567,19 @@ public class SidingWallBlock : Block
         return cooling ? -1 : 1;
     }
 
-    // A deck seals its cell's UP face on its own: FramingFamilies is planks only, so a built deck
-    // is always wood and never cools like a stone infill can (floors-between-storeys). Vanilla's
-    // room walk asks every face including UP (RoomRegistry.FindRoomForPosition, decompiled from
-    // VSEssentials.dll), so leaving this at 0 without a deck is what keeps the 12/16 gap unsealed.
+    // The UP face seals only with a deck; RoomRegistry.FindRoomForPosition asks every face. A deck
+    // is framing timber, which never cools.
     internal static int ComputeDeckRetention(string? deckKey, JsonObject framings)
         => deckKey != null && framings[deckKey].Exists ? 1 : 0;
+
+    // The deck changes the UP face's retention, and rooms only recompute on a chunk-dirty event,
+    // so the block is exchanged for itself as OnInfillChanged does.
+    private void SetDeck(IWorldAccessor world, SidingWallEntity entity, BlockPos pos, string? deckKey)
+    {
+        entity.Deck = deckKey;
+        entity.MarkDirty(true);
+        world.BlockAccessor.ExchangeBlock(Id, pos);
+    }
 
     // Looking at a built wall names its layers - otherwise a boarded infill is unreadable
     // short of breaking it, and the infill is what decides cellar vs warm room (decision 0015).
@@ -881,13 +876,7 @@ public class SidingWallBlock : Block
             case "front": entity.Front = null; entity.FrontStyle = null; break;
             case "secondfront": entity.SecondFront = null; entity.SecondFrontStyle = null; break;
             case "back": entity.Back = null; entity.BackStyle = null; break;
-            case "deck":
-                entity.Deck = null;
-                entity.MarkDirty(true);
-                // Deck retention answers on the UP face; rooms only recompute on a chunk-dirty
-                // event, so exchange the block for itself to fire one - OnInfillChanged's trick.
-                world.BlockAccessor.ExchangeBlock(Id, pos);
-                return;
+            case "deck": SetDeck(world, entity, pos, null); return;
             default:
                 string? oldInfill = entity.Infill;
                 entity.Infill = null;
@@ -961,8 +950,7 @@ public class SidingWallBlock : Block
         };
 
     // Only "infill" and the finish layers look a material up. Framings are all planks and carry
-    // no BlockMaterial, so a frame - and a deck, built from the same Framings dictionary - falls
-    // through to the caller's fallback, the block's own Wood.
+    // no BlockMaterial, so a frame or a deck falls through to the caller's fallback, the block's own Wood.
     internal static EnumBlockMaterial LayerMaterial(string? layer, string? key, JsonObject infills, JsonObject finishes, EnumBlockMaterial fallback)
     {
         if (key == null || layer == "deck") return fallback;

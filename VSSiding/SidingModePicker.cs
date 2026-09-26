@@ -204,12 +204,9 @@ public static class SidingModePicker
     // plain wall - so a build-flow click always has somewhere to place.
     internal static string Layout(IPlayer player) => ChoiceOf(player, 0) == "corner" ? "cornerout" : "wall";
 
-    // Whether the deck row is lit - its own toggle, not a finish style.
     internal static bool Deck(IPlayer player) => ChoiceOf(player, Array.FindIndex(Rows, row => row.Key == "vssidingDeck")).Length > 0;
 
-    // Every finish row, in row order, whichever is currently chosen - framing and the deck toggle
-    // aren't finishes, so they're skipped by key rather than by a row count that would drift.
-    // SidingWallBlock picks the first one the clicked finish's Styles lists; a row with nothing
+    // Every finish row, in row order, whichever is currently chosen. SidingWallBlock picks the first one the clicked finish's Styles lists; a row with nothing
     // chosen contributes nothing, so no finish-to-row mapping is needed here.
     internal static IEnumerable<string> FinishChoices(IPlayer player)
     {

@@ -21,7 +21,7 @@ public class SidingWallEntity : BlockEntity
     public string? FrontStyle;
     public string? SecondFrontStyle;
     public string? BackStyle;
-    // A Framings key, same dictionary as Framing (the deck is timber, not its own material list).
+    // A Framings key, like Framing.
     public string? Deck;
 
     public override void ToTreeAttributes(ITreeAttribute tree)
