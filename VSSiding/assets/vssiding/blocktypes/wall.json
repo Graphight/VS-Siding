@@ -128,7 +128,7 @@
 				DisplayName: "vssiding:finish-planks",
 				Texture: "game:block/wood/planks/oak1",
 				Elements: { front: "front-weatherboard", back: "back-boards" },
-				Styles: ["weatherboard", "boards"],
+				Styles: ["weatherboard", "boards", "hboards"],
 				BlockMaterial: "Wood",
 				Consumes: { type: "item", code: "game:plank-oak", quantity: 2 },
 				Drops: [ { type: "item", code: "game:plank-oak", quantity: { avg: 2, var: 0 } } ]
@@ -137,7 +137,7 @@
 				DisplayName: "vssiding:finish-planks-veryaged",
 				Texture: "game:block/wood/planks/aged/veryaged1",
 				Elements: { front: "front-weatherboard", back: "back-boards" },
-				Styles: ["weatherboard", "boards"],
+				Styles: ["weatherboard", "boards", "hboards"],
 				BlockMaterial: "Wood",
 				Consumes: { type: "item", code: "game:plank-veryaged", quantity: 2 },
 				Drops: [ { type: "item", code: "game:plank-veryaged", quantity: { avg: 2, var: 0 } } ]
@@ -149,7 +149,7 @@
 				DisplayName: "vssiding:finish-planks-{wood}",
 				Texture: "game:block/wood/planks/{wood}1",
 				Elements: { front: "front-weatherboard", back: "back-boards" },
-				Styles: ["weatherboard", "boards"],
+				Styles: ["weatherboard", "boards", "hboards"],
 				BlockMaterial: "Wood",
 				Consumes: { type: "item", code: "game:plank-{wood}", quantity: 2 },
 				Drops: [ { type: "item", code: "game:plank-{wood}", quantity: { avg: 2, var: 0 } } ]
@@ -235,14 +235,14 @@
 	},
 	drawtype: "json",
 	shapebytype: {
-		"*-wall-west": { base: "block/wall/wall", ignoreElements: ["glazing-left", "glazing-right", "glazing-top", "glazing-bottom", "infill-pane", "front-rubble", "front-ashlar", "front-brick", "front-weatherboard", "front-boards", "front-shakes", "front-logs", "back-rubble", "back-ashlar", "back-brick", "back-boards", "back-weatherboard", "back-logs", "back-shakes"], rotateY: 0 },
-		"*-wall-south": { base: "block/wall/wall", ignoreElements: ["glazing-left", "glazing-right", "glazing-top", "glazing-bottom", "infill-pane", "front-rubble", "front-ashlar", "front-brick", "front-weatherboard", "front-boards", "front-shakes", "front-logs", "back-rubble", "back-ashlar", "back-brick", "back-boards", "back-weatherboard", "back-logs", "back-shakes"], rotateY: 90 },
-		"*-wall-east": { base: "block/wall/wall", ignoreElements: ["glazing-left", "glazing-right", "glazing-top", "glazing-bottom", "infill-pane", "front-rubble", "front-ashlar", "front-brick", "front-weatherboard", "front-boards", "front-shakes", "front-logs", "back-rubble", "back-ashlar", "back-brick", "back-boards", "back-weatherboard", "back-logs", "back-shakes"], rotateY: 180 },
-		"*-wall-north": { base: "block/wall/wall", ignoreElements: ["glazing-left", "glazing-right", "glazing-top", "glazing-bottom", "infill-pane", "front-rubble", "front-ashlar", "front-brick", "front-weatherboard", "front-boards", "front-shakes", "front-logs", "back-rubble", "back-ashlar", "back-brick", "back-boards", "back-weatherboard", "back-logs", "back-shakes"], rotateY: 270 },
-		"*-cornerout-west": { base: "block/wall/cornerout", ignoreElements: ["glazing-left", "glazing-right", "glazing-top", "glazing-bottom", "infill-pane", "front-rubble", "secondfront-rubble", "front-ashlar", "secondfront-ashlar", "front-brick", "secondfront-brick", "front-weatherboard", "secondfront-weatherboard", "front-boards", "secondfront-boards", "front-shakes", "secondfront-shakes", "front-logs", "secondfront-logs", "back-rubble", "back-ashlar", "back-brick", "back-boards", "back-weatherboard", "back-logs", "back-shakes"], rotateY: 0 },
-		"*-cornerout-south": { base: "block/wall/cornerout", ignoreElements: ["glazing-left", "glazing-right", "glazing-top", "glazing-bottom", "infill-pane", "front-rubble", "secondfront-rubble", "front-ashlar", "secondfront-ashlar", "front-brick", "secondfront-brick", "front-weatherboard", "secondfront-weatherboard", "front-boards", "secondfront-boards", "front-shakes", "secondfront-shakes", "front-logs", "secondfront-logs", "back-rubble", "back-ashlar", "back-brick", "back-boards", "back-weatherboard", "back-logs", "back-shakes"], rotateY: 90 },
-		"*-cornerout-east": { base: "block/wall/cornerout", ignoreElements: ["glazing-left", "glazing-right", "glazing-top", "glazing-bottom", "infill-pane", "front-rubble", "secondfront-rubble", "front-ashlar", "secondfront-ashlar", "front-brick", "secondfront-brick", "front-weatherboard", "secondfront-weatherboard", "front-boards", "secondfront-boards", "front-shakes", "secondfront-shakes", "front-logs", "secondfront-logs", "back-rubble", "back-ashlar", "back-brick", "back-boards", "back-weatherboard", "back-logs", "back-shakes"], rotateY: 180 },
-		"*-cornerout-north": { base: "block/wall/cornerout", ignoreElements: ["glazing-left", "glazing-right", "glazing-top", "glazing-bottom", "infill-pane", "front-rubble", "secondfront-rubble", "front-ashlar", "secondfront-ashlar", "front-brick", "secondfront-brick", "front-weatherboard", "secondfront-weatherboard", "front-boards", "secondfront-boards", "front-shakes", "secondfront-shakes", "front-logs", "secondfront-logs", "back-rubble", "back-ashlar", "back-brick", "back-boards", "back-weatherboard", "back-logs", "back-shakes"], rotateY: 270 }
+		"*-wall-west": { base: "block/wall/wall", ignoreElements: ["glazing-left", "glazing-right", "glazing-top", "glazing-bottom", "infill-pane", "front-rubble", "front-ashlar", "front-brick", "front-weatherboard", "front-boards", "front-hboards", "front-shakes", "front-logs", "back-rubble", "back-ashlar", "back-brick", "back-boards", "back-hboards", "back-weatherboard", "back-logs", "back-shakes"], rotateY: 0 },
+		"*-wall-south": { base: "block/wall/wall", ignoreElements: ["glazing-left", "glazing-right", "glazing-top", "glazing-bottom", "infill-pane", "front-rubble", "front-ashlar", "front-brick", "front-weatherboard", "front-boards", "front-hboards", "front-shakes", "front-logs", "back-rubble", "back-ashlar", "back-brick", "back-boards", "back-hboards", "back-weatherboard", "back-logs", "back-shakes"], rotateY: 90 },
+		"*-wall-east": { base: "block/wall/wall", ignoreElements: ["glazing-left", "glazing-right", "glazing-top", "glazing-bottom", "infill-pane", "front-rubble", "front-ashlar", "front-brick", "front-weatherboard", "front-boards", "front-hboards", "front-shakes", "front-logs", "back-rubble", "back-ashlar", "back-brick", "back-boards", "back-hboards", "back-weatherboard", "back-logs", "back-shakes"], rotateY: 180 },
+		"*-wall-north": { base: "block/wall/wall", ignoreElements: ["glazing-left", "glazing-right", "glazing-top", "glazing-bottom", "infill-pane", "front-rubble", "front-ashlar", "front-brick", "front-weatherboard", "front-boards", "front-hboards", "front-shakes", "front-logs", "back-rubble", "back-ashlar", "back-brick", "back-boards", "back-hboards", "back-weatherboard", "back-logs", "back-shakes"], rotateY: 270 },
+		"*-cornerout-west": { base: "block/wall/cornerout", ignoreElements: ["glazing-left", "glazing-right", "glazing-top", "glazing-bottom", "infill-pane", "front-rubble", "secondfront-rubble", "front-ashlar", "secondfront-ashlar", "front-brick", "secondfront-brick", "front-weatherboard", "secondfront-weatherboard", "front-boards", "secondfront-boards", "front-hboards", "secondfront-hboards", "front-shakes", "secondfront-shakes", "front-logs", "secondfront-logs", "back-rubble", "back-ashlar", "back-brick", "back-boards", "back-hboards", "back-weatherboard", "back-logs", "back-shakes"], rotateY: 0 },
+		"*-cornerout-south": { base: "block/wall/cornerout", ignoreElements: ["glazing-left", "glazing-right", "glazing-top", "glazing-bottom", "infill-pane", "front-rubble", "secondfront-rubble", "front-ashlar", "secondfront-ashlar", "front-brick", "secondfront-brick", "front-weatherboard", "secondfront-weatherboard", "front-boards", "secondfront-boards", "front-hboards", "secondfront-hboards", "front-shakes", "secondfront-shakes", "front-logs", "secondfront-logs", "back-rubble", "back-ashlar", "back-brick", "back-boards", "back-hboards", "back-weatherboard", "back-logs", "back-shakes"], rotateY: 90 },
+		"*-cornerout-east": { base: "block/wall/cornerout", ignoreElements: ["glazing-left", "glazing-right", "glazing-top", "glazing-bottom", "infill-pane", "front-rubble", "secondfront-rubble", "front-ashlar", "secondfront-ashlar", "front-brick", "secondfront-brick", "front-weatherboard", "secondfront-weatherboard", "front-boards", "secondfront-boards", "front-hboards", "secondfront-hboards", "front-shakes", "secondfront-shakes", "front-logs", "secondfront-logs", "back-rubble", "back-ashlar", "back-brick", "back-boards", "back-hboards", "back-weatherboard", "back-logs", "back-shakes"], rotateY: 180 },
+		"*-cornerout-north": { base: "block/wall/cornerout", ignoreElements: ["glazing-left", "glazing-right", "glazing-top", "glazing-bottom", "infill-pane", "front-rubble", "secondfront-rubble", "front-ashlar", "secondfront-ashlar", "front-brick", "secondfront-brick", "front-weatherboard", "secondfront-weatherboard", "front-boards", "secondfront-boards", "front-hboards", "secondfront-hboards", "front-shakes", "secondfront-shakes", "front-logs", "secondfront-logs", "back-rubble", "back-ashlar", "back-brick", "back-boards", "back-hboards", "back-weatherboard", "back-logs", "back-shakes"], rotateY: 270 }
 	},
 	resistance: 1.2,
 	lightAbsorption: 0,
