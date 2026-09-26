@@ -48,8 +48,7 @@ The prefix then flips `consumeFuel` to false, so `OnFireDeath` only removes the 
 A bare frame has no layer left, so `TryBurnLayer` answers false and vanilla deletes the block as before.
 The client runs the same prefix when the fire's synced state kills it there, so it also keeps its block and doesn't delete it locally.
 
-Together the two halves give the progression a player expects.
-A finish burns off; if what's beneath is still `Wood`, a neighbouring fire can catch it again and take the next layer; once the top is clay, stone, brick or glass, nothing re-ignites and the fire goes out.
+So a finish burns off; if what's beneath is still `Wood`, a neighbouring fire can catch it again and take the next layer; once the top is clay, stone, brick or glass, nothing re-ignites and the fire goes out.
 
 `OnFireDeath` is an `Action<bool>` field on `BEBehaviorBurning`, not a virtual `Block` method, which is why this is a patch on `KillFire` rather than an override.
 
@@ -58,12 +57,11 @@ A finish burns off; if what's beneath is still `Wood`, a neighbouring fire can c
 - **Infill alone decides.** Rejected above: an exception to 0033's peel order, and layer burning already lets a clay infill survive its finish.
 - **Whole-block deletion, as vanilla does.** Shipped first on this branch; in play it deleted a clay wall along with its shakes, which read as the fireproofing not working at all.
 - **Leave `combustibleProps` off so no wall ever burns.** Rejected: framing is always wood, and an all-wood-and-straw wall burning is correct.
-- **A config toggle for wall fire.** Rejected for now: the change only makes walls more forgiving, and a player wanting no fire at all has the vanilla world setting.
+- **A config toggle for wall fire.** Rejected for now: the change only makes walls more forgiving, and a player wanting no fire spread at all has vanilla's `allowFireSpread` world setting.
 
 ## Consequences
 - A wall finished on one side in planks and the other in ashlar answers by whichever layer peel order returns first, the same asymmetry 0033 recorded for resistance and sound, now for fire too.
 - A charcoal pit or pit kiln against a non-wood-topped wall can no longer draw fuel from it; both call sites pass a live `pos`.
 - A fire burning against a hosted furniture cell (decision 0035) targets the furniture block, not the guest wall, and is untouched by this.
 - If the `KillFire` patch fails to apply, the log says so and burnt-out walls are deleted whole again; combustibility still answers per layer.
-- `/time stop` freezes particles, so a fire looks invisible while its sound still plays: unfreeze time before playtesting fire.
 - This sweep is 1.22.7's; redo it on a game update, per decision 0020's rule.

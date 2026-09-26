@@ -800,10 +800,6 @@ public class SidingModSystem : ModSystem
         return HostChange.Drop;
     }
 
-    // BreakAllDecorFast runs on every solid-block SetBlock (BlockAccessorBase.SetSolidBlockInternal,
-    // plus the bulk and movable accessors), with the new id already written into the chunk and the
-    // old block's OnBlockRemoved still to come - the one place that sees every way a hosted cell can
-    // change, without having to patch every tool that can break or place over one.
     // Vanilla's burnout deletes the fuel block outright; a wall with a layer to lose keeps the
     // block and loses the layer, and the fire just goes out.
     internal static void BurnLayerPrefix(BEBehaviorBurning __instance, ref bool consumeFuel)
@@ -815,6 +811,10 @@ public class SidingModSystem : ModSystem
         if (world.BlockAccessor.GetBlock(fuelPos) is SidingWallBlock wall && wall.TryBurnLayer(world, fuelPos)) consumeFuel = false;
     }
 
+    // BreakAllDecorFast runs on every solid-block SetBlock (BlockAccessorBase.SetSolidBlockInternal,
+    // plus the bulk and movable accessors), with the new id already written into the chunk and the
+    // old block's OnBlockRemoved still to come - the one place that sees every way a hosted cell can
+    // change, without having to patch every tool that can break or place over one.
     internal static void HostChangePrefix(WorldChunk __instance, IWorldAccessor world, BlockPos pos)
     {
         if (world.Side != EnumAppSide.Server) return;

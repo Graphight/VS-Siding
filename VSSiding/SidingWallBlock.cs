@@ -893,7 +893,7 @@ public class SidingWallBlock : Block
     }
 
     // A fire that burns out against a wall takes its topmost layer, not the whole block; a bare
-    // frame has none left, so vanilla deletes it. The client answers too, so it keeps its block.
+    // frame has none left, so vanilla deletes it. The client only answers, so it doesn't delete the block locally.
     internal bool TryBurnLayer(IWorldAccessor world, BlockPos pos)
     {
         var entity = world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos);
