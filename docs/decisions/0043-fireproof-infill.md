@@ -25,8 +25,9 @@ Every call site below passes a live `BlockPos`, so every one of them answers per
 | `BEBehaviorBurning.getBurnDuration` | whether a block next to fire is fuel (`canBurn`/`OnCanBurn`), and how long it burns | Yes: this is fire spread proper, via `TrySpreadTo`, and the server's slow tick puts a fire out once its fuel stops answering |
 | `BlockLava.IsNextToCombustibleBlock` | whether lava ignites a neighbouring block | Yes |
 | `ModSystemFireFromLightning` | whether a lightning strike can start a fire at a position | Yes |
-| `BlockEntityCharcoalPit.IsCombustible` | whether a block bordering a charcoal pit counts as pit fuel | Yes in principle; listed for completeness |
-| `BlockEntityPitKiln`/`BlockPitkiln` | whether a block in a pit kiln's fuel layer counts as fuel | Yes in principle; exotic |
+| `BlockEntityCharcoalPit.IsCombustible` (from `FindHolesInPit`) | whether a block bordering a charcoal pit leaves a hole in it: a combustible neighbour is a hole | Yes: a non-wood-topped wall now seals a charcoal pit |
+| `BlockPitkiln` placement and `BlockEntityPitKiln.IsValidPitKiln` | whether a pit kiln's side and floor neighbours are non-flammable enclosure | Yes: a non-wood-topped wall that also passes `CanAttachBlockAt` now counts as kiln wall |
+| `BlockEntityPitKiln`'s `OnCanBurn` | whether a burning kiln's fire spreads into a neighbour | Yes, same as fire spread |
 | Handbook and the smelting/cooking/forge/bloomery call sites | fuel values for an **item** in a slot | No: all pass `pos: null`, which the override hands to base |
 
 ## Design
@@ -46,7 +47,8 @@ Letting the infill alone decide was the request's wording, and was rejected: it 
 If `PeelLayer(null, ...)` names a layer, the server clears it through `RemoveLayer`, the switch `OnBlockBroken` already used for a player's peel (decision 0013), now shared; a burnt layer drops nothing.
 The prefix then flips `consumeFuel` to false, so `OnFireDeath` only removes the fire block and does not spread into the wall's position.
 A bare frame has no layer left, so `TryBurnLayer` answers false and vanilla deletes the block as before.
-The client runs the same prefix when the fire's synced state kills it there, so it also keeps its block and doesn't delete it locally.
+Only the server removes a layer; if the client ever runs `KillFire(true)` itself, the same prefix keeps it from deleting the block locally, though nothing shows that it does.
+Vanilla rechecks fuel once a second but burns out on its 25 ms tick, so `TryBurnLayer` only peels a `Wood` layer: a stone finish added in that window stays, and the fire goes out.
 
 So a finish burns off; if what's beneath is still `Wood`, a neighbouring fire can catch it again and take the next layer; once the top is clay, stone, brick or glass, nothing re-ignites and the fire goes out.
 
@@ -61,7 +63,7 @@ So a finish burns off; if what's beneath is still `Wood`, a neighbouring fire ca
 
 ## Consequences
 - A wall finished on one side in planks and the other in ashlar answers by whichever layer peel order returns first, the same asymmetry 0033 recorded for resistance and sound, now for fire too.
-- A charcoal pit or pit kiln against a non-wood-topped wall can no longer draw fuel from it; both call sites pass a live `pos`.
+- A non-wood-topped wall now seals a charcoal pit and can enclose a pit kiln, where before every siding wall counted as flammable and failed both checks.
 - A fire burning against a hosted furniture cell (decision 0035) targets the furniture block, not the guest wall, and is untouched by this.
 - If the `KillFire` patch fails to apply, the log says so and burnt-out walls are deleted whole again; combustibility still answers per layer.
 - This sweep is 1.22.7's; redo it on a game update, per decision 0020's rule.
