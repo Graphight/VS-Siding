@@ -50,7 +50,7 @@ The deck peels first when struck from the room side, before a back finish (0013'
 - **Guest-hosting a floor block in the wall's cell (0035).** `IsHostable` (`SidingModSystem.cs:651-665`) refuses any block with a solid side, which is every plank and slab, and a guest is drawn shifted off the panel into the open part, one block per cell. A plank block hosted there would overlap the panel, and every consumer patch in 0035's table would have to answer for a full cube it was never built for.
 - **Auto-detecting a floor in the room cell and drawing a deck to match.** No gesture to learn, but slab heights and mixed materials make the guess wrong often, and a wall that changes when its neighbour changes is the auto-corner trap the `auto-corners` parked proposal already rejected.
 - **A shorter wall variant for storey boundaries.** A new `layout` multiplies block variants (decision 0001) and only helps a player who planned ahead.
-- **Documenting the sill-beam workaround and nothing else.** Honest and free, and the proposal keeps it; but the player asked for floor right up to the wall, and a sill beam is not that.
+- **Documenting the sill-beam workaround and nothing else.** Free, and the proposal keeps it, but the player asked for floor right up to the wall, and a sill beam is not that.
 
 ## Consequences & open questions
 - The deck is the first layer that is not in the wall's plane; `SidingWallEntity`'s tree attributes, the tooltip (0030) and `GetBlockInfo` all grow a line.
