@@ -2,17 +2,17 @@
 
 - Status: Accepted
 - Created: 2026-09-25
-- Reflects: branch `creatures-off-walls`; unplayed; decisions 0008, 0020, 0035; `wall.json`'s collision box; decompiled 1.22 `Block.CanStep`, `AStar.traversable`, `EntityBehaviorControlledPhysics.FindSteppableCollisionBox`; vanilla fence and entity assets
+- Reflects: branch `creatures-off-walls`; played; decisions 0008, 0020, 0035, 0042; `wall.json`'s collision box; decompiled 1.22 `Block.CanStep`, `AStar.traversable`, `EntityBehaviorControlledPhysics.FindSteppableCollisionBox`; vanilla fence and entity assets
 
 ## Summary
 Animals step up onto a thin wall and walk along its 4/16 top, so a pen of siding walls does not hold them.
 Most vanilla creatures step 1.1251 blocks, and our wall is 1.0 tall.
-Vanilla fences solve exactly this with one JSON attribute, `canStep: false`, and the proposal gives the wall the same.
+Vanilla fences solve this with one JSON attribute, `canStep: false`, and this gives the wall the same.
 
 ## Context
 **Creatures step higher than a block.**
 Vanilla's default `StepHeight` is 0.6 (`EntityBehaviorControlledPhysics.cs:63`), but 52 of vanilla's entity files override it: 66 `stepHeight: 1.1251` entries among them, a handful from 1.0001 to 1.125, ten at 2.1251, and 3.1251 for goats and the tamed elk.
-So nearly every animal climbs any 1.0-tall box, and the wall's box is 1.0 tall (`wall.json:268`, `y2: 1`).
+So nearly every animal climbs any 1.0-tall box, and the wall's box is 1.0 tall (`wall.json:269`, `y2: 1`).
 
 **Both the physics and the pathfinder let them.**
 `FindSteppableCollisionBox` (`EntityBehaviorControlledPhysics.cs:751-791`) takes any box whose top is within `StepHeight` of the entity's feet, so a sheep walking into the panel steps onto it.
