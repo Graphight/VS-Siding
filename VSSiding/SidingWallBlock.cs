@@ -293,6 +293,32 @@ public class SidingWallBlock : Block
 
         bool isCreative = byPlayer.WorldData.CurrentGameMode == EnumGameMode.Creative;
 
+        // Deck lit, planks in hand, no deck yet: any face click adds one in place, ahead of both
+        // the corner upgrade and infill/finishing below - planks are also a finish, and this isn't
+        // that. floors-between-storeys.
+        if (entity.Deck == null && SidingModePicker.Deck(byPlayer) && MatchConsumes(heldCode, Attributes["Framings"]) is { } deckKey)
+        {
+            var deckOccupants = world.GetIntersectingEntities(
+                blockSel.Position, new[] { DeckBoxes[(Variant["layout"], Variant["side"])] }, e => e.IsInteractable);
+            if (deckOccupants is { Length: > 0 })
+            {
+                (byPlayer as IServerPlayer)?.SendIngameError("vssiding:occupied", Lang.Get("vssiding:build-occupied"));
+                return true;
+            }
+
+            var deckConsumes = Attributes["Framings"][deckKey]["Consumes"];
+            if (!TryAffordOrError(byPlayer, isCreative, slot.StackSize, deckConsumes)) return true;
+
+            entity.Deck = deckKey;
+            entity.MarkDirty(true);
+            MarkNeighboursDirty(world, blockSel.Position);
+            // Deck retention answers on the UP face; rooms only recompute on a chunk-dirty event,
+            // so exchange the block for itself to fire one - OnInfillChanged's trick.
+            world.BlockAccessor.ExchangeBlock(Id, blockSel.Position);
+            ConsumeHeld(slot, deckConsumes, isCreative);
+            return true;
+        }
+
         if (entity.Infill == null)
         {
             // A bare frame clicked in corner mode becomes a cornerout in place, for a T-junction
@@ -425,25 +451,25 @@ public class SidingWallBlock : Block
 
     // Shared by both build-flow steps (this class's layering, and PlaceWallFrame's framing)
     // so the afford-check-and-error path lives in exactly one place.
-    internal static bool TryAffordOrError(IPlayer byPlayer, bool isCreative, int stackSize, JsonObject consumes)
+    internal static bool TryAffordOrError(IPlayer byPlayer, bool isCreative, int stackSize, JsonObject consumes, int times = 1)
     {
-        if (CanAfford(isCreative, stackSize, consumes)) return true;
+        if (CanAfford(isCreative, stackSize, consumes, times)) return true;
         (byPlayer as IServerPlayer)?.SendIngameError("vssiding:cantafford", Lang.Get("vssiding:build-cant-afford"));
         return false;
     }
 
-    internal static void ConsumeHeld(ItemSlot slot, JsonObject consumes, bool isCreative)
+    internal static void ConsumeHeld(ItemSlot slot, JsonObject consumes, bool isCreative, int times = 1)
     {
         if (isCreative) return;
-        slot.TakeOut(ConsumeQuantity(consumes));
+        slot.TakeOut(ConsumeQuantity(consumes) * times);
         slot.MarkDirty();
     }
 
     // A held stack too small to pay Consumes.quantity must not place/build - ItemSlot.TakeOut
     // silently takes whatever is available rather than failing, so the caller has to check first.
     // Creative players aren't charged at all.
-    internal static bool CanAfford(bool isCreative, int stackSize, JsonObject consumes)
-        => isCreative || stackSize >= ConsumeQuantity(consumes);
+    internal static bool CanAfford(bool isCreative, int stackSize, JsonObject consumes, int times = 1)
+        => isCreative || stackSize >= ConsumeQuantity(consumes) * times;
 
     // Which plates a cell draws depends on the cells above and below it (decision 0008).
     public override void OnNeighbourBlockChange(IWorldAccessor world, BlockPos pos, BlockPos neibpos)

@@ -30,10 +30,12 @@ public class PlaceWallFrame : CollectibleBehavior
         if (framingKey == null) return;
 
         string layout = SidingModePicker.Layout(byPlayer);
+        bool withDeck = SidingModePicker.Deck(byPlayer);
 
         var consumes = wallBlock.Attributes["Framings"][framingKey]["Consumes"];
+        int times = withDeck ? 2 : 1;
         bool isCreative = byPlayer.WorldData.CurrentGameMode == EnumGameMode.Creative;
-        if (!SidingWallBlock.TryAffordOrError(byPlayer, isCreative, slot.Itemstack.StackSize, consumes)) return;
+        if (!SidingWallBlock.TryAffordOrError(byPlayer, isCreative, slot.Itemstack.StackSize, consumes, times)) return;
         var placeholder = world.GetBlock(new AssetLocation("vssiding", $"wall-{layout}-west"));
         if (placeholder == null) return;
 
@@ -55,11 +57,12 @@ public class PlaceWallFrame : CollectibleBehavior
         if (entity != null)
         {
             entity.Framing = framingKey;
+            if (withDeck) entity.Deck = framingKey;
             entity.MarkDirty(true);
             SidingWallBlock.MarkNeighboursDirty(world, targetPos);
         }
 
-        SidingWallBlock.ConsumeHeld(slot, consumes, isCreative);
+        SidingWallBlock.ConsumeHeld(slot, consumes, isCreative, times);
 
         handling = EnumHandling.PreventSubsequent;
         handHandling = EnumHandHandling.PreventDefault;
