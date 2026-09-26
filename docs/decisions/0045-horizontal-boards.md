@@ -34,7 +34,7 @@ The boards row in `SidingModePicker.Rows` (`SidingModePicker.cs:31`) is `["weath
 
 **Finishes.**
 All three plank finishes list `hboards` in `Styles`: `planks` and `planks-veryaged` under `Finishes`, and the `planks-{wood}` template under `FinishFamilies` (`wall.json:131`, `:140`, `:152`).
-`SidingWallBlockBuildFlowTests.OnlyAFinishListingAStyleOffersIt` covers `hboards` alongside the other styles.
+A plank entry missing one would quietly fall back to its default look when that style is picked, so `FinishElementGroupsTests.EveryPlankFinishOffersTheWholeBoardsRow` reads `wall.json` and checks each plank entry lists the whole boards row from `SidingModePicker.Rows`.
 
 **Names.**
 `toolmode-hboards` is "Horizontal boards", and `toolmode-boards` changed from "Flat boards" to "Vertical boards", since both are flat.

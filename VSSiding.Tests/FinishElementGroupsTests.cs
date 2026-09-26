@@ -77,6 +77,24 @@ public class FinishElementGroupsTests
         Assert.Equal([], asked.Distinct().Where(name => !names.Contains(name)).ToArray());
     }
 
+    // A plank finish missing one of the boards row's styles falls back to its default look when
+    // that style is picked, with no error.
+    [Fact]
+    public void EveryPlankFinishOffersTheWholeBoardsRow()
+    {
+        var repoRoot = MaterialTextureOpacityTests.GetAssemblyMetadata("RepoRoot");
+        var wallJson = JObject.Parse(File.ReadAllText(
+            Path.Combine(repoRoot, "VSSiding", "assets", "vssiding", "blocktypes", "wall.json")));
+        var attributes = (JObject)wallJson["attributes"]!;
+        var entries = ((JObject)attributes["Finishes"]!).Properties().Concat(((JObject)attributes["FinishFamilies"]!).Properties());
+        var boards = SidingModePicker.Rows.Single(r => r.Key == "vssidingBoards").Options;
+
+        Assert.Equal(
+            new[] { "planks", "planks-veryaged", "planks-{wood}" }.Select(name => $"{name}: {string.Join(", ", boards)}"),
+            entries.Where(e => e.Value["Styles"]?.Any(t => boards.Contains((string)t!)) ?? false)
+                .Select(e => $"{e.Name}: {string.Join(", ", e.Value["Styles"]!.Select(t => (string)t!))}"));
+    }
+
     // Glazing's own elements - the pane and its bezel - exist only for a glazed cell, so none of
     // them may ride along on the block's default JSON shape.
     [Fact]
