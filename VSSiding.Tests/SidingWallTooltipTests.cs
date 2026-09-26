@@ -44,7 +44,7 @@ public class SidingWallTooltipTests
         ["vssiding:tooltip-unfinished"] = "unfinished",
         ["vssiding:tooltip-sealed"] = "Seals the room",
         ["vssiding:tooltip-sealed-cool"] = "Seals the room and keeps it cool",
-        ["vssiding:tooltip-unsealed"] = "Doesn't seal the room",
+        ["vssiding:tooltip-unsealed"] = "Does not seal the room",
         ["game:facing-north"] = "North",
         ["game:facing-east"] = "East",
         ["game:facing-south"] = "South",
@@ -78,7 +78,7 @@ public class SidingWallTooltipTests
     public void MissingFramingAndInfillPrintTheGapKeys()
     {
         Assert.Equal(
-            "\n  No framing\n  No infill\n  West, East: unfinished\n  Doesn't seal the room\n",
+            "\n  No framing\n  No infill\n  West, East: unfinished\n  Does not seal the room\n",
             Describe(framing: null, infill: null));
     }
 
@@ -149,13 +149,13 @@ public class SidingWallTooltipTests
     }
 
     // ComputeRetention already treats a key missing from its dictionary as not built, so the
-    // layer lines have to agree - otherwise a wall reads "Ghostwattle" and "Doesn't seal the
+    // layer lines have to agree - otherwise a wall reads "Ghostwattle" and "Does not seal the
     // room" at once, with nothing on screen connecting the two.
     [Fact]
     public void UninstalledInfillReadsAsNotBuilt()
     {
         Assert.Equal(
-            "\n  Oak Framing\n  No infill\n  West, East: unfinished\n  Doesn't seal the room\n",
+            "\n  Oak Framing\n  No infill\n  West, East: unfinished\n  Does not seal the room\n",
             Describe(infill: "ghostwattle"));
     }
 
