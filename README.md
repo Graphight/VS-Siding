@@ -27,17 +27,25 @@ Glass seals the same way but lets daylight through.
 ## Screenshots
 
 The framing:
+
 ![framing-screenshot](docs/screenshots/Framing.jpg)
 
 Saw Mode picker:
+
 ![saw-mode-picker](docs/screenshots/SawModePicker.jpg)
 
 The finishes:
+
 ![finishes-inside](docs/screenshots/FinishingsInside.jpg)
 ![finishes-3D-texture](docs/screenshots/Finishings3DTexture.jpg)
 ![finishes-corner](docs/screenshots/FinishingsCorner.jpg)
 
+Interior wall sharing:
+
+![interior-wall-sharing](docs/screenshots/InteriorPartition.jpg)
+
 Handbook:
+
 ![handbook-entry](docs/screenshots/HandbookEntry.jpg)
 
 ---
