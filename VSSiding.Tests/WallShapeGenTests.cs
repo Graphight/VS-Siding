@@ -209,6 +209,22 @@ public class WallShapeGenTests
         Assert.Equal(expected, actual);
     }
 
+    // The deck fills the wall's open 12/16 flush with the top of the cell, textured like framing
+    // but through its own "deck" texture code so it reads the Deck layer, not Framing.
+    [Theory]
+    [InlineData("wall", 4, 12, 0, 16, 16, 16)]
+    [InlineData("cornerout", 4, 12, 4, 16, 16, 16)]
+    public void DeckFillsTheOpenPartFlushWithTheTopOfTheCell(
+        string layout, double fx, double fy, double fz, double tx, double ty, double tz)
+    {
+        var deck = WallShapeGen.Generate(layout)["elements"]!
+            .Single(e => (string)e["name"]! == "deck");
+
+        Assert.Equal(new JArray(fx, fy, fz).ToString(), deck["from"]!.ToString());
+        Assert.Equal(new JArray(tx, ty, tz).ToString(), deck["to"]!.ToString());
+        Assert.All(((JObject)deck["faces"]!).Properties(), p => Assert.Equal("#deck", p.Value["texture"]!.ToString()));
+    }
+
     // A masonry unit has to sit where the texture paints one, and the golden file cannot say so -
     // it is rewritten from this same generator. So the joints are written out by hand, read off
     // the textures: clay/brick/four/running/cream1 puts two joints per 4-voxel course, half a unit

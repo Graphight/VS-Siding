@@ -10,8 +10,12 @@ An idea that's been thought through but not acted on. Mutable: edit freely, argu
 
 - `fireproof-infill`: decision 0033 noted a wall still burns like a plank no matter its infill, because `GetCombustibleProperties` is never overridden and always answers with the block's own wood-plank numbers.
 The proposal overrides it to reuse `HitLayerMaterial`, the same peeled-layer lookup `GetResistance`/`GetBlockMaterial` already use, so only a `Wood`-tagged layer stays flammable.
-- `floors-between-storeys`: an upper floor stops at the wall's cell and leaves a 12/16 slot along every wall, down to the storey below.
-The proposal adds a deck layer that fills the cell's open part at floor height with the held plank or slab, built from a new picker row; a sill beam of full blocks is the workaround until then.
+- `stairs-against-walls`: stairs along a wall stand in the room cells and leave the wall's open 12/16 beside every step.
+The proposal adds a step layer that continues the stair beside it into the wall's open part, built by clicking the wall with that stair in hand.
+- `thin-floor-framing`: floors built like the walls, a 4/16 layered panel flush with the top of its cell, placed from the framing row.
+Its top face can honestly be `sidesolid`, so most of vanilla's placing and attachment comes free; the deck is its rim joist.
+- `hanging-under-thin-floors`: a thin floor's underside is 12/16 above the cell boundary, so hung lanterns float or are refused.
+The proposal shifts the hung block's mesh and boxes up to meet it, reusing decision 0035's offset.
 - `horizontal-boards`: a player asked for flat boards running sideways; today's `boards` style is one slab per face with its texture turned 90° for vertical boards (decision 0007).
 The proposal adds `hboards` to the picker's boards row, the same slab with the texture unturned, and renames `boards` to "Vertical boards".
 - `hosted-light-sources`: a torch or lantern hosted in a sealed wall's cell lights nothing, because `GuestLightPatches` raises the cell's absorption to the wall's 99 and vanilla's block-light walk subtracts the source cell's own absorption before light leaves it.

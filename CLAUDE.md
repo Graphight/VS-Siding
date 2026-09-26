@@ -36,14 +36,14 @@ The game loads the zip as-is; don't unpack it.
 Where things live. The decisions carry the *why*; `ls docs/decisions/` is the index.
 
 - `SidingModSystem` registers the classes and `/sidingroom`, expands the material families, and owns the Harmony patches: the `RoomRegistry` skylight sample (0015), the two sealed-floor light patches (0018, occluded in 0034), the rain-fall distance that drives wind volume (0034), the `BreakAllDecorFast` prefix that restores or drops a guest wall on a host change, the `TesselateBlock` transpiler that renders a guest's panel beside its host, the off-panel offset a hosted block shifts by (0035), and the `BlockBehaviorMultiblock.CanPlaceBlock` postfix that refuses a trunk footprint that isn't a shared-side wall run (0036).
-- `SidingWallBlock`: shape, collision, retention, liquid barrier, drops (0002), side AO on sealed cells (0016, kept in 0034), peeling one layer per break (0013), and `OnBlockInteractStart`, which does all the layering onto a standing frame (0005/0006), the in-place corner upgrade (0026), the tooltip text (0030) and hosting furniture into a wall's cell (0035).
-- `SidingWallEntity`: the per-wall `Framing`/`Infill`/`Front`/`Back`/`SecondFront` state (0003), its mesh, and the `GetBlockInfo` hook that tooltip text comes back through.
+- `SidingWallBlock`: shape, collision, retention, liquid barrier, drops (0002), side AO on sealed cells (0016, kept in 0034), peeling one layer per break (0013), and `OnBlockInteractStart`, which does all the layering onto a standing frame (0005/0006), the in-place corner upgrade (0026) and deck (0042), the tooltip text (0030) and hosting furniture into a wall's cell (0035).
+- `SidingWallEntity`: the per-wall `Framing`/`Infill`/`Front`/`Back`/`SecondFront`/`Deck` state (0003), its mesh, and the `GetBlockInfo` hook that tooltip text comes back through.
 - `SidingWallTexSource`: resolves a material key to an atlas position at mesh-build time.
 - `GuestWalls`: the guest store, holding a wall's state once furniture hosts its cell, riding chunk mod data to the client and a network channel for live edits (0035).
 - `EveryOverridePatches`, `GapShiftCollisionPatches`, `GuestTooltipPatches`, `GuestSealingPatches`, `GuestLightPatches`, `PanelInteractionPatches`: the guest wall's consumer patches, covering every declaring `Block` subclass override, re-answered for a hosted cell's tooltip, sealing, light, collision, selection and swallowed interaction (0035).
 - `MaterialFamilies`: `Expand`, called from `AssetsFinalize` (0010).
 - `PlaceWallFrame`: a `CollectibleBehavior` on every plank that raises the initial framing (0005/0006).
-- `SidingModePicker`: the saw's mode picker, opened by vanilla's tool mode hotkey whenever a saw is in the off hand; rows of framing, board and log styles stored per player, patched into `GuiDialogToolMode` with its own pick channel, icons from 0031 (0040).
+- `SidingModePicker`: the saw's mode picker, opened by vanilla's tool mode hotkey whenever a saw is in the off hand; rows of framing, the deck toggle, board and log styles stored per player, patched into `GuiDialogToolMode` with its own pick channel, icons from 0031 (0040).
 - `VSSiding.Tests/WallShapeGen`: generates the shapes `wall.json` and `cornerout.json` use (0021). It lives in the test project, not beside the assets it writes.
 
 `wall.json` carries the `Framings`/`Infills`/`Finishes` dictionaries every one of those keys looks up.

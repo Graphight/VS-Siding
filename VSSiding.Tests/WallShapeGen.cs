@@ -247,6 +247,8 @@ public static class WallShapeGen
         new("glazing-top", (1.25, 14, 0), (2.75, 15.75, 16), "framing", UvRule.Flat),
         new("glazing-bottom", (1.25, 0.25, 0), (2.75, 2, 16), "framing", UvRule.Flat),
         new("back", (3, 0, 0), (4, 16, 16), "back", UvRule.Flat),
+        // Flush with the top of the cell, so a floor beside it meets it level.
+        new("deck", (4, 12, 0), (16, 16, 16), "deck", UvRule.Flat),
         new("back-boards", (3, 0, 0), (4, 16, 16), "back", UvRule.Flat, RotatedFaces: ["east"]),
         new("front-boards", (0, 0, 0), (1, 16, 16), "front", UvRule.Flat, RotatedFaces: ["west"]),
         new("front-weatherboard", (0, 0, 0), (1, 1, 16), "front", UvRule.Positional),
@@ -401,6 +403,8 @@ public static class WallShapeGen
         new("infill-pane", (3, 0, 2), (16, 16, 2), "infill", UvRule.Flat, Faces: ["north", "south"]),
         new("framing", (15, 0, 1), (16, 16, 3), "framing", UvRule.Flat),
         new("back", (3, 0, 3), (16, 16, 4), "back", UvRule.Flat),
+        // The open square beside both legs.
+        new("deck", (4, 12, 4), (16, 16, 16), "deck", UvRule.Flat),
         new("front-weatherboard", (0, 0, 0), (1, 1, 16), "front", UvRule.Positional),
         new("front-weatherboard", (0.25, 1, 0.5), (1, 2, 16), "front", UvRule.Positional),
         new("front-weatherboard", (0.5, 2, 0.5), (1, 3, 16), "front", UvRule.Positional),
@@ -504,6 +508,7 @@ public static class WallShapeGen
         ("infill", "game:block/wood/planks/oak1"),
         ("front", "game:block/wood/planks/oak1"),
         ("back", "game:block/wood/planks/oak1"),
+        ("deck", "game:block/wood/planks/oak1"),
     ];
 
     private static readonly (string Slot, string Texture)[] CornerOutTextures =
@@ -513,6 +518,7 @@ public static class WallShapeGen
         ("front", "game:block/wood/planks/aged/aged1"),
         ("secondfront", "game:block/wood/planks/aged/aged1"),
         ("back", "game:block/wood/planks/aged/aged1"),
+        ("deck", "game:block/wood/planks/aged/aged1"),
     ];
 
     public static JObject Generate(string layout) => layout switch

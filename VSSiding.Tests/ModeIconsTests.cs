@@ -15,14 +15,15 @@ public class ModeIconsTests
     {
         var repoRoot = MaterialTextureOpacityTests.GetAssemblyMetadata("RepoRoot");
         var source = File.ReadAllText(Path.Combine(repoRoot, "VSSiding", "SidingModePicker.cs"));
-        var modes = Regex.Matches(source, @"""(\w+)"", new\[\] \{ ""(\w+)"", ""(\w+)"" \}")
-            .SelectMany(m => new[] { m.Groups[2].Value, m.Groups[3].Value }).OrderBy(code => code).ToList();
+        var modes = Regex.Matches(source, @"""\w+"", new\[\] \{ ([^}]+) \}")
+            .SelectMany(m => Regex.Matches(m.Groups[1].Value, @"""(\w+)""").Select(code => code.Groups[1].Value))
+            .OrderBy(code => code).ToList();
 
         var icons = Directory.EnumerateFiles(
                 Path.Combine(repoRoot, "VSSiding", "assets", "vssiding", "textures", "icons"), "*.svg")
             .Select(file => Path.GetFileNameWithoutExtension(file)!).OrderBy(name => name).ToList();
 
-        Assert.Equal(new[] { "boards", "corner", "logs", "shakes", "wall", "weatherboard" }, modes);
+        Assert.Equal(new[] { "boards", "corner", "deck", "logs", "shakes", "wall", "weatherboard" }, modes);
         Assert.Equal(modes, icons);
     }
 }

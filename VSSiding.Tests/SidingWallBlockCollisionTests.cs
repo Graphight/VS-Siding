@@ -142,6 +142,47 @@ public class SidingWallBlockCollisionTests
         Assert.Same(FullBoxes, SidingWallBlock.ComputeCollisionBoxes("wall", "west", null, null, false, FullBoxes));
     }
 
+    [Fact]
+    public void NoDeckLeavesTheBoxesUnchanged()
+    {
+        Assert.Same(FullBoxes, SidingWallBlock.AddDeckBox(FullBoxes, "wall", "west", null));
+    }
+
+    [Fact]
+    public void WallWestDeckBoxIsUnrotated()
+    {
+        var expected = new[] { FullBoxes[0], new Cuboidf(4f / 16, 12f / 16, 0, 1, 1, 1) };
+
+        Assert.Equal(expected, SidingWallBlock.AddDeckBox(FullBoxes, "wall", "west", "oak"), Comparer);
+    }
+
+    [Fact]
+    public void CorneroutWestDeckBoxIsUnrotated()
+    {
+        var expected = new[] { FullBoxes[0], new Cuboidf(4f / 16, 12f / 16, 4f / 16, 1, 1, 1) };
+
+        Assert.Equal(expected, SidingWallBlock.AddDeckBox(FullBoxes, "cornerout", "west", "oak"), Comparer);
+    }
+
+    [Fact]
+    public void WallSouthDeckBoxIsRotated()
+    {
+        var origin = new Vec3d(0.5, 0.5, 0.5);
+        var unrotated = new Cuboidf(4f / 16, 12f / 16, 0, 1, 1, 1);
+        var expected = new[] { FullBoxes[0], unrotated.RotatedCopy(0, SidingWallEntity.RotationYDeg("south"), 0, origin) };
+
+        Assert.Equal(expected, SidingWallBlock.AddDeckBox(FullBoxes, "wall", "south", "oak"), Comparer);
+    }
+
+    [Fact]
+    public void DeckJoinsFramingBoxesOnAFrameOnlyWall()
+    {
+        var framingBoxes = SidingWallBlock.ComputeCollisionBoxes("wall", "west", "oak", null, true, FullBoxes);
+        var expected = framingBoxes.Append(new Cuboidf(4f / 16, 12f / 16, 0, 1, 1, 1)).ToArray();
+
+        Assert.Equal(expected, SidingWallBlock.AddDeckBox(framingBoxes, "wall", "west", "oak"), Comparer);
+    }
+
     // RunNeighbours reuses cornerout's table on the claim that the face counter-clockwise from
     // `side` is where the unrotated shape's z = 0 end lands once rotated. That is the whole basis
     // for which neighbour glazing merges with, so it gets checked against the rotation itself

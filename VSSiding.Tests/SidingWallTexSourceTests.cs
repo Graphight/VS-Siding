@@ -79,6 +79,14 @@ public class SidingWallTexSourceTests
     }
 
     [Fact]
+    public void DeckResolvesFromTheFramingsDictionaryByItsOwnKey()
+    {
+        CompositeTexture? texture = SidingWallTexSource.ResolveTexture(
+            "deck", "wattle", null, null, null, null, Framings, Infills, Finishes, deck: "oak");
+        Assert.Equal(new AssetLocation("game:block/wood/planks/oak1"), texture!.Base);
+    }
+
+    [Fact]
     public void EachSlotResolvesFromItsOwnDictionary()
     {
         var actual = new[] { "framing", "infill", "front", "secondfront", "back" }

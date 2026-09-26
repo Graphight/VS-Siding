@@ -44,7 +44,7 @@ A narrow creature still walks into the open 12/16 of the cell: `AStar.cs:132` ch
 - Players cannot auto-step onto a wall either; their step is 0.6 and never reached a 1.0 top, so nothing changes for them, and jumping is untouched.
 - A hosted cell (0035) answers with the host block's own `CanStep`: an animal can step onto a hosted chest, as onto any chest.
 - Decision 0008's framing-only frame collides on posts and a top plate only, so a bare frame stays walk-through for animals as for players: that is a doorway by design, not a leak.
-- The `floors-between-storeys` deck would sit on a block that cannot be stepped on, so `AStar.cs:139` would keep creatures off a deck's top; check that if both land.
+- Decision 0042's deck would sit on a block that cannot be stepped on, so `AStar.cs:139` would keep creatures off a deck's top; check that if both land.
 - Decision 0020's consumer table is of `sidesolid`; the graduating decision should list `CanStep`'s consumers the same way, to redo on a game update.
 
 ## Stages

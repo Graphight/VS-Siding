@@ -128,4 +128,24 @@ public class SidingWallBlockRetentionTests
 
         Assert.Equal(new[] { 0, 0, 99, 99, 0, 0 }, actual);
     }
+
+    // A deck is always built from FramingFamilies (planks only), so unlike an infill it never
+    // cools - it seals positive or not at all.
+    [Fact]
+    public void NoDeckIsZero()
+    {
+        Assert.Equal(0, SidingWallBlock.ComputeDeckRetention(null, Framings));
+    }
+
+    [Fact]
+    public void UnknownDeckKeyIsZero()
+    {
+        Assert.Equal(0, SidingWallBlock.ComputeDeckRetention("uninstalled", Framings));
+    }
+
+    [Fact]
+    public void BuiltDeckSealsPositive()
+    {
+        Assert.Equal(1, SidingWallBlock.ComputeDeckRetention("oak", Framings));
+    }
 }

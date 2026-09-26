@@ -34,35 +34,42 @@ public class SidingWallBlockDropsTests
     [Fact]
     public void NoPartsBuiltDropsNothing()
     {
-        var drops = SidingWallBlock.ComputeDrops(null, null, null, null, null, Framings, Infills, Finishes);
+        var drops = SidingWallBlock.ComputeDrops(null, null, null, null, null, null, Framings, Infills, Finishes);
         Assert.Equal(Array.Empty<string>(), Codes(drops));
     }
 
     [Fact]
     public void UnknownKeysDropNothing()
     {
-        var drops = SidingWallBlock.ComputeDrops("uninstalled", "uninstalled", "uninstalled", "uninstalled", "uninstalled", Framings, Infills, Finishes);
+        var drops = SidingWallBlock.ComputeDrops("uninstalled", "uninstalled", "uninstalled", "uninstalled", "uninstalled", "uninstalled", Framings, Infills, Finishes);
         Assert.Equal(Array.Empty<string>(), Codes(drops));
     }
 
     [Fact]
     public void OnlyValidPartsDrop()
     {
-        var drops = SidingWallBlock.ComputeDrops("oak", "wattle", "uninstalled", null, null, Framings, Infills, Finishes);
+        var drops = SidingWallBlock.ComputeDrops("oak", "wattle", "uninstalled", null, null, null, Framings, Infills, Finishes);
         Assert.Equal(new[] { "game:plank-oak", "game:stick" }, Codes(drops));
     }
 
     [Fact]
     public void AllFivePartsDrop()
     {
-        var drops = SidingWallBlock.ComputeDrops("oak", "wattle", "daub", "planks", "brick", Framings, Infills, Finishes);
+        var drops = SidingWallBlock.ComputeDrops("oak", "wattle", "daub", "planks", "brick", null, Framings, Infills, Finishes);
         Assert.Equal(new[] { "game:plank-oak", "game:stick", "game:clay-blue", "game:plank-oak", "game:burnedbrick-red" }, Codes(drops));
+    }
+
+    [Fact]
+    public void DeckDropsItsFramingsMaterial()
+    {
+        var drops = SidingWallBlock.ComputeDrops(null, null, null, null, null, "oak", Framings, Infills, Finishes);
+        Assert.Equal(new[] { "game:plank-oak" }, Codes(drops));
     }
 
     [Fact]
     public void DropEntryWithNoCodeIsSkippedNotThrown()
     {
-        var drops = SidingWallBlock.ComputeDrops(null, null, "nocodefinish", null, null, Framings, Infills, Finishes);
+        var drops = SidingWallBlock.ComputeDrops(null, null, "nocodefinish", null, null, null, Framings, Infills, Finishes);
         Assert.Equal(Array.Empty<string>(), Codes(drops));
     }
 
@@ -73,7 +80,7 @@ public class SidingWallBlockDropsTests
         { "cobblestone-granite": { "Drops": [ { "type": "block", "code": "game:cobblestone-granite", "quantity": { "avg": 1, "var": 0 } } ] } }
         """);
 
-        var drops = SidingWallBlock.ComputeDrops("oak", null, "cobblestone-granite", null, null, Framings, Infills, finishes);
+        var drops = SidingWallBlock.ComputeDrops("oak", null, "cobblestone-granite", null, null, null, Framings, Infills, finishes);
 
         Assert.Equal(new[] { (EnumItemClass.Item, "game:plank-oak"), (EnumItemClass.Block, "game:cobblestone-granite") }, drops.ConvertAll(d => (d.Type, d.Code!.ToString())).ToArray());
     }

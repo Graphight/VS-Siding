@@ -121,6 +121,18 @@ public class SidingWallEntityTests
     }
 
     [Fact]
+    public void DeckKeySurvivesByteRoundTrip()
+    {
+        var tree = new TreeAttribute();
+        tree.SetString("deck", "oak");
+
+        var reloaded = new TreeAttribute();
+        reloaded.FromBytes(tree.ToBytes());
+
+        Assert.Equal("oak", SidingWallEntity.NullIfEmpty(reloaded.GetString("deck", null)));
+    }
+
+    [Fact]
     public void SelectiveElementsSkipsUnbuiltParts()
     {
         Assert.Equal(new string[0], SidingWallEntity.SelectiveElements("wall", null, null, null, null, null, NoElementFinishes, (false, false, false, false), glazed: false));
@@ -128,6 +140,14 @@ public class SidingWallEntityTests
             SidingWallEntity.SelectiveElements("wall", "oak", "wattle", "daub", null, "daub", NoElementFinishes, (false, false, false, false), glazed: false));
         Assert.Equal(new[] { "framing-left", "framing-right", "framing-top", "framing-bottom" },
             SidingWallEntity.SelectiveElements("wall", "oak", null, null, null, null, NoElementFinishes, (false, false, false, false), glazed: false));
+    }
+
+    [Fact]
+    public void SelectiveElementsAddsDeckWhenSet()
+    {
+        Assert.Equal(new[] { "framing-left", "framing-right", "framing-top", "framing-bottom", "deck" },
+            SidingWallEntity.SelectiveElements("wall", "oak", null, null, null, null, NoElementFinishes, (false, false, false, false), glazed: false,
+                deck: "oak"));
     }
 
     [Fact]
@@ -213,6 +233,7 @@ public class SidingWallEntityTests
             SidingWallEntity.CacheKey("wall", "west", "oak", "wattle", "daub", "planks", "brick", (false, false, false, false), ("boards", null, null)),
             SidingWallEntity.CacheKey("wall", "west", "oak", "wattle", "daub", "planks", "brick", (false, false, false, false), (null, "boards", null)),
             SidingWallEntity.CacheKey("wall", "west", "oak", "wattle", "daub", "planks", "brick", (false, false, false, false), (null, null, "weatherboard")),
+            SidingWallEntity.CacheKey("wall", "west", "oak", "wattle", "daub", "planks", "brick", (false, false, false, false), default, "oak"),
         ];
 
         Assert.Equal(keys, keys.Distinct());

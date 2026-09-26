@@ -6,7 +6,8 @@
     "infill": "game:block/wood/planks/aged/aged1",
     "front": "game:block/wood/planks/aged/aged1",
     "secondfront": "game:block/wood/planks/aged/aged1",
-    "back": "game:block/wood/planks/aged/aged1"
+    "back": "game:block/wood/planks/aged/aged1",
+    "deck": "game:block/wood/planks/aged/aged1"
   },
   "elements": [
     {
@@ -1235,6 +1236,75 @@
             0.0,
             13.0,
             1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck",
+      "from": [
+        4.0,
+        12.0,
+        4.0
+      ],
+      "to": [
+        16.0,
+        16.0,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            4.0
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            4.0
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            4.0
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            4.0
+          ]
+        },
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            12.0
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            12.0
           ]
         }
       }
