@@ -12,6 +12,8 @@ An idea that's been thought through but not acted on. Mutable: edit freely, argu
 The proposal overrides it to reuse `HitLayerMaterial`, the same peeled-layer lookup `GetResistance`/`GetBlockMaterial` already use, so only a `Wood`-tagged layer stays flammable.
 - `floors-between-storeys`: an upper floor stops at the wall's cell and leaves a 12/16 slot along every wall, down to the storey below.
 The proposal adds an opt-in deck, a 4/16 layer flush with the top of the wall's cell, toggled from its own picker row and upgraded onto walls already standing.
+- `stairs-against-walls`: stairs along a wall stand in the room cells and leave the wall's open 12/16 beside every step.
+The proposal adds a step layer that continues the stair beside it into the wall's open part, built by clicking the wall with that stair in hand.
 - `thin-floor-framing`: floors built like the walls, a 4/16 layered panel flush with the top of its cell, placed from the framing row.
 Its top face can honestly be `sidesolid`, so most of vanilla's placing and attachment comes free; the deck is its rim joist.
 - `hanging-under-thin-floors`: a thin floor's underside is 12/16 above the cell boundary, so hung lanterns float or are refused.
