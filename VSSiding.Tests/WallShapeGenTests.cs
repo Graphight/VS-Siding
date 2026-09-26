@@ -264,9 +264,8 @@ public class WallShapeGenTests
         Assert.Equal(expected, actual);
     }
 
-    // A joined stack draws infill, infill-top, then the next cell's infill-bottom and infill: each
-    // has to sample its own slice of one 0..16 texture, or every box restarts at v 0 and the join
-    // shows a seam where decision 0008 drops the plate.
+    // Decision 0041: the three infill boxes are adjoining slices of one 0..16 texture. A rule that
+    // went back to box-relative v would restart each at 0 and show a seam at a stacked join.
     [Theory]
     [InlineData("wall")]
     [InlineData("cornerout")]
@@ -280,18 +279,14 @@ public class WallShapeGenTests
         };
         string[] sides = ["north", "south", "east", "west"];
 
-        var elements = WallShapeGen.Generate(layout)["elements"]!
+        var actual = WallShapeGen.Generate(layout)["elements"]!
             .Where(e => slices.ContainsKey((string)e["name"]!))
+            .SelectMany(e => sides.Select(s => e["faces"]![s]).Where(f => f != null)
+                .Select(f => (Name: (string)e["name"]!, V: ((double)f!["uv"]![1]!, (double)f["uv"]![3]!))))
             .ToArray();
-        var faces = elements
-            .SelectMany(e => sides.Where(s => e["faces"]![s] != null)
-                .Select(s => ((string)e["name"]!, e["faces"]![s]!["uv"]!)))
-            .ToArray();
+        var expected = actual.Select(f => (f.Name, slices[f.Name])).ToArray();
 
-        var expected = faces.Select(f => (f.Item1, slices[f.Item1])).ToArray();
-        var actual = faces.Select(f => (f.Item1, ((double)f.Item2[1]!, (double)f.Item2[3]!))).ToArray();
-
-        Assert.NotEmpty(faces);
+        Assert.NotEmpty(actual);
         Assert.Equal(expected, actual);
     }
 }

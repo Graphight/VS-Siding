@@ -11,8 +11,8 @@ namespace VSSiding.Tests;
 // courses land on the stepped lips and carry across stacked walls; up/down stay Flat either way.
 // The weatherboard groups are Positional too, so a lap's grain is sampled where the lap sits and
 // the sixteen laps of a block read as sixteen different boards (decision 0028).
-// The opaque infill groups are Positional for the same reason: the slivers that fill a dropped
-// plate carry the panel's texture across a stacked join instead of restarting it.
+// The opaque infill groups are Positional too, so the slivers filling a dropped plate continue the
+// panel's texture across a stacked join (decision 0041).
 // RunAxis names the axis a group runs along. A box cut out of a longer one then samples the texture
 // at its own position on that axis, so a course split into segments keeps one continuous strip.
 // Three cases need more: the flat board groups rotate their outward face 90 to stand plank grain upright,

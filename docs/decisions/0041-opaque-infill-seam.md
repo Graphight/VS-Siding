@@ -44,6 +44,6 @@ The golden-file test passes by construction after `just shapes`, so `EveryInfill
 
 ## Consequences & open questions
 - Every infill texture now has to tile vertically over 16 voxels for the join to hold, the same requirement 0028 put on weatherboard and the shake courses (0022) already had.
-Playtested on 2026-09-25: the seam is gone on stacked walls of the vanilla straw, wattle, clay and rubble textures.
-- A cell without a join (plate present) now shows texture rows 1-15 rather than 0-14, a one-row shift with no visible effect.
+Playtested on 2026-09-25: the seam is gone on stacked walls of the vanilla straw, wattle, clay and rubble textures, on a `cornerout`'s two legs, and on a stack whose infill changes partway up.
+- A cell without a join (plate present) now shows texture rows 1-15 rather than 0-14, a one-row shift nobody noticed in the playtest.
 - Texture mapping only: `IsBuried`, face culling, collision, `FramingBoxes` and 0008's cross-beam counting are untouched.
