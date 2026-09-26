@@ -59,17 +59,19 @@ public class SidingWallBlockBuildFlowTests
     [Fact]
     public void OnlyAFinishListingAStyleOffersIt()
     {
-        var planks = Dict("""{ "Styles": ["weatherboard", "boards"] }""");
+        var planks = Dict("""{ "Styles": ["weatherboard", "boards", "hboards"] }""");
         var daub = Dict("{}");
         Assert.Equal(
-            new[] { true, true, false, false, false },
+            new[] { true, true, true, false, false, false, false },
             new[]
             {
                 SidingWallBlock.HasStyle(planks, "weatherboard"),
                 SidingWallBlock.HasStyle(planks, "boards"),
+                SidingWallBlock.HasStyle(planks, "hboards"),
                 SidingWallBlock.HasStyle(planks, "shakes"),
                 SidingWallBlock.HasStyle(daub, "weatherboard"),
                 SidingWallBlock.HasStyle(daub, "boards"),
+                SidingWallBlock.HasStyle(daub, "hboards"),
             });
     }
 
