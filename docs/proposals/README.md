@@ -14,8 +14,6 @@ The proposal adds a step layer that continues the stair beside it into the wall'
 Its top face can honestly be `sidesolid`, so most of vanilla's placing and attachment comes free; the deck is its rim joist.
 - `hanging-under-thin-floors`: a thin floor's underside is 12/16 above the cell boundary, so hung lanterns float or are refused.
 The proposal shifts the hung block's mesh and boxes up to meet it, reusing decision 0035's offset.
-- `horizontal-boards`: a player asked for flat boards running sideways; today's `boards` style is one slab per face with its texture turned 90° for vertical boards (decision 0007).
-The proposal adds `hboards` to the picker's boards row, the same slab with the texture unturned, and renames `boards` to "Vertical boards".
 - `hosted-light-sources`: a torch or lantern hosted in a sealed wall's cell lights nothing, because `GuestLightPatches` raises the cell's absorption to the wall's 99 and vanilla's block-light walk subtracts the source cell's own absorption before light leaves it.
 The proposal exempts the source's own cell only while vanilla spreads or removes that source's light, so sunlight still meets the sealed wall and a burnt-out torch still goes dark.
 
