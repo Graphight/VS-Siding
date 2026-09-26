@@ -117,6 +117,16 @@ public class SidingWallBlock : Block
     internal static Cuboidf[] AddDeckBox(Cuboidf[] boxes, string layout, string side, string? deck)
         => deck == null ? boxes : boxes.Append(DeckBoxes[(layout, side)]).ToArray();
 
+    // wall.json's collisionSelectionBoxesbytype makes the selection box the panel alone, so without
+    // this the deck can be stood on but not aimed at, and a break from below lands on whatever
+    // wall lies beyond it.
+    public override Cuboidf[] GetSelectionBoxes(IBlockAccessor blockAccessor, BlockPos pos)
+    {
+        var boxes = base.GetSelectionBoxes(blockAccessor, pos);
+        var entity = blockAccessor.GetBlockEntity<SidingWallEntity>(pos);
+        return entity == null ? boxes : AddDeckBox(boxes, Variant["layout"], Variant["side"], entity.Deck);
+    }
+
     public override Cuboidf[] GetCollisionBoxes(IBlockAccessor blockAccessor, BlockPos pos)
         => FramedCollisionBoxes(blockAccessor, pos, base.GetCollisionBoxes(blockAccessor, pos));
 
