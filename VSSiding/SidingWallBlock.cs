@@ -889,7 +889,23 @@ public class SidingWallBlock : Block
             }
         }
         SpawnBlockBrokenParticles(pos, byPlayer);
+        RemoveLayer(world, entity, pos, layer);
+    }
 
+    // A fire that burns out against a wall takes its topmost layer, not the whole block; a bare
+    // frame has none left, so vanilla deletes it. The client answers too, so it keeps its block.
+    internal bool TryBurnLayer(IWorldAccessor world, BlockPos pos)
+    {
+        var entity = world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos);
+        string? layer = entity == null ? null : PeelLayer(null, entity.Infill, entity.Front, entity.SecondFront, entity.Back, entity.Deck);
+        if (layer == null) return false;
+
+        if (world.Side == EnumAppSide.Server) RemoveLayer(world, entity!, pos, layer);
+        return true;
+    }
+
+    internal void RemoveLayer(IWorldAccessor world, SidingWallEntity entity, BlockPos pos, string layer)
+    {
         switch (layer)
         {
             case "front": entity.Front = null; entity.FrontStyle = null; break;
