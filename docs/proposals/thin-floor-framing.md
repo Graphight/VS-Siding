@@ -2,7 +2,7 @@
 
 - Status: Draft
 - Created: 2026-09-25
-- Reflects: decisions 0001, 0002, 0020; the `floors-between-storeys` deck; a session discussion, not a player request; not yet played
+- Reflects: decisions 0001, 0002, 0020; decision 0042's deck; a session discussion, not a player request; not yet played
 
 ## Summary
 A floor built the way the walls are: a 4/16 layered panel flush with the top of its cell, placed as a new `floor` option on the picker's framing row.
@@ -10,7 +10,7 @@ Joists are the framing, pugging the infill, floorboards the top finish and lath 
 
 ## Context
 Vanilla floors are a full block of planks or a slab, which eats headroom and looks nothing like the walls.
-The deck of `floors-between-storeys` closes the slot at the wall, and its flush-top 4/16 height was chosen to meet this floor.
+The deck of decision 0042 closes the slot at the wall, and its flush-top 4/16 height was chosen to meet this floor.
 Nobody has asked for thin floors yet; this is written down so the deck's shape does not paint it into a corner.
 
 ## Design

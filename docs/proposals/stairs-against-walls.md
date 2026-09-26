@@ -2,7 +2,7 @@
 
 - Status: Draft
 - Created: 2026-09-25
-- Reflects: playtest of the `floors-between-storeys` deck on PR #52; decision 0035; `SidingModSystem.IsHostable`; not yet played
+- Reflects: playtest of decision 0042's deck on PR #52; decision 0035; `SidingModSystem.IsHostable`; not yet played
 
 ## Summary
 A staircase built along a wall stands in the room cells beside the wall column, so every step leaves the wall cell's open 12/16 between its side and the panel.

@@ -12,7 +12,7 @@ The proposal lets it hang and shifts the hung block's mesh, collision and select
 A block hangs from the `DOWN` face of the block above it, in the cell below.
 Under a thin floor that face is open air: the floor's panel is at the top of its cell.
 Answering `CanAttachBlockAt` for `DOWN` alone would let the lantern hang, but it would hang from nothing, 12/16 below the ceiling.
-A deck (`floors-between-storeys`) has no such underside: it sits inside the wall's own cell, so this only matters for the thin floor.
+A deck (decision 0042) has no such underside: it sits inside the wall's own cell, so this only matters for the thin floor.
 
 ## Design
 **Attach, then shift.**

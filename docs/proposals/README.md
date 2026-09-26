@@ -10,8 +10,6 @@ An idea that's been thought through but not acted on. Mutable: edit freely, argu
 
 - `fireproof-infill`: decision 0033 noted a wall still burns like a plank no matter its infill, because `GetCombustibleProperties` is never overridden and always answers with the block's own wood-plank numbers.
 The proposal overrides it to reuse `HitLayerMaterial`, the same peeled-layer lookup `GetResistance`/`GetBlockMaterial` already use, so only a `Wood`-tagged layer stays flammable.
-- `floors-between-storeys`: an upper floor stops at the wall's cell and leaves a 12/16 slot along every wall, down to the storey below.
-The proposal adds an opt-in deck, a 4/16 layer flush with the top of the wall's cell, toggled from its own picker row and upgraded onto walls already standing.
 - `stairs-against-walls`: stairs along a wall stand in the room cells and leave the wall's open 12/16 beside every step.
 The proposal adds a step layer that continues the stair beside it into the wall's open part, built by clicking the wall with that stair in hand.
 - `thin-floor-framing`: floors built like the walls, a 4/16 layered panel flush with the top of its cell, placed from the framing row.
