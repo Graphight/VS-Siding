@@ -11,6 +11,8 @@ namespace VSSiding.Tests;
 // courses land on the stepped lips and carry across stacked walls; up/down stay Flat either way.
 // The weatherboard groups are Positional too, so a lap's grain is sampled where the lap sits and
 // the sixteen laps of a block read as sixteen different boards (decision 0028).
+// The opaque infill groups are Positional too, so the slivers filling a dropped plate continue the
+// panel's texture across a stacked join (decision 0041).
 // RunAxis names the axis a group runs along. A box cut out of a longer one then samples the texture
 // at its own position on that axis, so a course split into segments keeps one continuous strip.
 // Three cases need more: the flat board groups rotate their outward face 90 to stand plank grain upright,
@@ -236,9 +238,9 @@ public static class WallShapeGen
         new("framing-bottom", (1, 0, 1), (3, 1, 15), "framing", UvRule.Flat),
         new("framing-left", (1, 0, 0), (3, 16, 1), "framing", UvRule.Flat),
         new("framing-right", (1, 0, 15), (3, 16, 16), "framing", UvRule.Flat),
-        new("infill-top", (1.5, 15, 1), (2.5, 16, 15), "infill", UvRule.Flat),
-        new("infill", (1.5, 1, 1), (2.5, 15, 15), "infill", UvRule.Flat),
-        new("infill-bottom", (1.5, 0, 1), (2.5, 1, 15), "infill", UvRule.Flat),
+        new("infill-top", (1.5, 15, 1), (2.5, 16, 15), "infill", UvRule.Positional),
+        new("infill", (1.5, 1, 1), (2.5, 15, 15), "infill", UvRule.Positional),
+        new("infill-bottom", (1.5, 0, 1), (2.5, 1, 15), "infill", UvRule.Positional),
         new("infill-pane", (2, 0, 0), (2, 16, 16), "infill", UvRule.Flat, Faces: ["west", "east"]),
         new("glazing-left", (1, 0, 0.25), (3, 16, 2), "framing", UvRule.Flat),
         new("glazing-right", (1, 0, 14), (3, 16, 15.75), "framing", UvRule.Flat),
@@ -384,17 +386,17 @@ public static class WallShapeGen
         new("framing-top", (1, 15, 3), (3, 16, 15), "framing", UvRule.Flat),
         new("framing-bottom", (1, 0, 3), (3, 1, 15), "framing", UvRule.Flat),
         new("framing", (1, 0, 1), (3, 16, 3), "framing", UvRule.Flat),
-        new("infill-top", (1.5, 15, 3), (2.5, 16, 15), "infill", UvRule.Flat),
-        new("infill", (1.5, 1, 3), (2.5, 15, 15), "infill", UvRule.Flat),
-        new("infill-bottom", (1.5, 0, 3), (2.5, 1, 15), "infill", UvRule.Flat),
+        new("infill-top", (1.5, 15, 3), (2.5, 16, 15), "infill", UvRule.Positional),
+        new("infill", (1.5, 1, 3), (2.5, 15, 15), "infill", UvRule.Positional),
+        new("infill-bottom", (1.5, 0, 3), (2.5, 1, 15), "infill", UvRule.Positional),
         new("framing", (1, 0, 15), (3, 16, 16), "framing", UvRule.Flat),
         new("back", (3, 0, 4), (4, 16, 16), "back", UvRule.Flat),
         new("secondfront", (1, 0, 0), (16, 16, 1), "secondfront", UvRule.Flat),
         new("framing-top", (3, 15, 1), (15, 16, 3), "framing", UvRule.Flat),
         new("framing-bottom", (3, 0, 1), (15, 1, 3), "framing", UvRule.Flat),
-        new("infill-top", (3, 15, 1.5), (15, 16, 2.5), "infill", UvRule.Flat),
-        new("infill", (3, 1, 1.5), (15, 15, 2.5), "infill", UvRule.Flat),
-        new("infill-bottom", (3, 0, 1.5), (15, 1, 2.5), "infill", UvRule.Flat),
+        new("infill-top", (3, 15, 1.5), (15, 16, 2.5), "infill", UvRule.Positional),
+        new("infill", (3, 1, 1.5), (15, 15, 2.5), "infill", UvRule.Positional),
+        new("infill-bottom", (3, 0, 1.5), (15, 1, 2.5), "infill", UvRule.Positional),
         new("infill-pane", (2, 0, 3), (2, 16, 16), "infill", UvRule.Flat, Faces: ["west", "east"]),
         new("infill-pane", (3, 0, 2), (16, 16, 2), "infill", UvRule.Flat, Faces: ["north", "south"]),
         new("framing", (15, 0, 1), (16, 16, 3), "framing", UvRule.Flat),

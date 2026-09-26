@@ -263,4 +263,30 @@ public class WallShapeGenTests
 
         Assert.Equal(expected, actual);
     }
+
+    // Decision 0041: the three infill boxes are adjoining slices of one 0..16 texture. A rule that
+    // went back to box-relative v would restart each at 0 and show a seam at a stacked join.
+    [Theory]
+    [InlineData("wall")]
+    [InlineData("cornerout")]
+    public void EveryInfillBoxSamplesItsOwnSliceOfTheTexture(string layout)
+    {
+        var slices = new Dictionary<string, (double, double)>
+        {
+            ["infill-top"] = (0, 1),
+            ["infill"] = (1, 15),
+            ["infill-bottom"] = (15, 16),
+        };
+        string[] sides = ["north", "south", "east", "west"];
+
+        var actual = WallShapeGen.Generate(layout)["elements"]!
+            .Where(e => slices.ContainsKey((string)e["name"]!))
+            .SelectMany(e => sides.Select(s => e["faces"]![s]).Where(f => f != null)
+                .Select(f => (Name: (string)e["name"]!, V: ((double)f!["uv"]![1]!, (double)f["uv"]![3]!))))
+            .ToArray();
+        var expected = actual.Select(f => (f.Name, slices[f.Name])).ToArray();
+
+        Assert.NotEmpty(actual);
+        Assert.Equal(expected, actual);
+    }
 }
