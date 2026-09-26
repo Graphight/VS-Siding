@@ -1,8 +1,8 @@
-# Creatures off walls
+# 0044 — Creatures off walls
 
-- Status: Draft
+- Status: Accepted
 - Created: 2026-09-25
-- Reflects: decisions 0008, 0020, 0035; `wall.json`'s collision box; decompiled 1.22 `Block.CanStep`, `AStar.traversable`, `EntityBehaviorControlledPhysics.FindSteppableCollisionBox`; vanilla fence and entity assets
+- Reflects: branch `creatures-off-walls`; unplayed; decisions 0008, 0020, 0035; `wall.json`'s collision box; decompiled 1.22 `Block.CanStep`, `AStar.traversable`, `EntityBehaviorControlledPhysics.FindSteppableCollisionBox`; vanilla fence and entity assets
 
 ## Summary
 Animals step up onto a thin wall and walk along its 4/16 top, so a pen of siding walls does not hold them.
@@ -27,11 +27,14 @@ Their 1.3125 collision height is a separate matter: it stops a *jump*, not a ste
 **Add `canStep: false` to `wall.json`'s `attributes`.**
 No code; the flag is static per block type, and the wall is one block type.
 
-Every consumer, from the four decompiled game DLLs:
-- `AStar.cs:139`: a cell whose block below cannot be stepped on is not standable, so no path runs along a wall's top.
-- `AStar.cs:218`: a colliding cell whose block cannot be stepped on is not traversable, so no path steps up into it.
-- `EntityBehaviorControlledPhysics.cs:761`, `:802`: the step-up skips the block's boxes for any entity shorter than five times the block's first static collision box, i.e. shorter than 5 blocks, so a wandering or fleeing creature off any path cannot step up either, whatever its `StepHeight`.
-- `:771`, `:812`: the same skip for a block sitting on top of a wall, when that block has no solid top or bottom side.
+Every consumer of `CanStep`, from the four decompiled 1.22 game DLLs, to redo on a game update:
+
+| Consumer | What it decides | Answer for a wall |
+| --- | --- | --- |
+| `AStar.cs:139` | whether the cell above a block is standable | no path runs along a wall's top |
+| `AStar.cs:218` | whether a colliding cell can be stepped up into | no path steps up onto a wall |
+| `EntityBehaviorControlledPhysics.cs:761`, `:802` | whether step-up takes the block's boxes | skipped for any entity shorter than five times the block's first static box (5 blocks), so a creature off any path cannot step up either |
+| `EntityBehaviorControlledPhysics.cs:771`, `:812` | the same, for a block on top of the wall with no solid top or bottom side | skipped the same way |
 
 A narrow creature still walks into the open 12/16 of the cell: `AStar.cs:132` checks the node's own block for `CanStep` only when the creature collides there.
 
@@ -44,10 +47,5 @@ A narrow creature still walks into the open 12/16 of the cell: `AStar.cs:132` ch
 - Players cannot auto-step onto a wall either; their step is 0.6 and never reached a 1.0 top, so nothing changes for them, and jumping is untouched.
 - A hosted cell (0035) answers with the host block's own `CanStep`: an animal can step onto a hosted chest, as onto any chest.
 - Decision 0008's framing-only frame collides on posts and a top plate only, so a bare frame stays walk-through for animals as for players: that is a doorway by design, not a leak.
-- Decision 0042's deck would sit on a block that cannot be stepped on, so `AStar.cs:139` would keep creatures off a deck's top; check that if both land.
-- Decision 0020's consumer table is of `sidesolid`; the graduating decision should list `CanStep`'s consumers the same way, to redo on a game update.
+- Decision 0042's deck sits on a block that cannot be stepped on, so `AStar.cs:139` keeps paths off a deck's top strip; creatures upstairs still walk the room floor beside it.
 
-## Stages
-1. **Fix:** `canStep: false` in `wall.json`.
-2. **Playtest:** a one-high pen of filled walls holding a sheep, a pig and a goat, with feed outside it; a bare-frame cell as the control; the player jumping onto the wall.
-3. **Graduate.**
