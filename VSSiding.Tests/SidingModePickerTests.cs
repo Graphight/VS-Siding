@@ -7,7 +7,8 @@ namespace VSSiding.Tests;
 public class SidingModePickerTests
 {
     // A flat picker index walks the rows in order: framing (wall, corner), deck (deck), boards
-    // (weatherboard, boards, hboards), logs (shakes, logs). Out of range comes back (-1, -1) rather than throwing.
+    // (weatherboard, boards, hboards), logs (shakes, logs). Out of range comes back (-1, -1)
+    // rather than throwing.
     [Fact]
     public void LocateMapsAFlatIndexToItsRowAndOption()
     {
