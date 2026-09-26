@@ -10,6 +10,7 @@
 	creativeinventory: { "general": ["*-west"], "decorative": ["*-west"] },
 	blockmaterial: "Wood",
 	attributes: {
+		canStep: false,
 		Framings: {
 			"oak": {
 				DisplayName: "vssiding:framing-oak",
