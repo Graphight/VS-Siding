@@ -44,20 +44,21 @@ Adding `wall+deck` and `corner+deck` to the framing row instead would double it 
 `FinishChoices` skips the row; it is not a finish style.
 
 **Upgrade in place, like a corner.**
-With the deck lit, a saw-and-plank click on a framed wall with no deck adds one, whatever it is filled or finished with (decision 0026 is the precedent, but a deck is its own layer, so there is no reason to limit it to bare frames).
+With the deck lit, a saw-and-plank click on a side face of a framed wall with no deck adds one, whatever it is filled or finished with (decision 0026 is the precedent, but a deck is its own layer, so there is no reason to limit it to bare frames).
 That reaches houses already standing, which is where the report came from.
 This branch runs ahead of finishing, so it also settles the clash with "planks on the room side finish the back face".
-A new frame placed with the deck lit gets its deck in the same click.
+The top face is left alone, so it still stacks the next course, and a new frame placed with the deck lit gets its deck in the same click.
 The deck costs the held plank's `Framings` entry `Consumes`, the same as a frame.
 
 **Collision, retention, attachment.**
 The deck box joins `PanelCollisionBoxes` for frame-only and filled walls alike, and the selection boxes, so it can be clicked.
 A deck seals its cell's `UP` face (`GetRetention`) and holds things placed on top (`CanAttachBlockAt`), so rugs and torches work on it.
-Whether vanilla's room walk ever asks a wall cell's `UP` face needs checking in the decompiled `RoomRegistry` first.
+Vanilla's room walk does ask it: `RoomRegistry.FindRoomForPosition` checks every face of the current cell and the opposite face of its neighbour, so a deck seals the room above and the room below.
 
 **Breaking and hosting.**
 The deck peels first on a room-side or top hit, before a back finish (0013's one-layer-per-break order), and drops its framing material.
-A decked cell refuses furniture hosting (0035): the furniture would sit under the deck, and the guest store would need a deck field for no real build.
+A decked cell refuses the hosting click (0035): the furniture would sit where the deck is, and the guest store would need a deck field for no real build.
+Any other way a hostable block lands in the cell (ground storage, sneak-placement) drops the deck as items and hosts as normal, since undoing the placement would lose the player's block.
 
 ## Alternatives considered
 - **Deck heights to match plank and slab positions (`full`/`top`/`bottom`).** The first draft. Fixing one flush-top 4/16 height matches the planned thin floor and drops a choice nobody needs.
