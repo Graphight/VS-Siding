@@ -831,6 +831,18 @@ public class SidingWallBlock : Block
         return ResolveLayerResistance(material, layerResistance, base.GetResistance(blockAccessor, pos));
     }
 
+    // Only a Wood topmost layer burns; any other material answers null so fire, lava and lightning skip it.
+    internal static CombustibleProperties? ResolveLayerCombustible(EnumBlockMaterial material, CombustibleProperties? props)
+        => material == EnumBlockMaterial.Wood ? props : null;
+
+    // pos is null for an item in a slot, which keeps the block's own props.
+    public override CombustibleProperties? GetCombustibleProperties(IWorldAccessor world, ItemStack? itemstack, BlockPos? pos)
+    {
+        if (pos == null) return base.GetCombustibleProperties(world, itemstack, pos);
+
+        return ResolveLayerCombustible(HitLayerMaterial(world.BlockAccessor, pos, null), base.GetCombustibleProperties(world, itemstack, pos));
+    }
+
     // pos may be null, with only a stack to go on, so that falls back to base. The API warns this
     // may run off the main thread; the entity reads below are all immutable strings, so a racing
     // build reads either the old layer or the new one, never a torn value.
