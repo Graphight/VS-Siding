@@ -249,6 +249,12 @@ public class SidingWallBlock : Block
         if (heldBlock == null || !SidingModSystem.IsHostableId(heldBlock.BlockId)) return false;
         if (ResolveFinishFace(Variant["layout"], Variant["side"], blockSel.Face) != "back") return false;
 
+        // The deck fills the cell's dead space - there's nowhere left for furniture to go.
+        // IsReplacableBy has no position to check this itself (SidingModSystem.HostChangePrefix
+        // is the backstop for placements that reach it another way), but this is the one
+        // deliberate host click, so refusing here means no swallowed interaction either.
+        if (world.BlockAccessor.GetBlockEntity<SidingWallEntity>(blockSel.Position)?.Deck != null) return false;
+
         if (world.Side == EnumAppSide.Client) return true;
 
         string failureCode = "";
@@ -752,12 +758,12 @@ public class SidingWallBlock : Block
         if (entity == null) return BlockMaterial;
 
         string? face = hitFace == null ? null : ResolveFinishFace(Variant["layout"], Variant["side"], hitFace);
-        string? layer = PeelLayer(face, entity.Infill, entity.Front, entity.SecondFront, entity.Back);
-        return LayerMaterialAt(layer, entity.Infill, entity.Front, entity.SecondFront, entity.Back);
+        string? layer = PeelLayer(face, entity.Infill, entity.Front, entity.SecondFront, entity.Back, entity.Deck);
+        return LayerMaterialAt(layer, entity.Infill, entity.Front, entity.SecondFront, entity.Back, entity.Deck);
     }
 
-    private EnumBlockMaterial LayerMaterialAt(string? layer, string? infill, string? front, string? secondFront, string? back)
-        => LayerMaterial(layer, LayerKey(layer, infill, front, secondFront, back), Attributes["Infills"], Attributes["Finishes"], BlockMaterial);
+    private EnumBlockMaterial LayerMaterialAt(string? layer, string? infill, string? front, string? secondFront, string? back, string? deck)
+        => LayerMaterial(layer, LayerKey(layer, infill, front, secondFront, back, deck), Attributes["Infills"], Attributes["Finishes"], BlockMaterial);
 
     // The fallback is a parameter rather than read from Sounds here, so GetSounds can defer to
     // base.GetSounds while OnBlockBroken defers to Sounds.
@@ -811,7 +817,7 @@ public class SidingWallBlock : Block
         }
         BlockFacing? hitFace = selection?.Position.Equals(pos) == true ? selection.Face : null;
         string? face = hitFace == null ? null : ResolveFinishFace(Variant["layout"], Variant["side"], hitFace);
-        string? layer = entity == null ? null : PeelLayer(face, entity.Infill, entity.Front, entity.SecondFront, entity.Back);
+        string? layer = entity == null ? null : PeelLayer(face, entity.Infill, entity.Front, entity.SecondFront, entity.Back, entity.Deck);
         if (entity == null || byPlayer == null || layer == null)
         {
             base.OnBlockBroken(world, pos, byPlayer, dropQuantityMultiplier);
@@ -820,14 +826,14 @@ public class SidingWallBlock : Block
 
         if (world.Side == EnumAppSide.Server && byPlayer.WorldData.CurrentGameMode != EnumGameMode.Creative)
         {
-            string? key = LayerKey(layer, entity.Infill, entity.Front, entity.SecondFront, entity.Back);
+            string? key = LayerKey(layer, entity.Infill, entity.Front, entity.SecondFront, entity.Back, entity.Deck);
             var drops = new List<BlockDropItemStack>();
-            AddDrops(drops, key, Attributes[layer == "infill" ? "Infills" : "Finishes"]);
+            AddDrops(drops, key, Attributes[layer switch { "infill" => "Infills", "deck" => "Framings", _ => "Finishes" }]);
             foreach (var stack in ResolveDrops(world, drops, dropQuantityMultiplier)) world.SpawnItemEntity(stack, pos);
 
             if (Sounds != null)
             {
-                var material = LayerMaterialAt(layer, entity.Infill, entity.Front, entity.SecondFront, entity.Back);
+                var material = LayerMaterialAt(layer, entity.Infill, entity.Front, entity.SecondFront, entity.Back, entity.Deck);
                 var breakSounds = ResolveLayerSounds(material, layerSounds, Sounds);
                 world.PlaySoundAt(breakSounds.GetBreakSound(byPlayer), pos, 0.0, byPlayer);
             }
@@ -839,6 +845,13 @@ public class SidingWallBlock : Block
             case "front": entity.Front = null; entity.FrontStyle = null; break;
             case "secondfront": entity.SecondFront = null; entity.SecondFrontStyle = null; break;
             case "back": entity.Back = null; entity.BackStyle = null; break;
+            case "deck":
+                entity.Deck = null;
+                entity.MarkDirty(true);
+                // Deck retention answers on the UP face; rooms only recompute on a chunk-dirty
+                // event, so exchange the block for itself to fire one - OnInfillChanged's trick.
+                world.BlockAccessor.ExchangeBlock(Id, pos);
+                return;
             default:
                 string? oldInfill = entity.Infill;
                 entity.Infill = null;
@@ -852,7 +865,7 @@ public class SidingWallBlock : Block
     {
         var entity = world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos);
         var drops = ComputeDrops(
-            entity?.Framing, entity?.Infill, entity?.Front, entity?.SecondFront, entity?.Back,
+            entity?.Framing, entity?.Infill, entity?.Front, entity?.SecondFront, entity?.Back, entity?.Deck,
             Attributes["Framings"], Attributes["Infills"], Attributes["Finishes"]);
 
         // Nothing built yet - fall back to the base drops so HorizontalOrientable still
@@ -875,7 +888,7 @@ public class SidingWallBlock : Block
     }
 
     internal static List<BlockDropItemStack> ComputeDrops(
-        string? framing, string? infill, string? front, string? secondFront, string? back,
+        string? framing, string? infill, string? front, string? secondFront, string? back, string? deck,
         JsonObject framings, JsonObject infills, JsonObject finishes)
     {
         var drops = new List<BlockDropItemStack>();
@@ -884,6 +897,7 @@ public class SidingWallBlock : Block
         AddDrops(drops, front, finishes);
         AddDrops(drops, secondFront, finishes);
         AddDrops(drops, back, finishes);
+        AddDrops(drops, deck, framings);
         return drops;
     }
 
@@ -900,32 +914,38 @@ public class SidingWallBlock : Block
     }
 
     // Same layer names PeelLayer returns, resolved to the material key installed there.
-    internal static string? LayerKey(string? layer, string? infill, string? front, string? secondFront, string? back)
+    internal static string? LayerKey(string? layer, string? infill, string? front, string? secondFront, string? back, string? deck)
         => layer switch
         {
             "front" => front,
             "secondfront" => secondFront,
             "back" => back,
+            "deck" => deck,
             _ => infill,
         };
 
     // Only "infill" and the finish layers look a material up. Framings are all planks and carry
-    // no BlockMaterial, so a frame falls through to the caller's fallback - the block's own Wood.
+    // no BlockMaterial, so a frame - and a deck, built from the same Framings dictionary - falls
+    // through to the caller's fallback, the block's own Wood.
     internal static EnumBlockMaterial LayerMaterial(string? layer, string? key, JsonObject infills, JsonObject finishes, EnumBlockMaterial fallback)
     {
-        if (key == null) return fallback;
+        if (key == null || layer == "deck") return fallback;
         var dictionary = layer == "infill" ? infills : finishes;
         string? materialName = dictionary[key]["BlockMaterial"].AsString(null!);
         return Enum.TryParse(materialName, true, out EnumBlockMaterial material) ? material : fallback;
     }
 
-    // Reverse build order: the hit face's finish, then any finish, then infill; null leaves only the frame.
-    internal static string? PeelLayer(string? face, string? infill, string? front, string? secondFront, string? back)
+    // Reverse build order: the hit face's finish, then any finish, then infill; null leaves only
+    // the frame. The deck is outermost on the room side, so a back or end hit takes it first, and
+    // otherwise it goes after the front finishes and before the back one.
+    internal static string? PeelLayer(string? face, string? infill, string? front, string? secondFront, string? back, string? deck)
     {
+        if (deck != null && face is null or "back") return "deck";
         string? hit = face switch { "front" => front, "secondfront" => secondFront, "back" => back, _ => null };
         if (hit != null) return face;
         if (front != null) return "front";
         if (secondFront != null) return "secondfront";
+        if (deck != null) return "deck";
         if (back != null) return "back";
         return infill != null ? "infill" : null;
     }

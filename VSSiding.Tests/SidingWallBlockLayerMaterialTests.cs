@@ -16,31 +16,37 @@ public class SidingWallBlockLayerMaterialTests
     [Fact]
     public void FrontLayerKeyIsFront()
     {
-        Assert.Equal("ashlar-granite", SidingWallBlock.LayerKey("front", "clay", "ashlar-granite", "shakes-oak", "planks"));
+        Assert.Equal("ashlar-granite", SidingWallBlock.LayerKey("front", "clay", "ashlar-granite", "shakes-oak", "planks", "oak"));
     }
 
     [Fact]
     public void SecondFrontLayerKeyIsSecondFront()
     {
-        Assert.Equal("shakes-oak", SidingWallBlock.LayerKey("secondfront", "clay", "ashlar-granite", "shakes-oak", "planks"));
+        Assert.Equal("shakes-oak", SidingWallBlock.LayerKey("secondfront", "clay", "ashlar-granite", "shakes-oak", "planks", "oak"));
     }
 
     [Fact]
     public void BackLayerKeyIsBack()
     {
-        Assert.Equal("planks", SidingWallBlock.LayerKey("back", "clay", "ashlar-granite", "shakes-oak", "planks"));
+        Assert.Equal("planks", SidingWallBlock.LayerKey("back", "clay", "ashlar-granite", "shakes-oak", "planks", "oak"));
     }
 
     [Fact]
     public void InfillLayerKeyIsInfill()
     {
-        Assert.Equal("clay", SidingWallBlock.LayerKey("infill", "clay", "ashlar-granite", "shakes-oak", "planks"));
+        Assert.Equal("clay", SidingWallBlock.LayerKey("infill", "clay", "ashlar-granite", "shakes-oak", "planks", "oak"));
+    }
+
+    [Fact]
+    public void DeckLayerKeyIsDeck()
+    {
+        Assert.Equal("oak", SidingWallBlock.LayerKey("deck", "clay", "ashlar-granite", "shakes-oak", "planks", "oak"));
     }
 
     [Fact]
     public void NullLayerKeyFallsBackToInfill()
     {
-        Assert.Equal("clay", SidingWallBlock.LayerKey(null, "clay", "ashlar-granite", "shakes-oak", "planks"));
+        Assert.Equal("clay", SidingWallBlock.LayerKey(null, "clay", "ashlar-granite", "shakes-oak", "planks", "oak"));
     }
 
     [Fact]
@@ -65,5 +71,11 @@ public class SidingWallBlockLayerMaterialTests
     public void UnknownKeyFallsBack()
     {
         Assert.Equal(EnumBlockMaterial.Wood, SidingWallBlock.LayerMaterial("front", "planks", Infills, Finishes, EnumBlockMaterial.Wood));
+    }
+
+    [Fact]
+    public void DeckLayerFallsBackLikeTheFrame()
+    {
+        Assert.Equal(EnumBlockMaterial.Wood, SidingWallBlock.LayerMaterial("deck", "oak", Infills, Finishes, EnumBlockMaterial.Wood));
     }
 }

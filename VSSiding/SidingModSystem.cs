@@ -786,7 +786,19 @@ public class SidingModSystem : ModSystem
             // only runs after this prefix, so its state becomes the guest's.
             if (__instance.GetLocalBlockEntityAtBlockPos(pos) is SidingWallEntity wall
                 && IsHostableId(world.BlockAccessor.GetBlock(pos, BlockLayersAccess.Solid).BlockId))
+            {
+                // A guest record has no deck, and the host would sit where the deck is, so the deck
+                // comes off as its material. TryHost refuses the deliberate click before it gets here.
+                if (wall.Deck != null && wall.Block is SidingWallBlock decked)
+                {
+                    var deckDrops = SidingWallBlock.ComputeDrops(
+                        null, null, null, null, null, wall.Deck,
+                        decked.Attributes["Framings"], decked.Attributes["Infills"], decked.Attributes["Finishes"]);
+                    foreach (var stack in decked.ResolveDrops(world, deckDrops, 1f)) world.SpawnItemEntity(stack, pos);
+                    wall.Deck = null;
+                }
                 GuestWalls.Set(world, __instance, pos, GuestWalls.Encode(wall));
+            }
             return;
         }
 
@@ -805,7 +817,7 @@ public class SidingModSystem : ModSystem
                 if (guest.Block is SidingWallBlock guestWall)
                 {
                     var drops = SidingWallBlock.ComputeDrops(
-                        guest.Framing, guest.Infill, guest.Front, guest.SecondFront, guest.Back,
+                        guest.Framing, guest.Infill, guest.Front, guest.SecondFront, guest.Back, guest.Deck,
                         guestWall.Attributes["Framings"], guestWall.Attributes["Infills"], guestWall.Attributes["Finishes"]);
                     foreach (var stack in guestWall.ResolveDrops(world, drops, 1f)) world.SpawnItemEntity(stack, pos);
                 }
