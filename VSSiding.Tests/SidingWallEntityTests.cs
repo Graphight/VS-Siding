@@ -143,6 +143,14 @@ public class SidingWallEntityTests
     }
 
     [Fact]
+    public void SelectiveElementsAddsDeckWhenSet()
+    {
+        Assert.Equal(new[] { "framing-left", "framing-right", "framing-top", "framing-bottom", "deck" },
+            SidingWallEntity.SelectiveElements("wall", "oak", null, null, null, null, NoElementFinishes, (false, false, false, false), glazed: false,
+                deck: "oak"));
+    }
+
+    [Fact]
     public void SelectiveElementsUsesFinishNamedElementsPerFace()
     {
         Assert.Equal(new[] { "front-weatherboard", "secondfront-weatherboard", "framing-left", "framing-right", "framing-top", "framing-bottom", "infill", "back-boards" },

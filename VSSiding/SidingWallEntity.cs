@@ -104,7 +104,7 @@ public class SidingWallEntity : BlockEntity
         // built cell names at least one - glazing merged on every side still draws its pane. So
         // empty means nothing is built, and the block's default JSON shape stands in.
         bool glazed = SidingWallBlock.IsTransparent(Infill, Block.Attributes["Infills"]);
-        string[] selectiveElements = SelectiveElements(layout, Framing, Infill, Front, SecondFront, Back, Block.Attributes["Finishes"], joins, glazed, Styles);
+        string[] selectiveElements = SelectiveElements(layout, Framing, Infill, Front, SecondFront, Back, Block.Attributes["Finishes"], joins, glazed, Styles, Deck);
         if (selectiveElements.Length == 0) return false;
 
         string side = Block.Variant["side"];
@@ -169,7 +169,7 @@ public class SidingWallEntity : BlockEntity
     internal static string[] SelectiveElements(
         string layout, string? framing, string? infill, string? front, string? secondFront, string? back, JsonObject finishes,
         (bool above, bool below, bool left, bool right) joins, bool glazed,
-        (string? front, string? secondFront, string? back) styles = default)
+        (string? front, string? secondFront, string? back) styles = default, string? deck = null)
     {
         var names = new List<string>();
         if (front != null) names.Add(FinishElement(finishes, front, "front", styles.front));
@@ -208,6 +208,7 @@ public class SidingWallEntity : BlockEntity
             }
         }
         if (back != null) names.Add(FinishElement(finishes, back, "back", styles.back));
+        if (deck != null) names.Add("deck");
         return names.ToArray();
     }
 

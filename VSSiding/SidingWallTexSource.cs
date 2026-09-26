@@ -33,7 +33,7 @@ public class SidingWallTexSource : ITexPositionSource
         {
             CompositeTexture texture = ResolveTexture(
                 textureCode, entity.Framing, entity.Infill, entity.Front, entity.SecondFront, entity.Back,
-                framings, infills, finishes, entity.FrontStyle, entity.SecondFrontStyle, entity.BackStyle)
+                framings, infills, finishes, entity.FrontStyle, entity.SecondFrontStyle, entity.BackStyle, entity.Deck)
                 ?? new CompositeTexture(new AssetLocation("game:block/wood/planks/oak1"));
             var atlas = capi.BlockTextureAtlas;
             // The plain indexer only finds textures some other block/item already caused to
@@ -51,11 +51,12 @@ public class SidingWallTexSource : ITexPositionSource
     internal static CompositeTexture? ResolveTexture(
         string slotCode, string? framing, string? infill, string? front, string? secondFront, string? back,
         JsonObject framings, JsonObject infills, JsonObject finishes,
-        string? frontStyle = null, string? secondFrontStyle = null, string? backStyle = null)
+        string? frontStyle = null, string? secondFrontStyle = null, string? backStyle = null, string? deck = null)
     {
         (string? key, JsonObject dictionary, string face, string? style) = slotCode switch
         {
             "framing" => (framing, framings, "framing", null),
+            "deck" => (deck, framings, "framing", null),
             "infill" => (infill, infills, "infill", null),
             // secondfront reads the front face's Elements default (decision 0027's naming), so its
             // style falls back the same way.
