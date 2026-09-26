@@ -1,6 +1,6 @@
 # 0027 — Finish style choice
 
-- Status: Accepted
+- Status: Accepted; style modes superseded by 0040
 - Created: 2026-09-20
 - Reflects: branch `finish-style-choice`; `SidingWallBlock.ResolveStyle`, `ResolveLayout`, `HasStyle` and `OnBlockInteractStart`; `SidingWallEntity.FrontStyle`/`SecondFrontStyle`/`BackStyle` and `SelectiveElements`; `PlaceWallFrame`'s tool modes; `WallShapeGen`'s plank groups; decisions 0003, 0005, 0006, 0007 and 0021; the `finish-style-choice` proposal
 
