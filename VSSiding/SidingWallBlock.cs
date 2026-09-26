@@ -56,8 +56,33 @@ public class SidingWallBlock : Block
             }),
     };
 
+    // Unrotated ("west") deck box per layout, matching the deck element WallShapeGen adds: flush
+    // with the top of the cell, filling the open 12/16 behind the panel (floors-between-storeys).
+    private static readonly Dictionary<string, Cuboidf> UnrotatedDeckBoxes = new()
+    {
+        ["wall"] = new Cuboidf(4f / 16, 12f / 16, 0, 1, 1, 1),
+        ["cornerout"] = new Cuboidf(4f / 16, 12f / 16, 4f / 16, 1, 1, 1),
+    };
+
     // Built once up front so collision calls from client and server threads only ever read it.
     private static readonly Dictionary<(string layout, string side, bool joinsAbove), Cuboidf[]> FramingBoxes = BuildFramingBoxes();
+
+    private static readonly Dictionary<(string layout, string side), Cuboidf> DeckBoxes = BuildDeckBoxes();
+
+    private static Dictionary<(string layout, string side), Cuboidf> BuildDeckBoxes()
+    {
+        var origin = new Vec3d(0.5, 0.5, 0.5);
+        var boxes = new Dictionary<(string layout, string side), Cuboidf>();
+        foreach (var (layout, box) in UnrotatedDeckBoxes)
+        {
+            foreach (string side in CorneroutSecondFace.Keys)
+            {
+                float rotationYDeg = SidingWallEntity.RotationYDeg(side);
+                boxes[(layout, side)] = box.RotatedCopy(0, rotationYDeg, 0, origin);
+            }
+        }
+        return boxes;
+    }
 
     private static Dictionary<(string layout, string side, bool joinsAbove), Cuboidf[]> BuildFramingBoxes()
     {
@@ -86,6 +111,12 @@ public class SidingWallBlock : Block
         string layout, string side, string? framing, string? infill, bool joinsAbove, Cuboidf[] fullBoxes)
         => framing != null && infill == null ? FramingBoxes[(layout, side, joinsAbove)] : fullBoxes;
 
+    // A deck's box joins whatever the frame/fill state already collides on: the frame-only boxes
+    // don't reach into the open 12/16 it fills, and the filled path's full-cube box is defined
+    // independently of the deck's own geometry (floors-between-storeys).
+    internal static Cuboidf[] AddDeckBox(Cuboidf[] boxes, string layout, string side, string? deck)
+        => deck == null ? boxes : boxes.Append(DeckBoxes[(layout, side)]).ToArray();
+
     public override Cuboidf[] GetCollisionBoxes(IBlockAccessor blockAccessor, BlockPos pos)
         => FramedCollisionBoxes(blockAccessor, pos, base.GetCollisionBoxes(blockAccessor, pos));
 
@@ -102,10 +133,18 @@ public class SidingWallBlock : Block
     // GapShiftCollisionPatches passes a guest's entity for a hosted cell (decision 0035).
     internal Cuboidf[] PanelCollisionBoxes(IBlockAccessor blockAccessor, BlockPos pos, SidingWallEntity entity, Cuboidf[] fullBoxes)
     {
-        if (entity.Framing == null || entity.Infill != null) return fullBoxes;
+        Cuboidf[] boxes;
+        if (entity.Framing == null || entity.Infill != null)
+        {
+            boxes = fullBoxes;
+        }
+        else
+        {
+            var joins = NeighbourJoins(blockAccessor, pos, entity.Infill);
+            boxes = ComputeCollisionBoxes(Variant["layout"], Variant["side"], entity.Framing, entity.Infill, joins.above, fullBoxes);
+        }
 
-        var joins = NeighbourJoins(blockAccessor, pos, entity.Infill);
-        return ComputeCollisionBoxes(Variant["layout"], Variant["side"], entity.Framing, entity.Infill, joins.above, fullBoxes);
+        return AddDeckBox(boxes, Variant["layout"], Variant["side"], entity.Deck);
     }
 
     // Which neighbours this cell shares a member with, i.e. draws no plate or post against.
@@ -453,6 +492,7 @@ public class SidingWallBlock : Block
     public override int GetRetention(BlockPos pos, BlockFacing facing, EnumRetentionType type)
     {
         var entity = api.World.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos);
+        if (facing == BlockFacing.UP) return ComputeDeckRetention(entity?.Deck, Attributes["Framings"]);
         return ComputeRetention(ClaimsFace(facing), entity?.Framing, entity?.Infill, Attributes["Framings"], Attributes["Infills"]);
     }
 
@@ -476,6 +516,7 @@ public class SidingWallBlock : Block
     public override bool CanAttachBlockAt(IBlockAccessor blockAccessor, Block block, BlockPos pos, BlockFacing blockFace, Cuboidi? attachmentArea = null)
     {
         var entity = blockAccessor.GetBlockEntity<SidingWallEntity>(pos);
+        if (blockFace == BlockFacing.UP) return ComputeDeckRetention(entity?.Deck, Attributes["Framings"]) != 0;
         return ComputeRetention(ClaimsFace(blockFace), entity?.Framing, entity?.Infill, Attributes["Framings"], Attributes["Infills"]) != 0;
     }
 
@@ -495,6 +536,13 @@ public class SidingWallBlock : Block
                 or EnumBlockMaterial.Soil or EnumBlockMaterial.Ceramic;
         return cooling ? -1 : 1;
     }
+
+    // A deck seals its cell's UP face on its own: FramingFamilies is planks only, so a built deck
+    // is always wood and never cools like a stone infill can (floors-between-storeys). Vanilla's
+    // room walk asks every face including UP (RoomRegistry.FindRoomForPosition, decompiled from
+    // VSEssentials.dll), so leaving this at 0 without a deck is what keeps the 12/16 gap unsealed.
+    internal static int ComputeDeckRetention(string? deckKey, JsonObject framings)
+        => deckKey != null && framings[deckKey].Exists ? 1 : 0;
 
     // Looking at a built wall names its layers - otherwise a boarded infill is unreadable
     // short of breaking it, and the infill is what decides cellar vs warm room (decision 0015).
