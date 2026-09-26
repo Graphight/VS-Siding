@@ -256,8 +256,13 @@ public class SidingWallBlock : Block
         if (heldBlock == null || !SidingModSystem.IsHostableId(heldBlock.BlockId)) return false;
         if (ResolveFinishFace(Variant["layout"], Variant["side"], blockSel.Face) != "back") return false;
 
-        // Furniture would sit where the deck is. Other ways in drop the deck (HostChangePrefix).
-        if (world.BlockAccessor.GetBlockEntity<SidingWallEntity>(blockSel.Position)?.Deck != null) return false;
+        // Furniture would sit where the deck is. Swallowed rather than returning false, which
+        // hands the click to vanilla and hosts anyway. Other ways in drop the deck (HostChangePrefix).
+        if (world.BlockAccessor.GetBlockEntity<SidingWallEntity>(blockSel.Position)?.Deck != null)
+        {
+            (byPlayer as IServerPlayer)?.SendIngameError("vssiding:decked", Lang.Get("vssiding:build-decked"));
+            return true;
+        }
 
         if (world.Side == EnumAppSide.Client) return true;
 
@@ -297,13 +302,12 @@ public class SidingWallBlock : Block
 
         bool isCreative = byPlayer.WorldData.CurrentGameMode == EnumGameMode.Creative;
 
-        // With the deck lit, planks on any face add a deck in place. Ahead of finishing, since
-        // planks are a finish too.
-        if (entity.Deck == null && SidingModePicker.Deck(byPlayer) && MatchConsumes(heldCode, Attributes["Framings"]) is { } deckKey)
+        // With the deck lit, planks on a side face add a deck in place. Ahead of finishing, since
+        // planks are a finish too. The top face still stacks the next course (PlaceWallFrame).
+        if (entity.Deck == null && blockSel.Face != BlockFacing.UP && SidingModePicker.Deck(byPlayer)
+            && MatchConsumes(heldCode, Attributes["Framings"]) is { } deckKey)
         {
-            var deckOccupants = world.GetIntersectingEntities(
-                blockSel.Position, new[] { DeckBoxes[(Variant["layout"], Variant["side"])] }, e => e.IsInteractable);
-            if (deckOccupants is { Length: > 0 })
+            if (DeckOccupied(world, blockSel.Position))
             {
                 (byPlayer as IServerPlayer)?.SendIngameError("vssiding:occupied", Lang.Get("vssiding:build-occupied"));
                 return true;
@@ -574,6 +578,9 @@ public class SidingWallBlock : Block
 
     // The deck changes the UP face's retention, and rooms only recompute on a chunk-dirty event,
     // so the block is exchanged for itself as OnInfillChanged does.
+    internal bool DeckOccupied(IWorldAccessor world, BlockPos pos)
+        => world.GetIntersectingEntities(pos, new[] { DeckBoxes[(Variant["layout"], Variant["side"])] }, e => e.IsInteractable) is { Length: > 0 };
+
     private void SetDeck(IWorldAccessor world, SidingWallEntity entity, BlockPos pos, string? deckKey)
     {
         entity.Deck = deckKey;

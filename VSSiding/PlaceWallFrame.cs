@@ -57,6 +57,12 @@ public class PlaceWallFrame : CollectibleBehavior
         if (entity != null)
         {
             entity.Framing = framingKey;
+            // Vanilla's placement check ran before the entity existed, so it only saw the panel.
+            if (withDeck && world.BlockAccessor.GetBlock(targetPos) is SidingWallBlock placedWall && placedWall.DeckOccupied(world, targetPos))
+            {
+                withDeck = false;
+                times = 1;
+            }
             if (withDeck) entity.Deck = framingKey;
             entity.MarkDirty(true);
             SidingWallBlock.MarkNeighboursDirty(world, targetPos);

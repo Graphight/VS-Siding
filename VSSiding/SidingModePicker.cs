@@ -206,8 +206,9 @@ public static class SidingModePicker
 
     internal static bool Deck(IPlayer player) => ChoiceOf(player, Array.FindIndex(Rows, row => row.Key == "vssidingDeck")).Length > 0;
 
-    // Every finish row, in row order, whichever is currently chosen. SidingWallBlock picks the first one the clicked finish's Styles lists; a row with nothing
-    // chosen contributes nothing, so no finish-to-row mapping is needed here.
+    // Every finish row, in row order, whichever is currently chosen. SidingWallBlock picks the
+    // first one the clicked finish's Styles lists; a row with nothing chosen contributes nothing,
+    // so no finish-to-row mapping is needed here.
     internal static IEnumerable<string> FinishChoices(IPlayer player)
     {
         for (int row = 0; row < Rows.Length; row++)
