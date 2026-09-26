@@ -23,7 +23,7 @@ public class ModeIconsTests
                 Path.Combine(repoRoot, "VSSiding", "assets", "vssiding", "textures", "icons"), "*.svg")
             .Select(file => Path.GetFileNameWithoutExtension(file)!).OrderBy(name => name).ToList();
 
-        Assert.Equal(new[] { "boards", "corner", "deck", "logs", "shakes", "wall", "weatherboard" }, modes);
+        Assert.Equal(new[] { "boards", "corner", "deck", "hboards", "logs", "shakes", "wall", "weatherboard" }, modes);
         Assert.Equal(modes, icons);
     }
 }

@@ -7,13 +7,13 @@ namespace VSSiding.Tests;
 public class SidingModePickerTests
 {
     // A flat picker index walks the rows in order: framing (wall, corner), deck (deck), boards
-    // (weatherboard, boards), logs (shakes, logs). Out of range comes back (-1, -1) rather than throwing.
+    // (weatherboard, boards, hboards), logs (shakes, logs). Out of range comes back (-1, -1) rather than throwing.
     [Fact]
     public void LocateMapsAFlatIndexToItsRowAndOption()
     {
         Assert.Equal(
-            new[] { (0, 0), (0, 1), (1, 0), (2, 0), (2, 1), (3, 0), (3, 1), (-1, -1), (-1, -1) },
-            new[] { 0, 1, 2, 3, 4, 5, 6, 7, -1 }.Select(SidingModePicker.Locate));
+            new[] { (0, 0), (0, 1), (1, 0), (2, 0), (2, 1), (2, 2), (3, 0), (3, 1), (-1, -1), (-1, -1) },
+            new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, -1 }.Select(SidingModePicker.Locate));
     }
 
     [Fact]
