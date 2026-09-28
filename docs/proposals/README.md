@@ -16,6 +16,8 @@ Its top face can honestly be `sidesolid`, so most of vanilla's placing and attac
 The proposal shifts the hung block's mesh and boxes up to meet it, reusing decision 0035's offset.
 - `hosted-light-sources`: a torch or lantern hosted in a sealed wall's cell lights nothing, because `GuestLightPatches` raises the cell's absorption to the wall's 99 and vanilla's block-light walk subtracts the source cell's own absorption before light leaves it.
 The proposal exempts the source's own cell only while vanilla spreads or removes that source's light, so sunlight still meets the sealed wall and a burnt-out torch still goes dark.
+- `walls-under-roofing`: a flat-topped wall leaves a stepped triangle under a Roofing gable.
+The proposal adds a raked wall, its top cut to a pitch picked on the saw and measured to match Roofing's slopes, without reading Roofing's state.
 
 ## Parked
 
