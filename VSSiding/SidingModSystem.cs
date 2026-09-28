@@ -244,6 +244,16 @@ public class SidingModSystem : ModSystem
 
         try
         {
+            harmony.Patch(AccessTools.Method(typeof(EntityBehaviorControlledPhysics), nameof(EntityBehaviorControlledPhysics.FindSteppableCollisionboxSmooth)),
+                transpiler: new HarmonyMethod(typeof(SidingModSystem), nameof(PlayerStepTranspiler)));
+        }
+        catch (Exception e)
+        {
+            api.Logger.Error("vssiding: player step patch skipped, players cannot walk up a step built into a wall: {0}", e);
+        }
+
+        try
+        {
             harmony.Patch(AccessTools.Method(typeof(CollectibleBehaviorGroundStorable), nameof(CollectibleBehaviorGroundStorable.Interact)),
                 prefix: new HarmonyMethod(typeof(SidingModSystem), nameof(GroundStorageIntoWallPrefix)));
         }
@@ -798,6 +808,31 @@ public class SidingModSystem : ModSystem
         if (newBlock.BlockId == 0 || newBlock.IsReplacableBy(guestWallBlock)) return HostChange.Restore;
         if (hostable != null && newBlock.BlockId < hostable.Length && hostable[newBlock.BlockId]) return HostChange.Keep;
         return HostChange.Drop;
+    }
+
+    // Only player physics steps through the smooth finder; creatures use FindSteppableCollisionBox,
+    // which still reads canStep, so a wall stays a fence to animals (0044) and a step climbable (0047).
+    internal static bool PlayerCanStep(Block block) => block.CanStep || block is SidingWallBlock;
+
+    internal static IEnumerable<CodeInstruction> PlayerStepTranspiler(IEnumerable<CodeInstruction> instructions)
+    {
+        var canStep = AccessTools.Field(typeof(Block), nameof(Block.CanStep));
+        var playerCanStep = AccessTools.Method(typeof(SidingModSystem), nameof(PlayerCanStep));
+
+        int replaced = 0;
+        foreach (var instruction in instructions)
+        {
+            if (!instruction.LoadsField(canStep))
+            {
+                yield return instruction;
+                continue;
+            }
+            replaced++;
+            yield return new CodeInstruction(OpCodes.Call, playerCanStep).MoveLabelsFrom(instruction);
+        }
+
+        if (replaced != 2)
+            throw new InvalidOperationException($"Expected two Block.CanStep reads in FindSteppableCollisionboxSmooth, found {replaced}.");
     }
 
     // Vanilla's burnout deletes the fuel block outright; a wall with a layer to lose keeps the
