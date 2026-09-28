@@ -244,6 +244,16 @@ public class SidingModSystem : ModSystem
 
         try
         {
+            harmony.Patch(AccessTools.Method(typeof(EntityBehaviorControlledPhysics), nameof(EntityBehaviorControlledPhysics.FindSteppableCollisionboxSmooth)),
+                transpiler: new HarmonyMethod(typeof(SidingModSystem), nameof(PlayerStepTranspiler)));
+        }
+        catch (Exception e)
+        {
+            api.Logger.Error("vssiding: player step patch skipped, players cannot walk up a step built into a wall: {0}", e);
+        }
+
+        try
+        {
             harmony.Patch(AccessTools.Method(typeof(CollectibleBehaviorGroundStorable), nameof(CollectibleBehaviorGroundStorable.Interact)),
                 prefix: new HarmonyMethod(typeof(SidingModSystem), nameof(GroundStorageIntoWallPrefix)));
         }
@@ -705,11 +715,11 @@ public class SidingModSystem : ModSystem
 
     // IsReplacableBy has no position, so each wall answers alone; only here is the whole footprint
     // in view. IsHostable admits no Multiblock block but a trunk, so ordinary multiblocks pass untouched.
-    // IsReplacableBy lets any hostable block take a wall's cell but has no position to see a deck,
-    // so the placement check refuses it here. Positional arguments, since overrides rename them.
+    // IsReplacableBy lets any hostable block take a wall's cell but has no position to see a deck
+    // or step, so the placement check refuses it here. Positional arguments, since overrides rename them.
     internal static void DeckedCellPostfix(IWorldAccessor __0, BlockSelection __2, ref string __3, ref bool __result)
     {
-        if (!__result || __0.BlockAccessor.GetBlockEntity<SidingWallEntity>(__2.Position)?.Deck == null) return;
+        if (!__result || __0.BlockAccessor.GetBlockEntity<SidingWallEntity>(__2.Position)?.OpenPartFilled != true) return;
         __result = false;
         __3 = "notreplaceable";
     }
@@ -800,6 +810,31 @@ public class SidingModSystem : ModSystem
         return HostChange.Drop;
     }
 
+    // Only player physics steps through the smooth finder; creatures use FindSteppableCollisionBox,
+    // which still reads canStep, so a wall stays a fence to animals (0044) and a step climbable (0047).
+    internal static bool PlayerCanStep(Block block) => block.CanStep || block is SidingWallBlock;
+
+    internal static IEnumerable<CodeInstruction> PlayerStepTranspiler(IEnumerable<CodeInstruction> instructions)
+    {
+        var canStep = AccessTools.Field(typeof(Block), nameof(Block.CanStep));
+        var playerCanStep = AccessTools.Method(typeof(SidingModSystem), nameof(PlayerCanStep));
+
+        int replaced = 0;
+        foreach (var instruction in instructions)
+        {
+            if (!instruction.LoadsField(canStep))
+            {
+                yield return instruction;
+                continue;
+            }
+            replaced++;
+            yield return new CodeInstruction(OpCodes.Call, playerCanStep).MoveLabelsFrom(instruction);
+        }
+
+        if (replaced != 2)
+            throw new InvalidOperationException($"Expected two Block.CanStep reads in FindSteppableCollisionboxSmooth, found {replaced}.");
+    }
+
     // Vanilla's burnout deletes the fuel block outright; a wall with a layer to lose keeps the
     // block and loses the layer, and the fire just goes out.
     internal static void BurnLayerPrefix(BEBehaviorBurning __instance, ref bool consumeFuel)
@@ -828,15 +863,17 @@ public class SidingModSystem : ModSystem
             if (__instance.GetLocalBlockEntityAtBlockPos(pos) is SidingWallEntity wall
                 && IsHostableId(world.BlockAccessor.GetBlock(pos, BlockLayersAccess.Solid).BlockId))
             {
-                // A guest record has no deck. TryHost and DeckedCellPostfix refuse every placement
-                // path we know of; anything else that gets here drops the deck rather than losing it.
-                if (wall.Deck != null && wall.Block is SidingWallBlock decked)
+                // A guest record has no deck or step. TryHost and DeckedCellPostfix refuse every
+                // placement path we know of; anything else that gets here drops it rather than losing it.
+                if ((wall.Deck != null || wall.Step != null) && wall.Block is SidingWallBlock decked)
                 {
-                    var deckDrops = SidingWallBlock.ComputeDrops(
+                    var openPartDrops = SidingWallBlock.ComputeDrops(
                         null, null, null, null, null, wall.Deck,
-                        decked.Attributes["Framings"], decked.Attributes["Infills"], decked.Attributes["Finishes"]);
-                    foreach (var stack in decked.ResolveDrops(world, deckDrops, 1f)) world.SpawnItemEntity(stack, pos);
+                        decked.Attributes["Framings"], decked.Attributes["Infills"], decked.Attributes["Finishes"], wall.Step);
+                    foreach (var stack in decked.ResolveDrops(world, openPartDrops, 1f)) world.SpawnItemEntity(stack, pos);
                     wall.Deck = null;
+                    wall.Step = null;
+                    wall.StepOrientation = null;
                 }
                 GuestWalls.Set(world, __instance, pos, GuestWalls.Encode(wall));
             }
@@ -859,7 +896,7 @@ public class SidingModSystem : ModSystem
                 {
                     var drops = SidingWallBlock.ComputeDrops(
                         guest.Framing, guest.Infill, guest.Front, guest.SecondFront, guest.Back, guest.Deck,
-                        guestWall.Attributes["Framings"], guestWall.Attributes["Infills"], guestWall.Attributes["Finishes"]);
+                        guestWall.Attributes["Framings"], guestWall.Attributes["Infills"], guestWall.Attributes["Finishes"], guest.Step);
                     foreach (var stack in guestWall.ResolveDrops(world, drops, 1f)) world.SpawnItemEntity(stack, pos);
                 }
                 GuestWalls.Set(world, __instance, pos, null);
@@ -918,7 +955,7 @@ public class SidingModSystem : ModSystem
         IWorldAccessor? world = byEntity?.World;
         if (world == null || blockSel == null || !byEntity!.Controls.ShiftKey || blockSel.Face != BlockFacing.UP) return true;
         if (world.BlockAccessor.GetBlock(blockSel.Position.UpCopy()) is not SidingWallBlock) return true;
-        if (world.BlockAccessor.GetBlockEntity<SidingWallEntity>(blockSel.Position.UpCopy())?.Deck != null) return true;
+        if (world.BlockAccessor.GetBlockEntity<SidingWallEntity>(blockSel.Position.UpCopy())?.OpenPartFilled == true) return true;
         if (world.GetBlock(new AssetLocation("groundstorage")) is not BlockGroundStorage storage || !IsHostableId(storage.BlockId)) return true;
         if (byEntity is not EntityPlayer entityPlayer || world.PlayerByUid(entityPlayer.PlayerUID) is not { } player) return true;
         if (!world.BlockAccessor.GetBlock(blockSel.Position).CanAttachBlockAt(world.BlockAccessor, storage, blockSel.Position, BlockFacing.UP)) return true;

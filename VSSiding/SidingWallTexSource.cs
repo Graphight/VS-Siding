@@ -1,3 +1,4 @@
+using System.Linq;
 using Newtonsoft.Json.Linq;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
@@ -31,6 +32,7 @@ public class SidingWallTexSource : ITexPositionSource
     {
         get
         {
+            if (textureCode == "step") return StepTexture();
             CompositeTexture texture = ResolveTexture(
                 textureCode, entity.Framing, entity.Infill, entity.Front, entity.SecondFront, entity.Back,
                 framings, infills, finishes, entity.FrontStyle, entity.SecondFrontStyle, entity.BackStyle, entity.Deck)
@@ -43,6 +45,16 @@ public class SidingWallTexSource : ITexPositionSource
                 ? texPos
                 : atlas.UnknownTexturePosition;
         }
+    }
+
+    // From the stair block itself, so every BlockStairs works with no wall.json entry (decision 0046).
+    private TextureAtlasPosition StepTexture()
+    {
+        Block? block = entity.Step == null ? null : capi.World.GetBlock(new AssetLocation(entity.Step));
+        // Stairs with only their own keys, like vanilla stone path's normal1, have no "up" to ask for.
+        var source = block == null ? null : capi.Tesselator.GetTextureSource(block, returnNullWhenMissing: true);
+        TextureAtlasPosition? pos = source == null ? null : source["up"] ?? block!.Textures.Keys.Select(key => source[key]).FirstOrDefault(p => p != null);
+        return pos ?? capi.BlockTextureAtlas.UnknownTexturePosition;
     }
 
     // Unbuilt slots (null key), a key no longer present in its dictionary, or an entry with

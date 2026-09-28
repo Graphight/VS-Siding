@@ -249,6 +249,13 @@ public static class WallShapeGen
         new("back", (3, 0, 0), (4, 16, 16), "back", UvRule.Flat),
         // Flush with the top of the cell, so a floor beside it meets it level.
         new("deck", (4, 12, 0), (16, 16, 16), "deck", UvRule.Flat),
+        // A step draws two of these: a full-length half plus the opposite-height half on the side it rises toward.
+        new("step-lower", (4, 0, 0), (16, 8, 16), "step", UvRule.Flat),
+        new("step-upper", (4, 8, 0), (16, 16, 16), "step", UvRule.Flat),
+        new("step-lower-north", (4, 0, 0), (16, 8, 8), "step", UvRule.Flat),
+        new("step-lower-south", (4, 0, 8), (16, 8, 16), "step", UvRule.Flat),
+        new("step-upper-north", (4, 8, 0), (16, 16, 8), "step", UvRule.Flat),
+        new("step-upper-south", (4, 8, 8), (16, 16, 16), "step", UvRule.Flat),
         new("back-boards", (3, 0, 0), (4, 16, 16), "back", UvRule.Flat, RotatedFaces: ["east"]),
         new("front-boards", (0, 0, 0), (1, 16, 16), "front", UvRule.Flat, RotatedFaces: ["west"]),
         new("back-hboards", (3, 0, 0), (4, 16, 16), "back", UvRule.Flat),
@@ -515,6 +522,7 @@ public static class WallShapeGen
         ("front", "game:block/wood/planks/oak1"),
         ("back", "game:block/wood/planks/oak1"),
         ("deck", "game:block/wood/planks/oak1"),
+        ("step", "game:block/wood/planks/oak1"),
     ];
 
     private static readonly (string Slot, string Texture)[] CornerOutTextures =

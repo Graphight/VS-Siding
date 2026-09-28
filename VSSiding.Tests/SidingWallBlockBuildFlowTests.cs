@@ -183,4 +183,26 @@ public class SidingWallBlockBuildFlowTests
     {
         Assert.True(SidingWallBlock.CanAfford(true, 0, Framings["oak"]["Consumes"]));
     }
+
+    [Theory]
+    [InlineData("west", "down-south", 0, 0, "DOWN", 0.5, true, "down-south")]
+    [InlineData("west", "up-east", -1, 0, "NORTH", 0.5, true, "up-south")]
+    [InlineData("west", null, 0, -1, "NORTH", 0.5, true, "up-north")]
+    [InlineData("west", null, 0, 1, "NORTH", 0.5, true, "up-south")]
+    [InlineData("north", null, -1, 0, "NORTH", 0.5, true, "up-west")]
+    [InlineData("north", null, 1, 0, "NORTH", 0.5, true, "up-east")]
+    [InlineData("west", null, 0, -1, "DOWN", 0.5, true, "down-north")]
+    [InlineData("west", null, 0, -1, "NORTH", 0.7, true, "down-north")]
+    [InlineData("west", null, 0, -1, "NORTH", 0.3, true, "up-north")]
+    [InlineData("west", null, 0, -1, "NORTH", 0.7, false, "up-north")]
+    [InlineData("west", null, 0, -1, "DOWN", 0.5, false, "up-north")]
+    [InlineData("west", "down-south", 0, 0, "NORTH", 0.5, false, "up-south")]
+    public void ResolveStepOrientation(
+        string side, string? neighbourOrientation, float lookX, float lookZ, string clickedFace, double hitY, bool hasDownVariant, string expected)
+    {
+        Assert.Equal(
+            expected,
+            SidingWallBlock.ResolveStepOrientation(
+                side, neighbourOrientation, new Vec3f(lookX, 0, lookZ), BlockFacing.FromFirstLetter(clickedFace[..1]), hitY, hasDownVariant));
+    }
 }
