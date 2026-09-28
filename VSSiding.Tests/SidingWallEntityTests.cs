@@ -1,7 +1,9 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json.Linq;
 using Vintagestory.API.Datastructures;
+using Vintagestory.API.MathTools;
 using Xunit;
 
 namespace VSSiding.Tests;
@@ -133,6 +135,20 @@ public class SidingWallEntityTests
     }
 
     [Fact]
+    public void StepKeysSurviveByteRoundTrip()
+    {
+        var tree = new TreeAttribute();
+        tree.SetString("step", "game:plankstairs-oak-up-north-free");
+        tree.SetString("steporientation", "up-north");
+
+        var reloaded = new TreeAttribute();
+        reloaded.FromBytes(tree.ToBytes());
+
+        Assert.Equal("game:plankstairs-oak-up-north-free", SidingWallEntity.NullIfEmpty(reloaded.GetString("step", null)));
+        Assert.Equal("up-north", SidingWallEntity.NullIfEmpty(reloaded.GetString("steporientation", null)));
+    }
+
+    [Fact]
     public void SelectiveElementsSkipsUnbuiltParts()
     {
         Assert.Equal(new string[0], SidingWallEntity.SelectiveElements("wall", null, null, null, null, null, NoElementFinishes, (false, false, false, false), glazed: false));
@@ -148,6 +164,77 @@ public class SidingWallEntityTests
         Assert.Equal(new[] { "framing-left", "framing-right", "framing-top", "framing-bottom", "deck" },
             SidingWallEntity.SelectiveElements("wall", "oak", null, null, null, null, NoElementFinishes, (false, false, false, false), glazed: false,
                 deck: "oak"));
+    }
+
+    [Fact]
+    public void SelectiveElementsAppendsStepElementsWhenSet()
+    {
+        Assert.Equal(new[] { "framing-left", "framing-right", "framing-top", "framing-bottom", "step-lower", "step-upper-north" },
+            SidingWallEntity.SelectiveElements("wall", "oak", null, null, null, null, NoElementFinishes, (false, false, false, false), glazed: false,
+                step: new[] { "step-lower", "step-upper-north" }));
+    }
+
+    [Theory]
+    // Side west: the unrotated north half faces world north.
+    [InlineData("west", "up-north", new[] { "step-lower", "step-upper-north" })]
+    [InlineData("west", "down-north", new[] { "step-upper", "step-lower-north" })]
+    [InlineData("west", "up-south", new[] { "step-lower", "step-upper-south" })]
+    [InlineData("west", "down-south", new[] { "step-upper", "step-lower-south" })]
+    [InlineData("west", "up-east", new string[0])]
+    [InlineData("west", "up-west", new string[0])]
+    // Side south: the unrotated north half faces world west.
+    [InlineData("south", "up-west", new[] { "step-lower", "step-upper-north" })]
+    [InlineData("south", "down-west", new[] { "step-upper", "step-lower-north" })]
+    [InlineData("south", "up-east", new[] { "step-lower", "step-upper-south" })]
+    [InlineData("south", "down-east", new[] { "step-upper", "step-lower-south" })]
+    [InlineData("south", "up-north", new string[0])]
+    [InlineData("south", "up-south", new string[0])]
+    // Side east: the unrotated north half faces world south.
+    [InlineData("east", "up-south", new[] { "step-lower", "step-upper-north" })]
+    [InlineData("east", "down-south", new[] { "step-upper", "step-lower-north" })]
+    [InlineData("east", "up-north", new[] { "step-lower", "step-upper-south" })]
+    [InlineData("east", "down-north", new[] { "step-upper", "step-lower-south" })]
+    [InlineData("east", "up-east", new string[0])]
+    [InlineData("east", "up-west", new string[0])]
+    // Side north: the unrotated north half faces world east.
+    [InlineData("north", "up-east", new[] { "step-lower", "step-upper-north" })]
+    [InlineData("north", "down-east", new[] { "step-upper", "step-lower-north" })]
+    [InlineData("north", "up-west", new[] { "step-lower", "step-upper-south" })]
+    [InlineData("north", "down-west", new[] { "step-upper", "step-lower-south" })]
+    [InlineData("north", "up-north", new string[0])]
+    [InlineData("north", "up-south", new string[0])]
+    public void StepElementsMapsVanillaOrientationIntoTheUnrotatedFrame(string side, string orientation, string[] expected)
+    {
+        Assert.Equal(expected, SidingWallEntity.StepElements(side, orientation));
+    }
+
+    [Fact]
+    public void StepElementsIsEmptyWithoutAnOrientation()
+    {
+        Assert.Equal(new string[0], SidingWallEntity.StepElements("west", null));
+    }
+
+    // Pins the StepElements table against the actual rotation SidingWallBlock.BuildDeckBoxes
+    // uses, rather than trusting the derivation by eye. The unrotated "north" half box is
+    // wall.json's step-upper-north element (z 0..8/16); its centre after rotation should land on
+    // the world side the table says that half faces.
+    [Theory]
+    [InlineData("west", "north")] // -z
+    [InlineData("south", "west")] // -x
+    [InlineData("east", "south")] // +z
+    [InlineData("north", "east")] // +x
+    public void UnrotatedNorthHalfLandsOnTheFacingTheTableClaims(string side, string expectedFacing)
+    {
+        var origin = new Vec3d(0.5, 0.5, 0.5);
+        var box = new Cuboidf(4f / 16, 8f / 16, 0, 1, 1, 8f / 16);
+        Cuboidf rotated = box.RotatedCopy(0, SidingWallEntity.RotationYDeg(side), 0, origin);
+        double dx = (rotated.X1 + rotated.X2) / 2 - 0.5;
+        double dz = (rotated.Z1 + rotated.Z2) / 2 - 0.5;
+
+        string facing = Math.Abs(dx) > Math.Abs(dz)
+            ? (dx < 0 ? "west" : "east")
+            : (dz < 0 ? "north" : "south");
+        Assert.Equal(expectedFacing, facing);
     }
 
     [Fact]
@@ -234,6 +321,8 @@ public class SidingWallEntityTests
             SidingWallEntity.CacheKey("wall", "west", "oak", "wattle", "daub", "planks", "brick", (false, false, false, false), (null, "boards", null)),
             SidingWallEntity.CacheKey("wall", "west", "oak", "wattle", "daub", "planks", "brick", (false, false, false, false), (null, null, "weatherboard")),
             SidingWallEntity.CacheKey("wall", "west", "oak", "wattle", "daub", "planks", "brick", (false, false, false, false), default, "oak"),
+            SidingWallEntity.CacheKey("wall", "west", "oak", "wattle", "daub", "planks", "brick", (false, false, false, false), default, null, "game:plankstairs-oak-up-north-free"),
+            SidingWallEntity.CacheKey("wall", "west", "oak", "wattle", "daub", "planks", "brick", (false, false, false, false), default, null, null, "up-north"),
         ];
 
         Assert.Equal(keys, keys.Distinct());

@@ -31,6 +31,7 @@ public class SidingWallTexSource : ITexPositionSource
     {
         get
         {
+            if (textureCode == "step") return StepTexture();
             CompositeTexture texture = ResolveTexture(
                 textureCode, entity.Framing, entity.Infill, entity.Front, entity.SecondFront, entity.Back,
                 framings, infills, finishes, entity.FrontStyle, entity.SecondFrontStyle, entity.BackStyle, entity.Deck)
@@ -43,6 +44,15 @@ public class SidingWallTexSource : ITexPositionSource
                 ? texPos
                 : atlas.UnknownTexturePosition;
         }
+    }
+
+    // The step texture comes from the held stair itself, not a Framings/Finishes dictionary,
+    // so every BlockStairs works with no wall.json entry (see decision 0046).
+    private TextureAtlasPosition StepTexture()
+    {
+        Block? block = entity.Step == null ? null : capi.World.GetBlock(new AssetLocation(entity.Step));
+        TextureAtlasPosition? pos = block == null ? null : capi.Tesselator.GetTextureSource(block)["up"];
+        return pos ?? capi.BlockTextureAtlas.UnknownTexturePosition;
     }
 
     // Unbuilt slots (null key), a key no longer present in its dictionary, or an entry with

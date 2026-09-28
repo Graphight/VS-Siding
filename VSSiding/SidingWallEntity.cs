@@ -23,6 +23,10 @@ public class SidingWallEntity : BlockEntity
     public string? BackStyle;
     // A Framings key, like Framing.
     public string? Deck;
+    // The held stair's full block code, e.g. "game:plankstairs-oak-up-north-free".
+    public string? Step;
+    // Vanilla's own vertical-horizontal naming, e.g. "up-north".
+    public string? StepOrientation;
 
     public override void ToTreeAttributes(ITreeAttribute tree)
     {
@@ -36,6 +40,8 @@ public class SidingWallEntity : BlockEntity
         tree.SetString("secondfrontstyle", SecondFrontStyle);
         tree.SetString("backstyle", BackStyle);
         tree.SetString("deck", Deck);
+        tree.SetString("step", Step);
+        tree.SetString("steporientation", StepOrientation);
     }
 
     public override void FromTreeAttributes(ITreeAttribute tree, IWorldAccessor worldAccessForResolve)
@@ -57,6 +63,8 @@ public class SidingWallEntity : BlockEntity
         SecondFrontStyle = NullIfEmpty(tree.GetString("secondfrontstyle", null));
         BackStyle = NullIfEmpty(tree.GetString("backstyle", null));
         Deck = NullIfEmpty(tree.GetString("deck", null));
+        Step = NullIfEmpty(tree.GetString("step", null));
+        StepOrientation = NullIfEmpty(tree.GetString("steporientation", null));
 
         // A chunk can be meshed before its block entities arrive, and nothing else redraws it
         // afterwards: OnTesselation reads null state, returns false, and the cell keeps the
@@ -80,8 +88,8 @@ public class SidingWallEntity : BlockEntity
     }
 
     // Everything OnTesselation reads off this entity, which is exactly what CacheKey covers.
-    private (string?, string?, string?, string?, string?, string?, string?, string?, string?) MeshState
-        => (Framing, Infill, Front, SecondFront, Back, FrontStyle, SecondFrontStyle, BackStyle, Deck);
+    private (string?, string?, string?, string?, string?, string?, string?, string?, string?, string?, string?) MeshState
+        => (Framing, Infill, Front, SecondFront, Back, FrontStyle, SecondFrontStyle, BackStyle, Deck, Step, StepOrientation);
 
     // A ToBytes/FromBytes round trip (chunk save/reload, client sync) turns a null
     // SetString value into "" - normalize back to null so "unbuilt" survives a reload.
@@ -104,11 +112,12 @@ public class SidingWallEntity : BlockEntity
         // built cell names at least one - glazing merged on every side still draws its pane. So
         // empty means nothing is built, and the block's default JSON shape stands in.
         bool glazed = SidingWallBlock.IsTransparent(Infill, Block.Attributes["Infills"]);
-        string[] selectiveElements = SelectiveElements(layout, Framing, Infill, Front, SecondFront, Back, Block.Attributes["Finishes"], joins, glazed, Styles, Deck);
+        string side = Block.Variant["side"];
+        string[]? step = Step != null && layout == "wall" ? StepElements(side, StepOrientation) : null;
+        string[] selectiveElements = SelectiveElements(layout, Framing, Infill, Front, SecondFront, Back, Block.Attributes["Finishes"], joins, glazed, Styles, Deck, step);
         if (selectiveElements.Length == 0) return false;
 
-        string side = Block.Variant["side"];
-        string cacheKey = CacheKey(layout, side, Framing, Infill, Front, SecondFront, Back, joins, Styles, Deck);
+        string cacheKey = CacheKey(layout, side, Framing, Infill, Front, SecondFront, Back, joins, Styles, Deck, Step, StepOrientation);
 
         MeshData[] meshes = ObjectCacheUtil.GetOrCreate(capi, cacheKey, () =>
         {
@@ -160,8 +169,8 @@ public class SidingWallEntity : BlockEntity
     internal static string CacheKey(
         string layout, string side, string? framing, string? infill, string? front, string? secondFront, string? back,
         (bool above, bool below, bool left, bool right) joins,
-        (string? front, string? secondFront, string? back) styles = default, string? deck = null)
-        => $"vssiding-wall-mesh-{layout}-{side}-{framing}-{infill}-{front}-{secondFront}-{back}-{joins.above}-{joins.below}-{joins.left}-{joins.right}-{styles.front}-{styles.secondFront}-{styles.back}-{deck}";
+        (string? front, string? secondFront, string? back) styles = default, string? deck = null, string? step = null, string? stepOrientation = null)
+        => $"vssiding-wall-mesh-{layout}-{side}-{framing}-{infill}-{front}-{secondFront}-{back}-{joins.above}-{joins.below}-{joins.left}-{joins.right}-{styles.front}-{styles.secondFront}-{styles.back}-{deck}-{step}-{stepOrientation}";
 
     // Unbuilt parts (null key) are left out so a frame-only wall shows just its frame.
     // A finish can name its own element per face (decision 0007) instead of the plain slab.
@@ -169,7 +178,7 @@ public class SidingWallEntity : BlockEntity
     internal static string[] SelectiveElements(
         string layout, string? framing, string? infill, string? front, string? secondFront, string? back, JsonObject finishes,
         (bool above, bool below, bool left, bool right) joins, bool glazed,
-        (string? front, string? secondFront, string? back) styles = default, string? deck = null)
+        (string? front, string? secondFront, string? back) styles = default, string? deck = null, string[]? step = null)
     {
         var names = new List<string>();
         if (front != null) names.Add(FinishElement(finishes, front, "front", styles.front));
@@ -209,6 +218,7 @@ public class SidingWallEntity : BlockEntity
         }
         if (back != null) names.Add(FinishElement(finishes, back, "back", styles.back));
         if (deck != null) names.Add("deck");
+        if (step != null) names.AddRange(step);
         return names.ToArray();
     }
 
@@ -225,4 +235,27 @@ public class SidingWallEntity : BlockEntity
         "north" => 270,
         _ => 0,
     };
+
+    // The unrotated "north" half (wall.json's -north elements, z 0..8) lands on this world
+    // facing once RotationYDeg(side) turns it; the "south" half always lands on the opposite one.
+    private static readonly Dictionary<string, Dictionary<string, string>> StepHalfByFacing = new()
+    {
+        ["west"] = new() { ["north"] = "north", ["south"] = "south" },
+        ["south"] = new() { ["west"] = "north", ["east"] = "south" },
+        ["east"] = new() { ["south"] = "north", ["north"] = "south" },
+        ["north"] = new() { ["east"] = "north", ["west"] = "south" },
+    };
+
+    // "up-F" rises to a full lower half plus an upper half on the F side; "down-F" is the
+    // mirror. F has to run along the wall - the wall's own normal axis (e.g. east/west for
+    // side west) isn't a direction a step against it can rise toward.
+    internal static string[] StepElements(string side, string? orientation)
+    {
+        if (orientation == null) return [];
+        string[] parts = orientation.Split('-');
+        if (parts.Length != 2) return [];
+        (string vertical, string facing) = (parts[0], parts[1]);
+        if (!StepHalfByFacing[side].TryGetValue(facing, out string? half)) return [];
+        return vertical == "up" ? new[] { "step-lower", $"step-upper-{half}" } : new[] { "step-upper", $"step-lower-{half}" };
+    }
 }
