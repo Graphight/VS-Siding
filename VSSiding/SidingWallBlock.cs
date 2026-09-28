@@ -252,10 +252,8 @@ public class SidingWallBlock : Block
         return towardsLeft > 0 ? side : right.Code;
     }
 
-    // A stair beside the wall along the same run is copied as-is; a stair perpendicular to it
-    // (on the wall's own normal axis) can't extend it, so the orientation is built from the
-    // player instead, vanilla BlockStairs-style: look direction picks the along-wall facing,
-    // and the clicked face/hit height pick upside-down.
+    // A stair beside the wall running along it is copied; otherwise the player picks, as vanilla
+    // places stairs: look direction for the along-wall facing, clicked face and hit height for upside-down.
     internal static string ResolveStepOrientation(string side, string? neighbourOrientation, Vec3f look, BlockFacing clickedFace, double hitY)
     {
         if (neighbourOrientation != null)
@@ -316,7 +314,7 @@ public class SidingWallBlock : Block
         if (ResolveFinishFace(Variant["layout"], Variant["side"], blockSel.Face) != "back") return false;
 
         // Furniture would sit where the deck or step is. Swallowed rather than returning false,
-        // which hands the click to vanilla and hosts anyway. Other ways in drop the deck/step
+        // which hands the click to vanilla and hosts anyway. Other ways in drop it
         // (HostChangePrefix).
         var hostEntity = world.BlockAccessor.GetBlockEntity<SidingWallEntity>(blockSel.Position);
         if (hostEntity != null && hostEntity.OpenPartFilled)
@@ -1116,8 +1114,6 @@ public class SidingWallBlock : Block
         }
     }
 
-    // A step drops exactly one of the stair block it stores; nothing else names it, so there's no
-    // dictionary to look it up in.
     private static BlockDropItemStack? StepDrop(string? step)
         => step == null ? null : new BlockDropItemStack { Type = EnumItemClass.Block, Code = new AssetLocation(step), Quantity = NatFloat.One };
 
@@ -1144,9 +1140,8 @@ public class SidingWallBlock : Block
     }
 
     // Reverse build order: the hit face's finish, then any finish, then infill; null leaves only
-    // the frame. The deck or step is outermost on the room side (a wall has one or the other, never
-    // both), so a back or end hit takes it first, and otherwise it goes after the front finishes
-    // and before the back one.
+    // the frame. The deck or step is outermost on the room side, so a back or end hit takes it first,
+    // and otherwise it goes after the front finishes and before the back one.
     internal static string? PeelLayer(string? face, string? infill, string? front, string? secondFront, string? back, string? deck, string? step = null)
     {
         if ((deck != null || step != null) && face is null or "back") return deck != null ? "deck" : "step";

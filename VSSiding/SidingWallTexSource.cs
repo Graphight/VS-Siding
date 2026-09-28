@@ -46,8 +46,7 @@ public class SidingWallTexSource : ITexPositionSource
         }
     }
 
-    // The step texture comes from the held stair itself, not a Framings/Finishes dictionary,
-    // so every BlockStairs works with no wall.json entry (see decision 0046).
+    // From the stair block itself, so every BlockStairs works with no wall.json entry (decision 0046).
     private TextureAtlasPosition StepTexture()
     {
         Block? block = entity.Step == null ? null : capi.World.GetBlock(new AssetLocation(entity.Step));

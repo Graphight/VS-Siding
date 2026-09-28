@@ -175,28 +175,24 @@ public class SidingWallEntityTests
     }
 
     [Theory]
-    // Side west: the unrotated north half faces world north.
     [InlineData("west", "up-north", new[] { "step-lower", "step-upper-north" })]
     [InlineData("west", "down-north", new[] { "step-upper", "step-lower-north" })]
     [InlineData("west", "up-south", new[] { "step-lower", "step-upper-south" })]
     [InlineData("west", "down-south", new[] { "step-upper", "step-lower-south" })]
     [InlineData("west", "up-east", new string[0])]
     [InlineData("west", "up-west", new string[0])]
-    // Side south: the unrotated north half faces world west.
     [InlineData("south", "up-west", new[] { "step-lower", "step-upper-north" })]
     [InlineData("south", "down-west", new[] { "step-upper", "step-lower-north" })]
     [InlineData("south", "up-east", new[] { "step-lower", "step-upper-south" })]
     [InlineData("south", "down-east", new[] { "step-upper", "step-lower-south" })]
     [InlineData("south", "up-north", new string[0])]
     [InlineData("south", "up-south", new string[0])]
-    // Side east: the unrotated north half faces world south.
     [InlineData("east", "up-south", new[] { "step-lower", "step-upper-north" })]
     [InlineData("east", "down-south", new[] { "step-upper", "step-lower-north" })]
     [InlineData("east", "up-north", new[] { "step-lower", "step-upper-south" })]
     [InlineData("east", "down-north", new[] { "step-upper", "step-lower-south" })]
     [InlineData("east", "up-east", new string[0])]
     [InlineData("east", "up-west", new string[0])]
-    // Side north: the unrotated north half faces world east.
     [InlineData("north", "up-east", new[] { "step-lower", "step-upper-north" })]
     [InlineData("north", "down-east", new[] { "step-upper", "step-lower-north" })]
     [InlineData("north", "up-west", new[] { "step-lower", "step-upper-south" })]
@@ -214,15 +210,12 @@ public class SidingWallEntityTests
         Assert.Equal(new string[0], SidingWallEntity.StepElements("west", null));
     }
 
-    // Pins the StepElements table against the actual rotation SidingWallBlock.BuildDeckBoxes
-    // uses, rather than trusting the derivation by eye. The unrotated "north" half box is
-    // wall.json's step-upper-north element (z 0..8/16); its centre after rotation should land on
-    // the world side the table says that half faces.
+    // Pins StepElements' table to the rotation the collision boxes use (SidingWallBlock.BuildDeckBoxes).
     [Theory]
-    [InlineData("west", "north")] // -z
-    [InlineData("south", "west")] // -x
-    [InlineData("east", "south")] // +z
-    [InlineData("north", "east")] // +x
+    [InlineData("west", "north")]
+    [InlineData("south", "west")]
+    [InlineData("east", "south")]
+    [InlineData("north", "east")]
     public void UnrotatedNorthHalfLandsOnTheFacingTheTableClaims(string side, string expectedFacing)
     {
         var origin = new Vec3d(0.5, 0.5, 0.5);
