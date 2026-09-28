@@ -254,20 +254,20 @@ public class SidingWallBlock : Block
 
     // A stair beside the wall running along it is copied; otherwise the player picks, as vanilla
     // places stairs: look direction for the along-wall facing, clicked face and hit height for upside-down.
-    internal static string ResolveStepOrientation(string side, string? neighbourOrientation, Vec3f look, BlockFacing clickedFace, double hitY)
+    // A stair with no upside-down variant (noDownVariant, like the stone path) always steps upright.
+    internal static string ResolveStepOrientation(string side, string? neighbourOrientation, Vec3f look, BlockFacing clickedFace, double hitY, bool hasDownVariant)
     {
-        if (neighbourOrientation != null)
+        bool alongWallZ = side is "west" or "east";
+        string vertical = clickedFace == BlockFacing.DOWN || (clickedFace.IsHorizontal && hitY > 0.5) ? "down" : "up";
+        string horizontal = alongWallZ ? (look.Z < 0 ? "north" : "south") : (look.X < 0 ? "west" : "east");
+
+        if (neighbourOrientation?.Split('-') is [var neighbourVertical, var neighbourFacing]
+            && (alongWallZ ? neighbourFacing is "north" or "south" : neighbourFacing is "west" or "east"))
         {
-            string neighbourFacing = neighbourOrientation.Split('-')[1];
-            bool alongWall = side is "west" or "east" ? neighbourFacing is "north" or "south" : neighbourFacing is "west" or "east";
-            if (alongWall) return neighbourOrientation;
+            (vertical, horizontal) = (neighbourVertical, neighbourFacing);
         }
 
-        string horizontal = side is "west" or "east"
-            ? (look.Z < 0 ? "north" : "south")
-            : (look.X < 0 ? "west" : "east");
-        string vertical = clickedFace == BlockFacing.DOWN || (clickedFace.IsHorizontal && hitY > 0.5) ? "down" : "up";
-        return $"{vertical}-{horizontal}";
+        return $"{(hasDownVariant ? vertical : "up")}-{horizontal}";
     }
 
     // Same shape, same face: a wall only ever joins another leg of the same run. WallAt, so a
@@ -393,7 +393,8 @@ public class SidingWallBlock : Block
                 : null;
 
             string orientation = ResolveStepOrientation(
-                Variant["side"], neighbourOrientation, byPlayer.Entity.SidedPos.GetViewVector(), blockSel.Face, blockSel.HitPosition.Y);
+                Variant["side"], neighbourOrientation, byPlayer.Entity.SidedPos.GetViewVector(), blockSel.Face, blockSel.HitPosition.Y,
+                slot.Itemstack.Block.Attributes?.IsTrue("noDownVariant") != true);
 
             if (StepOccupied(world, blockSel.Position, orientation))
             {
