@@ -386,10 +386,10 @@ public class SidingWallBlock : Block
             }
 
             BlockPos neighbourPos = blockSel.Position.AddCopy(BlockFacing.FromCode(Variant["side"]).Opposite);
+            // A stair with no vertical group, like vanilla's stone path, only comes upright.
             string? neighbourOrientation = world.BlockAccessor.GetBlock(neighbourPos) is BlockStairs neighbourBlock
-                && neighbourBlock.Variant["verticalorientation"] != null
-                && neighbourBlock.Variant["horizontalorientation"] != null
-                ? $"{neighbourBlock.Variant["verticalorientation"]}-{neighbourBlock.Variant["horizontalorientation"]}"
+                && neighbourBlock.Variant["horizontalorientation"] is { } neighbourFacing
+                ? $"{neighbourBlock.Variant["verticalorientation"] ?? "up"}-{neighbourFacing}"
                 : null;
 
             string orientation = ResolveStepOrientation(
