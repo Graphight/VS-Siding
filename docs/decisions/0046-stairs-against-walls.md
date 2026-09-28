@@ -75,4 +75,4 @@ The top step of a flight meets the deck of the floor above at the next course, w
 - Whether per-face top/side textures matter for stone stairs (quartz, brick) or the single `step` slot is enough.
 - A `cornerout` step, where a flight turns at a corner, is left out until someone builds one.
 - A stair running into the wall (perpendicular), rather than along it, has its back against the panel already; this only covers stairs running along the wall.
-- Played: a two-wide staircase along a wall and upside-down stairs; climbing them with decision 0047 in place is not yet played.
+- Played: a two-wide staircase along a wall, upside-down stairs, climbing them, stone stairs, breaking and burning a step, and the deck and furniture refusals.

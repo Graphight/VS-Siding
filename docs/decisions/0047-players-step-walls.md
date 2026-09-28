@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Created: 2026-09-27
-- Reflects: branch `stairs-against-walls`; not yet played; decisions 0044, 0046; `SidingModSystem.PlayerStepTranspiler`/`PlayerCanStep`; decompiled 1.22 `EntityBehaviorControlledPhysics.FindSteppableCollisionBox`/`FindSteppableCollisionboxSmooth`, `EntityBehaviorPlayerPhysics.HandleSteppingOnBlocks`
+- Reflects: branch `stairs-against-walls`; played; decisions 0044, 0046; `SidingModSystem.PlayerStepTranspiler`/`PlayerCanStep`; decompiled 1.22 `EntityBehaviorControlledPhysics.FindSteppableCollisionBox`/`FindSteppableCollisionboxSmooth`, `EntityBehaviorPlayerPhysics.HandleSteppingOnBlocks`
 
 ## Summary
 A step (decision 0046) has the same boxes as a vanilla stair, but play found players could not walk up it.
