@@ -40,7 +40,7 @@ A `cornerout` step is refused; a stepped frame refuses the in-place corner upgra
 
 **Built from the stair itself, no picker row.**
 Saw in the off hand, a `BlockStairs` in hand, a click on a non-top face of a framed `wall`: unambiguous, so the step needs no row of its own.
-`SidingWallBlock.ResolveStepOrientation` copies the orientation from a `BlockStairs` in the room cell beside the clicked face (`pos + side.Opposite`) when its horizontal facing runs along the wall; a stair with no vertical group, like the stone path's `updown`, counts as upright; otherwise it comes from the player, vanilla-style (look direction snapped along the wall; hitting the `DOWN` face or above half-height gives upside-down).
+`SidingWallBlock.ResolveStepOrientation` copies the orientation from a `BlockStairs` in the room cell beside the clicked face (`pos + side.Opposite`) when its horizontal facing runs along the wall; a stair with no vertical group, like the stone path's `updown`, counts as upright; a stair marked `noDownVariant`, like the stone path, always gives an upright step, since vanilla never places it upside down; otherwise it comes from the player, vanilla-style (look direction snapped along the wall; hitting the `DOWN` face or above half-height gives upside-down).
 Copying on the click, not watching the neighbour, keeps the wall from rewriting itself when the room changes (the `auto-corners` trap).
 It costs the held stair.
 
