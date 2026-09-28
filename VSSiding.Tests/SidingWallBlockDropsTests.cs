@@ -67,6 +67,15 @@ public class SidingWallBlockDropsTests
     }
 
     [Fact]
+    public void StepDropsExactlyOneOfTheStoredStair()
+    {
+        var drops = SidingWallBlock.ComputeDrops(null, null, null, null, null, null, Framings, Infills, Finishes, "game:plankstairs-oak-up-north-free");
+        Assert.Equal(
+            new[] { (EnumItemClass.Block, "game:plankstairs-oak-up-north-free", 1f, 0f) },
+            drops.ConvertAll(d => (d.Type, d.Code!.ToString(), d.Quantity.avg, d.Quantity.var)).ToArray());
+    }
+
+    [Fact]
     public void DropEntryWithNoCodeIsSkippedNotThrown()
     {
         var drops = SidingWallBlock.ComputeDrops(null, null, "nocodefinish", null, null, null, Framings, Infills, Finishes);

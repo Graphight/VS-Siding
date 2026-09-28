@@ -828,15 +828,17 @@ public class SidingModSystem : ModSystem
             if (__instance.GetLocalBlockEntityAtBlockPos(pos) is SidingWallEntity wall
                 && IsHostableId(world.BlockAccessor.GetBlock(pos, BlockLayersAccess.Solid).BlockId))
             {
-                // A guest record has no deck. TryHost and DeckedCellPostfix refuse every placement
-                // path we know of; anything else that gets here drops the deck rather than losing it.
-                if (wall.Deck != null && wall.Block is SidingWallBlock decked)
+                // A guest record has no deck or step. TryHost and DeckedCellPostfix refuse every
+                // placement path we know of; anything else that gets here drops it rather than losing it.
+                if ((wall.Deck != null || wall.Step != null) && wall.Block is SidingWallBlock decked)
                 {
-                    var deckDrops = SidingWallBlock.ComputeDrops(
+                    var openPartDrops = SidingWallBlock.ComputeDrops(
                         null, null, null, null, null, wall.Deck,
-                        decked.Attributes["Framings"], decked.Attributes["Infills"], decked.Attributes["Finishes"]);
-                    foreach (var stack in decked.ResolveDrops(world, deckDrops, 1f)) world.SpawnItemEntity(stack, pos);
+                        decked.Attributes["Framings"], decked.Attributes["Infills"], decked.Attributes["Finishes"], wall.Step);
+                    foreach (var stack in decked.ResolveDrops(world, openPartDrops, 1f)) world.SpawnItemEntity(stack, pos);
                     wall.Deck = null;
+                    wall.Step = null;
+                    wall.StepOrientation = null;
                 }
                 GuestWalls.Set(world, __instance, pos, GuestWalls.Encode(wall));
             }
@@ -859,7 +861,7 @@ public class SidingModSystem : ModSystem
                 {
                     var drops = SidingWallBlock.ComputeDrops(
                         guest.Framing, guest.Infill, guest.Front, guest.SecondFront, guest.Back, guest.Deck,
-                        guestWall.Attributes["Framings"], guestWall.Attributes["Infills"], guestWall.Attributes["Finishes"]);
+                        guestWall.Attributes["Framings"], guestWall.Attributes["Infills"], guestWall.Attributes["Finishes"], guest.Step);
                     foreach (var stack in guestWall.ResolveDrops(world, drops, 1f)) world.SpawnItemEntity(stack, pos);
                 }
                 GuestWalls.Set(world, __instance, pos, null);

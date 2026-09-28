@@ -44,6 +44,12 @@ public class SidingWallBlockLayerMaterialTests
     }
 
     [Fact]
+    public void StepLayerKeyIsStep()
+    {
+        Assert.Equal("game:plankstairs-oak-up-north-free", SidingWallBlock.LayerKey("step", "clay", "ashlar-granite", "shakes-oak", "planks", null, "game:plankstairs-oak-up-north-free"));
+    }
+
+    [Fact]
     public void NullLayerKeyFallsBackToInfill()
     {
         Assert.Equal("clay", SidingWallBlock.LayerKey(null, "clay", "ashlar-granite", "shakes-oak", "planks", "oak"));

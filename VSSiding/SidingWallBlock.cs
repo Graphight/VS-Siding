@@ -841,12 +841,16 @@ public class SidingWallBlock : Block
         if (entity == null) return BlockMaterial;
 
         string? face = hitFace == null ? null : ResolveFinishFace(Variant["layout"], Variant["side"], hitFace);
-        string? layer = PeelLayer(face, entity.Infill, entity.Front, entity.SecondFront, entity.Back, entity.Deck);
-        return LayerMaterialAt(layer, entity.Infill, entity.Front, entity.SecondFront, entity.Back, entity.Deck);
+        string? layer = PeelLayer(face, entity.Infill, entity.Front, entity.SecondFront, entity.Back, entity.Deck, entity.Step);
+        return LayerMaterialAt(layer, entity.Infill, entity.Front, entity.SecondFront, entity.Back, entity.Deck, entity.Step);
     }
 
-    private EnumBlockMaterial LayerMaterialAt(string? layer, string? infill, string? front, string? secondFront, string? back, string? deck)
-        => LayerMaterial(layer, LayerKey(layer, infill, front, secondFront, back, deck), Attributes["Infills"], Attributes["Finishes"], BlockMaterial);
+    private EnumBlockMaterial LayerMaterialAt(string? layer, string? infill, string? front, string? secondFront, string? back, string? deck, string? step = null)
+    {
+        if (layer == "step" && step != null)
+            return api?.World.GetBlock(new AssetLocation(step))?.BlockMaterial ?? BlockMaterial;
+        return LayerMaterial(layer, LayerKey(layer, infill, front, secondFront, back, deck, step), Attributes["Infills"], Attributes["Finishes"], BlockMaterial);
+    }
 
     // The fallback is a parameter rather than read from Sounds here, so GetSounds can defer to
     // base.GetSounds while OnBlockBroken defers to Sounds.
@@ -912,7 +916,7 @@ public class SidingWallBlock : Block
         }
         BlockFacing? hitFace = selection?.Position.Equals(pos) == true ? selection.Face : null;
         string? face = hitFace == null ? null : ResolveFinishFace(Variant["layout"], Variant["side"], hitFace);
-        string? layer = entity == null ? null : PeelLayer(face, entity.Infill, entity.Front, entity.SecondFront, entity.Back, entity.Deck);
+        string? layer = entity == null ? null : PeelLayer(face, entity.Infill, entity.Front, entity.SecondFront, entity.Back, entity.Deck, entity.Step);
         if (entity == null || byPlayer == null || layer == null)
         {
             base.OnBlockBroken(world, pos, byPlayer, dropQuantityMultiplier);
@@ -921,14 +925,22 @@ public class SidingWallBlock : Block
 
         if (world.Side == EnumAppSide.Server && byPlayer.WorldData.CurrentGameMode != EnumGameMode.Creative)
         {
-            string? key = LayerKey(layer, entity.Infill, entity.Front, entity.SecondFront, entity.Back, entity.Deck);
+            string? key = LayerKey(layer, entity.Infill, entity.Front, entity.SecondFront, entity.Back, entity.Deck, entity.Step);
             var drops = new List<BlockDropItemStack>();
-            AddDrops(drops, key, Attributes[layer switch { "infill" => "Infills", "deck" => "Framings", _ => "Finishes" }]);
+            if (layer == "step")
+            {
+                var stepDrop = StepDrop(key);
+                if (stepDrop != null) drops.Add(stepDrop);
+            }
+            else
+            {
+                AddDrops(drops, key, Attributes[layer switch { "infill" => "Infills", "deck" => "Framings", _ => "Finishes" }]);
+            }
             foreach (var stack in ResolveDrops(world, drops, dropQuantityMultiplier)) world.SpawnItemEntity(stack, pos);
 
             if (Sounds != null)
             {
-                var material = LayerMaterialAt(layer, entity.Infill, entity.Front, entity.SecondFront, entity.Back, entity.Deck);
+                var material = LayerMaterialAt(layer, entity.Infill, entity.Front, entity.SecondFront, entity.Back, entity.Deck, entity.Step);
                 var breakSounds = ResolveLayerSounds(material, layerSounds, Sounds);
                 world.PlaySoundAt(breakSounds.GetBreakSound(byPlayer), pos, 0.0, byPlayer);
             }
@@ -944,10 +956,10 @@ public class SidingWallBlock : Block
     {
         var entity = world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos);
         if (entity == null) return false;
-        string? layer = PeelLayer(null, entity.Infill, entity.Front, entity.SecondFront, entity.Back, entity.Deck);
+        string? layer = PeelLayer(null, entity.Infill, entity.Front, entity.SecondFront, entity.Back, entity.Deck, entity.Step);
         if (layer == null) return false;
 
-        bool burns = LayerMaterialAt(layer, entity.Infill, entity.Front, entity.SecondFront, entity.Back, entity.Deck) == EnumBlockMaterial.Wood;
+        bool burns = LayerMaterialAt(layer, entity.Infill, entity.Front, entity.SecondFront, entity.Back, entity.Deck, entity.Step) == EnumBlockMaterial.Wood;
         if (burns && world.Side == EnumAppSide.Server) RemoveLayer(world, entity, pos, layer);
         return true;
     }
@@ -960,6 +972,7 @@ public class SidingWallBlock : Block
             case "secondfront": entity.SecondFront = null; entity.SecondFrontStyle = null; break;
             case "back": entity.Back = null; entity.BackStyle = null; break;
             case "deck": SetDeck(world, entity, pos, null); return;
+            case "step": entity.Step = null; entity.StepOrientation = null; entity.MarkDirty(true); return;
             default:
                 string? oldInfill = entity.Infill;
                 entity.Infill = null;
@@ -974,7 +987,7 @@ public class SidingWallBlock : Block
         var entity = world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos);
         var drops = ComputeDrops(
             entity?.Framing, entity?.Infill, entity?.Front, entity?.SecondFront, entity?.Back, entity?.Deck,
-            Attributes["Framings"], Attributes["Infills"], Attributes["Finishes"]);
+            Attributes["Framings"], Attributes["Infills"], Attributes["Finishes"], entity?.Step);
 
         // Nothing built yet - fall back to the base drops so HorizontalOrientable still
         // hands back the placed block.
@@ -997,7 +1010,7 @@ public class SidingWallBlock : Block
 
     internal static List<BlockDropItemStack> ComputeDrops(
         string? framing, string? infill, string? front, string? secondFront, string? back, string? deck,
-        JsonObject framings, JsonObject infills, JsonObject finishes)
+        JsonObject framings, JsonObject infills, JsonObject finishes, string? step = null)
     {
         var drops = new List<BlockDropItemStack>();
         AddDrops(drops, framing, framings);
@@ -1006,6 +1019,8 @@ public class SidingWallBlock : Block
         AddDrops(drops, secondFront, finishes);
         AddDrops(drops, back, finishes);
         AddDrops(drops, deck, framings);
+        var stepDrop = StepDrop(step);
+        if (stepDrop != null) drops.Add(stepDrop);
         return drops;
     }
 
@@ -1021,14 +1036,20 @@ public class SidingWallBlock : Block
         }
     }
 
+    // A step drops exactly one of the stair block it stores; nothing else names it, so there's no
+    // dictionary to look it up in.
+    private static BlockDropItemStack? StepDrop(string? step)
+        => step == null ? null : new BlockDropItemStack { Type = EnumItemClass.Block, Code = new AssetLocation(step), Quantity = NatFloat.One };
+
     // Same layer names PeelLayer returns, resolved to the material key installed there.
-    internal static string? LayerKey(string? layer, string? infill, string? front, string? secondFront, string? back, string? deck)
+    internal static string? LayerKey(string? layer, string? infill, string? front, string? secondFront, string? back, string? deck, string? step = null)
         => layer switch
         {
             "front" => front,
             "secondfront" => secondFront,
             "back" => back,
             "deck" => deck,
+            "step" => step,
             _ => infill,
         };
 
@@ -1043,16 +1064,18 @@ public class SidingWallBlock : Block
     }
 
     // Reverse build order: the hit face's finish, then any finish, then infill; null leaves only
-    // the frame. The deck is outermost on the room side, so a back or end hit takes it first, and
-    // otherwise it goes after the front finishes and before the back one.
-    internal static string? PeelLayer(string? face, string? infill, string? front, string? secondFront, string? back, string? deck)
+    // the frame. The deck or step is outermost on the room side (a wall has one or the other, never
+    // both), so a back or end hit takes it first, and otherwise it goes after the front finishes
+    // and before the back one.
+    internal static string? PeelLayer(string? face, string? infill, string? front, string? secondFront, string? back, string? deck, string? step = null)
     {
-        if (deck != null && face is null or "back") return "deck";
+        if ((deck != null || step != null) && face is null or "back") return deck != null ? "deck" : "step";
         string? hit = face switch { "front" => front, "secondfront" => secondFront, "back" => back, _ => null };
         if (hit != null) return face;
         if (front != null) return "front";
         if (secondFront != null) return "secondfront";
         if (deck != null) return "deck";
+        if (step != null) return "step";
         if (back != null) return "back";
         return infill != null ? "infill" : null;
     }
