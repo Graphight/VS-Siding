@@ -225,6 +225,32 @@ public class WallShapeGenTests
         Assert.All(((JObject)deck["faces"]!).Properties(), p => Assert.Equal("#deck", p.Value["texture"]!.ToString()));
     }
 
+    [Theory]
+    [InlineData("step-lower", 4, 0, 0, 16, 8, 16)]
+    [InlineData("step-upper", 4, 8, 0, 16, 16, 16)]
+    [InlineData("step-lower-north", 4, 0, 0, 16, 8, 8)]
+    [InlineData("step-lower-south", 4, 0, 8, 16, 8, 16)]
+    [InlineData("step-upper-north", 4, 8, 0, 16, 16, 8)]
+    [InlineData("step-upper-south", 4, 8, 8, 16, 16, 16)]
+    public void StepElementsFillTheOpenPartInLowerUpperHalves(
+        string name, double fx, double fy, double fz, double tx, double ty, double tz)
+    {
+        var step = WallShapeGen.Generate("wall")["elements"]!
+            .Single(e => (string)e["name"]! == name);
+
+        Assert.Equal(new JArray(fx, fy, fz).ToString(), step["from"]!.ToString());
+        Assert.Equal(new JArray(tx, ty, tz).ToString(), step["to"]!.ToString());
+        Assert.All(((JObject)step["faces"]!).Properties(), p => Assert.Equal("#step", p.Value["texture"]!.ToString()));
+    }
+
+    [Fact]
+    public void CornerOutHasNoStepElements()
+    {
+        var names = WallShapeGen.Generate("cornerout")["elements"]!.Select(e => (string)e["name"]!);
+
+        Assert.DoesNotContain(names, n => n.StartsWith("step"));
+    }
+
     // A masonry unit has to sit where the texture paints one, and the golden file cannot say so -
     // it is rewritten from this same generator. So the joints are written out by hand, read off
     // the textures: clay/brick/four/running/cream1 puts two joints per 4-voxel course, half a unit
