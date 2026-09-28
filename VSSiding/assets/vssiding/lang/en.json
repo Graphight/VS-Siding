@@ -197,6 +197,8 @@
 	"build-occupied": "Something is in the way",
 	"build-decked": "Remove the deck first",
 	"build-stepped": "Remove the step first",
+	"build-step-corner": "A corner takes no step",
+	"build-already-stepped": "This wall already has a step",
 	"build-cant-afford": "Not enough material",
 	"tooltip-no-framing": "No framing",
 	"tooltip-no-infill": "No infill",

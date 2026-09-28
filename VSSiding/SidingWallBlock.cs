@@ -9,6 +9,7 @@ using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
 using Vintagestory.API.Util;
+using Vintagestory.GameContent;
 
 [assembly: InternalsVisibleTo("VSSiding.Tests")]
 
@@ -251,6 +252,26 @@ public class SidingWallBlock : Block
         return towardsLeft > 0 ? side : right.Code;
     }
 
+    // A stair beside the wall along the same run is copied as-is; a stair perpendicular to it
+    // (on the wall's own normal axis) can't extend it, so the orientation is built from the
+    // player instead, vanilla BlockStairs-style: look direction picks the along-wall facing,
+    // and the clicked face/hit height pick upside-down.
+    internal static string ResolveStepOrientation(string side, string? neighbourOrientation, Vec3f look, BlockFacing clickedFace, double hitY)
+    {
+        if (neighbourOrientation != null)
+        {
+            string neighbourFacing = neighbourOrientation.Split('-')[1];
+            bool alongWall = side is "west" or "east" ? neighbourFacing is "north" or "south" : neighbourFacing is "west" or "east";
+            if (alongWall) return neighbourOrientation;
+        }
+
+        string horizontal = side is "west" or "east"
+            ? (look.Z < 0 ? "north" : "south")
+            : (look.X < 0 ? "west" : "east");
+        string vertical = clickedFace == BlockFacing.DOWN || (clickedFace.IsHorizontal && hitY > 0.5) ? "down" : "up";
+        return $"{vertical}-{horizontal}";
+    }
+
     // Same shape, same face: a wall only ever joins another leg of the same run. WallAt, so a
     // hosted cell in the middle of a stack doesn't split it in two (decision 0035).
     private SidingWallEntity? SameRunNeighbour(IBlockAccessor blockAccessor, BlockPos neighbourPos)
@@ -345,11 +366,62 @@ public class SidingWallBlock : Block
 
         bool isCreative = byPlayer.WorldData.CurrentGameMode == EnumGameMode.Creative;
 
+        // A stair on a side face fills the open part beside the stair in the room (decision 0046).
+        if (slot.Itemstack!.Block is BlockStairs && blockSel.Face != BlockFacing.UP)
+        {
+            if (Variant["layout"] != "wall")
+            {
+                (byPlayer as IServerPlayer)?.SendIngameError("vssiding:stepcorner", Lang.Get("vssiding:build-step-corner"));
+                return true;
+            }
+
+            if (entity.Deck != null)
+            {
+                (byPlayer as IServerPlayer)?.SendIngameError("vssiding:decked", Lang.Get("vssiding:build-decked"));
+                return true;
+            }
+
+            if (entity.Step != null)
+            {
+                (byPlayer as IServerPlayer)?.SendIngameError("vssiding:alreadystepped", Lang.Get("vssiding:build-already-stepped"));
+                return true;
+            }
+
+            BlockPos neighbourPos = blockSel.Position.AddCopy(BlockFacing.FromCode(Variant["side"]).Opposite);
+            string? neighbourOrientation = world.BlockAccessor.GetBlock(neighbourPos) is BlockStairs neighbourBlock
+                && neighbourBlock.Variant["verticalorientation"] != null
+                && neighbourBlock.Variant["horizontalorientation"] != null
+                ? $"{neighbourBlock.Variant["verticalorientation"]}-{neighbourBlock.Variant["horizontalorientation"]}"
+                : null;
+
+            string orientation = ResolveStepOrientation(
+                Variant["side"], neighbourOrientation, byPlayer.Entity.SidedPos.GetViewVector(), blockSel.Face, blockSel.HitPosition.Y);
+
+            if (StepOccupied(world, blockSel.Position, orientation))
+            {
+                (byPlayer as IServerPlayer)?.SendIngameError("vssiding:occupied", Lang.Get("vssiding:build-occupied"));
+                return true;
+            }
+
+            entity.Step = heldCode.ToString();
+            entity.StepOrientation = orientation;
+            entity.MarkDirty(true);
+            if (!isCreative) slot.TakeOut(1);
+            slot.MarkDirty();
+            return true;
+        }
+
         // With the deck lit, planks on a side face add a deck in place. Ahead of finishing, since
         // planks are a finish too. The top face still stacks the next course (PlaceWallFrame).
         if (entity.Deck == null && blockSel.Face != BlockFacing.UP && SidingModePicker.Deck(byPlayer)
             && MatchConsumes(heldCode, Attributes["Framings"]) is { } deckKey)
         {
+            if (entity.Step != null)
+            {
+                (byPlayer as IServerPlayer)?.SendIngameError("vssiding:stepped", Lang.Get("vssiding:build-stepped"));
+                return true;
+            }
+
             if (DeckOccupied(world, blockSel.Position))
             {
                 (byPlayer as IServerPlayer)?.SendIngameError("vssiding:occupied", Lang.Get("vssiding:build-occupied"));
@@ -371,6 +443,7 @@ public class SidingWallBlock : Block
             // cornerout frame costs the same as a fresh wall frame. Everything this doesn't
             // claim falls through to the infill match below, then to PlaceWallFrame.
             if (Variant["layout"] == "wall"
+                && entity.Step == null
                 && SidingModePicker.Layout(byPlayer) == "cornerout"
                 && MatchConsumes(heldCode, Attributes["Framings"]) != null
                 && ResolveFinishFace("wall", Variant["side"], blockSel.Face) != null)
