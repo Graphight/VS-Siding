@@ -441,11 +441,16 @@ public class SidingWallBlock : Block
             // cornerout frame costs the same as a fresh wall frame. Everything this doesn't
             // claim falls through to the infill match below, then to PlaceWallFrame.
             if (Variant["layout"] == "wall"
-                && entity.Step == null
                 && SidingModePicker.Layout(byPlayer) == "cornerout"
                 && MatchConsumes(heldCode, Attributes["Framings"]) != null
                 && ResolveFinishFace("wall", Variant["side"], blockSel.Face) != null)
             {
+                if (entity.Step != null)
+                {
+                    (byPlayer as IServerPlayer)?.SendIngameError("vssiding:stepped", Lang.Get("vssiding:build-stepped"));
+                    return true;
+                }
+
                 string cornerSide = ResolveCornerUpgrade(Variant["side"], blockSel.HitPosition);
                 var corner = world.GetBlock(new AssetLocation("vssiding", $"wall-cornerout-{cornerSide}"));
                 if (corner != null)
