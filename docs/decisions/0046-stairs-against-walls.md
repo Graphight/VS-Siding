@@ -25,7 +25,7 @@ A new optional field on `SidingWallEntity`, `Step`, beside `Deck` rather than fo
 
 **Stores the held stair's block code, not a dictionary key.**
 `Step = "game:plankstairs-oak-up-north-free"`, exactly what was consumed, plus `StepOrientation = "up-north"` (vanilla's own vertical-horizontal naming, world facing).
-Texture, `BlockMaterial` (sounds, resistance, burning) and the drop all come from that block, so every `BlockStairs` — vanilla's eight families and any modded ones — works with no `wall.json` entries.
+Texture, `BlockMaterial` (sounds, resistance, burning) and the drop all come from that block, so every `BlockStairs`, vanilla's eight families and modded ones alike, works with no `wall.json` entries.
 This is a departure from decision 0001's dictionary pattern; see Alternatives.
 
 **Generated boxes, not clipped vanilla shapes.**
@@ -41,7 +41,7 @@ A `cornerout` step is refused; a step also refuses the in-place corner upgrade (
 Saw in the off hand, a `BlockStairs` in hand, a click on a non-top face of a framed `wall`: unambiguous, so the step needs no row of its own.
 `SidingWallBlock.ResolveStepOrientation` copies the orientation from a `BlockStairs` in the room cell beside the clicked face (`pos + side.Opposite`) when its horizontal facing runs along the wall; otherwise it comes from the player, vanilla-style (look direction snapped along the wall; hitting the `DOWN` face or above half-height gives upside-down).
 Copying on the click, not watching the neighbour, keeps the wall from rewriting itself when the room changes (the `auto-corners` trap).
-It costs the held stair; a build refused on a decked wall gives `vssiding:build-decked`, and the deck branch refuses a stepped wall with `vssiding:build-stepped` in turn.
+It costs the held stair.
 
 **Retention and attachment unchanged.**
 A stair seals nothing upward on its own, so the step doesn't either.
@@ -57,9 +57,6 @@ The top step of a flight meets the deck of the floor above at the next course, w
 
 **Hosting refused.**
 `TryHost`, `DeckedCellPostfix` and the ground-storage prefix all check `OpenPartFilled` instead of `Deck` alone, so furniture is refused into a stepped cell with the same `vssiding:build-stepped` message.
-
-**Tooltip.**
-`Describe` gains a `Step: <stair name>` line, opt-in like the deck's, naming the resolved stair block.
 
 ## Alternatives considered
 - **A `Steps` family dictionary, like `Framings`/`Infills`/`Finishes`.** Would duplicate what the stair block already knows: its own texture, material and drop. Rejected in favour of storing the block code directly.
