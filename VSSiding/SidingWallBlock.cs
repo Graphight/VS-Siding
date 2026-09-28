@@ -294,11 +294,16 @@ public class SidingWallBlock : Block
         if (heldBlock == null || !SidingModSystem.IsHostableId(heldBlock.BlockId)) return false;
         if (ResolveFinishFace(Variant["layout"], Variant["side"], blockSel.Face) != "back") return false;
 
-        // Furniture would sit where the deck is. Swallowed rather than returning false, which
-        // hands the click to vanilla and hosts anyway. Other ways in drop the deck (HostChangePrefix).
-        if (world.BlockAccessor.GetBlockEntity<SidingWallEntity>(blockSel.Position)?.Deck != null)
+        // Furniture would sit where the deck or step is. Swallowed rather than returning false,
+        // which hands the click to vanilla and hosts anyway. Other ways in drop the deck/step
+        // (HostChangePrefix).
+        var hostEntity = world.BlockAccessor.GetBlockEntity<SidingWallEntity>(blockSel.Position);
+        if (hostEntity != null && hostEntity.OpenPartFilled)
         {
-            (byPlayer as IServerPlayer)?.SendIngameError("vssiding:decked", Lang.Get("vssiding:build-decked"));
+            bool decked = hostEntity.Deck != null;
+            (byPlayer as IServerPlayer)?.SendIngameError(
+                decked ? "vssiding:decked" : "vssiding:stepped",
+                Lang.Get(decked ? "vssiding:build-decked" : "vssiding:build-stepped"));
             return true;
         }
 

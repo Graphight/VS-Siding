@@ -705,11 +705,11 @@ public class SidingModSystem : ModSystem
 
     // IsReplacableBy has no position, so each wall answers alone; only here is the whole footprint
     // in view. IsHostable admits no Multiblock block but a trunk, so ordinary multiblocks pass untouched.
-    // IsReplacableBy lets any hostable block take a wall's cell but has no position to see a deck,
-    // so the placement check refuses it here. Positional arguments, since overrides rename them.
+    // IsReplacableBy lets any hostable block take a wall's cell but has no position to see a deck
+    // or step, so the placement check refuses it here. Positional arguments, since overrides rename them.
     internal static void DeckedCellPostfix(IWorldAccessor __0, BlockSelection __2, ref string __3, ref bool __result)
     {
-        if (!__result || __0.BlockAccessor.GetBlockEntity<SidingWallEntity>(__2.Position)?.Deck == null) return;
+        if (!__result || __0.BlockAccessor.GetBlockEntity<SidingWallEntity>(__2.Position)?.OpenPartFilled != true) return;
         __result = false;
         __3 = "notreplaceable";
     }
@@ -920,7 +920,7 @@ public class SidingModSystem : ModSystem
         IWorldAccessor? world = byEntity?.World;
         if (world == null || blockSel == null || !byEntity!.Controls.ShiftKey || blockSel.Face != BlockFacing.UP) return true;
         if (world.BlockAccessor.GetBlock(blockSel.Position.UpCopy()) is not SidingWallBlock) return true;
-        if (world.BlockAccessor.GetBlockEntity<SidingWallEntity>(blockSel.Position.UpCopy())?.Deck != null) return true;
+        if (world.BlockAccessor.GetBlockEntity<SidingWallEntity>(blockSel.Position.UpCopy())?.OpenPartFilled == true) return true;
         if (world.GetBlock(new AssetLocation("groundstorage")) is not BlockGroundStorage storage || !IsHostableId(storage.BlockId)) return true;
         if (byEntity is not EntityPlayer entityPlayer || world.PlayerByUid(entityPlayer.PlayerUID) is not { } player) return true;
         if (!world.BlockAccessor.GetBlock(blockSel.Position).CanAttachBlockAt(world.BlockAccessor, storage, blockSel.Position, BlockFacing.UP)) return true;

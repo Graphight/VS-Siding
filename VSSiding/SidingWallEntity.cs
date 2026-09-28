@@ -28,6 +28,8 @@ public class SidingWallEntity : BlockEntity
     // Vanilla's own vertical-horizontal naming, e.g. "up-north".
     public string? StepOrientation;
 
+    internal bool OpenPartFilled => Deck != null || Step != null;
+
     public override void ToTreeAttributes(ITreeAttribute tree)
     {
         base.ToTreeAttributes(tree);
