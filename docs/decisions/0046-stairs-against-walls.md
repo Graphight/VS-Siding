@@ -31,15 +31,16 @@ This is a departure from decision 0001's dictionary pattern; see Alternatives.
 **Generated boxes, not clipped vanilla shapes.**
 Six `WallShapeGen` elements over the open part, unrotated frame: `step-lower`, `step-upper` (full length), and a north/south half of each.
 `SidingWallEntity.StepElements` picks two of the six from a side and orientation (e.g. up, rising north on a west wall, draws `step-lower` + `step-upper-north`), turning the stair's world facing into the unrotated frame for the wall's side.
-One `step` texture slot, answered by `SidingWallTexSource` from the stair block's own texture source (`capi.Tesselator.GetTextureSource(block)["up"]`).
+One `step` texture slot, answered by `SidingWallTexSource` from the stair block's own `up` texture.
+A stair with no `up` key, like vanilla's stone path with only `normal1`, takes its first texture instead of the unknown one.
 Collision and selection (`SidingWallBlock.AddOpenPartBoxes`) add the same boxes for both the deck and the step, replacing the deck-only `AddDeckBox`; `StepOccupied` guards a second build the way `DeckOccupied` guards a deck.
 
 **Wall layout only.**
-A `cornerout` step is refused; a step also refuses the in-place corner upgrade (0026), so a stepped wall can't be upgraded into a shape that doesn't have one.
+A `cornerout` step is refused; a stepped frame refuses the in-place corner upgrade (0026) with `build-stepped`, so it is never upgraded into a shape that has no step.
 
 **Built from the stair itself, no picker row.**
 Saw in the off hand, a `BlockStairs` in hand, a click on a non-top face of a framed `wall`: unambiguous, so the step needs no row of its own.
-`SidingWallBlock.ResolveStepOrientation` copies the orientation from a `BlockStairs` in the room cell beside the clicked face (`pos + side.Opposite`) when its horizontal facing runs along the wall; otherwise it comes from the player, vanilla-style (look direction snapped along the wall; hitting the `DOWN` face or above half-height gives upside-down).
+`SidingWallBlock.ResolveStepOrientation` copies the orientation from a `BlockStairs` in the room cell beside the clicked face (`pos + side.Opposite`) when its horizontal facing runs along the wall; a stair with no vertical group, like the stone path's `updown`, counts as upright; otherwise it comes from the player, vanilla-style (look direction snapped along the wall; hitting the `DOWN` face or above half-height gives upside-down).
 Copying on the click, not watching the neighbour, keeps the wall from rewriting itself when the room changes (the `auto-corners` trap).
 It costs the held stair.
 
