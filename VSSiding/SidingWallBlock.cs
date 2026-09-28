@@ -645,7 +645,7 @@ public class SidingWallBlock : Block
     internal static string Describe(
         string? framing, string? infill, string? deck, JsonObject framings, JsonObject infills,
         string layout, string side, string? front, string? secondFront, string? back, JsonObject finishes,
-        System.Func<string, string?> translate)
+        System.Func<string, string?> translate, string? stepName = null)
     {
         string? builtFraming = Installed(framing, framings);
         string? builtInfill = Installed(infill, infills);
@@ -658,6 +658,8 @@ public class SidingWallBlock : Block
         // Opt-in, so no line at all without one: "No deck" would be on nearly every wall.
         if (builtDeck != null)
             sb.AppendLine("  " + string.Format(Translate("vssiding:tooltip-deck", translate), DescribeLayer(builtDeck, framings, "", translate)));
+        if (stepName != null)
+            sb.AppendLine("  " + string.Format(Translate("vssiding:tooltip-step", translate), stepName));
         foreach (string line in DescribeFaces(layout, side, front, secondFront, back, finishes, translate))
             sb.AppendLine("  " + line);
         sb.AppendLine("  " + Translate(SealKey(builtFraming, builtInfill, framings, infills), translate));

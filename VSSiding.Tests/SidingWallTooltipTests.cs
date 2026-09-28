@@ -41,6 +41,7 @@ public class SidingWallTooltipTests
         ["vssiding:tooltip-no-framing"] = "No framing",
         ["vssiding:tooltip-no-infill"] = "No infill",
         ["vssiding:tooltip-deck"] = "Deck: {0}",
+        ["vssiding:tooltip-step"] = "Step: {0}",
         ["vssiding:tooltip-unfinished"] = "unfinished",
         ["vssiding:tooltip-sealed"] = "Seals the room",
         ["vssiding:tooltip-sealed-cool"] = "Seals the room and keeps it cool",
@@ -55,10 +56,10 @@ public class SidingWallTooltipTests
     // adds "north" as its second front, leaving "south" as that leg's share of the same back.
     private static string Describe(
         string? framing = "oak", string? infill = "wattle", string? deck = null, string layout = "wall",
-        string? front = null, string? secondFront = null, string? back = null)
+        string? front = null, string? secondFront = null, string? back = null, string? stepName = null)
         => SidingWallBlock.Describe(
             framing, infill, deck, Framings, Infills, layout, "west", front, secondFront, back, Finishes,
-            key => Lang.GetValueOrDefault(key));
+            key => Lang.GetValueOrDefault(key), stepName);
 
     [Fact]
     public void BuiltFramingAndInfillNameTheirMaterials()
@@ -72,6 +73,14 @@ public class SidingWallTooltipTests
         Assert.Equal(
             "\n  Oak Framing\n  Wattle Infill\n  Deck: Oak Framing\n  West, East: unfinished\n  Seals the room\n",
             Describe(deck: "oak"));
+    }
+
+    [Fact]
+    public void BuiltStepNamesTheStairBlock()
+    {
+        Assert.Equal(
+            "\n  Oak Framing\n  Wattle Infill\n  Step: Oak Stairs\n  West, East: unfinished\n  Seals the room\n",
+            Describe(stepName: "Oak Stairs"));
     }
 
     [Fact]

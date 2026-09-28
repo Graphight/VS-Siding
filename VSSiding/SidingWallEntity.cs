@@ -83,10 +83,13 @@ public class SidingWallEntity : BlockEntity
     public override void GetBlockInfo(IPlayer forPlayer, StringBuilder dsc)
     {
         base.GetBlockInfo(forPlayer, dsc);
+        string? stepName = null;
+        if (Step != null && Api.World.GetBlock(new AssetLocation(Step)) is { } stepBlock)
+            stepName = stepBlock.GetHeldItemName(new ItemStack(stepBlock));
         dsc.Append(SidingWallBlock.Describe(
             Framing, Infill, Deck, Block.Attributes["Framings"], Block.Attributes["Infills"],
             Block.Variant["layout"], Block.Variant["side"], Front, SecondFront, Back, Block.Attributes["Finishes"],
-            key => Lang.GetIfExists(key)));
+            key => Lang.GetIfExists(key), stepName));
     }
 
     // Everything OnTesselation reads off this entity, which is exactly what CacheKey covers.
