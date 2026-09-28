@@ -63,10 +63,23 @@ public class SidingWallBlock : Block
         ["cornerout"] = new Cuboidf(4f / 16, 12f / 16, 4f / 16, 1, 1, 1),
     };
 
+    // Unrotated ("west") step boxes per element, matching WallShapeGen's six step elements.
+    private static readonly Dictionary<string, Cuboidf> UnrotatedStepBoxes = new()
+    {
+        ["step-lower"] = new Cuboidf(4f / 16, 0, 0, 1, 8f / 16, 1),
+        ["step-upper"] = new Cuboidf(4f / 16, 8f / 16, 0, 1, 1, 1),
+        ["step-lower-north"] = new Cuboidf(4f / 16, 0, 0, 1, 8f / 16, 8f / 16),
+        ["step-lower-south"] = new Cuboidf(4f / 16, 0, 8f / 16, 1, 8f / 16, 1),
+        ["step-upper-north"] = new Cuboidf(4f / 16, 8f / 16, 0, 1, 1, 8f / 16),
+        ["step-upper-south"] = new Cuboidf(4f / 16, 8f / 16, 8f / 16, 1, 1, 1),
+    };
+
     // Built once up front so collision calls from client and server threads only ever read it.
     private static readonly Dictionary<(string layout, string side, bool joinsAbove), Cuboidf[]> FramingBoxes = BuildFramingBoxes();
 
     private static readonly Dictionary<(string layout, string side), Cuboidf> DeckBoxes = BuildDeckBoxes();
+
+    private static readonly Dictionary<(string side, string element), Cuboidf> StepBoxes = BuildStepBoxes();
 
     private static Dictionary<(string layout, string side), Cuboidf> BuildDeckBoxes()
     {
@@ -78,6 +91,21 @@ public class SidingWallBlock : Block
             {
                 float rotationYDeg = SidingWallEntity.RotationYDeg(side);
                 boxes[(layout, side)] = box.RotatedCopy(0, rotationYDeg, 0, origin);
+            }
+        }
+        return boxes;
+    }
+
+    private static Dictionary<(string side, string element), Cuboidf> BuildStepBoxes()
+    {
+        var origin = new Vec3d(0.5, 0.5, 0.5);
+        var boxes = new Dictionary<(string side, string element), Cuboidf>();
+        foreach (var (element, box) in UnrotatedStepBoxes)
+        {
+            foreach (string side in CorneroutSecondFace.Keys)
+            {
+                float rotationYDeg = SidingWallEntity.RotationYDeg(side);
+                boxes[(side, element)] = box.RotatedCopy(0, rotationYDeg, 0, origin);
             }
         }
         return boxes;
@@ -110,9 +138,18 @@ public class SidingWallBlock : Block
         string layout, string side, string? framing, string? infill, bool joinsAbove, Cuboidf[] fullBoxes)
         => framing != null && infill == null ? FramingBoxes[(layout, side, joinsAbove)] : fullBoxes;
 
-    // The deck sits in the open 12/16, outside both the frame's boxes and the panel's.
-    internal static Cuboidf[] AddDeckBox(Cuboidf[] boxes, string layout, string side, string? deck)
-        => deck == null ? boxes : boxes.Append(DeckBoxes[(layout, side)]).ToArray();
+    // The deck and the step both sit in the open 12/16, outside both the frame's boxes and the
+    // panel's. A step only applies to layout "wall"; a cornerout never has one.
+    internal static Cuboidf[] AddOpenPartBoxes(Cuboidf[] boxes, string layout, string side, string? deck, string? stepOrientation)
+    {
+        if (deck != null) boxes = boxes.Append(DeckBoxes[(layout, side)]).ToArray();
+        if (layout == "wall" && stepOrientation != null)
+        {
+            foreach (string element in SidingWallEntity.StepElements(side, stepOrientation))
+                boxes = boxes.Append(StepBoxes[(side, element)]).ToArray();
+        }
+        return boxes;
+    }
 
     // wall.json's collisionSelectionBoxesbytype makes the selection box the panel alone, so without
     // this the deck can be stood on but not aimed at, and a break from below lands on whatever
@@ -121,7 +158,8 @@ public class SidingWallBlock : Block
     {
         var boxes = base.GetSelectionBoxes(blockAccessor, pos);
         var entity = blockAccessor.GetBlockEntity<SidingWallEntity>(pos);
-        return entity == null ? boxes : AddDeckBox(boxes, Variant["layout"], Variant["side"], entity.Deck);
+        return entity == null ? boxes : AddOpenPartBoxes(
+            boxes, Variant["layout"], Variant["side"], entity.Deck, entity.Step == null ? null : entity.StepOrientation);
     }
 
     public override Cuboidf[] GetCollisionBoxes(IBlockAccessor blockAccessor, BlockPos pos)
@@ -151,7 +189,7 @@ public class SidingWallBlock : Block
             boxes = ComputeCollisionBoxes(Variant["layout"], Variant["side"], entity.Framing, entity.Infill, joins.above, fullBoxes);
         }
 
-        return AddDeckBox(boxes, Variant["layout"], Variant["side"], entity.Deck);
+        return AddOpenPartBoxes(boxes, Variant["layout"], Variant["side"], entity.Deck, entity.Step == null ? null : entity.StepOrientation);
     }
 
     // Which neighbours this cell shares a member with, i.e. draws no plate or post against.
@@ -580,6 +618,13 @@ public class SidingWallBlock : Block
     // so the block is exchanged for itself as OnInfillChanged does.
     internal bool DeckOccupied(IWorldAccessor world, BlockPos pos)
         => world.GetIntersectingEntities(pos, new[] { DeckBoxes[(Variant["layout"], Variant["side"])] }, e => e.IsInteractable) is { Length: > 0 };
+
+    internal bool StepOccupied(IWorldAccessor world, BlockPos pos, string orientation)
+    {
+        var boxes = SidingWallEntity.StepElements(Variant["side"], orientation)
+            .Select(element => StepBoxes[(Variant["side"], element)]).ToArray();
+        return world.GetIntersectingEntities(pos, boxes, e => e.IsInteractable) is { Length: > 0 };
+    }
 
     private void SetDeck(IWorldAccessor world, SidingWallEntity entity, BlockPos pos, string? deckKey)
     {

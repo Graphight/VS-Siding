@@ -143,9 +143,9 @@ public class SidingWallBlockCollisionTests
     }
 
     [Fact]
-    public void NoDeckLeavesTheBoxesUnchanged()
+    public void NoDeckOrStepLeavesTheBoxesUnchanged()
     {
-        Assert.Same(FullBoxes, SidingWallBlock.AddDeckBox(FullBoxes, "wall", "west", null));
+        Assert.Same(FullBoxes, SidingWallBlock.AddOpenPartBoxes(FullBoxes, "wall", "west", null, null));
     }
 
     [Fact]
@@ -153,7 +153,7 @@ public class SidingWallBlockCollisionTests
     {
         var expected = new[] { FullBoxes[0], new Cuboidf(4f / 16, 12f / 16, 0, 1, 1, 1) };
 
-        Assert.Equal(expected, SidingWallBlock.AddDeckBox(FullBoxes, "wall", "west", "oak"), Comparer);
+        Assert.Equal(expected, SidingWallBlock.AddOpenPartBoxes(FullBoxes, "wall", "west", "oak", null), Comparer);
     }
 
     [Fact]
@@ -161,7 +161,7 @@ public class SidingWallBlockCollisionTests
     {
         var expected = new[] { FullBoxes[0], new Cuboidf(4f / 16, 12f / 16, 4f / 16, 1, 1, 1) };
 
-        Assert.Equal(expected, SidingWallBlock.AddDeckBox(FullBoxes, "cornerout", "west", "oak"), Comparer);
+        Assert.Equal(expected, SidingWallBlock.AddOpenPartBoxes(FullBoxes, "cornerout", "west", "oak", null), Comparer);
     }
 
     [Fact]
@@ -171,7 +171,7 @@ public class SidingWallBlockCollisionTests
         var unrotated = new Cuboidf(4f / 16, 12f / 16, 0, 1, 1, 1);
         var expected = new[] { FullBoxes[0], unrotated.RotatedCopy(0, SidingWallEntity.RotationYDeg("south"), 0, origin) };
 
-        Assert.Equal(expected, SidingWallBlock.AddDeckBox(FullBoxes, "wall", "south", "oak"), Comparer);
+        Assert.Equal(expected, SidingWallBlock.AddOpenPartBoxes(FullBoxes, "wall", "south", "oak", null), Comparer);
     }
 
     [Fact]
@@ -180,7 +180,55 @@ public class SidingWallBlockCollisionTests
         var framingBoxes = SidingWallBlock.ComputeCollisionBoxes("wall", "west", "oak", null, true, FullBoxes);
         var expected = framingBoxes.Append(new Cuboidf(4f / 16, 12f / 16, 0, 1, 1, 1)).ToArray();
 
-        Assert.Equal(expected, SidingWallBlock.AddDeckBox(framingBoxes, "wall", "west", "oak"), Comparer);
+        Assert.Equal(expected, SidingWallBlock.AddOpenPartBoxes(framingBoxes, "wall", "west", "oak", null), Comparer);
+    }
+
+    [Fact]
+    public void WallWestUpNorthStepBoxesAreUnrotated()
+    {
+        var expected = new[]
+        {
+            FullBoxes[0],
+            new Cuboidf(4f / 16, 0, 0, 1, 8f / 16, 1),
+            new Cuboidf(4f / 16, 8f / 16, 0, 1, 1, 8f / 16),
+        };
+
+        Assert.Equal(expected, SidingWallBlock.AddOpenPartBoxes(FullBoxes, "wall", "west", null, "up-north"), Comparer);
+    }
+
+    [Fact]
+    public void WallSouthDownEastStepBoxesAreRotated()
+    {
+        var origin = new Vec3d(0.5, 0.5, 0.5);
+        var rotationYDeg = SidingWallEntity.RotationYDeg("south");
+        var expected = new[]
+        {
+            FullBoxes[0],
+            new Cuboidf(4f / 16, 8f / 16, 0, 1, 1, 1).RotatedCopy(0, rotationYDeg, 0, origin),
+            new Cuboidf(4f / 16, 0, 8f / 16, 1, 8f / 16, 1).RotatedCopy(0, rotationYDeg, 0, origin),
+        };
+
+        Assert.Equal(expected, SidingWallBlock.AddOpenPartBoxes(FullBoxes, "wall", "south", null, "down-east"), Comparer);
+    }
+
+    [Fact]
+    public void DeckAndStepBothAddOnAWall()
+    {
+        var expected = new[]
+        {
+            FullBoxes[0],
+            new Cuboidf(4f / 16, 12f / 16, 0, 1, 1, 1),
+            new Cuboidf(4f / 16, 0, 0, 1, 8f / 16, 1),
+            new Cuboidf(4f / 16, 8f / 16, 0, 1, 1, 8f / 16),
+        };
+
+        Assert.Equal(expected, SidingWallBlock.AddOpenPartBoxes(FullBoxes, "wall", "west", "oak", "up-north"), Comparer);
+    }
+
+    [Fact]
+    public void CorneroutIgnoresAStep()
+    {
+        Assert.Same(FullBoxes, SidingWallBlock.AddOpenPartBoxes(FullBoxes, "cornerout", "west", null, "up-north"));
     }
 
     // RunNeighbours reuses cornerout's table on the claim that the face counter-clockwise from
