@@ -1,3 +1,4 @@
+using System.Linq;
 using Newtonsoft.Json.Linq;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
@@ -50,7 +51,9 @@ public class SidingWallTexSource : ITexPositionSource
     private TextureAtlasPosition StepTexture()
     {
         Block? block = entity.Step == null ? null : capi.World.GetBlock(new AssetLocation(entity.Step));
-        TextureAtlasPosition? pos = block == null ? null : capi.Tesselator.GetTextureSource(block)["up"];
+        // Stairs with only their own keys, like vanilla stone path's normal1, have no "up" to ask for.
+        var source = block == null ? null : capi.Tesselator.GetTextureSource(block, returnNullWhenMissing: true);
+        TextureAtlasPosition? pos = source == null ? null : source["up"] ?? block!.Textures.Keys.Select(key => source[key]).FirstOrDefault(p => p != null);
         return pos ?? capi.BlockTextureAtlas.UnknownTexturePosition;
     }
 
