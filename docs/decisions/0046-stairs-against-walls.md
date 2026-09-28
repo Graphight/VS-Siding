@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Created: 2026-09-25
-- Reflects: branch `stairs-against-walls`; `SidingWallEntity.Step`/`StepOrientation`/`StepElements`; `SidingWallBlock.ResolveStepOrientation`/`AddOpenPartBoxes`/`PeelLayer`/`OnBlockInteractStart`; `SidingWallTexSource`; `SidingModSystem.HostChangePrefix`/`DeckedCellPostfix`; decisions 0002, 0035, 0042; not yet played
+- Reflects: branch `stairs-against-walls`; `SidingWallEntity.Step`/`StepOrientation`/`StepElements`; `SidingWallBlock.ResolveStepOrientation`/`AddOpenPartBoxes`/`PeelLayer`/`OnBlockInteractStart`; `SidingWallTexSource`; `SidingModSystem.HostChangePrefix`/`DeckedCellPostfix`; decisions 0002, 0035, 0042, 0047; played
 
 ## Summary
 A staircase built along a wall stands in the room cells beside the wall column, so every step leaves the wall cell's open 12/16 between its side and the panel.
@@ -70,8 +70,9 @@ The top step of a flight meets the deck of the floor above at the next course, w
 - **Detect the stair beside the wall and fill automatically.** Wrong the moment a player wants a gap, and a wall that changes when its neighbour changes.
 
 ## Consequences & open questions
-- Z-fighting where the step's room face meets the neighbour stair's face is a real risk with generated boxes matching a vanilla shape from outside; watch for it in the playtest.
+- No z-fighting was seen in play where the step's room face meets the neighbour stair's face.
+- The step could not be climbed at first: decision 0044's `canStep: false` refused it, and decision 0047 lets players step walls.
 - Whether per-face top/side textures matter for stone stairs (quartz, brick) or the single `step` slot is enough.
 - A `cornerout` step, where a flight turns at a corner, is left out until someone builds one.
 - A stair running into the wall (perpendicular), rather than along it, has its back against the panel already; this only covers stairs running along the wall.
-- Not yet played: the branch has full test coverage but has not been run in game, so the z-fighting risk above and the general feel of the layer are unverified.
+- Played: a two-wide staircase along a wall and upside-down stairs; climbing them with decision 0047 in place is not yet played.
