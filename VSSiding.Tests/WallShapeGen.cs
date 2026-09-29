@@ -535,9 +535,35 @@ public static class WallShapeGen
         ("deck", "game:block/wood/planks/aged/aged1"),
     ];
 
+    // The wall's layers laid flat: top finish, joists with infill between, underside, filling y 12..16
+    // so the top sits where a plank block's would. Joists run along x at the z edges; the rims across
+    // the x ends drop where the next floor carries the joists on, as a stacked wall drops its plates.
+    // The names are the wall's own, so SelectiveElements picks from either table unchanged.
+    private static readonly Element[] FloorElements =
+    [
+        new("front", (0, 15, 0), (16, 16, 16), "front", UvRule.Flat),
+        new("framing-left", (0, 13, 0), (16, 15, 1), "framing", UvRule.Flat),
+        new("framing-right", (0, 13, 15), (16, 15, 16), "framing", UvRule.Flat),
+        new("framing-top", (15, 13, 1), (16, 15, 15), "framing", UvRule.Flat),
+        new("framing-bottom", (0, 13, 1), (1, 15, 15), "framing", UvRule.Flat),
+        new("infill-top", (15, 13.5, 1), (16, 14.5, 15), "infill", UvRule.Flat, RunAxis: 'x'),
+        new("infill", (1, 13.5, 1), (15, 14.5, 15), "infill", UvRule.Flat, RunAxis: 'x'),
+        new("infill-bottom", (0, 13.5, 1), (1, 14.5, 15), "infill", UvRule.Flat, RunAxis: 'x'),
+        new("back", (0, 12, 0), (16, 13, 16), "back", UvRule.Flat),
+    ];
+
+    private static readonly (string Slot, string Texture)[] FloorTextures =
+    [
+        ("framing", "game:block/wood/planks/oak1"),
+        ("infill", "game:block/wood/planks/oak1"),
+        ("front", "game:block/wood/planks/oak1"),
+        ("back", "game:block/wood/planks/oak1"),
+    ];
+
     public static JObject Generate(string layout) => layout switch
     {
         "wall" => Emit(WallElements, WallTextures),
+        "floor" => Emit(FloorElements, FloorTextures),
         "cornerout" => Emit(CornerOutElements, CornerOutTextures),
         _ => throw new KeyNotFoundException(layout),
     };

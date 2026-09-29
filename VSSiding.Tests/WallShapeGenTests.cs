@@ -18,10 +18,12 @@ public class WallShapeGenTests
     [Theory]
     [InlineData("wall")]
     [InlineData("cornerout")]
+    [InlineData("floor")]
     public void GeneratedShapeMatchesTheCommittedOne(string layout)
     {
         var repoRoot = MaterialTextureOpacityTests.GetAssemblyMetadata("RepoRoot");
-        var path = Path.Combine(repoRoot, "VSSiding", "assets", "vssiding", "shapes", "block", "wall", layout + ".json");
+        var folder = layout == "floor" ? "floor" : "wall";
+        var path = Path.Combine(repoRoot, "VSSiding", "assets", "vssiding", "shapes", "block", folder, layout + ".json");
 
         if (Environment.GetEnvironmentVariable("SIDING_REGEN") == "1")
         {
@@ -39,6 +41,7 @@ public class WallShapeGenTests
     [Theory]
     [InlineData("wall")]
     [InlineData("cornerout")]
+    [InlineData("floor")]
     public void EveryGeneratedBoxIsNonDegenerateAndInsideTheBlock(string layout)
     {
         var offenders = new List<string>();
@@ -91,11 +94,33 @@ public class WallShapeGenTests
     [Theory]
     [InlineData("wall")]
     [InlineData("cornerout")]
+    [InlineData("floor")]
     public void NoElementIsPrunedDownToNothing(string layout)
     {
         Assert.Equal([], WallShapeGen.Generate(layout)["elements"]!
             .Where(e => !((JObject)e["faces"]!).Properties().Any())
             .Select(e => (string)e["name"]!)
+            .ToArray());
+    }
+
+    // The floor's whole layout, written out: a 4/16 panel at y 12..16, joists along x at the z edges.
+    [Fact]
+    public void FloorLaysTheWallsLayersFlatAtTheTopOfTheCell()
+    {
+        string[] expected =
+        [
+            "front 0,15,0 16,16,16",
+            "framing-left 0,13,0 16,15,1",
+            "framing-right 0,13,15 16,15,16",
+            "framing-top 15,13,1 16,15,15",
+            "framing-bottom 0,13,1 1,15,15",
+            "infill-top 15,13.5,1 16,14.5,15",
+            "infill 1,13.5,1 15,14.5,15",
+            "infill-bottom 0,13.5,1 1,14.5,15",
+            "back 0,12,0 16,13,16",
+        ];
+        Assert.Equal(expected, WallShapeGen.Generate("floor")["elements"]!
+            .Select(e => $"{e["name"]} {string.Join(",", e["from"]!.Select(v => (double)v!))} {string.Join(",", e["to"]!.Select(v => (double)v!))}")
             .ToArray());
     }
 
