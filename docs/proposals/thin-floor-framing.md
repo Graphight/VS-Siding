@@ -2,11 +2,13 @@
 
 - Status: Draft
 - Created: 2026-09-25
-- Reflects: decisions 0001, 0002, 0020; decision 0042's deck; a session discussion, not a player request; not yet played
+- Reflects: decisions 0001, 0002, 0020; decision 0042's deck; a session discussion, not a player request; `SideSolid`/`SideOpaque` consumers read from decompiled 1.22.2 `VintagestoryAPI`, `VSEssentials` and `VSSurvivalMod`; not yet played
 
 ## Summary
 A floor built the way the walls are: a 4/16 layered panel flush with the top of its cell, placed as a new `floor` option on the picker's framing row.
 Joists are the framing, pugging the infill, floorboards the top finish and lath and plaster the ceiling.
+This is part 1: a floor that can be framed, filled, finished plainly, seal a room and be broken.
+Finish styles on a floor are `thin-floor-finishes`; hanging from the underside is `hanging-under-thin-floors`.
 
 ## Context
 Vanilla floors are a full block of planks or a slab, which eats headroom and looks nothing like the walls.
@@ -15,26 +17,78 @@ Nobody has asked for thin floors yet; this is written down so the deck's shape d
 
 ## Design
 **Flush top, open underneath.**
-The panel's top face is the whole 16×16 at the height a plank block's would be, so the block can honestly set `sidesolid UP: true` and leave the other faces false.
-That is the flag the walls had to fight (0002, 0020); here most of vanilla falls out on its own:
+The panel's top face is the whole 16×16 at the height a plank block's would be, so the block sets `sidesolid` on `UP` and leaves the other faces false.
+`sideopaque` stays false on every face, as on the walls: no neighbour face is culled against a panel that can still be bare joists.
 
-| Consumer | Top face | Bottom face |
-| --- | --- | --- |
-| `CanAttachBlockAt` | rugs, torches work | nothing hangs (see `hanging-under-thin-floors`) |
-| `GetRetention` | seals | the room below walks into the open part, then meets the top |
-| `AllowSnowCoverage`, `CanCreatureSpawnOn` | like a plank floor | n/a |
+**Its own block, not a wall layout.**
+`floor.json` with `SidingFloorBlock` and `SidingFloorEntity`, which do not derive from the wall's classes.
+About thirty patch sites test `is SidingWallBlock`, `WallAt` or `GetBlockEntity<SidingWallEntity>` (guest hosting, `OpenSide`, step-up, skylight, `KillFire`, the bed and trunk footprints), and every one of them assumes a panel standing on a horizontal face.
+A separate class keeps a floor out of all of them; the floor reuses the wall's static helpers instead.
+The `side` variant stays, from `HorizontalOrientable`, and sets which way the joists run.
+
+**One materials file for both.**
+`Framings`, `Infills`, `Finishes` and their `*Families` move from `wall.json` to `config/materials.json`.
+`SidingModSystem.AssetsFinalize` merges it into each siding block before expanding families; an entry in the block's own file wins, so `wall.json` and `floor.json` carry only what the other does not share.
+A compatibility patch that adds a material then targets `config/materials.json` and reaches walls and floors together.
+`LayerSounds` and `LayerResistance` stay in each block file, because `OnLoaded` reads them and a merge would then depend on load order.
 
 **The same layers as a wall.**
-Framing, infill and two finishes key into the same dictionaries (0001), with the panel laid flat instead of standing.
+Framing, infill and two finishes key into the shared dictionaries (0001), with the panel laid flat instead of standing.
+The entity names them `Framing`, `Infill`, `Front` (the top) and `Back` (the underside), so `SelectiveElements`, `PeelLayer`, `ComputeDrops` and the retention helpers take them unchanged.
+Glazed infills are refused for now; a glass floor is `thin-floor-finishes`' problem.
+
+**What `sidesolid` on `UP` turns on.**
+Decision 0020's seven `Block` members are unchanged in 1.22.2, and a floor answers each for itself:
+
+| Member | Top face | Other faces |
+| --- | --- | --- |
+| `GetRetention` | overridden: seals once framed and filled, as `ComputeRetention` | 0; the room below walks into the open part, then meets the top |
+| `CanAttachBlockAt` | overridden: only once sealed, so nothing stands on bare joists | refused; hanging is `hanging-under-thin-floors` |
+| `GetLiquidBarrierHeightOnSide` | left to vanilla, 1 from the flag | 0 from the flag, so water may run in under the panel |
+| `AllowSnowCoverage` | left true: an exposed floor takes snow like a plank floor | n/a |
+| `CanCreatureSpawnOn` | left true, like a plank floor | n/a |
+| `DisplacesLiquids` | false: the flag asks for all four sides and the base | |
+| `SideIsSolid` | left true: water renders no edge against the top | false |
+
+Outside `Block`, vanilla reads `SideSolid[UP]` or `IsSideSolid(…, UP)` directly, and each of these wants a floor to count as ground:
+
+| Reader | What it decides |
+| --- | --- |
+| `AiTaskWander`, `AiTaskIdle`, `AiTaskSeekEntity` and their `R` forms | creatures stand and path on the top |
+| `BlockBehaviorFiniteSpreadingLiquid` (`SideSolid.Any`) | water poured on the floor spreads over it instead of falling through |
+| `EntityRideableSeat` | a rider dismounts onto the floor |
+| `BlockBehaviorBreakIfFloating`, `BlockSticksLayer`, `BEBehaviorMicroblockSnowCover` | things set on the floor count as supported |
+| `AABBIntersectionTest.RayIntersectsBlockSelectionBox` (`SideSolid.Any`) | selection asks the floor's own `GetSelectionBoxes` |
+
+The rest are world generation or blocks that never meet a floor.
+A bare frame answers these as a floor too: the flag is static, so water rests on joists.
+That is the price of a static flag, and it matches the collision below, which already lets a player stand on a bare frame.
+
+**Collision.**
+One static box, the whole panel (y 12..16), whatever the layers.
+Walls collide as their frame alone (0008) so a bare wall can be walked through while building; a bare floor that dropped the player a storey would be worse than one that holds them.
 
 **Meeting the wall.**
 A wall with a deck at the same course; the deck is the floor's rim joist.
 
 ## Alternatives considered
+- **A `floor` layout on the wall block.** Everything comes free, including every wall-only patch, each of which would then need a floor branch or a guard.
+- **The floor reads `wall.json`'s dictionaries.** No file moves, but the floor depends on a wall block existing, and a floor could never add a material a wall lacks.
 - **Vanilla slabs.** Already flush-top, but 8/16 thick and single-material; no joists, no ceiling finish.
 - **Floor at the bottom of its cell.** Ceiling flush instead of floor, so rugs and furniture float 12/16 above the floor line. Walking surfaces matter more.
 
 ## Consequences & open questions
 - The lower storey loses 4/16 of headroom in the cell holding the floor.
-- The full 0020 sweep has to be redone for a horizontal panel before building; decision 0020's table is the starting point, not the answer.
-- A new `layout` or a new block: decide against 0001's variant rule when this is picked up.
+- The underside is drawn inside the floor's own cell; if a sealed floor absorbs light the way a sealed wall does, the ceiling may render dark from below. Playtest first, and split a lighting proposal out if it needs patches like 0018/0034.
+- Moving the materials changes where a compatibility patch points. No other mod is known to patch `wall.json`.
+
+## Stages
+1. This sweep and the split into `thin-floor-finishes`.
+2. Materials into `config/materials.json`.
+3. The floor shape from `WallShapeGen`.
+4. The floor block and its mesh.
+5. Framing floors from the picker.
+6. Infill and finishes.
+7. Breaking, drops and tooltip.
+8. Playtest.
+9. Handbook and graduation.
