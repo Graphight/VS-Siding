@@ -53,8 +53,9 @@ public class MaterialTextureOpacityTests
     }
 
     // A vanilla item or block type's variants: one variant group's own states plus its
-    // loadFromProperties list, minus skipVariants. Codes are "{code}-{value}" unless codeFormat
-    // fills in the other groups, as for log-placed-{wood}-ud.
+    // loadFromProperties list, minus skipVariants. Property files spell the variant key Code or
+    // code (metal.json), and JToken lookups are case-sensitive. Codes are "{code}-{value}" unless
+    // codeFormat fills in the other groups, as for log-placed-{wood}-ud.
     internal static IEnumerable<(string, AssetLocation, IDictionary<string, string>)> Candidates(
         string vintageStoryPath, string type, string relativePath, int groupIndex = 0, string codeFormat = "{0}-{1}")
     {
