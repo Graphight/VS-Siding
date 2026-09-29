@@ -8,6 +8,7 @@ using Newtonsoft.Json.Linq;
 using Vintagestory.API.Client;
 using Vintagestory.API.Client.Tesselation;
 using Vintagestory.API.Common;
+using Vintagestory.API.Common.Entities;
 using Vintagestory.API.Config;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
@@ -280,6 +281,16 @@ public class SidingModSystem : ModSystem
         catch (Exception e)
         {
             api.Logger.Error("vssiding: bed footprint patch skipped, a bed may straddle a corner, opposite wall faces, or a wall and an open cell, and sit misaligned with its panels: {0}", e);
+        }
+
+        try
+        {
+            harmony.Patch(AccessTools.PropertyGetter(typeof(BlockEntityBed), nameof(BlockEntityBed.Position)),
+                postfix: new HarmonyMethod(typeof(SidingModSystem), nameof(BedSeatPostfix)));
+        }
+        catch (Exception e)
+        {
+            api.Logger.Error("vssiding: bed seat patch skipped, a sleeper in a hosted bed lies 4/16 off the drawn bed: {0}", e);
         }
 
         try
@@ -740,6 +751,16 @@ public class SidingModSystem : ModSystem
         clicked is SidingWallBlock && clicked.Variant["layout"] == "wall" && clicked.Variant["side"] == facing.Code
             ? pos.AddCopy(facing.Opposite)
             : pos;
+
+    // The getter rebuilds the position from Pos on every call, so shifting it in place is safe.
+    internal static void BedSeatPostfix(BlockEntityBed __instance, EntityPos __result)
+    {
+        if (__result == null) return;
+        var (dx, dz) = GapShiftAt(__instance.Pos, __instance.Block);
+        if (dx == 0 && dz == 0) return;
+        __result.X += dx;
+        __result.Z += dz;
+    }
 
     // BlockBed is not a Multiblock, so each cell's CanPlaceBlock has no view of the other; the two
     // cells are worked out here the way vanilla's TryPlaceBlock does.
