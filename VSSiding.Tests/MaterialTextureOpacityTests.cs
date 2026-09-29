@@ -53,8 +53,9 @@ public class MaterialTextureOpacityTests
     }
 
     // A vanilla item or block type's variants: one variant group's own states plus its
-    // loadFromProperties list, minus skipVariants. Codes are "{code}-{value}" unless codeFormat
-    // fills in the other groups, as for log-placed-{wood}-ud.
+    // loadFromProperties list, minus skipVariants. Property files spell the variant key Code or
+    // code (metal.json), and JToken lookups are case-sensitive. Codes are "{code}-{value}" unless
+    // codeFormat fills in the other groups, as for log-placed-{wood}-ud.
     internal static IEnumerable<(string, AssetLocation, IDictionary<string, string>)> Candidates(
         string vintageStoryPath, string type, string relativePath, int groupIndex = 0, string codeFormat = "{0}-{1}")
     {
@@ -66,7 +67,7 @@ public class MaterialTextureOpacityTests
         if (group["loadFromProperties"] is JValue props)
         {
             var properties = JToken.Parse(File.ReadAllText(Path.Combine(survival, "worldproperties", (string)props! + ".json")));
-            values = values.Concat(properties["variants"]!.Select(v => (string)v["Code"]!));
+            values = values.Concat(properties["variants"]!.Select(v => (string)(v["Code"] ?? v["code"])!));
         }
         var skip = json["skipVariants"]?.Select(t => new AssetLocation("game", (string)t!)).ToList() ?? [];
         return values.Distinct()
@@ -98,6 +99,7 @@ public class MaterialTextureOpacityTests
             .Concat(Candidates(vintageStoryPath, "item", "itemtypes/resource/burnedbrick.json"))
             .Concat(Candidates(vintageStoryPath, "item", "itemtypes/resource/clay.json"))
             .Concat(Candidates(vintageStoryPath, "item", "itemtypes/resource/daub.json"))
+            .Concat(Candidates(vintageStoryPath, "item", "itemtypes/resource/metalplate.json"))
             .Concat(Candidates(vintageStoryPath, "block", "blocktypes/wood/woodtyped/log.json", 1, "{0}-placed-{1}-ud"))
             .Concat(Candidates(vintageStoryPath, "block", "blocktypes/glass/full-plain.json"))
             .Concat(Candidates(vintageStoryPath, "block", "blocktypes/glass/full-colored.json"))

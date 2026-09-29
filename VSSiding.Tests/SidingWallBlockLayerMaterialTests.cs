@@ -1,3 +1,6 @@
+using System;
+using System.IO;
+using System.Linq;
 using Newtonsoft.Json.Linq;
 using Vintagestory.API.Common;
 using Vintagestory.API.Datastructures;
@@ -83,5 +86,30 @@ public class SidingWallBlockLayerMaterialTests
     public void DeckLayerFallsBackLikeTheFrame()
     {
         Assert.Equal(EnumBlockMaterial.Wood, SidingWallBlock.LayerMaterial("deck", "oak", Infills, Finishes, EnumBlockMaterial.Wood));
+    }
+
+    // A material missing from LayerSounds or LayerResistance quietly falls back to the block's
+    // plank sounds and base resistance, so every one a layer can report needs both keys.
+    [Fact]
+    public void EveryLayerMaterialHasSoundsAndResistance()
+    {
+        var repoRoot = MaterialTextureOpacityTests.GetAssemblyMetadata("RepoRoot");
+        var wallJson = (JObject)JToken.Parse(File.ReadAllText(
+            Path.Combine(repoRoot, "VSSiding", "assets", "vssiding", "blocktypes", "wall.json")));
+        var attributes = (JObject)wallJson["attributes"]!;
+        var sounds = (JObject)attributes["LayerSounds"]!;
+        var resistance = (JObject)attributes["LayerResistance"]!;
+
+        var materials = new[] { "Infills", "InfillFamilies", "Finishes", "FinishFamilies" }
+            .SelectMany(dict => ((JObject)attributes[dict]!).Properties())
+            .Select(entry => (string)entry.Value["BlockMaterial"]!)
+            .Append((string)wallJson["blockmaterial"]!)
+            .Distinct();
+
+        var missing = materials
+            .Where(m => !Enum.TryParse<EnumBlockMaterial>(m, true, out _) || sounds[m] == null || resistance[m] == null)
+            .ToList();
+
+        Assert.Equal(Array.Empty<string>(), missing);
     }
 }
