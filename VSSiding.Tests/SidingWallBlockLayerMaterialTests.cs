@@ -96,7 +96,7 @@ public class SidingWallBlockLayerMaterialTests
         var repoRoot = MaterialTextureOpacityTests.GetAssemblyMetadata("RepoRoot");
         var wallJson = (JObject)JToken.Parse(File.ReadAllText(
             Path.Combine(repoRoot, "VSSiding", "assets", "vssiding", "blocktypes", "wall.json")));
-        var attributes = (JObject)wallJson["attributes"]!;
+        var attributes = MaterialTextureOpacityTests.BlockAttributes("wall.json");
         var sounds = (JObject)attributes["LayerSounds"]!;
         var resistance = (JObject)attributes["LayerResistance"]!;
 

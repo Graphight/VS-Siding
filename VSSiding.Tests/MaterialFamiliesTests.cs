@@ -150,4 +150,31 @@ public class MaterialFamiliesTests
         { "brick-fire": { "Texture": { "base": "game:block/clay/brick/four/running/cream1", "overlays": [ "game:block/clay/brick/four/running/fire1" ] } } }
         """), actual);
     }
+
+    [Fact]
+    public void MergeSharedKeepsSharedEntriesAndLetsTheBlockReplaceOne()
+    {
+        var shared = JObject.Parse("""
+        {
+            "Framings": { "oak": { "Texture": "shared-oak" }, "pine": { "Texture": "shared-pine" } },
+            "Infills": { "wattle": { "Texture": "shared-wattle" } }
+        }
+        """);
+        var attributes = JObject.Parse("""
+        {
+            "canStep": false,
+            "Framings": { "oak": { "DisplayName": "own-oak" }, "birch": { "Texture": "own-birch" } }
+        }
+        """);
+
+        var expected = JObject.Parse("""
+        {
+            "canStep": false,
+            "Framings": { "oak": { "DisplayName": "own-oak" }, "pine": { "Texture": "shared-pine" }, "birch": { "Texture": "own-birch" } },
+            "Infills": { "wattle": { "Texture": "shared-wattle" } }
+        }
+        """);
+        Assert.True(JToken.DeepEquals(expected, MaterialFamilies.MergeShared(shared, attributes)),
+            MaterialFamilies.MergeShared(shared, attributes).ToString());
+    }
 }

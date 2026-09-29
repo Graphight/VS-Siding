@@ -46,7 +46,7 @@ Where things live. The decisions carry the *why*; `ls docs/decisions/` is the in
 - `SidingModePicker`: the saw's mode picker, opened by vanilla's tool mode hotkey whenever a saw is in the off hand; rows of framing, the deck toggle, board and log styles stored per player, patched into `GuiDialogToolMode` with its own pick channel, icons from 0031 (0040).
 - `VSSiding.Tests/WallShapeGen`: generates the shapes `wall.json` and `cornerout.json` use (0021). It lives in the test project, not beside the assets it writes.
 
-`wall.json` carries the `Framings`/`Infills`/`Finishes` dictionaries every one of those keys looks up.
+`config/materials.json` carries the `Framings`/`Infills`/`Finishes` dictionaries every one of those keys looks up; `AssetsFinalize` merges it into each block's attributes, where an entry in the block's own file wins.
 
 **An infill marked `Transparent` seals without going opaque.** Glazing retains and dams liquid like any fill but absorbs no light, which takes its cell out of the skylight patch, side AO and both 0018 patches: they all read `GetLightAbsorption`. Adjacent glazed cells merge and take no finish. See decision 0019, which also covers why there is no `window` layout.
 

@@ -67,8 +67,7 @@ public class SidingWallBlockRetentionTests
     [Fact]
     public void ShippedInfillsSealWithTheirCoolingSign()
     {
-        var wallJsonPath = Path.Combine(MaterialTextureOpacityTests.GetAssemblyMetadata("RepoRoot"), "VSSiding", "assets", "vssiding", "blocktypes", "wall.json");
-        var attributes = (JObject)JToken.Parse(File.ReadAllText(wallJsonPath))["attributes"]!;
+        var attributes = MaterialTextureOpacityTests.BlockAttributes("wall.json");
         var infills = MaterialFamilies.Expand((JObject)attributes["InfillFamilies"]!, (JObject)attributes["Infills"]!,
             [
                 ("item", new AssetLocation("game:stone-granite"), new Dictionary<string, string> { ["rock"] = "granite" }),

@@ -1253,9 +1253,10 @@ public class SidingModSystem : ModSystem
                 .Select(b => ("block", b.Code, (IDictionary<string, string>)b.Variant)))
             .ToList();
 
+        var shared = api.Assets.Get(new AssetLocation("vssiding", "config/materials.json")).ToObject<JObject>();
         foreach (var block in api.World.Blocks.OfType<SidingWallBlock>())
         {
-            var attributes = (JObject)block.Attributes.Token.DeepClone();
+            var attributes = MaterialFamilies.MergeShared(shared, (JObject)block.Attributes.Token);
             foreach (var (familiesKey, materialsKey) in new[] { ("FramingFamilies", "Framings"), ("InfillFamilies", "Infills"), ("FinishFamilies", "Finishes") })
             {
                 if (attributes[familiesKey] is not JObject families) continue;
