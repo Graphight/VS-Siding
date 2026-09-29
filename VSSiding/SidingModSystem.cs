@@ -713,6 +713,18 @@ public class SidingModSystem : ModSystem
         return AlongX(trunkSide) == AlongX(sides[0]);
     }
 
+    // A bed's side points from its head back toward its feet, so its headboard faces the opposite way.
+    // Side-on is a trunk's footprint turned a quarter, since a bed runs along its side axis and a trunk
+    // across it. Head-on is the head in a straight wall claiming the headboard face, feet on open floor.
+    internal static bool BedFootprintHosts(string bedSide, Block head, Block feet)
+    {
+        var facing = BlockFacing.FromCode(bedSide);
+        if (FootprintHosts(facing.GetCW().Code, new[] { head, feet })) return true;
+
+        return head is SidingWallBlock wall && wall.Variant["layout"] == "wall"
+            && wall.Variant["side"] == facing.Opposite.Code && feet is not SidingWallBlock;
+    }
+
     // IsReplacableBy has no position, so each wall answers alone; only here is the whole footprint
     // in view. IsHostable admits no Multiblock block but a trunk, so ordinary multiblocks pass untouched.
     // IsReplacableBy lets any hostable block take a wall's cell but has no position to see a deck

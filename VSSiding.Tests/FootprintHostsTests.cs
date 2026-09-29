@@ -64,4 +64,72 @@ public class FootprintHostsTests
 
         Assert.Equal(expected, actual);
     }
+
+    [Fact]
+    public void ATwoWallBedHostsOnlyAcrossItsLongAxis()
+    {
+        var hosts = new HashSet<(string bed, string wall)>
+        {
+            ("north", "east"), ("north", "west"), ("south", "east"), ("south", "west"),
+            ("east", "north"), ("east", "south"), ("west", "north"), ("west", "south"),
+        };
+
+        var expected = new Dictionary<(string bed, string wall), bool>();
+        var actual = new Dictionary<(string bed, string wall), bool>();
+        foreach (var bedSide in Sides)
+        foreach (var wallSide in Sides)
+        {
+            expected[(bedSide, wallSide)] = hosts.Contains((bedSide, wallSide));
+            actual[(bedSide, wallSide)] = SidingModSystem.BedFootprintHosts(bedSide, Wall("wall", wallSide), Wall("wall", wallSide));
+        }
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void AHeadOnBedHostsOnlyWhenTheHeadWallClaimsTheHeadboardFace()
+    {
+        var opposite = new Dictionary<string, string> { ["north"] = "south", ["east"] = "west", ["south"] = "north", ["west"] = "east" };
+
+        var expected = new Dictionary<(string bed, string wall), bool>();
+        var actual = new Dictionary<(string bed, string wall), bool>();
+        foreach (var bedSide in Sides)
+        foreach (var wallSide in Sides)
+        {
+            expected[(bedSide, wallSide)] = wallSide == opposite[bedSide];
+            actual[(bedSide, wallSide)] = SidingModSystem.BedFootprintHosts(bedSide, Wall("wall", wallSide), new Block());
+        }
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void MixedBedFootprints()
+    {
+        var air = new Block();
+        var footprints = new Dictionary<string, (Block head, Block feet)>
+        {
+            ["feet to the panel"] = (air, Wall("wall", "north")),
+            ["wall and cornerout"] = (Wall("wall", "east"), Wall("cornerout", "east")),
+            ["opposite faces"] = (Wall("wall", "east"), Wall("wall", "west")),
+            ["head on with a wall in the feet cell"] = (Wall("wall", "south"), Wall("wall", "east")),
+            ["head on with a cornerout"] = (Wall("cornerout", "south"), air),
+            ["no walls"] = (air, air),
+        };
+
+        var expected = new Dictionary<string, bool>
+        {
+            ["feet to the panel"] = false,
+            ["wall and cornerout"] = false,
+            ["opposite faces"] = false,
+            ["head on with a wall in the feet cell"] = false,
+            ["head on with a cornerout"] = false,
+            ["no walls"] = true,
+        };
+
+        var actual = new Dictionary<string, bool>();
+        foreach (var (name, (head, feet)) in footprints) actual[name] = SidingModSystem.BedFootprintHosts("north", head, feet);
+
+        Assert.Equal(expected, actual);
+    }
 }
