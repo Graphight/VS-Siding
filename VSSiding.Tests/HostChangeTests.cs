@@ -59,6 +59,9 @@ public class HostChangeTests
         var canPlaceBlock = AccessTools.Method(typeof(BlockBehaviorMultiblock), nameof(BlockBehaviorMultiblock.CanPlaceBlock));
         Assert.Equal(new[] { "world", "byPlayer", "blockSel", "handling", "failureCode" },
             canPlaceBlock.GetParameters().Select(p => p.Name));
+        var tryPlaceBed = AccessTools.Method(typeof(BlockBed), nameof(BlockBed.TryPlaceBlock));
+        Assert.Equal(new[] { "world", "byPlayer", "itemstack", "blockSel", "failureCode" },
+            tryPlaceBed.GetParameters().Select(p => p.Name));
     }
 
     // A wall that would take the held block as a placement target, the way SidingWallBlock does

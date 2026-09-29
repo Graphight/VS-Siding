@@ -274,6 +274,16 @@ public class SidingModSystem : ModSystem
 
         try
         {
+            harmony.Patch(AccessTools.Method(typeof(BlockBed), nameof(BlockBed.TryPlaceBlock)),
+                prefix: new HarmonyMethod(typeof(SidingModSystem), nameof(BedFootprintPrefix)));
+        }
+        catch (Exception e)
+        {
+            api.Logger.Error("vssiding: bed footprint patch skipped, a bed may straddle a corner, opposite wall faces, or a wall and an open cell, and sit misaligned with its panels: {0}", e);
+        }
+
+        try
+        {
             harmony.Patch(AccessTools.Method(typeof(BlockBehaviorMultiblock), nameof(BlockBehaviorMultiblock.CanPlaceBlock)),
                 postfix: new HarmonyMethod(typeof(SidingModSystem), nameof(MultiblockFootprintPostfix)));
         }
@@ -608,7 +618,7 @@ public class SidingModSystem : ModSystem
     // ground storage, which is hostable itself); plants, which nobody hosts and every meadow would
     // pay a guest lookup for; anything with a solid side (a full cube, a slab, a metal sheet), except
     // a solid top on a block with a block entity (a cabinet you set things on); fluid-layer blocks;
-    // anything not a plain JSON shape; beds (a "part" variant); doors (1.22's are BlockGeneric with
+    // anything not a plain JSON shape; other "part" blocks (beds are in); doors (1.22's are BlockGeneric with
     // a "Door" BE behaviour); and mechanical power blocks, which network by position. Multiblocks
     // other than a trunk and its filler stay out (paintings, banners, mannequins, machines): the
     // footprint rule in the CanPlaceBlock postfix is what makes a trunk's filler safe to host.
@@ -689,7 +699,7 @@ public class SidingModSystem : ModSystem
         if (block.ForFluidsLayer) return false;
         if (block.DrawType is not (EnumDrawType.JSON or EnumDrawType.JSONAndSnowLayer or EnumDrawType.JSONAndWater)) return false;
         if (block is BlockMicroBlock) return false;
-        if (block.Variant.ContainsKey("part")) return false;
+        if (block.Variant.ContainsKey("part") && block is not BlockBed) return false;
         if (block is BlockBaseDoor || block.BlockEntityBehaviors.Any(b => b.Name == "Door")) return false;
         if (block is not (BlockMultiblock or BlockGenericTypedContainerTrunk) && block.HasBehavior<BlockBehaviorMultiblock>()) return false;
         if (block is BlockMPBase) return false;
@@ -723,6 +733,21 @@ public class SidingModSystem : ModSystem
 
         return head is SidingWallBlock wall && wall.Variant["layout"] == "wall"
             && wall.Variant["side"] == facing.Opposite.Code && feet is not SidingWallBlock;
+    }
+
+    // BlockBed is not a Multiblock, so each cell's CanPlaceBlock has no view of the other; the two
+    // cells are worked out here the way vanilla's TryPlaceBlock does.
+    internal static bool BedFootprintPrefix(IWorldAccessor world, IPlayer byPlayer, BlockSelection blockSel,
+        ref bool __result, ref string failureCode)
+    {
+        var facing = Block.SuggestedHVOrientation(byPlayer, blockSel)[0];
+        var feet = world.BlockAccessor.GetBlock(blockSel.Position);
+        var head = world.BlockAccessor.GetBlock(blockSel.Position.AddCopy(facing));
+        if (BedFootprintHosts(facing.Opposite.Code, head, feet)) return true;
+
+        __result = false;
+        failureCode = "notenoughspace";
+        return false;
     }
 
     // IsReplacableBy has no position, so each wall answers alone; only here is the whole footprint
