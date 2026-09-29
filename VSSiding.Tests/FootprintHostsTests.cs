@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Vintagestory.API.Common;
+using Vintagestory.API.MathTools;
 using Xunit;
 
 namespace VSSiding.Tests;
@@ -129,6 +130,34 @@ public class FootprintHostsTests
 
         var actual = new Dictionary<string, bool>();
         foreach (var (name, (head, feet)) in footprints) actual[name] = SidingModSystem.BedFootprintHosts("north", head, feet);
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void AClickOnAPanelStepsTheFeetBackSoTheHeadLandsInTheWall()
+    {
+        var pos = new BlockPos(10, 5, 10);
+        var clicked = new Dictionary<string, Block>
+        {
+            ["wall the player faces into"] = Wall("wall", "north"),
+            ["wall on the opposite side"] = Wall("wall", "south"),
+            ["wall on a perpendicular side"] = Wall("wall", "east"),
+            ["cornerout on the facing side"] = Wall("cornerout", "north"),
+            ["air"] = new Block(),
+        };
+
+        var expected = new Dictionary<string, BlockPos>
+        {
+            ["wall the player faces into"] = new BlockPos(10, 5, 11),
+            ["wall on the opposite side"] = pos,
+            ["wall on a perpendicular side"] = pos,
+            ["cornerout on the facing side"] = pos,
+            ["air"] = pos,
+        };
+
+        var actual = new Dictionary<string, BlockPos>();
+        foreach (var (name, block) in clicked) actual[name] = SidingModSystem.BedFeetPos(block, BlockFacing.NORTH, pos);
 
         Assert.Equal(expected, actual);
     }

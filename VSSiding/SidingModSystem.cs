@@ -735,12 +735,27 @@ public class SidingModSystem : ModSystem
             && wall.Variant["side"] == facing.Opposite.Code && feet is not SidingWallBlock;
     }
 
+    // A click on a wall's panel names the wall's own cell; stepping the feet back puts the head there.
+    internal static BlockPos BedFeetPos(Block clicked, BlockFacing facing, BlockPos pos) =>
+        clicked is SidingWallBlock && clicked.Variant["layout"] == "wall" && clicked.Variant["side"] == facing.Code
+            ? pos.AddCopy(facing.Opposite)
+            : pos;
+
     // BlockBed is not a Multiblock, so each cell's CanPlaceBlock has no view of the other; the two
     // cells are worked out here the way vanilla's TryPlaceBlock does.
-    internal static bool BedFootprintPrefix(IWorldAccessor world, IPlayer byPlayer, BlockSelection blockSel,
+    internal static bool BedFootprintPrefix(IWorldAccessor world, IPlayer byPlayer, ref BlockSelection blockSel,
         ref bool __result, ref string failureCode)
     {
         var facing = Block.SuggestedHVOrientation(byPlayer, blockSel)[0];
+        // Both panel-click paths reach TryPlaceBlock with the wall's own cell as the feet, so one
+        // retarget here covers them.
+        var feetPos = BedFeetPos(world.BlockAccessor.GetBlock(blockSel.Position), facing, blockSel.Position);
+        if (feetPos != blockSel.Position)
+        {
+            blockSel = blockSel.Clone();
+            blockSel.Position = feetPos;
+        }
+
         var feet = world.BlockAccessor.GetBlock(blockSel.Position);
         var head = world.BlockAccessor.GetBlock(blockSel.Position.AddCopy(facing));
         if (BedFootprintHosts(facing.Opposite.Code, head, feet)) return true;
