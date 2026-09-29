@@ -58,4 +58,26 @@ public class BedExitPatchTests
 
         Assert.Equal(expected, actual);
     }
+
+    // DidUnmount tries each cell beside the head, then each beside the feet, one block up from the
+    // bed's floor; every spot must trace back to the cell it was tried from, including the feet's
+    // spot on the head cell and the two diagonal ones.
+    [Fact]
+    public void EverySpotTracesBackToTheBedCellItWasTriedFrom()
+    {
+        var head = new BlockPos(10, 5, 10);
+        var feet = head.AddCopy(BlockFacing.SOUTH);
+
+        var expected = new Dictionary<string, (BlockPos from, BlockFacing? dir)>();
+        var actual = new Dictionary<string, (BlockPos from, BlockFacing? dir)>();
+        foreach (var (name, cell) in new[] { ("head", head), ("feet", feet) })
+        foreach (var face in BlockFacing.HORIZONTALS)
+        {
+            var spot = cell.ToVec3d().AddCopy(face).Add(0.5, 0.001, 0.5);
+            expected[$"{name} {face.Code}"] = (cell, face);
+            actual[$"{name} {face.Code}"] = SidingModSystem.BedExitStep(head, "south", spot);
+        }
+
+        Assert.Equal(expected, actual);
+    }
 }

@@ -161,4 +161,29 @@ public class FootprintHostsTests
 
         Assert.Equal(expected, actual);
     }
+
+    // Vanilla recomputes the facing from the retargeted selection with SuggestedHVOrientation, which reads
+    // only the player's eye and Position + HitPosition (offset by Face when DidOffset is set). Keeping
+    // that point, Face and DidOffset fixed keeps the facing the prefix checked. IPlayer has an internal
+    // member a DispatchProxy can't implement, so the invariant is pinned rather than the facing itself.
+    [Fact]
+    public void ARetargetedClickKeepsThePointThePlayerHit()
+    {
+        var wallCell = new BlockPos(10, 5, 10);
+        var expected = new Dictionary<(string facing, bool didOffset), (BlockPos, Vec3d, BlockFacing, bool)>();
+        var actual = new Dictionary<(string facing, bool didOffset), (BlockPos, Vec3d, BlockFacing, bool)>();
+        foreach (var facing in BlockFacing.HORIZONTALS)
+        foreach (bool didOffset in new[] { false, true })
+        {
+            var click = new BlockSelection { Position = wallCell, Face = facing.Opposite, HitPosition = new Vec3d(0.3, 0.5, 0.7), DidOffset = didOffset };
+            var feetPos = wallCell.AddCopy(facing.Opposite);
+
+            var moved = SidingModSystem.Retargeted(click, feetPos);
+
+            expected[(facing.Code, didOffset)] = (feetPos, click.FullPosition, click.Face, didOffset);
+            actual[(facing.Code, didOffset)] = (moved.Position, moved.FullPosition, moved.Face, moved.DidOffset);
+        }
+
+        Assert.Equal(expected, actual);
+    }
 }

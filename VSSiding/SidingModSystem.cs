@@ -770,11 +770,7 @@ public class SidingModSystem : ModSystem
     {
         var facing = Block.SuggestedHVOrientation(byPlayer, blockSel)[0];
         var feetPos = BedFeetPos(world.BlockAccessor.GetBlock(blockSel.Position), facing, blockSel.Position);
-        if (feetPos != blockSel.Position)
-        {
-            blockSel = blockSel.Clone();
-            blockSel.Position = feetPos;
-        }
+        if (feetPos != blockSel.Position) blockSel = Retargeted(blockSel, feetPos);
 
         var feet = world.BlockAccessor.GetBlock(blockSel.Position);
         var head = world.BlockAccessor.GetBlock(blockSel.Position.AddCopy(facing));
@@ -783,6 +779,17 @@ public class SidingModSystem : ModSystem
         __result = false;
         failureCode = "notenoughspace";
         return false;
+    }
+
+    // Vanilla works out the bed's facing again from this selection, by the angle from the player's eye to
+    // Position + HitPosition, so the hit point stays where it was or a player off to one side gets a
+    // bed turned a quarter into cells the footprint check never saw.
+    internal static BlockSelection Retargeted(BlockSelection sel, BlockPos pos)
+    {
+        var moved = sel.Clone();
+        moved.Position = pos;
+        moved.HitPosition = sel.HitPosition.AddCopy(sel.Position.X - pos.X, 0, sel.Position.Z - pos.Z);
+        return moved;
     }
 
     // IsReplacableBy has no position, so each wall answers alone; only here is the whole footprint
@@ -1092,18 +1099,26 @@ public class SidingModSystem : ModSystem
     {
         if (tester.IsColliding(accessor, box, pos, alsoCheckTouch)) return true;
 
-        var from = bed.Pos.Copy();
-        int dx = (int)Math.Floor(pos.X) - from.X, dz = (int)Math.Floor(pos.Z) - from.Z;
+        var (from, dir) = BedExitStep(bed.Pos, bed.Block.Variant["side"], pos);
+        if (dir == null) return false;
+
+        return StepCrossesPanel(SidingWallBlock.WallAt(accessor, from)?.wall, SidingWallBlock.WallAt(accessor, from.AddCopy(dir))?.wall, dir);
+    }
+
+    // Which bed cell a spot sits beside, and the step out to it. Only the head's four neighbours are one
+    // cell from the head; every other spot is beside the feet, including the head cell itself.
+    internal static (BlockPos from, BlockFacing? dir) BedExitStep(BlockPos head, string bedSide, Vec3d spot)
+    {
+        var from = head.Copy();
+        int dx = (int)Math.Floor(spot.X) - from.X, dz = (int)Math.Floor(spot.Z) - from.Z;
         if (Math.Abs(dx) + Math.Abs(dz) != 1)
         {
-            var toFeet = BlockFacing.FromCode(bed.Block.Variant["side"]);
+            var toFeet = BlockFacing.FromCode(bedSide);
             from.Add(toFeet);
             dx -= toFeet.Normali.X;
             dz -= toFeet.Normali.Z;
         }
-        if (BlockFacing.FromNormal(new Vec3i(dx, 0, dz)) is not { } dir) return false;
-
-        return StepCrossesPanel(SidingWallBlock.WallAt(accessor, from)?.wall, SidingWallBlock.WallAt(accessor, from.AddCopy(dir))?.wall, dir);
+        return (from, BlockFacing.FromNormal(new Vec3i(dx, 0, dz)));
     }
 
     // A step crosses a panel on the face it leaves by, or on the face of the cell it lands in.
