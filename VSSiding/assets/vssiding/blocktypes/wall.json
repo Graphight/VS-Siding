@@ -216,6 +216,14 @@
 				BlockMaterial: "Wood",
 				Consumes: { type: "block", code: "game:log-placed-{wood}-ud", quantity: 1 },
 				Drops: [ { type: "block", code: "game:log-placed-{wood}-ud", quantity: { avg: 1, var: 0 } } ]
+			},
+			"plate-{metal}": {
+				Match: { type: "item", code: "game:metalplate-*", variant: "metal" },
+				DisplayName: "vssiding:finish-plate-{metal}",
+				Texture: "game:block/metal/sheet/{metal}1",
+				BlockMaterial: "Metal",
+				Consumes: { type: "item", code: "game:metalplate-{metal}", quantity: 1 },
+				Drops: [ { type: "item", code: "game:metalplate-{metal}", quantity: { avg: 1, var: 0 } } ]
 			}
 		},
 		LayerSounds: {
@@ -223,14 +231,16 @@
 			"Soil": { place: "game:block/planks", hit: "game:block/dirt", break: "game:block/dirt", walk: "game:walk/grass" },
 			"Stone": { place: "game:block/planks", hit: "game:block/rock-hit-pickaxe", break: "game:block/rock-break-pickaxe", walk: "game:walk/stone" },
 			"Ceramic": { place: "game:block/planks", hit: "game:block/ceramichit", break: "game:block/ceramicplace", walk: "game:walk/stone" },
-			"Glass": { place: "game:block/planks", hit: "game:block/glass", break: "game:block/glass", walk: "game:walk/stone" }
+			"Glass": { place: "game:block/planks", hit: "game:block/glass", break: "game:block/glass", walk: "game:walk/stone" },
+			"Metal": { place: "game:block/planks", hit: "game:block/chute", break: "game:block/chute", walk: "game:walk/stone" }
 		},
 		LayerResistance: {
 			"Wood": 1.0,
 			"Soil": 0.7,
 			"Glass": 0.5,
 			"Ceramic": 1.5,
-			"Stone": 2.5
+			"Stone": 2.5,
+			"Metal": 3.0
 		}
 	},
 	drawtype: "json",
