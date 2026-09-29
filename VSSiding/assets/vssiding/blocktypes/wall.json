@@ -240,7 +240,7 @@
 			"Glass": 0.5,
 			"Ceramic": 1.5,
 			"Stone": 2.5,
-			"Metal": 3.0
+			"Metal": 1.25
 		}
 	},
 	drawtype: "json",

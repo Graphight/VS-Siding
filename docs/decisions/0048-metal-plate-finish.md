@@ -19,7 +19,9 @@ The family uses `game:block/metal/sheet/{metal}1` (`wall.json:223`), the texture
 
 **Layer material.**
 `BlockMaterial` is `Metal`, new to `LayerSounds` and `LayerResistance` (`wall.json:235`, `:243`, 0033).
-Hit and break sound like vanilla's metal blocks (`block/chute`), walking sounds like stone, and resistance is 3.0, just above stone's 2.5.
+Hit and break sound like vanilla's metal blocks (`block/chute`), and walking sounds like stone.
+Resistance is 1.25, half of stone's 2.5, keeping vanilla's ratio: `metalsheet` and `metalblock` are `resistance: 2`, cobblestone is `4`.
+`EveryLayerMaterialHasSoundsAndResistance` checks that every `BlockMaterial` a layer uses has both keys, since a missing one falls back to plank sounds silently.
 Metal is not a wood top layer, so fire does not catch on it (0043).
 
 **Names.**
