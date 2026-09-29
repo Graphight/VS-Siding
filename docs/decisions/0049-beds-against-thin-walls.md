@@ -30,6 +30,7 @@ The shift therefore has a single source, and render and collision both pick it u
 **The panel click.** A right-click on a wall's inner face, through `TryHost` or, with a saw in the off hand, through vanilla's `OnBlockBuild`, names the wall's own cell, which would make it the feet cell and push the head through the wall.
 In the same prefix, `BedFeetPos` moves the feet one cell back when `blockSel.Position` is a straight wall and the player faces into its panel, so the head lands in the wall's cell.
 Both click paths reach `TryPlaceBlock`, so one retarget covers them.
+Vanilla then works out the facing again from the moved selection, by the angle from the player's eye to `Position + HitPosition`, so `Retargeted` moves `HitPosition` back by the same step; with the hit point left behind, a player standing off to one side got a bed turned a quarter into cells the check never saw.
 
 **The sleeper.** `BlockEntityBed.Position` places the sleeper at the unshifted cell edge, 4/16 off the drawn bed.
 A postfix on the getter adds `GapShiftAt(Pos, Block)` to the returned `EntityPos`; the getter rebuilds it from `Pos` on every call, so adding in place is safe.
