@@ -295,6 +295,16 @@ public class SidingModSystem : ModSystem
 
         try
         {
+            harmony.Patch(AccessTools.Method(typeof(BlockEntityBed), nameof(BlockEntityBed.DidUnmount)),
+                transpiler: new HarmonyMethod(typeof(SidingModSystem), nameof(BedExitTranspiler)));
+        }
+        catch (Exception e)
+        {
+            api.Logger.Error("vssiding: bed exit patch skipped, getting out of a bed beside a wall may put the sleeper on the wall's far side: {0}", e);
+        }
+
+        try
+        {
             harmony.Patch(AccessTools.Method(typeof(BlockBehaviorMultiblock), nameof(BlockBehaviorMultiblock.CanPlaceBlock)),
                 postfix: new HarmonyMethod(typeof(SidingModSystem), nameof(MultiblockFootprintPostfix)));
         }
@@ -760,6 +770,56 @@ public class SidingModSystem : ModSystem
         if (dx == 0 && dz == 0) return;
         __result.X += dx;
         __result.Z += dz;
+    }
+
+    // Getting up tries each cell beside the bed's head, then its feet, and takes the first the sleeper's
+    // box fits in. Past a thin wall's panel the cell is open, so it fits; a step across a panel counts
+    // as a collision instead.
+    internal static bool BedExitBlocked(CollisionTester tester, IBlockAccessor accessor, Cuboidf box, Vec3d pos,
+        bool alsoCheckTouch, BlockEntityBed bed)
+    {
+        if (tester.IsColliding(accessor, box, pos, alsoCheckTouch)) return true;
+
+        var from = bed.Pos.Copy();
+        int dx = (int)Math.Floor(pos.X) - from.X, dz = (int)Math.Floor(pos.Z) - from.Z;
+        if (Math.Abs(dx) + Math.Abs(dz) != 1)
+        {
+            var toFeet = BlockFacing.FromCode(bed.Block.Variant["side"]);
+            from.Add(toFeet);
+            dx -= toFeet.Normali.X;
+            dz -= toFeet.Normali.Z;
+        }
+        if (BlockFacing.FromNormal(new Vec3i(dx, 0, dz)) is not { } dir) return false;
+
+        return StepCrossesPanel(SidingWallBlock.WallAt(accessor, from)?.wall, SidingWallBlock.WallAt(accessor, from.AddCopy(dir))?.wall, dir);
+    }
+
+    // A step crosses a panel on the face it leaves by, or on the face of the cell it lands in.
+    internal static bool StepCrossesPanel(SidingWallBlock? from, SidingWallBlock? to, BlockFacing dir)
+        => (from != null && SidingWallBlock.ClaimsFace(from.Variant["layout"], from.Variant["side"], dir.Code))
+            || (to != null && SidingWallBlock.ClaimsFace(to.Variant["layout"], to.Variant["side"], dir.Opposite.Code));
+
+    internal static IEnumerable<CodeInstruction> BedExitTranspiler(IEnumerable<CodeInstruction> instructions)
+    {
+        var isColliding = AccessTools.Method(typeof(CollisionTester), nameof(CollisionTester.IsColliding),
+            new[] { typeof(IBlockAccessor), typeof(Cuboidf), typeof(Vec3d), typeof(bool) });
+        var blocked = AccessTools.Method(typeof(SidingModSystem), nameof(BedExitBlocked));
+
+        int replaced = 0;
+        foreach (var instruction in instructions)
+        {
+            if (!instruction.Calls(isColliding))
+            {
+                yield return instruction;
+                continue;
+            }
+            replaced++;
+            yield return new CodeInstruction(OpCodes.Ldarg_0).MoveLabelsFrom(instruction);
+            yield return new CodeInstruction(OpCodes.Call, blocked);
+        }
+
+        if (replaced != 2)
+            throw new InvalidOperationException($"Expected two CollisionTester.IsColliding calls in BlockEntityBed.DidUnmount, found {replaced}.");
     }
 
     // BlockBed is not a Multiblock, so each cell's CanPlaceBlock has no view of the other; the two

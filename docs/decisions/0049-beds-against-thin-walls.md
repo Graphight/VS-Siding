@@ -34,6 +34,10 @@ Both click paths reach `TryPlaceBlock`, so one retarget covers them.
 **The sleeper.** `BlockEntityBed.Position` places the sleeper at the unshifted cell edge, 4/16 off the drawn bed.
 A postfix on the getter adds `GapShiftAt(Pos, Block)` to the returned `EntityPos`; the getter rebuilds it from `Pos` on every call, so adding in place is safe.
 
+**Getting up.** `BlockEntityBed.DidUnmount` tries each cell beside the head, then the feet, and teleports the sleeper to the first one their box does not collide with.
+The cell past a thin wall's panel is open, so it passed, and a sleeper with no free spot on the room side got up outside.
+A transpiler swaps both `CollisionTester.IsColliding` calls for `BedExitBlocked`, which also counts a step across a panel as a collision: a panel on the face the step leaves by, or on the face of the cell it lands in.
+
 **What came free.** `HostChangePrefix` writes each half's guest on its `SetBlock` with no change.
 The bed's own `OnBlockRemoved`, which removes the partner half, goes through the deferred restore, so breaking either half returns the walls with their layers.
 
@@ -47,4 +51,4 @@ The bed's own `OnBlockRemoved`, which removes the partner half, goes through the
 - Bed boxes fill the cell, so the whole bed sits 4/16 off the panel, and a head-on bed's foot overhangs 4/16 into the next cell.
 - That overhang has the collision gap described in `docs/proposals/guest-furniture-collision.md`; its clamp to the cell would cut the foot's box at its cell edge.
 - Feet-to-panel stays refused: a bed whose feet meet a wall's panel with the head in open floor has no guest to shift by.
-- Recheck on a game update: `BlockBed.TryPlaceBlock` (its parameter names are pinned in `HostChangeTests`), `BlockEntityBed.Position`, and the feet-to-head step `BedHeadPos` copies from `BlockBed.OnBlockInteractStart`.
+- Recheck on a game update: `BlockBed.TryPlaceBlock` (its parameter names are pinned in `HostChangeTests`), `BlockEntityBed.Position`, `BlockEntityBed.DidUnmount` (the transpiler expects two `IsColliding` calls), and the feet-to-head step `BedHeadPos` copies from `BlockBed.OnBlockInteractStart`.
