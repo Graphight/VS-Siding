@@ -47,7 +47,8 @@ The bed's own `OnBlockRemoved`, which removes the partner half, goes through the
 - **Do not shift the bed.** The headboard would clip 4/16 into the panel.
 
 ## Consequences & open questions
-- Not yet played. To check: head-on from a floor click and from a panel click, with and without a saw in the off hand; side-on along a run; refusals for feet-to-panel, a cornerout and a cross-axis wall; sleeping in each and getting up; breaking the head, then the feet, of each; `/sidingroom` beside a hosted bed still counting the room sealed; save and reload with a hosted bed.
+- Played: a hosted bed placed, drawn 4/16 off the panel with its overhang, slept in, and got out of with every room-side spot blocked.
+- Not checked one by one: both click paths with and without a saw in the off hand; side-on along a run; refusals for feet-to-panel, a cornerout and a cross-axis wall; breaking the head, then the feet; `/sidingroom` beside a hosted bed; save and reload.
 - Bed boxes fill the cell, so the whole bed sits 4/16 off the panel, and a head-on bed's foot overhangs 4/16 into the next cell.
 - That overhang has the collision gap described in `docs/proposals/guest-furniture-collision.md`; its clamp to the cell would cut the foot's box at its cell edge.
 - Feet-to-panel stays refused: a bed whose feet meet a wall's panel with the head in open floor has no guest to shift by.

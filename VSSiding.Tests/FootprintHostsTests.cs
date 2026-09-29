@@ -11,7 +11,7 @@ public class FootprintHostsTests
 {
     private static readonly string[] Sides = { "north", "east", "south", "west" };
 
-    private static SidingWallBlock Wall(string layout, string side)
+    internal static SidingWallBlock Wall(string layout, string side)
     {
         var wall = new SidingWallBlock();
         wall.VariantStrict["layout"] = layout;

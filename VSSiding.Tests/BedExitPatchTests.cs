@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using HarmonyLib;
+using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
 using Vintagestory.GameContent;
 using Xunit;
@@ -11,14 +12,6 @@ namespace VSSiding.Tests;
 // letting a sleeper get up on a wall's far side.
 public class BedExitPatchTests
 {
-    private static SidingWallBlock Wall(string layout, string side)
-    {
-        var wall = new SidingWallBlock();
-        wall.VariantStrict["layout"] = layout;
-        wall.VariantStrict["side"] = side;
-        return wall;
-    }
-
     [Fact]
     public void GettingUpChecksBothSpotsThroughThePanelCheck()
     {
@@ -26,7 +19,7 @@ public class BedExitPatchTests
         var patched = SidingModSystem.BedExitTranspiler(PatchProcessor.GetOriginalInstructions(original)).ToList();
 
         var isColliding = AccessTools.Method(typeof(CollisionTester), nameof(CollisionTester.IsColliding),
-            new[] { typeof(Vintagestory.API.Common.IBlockAccessor), typeof(Cuboidf), typeof(Vec3d), typeof(bool) });
+            new[] { typeof(IBlockAccessor), typeof(Cuboidf), typeof(Vec3d), typeof(bool) });
         var blocked = AccessTools.Method(typeof(SidingModSystem), nameof(SidingModSystem.BedExitBlocked));
         Assert.Equal((0, 2), (patched.Count(i => i.Calls(isColliding)), patched.Count(i => i.Calls(blocked))));
 
@@ -42,12 +35,12 @@ public class BedExitPatchTests
         var steps = new Dictionary<string, (SidingWallBlock? from, SidingWallBlock? to)>
         {
             ["no walls"] = (null, null),
-            ["leaving past a north panel"] = (Wall("wall", "north"), null),
-            ["leaving through a south panel's open side"] = (Wall("wall", "south"), null),
-            ["leaving past an east panel"] = (Wall("wall", "east"), null),
-            ["leaving past a cornerout's second face"] = (Wall("cornerout", "west"), null),
-            ["landing on a south panel"] = (null, Wall("wall", "south")),
-            ["landing in a north panel's open side"] = (null, Wall("wall", "north")),
+            ["leaving past a north panel"] = (FootprintHostsTests.Wall("wall", "north"), null),
+            ["leaving through a south panel's open side"] = (FootprintHostsTests.Wall("wall", "south"), null),
+            ["leaving past an east panel"] = (FootprintHostsTests.Wall("wall", "east"), null),
+            ["leaving past a cornerout's second face"] = (FootprintHostsTests.Wall("cornerout", "west"), null),
+            ["landing on a south panel"] = (null, FootprintHostsTests.Wall("wall", "south")),
+            ["landing in a north panel's open side"] = (null, FootprintHostsTests.Wall("wall", "north")),
         };
 
         var expected = new Dictionary<string, bool>

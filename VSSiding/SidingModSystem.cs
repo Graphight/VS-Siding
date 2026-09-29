@@ -280,7 +280,7 @@ public class SidingModSystem : ModSystem
         }
         catch (Exception e)
         {
-            api.Logger.Error("vssiding: bed footprint patch skipped, a bed may straddle a corner, opposite wall faces, or a wall and an open cell, and sit misaligned with its panels: {0}", e);
+            api.Logger.Error("vssiding: bed footprint patch skipped, a bed may take a wall's cell in any footprint and sit misaligned with its panels: {0}", e);
         }
 
         try
@@ -639,8 +639,8 @@ public class SidingModSystem : ModSystem
     // ground storage, which is hostable itself); plants, which nobody hosts and every meadow would
     // pay a guest lookup for; anything with a solid side (a full cube, a slab, a metal sheet), except
     // a solid top on a block with a block entity (a cabinet you set things on); fluid-layer blocks;
-    // anything not a plain JSON shape; other "part" blocks (beds are in); doors (1.22's are BlockGeneric with
-    // a "Door" BE behaviour); and mechanical power blocks, which network by position. Multiblocks
+    // anything not a plain JSON shape; any "part" block but a bed; doors (1.22's are BlockGeneric
+    // with a "Door" BE behaviour); and mechanical power blocks, which network by position. Multiblocks
     // other than a trunk and its filler stay out (paintings, banners, mannequins, machines): the
     // footprint rule in the CanPlaceBlock postfix is what makes a trunk's filler safe to host.
     private static void BuildHostableTable(ICoreAPI api)
@@ -762,74 +762,13 @@ public class SidingModSystem : ModSystem
             ? pos.AddCopy(facing.Opposite)
             : pos;
 
-    // The getter rebuilds the position from Pos on every call, so shifting it in place is safe.
-    internal static void BedSeatPostfix(BlockEntityBed __instance, EntityPos __result)
-    {
-        if (__result == null) return;
-        var (dx, dz) = GapShiftAt(__instance.Pos, __instance.Block);
-        if (dx == 0 && dz == 0) return;
-        __result.X += dx;
-        __result.Z += dz;
-    }
-
-    // Getting up tries each cell beside the bed's head, then its feet, and takes the first the sleeper's
-    // box fits in. Past a thin wall's panel the cell is open, so it fits; a step across a panel counts
-    // as a collision instead.
-    internal static bool BedExitBlocked(CollisionTester tester, IBlockAccessor accessor, Cuboidf box, Vec3d pos,
-        bool alsoCheckTouch, BlockEntityBed bed)
-    {
-        if (tester.IsColliding(accessor, box, pos, alsoCheckTouch)) return true;
-
-        var from = bed.Pos.Copy();
-        int dx = (int)Math.Floor(pos.X) - from.X, dz = (int)Math.Floor(pos.Z) - from.Z;
-        if (Math.Abs(dx) + Math.Abs(dz) != 1)
-        {
-            var toFeet = BlockFacing.FromCode(bed.Block.Variant["side"]);
-            from.Add(toFeet);
-            dx -= toFeet.Normali.X;
-            dz -= toFeet.Normali.Z;
-        }
-        if (BlockFacing.FromNormal(new Vec3i(dx, 0, dz)) is not { } dir) return false;
-
-        return StepCrossesPanel(SidingWallBlock.WallAt(accessor, from)?.wall, SidingWallBlock.WallAt(accessor, from.AddCopy(dir))?.wall, dir);
-    }
-
-    // A step crosses a panel on the face it leaves by, or on the face of the cell it lands in.
-    internal static bool StepCrossesPanel(SidingWallBlock? from, SidingWallBlock? to, BlockFacing dir)
-        => (from != null && SidingWallBlock.ClaimsFace(from.Variant["layout"], from.Variant["side"], dir.Code))
-            || (to != null && SidingWallBlock.ClaimsFace(to.Variant["layout"], to.Variant["side"], dir.Opposite.Code));
-
-    internal static IEnumerable<CodeInstruction> BedExitTranspiler(IEnumerable<CodeInstruction> instructions)
-    {
-        var isColliding = AccessTools.Method(typeof(CollisionTester), nameof(CollisionTester.IsColliding),
-            new[] { typeof(IBlockAccessor), typeof(Cuboidf), typeof(Vec3d), typeof(bool) });
-        var blocked = AccessTools.Method(typeof(SidingModSystem), nameof(BedExitBlocked));
-
-        int replaced = 0;
-        foreach (var instruction in instructions)
-        {
-            if (!instruction.Calls(isColliding))
-            {
-                yield return instruction;
-                continue;
-            }
-            replaced++;
-            yield return new CodeInstruction(OpCodes.Ldarg_0).MoveLabelsFrom(instruction);
-            yield return new CodeInstruction(OpCodes.Call, blocked);
-        }
-
-        if (replaced != 2)
-            throw new InvalidOperationException($"Expected two CollisionTester.IsColliding calls in BlockEntityBed.DidUnmount, found {replaced}.");
-    }
-
     // BlockBed is not a Multiblock, so each cell's CanPlaceBlock has no view of the other; the two
-    // cells are worked out here the way vanilla's TryPlaceBlock does.
+    // cells are worked out here the way vanilla's TryPlaceBlock does. Both panel-click paths arrive
+    // with the wall's own cell as the feet, so the retarget sits here too.
     internal static bool BedFootprintPrefix(IWorldAccessor world, IPlayer byPlayer, ref BlockSelection blockSel,
         ref bool __result, ref string failureCode)
     {
         var facing = Block.SuggestedHVOrientation(byPlayer, blockSel)[0];
-        // Both panel-click paths reach TryPlaceBlock with the wall's own cell as the feet, so one
-        // retarget here covers them.
         var feetPos = BedFeetPos(world.BlockAccessor.GetBlock(blockSel.Position), facing, blockSel.Position);
         if (feetPos != blockSel.Position)
         {
@@ -1135,6 +1074,65 @@ public class SidingModSystem : ModSystem
     // trunk's inset rather than by its own default cube's.
     internal static Block ShiftSource(IBlockAccessor accessor, BlockPos pos, Block block)
         => block is BlockMultiblock filler ? accessor.GetBlock(pos.AddCopy(filler.OffsetInv)) : block;
+
+    // The getter rebuilds the position from Pos on every call, so shifting it in place is safe.
+    internal static void BedSeatPostfix(BlockEntityBed __instance, EntityPos __result)
+    {
+        if (__result == null) return;
+        var (dx, dz) = GapShiftAt(__instance.Pos, __instance.Block);
+        __result.X += dx;
+        __result.Z += dz;
+    }
+
+    // Getting up tries each cell beside the bed's head, then its feet, and takes the first the sleeper's
+    // box fits in. Past a thin wall's panel the cell is open, so it fits; a step across a panel counts
+    // as a collision instead.
+    internal static bool BedExitBlocked(CollisionTester tester, IBlockAccessor accessor, Cuboidf box, Vec3d pos,
+        bool alsoCheckTouch, BlockEntityBed bed)
+    {
+        if (tester.IsColliding(accessor, box, pos, alsoCheckTouch)) return true;
+
+        var from = bed.Pos.Copy();
+        int dx = (int)Math.Floor(pos.X) - from.X, dz = (int)Math.Floor(pos.Z) - from.Z;
+        if (Math.Abs(dx) + Math.Abs(dz) != 1)
+        {
+            var toFeet = BlockFacing.FromCode(bed.Block.Variant["side"]);
+            from.Add(toFeet);
+            dx -= toFeet.Normali.X;
+            dz -= toFeet.Normali.Z;
+        }
+        if (BlockFacing.FromNormal(new Vec3i(dx, 0, dz)) is not { } dir) return false;
+
+        return StepCrossesPanel(SidingWallBlock.WallAt(accessor, from)?.wall, SidingWallBlock.WallAt(accessor, from.AddCopy(dir))?.wall, dir);
+    }
+
+    // A step crosses a panel on the face it leaves by, or on the face of the cell it lands in.
+    internal static bool StepCrossesPanel(SidingWallBlock? from, SidingWallBlock? to, BlockFacing dir)
+        => (from != null && SidingWallBlock.ClaimsFace(from.Variant["layout"], from.Variant["side"], dir.Code))
+            || (to != null && SidingWallBlock.ClaimsFace(to.Variant["layout"], to.Variant["side"], dir.Opposite.Code));
+
+    internal static IEnumerable<CodeInstruction> BedExitTranspiler(IEnumerable<CodeInstruction> instructions)
+    {
+        var isColliding = AccessTools.Method(typeof(CollisionTester), nameof(CollisionTester.IsColliding),
+            new[] { typeof(IBlockAccessor), typeof(Cuboidf), typeof(Vec3d), typeof(bool) });
+        var blocked = AccessTools.Method(typeof(SidingModSystem), nameof(BedExitBlocked));
+
+        int replaced = 0;
+        foreach (var instruction in instructions)
+        {
+            if (!instruction.Calls(isColliding))
+            {
+                yield return instruction;
+                continue;
+            }
+            replaced++;
+            yield return new CodeInstruction(OpCodes.Ldarg_0).MoveLabelsFrom(instruction);
+            yield return new CodeInstruction(OpCodes.Call, blocked);
+        }
+
+        if (replaced != 2)
+            throw new InvalidOperationException($"Expected two CollisionTester.IsColliding calls in BlockEntityBed.DidUnmount, found {replaced}.");
+    }
 
     // Vanilla's own feet-to-head step (BlockBed.OnBlockInteractStart); null for anything but a bed's feet.
     internal static BlockPos? BedHeadPos(Block block, BlockPos pos)
