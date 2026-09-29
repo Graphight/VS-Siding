@@ -32,8 +32,12 @@ public class IsHostableTests
     [Fact]
     public void OnlyPlainOpenJsonBlocksAreHostable()
     {
-        var bed = Open(new Block());
-        bed.VariantStrict["part"] = "head";
+        var part = Open(new Block());
+        part.VariantStrict["part"] = "head";
+        var bedHead = Open(new BlockBed());
+        bedHead.VariantStrict["part"] = "head";
+        var bedFeet = Open(new BlockBed());
+        bedFeet.VariantStrict["part"] = "feet";
         var painting = Open(new Block());
         painting.BlockBehaviors = new BlockBehavior[] { new BlockBehaviorMultiblock(painting) };
         var trunk = Open(new BlockGenericTypedContainerTrunk());
@@ -51,7 +55,9 @@ public class IsHostableTests
             ["flower"] = Open(new Block { Replaceable = 3000, BlockMaterial = EnumBlockMaterial.Plant }),
             ["cross plant"] = Open(new Block { DrawType = EnumDrawType.Cross }),
             ["fluid"] = Open(new FluidBlock()),
-            ["bed half"] = bed,
+            ["bed head"] = bedHead,
+            ["bed feet"] = bedFeet,
+            ["other part block"] = part,
             ["unplaceable pot"] = pot,
             ["door"] = Open(new Block { BlockEntityBehaviors = new[] { new BlockEntityBehaviorType { Name = "Door" } } }),
             ["multiblock filler"] = Open(new BlockMultiblock()),
@@ -71,7 +77,9 @@ public class IsHostableTests
             ["flower"] = false,
             ["cross plant"] = false,
             ["fluid"] = false,
-            ["bed half"] = false,
+            ["bed head"] = true,
+            ["bed feet"] = true,
+            ["other part block"] = false,
             ["unplaceable pot"] = false,
             ["door"] = false,
             ["multiblock filler"] = true,

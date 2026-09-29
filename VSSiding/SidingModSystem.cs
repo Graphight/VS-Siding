@@ -8,6 +8,7 @@ using Newtonsoft.Json.Linq;
 using Vintagestory.API.Client;
 using Vintagestory.API.Client.Tesselation;
 using Vintagestory.API.Common;
+using Vintagestory.API.Common.Entities;
 using Vintagestory.API.Config;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
@@ -270,6 +271,36 @@ public class SidingModSystem : ModSystem
         catch (Exception e)
         {
             api.Logger.Error("vssiding: block build patch skipped, a block clicked onto a wall's outer face or top will land in the wall's own cell instead: {0}", e);
+        }
+
+        try
+        {
+            harmony.Patch(AccessTools.Method(typeof(BlockBed), nameof(BlockBed.TryPlaceBlock)),
+                prefix: new HarmonyMethod(typeof(SidingModSystem), nameof(BedFootprintPrefix)));
+        }
+        catch (Exception e)
+        {
+            api.Logger.Error("vssiding: bed footprint patch skipped, a bed may take a wall's cell in any footprint and sit misaligned with its panels: {0}", e);
+        }
+
+        try
+        {
+            harmony.Patch(AccessTools.PropertyGetter(typeof(BlockEntityBed), nameof(BlockEntityBed.Position)),
+                postfix: new HarmonyMethod(typeof(SidingModSystem), nameof(BedSeatPostfix)));
+        }
+        catch (Exception e)
+        {
+            api.Logger.Error("vssiding: bed seat patch skipped, a sleeper in a hosted bed lies 4/16 off the drawn bed: {0}", e);
+        }
+
+        try
+        {
+            harmony.Patch(AccessTools.Method(typeof(BlockEntityBed), nameof(BlockEntityBed.DidUnmount)),
+                transpiler: new HarmonyMethod(typeof(SidingModSystem), nameof(BedExitTranspiler)));
+        }
+        catch (Exception e)
+        {
+            api.Logger.Error("vssiding: bed exit patch skipped, getting out of a bed beside a wall may put the sleeper on the wall's far side: {0}", e);
         }
 
         try
@@ -608,8 +639,8 @@ public class SidingModSystem : ModSystem
     // ground storage, which is hostable itself); plants, which nobody hosts and every meadow would
     // pay a guest lookup for; anything with a solid side (a full cube, a slab, a metal sheet), except
     // a solid top on a block with a block entity (a cabinet you set things on); fluid-layer blocks;
-    // anything not a plain JSON shape; beds (a "part" variant); doors (1.22's are BlockGeneric with
-    // a "Door" BE behaviour); and mechanical power blocks, which network by position. Multiblocks
+    // anything not a plain JSON shape; any "part" block but a bed; doors (1.22's are BlockGeneric
+    // with a "Door" BE behaviour); and mechanical power blocks, which network by position. Multiblocks
     // other than a trunk and its filler stay out (paintings, banners, mannequins, machines): the
     // footprint rule in the CanPlaceBlock postfix is what makes a trunk's filler safe to host.
     private static void BuildHostableTable(ICoreAPI api)
@@ -689,7 +720,7 @@ public class SidingModSystem : ModSystem
         if (block.ForFluidsLayer) return false;
         if (block.DrawType is not (EnumDrawType.JSON or EnumDrawType.JSONAndSnowLayer or EnumDrawType.JSONAndWater)) return false;
         if (block is BlockMicroBlock) return false;
-        if (block.Variant.ContainsKey("part")) return false;
+        if (block.Variant.ContainsKey("part") && block is not BlockBed) return false;
         if (block is BlockBaseDoor || block.BlockEntityBehaviors.Any(b => b.Name == "Door")) return false;
         if (block is not (BlockMultiblock or BlockGenericTypedContainerTrunk) && block.HasBehavior<BlockBehaviorMultiblock>()) return false;
         if (block is BlockMPBase) return false;
@@ -711,6 +742,54 @@ public class SidingModSystem : ModSystem
         if (sides.Count != 1) return false;
 
         return AlongX(trunkSide) == AlongX(sides[0]);
+    }
+
+    // A bed's side points from its head back toward its feet, so its headboard faces the opposite way.
+    // Side-on is a trunk's footprint turned a quarter, since a bed runs along its side axis and a trunk
+    // across it. Head-on is the head in a straight wall claiming the headboard face, feet on open floor.
+    internal static bool BedFootprintHosts(string bedSide, Block head, Block feet)
+    {
+        var facing = BlockFacing.FromCode(bedSide);
+        if (FootprintHosts(facing.GetCW().Code, new[] { head, feet })) return true;
+
+        return head is SidingWallBlock wall && wall.Variant["layout"] == "wall"
+            && wall.Variant["side"] == facing.Opposite.Code && feet is not SidingWallBlock;
+    }
+
+    // A click on a wall's panel names the wall's own cell; stepping the feet back puts the head there.
+    internal static BlockPos BedFeetPos(Block clicked, BlockFacing facing, BlockPos pos) =>
+        clicked is SidingWallBlock && clicked.Variant["layout"] == "wall" && clicked.Variant["side"] == facing.Code
+            ? pos.AddCopy(facing.Opposite)
+            : pos;
+
+    // BlockBed is not a Multiblock, so each cell's CanPlaceBlock has no view of the other; the two
+    // cells are worked out here the way vanilla's TryPlaceBlock does. Both panel-click paths arrive
+    // with the wall's own cell as the feet, so the retarget sits here too.
+    internal static bool BedFootprintPrefix(IWorldAccessor world, IPlayer byPlayer, ref BlockSelection blockSel,
+        ref bool __result, ref string failureCode)
+    {
+        var facing = Block.SuggestedHVOrientation(byPlayer, blockSel)[0];
+        var feetPos = BedFeetPos(world.BlockAccessor.GetBlock(blockSel.Position), facing, blockSel.Position);
+        if (feetPos != blockSel.Position) blockSel = Retargeted(blockSel, feetPos);
+
+        var feet = world.BlockAccessor.GetBlock(blockSel.Position);
+        var head = world.BlockAccessor.GetBlock(blockSel.Position.AddCopy(facing));
+        if (BedFootprintHosts(facing.Opposite.Code, head, feet)) return true;
+
+        __result = false;
+        failureCode = "notenoughspace";
+        return false;
+    }
+
+    // Vanilla works out the bed's facing again from this selection, by the angle from the player's eye to
+    // Position + HitPosition, so the hit point stays where it was or a player off to one side gets a
+    // bed turned a quarter into cells the footprint check never saw.
+    internal static BlockSelection Retargeted(BlockSelection sel, BlockPos pos)
+    {
+        var moved = sel.Clone();
+        moved.Position = pos;
+        moved.HitPosition = sel.HitPosition.AddCopy(sel.Position.X - pos.X, 0, sel.Position.Z - pos.Z);
+        return moved;
     }
 
     // IsReplacableBy has no position, so each wall answers alone; only here is the whole footprint
@@ -1003,13 +1082,92 @@ public class SidingModSystem : ModSystem
     internal static Block ShiftSource(IBlockAccessor accessor, BlockPos pos, Block block)
         => block is BlockMultiblock filler ? accessor.GetBlock(pos.AddCopy(filler.OffsetInv)) : block;
 
+    // The getter rebuilds the position from Pos on every call, so shifting it in place is safe.
+    internal static void BedSeatPostfix(BlockEntityBed __instance, EntityPos __result)
+    {
+        if (__result == null) return;
+        var (dx, dz) = GapShiftAt(__instance.Pos, __instance.Block);
+        __result.X += dx;
+        __result.Z += dz;
+    }
+
+    // Getting up tries each cell beside the bed's head, then its feet, and takes the first the sleeper's
+    // box fits in. Past a thin wall's panel the cell is open, so it fits; a step across a panel counts
+    // as a collision instead.
+    internal static bool BedExitBlocked(CollisionTester tester, IBlockAccessor accessor, Cuboidf box, Vec3d pos,
+        bool alsoCheckTouch, BlockEntityBed bed)
+    {
+        if (tester.IsColliding(accessor, box, pos, alsoCheckTouch)) return true;
+
+        var (from, dir) = BedExitStep(bed.Pos, bed.Block.Variant["side"], pos);
+        if (dir == null) return false;
+
+        return StepCrossesPanel(SidingWallBlock.WallAt(accessor, from)?.wall, SidingWallBlock.WallAt(accessor, from.AddCopy(dir))?.wall, dir);
+    }
+
+    // Which bed cell a spot sits beside, and the step out to it. Only the head's four neighbours are one
+    // cell from the head; every other spot is beside the feet, including the head cell itself.
+    internal static (BlockPos from, BlockFacing? dir) BedExitStep(BlockPos head, string bedSide, Vec3d spot)
+    {
+        var from = head.Copy();
+        int dx = (int)Math.Floor(spot.X) - from.X, dz = (int)Math.Floor(spot.Z) - from.Z;
+        if (Math.Abs(dx) + Math.Abs(dz) != 1)
+        {
+            var toFeet = BlockFacing.FromCode(bedSide);
+            from.Add(toFeet);
+            dx -= toFeet.Normali.X;
+            dz -= toFeet.Normali.Z;
+        }
+        return (from, BlockFacing.FromNormal(new Vec3i(dx, 0, dz)));
+    }
+
+    // A step crosses a panel on the face it leaves by, or on the face of the cell it lands in.
+    internal static bool StepCrossesPanel(SidingWallBlock? from, SidingWallBlock? to, BlockFacing dir)
+        => (from != null && SidingWallBlock.ClaimsFace(from.Variant["layout"], from.Variant["side"], dir.Code))
+            || (to != null && SidingWallBlock.ClaimsFace(to.Variant["layout"], to.Variant["side"], dir.Opposite.Code));
+
+    internal static IEnumerable<CodeInstruction> BedExitTranspiler(IEnumerable<CodeInstruction> instructions)
+    {
+        var isColliding = AccessTools.Method(typeof(CollisionTester), nameof(CollisionTester.IsColliding),
+            new[] { typeof(IBlockAccessor), typeof(Cuboidf), typeof(Vec3d), typeof(bool) });
+        var blocked = AccessTools.Method(typeof(SidingModSystem), nameof(BedExitBlocked));
+
+        int replaced = 0;
+        foreach (var instruction in instructions)
+        {
+            if (!instruction.Calls(isColliding))
+            {
+                yield return instruction;
+                continue;
+            }
+            replaced++;
+            yield return new CodeInstruction(OpCodes.Ldarg_0).MoveLabelsFrom(instruction);
+            yield return new CodeInstruction(OpCodes.Call, blocked);
+        }
+
+        if (replaced != 2)
+            throw new InvalidOperationException($"Expected two CollisionTester.IsColliding calls in BlockEntityBed.DidUnmount, found {replaced}.");
+    }
+
+    // Vanilla's own feet-to-head step (BlockBed.OnBlockInteractStart); null for anything but a bed's feet.
+    internal static BlockPos? BedHeadPos(Block block, BlockPos pos)
+        => block is BlockBed && block.Variant["part"] == "feet"
+            ? pos.AddCopy(BlockFacing.FromCode(block.Variant["side"]).Opposite)
+            : null;
+
     // How far a hosted block at pos shifts off its guest's panel; zero for anything not hosted.
     internal static (double dx, double dz) GapShiftAt(BlockPos pos, Block block)
     {
         if (!IsHostableId(block.BlockId)) return (0, 0);
 
         ICoreAPI? api = ApiRef(block);
-        if (api == null || GuestWalls.GuestAt(api, pos)?.Block is not SidingWallBlock wall) return (0, 0);
+        if (api == null) return (0, 0);
+
+        // Head-on, the feet stand on open floor with no guest of their own, but must shift with the
+        // head or the bed splits at the seam.
+        var guest = GuestWalls.GuestAt(api, pos);
+        if (guest == null && BedHeadPos(block, pos) is { } headPos) guest = GuestWalls.GuestAt(api, headPos);
+        if (guest?.Block is not SidingWallBlock wall) return (0, 0);
 
         if (FaceShiftByBlock![ShiftSource(api.World.BlockAccessor, pos, block).BlockId] is not { } shifts) return (0, 0);
         var claimed = HorizontalFaces.Where(face => SidingWallBlock.ClaimsFace(wall.Variant["layout"], wall.Variant["side"], face));

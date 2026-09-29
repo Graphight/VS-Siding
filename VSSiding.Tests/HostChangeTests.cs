@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using HarmonyLib;
 using Vintagestory.API.Common;
+using Vintagestory.API.Common.Entities;
 using Vintagestory.Client.NoObf;
 using Vintagestory.Common;
 using System.Linq;
@@ -59,6 +60,12 @@ public class HostChangeTests
         var canPlaceBlock = AccessTools.Method(typeof(BlockBehaviorMultiblock), nameof(BlockBehaviorMultiblock.CanPlaceBlock));
         Assert.Equal(new[] { "world", "byPlayer", "blockSel", "handling", "failureCode" },
             canPlaceBlock.GetParameters().Select(p => p.Name));
+        var tryPlaceBed = AccessTools.Method(typeof(BlockBed), nameof(BlockBed.TryPlaceBlock));
+        Assert.Equal(new[] { "world", "byPlayer", "itemstack", "blockSel", "failureCode" },
+            tryPlaceBed.GetParameters().Select(p => p.Name));
+        var bedSeat = AccessTools.PropertyGetter(typeof(BlockEntityBed), nameof(BlockEntityBed.Position));
+        Assert.NotNull(bedSeat);
+        Assert.Equal(typeof(EntityPos), bedSeat.ReturnType);
     }
 
     // A wall that would take the held block as a placement target, the way SidingWallBlock does
