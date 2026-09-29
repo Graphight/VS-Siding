@@ -8,7 +8,7 @@ namespace VSSiding;
 // whole build flow's "you're building" signal, see SidingWallBlock.HasSawInOffhand); the
 // picker's framing row picks wall vs cornerout, and placement itself is handed to the
 // placeholder wall block so its existing HorizontalOrientable behavior does the "hug the
-// player's side" orientation.
+// player's side" orientation. With floor picked the placeholder is the floor, whose side sets its joists.
 public class PlaceWallFrame : CollectibleBehavior
 {
     public PlaceWallFrame(CollectibleObject collObj) : base(collObj)
@@ -30,13 +30,13 @@ public class PlaceWallFrame : CollectibleBehavior
         if (framingKey == null) return;
 
         string layout = SidingModePicker.Layout(byPlayer);
-        bool withDeck = SidingModePicker.Deck(byPlayer);
+        bool withDeck = layout != "floor" && SidingModePicker.Deck(byPlayer);
 
         var consumes = wallBlock.Attributes["Framings"][framingKey]["Consumes"];
         int times = withDeck ? 2 : 1;
         bool isCreative = byPlayer.WorldData.CurrentGameMode == EnumGameMode.Creative;
         if (!SidingWallBlock.TryAffordOrError(byPlayer, isCreative, slot.Itemstack.StackSize, consumes, times)) return;
-        var placeholder = world.GetBlock(new AssetLocation("vssiding", $"wall-{layout}-west"));
+        var placeholder = world.GetBlock(new AssetLocation("vssiding", layout == "floor" ? "floor-west" : $"wall-{layout}-west"));
         if (placeholder == null) return;
 
         BlockPos targetPos = blockSel.Position;
@@ -52,6 +52,13 @@ public class PlaceWallFrame : CollectibleBehavior
         string failureCode = "";
         bool placed = placeholder.TryPlaceBlock(world, byPlayer, new ItemStack(placeholder), placeSel, ref failureCode);
         if (!placed) return;
+
+        if (world.BlockAccessor.GetBlockEntity<SidingFloorEntity>(targetPos) is { } floor)
+        {
+            floor.Framing = framingKey;
+            floor.MarkDirty(true);
+            SidingFloorBlock.MarkNeighboursDirty(world, targetPos);
+        }
 
         var entity = world.BlockAccessor.GetBlockEntity<SidingWallEntity>(targetPos);
         if (entity != null)

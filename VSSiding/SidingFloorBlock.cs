@@ -21,6 +21,15 @@ public class SidingFloorBlock : Block
             && JoistsAlign(Variant["side"], neighbour.Variant["side"])
             && accessor.GetBlockEntity<SidingFloorEntity>(neighbourPos)?.Framing != null;
 
+    // Setting Framing isn't a block change, so the floors whose rims it drops have to be told.
+    internal static void MarkNeighboursDirty(IWorldAccessor world, BlockPos pos)
+    {
+        foreach (var face in BlockFacing.HORIZONTALS)
+        {
+            world.BlockAccessor.GetBlockEntity<SidingFloorEntity>(pos.AddCopy(face))?.MarkDirty(true);
+        }
+    }
+
     internal static bool JoistsAlign(string side, string neighbourSide)
         => BlockFacing.FromCode(side).Axis == BlockFacing.FromCode(neighbourSide).Axis;
 }

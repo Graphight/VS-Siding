@@ -359,6 +359,10 @@ public class SidingWallBlock : Block
         AssetLocation? heldCode = slot.Itemstack?.Collectible.Code;
         if (heldCode == null) return base.OnBlockInteractStart(world, byPlayer, blockSel);
 
+        // With floor picked, planks frame a floor beside the wall (PlaceWallFrame) rather than work on it.
+        if (SidingModePicker.Layout(byPlayer) == "floor" && MatchConsumes(heldCode, Attributes["Framings"]) != null)
+            return base.OnBlockInteractStart(world, byPlayer, blockSel);
+
         var entity = world.BlockAccessor.GetBlockEntity<SidingWallEntity>(blockSel.Position);
         if (entity == null || entity.Framing == null) return base.OnBlockInteractStart(world, byPlayer, blockSel);
 

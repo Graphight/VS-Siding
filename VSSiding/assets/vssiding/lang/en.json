@@ -210,6 +210,7 @@
 	"toolmoderow-logs": "Logs",
 	"toolmode-wall": "Wall",
 	"toolmode-corner": "Corner",
+	"toolmode-floor": "Floor",
 	"toolmode-deck": "Deck",
 	"toolmode-weatherboard": "Weatherboard",
 	"toolmode-boards": "Vertical boards",
