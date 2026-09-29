@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
@@ -50,5 +52,40 @@ public class GapShiftAtTests
         Block resolved = SidingModSystem.ShiftSource(accessor, pos, block);
 
         Assert.Same(block, resolved);
+    }
+
+    private static BlockBed Bed(string part, string side)
+    {
+        var bed = new BlockBed();
+        bed.VariantStrict["part"] = part;
+        bed.VariantStrict["side"] = side;
+        return bed;
+    }
+
+    [Fact]
+    public void OnlyABedsFeetPointAtTheirHead()
+    {
+        var pos = new BlockPos(5, 60, 9, 0);
+        var blocks = new Dictionary<string, Block>
+        {
+            ["feetNorth"] = Bed("feet", "north"),
+            ["feetEast"] = Bed("feet", "east"),
+            ["feetSouth"] = Bed("feet", "south"),
+            ["feetWest"] = Bed("feet", "west"),
+            ["head"] = Bed("head", "north"),
+            ["plain"] = new Block(),
+        };
+
+        var actual = blocks.ToDictionary(kv => kv.Key, kv => SidingModSystem.BedHeadPos(kv.Value, pos));
+
+        Assert.Equal(new Dictionary<string, BlockPos?>
+        {
+            ["feetNorth"] = new BlockPos(5, 60, 10, 0),
+            ["feetEast"] = new BlockPos(4, 60, 9, 0),
+            ["feetSouth"] = new BlockPos(5, 60, 8, 0),
+            ["feetWest"] = new BlockPos(6, 60, 9, 0),
+            ["head"] = null,
+            ["plain"] = null,
+        }, actual);
     }
 }

@@ -1040,13 +1040,25 @@ public class SidingModSystem : ModSystem
     internal static Block ShiftSource(IBlockAccessor accessor, BlockPos pos, Block block)
         => block is BlockMultiblock filler ? accessor.GetBlock(pos.AddCopy(filler.OffsetInv)) : block;
 
+    // Vanilla's own feet-to-head step (BlockBed.OnBlockInteractStart); null for anything but a bed's feet.
+    internal static BlockPos? BedHeadPos(Block block, BlockPos pos)
+        => block is BlockBed && block.Variant["part"] == "feet"
+            ? pos.AddCopy(BlockFacing.FromCode(block.Variant["side"]).Opposite)
+            : null;
+
     // How far a hosted block at pos shifts off its guest's panel; zero for anything not hosted.
     internal static (double dx, double dz) GapShiftAt(BlockPos pos, Block block)
     {
         if (!IsHostableId(block.BlockId)) return (0, 0);
 
         ICoreAPI? api = ApiRef(block);
-        if (api == null || GuestWalls.GuestAt(api, pos)?.Block is not SidingWallBlock wall) return (0, 0);
+        if (api == null) return (0, 0);
+
+        // Head-on, the feet stand on open floor with no guest of their own, but must shift with the
+        // head or the bed splits at the seam.
+        var guest = GuestWalls.GuestAt(api, pos);
+        if (guest == null && BedHeadPos(block, pos) is { } headPos) guest = GuestWalls.GuestAt(api, headPos);
+        if (guest?.Block is not SidingWallBlock wall) return (0, 0);
 
         if (FaceShiftByBlock![ShiftSource(api.World.BlockAccessor, pos, block).BlockId] is not { } shifts) return (0, 0);
         var claimed = HorizontalFaces.Where(face => SidingWallBlock.ClaimsFace(wall.Variant["layout"], wall.Variant["side"], face));
