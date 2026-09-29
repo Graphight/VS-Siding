@@ -45,6 +45,8 @@ public class SidingModSystem : ModSystem
 
         api.RegisterBlockClass("SidingWallBlock", typeof(SidingWallBlock));
         api.RegisterBlockEntityClass("SidingWallEntity", typeof(SidingWallEntity));
+        api.RegisterBlockClass("SidingFloorBlock", typeof(SidingFloorBlock));
+        api.RegisterBlockEntityClass("SidingFloorEntity", typeof(SidingFloorEntity));
         api.RegisterCollectibleBehaviorClass("vssiding.PlaceWallFrame", typeof(PlaceWallFrame));
         GuestWalls.Start(api);
         SidingModePicker.Start(api);
@@ -1254,7 +1256,7 @@ public class SidingModSystem : ModSystem
             .ToList();
 
         var shared = api.Assets.Get(new AssetLocation("vssiding", "config/materials.json")).ToObject<JObject>();
-        foreach (var block in api.World.Blocks.OfType<SidingWallBlock>())
+        foreach (var block in api.World.Blocks.Where(b => b is SidingWallBlock or SidingFloorBlock))
         {
             var attributes = MaterialFamilies.MergeShared(shared, (JObject)block.Attributes.Token);
             foreach (var (familiesKey, materialsKey) in new[] { ("FramingFamilies", "Framings"), ("InfillFamilies", "Infills"), ("FinishFamilies", "Finishes") })

@@ -1,0 +1,42 @@
+{
+	code: "floor",
+	class: "SidingFloorBlock",
+	entityclass: "SidingFloorEntity",
+	behaviors: [{name: "HorizontalOrientable", properties: { dropBlockFace: "west" }}],
+	variantgroups: [
+		{ code: "side", loadFromProperties: "abstract/horizontalorientation" }
+	],
+	creativeinventory: { "general": ["*-west"], "decorative": ["*-west"] },
+	blockmaterial: "Wood",
+	attributes: {
+		canStep: false
+	},
+	drawtype: "json",
+	shapebytype: {
+		"*-west": { base: "block/floor/floor", rotateY: 0 },
+		"*-south": { base: "block/floor/floor", rotateY: 90 },
+		"*-east": { base: "block/floor/floor", rotateY: 180 },
+		"*-north": { base: "block/floor/floor", rotateY: 270 }
+	},
+	collisionSelectionBox: { x1: 0, y1: 0.75, z1: 0, x2: 1, y2: 1, z2: 1 },
+	resistance: 1.2,
+	lightAbsorption: 0,
+	faceCullMode: "NeverCull",
+	sidesolid: {
+		all: false,
+		up: true
+	},
+	sideopaque: {
+		all: false
+	},
+	sounds: {
+		"place": "game:block/planks",
+		"hit": "game:block/planks",
+		"break": "game:block/planks",
+		"walk": "game:walk/wood"
+	},
+	combustibleProps: {
+		burnTemperature: 600,
+		burnDuration: 20
+	}
+}

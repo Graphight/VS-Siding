@@ -1,6 +1,8 @@
 {
 	"block-wall-*": "Siding Wall",
 	"blockdesc-wall-*": "A thin layered wall: <strong>framing</strong>, an <strong>infill</strong> between the timbers, and a <strong>finish</strong> on each face. See <a href=\"handbook://gamemechanicinfo-siding\">VS Siding Mod: Guide</a> for how to build one.",
+	"block-floor-*": "Siding Floor",
+	"blockdesc-floor-*": "A thin layered floor: <strong>joists</strong>, an <strong>infill</strong> between them, floorboards on top and a ceiling beneath. See <a href=\"handbook://gamemechanicinfo-siding\">VS Siding Mod: Guide</a> for how to build one.",
 	"framing-oak": "Oak Framing",
 	"framing-birch": "Birch Framing",
 	"framing-maple": "Maple Framing",

@@ -33,18 +33,23 @@ public class SidingWallTexSource : ITexPositionSource
         get
         {
             if (textureCode == "step") return StepTexture();
-            CompositeTexture texture = ResolveTexture(
+            CompositeTexture? texture = ResolveTexture(
                 textureCode, entity.Framing, entity.Infill, entity.Front, entity.SecondFront, entity.Back,
-                framings, infills, finishes, entity.FrontStyle, entity.SecondFrontStyle, entity.BackStyle, entity.Deck)
-                ?? new CompositeTexture(new AssetLocation("game:block/wood/planks/oak1"));
-            var atlas = capi.BlockTextureAtlas;
-            // The plain indexer only finds textures some other block/item already caused to
-            // be packed into the atlas - most of our material textures aren't declared by
-            // anything else, so they need GetOrInsertTexture to load and pack them on demand.
-            return atlas.GetOrInsertTexture(texture, out _, out TextureAtlasPosition texPos)
-                ? texPos
-                : atlas.UnknownTexturePosition;
+                framings, infills, finishes, entity.FrontStyle, entity.SecondFrontStyle, entity.BackStyle, entity.Deck);
+            return AtlasPosition(capi, texture);
         }
+    }
+
+    internal static TextureAtlasPosition AtlasPosition(ICoreClientAPI capi, CompositeTexture? texture)
+    {
+        texture ??= new CompositeTexture(new AssetLocation("game:block/wood/planks/oak1"));
+        var atlas = capi.BlockTextureAtlas;
+        // The plain indexer only finds textures some other block/item already caused to
+        // be packed into the atlas - most of our material textures aren't declared by
+        // anything else, so they need GetOrInsertTexture to load and pack them on demand.
+        return atlas.GetOrInsertTexture(texture, out _, out TextureAtlasPosition texPos)
+            ? texPos
+            : atlas.UnknownTexturePosition;
     }
 
     // From the stair block itself, so every BlockStairs works with no wall.json entry (decision 0046).
