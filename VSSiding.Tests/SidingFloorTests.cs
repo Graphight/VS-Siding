@@ -1,3 +1,5 @@
+using System.Linq;
+using Vintagestory.API.MathTools;
 using Xunit;
 
 namespace VSSiding.Tests;
@@ -36,5 +38,33 @@ public class SidingFloorTests
     public void JoistsAlignOnlyAlongOneAxis(string side, string neighbourSide, bool expected)
     {
         Assert.Equal(expected, SidingFloorBlock.JoistsAlign(side, neighbourSide));
+    }
+
+    private static readonly Vintagestory.API.Datastructures.JsonObject Attributes = SidingWallEntityTests.Dict("""
+    {
+        "Framings": { "oak": {} },
+        "Infills": { "wattle": { "BlockMaterial": "Wood" }, "stone": { "BlockMaterial": "Stone" } }
+    }
+    """);
+
+    // Only the top seals, only once filled, and the infill still decides cooling.
+    [Fact]
+    public void OnlyAFilledFloorsTopRetains()
+    {
+        Assert.Equal(
+            new[] { "up oak wattle 1", "down oak wattle 0", "north oak wattle 0", "up oak - 0", "up oak stone -1" },
+            new[]
+            {
+                (BlockFacing.UP, "wattle"), (BlockFacing.DOWN, "wattle"), (BlockFacing.NORTH, "wattle"),
+                (BlockFacing.UP, null), (BlockFacing.UP, "stone"),
+            }.Select(c => $"{c.Item1.Code} oak {c.Item2 ?? "-"} {SidingFloorBlock.ComputeRetention(c.Item1, "oak", c.Item2, Attributes)}"));
+    }
+
+    [Fact]
+    public void OnlyTheTopAndUndersideTakeAFinish()
+    {
+        Assert.Equal(
+            new string?[] { "front", "back", null, null },
+            new[] { BlockFacing.UP, BlockFacing.DOWN, BlockFacing.NORTH, BlockFacing.EAST }.Select(SidingFloorBlock.FinishFace));
     }
 }
