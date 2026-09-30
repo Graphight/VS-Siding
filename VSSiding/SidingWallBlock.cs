@@ -414,6 +414,9 @@ public class SidingWallBlock : Block
             return true;
         }
 
+        if (IsDeckHit(world.BlockAccessor, blockSel, entity))
+            return LayerDeck(world, byPlayer, blockSel, entity, slot, heldCode, isCreative);
+
         // With the deck lit, planks on a side face add a deck in place. Ahead of finishing, since
         // planks are a finish too. The top face still stacks the next course (PlaceWallFrame).
         if (entity.Deck == null && blockSel.Face != BlockFacing.UP && SidingModePicker.Deck(byPlayer)
@@ -546,6 +549,86 @@ public class SidingWallBlock : Block
         return true;
     }
 
+    // The deck box is appended after the block's own selection boxes (AddOpenPartBoxes).
+    internal bool IsDeckHit(IBlockAccessor blockAccessor, BlockSelection blockSel, SidingWallEntity entity)
+        => entity.Deck != null && blockSel.SelectionBoxIndex == base.GetSelectionBoxes(blockAccessor, blockSel.Position).Length;
+
+    // The deck takes layers the way a floor does (SidingFloorBlock.OnBlockInteractStart): infill on any
+    // face, then a finish on the top or the underside. Anything unclaimed falls through, so planks on a
+    // bare deck's top still reach PlaceWallFrame.
+    private bool LayerDeck(
+        IWorldAccessor world, IPlayer byPlayer, BlockSelection blockSel, SidingWallEntity entity,
+        ItemSlot slot, AssetLocation heldCode, bool isCreative)
+    {
+        if (entity.DeckInfill == null)
+        {
+            string? infillKey = MatchConsumes(heldCode, Attributes["Infills"]);
+            if (infillKey == null) return base.OnBlockInteractStart(world, byPlayer, blockSel);
+
+            var consumes = Attributes["Infills"][infillKey]["Consumes"];
+            if (!TryAffordOrError(byPlayer, isCreative, slot.StackSize, consumes)) return true;
+
+            entity.DeckInfill = infillKey;
+            entity.LegacyDeck = false;
+            entity.MarkDirty(true);
+            // Rooms only recompute on a chunk-dirty event, and the deck's retention just changed.
+            world.BlockAccessor.ExchangeBlock(Id, blockSel.Position);
+            SidingFloorBlock.MarkNeighboursDirty(world, blockSel.Position);
+            ConsumeHeld(slot, consumes, isCreative);
+            return true;
+        }
+
+        string? finishKey = MatchConsumes(heldCode, Attributes["Finishes"]);
+        if (finishKey == null) return base.OnBlockInteractStart(world, byPlayer, blockSel);
+
+        bool heldPlaces = slot.Itemstack!.Class == EnumItemClass.Block || MatchConsumes(heldCode, Attributes["Framings"]) != null;
+        if (IsTransparent(entity.DeckInfill, Attributes["Infills"]))
+        {
+            if (heldPlaces) return base.OnBlockInteractStart(world, byPlayer, blockSel);
+            (byPlayer as IServerPlayer)?.SendIngameError("vssiding:glazed", Lang.Get("vssiding:build-glazed"));
+            return true;
+        }
+
+        string? face = SidingFloorBlock.FinishFace(blockSel.Face);
+        if (face == null)
+        {
+            if (heldPlaces) return base.OnBlockInteractStart(world, byPlayer, blockSel);
+            (byPlayer as IServerPlayer)?.SendIngameError("vssiding:wrongface", Lang.Get("vssiding:build-floor-wrong-face"));
+            return true;
+        }
+
+        string? style = SidingModePicker.FinishChoices(byPlayer).FirstOrDefault(s => SidingFloorEntity.HasFloorStyle(Attributes["Finishes"][finishKey], face, s));
+
+        string? currentKey = face == "front" ? entity.DeckFront : entity.DeckBack;
+        string? currentStyle = face == "front" ? entity.DeckFrontStyle : entity.DeckBackStyle;
+        if (currentKey != null)
+        {
+            if (style != null && currentKey == finishKey && currentStyle != style)
+            {
+                SetDeckFinish(entity, face, finishKey, style);
+                return true;
+            }
+
+            if (heldPlaces) return base.OnBlockInteractStart(world, byPlayer, blockSel);
+            (byPlayer as IServerPlayer)?.SendIngameError("vssiding:alreadyfinished", Lang.Get("vssiding:build-already-finished"));
+            return true;
+        }
+
+        var finishConsumes = Attributes["Finishes"][finishKey]["Consumes"];
+        if (!TryAffordOrError(byPlayer, isCreative, slot.StackSize, finishConsumes)) return true;
+
+        SetDeckFinish(entity, face, finishKey, style);
+        ConsumeHeld(slot, finishConsumes, isCreative);
+        return true;
+    }
+
+    private static void SetDeckFinish(SidingWallEntity entity, string face, string finishKey, string? style)
+    {
+        if (face == "front") { entity.DeckFront = finishKey; entity.DeckFrontStyle = style; }
+        else { entity.DeckBack = finishKey; entity.DeckBackStyle = style; }
+        entity.MarkDirty(true);
+    }
+
     private static void SetFinish(SidingWallEntity entity, string face, string finishKey, string? style)
     {
         switch (face)
@@ -650,7 +733,7 @@ public class SidingWallBlock : Block
     public override int GetRetention(BlockPos pos, BlockFacing facing, EnumRetentionType type)
     {
         var entity = api.World.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos);
-        if (facing == BlockFacing.UP) return ComputeDeckRetention(entity?.Deck, Attributes["Framings"]);
+        if (facing == BlockFacing.UP) return ComputeDeckRetention(entity?.Deck, entity?.DeckInfill, entity?.LegacyDeck ?? false, Attributes["Framings"], Attributes["Infills"]);
         return ComputeRetention(ClaimsFace(facing), entity?.Framing, entity?.Infill, Attributes["Framings"], Attributes["Infills"]);
     }
 
@@ -674,7 +757,7 @@ public class SidingWallBlock : Block
     public override bool CanAttachBlockAt(IBlockAccessor blockAccessor, Block block, BlockPos pos, BlockFacing blockFace, Cuboidi? attachmentArea = null)
     {
         var entity = blockAccessor.GetBlockEntity<SidingWallEntity>(pos);
-        if (blockFace == BlockFacing.UP) return ComputeDeckRetention(entity?.Deck, Attributes["Framings"]) != 0;
+        if (blockFace == BlockFacing.UP) return ComputeDeckRetention(entity?.Deck, entity?.DeckInfill, entity?.LegacyDeck ?? false, Attributes["Framings"], Attributes["Infills"]) != 0;
         return ComputeRetention(ClaimsFace(blockFace), entity?.Framing, entity?.Infill, Attributes["Framings"], Attributes["Infills"]) != 0;
     }
 
@@ -695,10 +778,13 @@ public class SidingWallBlock : Block
         return cooling ? -1 : 1;
     }
 
-    // The UP face seals only with a deck; RoomRegistry.FindRoomForPosition asks every face. A deck
-    // is framing timber, which never cools.
-    internal static int ComputeDeckRetention(string? deckKey, JsonObject framings)
-        => deckKey != null && framings[deckKey].Exists ? 1 : 0;
+    // The UP face seals like a floor's top, RoomRegistry.FindRoomForPosition asking every face: framing
+    // and infill both, so a clay or stone deck cools. A deck saved before decks took layers sealed as
+    // bare framing, and keeps doing so until infill is laid.
+    internal static int ComputeDeckRetention(string? deckKey, string? deckInfill, bool legacyDeck, JsonObject framings, JsonObject infills)
+        => legacyDeck
+            ? (deckKey != null && framings[deckKey].Exists ? 1 : 0)
+            : ComputeRetention(true, deckKey, deckInfill, framings, infills);
 
     // The deck changes the UP face's retention, and rooms only recompute on a chunk-dirty event,
     // so the block is exchanged for itself as OnInfillChanged does.
@@ -715,6 +801,7 @@ public class SidingWallBlock : Block
     private void SetDeck(IWorldAccessor world, SidingWallEntity entity, BlockPos pos, string? deckKey)
     {
         entity.Deck = deckKey;
+        entity.LegacyDeck = false;
         entity.MarkDirty(true);
         SidingFloorBlock.MarkNeighboursDirty(world, pos);
         world.BlockAccessor.ExchangeBlock(Id, pos);

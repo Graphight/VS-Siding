@@ -135,6 +135,41 @@ public class SidingWallEntityTests
     }
 
     [Fact]
+    public void DeckSavedBeforeLayersLoadsAsLegacy()
+    {
+        var tree = new TreeAttribute();
+        tree.SetString("deck", "oak");
+
+        Assert.True(SidingWallEntity.ReadLegacyDeck(tree, "oak"));
+    }
+
+    [Fact]
+    public void LegacyDeckFlagSurvivesByteRoundTrip()
+    {
+        var tree = new TreeAttribute();
+        tree.SetString("deck", "oak");
+        tree.SetBool("legacydeck", SidingWallEntity.ReadLegacyDeck(tree, "oak"));
+
+        var reloaded = new TreeAttribute();
+        reloaded.FromBytes(tree.ToBytes());
+
+        Assert.True(SidingWallEntity.ReadLegacyDeck(reloaded, "oak"));
+    }
+
+    [Fact]
+    public void NewDeckStaysNonLegacyAcrossByteRoundTrip()
+    {
+        var tree = new TreeAttribute();
+        tree.SetString("deck", "oak");
+        tree.SetBool("legacydeck", false);
+
+        var reloaded = new TreeAttribute();
+        reloaded.FromBytes(tree.ToBytes());
+
+        Assert.False(SidingWallEntity.ReadLegacyDeck(reloaded, "oak"));
+    }
+
+    [Fact]
     public void DeckLayerKeysSurviveByteRoundTrip()
     {
         string[] keys = ["deckinfill", "deckfront", "deckback", "deckfrontstyle", "deckbackstyle"];

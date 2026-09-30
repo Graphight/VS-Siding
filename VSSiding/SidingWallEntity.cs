@@ -30,6 +30,8 @@ public class SidingWallEntity : BlockEntity
     public string? DeckBack;
     public string? DeckFrontStyle;
     public string? DeckBackStyle;
+    // A deck saved before decks took layers sealed as bare framing, and keeps doing so until infill is laid.
+    public bool LegacyDeck;
     // The held stair's full block code, e.g. "game:plankstairs-oak-up-north-free".
     public string? Step;
     // Vanilla's own vertical-horizontal naming, e.g. "up-north".
@@ -54,6 +56,7 @@ public class SidingWallEntity : BlockEntity
         tree.SetString("deckback", DeckBack);
         tree.SetString("deckfrontstyle", DeckFrontStyle);
         tree.SetString("deckbackstyle", DeckBackStyle);
+        tree.SetBool("legacydeck", LegacyDeck);
         tree.SetString("step", Step);
         tree.SetString("steporientation", StepOrientation);
     }
@@ -82,6 +85,7 @@ public class SidingWallEntity : BlockEntity
         DeckBack = NullIfEmpty(tree.GetString("deckback", null));
         DeckFrontStyle = NullIfEmpty(tree.GetString("deckfrontstyle", null));
         DeckBackStyle = NullIfEmpty(tree.GetString("deckbackstyle", null));
+        LegacyDeck = ReadLegacyDeck(tree, Deck);
         Step = NullIfEmpty(tree.GetString("step", null));
         StepOrientation = NullIfEmpty(tree.GetString("steporientation", null));
 
@@ -94,6 +98,11 @@ public class SidingWallEntity : BlockEntity
             worldAccessForResolve.BlockAccessor.MarkBlockDirty(Pos);
         }
     }
+
+    // A tree that carries the flag was saved by a version that knows the layers, so it is authoritative.
+    // The flag is keyed rather than deckinfill, which a null string never stores.
+    internal static bool ReadLegacyDeck(ITreeAttribute tree, string? deck)
+        => tree.HasAttribute("legacydeck") ? tree.GetBool("legacydeck") : deck != null;
 
     // Block.GetPlacedBlockInfo already calls this inside a try/catch and appends the
     // blockdesc- line after it, so overriding here is the one hook rather than two.
