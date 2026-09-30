@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Created: 2026-09-29
-- Reflects: branch `thin-floor-finishes`; `SidingFloorBlock`, `SidingFloorEntity`, `config/materials.json`, `WallShapeGen`'s floor table; decompiled 1.22.2 `BlockBehaviorDecor`, `WorldChunk.BreakDecor` and `SystemMouseInWorldInteractions`; decisions 0007, 0019, 0027, 0035, 0045, 0050; played once, before the lath direction, the glass bezel and the carpet fix
+- Reflects: branch `thin-floor-finishes`; `SidingFloorBlock`, `SidingFloorEntity`, `config/materials.json`, `WallShapeGen`'s floor table; decompiled 1.22.2 `BlockBehaviorDecor`, `WorldChunk.BreakDecor` and `SystemMouseInWorldInteractions`; decisions 0007, 0019, 0027, 0035, 0045, 0050; played over two rounds
 
 ## Summary
 Decision 0050 draws a floor's top and underside as plain slabs.
@@ -58,7 +58,7 @@ Vanilla rugs, `smallcarpet` and `mediumcarpet` are `Decor` on the `up` face.
 Breaking them was the problem.
 Vanilla breaks a face's decor before its block only in survival, a quarter second into a hit (`SystemMouseInWorldInteractions.ContinueBreakSurvival`), and in creative removes the block and its decor together.
 The floor peels a layer instead of being removed, so in creative the carpet stayed while the layers under it went.
-`SidingFloorBlock.OnBlockBroken` now breaks any decor on the hit face and stops there, the way furniture in a wall's cell comes off before the wall (decision 0035).
+`SidingFloorBlock.OnBlockBroken` now breaks any decor on the hit face and stops there, the way furniture in a wall's cell comes off before the wall (decision 0035), and `GetSounds` plays the decor's sound on that face.
 Peeling from below or a fire can still take the infill out from under a carpet, so removing the infill also breaks the decor on the top, which `CanAttachBlockAt` would no longer allow.
 
 ## Alternatives considered
@@ -74,4 +74,7 @@ Peeling from below or a fire can still take the infill out from under a carpet, 
 - Masonry (brick, ashlar, cobble) still draws the plain slab on a floor; pavers may need their own bond.
 - Lath spacing and the pane's height are guesses to tune in play.
 - A glazed floor's underside lighting belongs to `thin-floor-lighting`.
-- Played: board direction on both faces, restyling in place, the weatherboard fallback, the lath under daub, glass sealing a room and merging, peeling, and carpets placing on a sealed floor. The lath direction, the glass bezel and breaking carpets first came after that playtest.
+- Played: board direction on both faces, restyling in place, the weatherboard fallback, the lath under daub and its direction, glass sealing a room and merging into one bezelled pane, peeling, and carpets placing on a sealed floor and breaking first in creative and survival.
+- In survival, vanilla keeps breaking the block in the same hold after the carpet goes, so a soft layer such as glass can follow it within a fraction of a second; that is vanilla's behaviour on any block.
+- The floor's `GetSounds` defers to vanilla's decor lookup when the hit face has decor, so breaking a carpet sounds like a carpet. Added after the second playtest and not yet played.
+- Removing the infill from under a carpet, by peeling from below or by fire, is not yet played.
