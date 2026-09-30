@@ -1,6 +1,8 @@
 using System.Linq;
+using System.Text;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
+using Vintagestory.API.Config;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Util;
@@ -45,6 +47,13 @@ public class SidingFloorEntity : BlockEntity
         {
             worldAccessForResolve.BlockAccessor.MarkBlockDirty(Pos);
         }
+    }
+
+    // Block.GetPlacedBlockInfo calls this and appends the blockdesc- line after it, as on the wall.
+    public override void GetBlockInfo(IPlayer forPlayer, StringBuilder dsc)
+    {
+        base.GetBlockInfo(forPlayer, dsc);
+        dsc.Append(SidingFloorBlock.Describe(Framing, Infill, Front, Back, Block.Attributes, key => Lang.GetIfExists(key)));
     }
 
     private (string?, string?, string?, string?) MeshState => (Framing, Infill, Front, Back);

@@ -232,6 +232,8 @@
 	"tooltip-no-infill": "No infill",
 	"tooltip-deck": "Deck: {0}",
 	"tooltip-step": "Step: {0}",
+	"tooltip-top": "Top: {0}",
+	"tooltip-underside": "Underside: {0}",
 	"tooltip-unfinished": "unfinished",
 	"tooltip-sealed": "Seals the room",
 	"tooltip-sealed-cool": "Seals the room and keeps it cool",

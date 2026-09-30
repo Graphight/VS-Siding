@@ -9,7 +9,23 @@
 	creativeinventory: { "general": ["*-west"], "decorative": ["*-west"] },
 	blockmaterial: "Wood",
 	attributes: {
-		canStep: false
+		canStep: false,
+		LayerSounds: {
+			"Wood": { place: "game:block/planks", hit: "game:block/planks", break: "game:block/planks", walk: "game:walk/wood" },
+			"Soil": { place: "game:block/planks", hit: "game:block/dirt", break: "game:block/dirt", walk: "game:walk/grass" },
+			"Stone": { place: "game:block/planks", hit: "game:block/rock-hit-pickaxe", break: "game:block/rock-break-pickaxe", walk: "game:walk/stone" },
+			"Ceramic": { place: "game:block/planks", hit: "game:block/ceramichit", break: "game:block/ceramicplace", walk: "game:walk/stone" },
+			"Glass": { place: "game:block/planks", hit: "game:block/glass", break: "game:block/glass", walk: "game:walk/stone" },
+			"Metal": { place: "game:block/planks", hit: "game:block/chute", break: "game:block/chute", walk: "game:walk/stone" }
+		},
+		LayerResistance: {
+			"Wood": 1.0,
+			"Soil": 0.7,
+			"Glass": 0.5,
+			"Ceramic": 1.5,
+			"Stone": 2.5,
+			"Metal": 1.25
+		}
 	},
 	drawtype: "json",
 	shapebytype: {

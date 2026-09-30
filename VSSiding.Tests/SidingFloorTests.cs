@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using Vintagestory.API.MathTools;
 using Xunit;
@@ -66,5 +67,50 @@ public class SidingFloorTests
         Assert.Equal(
             new string?[] { "front", "back", null, null },
             new[] { BlockFacing.UP, BlockFacing.DOWN, BlockFacing.NORTH, BlockFacing.EAST }.Select(SidingFloorBlock.FinishFace));
+    }
+
+    // A top hit takes the floorboards, a bottom hit the ceiling, an edge hit whichever finish is on top.
+    [Fact]
+    public void BreakingPeelsTheHitFacesFinishThenTheInfill()
+    {
+        var full = new SidingFloorEntity { Framing = "oak", Infill = "wattle", Front = "planks", Back = "daub" };
+        var ceilingOnly = new SidingFloorEntity { Framing = "oak", Infill = "wattle", Back = "daub" };
+        var filled = new SidingFloorEntity { Framing = "oak", Infill = "wattle" };
+        var bare = new SidingFloorEntity { Framing = "oak" };
+
+        Assert.Equal(
+            new string?[] { "front", "back", "front", "back", "infill", null },
+            new[]
+            {
+                SidingFloorBlock.PeelLayer(BlockFacing.UP, full),
+                SidingFloorBlock.PeelLayer(BlockFacing.DOWN, full),
+                SidingFloorBlock.PeelLayer(BlockFacing.NORTH, full),
+                SidingFloorBlock.PeelLayer(BlockFacing.UP, ceilingOnly),
+                SidingFloorBlock.PeelLayer(BlockFacing.UP, filled),
+                SidingFloorBlock.PeelLayer(BlockFacing.UP, bare),
+            });
+    }
+
+    [Fact]
+    public void TheTooltipNamesEachLayerAndTheSeal()
+    {
+        var attributes = SidingWallEntityTests.Dict("""
+        {
+            "Framings": { "oak": { "DisplayName": "Oak Framing" } },
+            "Infills": { "stone": { "DisplayName": "Stone Infill", "BlockMaterial": "Stone" } },
+            "Finishes": { "planks": { "DisplayName": "Oak Planks" } }
+        }
+        """);
+        var lang = new Dictionary<string, string>
+        {
+            ["vssiding:tooltip-top"] = "Top: {0}",
+            ["vssiding:tooltip-underside"] = "Underside: {0}",
+            ["vssiding:tooltip-unfinished"] = "unfinished",
+            ["vssiding:tooltip-sealed-cool"] = "Seals the room and keeps it cool",
+        };
+
+        Assert.Equal(
+            "\n  Oak Framing\n  Stone Infill\n  Top: Oak Planks\n  Underside: unfinished\n  Seals the room and keeps it cool\n".Replace("\n", System.Environment.NewLine),
+            SidingFloorBlock.Describe("oak", "stone", "planks", null, attributes, key => lang.GetValueOrDefault(key) ?? (key.StartsWith("vssiding:") ? null : key)));
     }
 }
