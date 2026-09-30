@@ -10,17 +10,22 @@ public class SidingFloorTests
 {
     private static readonly JsonObject Finishes = SidingWallEntityTests.Dict("""
     {
-        "daub": {},
-        "planks": { "Elements": { "front": "front-weatherboard", "back": "back-boards" } }
+        "daub": { "FloorElements": { "back": "back-lath" } },
+        "planks": { "Elements": { "front": "front-weatherboard", "back": "back-boards" }, "FloorElements": { "front": "front-hboards", "back": "back-hboards" } }
     }
     """);
 
     [Fact]
-    public void AStyledFinishDrawsAsThePlainSlab()
+    public void AFinishDrawsTheElementsItsFloorElementsName()
     {
         Assert.Equal(
-            ["front", "framing-left", "framing-right", "framing-top", "framing-bottom", "infill", "back"],
-            SidingFloorEntity.SelectiveElements("oak", "wattle", "planks", "planks", Finishes, (false, false, false, false)));
+            new string[][]
+            {
+                ["front-hboards", "framing-left", "framing-right", "framing-top", "framing-bottom", "infill", "back-hboards"],
+                ["front", "framing-left", "framing-right", "framing-top", "framing-bottom", "infill", "back-lath"],
+            },
+            new[] { ("planks", "planks"), ("daub", "daub") }.Select(f =>
+                SidingFloorEntity.SelectiveElements("oak", "wattle", f.Item1, f.Item2, Finishes, (false, false, false, false))));
     }
 
     [Fact]

@@ -50,6 +50,49 @@ public class FinishElementGroupsTests
         Assert.Equal([], offenders);
     }
 
+    [Fact]
+    public void EveryFloorElementGroupExistsAndIsIgnoredByTheFloorBlock()
+    {
+        var repoRoot = MaterialTextureOpacityTests.GetAssemblyMetadata("RepoRoot");
+        var assets = Path.Combine(repoRoot, "VSSiding", "assets", "vssiding");
+        var floorJson = JObject.Parse(File.ReadAllText(Path.Combine(assets, "blocktypes", "floor.json")));
+        var shapeJson = JObject.Parse(File.ReadAllText(Path.Combine(assets, "shapes", "block", "floor", "floor.json")));
+        var attributes = MaterialTextureOpacityTests.BlockAttributes("wall.json");
+
+        var entries = ((JObject)attributes["Finishes"]!).Properties().Concat(((JObject)attributes["FinishFamilies"]!).Properties());
+        var groups = entries.SelectMany(e => new[] { "front", "back" }.Select(face => (string?)e.Value["FloorElements"]?[face]))
+            .OfType<string>().Where(g => g is not ("front" or "back")).Distinct().ToList();
+        var names = shapeJson["elements"]!.Select(e => (string)e["name"]!).ToHashSet();
+        var ignored = floorJson["shape"]!["ignoreElements"]?.Select(t => (string)t!).ToHashSet() ?? [];
+
+        var offenders = groups.Where(g => !names.Contains(g)).Select(g => $"floor shape has no element '{g}'")
+            .Concat(groups.Where(g => !ignored.Contains(g)).Select(g => $"floor doesn't ignore '{g}'"));
+
+        Assert.Equal([], offenders.ToArray());
+    }
+
+    [Fact]
+    public void EveryElementSelectiveElementsCanAskForExistsInTheFloorShape()
+    {
+        var repoRoot = MaterialTextureOpacityTests.GetAssemblyMetadata("RepoRoot");
+        var shapeJson = JObject.Parse(File.ReadAllText(
+            Path.Combine(repoRoot, "VSSiding", "assets", "vssiding", "shapes", "block", "floor", "floor.json")));
+        var names = shapeJson["elements"]!.Select(e => (string)e["name"]!).ToHashSet();
+        var attributes = MaterialTextureOpacityTests.BlockAttributes("wall.json");
+        var finishes = new JsonObject((JObject)attributes["Finishes"]!);
+
+        var asked =
+            from above in new[] { false, true }
+            from below in new[] { false, true }
+            from left in new[] { false, true }
+            from right in new[] { false, true }
+            from finish in finishes.Token.Children<JProperty>().Select(p => p.Name)
+            from name in SidingFloorEntity.SelectiveElements("oak", "wattle", finish, finish, finishes, (above, below, left, right))
+            select name;
+
+        Assert.Equal([], asked.Distinct().Where(name => !names.Contains(name)).ToArray());
+    }
+
     // Every element name SelectiveElements can produce has to exist in the shape it draws from,
     // for every layout and every join state. A name the shape lacks draws nothing and says
     // nothing - which is how glazing silently kept its seam-prone filler stack.

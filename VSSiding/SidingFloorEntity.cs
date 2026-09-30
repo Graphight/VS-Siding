@@ -80,14 +80,20 @@ public class SidingFloorEntity : BlockEntity
         return true;
     }
 
-    // The wall's own selection, with every finish drawn as its plain slab: styled finishes on a
-    // floor are thin-floor-finishes' job, and the floor shape has only the plain front and back.
+    // The wall's framing and infill names, with each face's element read from the finish's own
+    // FloorElements entry, or the plain slab where it has none.
     internal static string[] SelectiveElements(
         string? framing, string? infill, string? front, string? back, JsonObject finishes,
         (bool above, bool below, bool left, bool right) joins)
-        => SidingWallEntity.SelectiveElements("wall", framing, infill, front, null, back, finishes, joins, glazed: false)
-            .Select(name => name.StartsWith("front-") ? "front" : name.StartsWith("back-") ? "back" : name)
-            .ToArray();
+    {
+        var names = SidingWallEntity.SelectiveElements("wall", framing, infill, null, null, null, finishes, joins, glazed: false).ToList();
+        if (front != null) names.Insert(0, FloorElement(finishes, front, "front"));
+        if (back != null) names.Add(FloorElement(finishes, back, "back"));
+        return names.ToArray();
+    }
+
+    private static string FloorElement(JsonObject finishes, string key, string face)
+        => finishes[key]["FloorElements"][face].AsString(face);
 
     private class TexSource(ICoreClientAPI capi, SidingFloorEntity entity) : ITexPositionSource
     {
