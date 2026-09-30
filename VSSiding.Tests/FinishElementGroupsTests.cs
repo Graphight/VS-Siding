@@ -90,7 +90,9 @@ public class FinishElementGroupsTests
             from left in new[] { false, true }
             from right in new[] { false, true }
             from finish in finishes.Token.Children<JProperty>().Select(p => p.Name)
-            from name in SidingFloorEntity.SelectiveElements("oak", "wattle", finish, finish, finishes, (above, below, left, right))
+            from glazed in new[] { false, true }
+            from name in SidingFloorEntity.SelectiveElements(
+                "oak", glazed ? "glass" : "wattle", finish, finish, finishes, (above, below, left, right), glazed: glazed)
             select name;
 
         Assert.Equal([], asked.Distinct().Where(name => !names.Contains(name)).ToArray());
@@ -159,6 +161,10 @@ public class FinishElementGroupsTests
             var ignored = variant.Value["ignoreElements"]?.Select(t => (string)t!).ToHashSet() ?? [];
             offenders.AddRange(glazingOnly.Where(n => !ignored.Contains(n)).Select(n => $"{variant.Name} draws '{n}'"));
         }
+
+        var floorJson = JObject.Parse(File.ReadAllText(Path.Combine(assets, "blocktypes", "floor.json")));
+        var floorIgnored = floorJson["shape"]!["ignoreElements"]?.Select(t => (string)t!).ToHashSet() ?? [];
+        offenders.AddRange(new[] { "infill-pane" }.Where(n => !floorIgnored.Contains(n)).Select(n => $"floor draws '{n}'"));
 
         Assert.Equal([], offenders);
     }

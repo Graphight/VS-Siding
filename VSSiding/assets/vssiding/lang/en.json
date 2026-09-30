@@ -220,7 +220,6 @@
 	"toolmode-logs": "Logs",
 	"build-wrong-face": "Click the wall's face",
 	"build-floor-wrong-face": "Click the top or the underside",
-	"build-glazed-floor": "A floor cannot be glazed",
 	"build-glazed": "Glazing takes no finish",
 	"build-already-finished": "That side is already finished",
 	"build-occupied": "Something is in the way",

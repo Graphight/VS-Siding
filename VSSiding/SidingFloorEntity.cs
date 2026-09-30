@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Text;
 using Vintagestory.API.Client;
@@ -69,30 +70,44 @@ public class SidingFloorEntity : BlockEntity
         if (Api is not ICoreClientAPI capi) return false;
 
         var joins = SidingFloorBlock.Joins(Api.World.BlockAccessor, Pos);
-        string[] selectiveElements = SelectiveElements(Framing, Infill, Front, Back, Block.Attributes["Finishes"], joins, (FrontStyle, BackStyle));
+        bool glazed = SidingWallBlock.IsTransparent(Infill, Block.Attributes["Infills"]);
+        string[] selectiveElements = SelectiveElements(Framing, Infill, Front, Back, Block.Attributes["Finishes"], joins, (FrontStyle, BackStyle), glazed);
         if (selectiveElements.Length == 0) return false;
 
         string cacheKey = $"vssiding-floor-mesh-{Framing}-{Infill}-{Front}-{Back}-{FrontStyle}-{BackStyle}-{joins.above}-{joins.below}";
-        MeshData mesh = ObjectCacheUtil.GetOrCreate(capi, cacheKey, () =>
+        MeshData[] meshes = ObjectCacheUtil.GetOrCreate(capi, cacheKey, () =>
         {
             Shape shape = Shape.TryGet(capi, new AssetLocation("vssiding", "shapes/block/floor/floor.json"));
             var texSource = new TexSource(capi, this);
-            tesselator.TesselateShape("vssiding-floor", shape, out MeshData modeldata, texSource,
-                new Vec3f(0, 0, 0), 0, 0, 0, null, selectiveElements);
-            return modeldata;
+            if (!glazed) return new[] { Tesselate(tesselator, shape, texSource, selectiveElements) };
+
+            // Two meshes, never merged: see SidingWallEntity.OnTesselation.
+            MeshData glass = Tesselate(tesselator, shape, texSource, Array.FindAll(selectiveElements, SidingWallEntity.IsInfillElement));
+            SidingWallEntity.SetRenderPass(glass, EnumChunkRenderPass.Transparent);
+            MeshData frame = Tesselate(tesselator, shape, texSource, Array.FindAll(selectiveElements, name => !SidingWallEntity.IsInfillElement(name)));
+            return new[] { frame, glass };
         });
 
-        mesher.AddMeshData(mesh);
+        foreach (MeshData mesh in meshes) mesher.AddMeshData(mesh);
         return true;
+    }
+
+    private static MeshData Tesselate(ITesselatorAPI tesselator, Shape shape, ITexPositionSource texSource, string[] selectiveElements)
+    {
+        tesselator.TesselateShape("vssiding-floor", shape, out MeshData modeldata, texSource,
+            new Vec3f(0, 0, 0), 0, 0, 0, null, selectiveElements);
+        return modeldata;
     }
 
     // The wall's framing and infill names, with each face's element named by its style, else read
     // from the finish's own FloorElements entry, or the plain slab where it has none.
     internal static string[] SelectiveElements(
         string? framing, string? infill, string? front, string? back, JsonObject finishes,
-        (bool above, bool below, bool left, bool right) joins, (string? front, string? back) styles = default)
+        (bool above, bool below, bool left, bool right) joins, (string? front, string? back) styles = default, bool glazed = false)
     {
-        var names = SidingWallEntity.SelectiveElements("wall", framing, infill, null, null, null, finishes, joins, glazed: false).ToList();
+        // Glazing is the one flat pane and keeps the ordinary joists; the shape has no bezel.
+        var names = SidingWallEntity.SelectiveElements("wall", framing, glazed ? null : infill, null, null, null, finishes, joins, glazed: false).ToList();
+        if (glazed && infill != null) names.Add("infill-pane");
         if (front != null) names.Insert(0, FloorElement(finishes, front, "front", styles.front));
         if (back != null) names.Add(FloorElement(finishes, back, "back", styles.back));
         return names.ToArray();

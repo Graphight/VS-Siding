@@ -41,12 +41,6 @@ public class SidingFloorBlock : Block
             string? infillKey = SidingWallBlock.MatchConsumes(heldCode, Attributes["Infills"]);
             if (infillKey == null) return base.OnBlockInteractStart(world, byPlayer, blockSel);
 
-            if (SidingWallBlock.IsTransparent(infillKey, Attributes["Infills"]))
-            {
-                (byPlayer as IServerPlayer)?.SendIngameError("vssiding:glazedfloor", Lang.Get("vssiding:build-glazed-floor"));
-                return true;
-            }
-
             var consumes = Attributes["Infills"][infillKey]["Consumes"];
             if (!SidingWallBlock.TryAffordOrError(byPlayer, isCreative, slot.StackSize, consumes)) return true;
 
@@ -60,6 +54,13 @@ public class SidingFloorBlock : Block
         if (finishKey == null) return base.OnBlockInteractStart(world, byPlayer, blockSel);
 
         bool heldPlaces = slot.Itemstack!.Class == EnumItemClass.Block || SidingWallBlock.MatchConsumes(heldCode, Attributes["Framings"]) != null;
+        if (SidingWallBlock.IsTransparent(entity.Infill, Attributes["Infills"]))
+        {
+            if (heldPlaces) return base.OnBlockInteractStart(world, byPlayer, blockSel);
+            (byPlayer as IServerPlayer)?.SendIngameError("vssiding:glazed", Lang.Get("vssiding:build-glazed"));
+            return true;
+        }
+
         string? face = FinishFace(blockSel.Face);
         if (face == null)
         {

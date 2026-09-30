@@ -59,6 +59,21 @@ public class SidingFloorTests
             SidingFloorEntity.SelectiveElements("oak", "wattle", null, null, Finishes, (true, false, false, false)));
     }
 
+    // Glass is one pane through the joists, with no slivers to seam and no finish-dependent infill.
+    [Fact]
+    public void AGlazedFloorDrawsTheFramingAndOnePane()
+    {
+        Assert.Equal(
+            new string[][]
+            {
+                ["framing-left", "framing-right", "framing-top", "framing-bottom", "infill-pane"],
+                ["framing-left", "framing-right", "framing-bottom", "infill-pane"],
+                ["framing-left", "framing-right", "infill-pane"],
+            },
+            new[] { (false, false), (true, false), (true, true) }.Select(j =>
+                SidingFloorEntity.SelectiveElements("oak", "glass", null, null, Finishes, (j.Item1, j.Item2, false, false), glazed: true)));
+    }
+
     private static readonly JsonObject Attributes = SidingWallEntityTests.Dict("""
     {
         "Framings": { "oak": {} },
