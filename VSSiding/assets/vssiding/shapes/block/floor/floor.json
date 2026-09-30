@@ -1424,7 +1424,7 @@
       }
     },
     {
-      "name": "back-lath",
+      "name": "back-lath-hboards",
       "from": [
         0.0,
         12.5,
@@ -1493,7 +1493,7 @@
       }
     },
     {
-      "name": "back-lath",
+      "name": "back-lath-hboards",
       "from": [
         0.0,
         12.0,
@@ -1553,7 +1553,7 @@
       }
     },
     {
-      "name": "back-lath",
+      "name": "back-lath-hboards",
       "from": [
         0.0,
         12.0,
@@ -1613,7 +1613,7 @@
       }
     },
     {
-      "name": "back-lath",
+      "name": "back-lath-hboards",
       "from": [
         0.0,
         12.0,
@@ -1673,7 +1673,7 @@
       }
     },
     {
-      "name": "back-lath",
+      "name": "back-lath-hboards",
       "from": [
         0.0,
         12.0,
@@ -1733,7 +1733,7 @@
       }
     },
     {
-      "name": "back-lath",
+      "name": "back-lath-hboards",
       "from": [
         0.0,
         12.0,
@@ -1793,7 +1793,7 @@
       }
     },
     {
-      "name": "back-lath",
+      "name": "back-lath-hboards",
       "from": [
         0.0,
         12.0,
@@ -1853,7 +1853,7 @@
       }
     },
     {
-      "name": "back-lath",
+      "name": "back-lath-hboards",
       "from": [
         0.0,
         12.0,
@@ -1913,7 +1913,7 @@
       }
     },
     {
-      "name": "back-lath",
+      "name": "back-lath-hboards",
       "from": [
         0.0,
         12.0,
@@ -1968,6 +1968,555 @@
             0.0,
             16.0,
             1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "back-lath-boards",
+      "from": [
+        0.0,
+        12.5,
+        0.0
+      ],
+      "to": [
+        16.0,
+        13.0,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#back",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#back",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#back",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#back",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#back",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            16.0
+          ]
+        },
+        "down": {
+          "texture": "#back",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "back-lath-boards",
+      "from": [
+        0.5,
+        12.0,
+        0.0
+      ],
+      "to": [
+        1.5,
+        12.5,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "back-lath-boards",
+      "from": [
+        2.5,
+        12.0,
+        0.0
+      ],
+      "to": [
+        3.5,
+        12.5,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "back-lath-boards",
+      "from": [
+        4.5,
+        12.0,
+        0.0
+      ],
+      "to": [
+        5.5,
+        12.5,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "back-lath-boards",
+      "from": [
+        6.5,
+        12.0,
+        0.0
+      ],
+      "to": [
+        7.5,
+        12.5,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "back-lath-boards",
+      "from": [
+        8.5,
+        12.0,
+        0.0
+      ],
+      "to": [
+        9.5,
+        12.5,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "back-lath-boards",
+      "from": [
+        10.5,
+        12.0,
+        0.0
+      ],
+      "to": [
+        11.5,
+        12.5,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "back-lath-boards",
+      "from": [
+        12.5,
+        12.0,
+        0.0
+      ],
+      "to": [
+        13.5,
+        12.5,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "back-lath-boards",
+      "from": [
+        14.5,
+        12.0,
+        0.0
+      ],
+      "to": [
+        15.5,
+        12.5,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            16.0
           ]
         }
       }

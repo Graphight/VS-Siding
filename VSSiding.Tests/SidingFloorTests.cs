@@ -10,8 +10,14 @@ public class SidingFloorTests
 {
     private static readonly JsonObject Finishes = SidingWallEntityTests.Dict("""
     {
-        "daub": { "FloorElements": { "back": "back-lath" } },
-        "planks": { "Elements": { "front": "front-weatherboard", "back": "back-boards" }, "FloorElements": { "front": "front-hboards", "back": "back-hboards" }, "FloorStyles": ["boards", "hboards"] }
+        "daub": { "FloorElements": { "back": { "hboards": "back-lath-hboards", "boards": "back-lath-boards" } } },
+        "planks": {
+            "Elements": { "front": "front-weatherboard", "back": "back-boards" },
+            "FloorElements": {
+                "front": { "hboards": "front-hboards", "boards": "front-boards" },
+                "back": { "hboards": "back-hboards", "boards": "back-boards" }
+            }
+        }
     }
     """);
 
@@ -22,14 +28,14 @@ public class SidingFloorTests
             new string[][]
             {
                 ["front-hboards", "framing-left", "framing-right", "framing-top", "framing-bottom", "infill", "back-hboards"],
-                ["front", "framing-left", "framing-right", "framing-top", "framing-bottom", "infill", "back-lath"],
+                ["front", "framing-left", "framing-right", "framing-top", "framing-bottom", "infill", "back-lath-hboards"],
             },
             new[] { ("planks", "planks"), ("daub", "daub") }.Select(f =>
                 SidingFloorEntity.SelectiveElements("oak", "wattle", f.Item1, f.Item2, Finishes, (false, false, false, false))));
     }
 
     [Fact]
-    public void AStyleNamesItsElementsOutrightAndNoneKeepsTheDefault()
+    public void AStyleNamesItsFacesElementAndNoneKeepsTheDefault()
     {
         Assert.Equal(
             new string[][]
@@ -37,18 +43,20 @@ public class SidingFloorTests
                 ["front-boards", "framing-left", "framing-right", "framing-top", "framing-bottom", "infill", "back-boards"],
                 ["front-hboards", "framing-left", "framing-right", "framing-top", "framing-bottom", "infill", "back-hboards"],
                 ["front-boards", "framing-left", "framing-right", "framing-top", "framing-bottom", "infill", "back-hboards"],
+                ["front", "framing-left", "framing-right", "framing-top", "framing-bottom", "infill", "back-lath-boards"],
             },
-            new (string?, string?)[] { ("boards", "boards"), (null, null), ("boards", null) }.Select(s =>
-                SidingFloorEntity.SelectiveElements("oak", "wattle", "planks", "planks", Finishes, (false, false, false, false), s)));
+            new (string, (string?, string?))[] { ("planks", ("boards", "boards")), ("planks", (null, null)), ("planks", ("boards", null)), ("daub", (null, "boards")) }.Select(c =>
+                SidingFloorEntity.SelectiveElements("oak", "wattle", c.Item1, c.Item1, Finishes, (false, false, false, false), c.Item2)));
     }
 
+    // A style counts per face, so boards picked while daubing the top leave the plain slab there.
     [Fact]
-    public void AFinishTakesOnlyTheStylesItsFloorStylesList()
+    public void AFaceTakesOnlyTheStylesItsFloorElementsList()
     {
-        var planks = Finishes["planks"];
         Assert.Equal(
-            [true, false, true],
-            new[] { "boards", "weatherboard", "hboards" }.Select(s => SidingWallBlock.HasStyle(planks, s, "FloorStyles")));
+            ["planks front boards True", "planks front weatherboard False", "planks back hboards True", "daub front boards False", "daub back boards True"],
+            new[] { ("planks", "front", "boards"), ("planks", "front", "weatherboard"), ("planks", "back", "hboards"), ("daub", "front", "boards"), ("daub", "back", "boards") }
+                .Select(c => $"{c.Item1} {c.Item2} {c.Item3} {SidingFloorEntity.HasFloorStyle(Finishes[c.Item1], c.Item2, c.Item3)}"));
     }
 
     [Fact]

@@ -69,8 +69,9 @@ public class SidingFloorBlock : Block
             return true;
         }
 
-        // Only a finish that lists the picked style takes it, so weatherboard falls back to the east-west default.
-        string? style = SidingModePicker.FinishChoices(byPlayer).FirstOrDefault(s => SidingWallBlock.HasStyle(Attributes["Finishes"][finishKey], s, "FloorStyles"));
+        // Only a face whose FloorElements lists the picked style takes it, so weatherboard, or boards
+        // on a daub top, falls back to the face's default.
+        string? style = SidingModePicker.FinishChoices(byPlayer).FirstOrDefault(s => SidingFloorEntity.HasFloorStyle(Attributes["Finishes"][finishKey], face, s));
 
         string? currentKey = face == "front" ? entity.Front : entity.Back;
         string? currentStyle = face == "front" ? entity.FrontStyle : entity.BackStyle;

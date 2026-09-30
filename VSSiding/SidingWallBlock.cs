@@ -559,8 +559,8 @@ public class SidingWallBlock : Block
 
     // Only a finish that lists a style can be asked for it, so a picked board style on daub or
     // brick falls back to the entry's default rather than naming an element its shape hasn't got.
-    internal static bool HasStyle(JsonObject finish, string style, string list = "Styles")
-        => Array.IndexOf(finish[list].AsArray<string>([]) ?? [], style) >= 0;
+    internal static bool HasStyle(JsonObject finish, string style)
+        => Array.IndexOf(finish["Styles"].AsArray<string>([]) ?? [], style) >= 0;
 
     internal void OnInfillChanged(IWorldAccessor world, SidingWallEntity entity, BlockPos pos, string? oldInfill)
     {

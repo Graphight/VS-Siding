@@ -60,10 +60,8 @@ public class FinishElementGroupsTests
         var attributes = MaterialTextureOpacityTests.BlockAttributes("wall.json");
 
         var entries = ((JObject)attributes["Finishes"]!).Properties().Concat(((JObject)attributes["FinishFamilies"]!).Properties());
-        var groups = entries.SelectMany(e => new[] { "front", "back" }.Select(face => (string?)e.Value["FloorElements"]?[face]))
-            .OfType<string>().Where(g => g is not ("front" or "back"))
-            .Concat(entries.SelectMany(e => e.Value["FloorStyles"]?.Select(t => (string)t!) ?? [])
-                .SelectMany(style => new[] { "front-" + style, "back-" + style }))
+        var groups = entries.SelectMany(e => new[] { "front", "back" }
+                .SelectMany(face => e.Value["FloorElements"]?[face]?.Values().Select(t => (string)t!) ?? []))
             .Distinct().ToList();
         var names = shapeJson["elements"]!.Select(e => (string)e["name"]!).ToHashSet();
         var ignored = floorJson["shape"]!["ignoreElements"]?.Select(t => (string)t!).ToHashSet() ?? [];

@@ -99,8 +99,8 @@ public class SidingFloorEntity : BlockEntity
         return modeldata;
     }
 
-    // The wall's framing and infill names, with each face's element named by its style, else read
-    // from the finish's own FloorElements entry, or the plain slab where it has none.
+    // The wall's framing and infill names, with each face's element read from the finish's own
+    // FloorElements by its style, or the plain slab where it has none.
     internal static string[] SelectiveElements(
         string? framing, string? infill, string? front, string? back, JsonObject finishes,
         (bool above, bool below, bool left, bool right) joins, (string? front, string? back) styles = default, bool glazed = false)
@@ -113,8 +113,19 @@ public class SidingFloorEntity : BlockEntity
         return names.ToArray();
     }
 
+    // Every floor's joists run north-south (decision 0050), so a face with no style picked lays its
+    // boards across them.
+    private const string DefaultStyle = "hboards";
+
+    // FloorElements maps each face's styles to the element drawing them; a face it leaves out is the plain slab.
     private static string FloorElement(JsonObject finishes, string key, string face, string? style)
-        => style != null ? $"{face}-{style}" : finishes[key]["FloorElements"][face].AsString(face);
+    {
+        var looks = finishes[key]["FloorElements"][face];
+        return looks.Exists ? looks[style ?? DefaultStyle].AsString(null!) ?? looks[DefaultStyle].AsString(face) : face;
+    }
+
+    internal static bool HasFloorStyle(JsonObject finish, string face, string style)
+        => finish["FloorElements"][face][style].Exists;
 
     private class TexSource(ICoreClientAPI capi, SidingFloorEntity entity) : ITexPositionSource
     {
