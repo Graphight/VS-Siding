@@ -30,17 +30,6 @@ public class SidingFloorTests
             SidingFloorEntity.SelectiveElements("oak", "wattle", null, null, Finishes, (true, false, false, false)));
     }
 
-    [Theory]
-    [InlineData("west", "east", true)]
-    [InlineData("north", "south", true)]
-    [InlineData("west", "west", true)]
-    [InlineData("west", "north", false)]
-    [InlineData("south", "east", false)]
-    public void JoistsAlignOnlyAlongOneAxis(string side, string neighbourSide, bool expected)
-    {
-        Assert.Equal(expected, SidingFloorBlock.JoistsAlign(side, neighbourSide));
-    }
-
     private static readonly Vintagestory.API.Datastructures.JsonObject Attributes = SidingWallEntityTests.Dict("""
     {
         "Framings": { "oak": {} },

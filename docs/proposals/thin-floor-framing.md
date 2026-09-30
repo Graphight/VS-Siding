@@ -24,7 +24,9 @@ The panel's top face is the whole 16×16 at the height a plank block's would be,
 `floor.json` with `SidingFloorBlock` and `SidingFloorEntity`, which do not derive from the wall's classes.
 About thirty patch sites test `is SidingWallBlock`, `WallAt` or `GetBlockEntity<SidingWallEntity>` (guest hosting, `OpenSide`, step-up, skylight, `KillFire`, the bed and trunk footprints), and every one of them assumes a panel standing on a horizontal face.
 A separate class keeps a floor out of all of them; the floor reuses the wall's static helpers instead.
-The `side` variant stays, from `HorizontalOrientable`, and sets which way the joists run.
+The floor has no orientation: every floor's joists run north-south, three to a cell, so they tile across any run and never set a direction the finishes would have to follow.
+The first playtest had `side` from `HorizontalOrientable` choosing the joist direction, which tied the floorboards' grain to it; board direction is now a finish style in `thin-floor-finishes`.
+Two joists at the cell edges also read as a floor a player should fall through; three, never more than 4.5/16 apart, do not.
 
 **One materials file for both.**
 `Framings`, `Infills`, `Finishes` and their `*Families` move from `wall.json` to `config/materials.json`.

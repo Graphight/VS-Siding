@@ -8,7 +8,7 @@ namespace VSSiding;
 // whole build flow's "you're building" signal, see SidingWallBlock.HasSawInOffhand); the
 // picker's framing row picks wall vs cornerout, and placement itself is handed to the
 // placeholder wall block so its existing HorizontalOrientable behavior does the "hug the
-// player's side" orientation. With floor picked the placeholder is the floor, whose side sets its joists.
+// player's side" orientation. With floor picked the placeholder is the floor, which has no orientation.
 public class PlaceWallFrame : CollectibleBehavior
 {
     public PlaceWallFrame(CollectibleObject collObj) : base(collObj)
@@ -36,7 +36,7 @@ public class PlaceWallFrame : CollectibleBehavior
         int times = withDeck ? 2 : 1;
         bool isCreative = byPlayer.WorldData.CurrentGameMode == EnumGameMode.Creative;
         if (!SidingWallBlock.TryAffordOrError(byPlayer, isCreative, slot.Itemstack.StackSize, consumes, times)) return;
-        var placeholder = world.GetBlock(new AssetLocation("vssiding", layout == "floor" ? "floor-west" : $"wall-{layout}-west"));
+        var placeholder = world.GetBlock(new AssetLocation("vssiding", layout == "floor" ? "floor" : $"wall-{layout}-west"));
         if (placeholder == null) return;
 
         BlockPos targetPos = blockSel.Position;

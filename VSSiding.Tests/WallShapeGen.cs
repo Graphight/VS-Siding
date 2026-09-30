@@ -536,21 +536,29 @@ public static class WallShapeGen
     ];
 
     // The wall's layers laid flat: top finish, joists with infill between, underside, filling y 12..16
-    // so the top sits where a plank block's would. Joists run along x at the z edges; the rims across
-    // the x ends drop where the next floor carries the joists on, as a stacked wall drops its plates.
-    // The names are the wall's own, so SelectiveElements picks from either table unchanged.
+    // so the top sits where a plank block's would. Every floor's joists run north-south (along z) at
+    // the same x, three to a cell and never more than 4.5 voxels apart, so they tile across any run
+    // and read as a floor a player could not fall through. The rims across the north and south ends
+    // are cut between the joists and drop where the next floor carries the joists on, as a stacked
+    // wall drops its plates. The names are the wall's own, so SelectiveElements picks from either
+    // table unchanged; framing-left holds two of the three joists since no floor ever drops one.
     private static readonly Element[] FloorElements =
     [
         new("front", (0, 15, 0), (16, 16, 16), "front", UvRule.Flat),
-        new("framing-left", (0, 13, 0), (16, 15, 1), "framing", UvRule.Flat),
-        new("framing-right", (0, 13, 15), (16, 15, 16), "framing", UvRule.Flat),
-        new("framing-top", (15, 13, 1), (16, 15, 15), "framing", UvRule.Flat),
-        new("framing-bottom", (0, 13, 1), (1, 15, 15), "framing", UvRule.Flat),
-        new("infill-top", (15, 13.5, 1), (16, 14.5, 15), "infill", UvRule.Flat, RunAxis: 'x'),
-        new("infill", (1, 13.5, 1), (15, 14.5, 15), "infill", UvRule.Flat, RunAxis: 'x'),
-        new("infill-bottom", (0, 13.5, 1), (1, 14.5, 15), "infill", UvRule.Flat, RunAxis: 'x'),
+        new("framing-left", (2, 13, 0), (3, 15, 16), "framing", UvRule.Flat),
+        new("framing-left", (7.5, 13, 0), (8.5, 15, 16), "framing", UvRule.Flat),
+        new("framing-right", (13, 13, 0), (14, 15, 16), "framing", UvRule.Flat),
+        .. Rim("framing-top", 0, 1),
+        .. Rim("framing-bottom", 15, 16),
+        new("infill-top", (0, 13.5, 0), (16, 14.5, 1), "infill", UvRule.Flat, RunAxis: 'z'),
+        new("infill", (0, 13.5, 1), (16, 14.5, 15), "infill", UvRule.Flat, RunAxis: 'z'),
+        new("infill-bottom", (0, 13.5, 15), (16, 14.5, 16), "infill", UvRule.Flat, RunAxis: 'z'),
         new("back", (0, 12, 0), (16, 13, 16), "back", UvRule.Flat),
     ];
+
+    private static IEnumerable<Element> Rim(string name, double z1, double z2) =>
+        new[] { (0.0, 2.0), (3.0, 7.5), (8.5, 13.0), (14.0, 16.0) }
+            .Select(x => new Element(name, (x.Item1, 13, z1), (x.Item2, 15, z2), "framing", UvRule.Flat, RunAxis: 'x'));
 
     private static readonly (string Slot, string Texture)[] FloorTextures =
     [

@@ -62,18 +62,17 @@ public class SidingFloorEntity : BlockEntity
     {
         if (Api is not ICoreClientAPI capi) return false;
 
-        var joins = ((SidingFloorBlock)Block).Joins(Api.World.BlockAccessor, Pos);
+        var joins = SidingFloorBlock.Joins(Api.World.BlockAccessor, Pos);
         string[] selectiveElements = SelectiveElements(Framing, Infill, Front, Back, Block.Attributes["Finishes"], joins);
         if (selectiveElements.Length == 0) return false;
 
-        string side = Block.Variant["side"];
-        string cacheKey = $"vssiding-floor-mesh-{side}-{Framing}-{Infill}-{Front}-{Back}-{joins.above}-{joins.below}";
+        string cacheKey = $"vssiding-floor-mesh-{Framing}-{Infill}-{Front}-{Back}-{joins.above}-{joins.below}";
         MeshData mesh = ObjectCacheUtil.GetOrCreate(capi, cacheKey, () =>
         {
             Shape shape = Shape.TryGet(capi, new AssetLocation("vssiding", "shapes/block/floor/floor.json"));
             var texSource = new TexSource(capi, this);
             tesselator.TesselateShape("vssiding-floor", shape, out MeshData modeldata, texSource,
-                new Vec3f(0, SidingWallEntity.RotationYDeg(side), 0), 0, 0, 0, null, selectiveElements);
+                new Vec3f(0, 0, 0), 0, 0, 0, null, selectiveElements);
             return modeldata;
         });
 

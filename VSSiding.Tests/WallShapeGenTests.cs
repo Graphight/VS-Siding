@@ -103,20 +103,27 @@ public class WallShapeGenTests
             .ToArray());
     }
 
-    // The floor's whole layout, written out: a 4/16 panel at y 12..16, joists along x at the z edges.
+    // The floor's whole layout, written out: a 4/16 panel at y 12..16, three joists running north-south.
     [Fact]
     public void FloorLaysTheWallsLayersFlatAtTheTopOfTheCell()
     {
         string[] expected =
         [
             "front 0,15,0 16,16,16",
-            "framing-left 0,13,0 16,15,1",
-            "framing-right 0,13,15 16,15,16",
-            "framing-top 15,13,1 16,15,15",
-            "framing-bottom 0,13,1 1,15,15",
-            "infill-top 15,13.5,1 16,14.5,15",
-            "infill 1,13.5,1 15,14.5,15",
-            "infill-bottom 0,13.5,1 1,14.5,15",
+            "framing-left 2,13,0 3,15,16",
+            "framing-left 7.5,13,0 8.5,15,16",
+            "framing-right 13,13,0 14,15,16",
+            "framing-top 0,13,0 2,15,1",
+            "framing-top 3,13,0 7.5,15,1",
+            "framing-top 8.5,13,0 13,15,1",
+            "framing-top 14,13,0 16,15,1",
+            "framing-bottom 0,13,15 2,15,16",
+            "framing-bottom 3,13,15 7.5,15,16",
+            "framing-bottom 8.5,13,15 13,15,16",
+            "framing-bottom 14,13,15 16,15,16",
+            "infill-top 0,13.5,0 16,14.5,1",
+            "infill 0,13.5,1 16,14.5,15",
+            "infill-bottom 0,13.5,15 16,14.5,16",
             "back 0,12,0 16,13,16",
         ];
         Assert.Equal(expected, WallShapeGen.Generate("floor")["elements"]!

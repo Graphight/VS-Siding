@@ -131,31 +131,21 @@ public class SidingFloorBlock : Block
             SidingWallBlock.ComputeLightAbsorption(framing, oldInfill, Attributes["Framings"], Attributes["Infills"]),
             GetLightAbsorption(accessor, pos), pos);
 
-    // The unrotated floor's joists run along x, and RotationYDeg turns its west end to face `side`,
-    // so the rim drawn as framing-bottom faces `side` and framing-top faces the opposite way. Each
-    // drops where the next floor carries the joists on, the way a stacked wall drops its plates.
-    internal (bool above, bool below, bool left, bool right) Joins(IBlockAccessor accessor, BlockPos pos)
-    {
-        var side = BlockFacing.FromCode(Variant["side"]);
-        return (ContinuesJoists(accessor, pos.AddCopy(side.Opposite)), ContinuesJoists(accessor, pos.AddCopy(side)), false, false);
-    }
+    // Every floor's joists run north-south, so the north rim (framing-top) and the south rim
+    // (framing-bottom) each drop where a framed floor carries the joists on, the way a stacked
+    // wall drops its plates.
+    internal static (bool above, bool below, bool left, bool right) Joins(IBlockAccessor accessor, BlockPos pos)
+        => (ContinuesJoists(accessor, pos.NorthCopy()), ContinuesJoists(accessor, pos.SouthCopy()), false, false);
 
-    private bool ContinuesJoists(IBlockAccessor accessor, BlockPos neighbourPos)
-        => accessor.GetBlock(neighbourPos) is SidingFloorBlock neighbour
-            && JoistsAlign(Variant["side"], neighbour.Variant["side"])
-            && accessor.GetBlockEntity<SidingFloorEntity>(neighbourPos)?.Framing != null;
+    private static bool ContinuesJoists(IBlockAccessor accessor, BlockPos neighbourPos)
+        => accessor.GetBlockEntity<SidingFloorEntity>(neighbourPos)?.Framing != null;
 
     // Setting Framing isn't a block change, so the floors whose rims it drops have to be told.
     internal static void MarkNeighboursDirty(IWorldAccessor world, BlockPos pos)
     {
-        foreach (var face in BlockFacing.HORIZONTALS)
-        {
-            world.BlockAccessor.GetBlockEntity<SidingFloorEntity>(pos.AddCopy(face))?.MarkDirty(true);
-        }
+        world.BlockAccessor.GetBlockEntity<SidingFloorEntity>(pos.NorthCopy())?.MarkDirty(true);
+        world.BlockAccessor.GetBlockEntity<SidingFloorEntity>(pos.SouthCopy())?.MarkDirty(true);
     }
-
-    internal static bool JoistsAlign(string side, string neighbourSide)
-        => BlockFacing.FromCode(side).Axis == BlockFacing.FromCode(neighbourSide).Axis;
 
     // The wall's peel order with the top as front and the underside as back (decision 0013):
     // the hit face's finish, then any finish, then the infill; null leaves only the joists.
