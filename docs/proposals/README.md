@@ -8,7 +8,6 @@ An idea that's been thought through but not acted on. Mutable: edit freely, argu
 
 ## Open
 
-- `deck-as-floor`: the deck gets the floor's layers, so a floor run up to a wall reads as one floor; decks built before it keep sealing as bare framing.
 - `hanging-under-thin-floors`: a thin floor's underside is 12/16 above the cell boundary, so hung lanterns float or are refused.
 The proposal shifts the hung block's mesh and boxes up to meet it, reusing decision 0035's offset.
 - `hosted-light-sources`: a torch or lantern hosted in a sealed wall's cell lights nothing, because `GuestLightPatches` raises the cell's absorption to the wall's 99 and vanilla's block-light walk subtracts the source cell's own absorption before light leaves it.
