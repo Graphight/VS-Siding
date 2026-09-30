@@ -918,15 +918,21 @@ public class SidingModSystem : ModSystem
             throw new InvalidOperationException($"Expected two Block.CanStep reads in FindSteppableCollisionboxSmooth, found {replaced}.");
     }
 
-    // Vanilla's burnout deletes the fuel block outright; a wall with a layer to lose keeps the
-    // block and loses the layer, and the fire just goes out.
+    // Vanilla's burnout deletes the fuel block outright; a wall or floor with a layer to lose keeps
+    // the block and loses the layer, and the fire just goes out.
     internal static void BurnLayerPrefix(BEBehaviorBurning __instance, ref bool consumeFuel)
     {
         BlockPos? fuelPos = __instance.FuelPos;
         if (!consumeFuel || fuelPos == null || fuelPos == __instance.FirePos) return;
 
         var world = __instance.Api.World;
-        if (world.BlockAccessor.GetBlock(fuelPos) is SidingWallBlock wall && wall.TryBurnLayer(world, fuelPos)) consumeFuel = false;
+        bool burntLayer = world.BlockAccessor.GetBlock(fuelPos) switch
+        {
+            SidingWallBlock wall => wall.TryBurnLayer(world, fuelPos),
+            SidingFloorBlock floor => floor.TryBurnLayer(world, fuelPos),
+            _ => false,
+        };
+        if (burntLayer) consumeFuel = false;
     }
 
     // BreakAllDecorFast runs on every solid-block SetBlock (BlockAccessorBase.SetSolidBlockInternal,

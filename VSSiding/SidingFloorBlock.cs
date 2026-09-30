@@ -237,7 +237,23 @@ public class SidingFloorBlock : Block
             }
         }
         SpawnBlockBrokenParticles(pos, byPlayer);
+        RemoveLayer(world, entity, pos, layer);
+    }
 
+    // As on the wall (decision 0043): a fire that burns out on a floor takes its topmost layer, and
+    // only a wood one; bare joists have none left, so vanilla deletes the block.
+    internal bool TryBurnLayer(IWorldAccessor world, BlockPos pos)
+    {
+        var entity = world.BlockAccessor.GetBlockEntity<SidingFloorEntity>(pos);
+        string? layer = entity == null ? null : PeelLayer(null, entity);
+        if (layer == null) return false;
+
+        if (LayerMaterialAt(layer, entity!) == EnumBlockMaterial.Wood && world.Side == EnumAppSide.Server) RemoveLayer(world, entity!, pos, layer);
+        return true;
+    }
+
+    private void RemoveLayer(IWorldAccessor world, SidingFloorEntity entity, BlockPos pos, string layer)
+    {
         switch (layer)
         {
             case "front": entity.Front = null; entity.MarkDirty(true); break;

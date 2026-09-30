@@ -82,6 +82,10 @@ Instead the click walks along the floor the way the player faces and frames the 
 It works the way a rope ladder extends downward, and it is how a floor goes out over water: before it, the only face to click was the floor's edge, reached by crouching out past it and looking back.
 A filled floor with no floorboards takes a plain click as floorboards and a sneak-click as an extension.
 
+**Fire.**
+A floor with a wood top catches fire, and when the fire burns out it takes one layer, as a wall does (decision 0043): the `KillFire` prefix hands the floor to `SidingFloorBlock.TryBurnLayer` as it hands a wall to `SidingWallBlock.TryBurnLayer`.
+A top of any other material does not burn: the fire goes out and the floor stays. Bare joists burn away whole. Added after review and not yet played.
+
 **Never a guest.**
 `IsHostable` lets a block with only a solid top and a block entity into a wall's cell (a cabinet), and a floor is exactly that.
 The wall's `IsReplacableBy` then returned true for a floor, so a plank click on a decked wall silently failed, and one on a bare wall would have tried to host the floor in the wall's cell.
