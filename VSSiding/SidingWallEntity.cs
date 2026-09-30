@@ -115,7 +115,7 @@ public class SidingWallEntity : BlockEntity
         dsc.Append(SidingWallBlock.Describe(
             Framing, Infill, Deck, Block.Attributes["Framings"], Block.Attributes["Infills"],
             Block.Variant["layout"], Block.Variant["side"], Front, SecondFront, Back, Block.Attributes["Finishes"],
-            key => Lang.GetIfExists(key), stepName));
+            key => Lang.GetIfExists(key), stepName, DeckInfill, DeckFront, DeckBack));
     }
 
     // Everything OnTesselation reads off this entity, which is exactly what CacheKey covers.
