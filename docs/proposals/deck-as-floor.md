@@ -2,14 +2,14 @@
 
 - Status: Draft
 - Created: 2026-09-29
-- Reflects: decision 0042's deck; `thin-floor-framing`'s floor shape and entity; a session discussion after the first floor playtest; not yet played
+- Reflects: decision 0042's deck; decision 0050's floor shape and entity; a session discussion after the first floor playtest; not yet played
 
 ## Summary
 A deck is framing timber and nothing else (decision 0042).
 This gives it the floor's layers: joists from the held plank, then its own infill, a top finish and an underside, so a floor run up to a wall reads as one floor from above and below.
 
 ## Context
-`thin-floor-framing` built a floor out of the wall's layers laid flat, and called the deck its rim joist.
+Decision 0050 built a floor out of the wall's layers laid flat, and called the deck its rim joist.
 Beside a floor with floorboards and a plastered ceiling, the deck is bare framing timber on both faces, so the floor stops short of the wall by the deck's 12/16.
 Every floor's joists run north-south three to a cell, at the same x in every cell, so a deck drawn from the same table lines its joists up with the floor beside it.
 

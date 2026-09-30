@@ -8,9 +8,6 @@ An idea that's been thought through but not acted on. Mutable: edit freely, argu
 
 ## Open
 
-- `thin-floor-framing`: floors built like the walls, a 4/16 layered panel flush with the top of its cell, placed from the framing row.
-Its top face can honestly be `sidesolid`, so most of vanilla's placing and attachment comes free; the deck is its rim joist.
-Part 1 of the floor: plain top and underside, materials shared with the walls through `config/materials.json`.
 - `thin-floor-finishes`: floorboard, ceiling and glazed styles for a thin floor, since the wall's weatherboard and shakes elements read as ridges when laid flat.
 Board direction comes from the Boards row, since floors have no orientation of their own.
 - `thin-floor-lighting`: a sealed floor one block off the ground renders its underside badly lit; measure first, as decision 0018 did, then decide which cell the underside should read.

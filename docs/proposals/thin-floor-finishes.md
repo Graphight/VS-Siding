@@ -2,10 +2,10 @@
 
 - Status: Draft
 - Created: 2026-09-29
-- Reflects: split out of `thin-floor-framing`; its first playtest; decisions 0007, 0019, 0027, 0045; not yet played
+- Reflects: split out of decision 0050; its first playtest; decisions 0007, 0019, 0027, 0045; not yet played
 
 ## Summary
-`thin-floor-framing` draws a floor's top and underside as plain slabs.
+Decision 0050 draws a floor's top and underside as plain slabs.
 This proposal gives them styles: floorboards with visible boards, their direction, a lath-and-plaster ceiling, and glazed floors.
 
 ## Context
@@ -19,7 +19,7 @@ A finish entry gains a floor pair beside its wall pair, e.g. `FloorElements: { t
 `WallShapeGen`'s floor table grows the matching groups.
 
 **Board direction on the Boards row.**
-Every floor's joists run north-south (`thin-floor-framing`), so the floor has no orientation for the boards to follow.
+Every floor's joists run north-south (decision 0050), so the floor has no orientation for the boards to follow.
 The picker's Boards row picks it instead, the way it picks a wall's board style: `boards` lays them north-south and `hboards` east-west, stored per face like `FrontStyle` (decision 0027).
 Real floorboards run across the joists, so east-west would be the default; `weatherboard` has no flat form and falls back to it.
 

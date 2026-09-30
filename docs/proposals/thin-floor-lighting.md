@@ -2,7 +2,7 @@
 
 - Status: Draft
 - Created: 2026-09-29
-- Reflects: the first `thin-floor-framing` playtest; decisions 0015, 0016, 0018, 0034; nothing measured yet
+- Reflects: the first thin floor playtest (decision 0050); decisions 0015, 0016, 0018, 0034; nothing measured yet
 
 ## Summary
 A sealed thin floor one block above the ground renders its underside and the space around it badly lit.
@@ -26,7 +26,7 @@ The split test that settled 0018 applies here too: blank the floor cell's light 
 
 ## Alternatives considered
 - **Absorb nothing, like glazing.** The underside would light normally, but sunlight would pass through every floor and the room below would count as skylit, which breaks cellars (0015).
-- **Put the underside on the cell boundary.** It is the floor-at-the-bottom layout `thin-floor-framing` rejected.
+- **Put the underside on the cell boundary.** It is the floor-at-the-bottom layout decision 0050 rejected.
 
 ## Consequences & open questions
 - Whether 0018's patches can be widened to floors or need their own, and whether 0034's occlusion applies to a horizontal panel.

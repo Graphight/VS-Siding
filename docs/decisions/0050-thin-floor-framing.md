@@ -1,19 +1,19 @@
-# Thin floor framing
+# 0050 — Thin floor framing
 
-- Status: Draft
+- Status: Accepted
 - Created: 2026-09-25
-- Reflects: decisions 0001, 0002, 0020; decision 0042's deck; a session discussion, not a player request; `SideSolid`/`SideOpaque` consumers read from decompiled 1.22.2 `VintagestoryAPI`, `VSEssentials` and `VSSurvivalMod`; not yet played
+- Reflects: branch `thin-floor-framing`; `SidingFloorBlock`, `SidingFloorEntity`, `config/materials.json`, `MaterialFamilies.MergeShared`, `WallShapeGen`'s floor table, `PlaceWallFrame`, `SidingModSystem.IsHostable`; decisions 0001, 0002, 0020, 0042; `SideSolid`/`SideOpaque` consumers read from decompiled 1.22.2 `VintagestoryAPI`, `VSEssentials` and `VSSurvivalMod`; a session discussion, not a player request; played over three rounds
 
 ## Summary
 A floor built the way the walls are: a 4/16 layered panel flush with the top of its cell, placed as a new `floor` option on the picker's framing row.
 Joists are the framing, pugging the infill, floorboards the top finish and lath and plaster the ceiling.
 This is part 1: a floor that can be framed, filled, finished plainly, seal a room and be broken.
-Finish styles on a floor are `thin-floor-finishes`; hanging from the underside is `hanging-under-thin-floors`.
+Finish styles and glass floors are `thin-floor-finishes`, the underside's lighting `thin-floor-lighting`, decks with the floor's layers `deck-as-floor`, and hanging from the underside `hanging-under-thin-floors`.
 
 ## Context
 Vanilla floors are a full block of planks or a slab, which eats headroom and looks nothing like the walls.
 The deck of decision 0042 closes the slot at the wall, and its flush-top 4/16 height was chosen to meet this floor.
-Nobody has asked for thin floors yet; this is written down so the deck's shape does not paint it into a corner.
+Nobody has asked for thin floors yet; the deck made them the obvious next piece.
 
 ## Design
 **Flush top, open underneath.**
@@ -70,6 +70,23 @@ That is the price of a static flag, and it matches the collision below, which al
 One static box, the whole panel (y 12..16), whatever the layers.
 Walls collide as their frame alone (0008) so a bare wall can be walked through while building; a bare floor that dropped the player a storey would be worse than one that holds them.
 
+**Building one.**
+The framing row gains `floor` beside `wall` and `corner`.
+With it picked, planks frame a floor where a click would frame a wall: in the cell beside the clicked face.
+Planks aimed at a wall frame the floor beside it instead of finishing the wall, adding a deck or upgrading a corner, so a floor runs off a decked wall with no helper block; the other rows' plank uses come back with `wall` or `corner` picked.
+Infill goes on from any face of a framed floor, a finish on the top or the underside, and a break peels one layer from the hit face as a wall's does (0013).
+
+**Extending a run from its top.**
+Planks on a floor's top with `floor` picked would otherwise stack a floor 12/16 above it, which nobody wants.
+Instead the click walks along the floor the way the player faces and frames the first cell past the end, if it can be built into (water can) and lies within four cells of the clicked floor; the cap keeps a stray click from framing a floor across a lake.
+It works the way a rope ladder extends downward, and it is how a floor goes out over water: before it, the only face to click was the floor's edge, reached by crouching out past it and looking back.
+A filled floor with no floorboards takes a plain click as floorboards and a sneak-click as an extension.
+
+**Never a guest.**
+`IsHostable` lets a block with only a solid top and a block entity into a wall's cell (a cabinet), and a floor is exactly that.
+The wall then answered `IsReplacableBy` yes for a floor, so a plank click on a decked wall silently failed, and one on a bare wall would have tried to host the floor in the wall's cell.
+Floors are excluded alongside walls.
+
 **Meeting the wall.**
 A wall with a deck at the same course; the deck is the floor's rim joist.
 
@@ -79,18 +96,12 @@ A wall with a deck at the same course; the deck is the floor's rim joist.
 - **Vanilla slabs.** Already flush-top, but 8/16 thick and single-material; no joists, no ceiling finish.
 - **Floor at the bottom of its cell.** Ceiling flush instead of floor, so rugs and furniture float 12/16 above the floor line. Walking surfaces matter more.
 
+- **Joists following the player's facing.** The first build; the grain of the floorboards followed the joists, and so the way the player stood.
+- **Two joists at the cell edges.** Also the first build; the gaps read as a floor to fall through.
+
 ## Consequences & open questions
 - The lower storey loses 4/16 of headroom in the cell holding the floor.
-- The underside is drawn inside the floor's own cell; if a sealed floor absorbs light the way a sealed wall does, the ceiling may render dark from below. Playtest first, and split a lighting proposal out if it needs patches like 0018/0034.
+- The underside renders badly lit one block off the ground; `thin-floor-lighting` measures it before choosing a fix.
 - Moving the materials changes where a compatibility patch points. No other mod is known to patch `wall.json`.
-
-## Stages
-1. This sweep and the split into `thin-floor-finishes`.
-2. Materials into `config/materials.json`.
-3. The floor shape from `WallShapeGen`.
-4. The floor block and its mesh.
-5. Framing floors from the picker.
-6. Infill and finishes.
-7. Breaking, drops and tooltip.
-8. Playtest.
-9. Handbook and graduation.
+- Water in a flooded cell draws a band over the outside of the walls there, and over a vanilla door beside them, so it is likely the walls' `DisplacesLiquids` staying false (0020) rather than the floor. Not yet tested with a lone wall and no floor.
+- Played: framing off a decked wall and off other floors, the three slats, infill and both finishes, peeling from the top and from below, rooms sealing above and below, the tooltip, water held on top, extending a run over water with plain and sneak clicks and the four-cell cap, and existing walls keeping their materials after the move to `config/materials.json`.
