@@ -636,7 +636,7 @@ public class SidingModSystem : ModSystem
     // face, built alongside Hostable.
     internal static double[][]? FaceShiftByBlock;
 
-    // Excluded: our own walls; anything the wall can replace (tall grass, loose stones: the restore
+    // Excluded: our own walls and floors; anything the wall can replace (tall grass, loose stones: the restore
     // would take the cell back next tick, eating the item); Unplaceable blocks (a pot goes down as
     // ground storage, which is hostable itself); plants, which nobody hosts and every meadow would
     // pay a guest lookup for; anything with a solid side (a full cube, a slab, a metal sheet), except
@@ -714,7 +714,9 @@ public class SidingModSystem : ModSystem
 
     internal static bool IsHostable(Block block)
     {
-        if (block is SidingWallBlock) return false;
+        // A floor passes the cabinet rule below (solid top, block entity), and the wall would then
+        // take planks aimed at its open side as a floor to host.
+        if (block is SidingWallBlock or SidingFloorBlock) return false;
         if (block.Replaceable >= 6000) return false;
         if (block.HasBehavior<BlockBehaviorUnplaceable>()) return false;
         if (block.BlockMaterial is EnumBlockMaterial.Plant or EnumBlockMaterial.Leaves) return false;

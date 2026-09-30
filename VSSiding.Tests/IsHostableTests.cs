@@ -65,6 +65,7 @@ public class IsHostableTests
             ["painting"] = painting,
             ["mechanical power"] = Open(new PowerBlock()),
             ["siding wall"] = Open(new SidingWallBlock()),
+            ["siding floor"] = new SidingFloorBlock { SideSolid = new SmallBoolArray(BlockFacing.UP.Flag), EntityClass = "SidingFloorEntity" },
         };
 
         var expected = new Dictionary<string, bool>
@@ -87,6 +88,7 @@ public class IsHostableTests
             ["painting"] = false,
             ["mechanical power"] = false,
             ["siding wall"] = false,
+            ["siding floor"] = false,
         };
 
         var actual = new Dictionary<string, bool>();
