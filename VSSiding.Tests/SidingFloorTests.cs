@@ -67,6 +67,20 @@ public class SidingFloorTests
             SidingFloorEntity.SelectiveElements("oak", "wattle", null, null, Finishes, (true, false, false, false)));
     }
 
+    // Glazing merges east and west too, so a key without those joins handed one cell's bezel to its neighbours.
+    [Fact]
+    public void EveryJoinStateMeshesUnderItsOwnKey()
+    {
+        var keys =
+            from above in new[] { false, true }
+            from below in new[] { false, true }
+            from left in new[] { false, true }
+            from right in new[] { false, true }
+            select SidingFloorEntity.CacheKey("oak", "glass", null, null, default, (above, below, left, right));
+
+        Assert.Equal(16, keys.Distinct().Count());
+    }
+
     // Glass is one pane in a bezel with no joists, each member dropping where the next floor is glazed too.
     [Fact]
     public void AGlazedFloorDrawsItsBezelAndOnePane()

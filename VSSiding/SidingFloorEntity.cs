@@ -74,7 +74,7 @@ public class SidingFloorEntity : BlockEntity
         string[] selectiveElements = SelectiveElements(Framing, Infill, Front, Back, Block.Attributes["Finishes"], joins, (FrontStyle, BackStyle), glazed);
         if (selectiveElements.Length == 0) return false;
 
-        string cacheKey = $"vssiding-floor-mesh-{Framing}-{Infill}-{Front}-{Back}-{FrontStyle}-{BackStyle}-{joins.above}-{joins.below}";
+        string cacheKey = CacheKey(Framing, Infill, Front, Back, (FrontStyle, BackStyle), joins);
         MeshData[] meshes = ObjectCacheUtil.GetOrCreate(capi, cacheKey, () =>
         {
             Shape shape = Shape.TryGet(capi, new AssetLocation("vssiding", "shapes/block/floor/floor.json"));
@@ -91,6 +91,11 @@ public class SidingFloorEntity : BlockEntity
         foreach (MeshData mesh in meshes) mesher.AddMeshData(mesh);
         return true;
     }
+
+    internal static string CacheKey(
+        string? framing, string? infill, string? front, string? back, (string? front, string? back) styles,
+        (bool above, bool below, bool left, bool right) joins)
+        => $"vssiding-floor-mesh-{framing}-{infill}-{front}-{back}-{styles.front}-{styles.back}-{joins.above}-{joins.below}-{joins.left}-{joins.right}";
 
     private static MeshData Tesselate(ITesselatorAPI tesselator, Shape shape, ITexPositionSource texSource, string[] selectiveElements)
     {
