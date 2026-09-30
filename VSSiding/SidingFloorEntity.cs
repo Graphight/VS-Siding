@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Text;
 using Vintagestory.API.Client;
@@ -17,6 +18,8 @@ public class SidingFloorEntity : BlockEntity
     public string? Infill;
     public string? Front;
     public string? Back;
+    public string? FrontStyle;
+    public string? BackStyle;
 
     public override void ToTreeAttributes(ITreeAttribute tree)
     {
@@ -25,6 +28,8 @@ public class SidingFloorEntity : BlockEntity
         tree.SetString("infill", Infill);
         tree.SetString("front", Front);
         tree.SetString("back", Back);
+        tree.SetString("frontstyle", FrontStyle);
+        tree.SetString("backstyle", BackStyle);
     }
 
     public override void FromTreeAttributes(ITreeAttribute tree, IWorldAccessor worldAccessForResolve)
@@ -41,6 +46,8 @@ public class SidingFloorEntity : BlockEntity
         }
         Front = SidingWallEntity.NullIfEmpty(tree.GetString("front", null));
         Back = SidingWallEntity.NullIfEmpty(tree.GetString("back", null));
+        FrontStyle = SidingWallEntity.NullIfEmpty(tree.GetString("frontstyle", null));
+        BackStyle = SidingWallEntity.NullIfEmpty(tree.GetString("backstyle", null));
 
         // As on the wall: a chunk meshed before its block entities arrive keeps the default shape until redrawn.
         if (Api?.Side == EnumAppSide.Client && MeshState != oldMesh)
@@ -56,38 +63,72 @@ public class SidingFloorEntity : BlockEntity
         dsc.Append(SidingFloorBlock.Describe(Framing, Infill, Front, Back, Block.Attributes, key => Lang.GetIfExists(key)));
     }
 
-    private (string?, string?, string?, string?) MeshState => (Framing, Infill, Front, Back);
+    private (string?, string?, string?, string?, string?, string?) MeshState => (Framing, Infill, Front, Back, FrontStyle, BackStyle);
 
     public override bool OnTesselation(ITerrainMeshPool mesher, ITesselatorAPI tesselator)
     {
         if (Api is not ICoreClientAPI capi) return false;
 
-        var joins = SidingFloorBlock.Joins(Api.World.BlockAccessor, Pos);
-        string[] selectiveElements = SelectiveElements(Framing, Infill, Front, Back, Block.Attributes["Finishes"], joins);
+        bool glazed = SidingWallBlock.IsTransparent(Infill, Block.Attributes["Infills"]);
+        var joins = SidingFloorBlock.Joins(Api.World.BlockAccessor, Pos, glazed);
+        string[] selectiveElements = SelectiveElements(Framing, Infill, Front, Back, Block.Attributes["Finishes"], joins, (FrontStyle, BackStyle), glazed);
         if (selectiveElements.Length == 0) return false;
 
-        string cacheKey = $"vssiding-floor-mesh-{Framing}-{Infill}-{Front}-{Back}-{joins.above}-{joins.below}";
-        MeshData mesh = ObjectCacheUtil.GetOrCreate(capi, cacheKey, () =>
+        string cacheKey = CacheKey(Framing, Infill, Front, Back, (FrontStyle, BackStyle), joins);
+        MeshData[] meshes = ObjectCacheUtil.GetOrCreate(capi, cacheKey, () =>
         {
             Shape shape = Shape.TryGet(capi, new AssetLocation("vssiding", "shapes/block/floor/floor.json"));
             var texSource = new TexSource(capi, this);
-            tesselator.TesselateShape("vssiding-floor", shape, out MeshData modeldata, texSource,
-                new Vec3f(0, 0, 0), 0, 0, 0, null, selectiveElements);
-            return modeldata;
+            if (!glazed) return new[] { Tesselate(tesselator, shape, texSource, selectiveElements) };
+
+            // Two meshes, never merged: see SidingWallEntity.OnTesselation.
+            MeshData glass = Tesselate(tesselator, shape, texSource, Array.FindAll(selectiveElements, SidingWallEntity.IsInfillElement));
+            SidingWallEntity.SetRenderPass(glass, EnumChunkRenderPass.Transparent);
+            MeshData frame = Tesselate(tesselator, shape, texSource, Array.FindAll(selectiveElements, name => !SidingWallEntity.IsInfillElement(name)));
+            return new[] { frame, glass };
         });
 
-        mesher.AddMeshData(mesh);
+        foreach (MeshData mesh in meshes) mesher.AddMeshData(mesh);
         return true;
     }
 
-    // The wall's own selection, with every finish drawn as its plain slab: styled finishes on a
-    // floor are thin-floor-finishes' job, and the floor shape has only the plain front and back.
+    internal static string CacheKey(
+        string? framing, string? infill, string? front, string? back, (string? front, string? back) styles,
+        (bool above, bool below, bool left, bool right) joins)
+        => $"vssiding-floor-mesh-{framing}-{infill}-{front}-{back}-{styles.front}-{styles.back}-{joins.above}-{joins.below}-{joins.left}-{joins.right}";
+
+    private static MeshData Tesselate(ITesselatorAPI tesselator, Shape shape, ITexPositionSource texSource, string[] selectiveElements)
+    {
+        tesselator.TesselateShape("vssiding-floor", shape, out MeshData modeldata, texSource,
+            new Vec3f(0, 0, 0), 0, 0, 0, null, selectiveElements);
+        return modeldata;
+    }
+
+    // The wall's framing and infill names, with each face's element read from the finish's own
+    // FloorElements by its style, or the plain slab where it has none.
     internal static string[] SelectiveElements(
         string? framing, string? infill, string? front, string? back, JsonObject finishes,
-        (bool above, bool below, bool left, bool right) joins)
-        => SidingWallEntity.SelectiveElements("wall", framing, infill, front, null, back, finishes, joins, glazed: false)
-            .Select(name => name.StartsWith("front-") ? "front" : name.StartsWith("back-") ? "back" : name)
-            .ToArray();
+        (bool above, bool below, bool left, bool right) joins, (string? front, string? back) styles = default, bool glazed = false)
+    {
+        var names = SidingWallEntity.SelectiveElements("wall", framing, infill, null, null, null, finishes, joins, glazed).ToList();
+        if (front != null) names.Insert(0, FloorElement(finishes, front, "front", styles.front));
+        if (back != null) names.Add(FloorElement(finishes, back, "back", styles.back));
+        return names.ToArray();
+    }
+
+    // Every floor's joists run north-south (decision 0050), so a face with no style picked lays its
+    // boards across them.
+    private const string DefaultStyle = "hboards";
+
+    // FloorElements maps each face's styles to the element drawing them; a face it leaves out is the plain slab.
+    private static string FloorElement(JsonObject finishes, string key, string face, string? style)
+    {
+        var looks = finishes[key]["FloorElements"][face];
+        return looks.Exists ? looks[style ?? DefaultStyle].AsString(null!) ?? looks[DefaultStyle].AsString(face) : face;
+    }
+
+    internal static bool HasFloorStyle(JsonObject finish, string face, string style)
+        => finish["FloorElements"][face][style].Exists;
 
     private class TexSource(ICoreClientAPI capi, SidingFloorEntity entity) : ITexPositionSource
     {

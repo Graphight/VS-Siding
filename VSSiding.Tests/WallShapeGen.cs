@@ -554,6 +554,23 @@ public static class WallShapeGen
         new("infill", (0, 13.5, 1), (16, 14.5, 15), "infill", UvRule.Flat, RunAxis: 'z'),
         new("infill-bottom", (0, 13.5, 15), (16, 14.5, 16), "infill", UvRule.Flat, RunAxis: 'z'),
         new("back", (0, 12, 0), (16, 13, 16), "back", UvRule.Flat),
+        new("infill-pane", (0, 14, 0), (16, 14, 16), "infill", UvRule.Flat, Faces: ["up", "down"]),
+        // The wall's glazing bezel laid flat, with no joists: stiles on the west and east edges,
+        // rails on the north (top) and south (bottom), each dropped where the next floor is glazed too.
+        new("glazing-left", (0.25, 13, 0), (2, 15, 16), "framing", UvRule.Flat),
+        new("glazing-right", (14, 13, 0), (15.75, 15, 16), "framing", UvRule.Flat),
+        new("glazing-top", (0, 13.25, 0.25), (16, 14.75, 2), "framing", UvRule.Flat),
+        new("glazing-bottom", (0, 13.25, 14), (16, 14.75, 15.75), "framing", UvRule.Flat),
+        new("front-boards", (0, 15, 0), (16, 16, 16), "front", UvRule.Flat, RotatedFaces: ["up"]),
+        new("front-hboards", (0, 15, 0), (16, 16, 16), "front", UvRule.Flat),
+        new("back-boards", (0, 12, 0), (16, 13, 16), "back", UvRule.Flat, RotatedFaces: ["down"]),
+        new("back-hboards", (0, 12, 0), (16, 13, 16), "back", UvRule.Flat),
+        // The daub slab sits on battens two voxels apart, so the lath shows on the underside and
+        // tiles across any run. The battens run the way the same style's floorboards would.
+        new("back-lath-hboards", (0, 12.5, 0), (16, 13, 16), "back", UvRule.Flat),
+        .. Enumerable.Range(0, 8).Select(i => new Element("back-lath-hboards", (0, 12, 2 * i + 0.5), (16, 12.5, 2 * i + 1.5), "framing", UvRule.Flat, RunAxis: 'x')),
+        new("back-lath-boards", (0, 12.5, 0), (16, 13, 16), "back", UvRule.Flat),
+        .. Enumerable.Range(0, 8).Select(i => new Element("back-lath-boards", (2 * i + 0.5, 12, 0), (2 * i + 1.5, 12.5, 16), "framing", UvRule.Flat, RunAxis: 'z')),
     ];
 
     private static IEnumerable<Element> Rim(string name, double z1, double z2) =>

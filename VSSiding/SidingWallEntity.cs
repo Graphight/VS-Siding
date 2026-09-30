@@ -164,7 +164,7 @@ public class SidingWallEntity : BlockEntity
     // to -1 and counts as opaque - so the frame half needs nothing and this only overwrites.
     // The per-quad count has to stay exact either way: AddMeshData appends the two lists in step
     // with the two vertex lists.
-    private static void SetRenderPass(MeshData mesh, EnumChunkRenderPass pass)
+    internal static void SetRenderPass(MeshData mesh, EnumChunkRenderPass pass)
     {
         for (int quad = 0; quad < mesh.RenderPassCount; quad++) mesh.RenderPassesAndExtraBits[quad] = (short)pass;
     }

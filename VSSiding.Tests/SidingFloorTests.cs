@@ -10,17 +10,53 @@ public class SidingFloorTests
 {
     private static readonly JsonObject Finishes = SidingWallEntityTests.Dict("""
     {
-        "daub": {},
-        "planks": { "Elements": { "front": "front-weatherboard", "back": "back-boards" } }
+        "daub": { "FloorElements": { "back": { "hboards": "back-lath-hboards", "boards": "back-lath-boards" } } },
+        "planks": {
+            "Elements": { "front": "front-weatherboard", "back": "back-boards" },
+            "FloorElements": {
+                "front": { "hboards": "front-hboards", "boards": "front-boards" },
+                "back": { "hboards": "back-hboards", "boards": "back-boards" }
+            }
+        }
     }
     """);
 
     [Fact]
-    public void AStyledFinishDrawsAsThePlainSlab()
+    public void AFinishDrawsTheElementsItsFloorElementsName()
     {
         Assert.Equal(
-            ["front", "framing-left", "framing-right", "framing-top", "framing-bottom", "infill", "back"],
-            SidingFloorEntity.SelectiveElements("oak", "wattle", "planks", "planks", Finishes, (false, false, false, false)));
+            new string[][]
+            {
+                ["front-hboards", "framing-left", "framing-right", "framing-top", "framing-bottom", "infill", "back-hboards"],
+                ["front", "framing-left", "framing-right", "framing-top", "framing-bottom", "infill", "back-lath-hboards"],
+            },
+            new[] { ("planks", "planks"), ("daub", "daub") }.Select(f =>
+                SidingFloorEntity.SelectiveElements("oak", "wattle", f.Item1, f.Item2, Finishes, (false, false, false, false))));
+    }
+
+    [Fact]
+    public void AStyleNamesItsFacesElementAndNoneKeepsTheDefault()
+    {
+        Assert.Equal(
+            new string[][]
+            {
+                ["front-boards", "framing-left", "framing-right", "framing-top", "framing-bottom", "infill", "back-boards"],
+                ["front-hboards", "framing-left", "framing-right", "framing-top", "framing-bottom", "infill", "back-hboards"],
+                ["front-boards", "framing-left", "framing-right", "framing-top", "framing-bottom", "infill", "back-hboards"],
+                ["front", "framing-left", "framing-right", "framing-top", "framing-bottom", "infill", "back-lath-boards"],
+            },
+            new (string, (string?, string?))[] { ("planks", ("boards", "boards")), ("planks", (null, null)), ("planks", ("boards", null)), ("daub", (null, "boards")) }.Select(c =>
+                SidingFloorEntity.SelectiveElements("oak", "wattle", c.Item1, c.Item1, Finishes, (false, false, false, false), c.Item2)));
+    }
+
+    // A style counts per face, so boards picked while daubing the top leave the plain slab there.
+    [Fact]
+    public void AFaceTakesOnlyTheStylesItsFloorElementsList()
+    {
+        Assert.Equal(
+            ["planks front boards True", "planks front weatherboard False", "planks back hboards True", "daub front boards False", "daub back boards True"],
+            new[] { ("planks", "front", "boards"), ("planks", "front", "weatherboard"), ("planks", "back", "hboards"), ("daub", "front", "boards"), ("daub", "back", "boards") }
+                .Select(c => $"{c.Item1} {c.Item2} {c.Item3} {SidingFloorEntity.HasFloorStyle(Finishes[c.Item1], c.Item2, c.Item3)}"));
     }
 
     [Fact]
@@ -29,6 +65,35 @@ public class SidingFloorTests
         Assert.Equal(
             ["framing-left", "framing-right", "framing-bottom", "infill", "infill-top"],
             SidingFloorEntity.SelectiveElements("oak", "wattle", null, null, Finishes, (true, false, false, false)));
+    }
+
+    // Glazing merges east and west too, so a key without those joins handed one cell's bezel to its neighbours.
+    [Fact]
+    public void EveryJoinStateMeshesUnderItsOwnKey()
+    {
+        var keys =
+            from above in new[] { false, true }
+            from below in new[] { false, true }
+            from left in new[] { false, true }
+            from right in new[] { false, true }
+            select SidingFloorEntity.CacheKey("oak", "glass", null, null, default, (above, below, left, right));
+
+        Assert.Equal(16, keys.Distinct().Count());
+    }
+
+    // Glass is one pane in a bezel with no joists, each member dropping where the next floor is glazed too.
+    [Fact]
+    public void AGlazedFloorDrawsItsBezelAndOnePane()
+    {
+        Assert.Equal(
+            new string[][]
+            {
+                ["glazing-left", "glazing-right", "glazing-top", "glazing-bottom", "infill-pane"],
+                ["glazing-right", "glazing-bottom", "infill-pane"],
+                ["infill-pane"],
+            },
+            new[] { (false, false, false, false), (true, false, true, false), (true, true, true, true) }.Select(j =>
+                SidingFloorEntity.SelectiveElements("oak", "glass", null, null, Finishes, j, glazed: true)));
     }
 
     private static readonly JsonObject Attributes = SidingWallEntityTests.Dict("""

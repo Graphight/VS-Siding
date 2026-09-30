@@ -125,6 +125,19 @@ public class WallShapeGenTests
             "infill 0,13.5,1 16,14.5,15",
             "infill-bottom 0,13.5,15 16,14.5,16",
             "back 0,12,0 16,13,16",
+            "infill-pane 0,14,0 16,14,16",
+            "glazing-left 0.25,13,0 2,15,16",
+            "glazing-right 14,13,0 15.75,15,16",
+            "glazing-top 0,13.25,0.25 16,14.75,2",
+            "glazing-bottom 0,13.25,14 16,14.75,15.75",
+            "front-boards 0,15,0 16,16,16",
+            "front-hboards 0,15,0 16,16,16",
+            "back-boards 0,12,0 16,13,16",
+            "back-hboards 0,12,0 16,13,16",
+            "back-lath-hboards 0,12.5,0 16,13,16",
+            .. Enumerable.Range(0, 8).Select(i => $"back-lath-hboards 0,12,{2 * i + 0.5} 16,12.5,{2 * i + 1.5}"),
+            "back-lath-boards 0,12.5,0 16,13,16",
+            .. Enumerable.Range(0, 8).Select(i => $"back-lath-boards {2 * i + 0.5},12,0 {2 * i + 1.5},12.5,16"),
         ];
         Assert.Equal(expected, WallShapeGen.Generate("floor")["elements"]!
             .Select(e => $"{e["name"]} {string.Join(",", e["from"]!.Select(v => (double)v!))} {string.Join(",", e["to"]!.Select(v => (double)v!))}")

@@ -23,7 +23,7 @@
 		}
 	},
 	drawtype: "json",
-	shape: { base: "block/floor/floor" },
+	shape: { base: "block/floor/floor", ignoreElements: ["front-boards", "front-hboards", "back-boards", "back-hboards", "back-lath-hboards", "back-lath-boards", "infill-pane", "glazing-left", "glazing-right", "glazing-top", "glazing-bottom"] },
 	collisionSelectionBox: { x1: 0, y1: 0.75, z1: 0, x2: 1, y2: 1, z2: 1 },
 	resistance: 1.2,
 	lightAbsorption: 0,

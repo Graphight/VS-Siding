@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
@@ -40,12 +41,6 @@ public class SidingFloorBlock : Block
             string? infillKey = SidingWallBlock.MatchConsumes(heldCode, Attributes["Infills"]);
             if (infillKey == null) return base.OnBlockInteractStart(world, byPlayer, blockSel);
 
-            if (SidingWallBlock.IsTransparent(infillKey, Attributes["Infills"]))
-            {
-                (byPlayer as IServerPlayer)?.SendIngameError("vssiding:glazedfloor", Lang.Get("vssiding:build-glazed-floor"));
-                return true;
-            }
-
             var consumes = Attributes["Infills"][infillKey]["Consumes"];
             if (!SidingWallBlock.TryAffordOrError(byPlayer, isCreative, slot.StackSize, consumes)) return true;
 
@@ -59,6 +54,13 @@ public class SidingFloorBlock : Block
         if (finishKey == null) return base.OnBlockInteractStart(world, byPlayer, blockSel);
 
         bool heldPlaces = slot.Itemstack!.Class == EnumItemClass.Block || SidingWallBlock.MatchConsumes(heldCode, Attributes["Framings"]) != null;
+        if (SidingWallBlock.IsTransparent(entity.Infill, Attributes["Infills"]))
+        {
+            if (heldPlaces) return base.OnBlockInteractStart(world, byPlayer, blockSel);
+            (byPlayer as IServerPlayer)?.SendIngameError("vssiding:glazed", Lang.Get("vssiding:build-glazed"));
+            return true;
+        }
+
         string? face = FinishFace(blockSel.Face);
         if (face == null)
         {
@@ -67,8 +69,21 @@ public class SidingFloorBlock : Block
             return true;
         }
 
-        if ((face == "front" ? entity.Front : entity.Back) != null)
+        // Only a face whose FloorElements lists the picked style takes it, so weatherboard, or boards
+        // on a daub top, falls back to the face's default.
+        string? style = SidingModePicker.FinishChoices(byPlayer).FirstOrDefault(s => SidingFloorEntity.HasFloorStyle(Attributes["Finishes"][finishKey], face, s));
+
+        string? currentKey = face == "front" ? entity.Front : entity.Back;
+        string? currentStyle = face == "front" ? entity.FrontStyle : entity.BackStyle;
+        if (currentKey != null)
         {
+            // Restyling the same material is free: only the boards' direction changes.
+            if (style != null && currentKey == finishKey && currentStyle != style)
+            {
+                SetFinish(entity, face, finishKey, style);
+                return true;
+            }
+
             if (heldPlaces) return base.OnBlockInteractStart(world, byPlayer, blockSel);
             (byPlayer as IServerPlayer)?.SendIngameError("vssiding:alreadyfinished", Lang.Get("vssiding:build-already-finished"));
             return true;
@@ -77,11 +92,16 @@ public class SidingFloorBlock : Block
         var finishConsumes = Attributes["Finishes"][finishKey]["Consumes"];
         if (!SidingWallBlock.TryAffordOrError(byPlayer, isCreative, slot.StackSize, finishConsumes)) return true;
 
-        if (face == "front") entity.Front = finishKey;
-        else entity.Back = finishKey;
-        entity.MarkDirty(true);
+        SetFinish(entity, face, finishKey, style);
         SidingWallBlock.ConsumeHeld(slot, finishConsumes, isCreative);
         return true;
+    }
+
+    private static void SetFinish(SidingFloorEntity entity, string face, string finishKey, string? style)
+    {
+        if (face == "front") { entity.Front = finishKey; entity.FrontStyle = style; }
+        else { entity.Back = finishKey; entity.BackStyle = style; }
+        entity.MarkDirty(true);
     }
 
     // The top is the floor's front and the underside its back; the edges take no finish.
@@ -94,6 +114,7 @@ public class SidingFloorBlock : Block
         MarkAbsorptionChanged(world.BlockAccessor, pos, entity.Framing, oldInfill);
         // Rooms only recompute on a chunk-dirty event, as on the wall; exchanging the block for itself fires one.
         world.BlockAccessor.ExchangeBlock(Id, pos);
+        MarkNeighboursDirty(world, pos);
     }
 
     // Only the top is ever claimed: the room below walks into the open part and meets it there.
@@ -131,12 +152,20 @@ public class SidingFloorBlock : Block
 
     // Every floor's joists run north-south, so the north rim (framing-top) and the south rim
     // (framing-bottom) each drop where a framed floor carries the joists on, the way a stacked
-    // wall drops its plates.
-    internal static (bool above, bool below, bool left, bool right) Joins(IBlockAccessor accessor, BlockPos pos)
-        => (ContinuesJoists(accessor, pos.NorthCopy()), ContinuesJoists(accessor, pos.SouthCopy()), false, false);
+    // wall drops its plates. A glazed floor has no joists: its bezel merges on all four sides,
+    // and only with glazed floors, as glazing does on a wall (decision 0019).
+    internal static (bool above, bool below, bool left, bool right) Joins(IBlockAccessor accessor, BlockPos pos, bool glazed)
+        => glazed
+            ? (ContinuesGlazing(accessor, pos.NorthCopy()), ContinuesGlazing(accessor, pos.SouthCopy()),
+                ContinuesGlazing(accessor, pos.WestCopy()), ContinuesGlazing(accessor, pos.EastCopy()))
+            : (ContinuesJoists(accessor, pos.NorthCopy()), ContinuesJoists(accessor, pos.SouthCopy()), false, false);
 
     private static bool ContinuesJoists(IBlockAccessor accessor, BlockPos neighbourPos)
         => accessor.GetBlockEntity<SidingFloorEntity>(neighbourPos)?.Framing != null;
+
+    private static bool ContinuesGlazing(IBlockAccessor accessor, BlockPos neighbourPos)
+        => accessor.GetBlockEntity<SidingFloorEntity>(neighbourPos) is { Framing: not null } entity
+            && SidingWallBlock.IsTransparent(entity.Infill, entity.Block.Attributes["Infills"]);
 
     // How far past the clicked floor a run can be extended, so a stray click cannot frame one across a lake.
     internal const int RunReach = 4;
@@ -160,11 +189,11 @@ public class SidingFloorBlock : Block
             ? (view.X > 0 ? BlockFacing.EAST : BlockFacing.WEST)
             : (view.Z > 0 ? BlockFacing.SOUTH : BlockFacing.NORTH);
 
-    // Setting Framing isn't a block change, so the floors whose rims it drops have to be told.
+    // Setting Framing or Infill isn't a block change, so the floors whose rims or bezel it drops have to be told.
     internal static void MarkNeighboursDirty(IWorldAccessor world, BlockPos pos)
     {
-        world.BlockAccessor.GetBlockEntity<SidingFloorEntity>(pos.NorthCopy())?.MarkDirty(true);
-        world.BlockAccessor.GetBlockEntity<SidingFloorEntity>(pos.SouthCopy())?.MarkDirty(true);
+        foreach (BlockFacing side in BlockFacing.HORIZONTALS)
+            world.BlockAccessor.GetBlockEntity<SidingFloorEntity>(pos.AddCopy(side))?.MarkDirty(true);
     }
 
     // The wall's peel order with the top as front and the underside as back (decision 0013):
@@ -182,6 +211,9 @@ public class SidingFloorBlock : Block
     public override BlockSounds GetSounds(IBlockAccessor blockAccessor, BlockSelection blockSel, ItemStack? stack = null)
     {
         if (blockSel?.Position == null) return base.GetSounds(blockAccessor, blockSel, stack);
+        // A hit on a rug breaks the rug first (OnBlockBroken), so it sounds like one: vanilla's own lookup.
+        if (blockSel.Face != null && blockAccessor.GetDecor(blockSel.Position, new DecorBits(blockSel.Face)) != null)
+            return base.GetSounds(blockAccessor, blockSel, stack);
         var material = HitLayerMaterial(blockAccessor, blockSel.Position, blockSel.Face);
         return SidingWallBlock.ResolveLayerSounds(material, layerSounds, base.GetSounds(blockAccessor, blockSel, stack));
     }
@@ -215,6 +247,15 @@ public class SidingFloorBlock : Block
             SidingWallBlock.ServerBreakSelection = null;
         }
         BlockFacing? hitFace = selection?.Position.Equals(pos) == true ? selection.Face : null;
+
+        // A rug or carpet on the hit face comes off before any layer, the way furniture in a wall's
+        // cell does. Vanilla only breaks decor first in survival, after a quarter second of hitting.
+        if (hitFace != null && world.BlockAccessor.GetDecor(pos, new DecorBits(hitFace)) != null)
+        {
+            world.BlockAccessor.BreakDecor(pos, hitFace);
+            return;
+        }
+
         string? layer = entity == null ? null : PeelLayer(hitFace, entity);
         if (entity == null || byPlayer == null || layer == null)
         {
@@ -256,12 +297,15 @@ public class SidingFloorBlock : Block
     {
         switch (layer)
         {
-            case "front": entity.Front = null; entity.MarkDirty(true); break;
-            case "back": entity.Back = null; entity.MarkDirty(true); break;
+            case "front": entity.Front = null; entity.FrontStyle = null; entity.MarkDirty(true); break;
+            case "back": entity.Back = null; entity.BackStyle = null; entity.MarkDirty(true); break;
             default:
                 string? oldInfill = entity.Infill;
                 entity.Infill = null;
                 OnInfillChanged(world, entity, pos, oldInfill);
+                // Decor only goes on a sealed top (CanAttachBlockAt), so a rug left on bare joists
+                // after peeling from below or a fire comes off with the infill.
+                world.BlockAccessor.BreakDecor(pos, BlockFacing.UP);
                 break;
         }
     }
