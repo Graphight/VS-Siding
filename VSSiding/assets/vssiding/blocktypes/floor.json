@@ -9,7 +9,6 @@
 	creativeinventory: { "general": ["*-west"], "decorative": ["*-west"] },
 	blockmaterial: "Wood",
 	attributes: {
-		canStep: false,
 		LayerSounds: {
 			"Wood": { place: "game:block/planks", hit: "game:block/planks", break: "game:block/planks", walk: "game:walk/wood" },
 			"Soil": { place: "game:block/planks", hit: "game:block/dirt", break: "game:block/dirt", walk: "game:walk/grass" },
