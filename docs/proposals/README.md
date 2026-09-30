@@ -8,7 +8,6 @@ An idea that's been thought through but not acted on. Mutable: edit freely, argu
 
 ## Open
 
-- `thin-floor-lighting`: a sealed floor one block off the ground renders its underside badly lit; measure first, as decision 0018 did, then decide which cell the underside should read.
 - `deck-as-floor`: the deck gets the floor's layers, so a floor run up to a wall reads as one floor; decks built before it keep sealing as bare framing.
 - `hanging-under-thin-floors`: a thin floor's underside is 12/16 above the cell boundary, so hung lanterns float or are refused.
 The proposal shifts the hung block's mesh and boxes up to meet it, reusing decision 0035's offset.
