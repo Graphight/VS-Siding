@@ -76,5 +76,4 @@ Peeling from below or a fire can still take the infill out from under a carpet, 
 - A glazed floor's underside lighting belongs to `thin-floor-lighting`.
 - Played: board direction on both faces, restyling in place, the weatherboard fallback, the lath under daub and its direction, glass sealing a room and merging into one bezelled pane, peeling, and carpets placing on a sealed floor and breaking first in creative and survival.
 - In survival, vanilla keeps breaking the block in the same hold after the carpet goes, so a soft layer such as glass can follow it within a fraction of a second; that is vanilla's behaviour on any block.
-- The floor's `GetSounds` defers to vanilla's decor lookup when the hit face has decor, so breaking a carpet sounds like a carpet. Added after the second playtest and not yet played.
-- Removing the infill from under a carpet, by peeling from below or by fire, is not yet played.
+- Played after the second round: a carpet's break sound, peeling the infill from under a carpet, and the inventory icon.
