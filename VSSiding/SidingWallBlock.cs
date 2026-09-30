@@ -57,7 +57,7 @@ public class SidingWallBlock : Block
             }),
     };
 
-    // Unrotated ("west") deck box per layout, matching WallShapeGen's deck element.
+    // Unrotated ("west") deck box per layout, matching the area WallShapeGen clips the floor's layers to.
     private static readonly Dictionary<string, Cuboidf> UnrotatedDeckBoxes = new()
     {
         ["wall"] = new Cuboidf(4f / 16, 12f / 16, 0, 1, 1, 1),

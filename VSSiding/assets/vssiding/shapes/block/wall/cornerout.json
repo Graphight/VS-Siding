@@ -7,7 +7,10 @@
     "front": "game:block/wood/planks/aged/aged1",
     "secondfront": "game:block/wood/planks/aged/aged1",
     "back": "game:block/wood/planks/aged/aged1",
-    "deck": "game:block/wood/planks/aged/aged1"
+    "deck": "game:block/wood/planks/aged/aged1",
+    "deckinfill": "game:block/wood/planks/aged/aged1",
+    "deckfront": "game:block/wood/planks/aged/aged1",
+    "deckback": "game:block/wood/planks/aged/aged1"
   },
   "elements": [
     {
@@ -1236,75 +1239,6 @@
             0.0,
             13.0,
             1.0
-          ]
-        }
-      }
-    },
-    {
-      "name": "deck",
-      "from": [
-        4.0,
-        12.0,
-        4.0
-      ],
-      "to": [
-        16.0,
-        16.0,
-        16.0
-      ],
-      "faces": {
-        "north": {
-          "texture": "#deck",
-          "uv": [
-            0.0,
-            0.0,
-            12.0,
-            4.0
-          ]
-        },
-        "east": {
-          "texture": "#deck",
-          "uv": [
-            0.0,
-            0.0,
-            12.0,
-            4.0
-          ]
-        },
-        "south": {
-          "texture": "#deck",
-          "uv": [
-            0.0,
-            0.0,
-            12.0,
-            4.0
-          ]
-        },
-        "west": {
-          "texture": "#deck",
-          "uv": [
-            0.0,
-            0.0,
-            12.0,
-            4.0
-          ]
-        },
-        "up": {
-          "texture": "#deck",
-          "uv": [
-            0.0,
-            0.0,
-            12.0,
-            12.0
-          ]
-        },
-        "down": {
-          "texture": "#deck",
-          "uv": [
-            0.0,
-            0.0,
-            12.0,
-            12.0
           ]
         }
       }
@@ -20971,6 +20905,7718 @@
             0.0,
             16.0,
             0.7999999999999998
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-west-front",
+      "from": [
+        4.0,
+        15.0,
+        4.0
+      ],
+      "to": [
+        16.0,
+        16.0,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckfront",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckfront",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            4.0,
+            4.0,
+            16.0,
+            16.0
+          ]
+        },
+        "down": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            4.0,
+            12.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-west-framing-left",
+      "from": [
+        7.5,
+        13.0,
+        4.0
+      ],
+      "to": [
+        8.5,
+        15.0,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            2.0
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            2.0
+          ]
+        },
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            4.0,
+            1.0,
+            16.0
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            4.0,
+            1.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-west-framing-right",
+      "from": [
+        13.0,
+        13.0,
+        4.0
+      ],
+      "to": [
+        14.0,
+        15.0,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            2.0
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            2.0
+          ]
+        },
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            4.0,
+            1.0,
+            16.0
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            4.0,
+            1.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-west-framing-bottom",
+      "from": [
+        4.0,
+        13.0,
+        15.0
+      ],
+      "to": [
+        7.5,
+        15.0,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            6.5,
+            2.0
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            7.5,
+            2.0
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            7.5,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            6.5,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-west-framing-bottom",
+      "from": [
+        8.5,
+        13.0,
+        15.0
+      ],
+      "to": [
+        13.0,
+        15.0,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            8.5,
+            0.0,
+            13.0,
+            2.0
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            8.5,
+            0.0,
+            13.0,
+            2.0
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            8.5,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            8.5,
+            0.0,
+            13.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-west-framing-bottom",
+      "from": [
+        14.0,
+        13.0,
+        15.0
+      ],
+      "to": [
+        16.0,
+        15.0,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            14.0,
+            0.0,
+            16.0,
+            2.0
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            14.0,
+            0.0,
+            16.0,
+            2.0
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            14.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            14.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-west-infill",
+      "from": [
+        4.0,
+        13.5,
+        4.0
+      ],
+      "to": [
+        16.0,
+        14.5,
+        15.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            4.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            4.0,
+            4.0,
+            16.0,
+            15.0
+          ]
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            4.0,
+            12.0,
+            15.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-west-infill-bottom",
+      "from": [
+        4.0,
+        13.5,
+        15.0
+      ],
+      "to": [
+        16.0,
+        14.5,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            4.0,
+            15.0,
+            16.0,
+            16.0
+          ]
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            15.0,
+            12.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-west-back",
+      "from": [
+        4.0,
+        12.0,
+        4.0
+      ],
+      "to": [
+        16.0,
+        13.0,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckback",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckback",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckback",
+          "uv": [
+            4.0,
+            4.0,
+            16.0,
+            16.0
+          ]
+        },
+        "down": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            4.0,
+            12.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-west-infill-pane",
+      "from": [
+        4.0,
+        14.0,
+        4.0
+      ],
+      "to": [
+        16.0,
+        14.0,
+        16.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            4.0,
+            4.0,
+            16.0,
+            16.0
+          ]
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            4.0,
+            12.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-west-glazing-right",
+      "from": [
+        14.0,
+        13.0,
+        4.0
+      ],
+      "to": [
+        15.75,
+        15.0,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.75,
+            2.0
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            2.0
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.75,
+            2.0
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            2.0
+          ]
+        },
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            4.0,
+            1.75,
+            16.0
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            4.0,
+            1.75,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-west-glazing-bottom",
+      "from": [
+        4.0,
+        13.25,
+        14.0
+      ],
+      "to": [
+        16.0,
+        14.75,
+        15.75
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.75,
+            1.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.75,
+            1.5
+          ]
+        },
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.75
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.75
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-west-front-boards",
+      "from": [
+        4.0,
+        15.0,
+        4.0
+      ],
+      "to": [
+        16.0,
+        16.0,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckfront",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckfront",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            12.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            4.0,
+            12.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-west-front-hboards",
+      "from": [
+        4.0,
+        15.0,
+        4.0
+      ],
+      "to": [
+        16.0,
+        16.0,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckfront",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckfront",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            4.0,
+            4.0,
+            16.0,
+            16.0
+          ]
+        },
+        "down": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            4.0,
+            12.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-west-back-boards",
+      "from": [
+        4.0,
+        12.0,
+        4.0
+      ],
+      "to": [
+        16.0,
+        13.0,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckback",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckback",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckback",
+          "uv": [
+            4.0,
+            4.0,
+            16.0,
+            16.0
+          ]
+        },
+        "down": {
+          "texture": "#deckback",
+          "uv": [
+            4.0,
+            4.0,
+            16.0,
+            16.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-west-back-hboards",
+      "from": [
+        4.0,
+        12.0,
+        4.0
+      ],
+      "to": [
+        16.0,
+        13.0,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckback",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckback",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckback",
+          "uv": [
+            4.0,
+            4.0,
+            16.0,
+            16.0
+          ]
+        },
+        "down": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            4.0,
+            12.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-west-back-lath-hboards",
+      "from": [
+        4.0,
+        12.5,
+        4.0
+      ],
+      "to": [
+        16.0,
+        13.0,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deckback",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deckback",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#deckback",
+          "uv": [
+            4.0,
+            4.0,
+            16.0,
+            16.0
+          ]
+        },
+        "down": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            4.0,
+            12.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-west-back-lath-hboards",
+      "from": [
+        4.0,
+        12.0,
+        4.5
+      ],
+      "to": [
+        16.0,
+        12.5,
+        5.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-west-back-lath-hboards",
+      "from": [
+        4.0,
+        12.0,
+        6.5
+      ],
+      "to": [
+        16.0,
+        12.5,
+        7.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-west-back-lath-hboards",
+      "from": [
+        4.0,
+        12.0,
+        8.5
+      ],
+      "to": [
+        16.0,
+        12.5,
+        9.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-west-back-lath-hboards",
+      "from": [
+        4.0,
+        12.0,
+        10.5
+      ],
+      "to": [
+        16.0,
+        12.5,
+        11.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-west-back-lath-hboards",
+      "from": [
+        4.0,
+        12.0,
+        12.5
+      ],
+      "to": [
+        16.0,
+        12.5,
+        13.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-west-back-lath-hboards",
+      "from": [
+        4.0,
+        12.0,
+        14.5
+      ],
+      "to": [
+        16.0,
+        12.5,
+        15.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-west-back-lath-boards",
+      "from": [
+        4.0,
+        12.5,
+        4.0
+      ],
+      "to": [
+        16.0,
+        13.0,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deckback",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deckback",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#deckback",
+          "uv": [
+            4.0,
+            4.0,
+            16.0,
+            16.0
+          ]
+        },
+        "down": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            4.0,
+            12.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-west-back-lath-boards",
+      "from": [
+        4.5,
+        12.0,
+        4.0
+      ],
+      "to": [
+        5.5,
+        12.5,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            4.0,
+            1.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-west-back-lath-boards",
+      "from": [
+        6.5,
+        12.0,
+        4.0
+      ],
+      "to": [
+        7.5,
+        12.5,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            4.0,
+            1.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-west-back-lath-boards",
+      "from": [
+        8.5,
+        12.0,
+        4.0
+      ],
+      "to": [
+        9.5,
+        12.5,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            4.0,
+            1.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-west-back-lath-boards",
+      "from": [
+        10.5,
+        12.0,
+        4.0
+      ],
+      "to": [
+        11.5,
+        12.5,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            4.0,
+            1.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-west-back-lath-boards",
+      "from": [
+        12.5,
+        12.0,
+        4.0
+      ],
+      "to": [
+        13.5,
+        12.5,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            4.0,
+            1.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-west-back-lath-boards",
+      "from": [
+        14.5,
+        12.0,
+        4.0
+      ],
+      "to": [
+        15.5,
+        12.5,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            4.0,
+            1.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-south-front",
+      "from": [
+        4.0,
+        15.0,
+        0.0
+      ],
+      "to": [
+        16.0,
+        16.0,
+        12.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckfront",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckfront",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            12.0
+          ]
+        },
+        "down": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            12.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-south-framing-left",
+      "from": [
+        7.5,
+        13.0,
+        0.0
+      ],
+      "to": [
+        8.5,
+        15.0,
+        12.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            2.0
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            2.0
+          ]
+        },
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            12.0
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            12.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-south-framing-right",
+      "from": [
+        13.0,
+        13.0,
+        0.0
+      ],
+      "to": [
+        14.0,
+        15.0,
+        12.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            2.0
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            2.0
+          ]
+        },
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            12.0
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            12.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-south-framing-top",
+      "from": [
+        4.0,
+        13.0,
+        0.0
+      ],
+      "to": [
+        7.5,
+        15.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            6.5,
+            2.0
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            7.5,
+            2.0
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            7.5,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            6.5,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-south-framing-top",
+      "from": [
+        8.5,
+        13.0,
+        0.0
+      ],
+      "to": [
+        13.0,
+        15.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            8.5,
+            0.0,
+            13.0,
+            2.0
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            8.5,
+            0.0,
+            13.0,
+            2.0
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            8.5,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            8.5,
+            0.0,
+            13.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-south-framing-top",
+      "from": [
+        14.0,
+        13.0,
+        0.0
+      ],
+      "to": [
+        16.0,
+        15.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            14.0,
+            0.0,
+            16.0,
+            2.0
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            14.0,
+            0.0,
+            16.0,
+            2.0
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            14.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            14.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-south-infill-top",
+      "from": [
+        4.0,
+        13.5,
+        0.0
+      ],
+      "to": [
+        16.0,
+        14.5,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-south-infill",
+      "from": [
+        4.0,
+        13.5,
+        1.0
+      ],
+      "to": [
+        16.0,
+        14.5,
+        12.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            4.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            4.0,
+            1.0,
+            16.0,
+            12.0
+          ]
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            1.0,
+            12.0,
+            12.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-south-back",
+      "from": [
+        4.0,
+        12.0,
+        0.0
+      ],
+      "to": [
+        16.0,
+        13.0,
+        12.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckback",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckback",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckback",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            12.0
+          ]
+        },
+        "down": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            12.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-south-infill-pane",
+      "from": [
+        4.0,
+        14.0,
+        0.0
+      ],
+      "to": [
+        16.0,
+        14.0,
+        12.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            12.0
+          ]
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            12.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-south-glazing-right",
+      "from": [
+        14.0,
+        13.0,
+        0.0
+      ],
+      "to": [
+        15.75,
+        15.0,
+        12.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.75,
+            2.0
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            2.0
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.75,
+            2.0
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            2.0
+          ]
+        },
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.75,
+            12.0
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.75,
+            12.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-south-glazing-top",
+      "from": [
+        4.0,
+        13.25,
+        0.25
+      ],
+      "to": [
+        16.0,
+        14.75,
+        2.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.75,
+            1.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.75,
+            1.5
+          ]
+        },
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.75
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.75
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-south-front-boards",
+      "from": [
+        4.0,
+        15.0,
+        0.0
+      ],
+      "to": [
+        16.0,
+        16.0,
+        12.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckfront",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckfront",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            12.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            12.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-south-front-hboards",
+      "from": [
+        4.0,
+        15.0,
+        0.0
+      ],
+      "to": [
+        16.0,
+        16.0,
+        12.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckfront",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckfront",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            12.0
+          ]
+        },
+        "down": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            12.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-south-back-boards",
+      "from": [
+        4.0,
+        12.0,
+        0.0
+      ],
+      "to": [
+        16.0,
+        13.0,
+        12.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckback",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckback",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckback",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            12.0
+          ]
+        },
+        "down": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            4.0,
+            12.0,
+            16.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-south-back-hboards",
+      "from": [
+        4.0,
+        12.0,
+        0.0
+      ],
+      "to": [
+        16.0,
+        13.0,
+        12.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckback",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckback",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckback",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            12.0
+          ]
+        },
+        "down": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            12.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-south-back-lath-hboards",
+      "from": [
+        4.0,
+        12.5,
+        0.0
+      ],
+      "to": [
+        16.0,
+        13.0,
+        12.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deckback",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deckback",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#deckback",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            12.0
+          ]
+        },
+        "down": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            12.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-south-back-lath-hboards",
+      "from": [
+        4.0,
+        12.0,
+        0.5
+      ],
+      "to": [
+        16.0,
+        12.5,
+        1.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-south-back-lath-hboards",
+      "from": [
+        4.0,
+        12.0,
+        2.5
+      ],
+      "to": [
+        16.0,
+        12.5,
+        3.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-south-back-lath-hboards",
+      "from": [
+        4.0,
+        12.0,
+        4.5
+      ],
+      "to": [
+        16.0,
+        12.5,
+        5.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-south-back-lath-hboards",
+      "from": [
+        4.0,
+        12.0,
+        6.5
+      ],
+      "to": [
+        16.0,
+        12.5,
+        7.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-south-back-lath-hboards",
+      "from": [
+        4.0,
+        12.0,
+        8.5
+      ],
+      "to": [
+        16.0,
+        12.5,
+        9.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-south-back-lath-hboards",
+      "from": [
+        4.0,
+        12.0,
+        10.5
+      ],
+      "to": [
+        16.0,
+        12.5,
+        11.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-south-back-lath-boards",
+      "from": [
+        4.0,
+        12.5,
+        0.0
+      ],
+      "to": [
+        16.0,
+        13.0,
+        12.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deckback",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deckback",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#deckback",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            12.0
+          ]
+        },
+        "down": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            12.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-south-back-lath-boards",
+      "from": [
+        4.5,
+        12.0,
+        0.0
+      ],
+      "to": [
+        5.5,
+        12.5,
+        12.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            12.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-south-back-lath-boards",
+      "from": [
+        6.5,
+        12.0,
+        0.0
+      ],
+      "to": [
+        7.5,
+        12.5,
+        12.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            12.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-south-back-lath-boards",
+      "from": [
+        8.5,
+        12.0,
+        0.0
+      ],
+      "to": [
+        9.5,
+        12.5,
+        12.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            12.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-south-back-lath-boards",
+      "from": [
+        10.5,
+        12.0,
+        0.0
+      ],
+      "to": [
+        11.5,
+        12.5,
+        12.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            12.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-south-back-lath-boards",
+      "from": [
+        12.5,
+        12.0,
+        0.0
+      ],
+      "to": [
+        13.5,
+        12.5,
+        12.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            12.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-south-back-lath-boards",
+      "from": [
+        14.5,
+        12.0,
+        0.0
+      ],
+      "to": [
+        15.5,
+        12.5,
+        12.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            12.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-east-front",
+      "from": [
+        0.0,
+        15.0,
+        0.0
+      ],
+      "to": [
+        12.0,
+        16.0,
+        12.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckfront",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckfront",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            12.0
+          ]
+        },
+        "down": {
+          "texture": "#deckfront",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            12.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-east-framing-left",
+      "from": [
+        2.0,
+        13.0,
+        0.0
+      ],
+      "to": [
+        3.0,
+        15.0,
+        12.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            2.0
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            2.0
+          ]
+        },
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            12.0
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            12.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-east-framing-left",
+      "from": [
+        7.5,
+        13.0,
+        0.0
+      ],
+      "to": [
+        8.5,
+        15.0,
+        12.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            2.0
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            2.0
+          ]
+        },
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            12.0
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            12.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-east-framing-top",
+      "from": [
+        0.0,
+        13.0,
+        0.0
+      ],
+      "to": [
+        2.0,
+        15.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            2.0,
+            2.0
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            2.0,
+            2.0
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            2.0,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            2.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-east-framing-top",
+      "from": [
+        3.0,
+        13.0,
+        0.0
+      ],
+      "to": [
+        7.5,
+        15.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            7.5,
+            2.0
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            7.5,
+            2.0
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            7.5,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            7.5,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-east-framing-top",
+      "from": [
+        8.5,
+        13.0,
+        0.0
+      ],
+      "to": [
+        12.0,
+        15.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            9.5,
+            0.0,
+            13.0,
+            2.0
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            8.5,
+            0.0,
+            12.0,
+            2.0
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            8.5,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            9.5,
+            0.0,
+            13.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-east-infill-top",
+      "from": [
+        0.0,
+        13.5,
+        0.0
+      ],
+      "to": [
+        12.0,
+        14.5,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-east-infill",
+      "from": [
+        0.0,
+        13.5,
+        1.0
+      ],
+      "to": [
+        12.0,
+        14.5,
+        12.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            4.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            1.0,
+            12.0,
+            12.0
+          ]
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            4.0,
+            1.0,
+            16.0,
+            12.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-east-back",
+      "from": [
+        0.0,
+        12.0,
+        0.0
+      ],
+      "to": [
+        12.0,
+        13.0,
+        12.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckback",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckback",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            12.0
+          ]
+        },
+        "down": {
+          "texture": "#deckback",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            12.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-east-infill-pane",
+      "from": [
+        0.0,
+        14.0,
+        0.0
+      ],
+      "to": [
+        12.0,
+        14.0,
+        12.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            12.0
+          ]
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            12.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-east-glazing-left",
+      "from": [
+        0.25,
+        13.0,
+        0.0
+      ],
+      "to": [
+        2.0,
+        15.0,
+        12.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.75,
+            2.0
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            2.0
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.75,
+            2.0
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            2.0
+          ]
+        },
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.75,
+            12.0
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.75,
+            12.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-east-glazing-top",
+      "from": [
+        0.0,
+        13.25,
+        0.25
+      ],
+      "to": [
+        12.0,
+        14.75,
+        2.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.75,
+            1.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.75,
+            1.5
+          ]
+        },
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.75
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.75
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-east-front-boards",
+      "from": [
+        0.0,
+        15.0,
+        0.0
+      ],
+      "to": [
+        12.0,
+        16.0,
+        12.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckfront",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckfront",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            4.0,
+            12.0,
+            16.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckfront",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            12.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-east-front-hboards",
+      "from": [
+        0.0,
+        15.0,
+        0.0
+      ],
+      "to": [
+        12.0,
+        16.0,
+        12.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckfront",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckfront",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            12.0
+          ]
+        },
+        "down": {
+          "texture": "#deckfront",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            12.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-east-back-boards",
+      "from": [
+        0.0,
+        12.0,
+        0.0
+      ],
+      "to": [
+        12.0,
+        13.0,
+        12.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckback",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckback",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            12.0
+          ]
+        },
+        "down": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            12.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-east-back-hboards",
+      "from": [
+        0.0,
+        12.0,
+        0.0
+      ],
+      "to": [
+        12.0,
+        13.0,
+        12.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckback",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckback",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            12.0
+          ]
+        },
+        "down": {
+          "texture": "#deckback",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            12.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-east-back-lath-hboards",
+      "from": [
+        0.0,
+        12.5,
+        0.0
+      ],
+      "to": [
+        12.0,
+        13.0,
+        12.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckback",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deckback",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            12.0
+          ]
+        },
+        "down": {
+          "texture": "#deckback",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            12.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-east-back-lath-hboards",
+      "from": [
+        0.0,
+        12.0,
+        0.5
+      ],
+      "to": [
+        12.0,
+        12.5,
+        1.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-east-back-lath-hboards",
+      "from": [
+        0.0,
+        12.0,
+        2.5
+      ],
+      "to": [
+        12.0,
+        12.5,
+        3.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-east-back-lath-hboards",
+      "from": [
+        0.0,
+        12.0,
+        4.5
+      ],
+      "to": [
+        12.0,
+        12.5,
+        5.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-east-back-lath-hboards",
+      "from": [
+        0.0,
+        12.0,
+        6.5
+      ],
+      "to": [
+        12.0,
+        12.5,
+        7.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-east-back-lath-hboards",
+      "from": [
+        0.0,
+        12.0,
+        8.5
+      ],
+      "to": [
+        12.0,
+        12.5,
+        9.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-east-back-lath-hboards",
+      "from": [
+        0.0,
+        12.0,
+        10.5
+      ],
+      "to": [
+        12.0,
+        12.5,
+        11.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-east-back-lath-boards",
+      "from": [
+        0.0,
+        12.5,
+        0.0
+      ],
+      "to": [
+        12.0,
+        13.0,
+        12.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckback",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deckback",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            12.0
+          ]
+        },
+        "down": {
+          "texture": "#deckback",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            12.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-east-back-lath-boards",
+      "from": [
+        0.5,
+        12.0,
+        0.0
+      ],
+      "to": [
+        1.5,
+        12.5,
+        12.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            12.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-east-back-lath-boards",
+      "from": [
+        2.5,
+        12.0,
+        0.0
+      ],
+      "to": [
+        3.5,
+        12.5,
+        12.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            12.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-east-back-lath-boards",
+      "from": [
+        4.5,
+        12.0,
+        0.0
+      ],
+      "to": [
+        5.5,
+        12.5,
+        12.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            12.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-east-back-lath-boards",
+      "from": [
+        6.5,
+        12.0,
+        0.0
+      ],
+      "to": [
+        7.5,
+        12.5,
+        12.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            12.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-east-back-lath-boards",
+      "from": [
+        8.5,
+        12.0,
+        0.0
+      ],
+      "to": [
+        9.5,
+        12.5,
+        12.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            12.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-east-back-lath-boards",
+      "from": [
+        10.5,
+        12.0,
+        0.0
+      ],
+      "to": [
+        11.5,
+        12.5,
+        12.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            12.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-north-front",
+      "from": [
+        0.0,
+        15.0,
+        4.0
+      ],
+      "to": [
+        12.0,
+        16.0,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckfront",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckfront",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            4.0,
+            12.0,
+            16.0
+          ]
+        },
+        "down": {
+          "texture": "#deckfront",
+          "uv": [
+            4.0,
+            4.0,
+            16.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-north-framing-left",
+      "from": [
+        2.0,
+        13.0,
+        4.0
+      ],
+      "to": [
+        3.0,
+        15.0,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            2.0
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            2.0
+          ]
+        },
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            4.0,
+            1.0,
+            16.0
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            4.0,
+            1.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-north-framing-left",
+      "from": [
+        7.5,
+        13.0,
+        4.0
+      ],
+      "to": [
+        8.5,
+        15.0,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            2.0
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            2.0
+          ]
+        },
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            4.0,
+            1.0,
+            16.0
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            4.0,
+            1.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-north-framing-bottom",
+      "from": [
+        0.0,
+        13.0,
+        15.0
+      ],
+      "to": [
+        2.0,
+        15.0,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            2.0,
+            2.0
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            2.0,
+            2.0
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            2.0,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            2.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-north-framing-bottom",
+      "from": [
+        3.0,
+        13.0,
+        15.0
+      ],
+      "to": [
+        7.5,
+        15.0,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            7.5,
+            2.0
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            7.5,
+            2.0
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            7.5,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            7.5,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-north-framing-bottom",
+      "from": [
+        8.5,
+        13.0,
+        15.0
+      ],
+      "to": [
+        12.0,
+        15.0,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            9.5,
+            0.0,
+            13.0,
+            2.0
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            8.5,
+            0.0,
+            12.0,
+            2.0
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            8.5,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            9.5,
+            0.0,
+            13.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-north-infill",
+      "from": [
+        0.0,
+        13.5,
+        4.0
+      ],
+      "to": [
+        12.0,
+        14.5,
+        15.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            4.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            4.0,
+            12.0,
+            15.0
+          ]
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            4.0,
+            4.0,
+            16.0,
+            15.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-north-infill-bottom",
+      "from": [
+        0.0,
+        13.5,
+        15.0
+      ],
+      "to": [
+        12.0,
+        14.5,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            15.0,
+            12.0,
+            16.0
+          ]
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            4.0,
+            15.0,
+            16.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-north-back",
+      "from": [
+        0.0,
+        12.0,
+        4.0
+      ],
+      "to": [
+        12.0,
+        13.0,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckback",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckback",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            4.0,
+            12.0,
+            16.0
+          ]
+        },
+        "down": {
+          "texture": "#deckback",
+          "uv": [
+            4.0,
+            4.0,
+            16.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-north-infill-pane",
+      "from": [
+        0.0,
+        14.0,
+        4.0
+      ],
+      "to": [
+        12.0,
+        14.0,
+        16.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            4.0,
+            12.0,
+            16.0
+          ]
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            4.0,
+            4.0,
+            16.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-north-glazing-left",
+      "from": [
+        0.25,
+        13.0,
+        4.0
+      ],
+      "to": [
+        2.0,
+        15.0,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.75,
+            2.0
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            2.0
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.75,
+            2.0
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            2.0
+          ]
+        },
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            4.0,
+            1.75,
+            16.0
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            4.0,
+            1.75,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-north-glazing-bottom",
+      "from": [
+        0.0,
+        13.25,
+        14.0
+      ],
+      "to": [
+        12.0,
+        14.75,
+        15.75
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.75,
+            1.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.75,
+            1.5
+          ]
+        },
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.75
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.75
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-north-front-boards",
+      "from": [
+        0.0,
+        15.0,
+        4.0
+      ],
+      "to": [
+        12.0,
+        16.0,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckfront",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckfront",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            4.0,
+            4.0,
+            16.0,
+            16.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckfront",
+          "uv": [
+            4.0,
+            4.0,
+            16.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-north-front-hboards",
+      "from": [
+        0.0,
+        15.0,
+        4.0
+      ],
+      "to": [
+        12.0,
+        16.0,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckfront",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckfront",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            4.0,
+            12.0,
+            16.0
+          ]
+        },
+        "down": {
+          "texture": "#deckfront",
+          "uv": [
+            4.0,
+            4.0,
+            16.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-north-back-boards",
+      "from": [
+        0.0,
+        12.0,
+        4.0
+      ],
+      "to": [
+        12.0,
+        13.0,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckback",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckback",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            4.0,
+            12.0,
+            16.0
+          ]
+        },
+        "down": {
+          "texture": "#deckback",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            12.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-north-back-hboards",
+      "from": [
+        0.0,
+        12.0,
+        4.0
+      ],
+      "to": [
+        12.0,
+        13.0,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckback",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckback",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            4.0,
+            12.0,
+            16.0
+          ]
+        },
+        "down": {
+          "texture": "#deckback",
+          "uv": [
+            4.0,
+            4.0,
+            16.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-north-back-lath-hboards",
+      "from": [
+        0.0,
+        12.5,
+        4.0
+      ],
+      "to": [
+        12.0,
+        13.0,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckback",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deckback",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            4.0,
+            12.0,
+            16.0
+          ]
+        },
+        "down": {
+          "texture": "#deckback",
+          "uv": [
+            4.0,
+            4.0,
+            16.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-north-back-lath-hboards",
+      "from": [
+        0.0,
+        12.0,
+        4.5
+      ],
+      "to": [
+        12.0,
+        12.5,
+        5.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-north-back-lath-hboards",
+      "from": [
+        0.0,
+        12.0,
+        6.5
+      ],
+      "to": [
+        12.0,
+        12.5,
+        7.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-north-back-lath-hboards",
+      "from": [
+        0.0,
+        12.0,
+        8.5
+      ],
+      "to": [
+        12.0,
+        12.5,
+        9.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-north-back-lath-hboards",
+      "from": [
+        0.0,
+        12.0,
+        10.5
+      ],
+      "to": [
+        12.0,
+        12.5,
+        11.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-north-back-lath-hboards",
+      "from": [
+        0.0,
+        12.0,
+        12.5
+      ],
+      "to": [
+        12.0,
+        12.5,
+        13.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-north-back-lath-hboards",
+      "from": [
+        0.0,
+        12.0,
+        14.5
+      ],
+      "to": [
+        12.0,
+        12.5,
+        15.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-north-back-lath-boards",
+      "from": [
+        0.0,
+        12.5,
+        4.0
+      ],
+      "to": [
+        12.0,
+        13.0,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckback",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deckback",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            4.0,
+            12.0,
+            16.0
+          ]
+        },
+        "down": {
+          "texture": "#deckback",
+          "uv": [
+            4.0,
+            4.0,
+            16.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-north-back-lath-boards",
+      "from": [
+        0.5,
+        12.0,
+        4.0
+      ],
+      "to": [
+        1.5,
+        12.5,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            4.0,
+            1.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-north-back-lath-boards",
+      "from": [
+        2.5,
+        12.0,
+        4.0
+      ],
+      "to": [
+        3.5,
+        12.5,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            4.0,
+            1.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-north-back-lath-boards",
+      "from": [
+        4.5,
+        12.0,
+        4.0
+      ],
+      "to": [
+        5.5,
+        12.5,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            4.0,
+            1.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-north-back-lath-boards",
+      "from": [
+        6.5,
+        12.0,
+        4.0
+      ],
+      "to": [
+        7.5,
+        12.5,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            4.0,
+            1.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-north-back-lath-boards",
+      "from": [
+        8.5,
+        12.0,
+        4.0
+      ],
+      "to": [
+        9.5,
+        12.5,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            4.0,
+            1.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck-north-back-lath-boards",
+      "from": [
+        10.5,
+        12.0,
+        4.0
+      ],
+      "to": [
+        11.5,
+        12.5,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            4.0,
+            1.0,
+            16.0
           ]
         }
       }
