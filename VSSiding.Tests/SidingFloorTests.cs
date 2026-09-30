@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Xunit;
 
@@ -7,7 +8,7 @@ namespace VSSiding.Tests;
 
 public class SidingFloorTests
 {
-    private static readonly Vintagestory.API.Datastructures.JsonObject Finishes = SidingWallEntityTests.Dict("""
+    private static readonly JsonObject Finishes = SidingWallEntityTests.Dict("""
     {
         "daub": {},
         "planks": { "Elements": { "front": "front-weatherboard", "back": "back-boards" } }
@@ -30,7 +31,7 @@ public class SidingFloorTests
             SidingFloorEntity.SelectiveElements("oak", "wattle", null, null, Finishes, (true, false, false, false)));
     }
 
-    private static readonly Vintagestory.API.Datastructures.JsonObject Attributes = SidingWallEntityTests.Dict("""
+    private static readonly JsonObject Attributes = SidingWallEntityTests.Dict("""
     {
         "Framings": { "oak": {} },
         "Infills": { "wattle": { "BlockMaterial": "Wood" }, "stone": { "BlockMaterial": "Stone" } }

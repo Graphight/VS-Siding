@@ -714,8 +714,8 @@ public class SidingModSystem : ModSystem
 
     internal static bool IsHostable(Block block)
     {
-        // A floor passes the cabinet rule below (solid top, block entity), and the wall would then
-        // take planks aimed at its open side as a floor to host.
+        // A floor passes the cabinet rule below (solid top, block entity), and the wall's
+        // IsReplacableBy would then let PlaceWallFrame put a floor inside the wall's own cell.
         if (block is SidingWallBlock or SidingFloorBlock) return false;
         if (block.Replaceable >= 6000) return false;
         if (block.HasBehavior<BlockBehaviorUnplaceable>()) return false;

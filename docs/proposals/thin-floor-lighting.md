@@ -9,7 +9,7 @@ A sealed thin floor one block above the ground renders its underside and the spa
 This proposal is the lighting pass for floors that 0016, 0018 and 0034 were for walls, and starts by measuring rather than guessing.
 
 ## Context
-A sealed floor answers `GetLightAbsorption` with 99, as a sealed wall does, so sunlight does not pass through it into the room below.
+A sealed floor returns 99 from `GetLightAbsorption`, as a sealed wall does, so sunlight does not pass through it into the room below.
 Its underside is drawn at y 12/16, inside the floor's own cell, not on the cell boundary.
 The walls met the same shape of problem three times: a sealed cell stores light flowing in from outside (0015), smooth lighting averages a face's corners with the eight cells ringing it (0018), and each fix changed which cell a face reads.
 The playtest saw the problem at one height, a floor one block off the ground, and did not try others.

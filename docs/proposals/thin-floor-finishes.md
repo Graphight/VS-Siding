@@ -35,4 +35,4 @@ Neighbouring glazed floors merge into one pane, which the joists already allow: 
 
 ## Consequences & open questions
 - Which of the existing styles have a sensible flat form: `boards` and `hboards` do; `weatherboard` and `shakes` probably do not.
-- Brick and ashlar on a floor are pavers, which may want their own bond.
+- Brick and ashlar on a floor are pavers, which may need their own bond.

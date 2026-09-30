@@ -37,33 +37,33 @@ A compatibility patch that adds a material then targets `config/materials.json` 
 **The same layers as a wall.**
 Framing, infill and two finishes key into the shared dictionaries (0001), with the panel laid flat instead of standing.
 The entity names them `Framing`, `Infill`, `Front` (the top) and `Back` (the underside), so `SelectiveElements`, `PeelLayer`, `ComputeDrops` and the retention helpers take them unchanged.
-Glazed infills are refused for now; a glass floor is `thin-floor-finishes`' problem.
+Glass infill gives an error on a floor for now; a glass floor is `thin-floor-finishes`' problem.
 
 **What `sidesolid` on `UP` turns on.**
-Decision 0020's seven `Block` members are unchanged in 1.22.2, and a floor answers each for itself:
+Decision 0020's seven `Block` members are unchanged in 1.22.2, and each takes its own value for a floor:
 
 | Member | Top face | Other faces |
 | --- | --- | --- |
 | `GetRetention` | overridden: seals once framed and filled, as `ComputeRetention` | 0; the room below walks into the open part, then meets the top |
-| `CanAttachBlockAt` | overridden: only once sealed, so nothing stands on bare joists | refused; hanging is `hanging-under-thin-floors` |
+| `CanAttachBlockAt` | overridden: only once sealed, so nothing stands on bare joists | false; hanging is `hanging-under-thin-floors` |
 | `GetLiquidBarrierHeightOnSide` | left to vanilla, 1 from the flag | 0 from the flag, so water may run in under the panel |
 | `AllowSnowCoverage` | left true: an exposed floor takes snow like a plank floor | n/a |
 | `CanCreatureSpawnOn` | left true, like a plank floor | n/a |
-| `DisplacesLiquids` | false: the flag asks for all four sides and the base | |
+| `DisplacesLiquids` | false: the default needs all four sides and the base solid | |
 | `SideIsSolid` | left true: water renders no edge against the top | false |
 
-Outside `Block`, vanilla reads `SideSolid[UP]` or `IsSideSolid(…, UP)` directly, and each of these wants a floor to count as ground:
+Outside `Block`, vanilla reads `SideSolid[UP]` or `IsSideSolid(…, UP)` directly, and for each of these a floor should count as ground:
 
-| Reader | What it decides |
+| Reader | What it controls |
 | --- | --- |
 | `AiTaskWander`, `AiTaskIdle`, `AiTaskSeekEntity` and their `R` forms | creatures stand and path on the top |
 | `BlockBehaviorFiniteSpreadingLiquid` (`SideSolid.Any`) | water poured on the floor spreads over it instead of falling through |
 | `EntityRideableSeat` | a rider dismounts onto the floor |
 | `BlockBehaviorBreakIfFloating`, `BlockSticksLayer`, `BEBehaviorMicroblockSnowCover` | things set on the floor count as supported |
-| `AABBIntersectionTest.RayIntersectsBlockSelectionBox` (`SideSolid.Any`) | selection asks the floor's own `GetSelectionBoxes` |
+| `AABBIntersectionTest.RayIntersectsBlockSelectionBox` (`SideSolid.Any`) | selection calls the floor's own `GetSelectionBoxes` |
 
 The rest are world generation or blocks that never meet a floor.
-A bare frame answers these as a floor too: the flag is static, so water rests on joists.
+A bare frame counts as a floor for these too: the flag is static, so water rests on joists.
 That is the price of a static flag, and it matches the collision below, which already lets a player stand on a bare frame.
 
 **Collision.**
@@ -84,7 +84,7 @@ A filled floor with no floorboards takes a plain click as floorboards and a snea
 
 **Never a guest.**
 `IsHostable` lets a block with only a solid top and a block entity into a wall's cell (a cabinet), and a floor is exactly that.
-The wall then answered `IsReplacableBy` yes for a floor, so a plank click on a decked wall silently failed, and one on a bare wall would have tried to host the floor in the wall's cell.
+The wall's `IsReplacableBy` then returned true for a floor, so a plank click on a decked wall silently failed, and one on a bare wall would have tried to host the floor in the wall's cell.
 Floors are excluded alongside walls.
 
 **Meeting the wall.**

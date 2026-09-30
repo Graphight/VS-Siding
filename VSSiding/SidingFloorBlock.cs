@@ -8,7 +8,7 @@ using Vintagestory.API.Server;
 
 namespace VSSiding;
 
-// A thin floor: the wall's layers laid flat at the top of the cell (proposal thin-floor-framing).
+// A thin floor: the wall's layers laid flat at the top of the cell (decision 0050).
 // Deliberately not a SidingWallBlock, so none of the wall's patches ever see one.
 public class SidingFloorBlock : Block
 {
@@ -23,8 +23,7 @@ public class SidingFloorBlock : Block
     }
 
     // The wall's build flow laid flat: infill on any face of a framed floor, then a finish on the
-    // top or the underside. Anything unclaimed falls through, so planks still frame the next
-    // floor over (PlaceWallFrame).
+    // top or the underside. Anything unclaimed falls through, so planks still extend the run (PlaceWallFrame).
     public override bool OnBlockInteractStart(IWorldAccessor world, IPlayer byPlayer, BlockSelection blockSel)
     {
         if (!SidingWallBlock.HasSawInOffhand(byPlayer)) return base.OnBlockInteractStart(world, byPlayer, blockSel);
@@ -41,7 +40,6 @@ public class SidingFloorBlock : Block
             string? infillKey = SidingWallBlock.MatchConsumes(heldCode, Attributes["Infills"]);
             if (infillKey == null) return base.OnBlockInteractStart(world, byPlayer, blockSel);
 
-            // A glass floor is thin-floor-finishes' problem.
             if (SidingWallBlock.IsTransparent(infillKey, Attributes["Infills"]))
             {
                 (byPlayer as IServerPlayer)?.SendIngameError("vssiding:glazedfloor", Lang.Get("vssiding:build-glazed-floor"));
