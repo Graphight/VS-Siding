@@ -140,6 +140,28 @@ public class SidingFloorBlock : Block
     private static bool ContinuesJoists(IBlockAccessor accessor, BlockPos neighbourPos)
         => accessor.GetBlockEntity<SidingFloorEntity>(neighbourPos)?.Framing != null;
 
+    // How far past the clicked floor a run can be extended, so a stray click cannot frame one across a lake.
+    internal const int RunReach = 4;
+
+    // The first cell past the end of the floor run from `start`, walking `ahead`, if it can be built
+    // into and lies within RunReach of `start`; null otherwise.
+    internal static BlockPos? RunEnd(System.Func<BlockPos, bool> isFloor, System.Func<BlockPos, bool> replaceable, BlockPos start, BlockFacing ahead)
+    {
+        for (int step = 1; step <= RunReach; step++)
+        {
+            BlockPos pos = start.AddCopy(ahead, step);
+            if (isFloor(pos)) continue;
+            return replaceable(pos) ? pos : null;
+        }
+        return null;
+    }
+
+    // The horizontal face the player is looking toward, whatever the pitch.
+    internal static BlockFacing Ahead(Vec3f view)
+        => System.Math.Abs(view.X) >= System.Math.Abs(view.Z)
+            ? (view.X > 0 ? BlockFacing.EAST : BlockFacing.WEST)
+            : (view.Z > 0 ? BlockFacing.SOUTH : BlockFacing.NORTH);
+
     // Setting Framing isn't a block change, so the floors whose rims it drops have to be told.
     internal static void MarkNeighboursDirty(IWorldAccessor world, BlockPos pos)
     {

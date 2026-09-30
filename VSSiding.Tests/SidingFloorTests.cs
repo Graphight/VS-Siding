@@ -102,4 +102,32 @@ public class SidingFloorTests
             "\n  Oak Framing\n  Stone Infill\n  Top: Oak Planks\n  Underside: unfinished\n  Seals the room and keeps it cool\n".Replace("\n", System.Environment.NewLine),
             SidingFloorBlock.Describe("oak", "stone", "planks", null, attributes, key => lang.GetValueOrDefault(key) ?? (key.StartsWith("vssiding:") ? null : key)));
     }
+
+    // From a clicked floor at x 0 looking east: the first gap past the run, unless it is solid or out of reach.
+    [Fact]
+    public void ARunExtendsIntoItsFirstGapWithinReach()
+    {
+        var start = new BlockPos(0, 0, 0);
+        var shortRun = new HashSet<BlockPos> { new(1, 0, 0), new(2, 0, 0) };
+        var longRun = new HashSet<BlockPos> { new(1, 0, 0), new(2, 0, 0), new(3, 0, 0), new(4, 0, 0) };
+        var wallAtGap = new HashSet<BlockPos> { new(3, 0, 0) };
+
+        Assert.Equal(
+            new BlockPos?[] { new(3, 0, 0), null, null },
+            new[]
+            {
+                SidingFloorBlock.RunEnd(shortRun.Contains, _ => true, start, BlockFacing.EAST),
+                SidingFloorBlock.RunEnd(shortRun.Contains, pos => !wallAtGap.Contains(pos), start, BlockFacing.EAST),
+                SidingFloorBlock.RunEnd(longRun.Contains, _ => true, start, BlockFacing.EAST),
+            });
+    }
+
+    [Fact]
+    public void AheadIsTheDominantHorizontalDirectionOfTheView()
+    {
+        Assert.Equal(
+            new[] { BlockFacing.EAST, BlockFacing.WEST, BlockFacing.SOUTH, BlockFacing.NORTH },
+            new[] { new Vec3f(0.9f, -0.8f, 0.2f), new Vec3f(-0.5f, -0.9f, 0.1f), new Vec3f(0.1f, -0.9f, 0.3f), new Vec3f(0.2f, 0.5f, -0.6f) }
+                .Select(SidingFloorBlock.Ahead));
+    }
 }
