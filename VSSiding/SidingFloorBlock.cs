@@ -244,6 +244,15 @@ public class SidingFloorBlock : Block
             SidingWallBlock.ServerBreakSelection = null;
         }
         BlockFacing? hitFace = selection?.Position.Equals(pos) == true ? selection.Face : null;
+
+        // A rug or carpet on the hit face comes off before any layer, the way furniture in a wall's
+        // cell does. Vanilla only breaks decor first in survival, after a quarter second of hitting.
+        if (hitFace != null && world.BlockAccessor.GetDecor(pos, new DecorBits(hitFace)) != null)
+        {
+            world.BlockAccessor.BreakDecor(pos, hitFace);
+            return;
+        }
+
         string? layer = entity == null ? null : PeelLayer(hitFace, entity);
         if (entity == null || byPlayer == null || layer == null)
         {
@@ -291,6 +300,9 @@ public class SidingFloorBlock : Block
                 string? oldInfill = entity.Infill;
                 entity.Infill = null;
                 OnInfillChanged(world, entity, pos, oldInfill);
+                // Decor only goes on a sealed top (CanAttachBlockAt), so a rug left on bare joists
+                // after peeling from below or a fire comes off with the infill.
+                world.BlockAccessor.BreakDecor(pos, BlockFacing.UP);
                 break;
         }
     }
