@@ -211,6 +211,9 @@ public class SidingFloorBlock : Block
     public override BlockSounds GetSounds(IBlockAccessor blockAccessor, BlockSelection blockSel, ItemStack? stack = null)
     {
         if (blockSel?.Position == null) return base.GetSounds(blockAccessor, blockSel, stack);
+        // A hit on a rug breaks the rug first (OnBlockBroken), so it sounds like one: vanilla's own lookup.
+        if (blockSel.Face != null && blockAccessor.GetDecor(blockSel.Position, new DecorBits(blockSel.Face)) != null)
+            return base.GetSounds(blockAccessor, blockSel, stack);
         var material = HitLayerMaterial(blockAccessor, blockSel.Position, blockSel.Face);
         return SidingWallBlock.ResolveLayerSounds(material, layerSounds, base.GetSounds(blockAccessor, blockSel, stack));
     }
