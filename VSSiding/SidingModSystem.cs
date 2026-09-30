@@ -525,7 +525,9 @@ public class SidingModSystem : ModSystem
 
     // A sealed wall's cell stores the sunlight flowing in from outside (decision 0015), and the
     // floor face under it samples that cell. Show the light of the cell the wall's dead space
-    // opens onto instead - the room, or the outdoors if the panels face in.
+    // opens onto instead - the room, or the outdoors if the panels face in. A sealed floor's
+    // cell stores 0, which the faces of neighbours pointing into its open lower part sample;
+    // it shows the cell below instead (decision 0052).
     internal static void SealedCellLightPostfix(ClientMain ___game, Block[] ___currentChunkBlocksExt, int[] ___currentChunkRgbsExt,
         int chunkX, int chunkY, int chunkZ)
     {
@@ -537,6 +539,20 @@ public class SidingModSystem : ModSystem
         var pos = new BlockPos(chunkY / 1024);
         for (int i = 0; i < ___currentChunkBlocksExt.Length; i++)
         {
+            if (___currentChunkBlocksExt[i] is SidingFloorBlock floor)
+            {
+                // A border cell on the bottom layer has its cell below in the neighbour chunk,
+                // which has this cell in its own interior and lights it there.
+                if (i < size * size) continue;
+
+                pos.Set(chunkX * 32 + i % size - 1, chunkY * 32 % 32768 + i / (size * size) - 1, chunkZ * 32 + i / size % size - 1);
+                if (!floor.IsSealed(___game.BlockAccessor.GetBlockEntity(pos))) continue;
+
+                ___currentChunkRgbsExt[i] = ___currentChunkRgbsExt[i - size * size];
+                mask[i] = true;
+                continue;
+            }
+
             if (___currentChunkBlocksExt[i] is not SidingWallBlock wall) continue;
 
             int x = i % size, z = i / size % size, y = i / (size * size);
