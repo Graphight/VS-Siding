@@ -18,10 +18,12 @@ public class WallShapeGenTests
     [Theory]
     [InlineData("wall")]
     [InlineData("cornerout")]
+    [InlineData("floor")]
     public void GeneratedShapeMatchesTheCommittedOne(string layout)
     {
         var repoRoot = MaterialTextureOpacityTests.GetAssemblyMetadata("RepoRoot");
-        var path = Path.Combine(repoRoot, "VSSiding", "assets", "vssiding", "shapes", "block", "wall", layout + ".json");
+        var folder = layout == "floor" ? "floor" : "wall";
+        var path = Path.Combine(repoRoot, "VSSiding", "assets", "vssiding", "shapes", "block", folder, layout + ".json");
 
         if (Environment.GetEnvironmentVariable("SIDING_REGEN") == "1")
         {
@@ -39,6 +41,7 @@ public class WallShapeGenTests
     [Theory]
     [InlineData("wall")]
     [InlineData("cornerout")]
+    [InlineData("floor")]
     public void EveryGeneratedBoxIsNonDegenerateAndInsideTheBlock(string layout)
     {
         var offenders = new List<string>();
@@ -91,11 +94,40 @@ public class WallShapeGenTests
     [Theory]
     [InlineData("wall")]
     [InlineData("cornerout")]
+    [InlineData("floor")]
     public void NoElementIsPrunedDownToNothing(string layout)
     {
         Assert.Equal([], WallShapeGen.Generate(layout)["elements"]!
             .Where(e => !((JObject)e["faces"]!).Properties().Any())
             .Select(e => (string)e["name"]!)
+            .ToArray());
+    }
+
+    // The floor's whole layout, written out: a 4/16 panel at y 12..16, three joists running north-south.
+    [Fact]
+    public void FloorLaysTheWallsLayersFlatAtTheTopOfTheCell()
+    {
+        string[] expected =
+        [
+            "front 0,15,0 16,16,16",
+            "framing-left 2,13,0 3,15,16",
+            "framing-left 7.5,13,0 8.5,15,16",
+            "framing-right 13,13,0 14,15,16",
+            "framing-top 0,13,0 2,15,1",
+            "framing-top 3,13,0 7.5,15,1",
+            "framing-top 8.5,13,0 13,15,1",
+            "framing-top 14,13,0 16,15,1",
+            "framing-bottom 0,13,15 2,15,16",
+            "framing-bottom 3,13,15 7.5,15,16",
+            "framing-bottom 8.5,13,15 13,15,16",
+            "framing-bottom 14,13,15 16,15,16",
+            "infill-top 0,13.5,0 16,14.5,1",
+            "infill 0,13.5,1 16,14.5,15",
+            "infill-bottom 0,13.5,15 16,14.5,16",
+            "back 0,12,0 16,13,16",
+        ];
+        Assert.Equal(expected, WallShapeGen.Generate("floor")["elements"]!
+            .Select(e => $"{e["name"]} {string.Join(",", e["from"]!.Select(v => (double)v!))} {string.Join(",", e["to"]!.Select(v => (double)v!))}")
             .ToArray());
     }
 

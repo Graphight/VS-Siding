@@ -359,6 +359,10 @@ public class SidingWallBlock : Block
         AssetLocation? heldCode = slot.Itemstack?.Collectible.Code;
         if (heldCode == null) return base.OnBlockInteractStart(world, byPlayer, blockSel);
 
+        // With floor picked, planks frame a floor beside the wall (PlaceWallFrame) rather than work on it.
+        if (SidingModePicker.Layout(byPlayer) == "floor" && MatchConsumes(heldCode, Attributes["Framings"]) != null)
+            return base.OnBlockInteractStart(world, byPlayer, blockSel);
+
         var entity = world.BlockAccessor.GetBlockEntity<SidingWallEntity>(blockSel.Position);
         if (entity == null || entity.Framing == null) return base.OnBlockInteractStart(world, byPlayer, blockSel);
 
@@ -745,7 +749,7 @@ public class SidingWallBlock : Block
 
     // The line a cellar builder actually reads: whether the wall seals the room at all, and
     // if so, whether the infill makes it a cooling wall (decision 0015).
-    private static string SealKey(string? framing, string? infill, JsonObject framings, JsonObject infills)
+    internal static string SealKey(string? framing, string? infill, JsonObject framings, JsonObject infills)
         => ComputeRetention(true, framing, infill, framings, infills) switch
         {
             1 => "vssiding:tooltip-sealed",
@@ -783,11 +787,11 @@ public class SidingWallBlock : Block
     // holds to. Without this a stale key renders as a title-cased pseudo-material while the seal
     // line two rows below calls the same wall empty. Normalizing before the faces are grouped also
     // keeps a stale finish in the same group as an unfinished one, rather than on a line of its own.
-    private static string? Installed(string? key, JsonObject materials) => key != null && materials[key].Exists ? key : null;
+    internal static string? Installed(string? key, JsonObject materials) => key != null && materials[key].Exists ? key : null;
 
     // A gap prints the "no-x" line; a built layer resolves its DisplayName, falling back to a
     // title-cased material key when the entry has no DisplayName or the key has no translation.
-    private static string DescribeLayer(string? key, JsonObject materials, string missingLangKey, System.Func<string, string?> translate)
+    internal static string DescribeLayer(string? key, JsonObject materials, string missingLangKey, System.Func<string, string?> translate)
     {
         if (key == null) return Translate(missingLangKey, translate);
 
@@ -798,7 +802,7 @@ public class SidingWallBlock : Block
     // Our own keys ship in en.json beside the code, so a miss means a broken install: show the
     // raw key rather than dressing it up. A material's DisplayName is the case worth dressing up,
     // since a game update can add a wood the lang file has never heard of.
-    private static string Translate(string langKey, System.Func<string, string?> translate) => translate(langKey) ?? langKey;
+    internal static string Translate(string langKey, System.Func<string, string?> translate) => translate(langKey) ?? langKey;
 
     private static string TitleCase(string key)
         => string.Join(' ', key.Split('-').Select(word => word.Length == 0 ? word : char.ToUpperInvariant(word[0]) + word[1..]));
@@ -892,29 +896,21 @@ public class SidingWallBlock : Block
     public override void OnLoaded(ICoreAPI api)
     {
         base.OnLoaded(api);
-        layerSounds = new Dictionary<EnumBlockMaterial, BlockSounds>();
-        var soundEntries = Attributes["LayerSounds"];
-        if (soundEntries.Exists)
-        {
-            foreach (var keyToken in soundEntries)
-            {
-                string key = keyToken.AsString()!;
-                if (Enum.TryParse(key, true, out EnumBlockMaterial material))
-                    layerSounds[material] = soundEntries[key].AsObject(new BlockSounds());
-            }
-        }
+        layerSounds = LayerTable(Attributes["LayerSounds"], entry => entry.AsObject(new BlockSounds()));
+        layerResistance = LayerTable(Attributes["LayerResistance"], entry => entry.AsFloat(1f));
+    }
 
-        layerResistance = new Dictionary<EnumBlockMaterial, float>();
-        var resistanceEntries = Attributes["LayerResistance"];
-        if (resistanceEntries.Exists)
+    // LayerSounds and LayerResistance are keyed by EnumBlockMaterial name; unknown names are skipped.
+    internal static Dictionary<EnumBlockMaterial, T> LayerTable<T>(JsonObject entries, System.Func<JsonObject, T> read)
+    {
+        var table = new Dictionary<EnumBlockMaterial, T>();
+        if (!entries.Exists) return table;
+        foreach (var keyToken in entries)
         {
-            foreach (var keyToken in resistanceEntries)
-            {
-                string key = keyToken.AsString()!;
-                if (Enum.TryParse(key, true, out EnumBlockMaterial material))
-                    layerResistance[material] = resistanceEntries[key].AsFloat(1f);
-            }
+            string key = keyToken.AsString()!;
+            if (Enum.TryParse(key, true, out EnumBlockMaterial material)) table[material] = read(entries[key]);
         }
+        return table;
     }
 
     // Which EnumBlockMaterial is under the cursor: resolves the clicked face to a finish layer
@@ -1081,11 +1077,14 @@ public class SidingWallBlock : Block
     }
 
     internal ItemStack[] ResolveDrops(IWorldAccessor world, List<BlockDropItemStack> drops, float dropQuantityMultiplier)
+        => ResolveDrops(world, drops, dropQuantityMultiplier, Code);
+
+    internal static ItemStack[] ResolveDrops(IWorldAccessor world, List<BlockDropItemStack> drops, float dropQuantityMultiplier, AssetLocation code)
     {
         var stacks = new List<ItemStack>();
         foreach (var drop in drops)
         {
-            drop.Resolve(world, "vssiding:wall drops", Code);
+            drop.Resolve(world, "vssiding:wall drops", code);
             var stack = drop.GetNextItemStack(dropQuantityMultiplier);
             if (stack != null) stacks.Add(stack);
         }
@@ -1108,7 +1107,7 @@ public class SidingWallBlock : Block
         return drops;
     }
 
-    private static void AddDrops(List<BlockDropItemStack> drops, string? key, JsonObject dictionary)
+    internal static void AddDrops(List<BlockDropItemStack> drops, string? key, JsonObject dictionary)
     {
         if (key == null) return;
         var entry = dictionary[key];

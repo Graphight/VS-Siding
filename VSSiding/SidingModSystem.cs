@@ -45,6 +45,8 @@ public class SidingModSystem : ModSystem
 
         api.RegisterBlockClass("SidingWallBlock", typeof(SidingWallBlock));
         api.RegisterBlockEntityClass("SidingWallEntity", typeof(SidingWallEntity));
+        api.RegisterBlockClass("SidingFloorBlock", typeof(SidingFloorBlock));
+        api.RegisterBlockEntityClass("SidingFloorEntity", typeof(SidingFloorEntity));
         api.RegisterCollectibleBehaviorClass("vssiding.PlaceWallFrame", typeof(PlaceWallFrame));
         GuestWalls.Start(api);
         SidingModePicker.Start(api);
@@ -634,7 +636,7 @@ public class SidingModSystem : ModSystem
     // face, built alongside Hostable.
     internal static double[][]? FaceShiftByBlock;
 
-    // Excluded: our own walls; anything the wall can replace (tall grass, loose stones: the restore
+    // Excluded: our own walls and floors; anything the wall can replace (tall grass, loose stones: the restore
     // would take the cell back next tick, eating the item); Unplaceable blocks (a pot goes down as
     // ground storage, which is hostable itself); plants, which nobody hosts and every meadow would
     // pay a guest lookup for; anything with a solid side (a full cube, a slab, a metal sheet), except
@@ -712,7 +714,9 @@ public class SidingModSystem : ModSystem
 
     internal static bool IsHostable(Block block)
     {
-        if (block is SidingWallBlock) return false;
+        // A floor passes the cabinet rule below (solid top, block entity), and the wall's
+        // IsReplacableBy would then let PlaceWallFrame put a floor inside the wall's own cell.
+        if (block is SidingWallBlock or SidingFloorBlock) return false;
         if (block.Replaceable >= 6000) return false;
         if (block.HasBehavior<BlockBehaviorUnplaceable>()) return false;
         if (block.BlockMaterial is EnumBlockMaterial.Plant or EnumBlockMaterial.Leaves) return false;
@@ -914,15 +918,21 @@ public class SidingModSystem : ModSystem
             throw new InvalidOperationException($"Expected two Block.CanStep reads in FindSteppableCollisionboxSmooth, found {replaced}.");
     }
 
-    // Vanilla's burnout deletes the fuel block outright; a wall with a layer to lose keeps the
-    // block and loses the layer, and the fire just goes out.
+    // Vanilla's burnout deletes the fuel block outright; a wall or floor with a layer to lose keeps
+    // the block and loses the layer, and the fire just goes out.
     internal static void BurnLayerPrefix(BEBehaviorBurning __instance, ref bool consumeFuel)
     {
         BlockPos? fuelPos = __instance.FuelPos;
         if (!consumeFuel || fuelPos == null || fuelPos == __instance.FirePos) return;
 
         var world = __instance.Api.World;
-        if (world.BlockAccessor.GetBlock(fuelPos) is SidingWallBlock wall && wall.TryBurnLayer(world, fuelPos)) consumeFuel = false;
+        bool burntLayer = world.BlockAccessor.GetBlock(fuelPos) switch
+        {
+            SidingWallBlock wall => wall.TryBurnLayer(world, fuelPos),
+            SidingFloorBlock floor => floor.TryBurnLayer(world, fuelPos),
+            _ => false,
+        };
+        if (burntLayer) consumeFuel = false;
     }
 
     // BreakAllDecorFast runs on every solid-block SetBlock (BlockAccessorBase.SetSolidBlockInternal,
@@ -1253,9 +1263,10 @@ public class SidingModSystem : ModSystem
                 .Select(b => ("block", b.Code, (IDictionary<string, string>)b.Variant)))
             .ToList();
 
-        foreach (var block in api.World.Blocks.OfType<SidingWallBlock>())
+        var shared = api.Assets.Get(new AssetLocation("vssiding", "config/materials.json")).ToObject<JObject>();
+        foreach (var block in api.World.Blocks.Where(b => b is SidingWallBlock or SidingFloorBlock))
         {
-            var attributes = (JObject)block.Attributes.Token.DeepClone();
+            var attributes = MaterialFamilies.MergeShared(shared, (JObject)block.Attributes.Token);
             foreach (var (familiesKey, materialsKey) in new[] { ("FramingFamilies", "Framings"), ("InfillFamilies", "Infills"), ("FinishFamilies", "Finishes") })
             {
                 if (attributes[familiesKey] is not JObject families) continue;

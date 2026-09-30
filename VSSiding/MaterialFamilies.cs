@@ -56,4 +56,21 @@ public static class MaterialFamilies
 
         return result;
     }
+
+    // Lays a block's own attributes over the shared config/materials.json: each shared dictionary
+    // keeps its entries, and an entry of the same key in the block's file replaces it whole.
+    internal static JObject MergeShared(JObject shared, JObject attributes)
+    {
+        var result = (JObject)attributes.DeepClone();
+        foreach (var dictionary in shared.Properties())
+        {
+            var merged = (JObject)dictionary.Value.DeepClone();
+            if (attributes[dictionary.Name] is JObject own)
+            {
+                foreach (var entry in own.Properties()) merged[entry.Name] = entry.Value.DeepClone();
+            }
+            result[dictionary.Name] = merged;
+        }
+        return result;
+    }
 }

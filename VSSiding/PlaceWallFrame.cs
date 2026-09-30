@@ -8,7 +8,7 @@ namespace VSSiding;
 // whole build flow's "you're building" signal, see SidingWallBlock.HasSawInOffhand); the
 // picker's framing row picks wall vs cornerout, and placement itself is handed to the
 // placeholder wall block so its existing HorizontalOrientable behavior does the "hug the
-// player's side" orientation.
+// player's side" orientation. With floor picked the placeholder is the floor, which has no orientation.
 public class PlaceWallFrame : CollectibleBehavior
 {
     public PlaceWallFrame(CollectibleObject collObj) : base(collObj)
@@ -30,20 +30,37 @@ public class PlaceWallFrame : CollectibleBehavior
         if (framingKey == null) return;
 
         string layout = SidingModePicker.Layout(byPlayer);
-        bool withDeck = SidingModePicker.Deck(byPlayer);
+        bool withDeck = layout != "floor" && SidingModePicker.Deck(byPlayer);
 
         var consumes = wallBlock.Attributes["Framings"][framingKey]["Consumes"];
         int times = withDeck ? 2 : 1;
         bool isCreative = byPlayer.WorldData.CurrentGameMode == EnumGameMode.Creative;
         if (!SidingWallBlock.TryAffordOrError(byPlayer, isCreative, slot.Itemstack.StackSize, consumes, times)) return;
-        var placeholder = world.GetBlock(new AssetLocation("vssiding", $"wall-{layout}-west"));
+        var placeholder = world.GetBlock(new AssetLocation("vssiding", layout == "floor" ? "floor" : $"wall-{layout}-west"));
         if (placeholder == null) return;
 
         BlockPos targetPos = blockSel.Position;
-        bool didOffset = !world.BlockAccessor.GetBlock(targetPos).IsReplacableBy(placeholder);
-        if (didOffset)
+        bool didOffset;
+        if (layout == "floor" && blockSel.Face == BlockFacing.UP && world.BlockAccessor.GetBlock(targetPos) is SidingFloorBlock)
         {
-            targetPos = targetPos.AddCopy(blockSel.Face);
+            // Stacking a floor 12/16 above another is never wanted, so a click on a floor's top
+            // extends its run instead, the way a rope ladder extends down: over water, a floor's
+            // edge is only reachable by crouching out past it and looking back.
+            var accessor = world.BlockAccessor;
+            BlockPos? end = SidingFloorBlock.RunEnd(
+                pos => accessor.GetBlock(pos) is SidingFloorBlock, pos => accessor.GetBlock(pos).IsReplacableBy(placeholder),
+                targetPos, SidingFloorBlock.Ahead(byPlayer.Entity.SidedPos.GetViewVector()));
+            if (end == null) return;
+            targetPos = end;
+            didOffset = true;
+        }
+        else
+        {
+            didOffset = !world.BlockAccessor.GetBlock(targetPos).IsReplacableBy(placeholder);
+            if (didOffset)
+            {
+                targetPos = targetPos.AddCopy(blockSel.Face);
+            }
         }
         BlockSelection placeSel = blockSel.Clone();
         placeSel.Position = targetPos;
@@ -52,6 +69,13 @@ public class PlaceWallFrame : CollectibleBehavior
         string failureCode = "";
         bool placed = placeholder.TryPlaceBlock(world, byPlayer, new ItemStack(placeholder), placeSel, ref failureCode);
         if (!placed) return;
+
+        if (world.BlockAccessor.GetBlockEntity<SidingFloorEntity>(targetPos) is { } floor)
+        {
+            floor.Framing = framingKey;
+            floor.MarkDirty(true);
+            SidingFloorBlock.MarkNeighboursDirty(world, targetPos);
+        }
 
         var entity = world.BlockAccessor.GetBlockEntity<SidingWallEntity>(targetPos);
         if (entity != null)

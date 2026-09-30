@@ -17,7 +17,7 @@ public class FinishElementGroupsTests
         var repoRoot = MaterialTextureOpacityTests.GetAssemblyMetadata("RepoRoot");
         var assets = Path.Combine(repoRoot, "VSSiding", "assets", "vssiding");
         var wallJson = JObject.Parse(File.ReadAllText(Path.Combine(assets, "blocktypes", "wall.json")));
-        var attributes = (JObject)wallJson["attributes"]!;
+        var attributes = MaterialTextureOpacityTests.BlockAttributes("wall.json");
 
         var entries = ((JObject)attributes["Finishes"]!).Properties().Concat(((JObject)attributes["FinishFamilies"]!).Properties());
         // A Styles entry names {face}-{style} outright (decision 0027), so those groups have to
@@ -83,9 +83,7 @@ public class FinishElementGroupsTests
     public void EveryPlankFinishOffersTheWholeBoardsRow()
     {
         var repoRoot = MaterialTextureOpacityTests.GetAssemblyMetadata("RepoRoot");
-        var wallJson = JObject.Parse(File.ReadAllText(
-            Path.Combine(repoRoot, "VSSiding", "assets", "vssiding", "blocktypes", "wall.json")));
-        var attributes = (JObject)wallJson["attributes"]!;
+        var attributes = MaterialTextureOpacityTests.BlockAttributes("wall.json");
         var entries = ((JObject)attributes["Finishes"]!).Properties().Concat(((JObject)attributes["FinishFamilies"]!).Properties());
         var boards = SidingModePicker.Rows.Single(r => r.Key == "vssidingBoards").Options;
 

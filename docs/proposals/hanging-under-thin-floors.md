@@ -2,7 +2,7 @@
 
 - Status: Draft
 - Created: 2026-09-25
-- Reflects: `thin-floor-framing`; decision 0035's off-panel offset and `GapShiftCollisionPatches`; not yet played
+- Reflects: decision 0050; decision 0035's off-panel offset and `GapShiftCollisionPatches`; not yet played
 
 ## Summary
 A thin floor's underside sits 12/16 above the cell boundary, so a lantern or chandelier hung from it is either refused or floats.
@@ -21,7 +21,7 @@ A block hung there draws, collides and selects 12/16 higher, the way decision 00
 
 ## Alternatives considered
 - **Refuse hanging.** Honest and free, and the fallback until this is built.
-- **Put the floor at the bottom of its cell.** Moves the problem to rugs and furniture on top (see `thin-floor-framing`).
+- **Put the floor at the bottom of its cell.** Moves the problem to rugs and furniture on top (see decision 0050).
 
 ## Consequences & open questions
 - Which blocks count as hanging (lanterns, chandeliers, hooks) and whether a hanging block's own attachment test reads the face or the box.

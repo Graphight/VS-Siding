@@ -27,10 +27,18 @@ public class MaterialTextureOpacityTests
     // Every texture a material draws, and whether it must be opaque: a composite's overlays
     // draw over an opaque base, so only the base is held to that. A Transparent material -
     // glazing - is see-through on purpose, so its texture is exempt but must still exist.
-    private static IEnumerable<(string Code, bool MustBeOpaque)> CollectTextureCodes(JObject wallJson, string dictName, string familiesName,
+    // A block's attributes as the game sees them once config/materials.json is merged in.
+    internal static JObject BlockAttributes(string blockFile)
+    {
+        var assets = Path.Combine(GetAssemblyMetadata("RepoRoot"), "VSSiding", "assets", "vssiding");
+        var block = JObject.Parse(File.ReadAllText(Path.Combine(assets, "blocktypes", blockFile)));
+        var shared = JObject.Parse(File.ReadAllText(Path.Combine(assets, "config", "materials.json")));
+        return MaterialFamilies.MergeShared(shared, (JObject)block["attributes"]!);
+    }
+
+    private static IEnumerable<(string Code, bool MustBeOpaque)> CollectTextureCodes(JObject attributes, string dictName, string familiesName,
         List<(string, AssetLocation, IDictionary<string, string>)> candidates)
     {
-        var attributes = (JObject)wallJson["attributes"]!;
         var dict = (JObject)attributes[dictName]!;
         if (attributes[familiesName] is JObject families) dict = MaterialFamilies.Expand(families, dict, candidates);
         foreach (var entry in dict.Properties())
@@ -111,13 +119,12 @@ public class MaterialTextureOpacityTests
     {
         var vintageStoryPath = GetAssemblyMetadata("VintageStoryPath");
         var repoRoot = GetAssemblyMetadata("RepoRoot");
-        var wallJsonPath = Path.Combine(repoRoot, "VSSiding", "assets", "vssiding", "blocktypes", "wall.json");
-        var wallJson = (JObject)JToken.Parse(File.ReadAllText(wallJsonPath));
+        var attributes = BlockAttributes("wall.json");
 
         var candidates = AllCandidates(vintageStoryPath);
-        var textureCodes = CollectTextureCodes(wallJson, "Framings", "FramingFamilies", candidates)
-            .Concat(CollectTextureCodes(wallJson, "Infills", "InfillFamilies", candidates))
-            .Concat(CollectTextureCodes(wallJson, "Finishes", "FinishFamilies", candidates))
+        var textureCodes = CollectTextureCodes(attributes, "Framings", "FramingFamilies", candidates)
+            .Concat(CollectTextureCodes(attributes, "Infills", "InfillFamilies", candidates))
+            .Concat(CollectTextureCodes(attributes, "Finishes", "FinishFamilies", candidates))
             .Distinct();
 
         var offenders = new List<string>();

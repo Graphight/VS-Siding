@@ -26,7 +26,7 @@ public static class SidingModePicker
     // means "use the entry's Elements default" back in SidingWallBlock.
     internal static readonly (string Key, string[] Options, bool AllowNone)[] Rows =
     {
-        ("vssidingFraming", new[] { "wall", "corner" }, false),
+        ("vssidingFraming", new[] { "wall", "corner", "floor" }, false),
         ("vssidingDeck", new[] { "deck" }, true),
         ("vssidingBoards", new[] { "weatherboard", "boards", "hboards" }, true),
         ("vssidingLogs", new[] { "shakes", "logs" }, true),
@@ -200,9 +200,14 @@ public static class SidingModePicker
         return player.Entity.WatchedAttributes.GetString(key, fallback) ?? fallback;
     }
 
-    // The framing row never comes back null - "corner" upgrades to cornerout, anything else frames a
-    // plain wall - so a build-flow click always has somewhere to place.
-    internal static string Layout(IPlayer player) => ChoiceOf(player, 0) == "corner" ? "cornerout" : "wall";
+    // The framing row never comes back null - "corner" upgrades to cornerout, "floor" frames a floor,
+    // anything else a plain wall - so a build-flow click always has somewhere to place.
+    internal static string Layout(IPlayer player) => ChoiceOf(player, 0) switch
+    {
+        "corner" => "cornerout",
+        "floor" => "floor",
+        _ => "wall",
+    };
 
     internal static bool Deck(IPlayer player) => ChoiceOf(player, Array.FindIndex(Rows, row => row.Key == "vssidingDeck")).Length > 0;
 
