@@ -35,7 +35,8 @@ public class SidingWallTexSource : ITexPositionSource
             if (textureCode == "step") return StepTexture();
             CompositeTexture? texture = ResolveTexture(
                 textureCode, entity.Framing, entity.Infill, entity.Front, entity.SecondFront, entity.Back,
-                framings, infills, finishes, entity.FrontStyle, entity.SecondFrontStyle, entity.BackStyle, entity.Deck);
+                framings, infills, finishes, entity.FrontStyle, entity.SecondFrontStyle, entity.BackStyle, entity.Deck,
+                entity.DeckInfill, entity.DeckFront, entity.DeckBack);
             return AtlasPosition(capi, texture);
         }
     }
@@ -68,12 +69,16 @@ public class SidingWallTexSource : ITexPositionSource
     internal static CompositeTexture? ResolveTexture(
         string slotCode, string? framing, string? infill, string? front, string? secondFront, string? back,
         JsonObject framings, JsonObject infills, JsonObject finishes,
-        string? frontStyle = null, string? secondFrontStyle = null, string? backStyle = null, string? deck = null)
+        string? frontStyle = null, string? secondFrontStyle = null, string? backStyle = null, string? deck = null,
+        string? deckInfill = null, string? deckFront = null, string? deckBack = null)
     {
         (string? key, JsonObject dictionary, string face, string? style) = slotCode switch
         {
             "framing" => (framing, framings, "framing", null),
             "deck" => (deck, framings, "framing", null),
+            "deckinfill" => (deckInfill, infills, "infill", null),
+            "deckfront" => (deckFront, finishes, "front", null),
+            "deckback" => (deckBack, finishes, "back", null),
             "infill" => (infill, infills, "infill", null),
             // secondfront reads the front face's Elements default (decision 0027's naming), so its
             // style falls back the same way.

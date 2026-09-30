@@ -716,6 +716,7 @@ public class SidingWallBlock : Block
     {
         entity.Deck = deckKey;
         entity.MarkDirty(true);
+        SidingFloorBlock.MarkNeighboursDirty(world, pos);
         world.BlockAccessor.ExchangeBlock(Id, pos);
     }
 

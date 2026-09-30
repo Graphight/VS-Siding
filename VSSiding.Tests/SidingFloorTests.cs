@@ -60,11 +60,66 @@ public class SidingFloorTests
     }
 
     [Fact]
+    public void ADeckDrawsTheFloorsGroupsUnderItsSidesPrefix()
+    {
+        Assert.Equal(
+            new string[][]
+            {
+                ["deck-west-framing-left", "deck-west-framing-right", "deck-west-framing-top", "deck-west-framing-bottom"],
+                ["deck-south-front-boards", "deck-south-framing-left", "deck-south-framing-right", "deck-south-framing-bottom", "deck-south-infill",
+                    "deck-south-infill-top", "deck-south-back-hboards"],
+                ["deck-north-glazing-top", "deck-north-glazing-bottom", "deck-north-infill-pane"],
+                [],
+            },
+            new[]
+            {
+                SidingWallEntity.DeckElements("west", "oak", null, null, null, Finishes, (false, false, false, false), default, false),
+                SidingWallEntity.DeckElements("south", "oak", "wattle", "planks", "planks", Finishes, (true, false, false, false), ("boards", null), false),
+                SidingWallEntity.DeckElements("north", "oak", "glass", null, null, Finishes, (false, false, true, true), default, true),
+                SidingWallEntity.DeckElements("east", null, "wattle", "planks", "planks", Finishes, (false, false, false, false), default, false),
+            });
+    }
+
+    [Fact]
     public void AJoinedRimDropsAndTheInfillCarriesAcross()
     {
         Assert.Equal(
             ["framing-left", "framing-right", "framing-bottom", "infill", "infill-top"],
             SidingFloorEntity.SelectiveElements("oak", "wattle", null, null, Finishes, (true, false, false, false)));
+    }
+
+    [Fact]
+    public void ANeighbourContinuesJoistsOnFramingAndGlazingOnTransparentInfill()
+    {
+        JsonObject infills = SidingWallEntityTests.Dict("""{ "glass": { "Transparent": true }, "wattle": {} }""");
+        Assert.Equal(
+            [false, true, true, false, true, false],
+            new[]
+            {
+                SidingFloorBlock.Continues(false, null, null, infills),
+                SidingFloorBlock.Continues(false, "oak", "wattle", infills),
+                SidingFloorBlock.Continues(true, "oak", "glass", infills),
+                SidingFloorBlock.Continues(true, "oak", "wattle", infills),
+                SidingFloorBlock.Continues(false, "oak", null, infills),
+                SidingFloorBlock.Continues(true, "oak", null, infills),
+            });
+    }
+
+    // A deck stops short of the faces its wall claims, so only a neighbour on another face carries it on.
+    [Fact]
+    public void ADeckReachesTheEdgesItsWallDoesNotClaim()
+    {
+        Assert.Equal(
+            [false, true, true, true, false, true],
+            new[]
+            {
+                SidingFloorBlock.DeckReaches("wall", "west", BlockFacing.EAST),
+                SidingFloorBlock.DeckReaches("wall", "west", BlockFacing.WEST),
+                SidingFloorBlock.DeckReaches("wall", "west", BlockFacing.NORTH),
+                SidingFloorBlock.DeckReaches("cornerout", "west", BlockFacing.WEST),
+                SidingFloorBlock.DeckReaches("cornerout", "west", BlockFacing.SOUTH),
+                SidingFloorBlock.DeckReaches("cornerout", "west", BlockFacing.NORTH),
+            });
     }
 
     // Glazing merges east and west too, so a key without those joins handed one cell's bezel to its neighbours.

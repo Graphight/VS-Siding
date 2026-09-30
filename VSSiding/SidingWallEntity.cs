@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
@@ -23,6 +24,12 @@ public class SidingWallEntity : BlockEntity
     public string? BackStyle;
     // A Framings key, like Framing.
     public string? Deck;
+    // The deck's own layers, laid like a floor's; null is unbuilt.
+    public string? DeckInfill;
+    public string? DeckFront;
+    public string? DeckBack;
+    public string? DeckFrontStyle;
+    public string? DeckBackStyle;
     // The held stair's full block code, e.g. "game:plankstairs-oak-up-north-free".
     public string? Step;
     // Vanilla's own vertical-horizontal naming, e.g. "up-north".
@@ -42,6 +49,11 @@ public class SidingWallEntity : BlockEntity
         tree.SetString("secondfrontstyle", SecondFrontStyle);
         tree.SetString("backstyle", BackStyle);
         tree.SetString("deck", Deck);
+        tree.SetString("deckinfill", DeckInfill);
+        tree.SetString("deckfront", DeckFront);
+        tree.SetString("deckback", DeckBack);
+        tree.SetString("deckfrontstyle", DeckFrontStyle);
+        tree.SetString("deckbackstyle", DeckBackStyle);
         tree.SetString("step", Step);
         tree.SetString("steporientation", StepOrientation);
     }
@@ -65,6 +77,11 @@ public class SidingWallEntity : BlockEntity
         SecondFrontStyle = NullIfEmpty(tree.GetString("secondfrontstyle", null));
         BackStyle = NullIfEmpty(tree.GetString("backstyle", null));
         Deck = NullIfEmpty(tree.GetString("deck", null));
+        DeckInfill = NullIfEmpty(tree.GetString("deckinfill", null));
+        DeckFront = NullIfEmpty(tree.GetString("deckfront", null));
+        DeckBack = NullIfEmpty(tree.GetString("deckback", null));
+        DeckFrontStyle = NullIfEmpty(tree.GetString("deckfrontstyle", null));
+        DeckBackStyle = NullIfEmpty(tree.GetString("deckbackstyle", null));
         Step = NullIfEmpty(tree.GetString("step", null));
         StepOrientation = NullIfEmpty(tree.GetString("steporientation", null));
 
@@ -93,8 +110,9 @@ public class SidingWallEntity : BlockEntity
     }
 
     // Everything OnTesselation reads off this entity, which is exactly what CacheKey covers.
-    private (string?, string?, string?, string?, string?, string?, string?, string?, string?, string?, string?) MeshState
-        => (Framing, Infill, Front, SecondFront, Back, FrontStyle, SecondFrontStyle, BackStyle, Deck, Step, StepOrientation);
+    private ((string?, string?, string?, string?, string?, string?, string?, string?, string?, string?, string?), (string?, string?, string?, string?, string?)) MeshState
+        => ((Framing, Infill, Front, SecondFront, Back, FrontStyle, SecondFrontStyle, BackStyle, Deck, Step, StepOrientation),
+            (DeckInfill, DeckFront, DeckBack, DeckFrontStyle, DeckBackStyle));
 
     // A ToBytes/FromBytes round trip (chunk save/reload, client sync) turns a null
     // SetString value into "" - normalize back to null so "unbuilt" survives a reload.
@@ -119,10 +137,16 @@ public class SidingWallEntity : BlockEntity
         bool glazed = SidingWallBlock.IsTransparent(Infill, Block.Attributes["Infills"]);
         string side = Block.Variant["side"];
         string[]? step = Step != null && layout == "wall" ? StepElements(side, StepOrientation) : null;
-        string[] selectiveElements = SelectiveElements(layout, Framing, Infill, Front, SecondFront, Back, Block.Attributes["Finishes"], joins, glazed, Styles, Deck, step);
-        if (selectiveElements.Length == 0) return false;
+        string[] selectiveElements = SelectiveElements(layout, Framing, Infill, Front, SecondFront, Back, Block.Attributes["Finishes"], joins, glazed, Styles, step);
 
-        string cacheKey = CacheKey(layout, side, Framing, Infill, Front, SecondFront, Back, joins, Styles, Deck, Step, StepOrientation);
+        // The deck is laid like a floor, in world directions, so its groups are tesselated unrotated.
+        bool deckGlazed = SidingWallBlock.IsTransparent(DeckInfill, Block.Attributes["Infills"]);
+        var deckJoins = SidingFloorBlock.Joins(Api.World.BlockAccessor, Pos, deckGlazed);
+        string[] deckElements = DeckElements(side, Deck, DeckInfill, DeckFront, DeckBack, Block.Attributes["Finishes"], deckJoins, (DeckFrontStyle, DeckBackStyle), deckGlazed);
+        if (selectiveElements.Length == 0 && deckElements.Length == 0) return false;
+
+        string cacheKey = CacheKey(layout, side, Framing, Infill, Front, SecondFront, Back, joins, Styles, Deck, Step, StepOrientation,
+            DeckInfill, DeckFront, DeckBack, (DeckFrontStyle, DeckBackStyle), deckJoins);
 
         MeshData[] meshes = ObjectCacheUtil.GetOrCreate(capi, cacheKey, () =>
         {
@@ -130,24 +154,31 @@ public class SidingWallEntity : BlockEntity
             var texSource = new SidingWallTexSource(
                 capi, this, Block.Attributes["Framings"], Block.Attributes["Infills"], Block.Attributes["Finishes"]);
             var rotation = new Vec3f(0, RotationYDeg(side), 0);
-
-            if (!glazed)
-                return new[] { Tesselate(tesselator, shape, texSource, rotation, selectiveElements) };
-
-            // Glazing has to reach the transparent pool while its frame stays opaque, so the two
-            // halves are tesselated and handed over separately. They are deliberately NOT merged
-            // into one mesh: MeshData.AddMeshData offsets the incoming indices by the target's
-            // last index value plus one, which is only the target's vertex count when that last
-            // index is also its highest. Any trailing vertex without an index shifts the glass
-            // indices back into the frame's vertices and smears a pane across the room.
-            MeshData glass = Tesselate(tesselator, shape, texSource, rotation, Array.FindAll(selectiveElements, IsInfillElement));
-            SetRenderPass(glass, EnumChunkRenderPass.Transparent);
-            MeshData frame = Tesselate(tesselator, shape, texSource, rotation, Array.FindAll(selectiveElements, name => !IsInfillElement(name)));
-            return new[] { frame, glass };
+            return Meshes(tesselator, shape, texSource, rotation, selectiveElements, glazed)
+                .Concat(Meshes(tesselator, shape, texSource, new Vec3f(0, 0, 0), deckElements, deckGlazed))
+                .ToArray();
         });
 
         foreach (MeshData mesh in meshes) mesher.AddMeshData(mesh);
         return true;
+    }
+
+    private static IEnumerable<MeshData> Meshes(
+        ITesselatorAPI tesselator, Shape shape, ITexPositionSource texSource, Vec3f rotation, string[] elements, bool glazed)
+    {
+        if (elements.Length == 0) return [];
+        if (!glazed) return [Tesselate(tesselator, shape, texSource, rotation, elements)];
+
+        // Glazing has to reach the transparent pool while its frame stays opaque, so the two
+        // halves are tesselated and handed over separately. They are deliberately NOT merged
+        // into one mesh: MeshData.AddMeshData offsets the incoming indices by the target's
+        // last index value plus one, which is only the target's vertex count when that last
+        // index is also its highest. Any trailing vertex without an index shifts the glass
+        // indices back into the frame's vertices and smears a pane across the room.
+        MeshData glass = Tesselate(tesselator, shape, texSource, rotation, Array.FindAll(elements, IsInfillElement));
+        SetRenderPass(glass, EnumChunkRenderPass.Transparent);
+        MeshData frame = Tesselate(tesselator, shape, texSource, rotation, Array.FindAll(elements, name => !IsInfillElement(name)));
+        return [frame, glass];
     }
 
     private static MeshData Tesselate(
@@ -158,7 +189,8 @@ public class SidingWallEntity : BlockEntity
         return modeldata;
     }
 
-    internal static bool IsInfillElement(string name) => name.StartsWith("infill");
+    internal static bool IsInfillElement(string name)
+        => name.StartsWith("infill") || (name.StartsWith("deck-") && name[(name.IndexOf('-', 5) + 1)..].StartsWith("infill"));
 
     // TesselateShape already writes one entry per quad - ShapeElement.RenderPass, which defaults
     // to -1 and counts as opaque - so the frame half needs nothing and this only overwrites.
@@ -174,8 +206,19 @@ public class SidingWallEntity : BlockEntity
     internal static string CacheKey(
         string layout, string side, string? framing, string? infill, string? front, string? secondFront, string? back,
         (bool above, bool below, bool left, bool right) joins,
-        (string? front, string? secondFront, string? back) styles = default, string? deck = null, string? step = null, string? stepOrientation = null)
-        => $"vssiding-wall-mesh-{layout}-{side}-{framing}-{infill}-{front}-{secondFront}-{back}-{joins.above}-{joins.below}-{joins.left}-{joins.right}-{styles.front}-{styles.secondFront}-{styles.back}-{deck}-{step}-{stepOrientation}";
+        (string? front, string? secondFront, string? back) styles = default, string? deck = null, string? step = null, string? stepOrientation = null,
+        string? deckInfill = null, string? deckFront = null, string? deckBack = null, (string? front, string? back) deckStyles = default,
+        (bool above, bool below, bool left, bool right) deckJoins = default)
+        => $"vssiding-wall-mesh-{layout}-{side}-{framing}-{infill}-{front}-{secondFront}-{back}-{joins.above}-{joins.below}-{joins.left}-{joins.right}-{styles.front}-{styles.secondFront}-{styles.back}-{deck}-{step}-{stepOrientation}"
+            + $"-{deckInfill}-{deckFront}-{deckBack}-{deckStyles.front}-{deckStyles.back}-{deckJoins.above}-{deckJoins.below}-{deckJoins.left}-{deckJoins.right}";
+
+    // The floor's groups for the deck, which the wall shapes carry per side as deck-{side}-{name}.
+    internal static string[] DeckElements(
+        string side, string? deck, string? infill, string? front, string? back, JsonObject finishes,
+        (bool above, bool below, bool left, bool right) joins, (string? front, string? back) styles, bool glazed)
+        => deck == null
+            ? []
+            : SidingFloorEntity.SelectiveElements(deck, infill, front, back, finishes, joins, styles, glazed).Select(name => $"deck-{side}-{name}").ToArray();
 
     // Unbuilt parts (null key) are left out so a frame-only wall shows just its frame.
     // A finish can name its own element per face (decision 0007) instead of the plain slab.
@@ -183,7 +226,7 @@ public class SidingWallEntity : BlockEntity
     internal static string[] SelectiveElements(
         string layout, string? framing, string? infill, string? front, string? secondFront, string? back, JsonObject finishes,
         (bool above, bool below, bool left, bool right) joins, bool glazed,
-        (string? front, string? secondFront, string? back) styles = default, string? deck = null, string[]? step = null)
+        (string? front, string? secondFront, string? back) styles = default, string[]? step = null)
     {
         var names = new List<string>();
         if (front != null) names.Add(FinishElement(finishes, front, "front", styles.front));
@@ -222,7 +265,6 @@ public class SidingWallEntity : BlockEntity
             }
         }
         if (back != null) names.Add(FinishElement(finishes, back, "back", styles.back));
-        if (deck != null) names.Add("deck");
         if (step != null) names.AddRange(step);
         return names.ToArray();
     }
