@@ -555,6 +555,12 @@ public static class WallShapeGen
         new("infill-bottom", (0, 13.5, 15), (16, 14.5, 16), "infill", UvRule.Flat, RunAxis: 'z'),
         new("back", (0, 12, 0), (16, 13, 16), "back", UvRule.Flat),
         new("infill-pane", (0, 14, 0), (16, 14, 16), "infill", UvRule.Flat, Faces: ["up", "down"]),
+        // The wall's glazing bezel laid flat, with no joists: stiles on the west and east edges,
+        // rails on the north (top) and south (bottom), each dropped where the next floor is glazed too.
+        new("glazing-left", (0.25, 13, 0), (2, 15, 16), "framing", UvRule.Flat),
+        new("glazing-right", (14, 13, 0), (15.75, 15, 16), "framing", UvRule.Flat),
+        new("glazing-top", (0, 13.25, 0.25), (16, 14.75, 2), "framing", UvRule.Flat),
+        new("glazing-bottom", (0, 13.25, 14), (16, 14.75, 15.75), "framing", UvRule.Flat),
         new("front-boards", (0, 15, 0), (16, 16, 16), "front", UvRule.Flat, RotatedFaces: ["up"]),
         new("front-hboards", (0, 15, 0), (16, 16, 16), "front", UvRule.Flat),
         new("back-boards", (0, 12, 0), (16, 13, 16), "back", UvRule.Flat, RotatedFaces: ["down"]),

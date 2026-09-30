@@ -161,7 +161,10 @@ public class FinishElementGroupsTests
 
         var floorJson = JObject.Parse(File.ReadAllText(Path.Combine(assets, "blocktypes", "floor.json")));
         var floorIgnored = floorJson["shape"]!["ignoreElements"]?.Select(t => (string)t!).ToHashSet() ?? [];
-        offenders.AddRange(new[] { "infill-pane" }.Where(n => !floorIgnored.Contains(n)).Select(n => $"floor draws '{n}'"));
+        var floorShape = JObject.Parse(File.ReadAllText(Path.Combine(assets, "shapes", "block", "floor", "floor.json")));
+        offenders.AddRange(floorShape["elements"]!.Select(e => (string)e["name"]!)
+            .Where(n => n == "infill-pane" || n.StartsWith("glazing")).Distinct()
+            .Where(n => !floorIgnored.Contains(n)).Select(n => $"floor draws '{n}'"));
 
         Assert.Equal([], offenders);
     }

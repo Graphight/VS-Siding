@@ -69,8 +69,8 @@ public class SidingFloorEntity : BlockEntity
     {
         if (Api is not ICoreClientAPI capi) return false;
 
-        var joins = SidingFloorBlock.Joins(Api.World.BlockAccessor, Pos);
         bool glazed = SidingWallBlock.IsTransparent(Infill, Block.Attributes["Infills"]);
+        var joins = SidingFloorBlock.Joins(Api.World.BlockAccessor, Pos, glazed);
         string[] selectiveElements = SelectiveElements(Framing, Infill, Front, Back, Block.Attributes["Finishes"], joins, (FrontStyle, BackStyle), glazed);
         if (selectiveElements.Length == 0) return false;
 
@@ -105,9 +105,7 @@ public class SidingFloorEntity : BlockEntity
         string? framing, string? infill, string? front, string? back, JsonObject finishes,
         (bool above, bool below, bool left, bool right) joins, (string? front, string? back) styles = default, bool glazed = false)
     {
-        // Glazing is the one flat pane and keeps the ordinary joists; the shape has no bezel.
-        var names = SidingWallEntity.SelectiveElements("wall", framing, glazed ? null : infill, null, null, null, finishes, joins, glazed: false).ToList();
-        if (glazed && infill != null) names.Add("infill-pane");
+        var names = SidingWallEntity.SelectiveElements("wall", framing, infill, null, null, null, finishes, joins, glazed).ToList();
         if (front != null) names.Insert(0, FloorElement(finishes, front, "front", styles.front));
         if (back != null) names.Add(FloorElement(finishes, back, "back", styles.back));
         return names.ToArray();

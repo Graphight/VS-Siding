@@ -67,19 +67,19 @@ public class SidingFloorTests
             SidingFloorEntity.SelectiveElements("oak", "wattle", null, null, Finishes, (true, false, false, false)));
     }
 
-    // Glass is one pane through the joists, with no slivers to seam and no finish-dependent infill.
+    // Glass is one pane in a bezel with no joists, each member dropping where the next floor is glazed too.
     [Fact]
-    public void AGlazedFloorDrawsTheFramingAndOnePane()
+    public void AGlazedFloorDrawsItsBezelAndOnePane()
     {
         Assert.Equal(
             new string[][]
             {
-                ["framing-left", "framing-right", "framing-top", "framing-bottom", "infill-pane"],
-                ["framing-left", "framing-right", "framing-bottom", "infill-pane"],
-                ["framing-left", "framing-right", "infill-pane"],
+                ["glazing-left", "glazing-right", "glazing-top", "glazing-bottom", "infill-pane"],
+                ["glazing-right", "glazing-bottom", "infill-pane"],
+                ["infill-pane"],
             },
-            new[] { (false, false), (true, false), (true, true) }.Select(j =>
-                SidingFloorEntity.SelectiveElements("oak", "glass", null, null, Finishes, (j.Item1, j.Item2, false, false), glazed: true)));
+            new[] { (false, false, false, false), (true, false, true, false), (true, true, true, true) }.Select(j =>
+                SidingFloorEntity.SelectiveElements("oak", "glass", null, null, Finishes, j, glazed: true)));
     }
 
     private static readonly JsonObject Attributes = SidingWallEntityTests.Dict("""

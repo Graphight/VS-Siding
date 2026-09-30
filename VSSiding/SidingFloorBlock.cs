@@ -114,6 +114,7 @@ public class SidingFloorBlock : Block
         MarkAbsorptionChanged(world.BlockAccessor, pos, entity.Framing, oldInfill);
         // Rooms only recompute on a chunk-dirty event, as on the wall; exchanging the block for itself fires one.
         world.BlockAccessor.ExchangeBlock(Id, pos);
+        MarkNeighboursDirty(world, pos);
     }
 
     // Only the top is ever claimed: the room below walks into the open part and meets it there.
@@ -151,12 +152,20 @@ public class SidingFloorBlock : Block
 
     // Every floor's joists run north-south, so the north rim (framing-top) and the south rim
     // (framing-bottom) each drop where a framed floor carries the joists on, the way a stacked
-    // wall drops its plates.
-    internal static (bool above, bool below, bool left, bool right) Joins(IBlockAccessor accessor, BlockPos pos)
-        => (ContinuesJoists(accessor, pos.NorthCopy()), ContinuesJoists(accessor, pos.SouthCopy()), false, false);
+    // wall drops its plates. A glazed floor has no joists: its bezel merges on all four sides,
+    // and only with glazed floors, as glazing does on a wall (decision 0019).
+    internal static (bool above, bool below, bool left, bool right) Joins(IBlockAccessor accessor, BlockPos pos, bool glazed)
+        => glazed
+            ? (ContinuesGlazing(accessor, pos.NorthCopy()), ContinuesGlazing(accessor, pos.SouthCopy()),
+                ContinuesGlazing(accessor, pos.WestCopy()), ContinuesGlazing(accessor, pos.EastCopy()))
+            : (ContinuesJoists(accessor, pos.NorthCopy()), ContinuesJoists(accessor, pos.SouthCopy()), false, false);
 
     private static bool ContinuesJoists(IBlockAccessor accessor, BlockPos neighbourPos)
         => accessor.GetBlockEntity<SidingFloorEntity>(neighbourPos)?.Framing != null;
+
+    private static bool ContinuesGlazing(IBlockAccessor accessor, BlockPos neighbourPos)
+        => accessor.GetBlockEntity<SidingFloorEntity>(neighbourPos) is { Framing: not null } entity
+            && SidingWallBlock.IsTransparent(entity.Infill, entity.Block.Attributes["Infills"]);
 
     // How far past the clicked floor a run can be extended, so a stray click cannot frame one across a lake.
     internal const int RunReach = 4;
@@ -180,11 +189,11 @@ public class SidingFloorBlock : Block
             ? (view.X > 0 ? BlockFacing.EAST : BlockFacing.WEST)
             : (view.Z > 0 ? BlockFacing.SOUTH : BlockFacing.NORTH);
 
-    // Setting Framing isn't a block change, so the floors whose rims it drops have to be told.
+    // Setting Framing or Infill isn't a block change, so the floors whose rims or bezel it drops have to be told.
     internal static void MarkNeighboursDirty(IWorldAccessor world, BlockPos pos)
     {
-        world.BlockAccessor.GetBlockEntity<SidingFloorEntity>(pos.NorthCopy())?.MarkDirty(true);
-        world.BlockAccessor.GetBlockEntity<SidingFloorEntity>(pos.SouthCopy())?.MarkDirty(true);
+        foreach (BlockFacing side in BlockFacing.HORIZONTALS)
+            world.BlockAccessor.GetBlockEntity<SidingFloorEntity>(pos.AddCopy(side))?.MarkDirty(true);
     }
 
     // The wall's peel order with the top as front and the underside as back (decision 0013):
