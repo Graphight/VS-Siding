@@ -17,6 +17,8 @@ public class SidingFloorEntity : BlockEntity
     public string? Infill;
     public string? Front;
     public string? Back;
+    public string? FrontStyle;
+    public string? BackStyle;
 
     public override void ToTreeAttributes(ITreeAttribute tree)
     {
@@ -25,6 +27,8 @@ public class SidingFloorEntity : BlockEntity
         tree.SetString("infill", Infill);
         tree.SetString("front", Front);
         tree.SetString("back", Back);
+        tree.SetString("frontstyle", FrontStyle);
+        tree.SetString("backstyle", BackStyle);
     }
 
     public override void FromTreeAttributes(ITreeAttribute tree, IWorldAccessor worldAccessForResolve)
@@ -41,6 +45,8 @@ public class SidingFloorEntity : BlockEntity
         }
         Front = SidingWallEntity.NullIfEmpty(tree.GetString("front", null));
         Back = SidingWallEntity.NullIfEmpty(tree.GetString("back", null));
+        FrontStyle = SidingWallEntity.NullIfEmpty(tree.GetString("frontstyle", null));
+        BackStyle = SidingWallEntity.NullIfEmpty(tree.GetString("backstyle", null));
 
         // As on the wall: a chunk meshed before its block entities arrive keeps the default shape until redrawn.
         if (Api?.Side == EnumAppSide.Client && MeshState != oldMesh)
@@ -56,17 +62,17 @@ public class SidingFloorEntity : BlockEntity
         dsc.Append(SidingFloorBlock.Describe(Framing, Infill, Front, Back, Block.Attributes, key => Lang.GetIfExists(key)));
     }
 
-    private (string?, string?, string?, string?) MeshState => (Framing, Infill, Front, Back);
+    private (string?, string?, string?, string?, string?, string?) MeshState => (Framing, Infill, Front, Back, FrontStyle, BackStyle);
 
     public override bool OnTesselation(ITerrainMeshPool mesher, ITesselatorAPI tesselator)
     {
         if (Api is not ICoreClientAPI capi) return false;
 
         var joins = SidingFloorBlock.Joins(Api.World.BlockAccessor, Pos);
-        string[] selectiveElements = SelectiveElements(Framing, Infill, Front, Back, Block.Attributes["Finishes"], joins);
+        string[] selectiveElements = SelectiveElements(Framing, Infill, Front, Back, Block.Attributes["Finishes"], joins, (FrontStyle, BackStyle));
         if (selectiveElements.Length == 0) return false;
 
-        string cacheKey = $"vssiding-floor-mesh-{Framing}-{Infill}-{Front}-{Back}-{joins.above}-{joins.below}";
+        string cacheKey = $"vssiding-floor-mesh-{Framing}-{Infill}-{Front}-{Back}-{FrontStyle}-{BackStyle}-{joins.above}-{joins.below}";
         MeshData mesh = ObjectCacheUtil.GetOrCreate(capi, cacheKey, () =>
         {
             Shape shape = Shape.TryGet(capi, new AssetLocation("vssiding", "shapes/block/floor/floor.json"));
@@ -80,20 +86,20 @@ public class SidingFloorEntity : BlockEntity
         return true;
     }
 
-    // The wall's framing and infill names, with each face's element read from the finish's own
-    // FloorElements entry, or the plain slab where it has none.
+    // The wall's framing and infill names, with each face's element named by its style, else read
+    // from the finish's own FloorElements entry, or the plain slab where it has none.
     internal static string[] SelectiveElements(
         string? framing, string? infill, string? front, string? back, JsonObject finishes,
-        (bool above, bool below, bool left, bool right) joins)
+        (bool above, bool below, bool left, bool right) joins, (string? front, string? back) styles = default)
     {
         var names = SidingWallEntity.SelectiveElements("wall", framing, infill, null, null, null, finishes, joins, glazed: false).ToList();
-        if (front != null) names.Insert(0, FloorElement(finishes, front, "front"));
-        if (back != null) names.Add(FloorElement(finishes, back, "back"));
+        if (front != null) names.Insert(0, FloorElement(finishes, front, "front", styles.front));
+        if (back != null) names.Add(FloorElement(finishes, back, "back", styles.back));
         return names.ToArray();
     }
 
-    private static string FloorElement(JsonObject finishes, string key, string face)
-        => finishes[key]["FloorElements"][face].AsString(face);
+    private static string FloorElement(JsonObject finishes, string key, string face, string? style)
+        => style != null ? $"{face}-{style}" : finishes[key]["FloorElements"][face].AsString(face);
 
     private class TexSource(ICoreClientAPI capi, SidingFloorEntity entity) : ITexPositionSource
     {

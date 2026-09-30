@@ -61,7 +61,10 @@ public class FinishElementGroupsTests
 
         var entries = ((JObject)attributes["Finishes"]!).Properties().Concat(((JObject)attributes["FinishFamilies"]!).Properties());
         var groups = entries.SelectMany(e => new[] { "front", "back" }.Select(face => (string?)e.Value["FloorElements"]?[face]))
-            .OfType<string>().Where(g => g is not ("front" or "back")).Distinct().ToList();
+            .OfType<string>().Where(g => g is not ("front" or "back"))
+            .Concat(entries.SelectMany(e => e.Value["FloorStyles"]?.Select(t => (string)t!) ?? [])
+                .SelectMany(style => new[] { "front-" + style, "back-" + style }))
+            .Distinct().ToList();
         var names = shapeJson["elements"]!.Select(e => (string)e["name"]!).ToHashSet();
         var ignored = floorJson["shape"]!["ignoreElements"]?.Select(t => (string)t!).ToHashSet() ?? [];
 

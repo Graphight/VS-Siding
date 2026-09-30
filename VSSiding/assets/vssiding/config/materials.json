@@ -119,6 +119,7 @@
 			Elements: { front: "front-weatherboard", back: "back-boards" },
 			FloorElements: { front: "front-hboards", back: "back-hboards" },
 			Styles: ["weatherboard", "boards", "hboards"],
+			FloorStyles: ["boards", "hboards"],
 			BlockMaterial: "Wood",
 			Consumes: { type: "item", code: "game:plank-oak", quantity: 2 },
 			Drops: [ { type: "item", code: "game:plank-oak", quantity: { avg: 2, var: 0 } } ]
@@ -129,6 +130,7 @@
 			Elements: { front: "front-weatherboard", back: "back-boards" },
 			FloorElements: { front: "front-hboards", back: "back-hboards" },
 			Styles: ["weatherboard", "boards", "hboards"],
+			FloorStyles: ["boards", "hboards"],
 			BlockMaterial: "Wood",
 			Consumes: { type: "item", code: "game:plank-veryaged", quantity: 2 },
 			Drops: [ { type: "item", code: "game:plank-veryaged", quantity: { avg: 2, var: 0 } } ]
@@ -142,6 +144,7 @@
 			Elements: { front: "front-weatherboard", back: "back-boards" },
 			FloorElements: { front: "front-hboards", back: "back-hboards" },
 			Styles: ["weatherboard", "boards", "hboards"],
+			FloorStyles: ["boards", "hboards"],
 			BlockMaterial: "Wood",
 			Consumes: { type: "item", code: "game:plank-{wood}", quantity: 2 },
 			Drops: [ { type: "item", code: "game:plank-{wood}", quantity: { avg: 2, var: 0 } } ]

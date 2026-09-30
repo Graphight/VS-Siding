@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
@@ -67,8 +68,20 @@ public class SidingFloorBlock : Block
             return true;
         }
 
-        if ((face == "front" ? entity.Front : entity.Back) != null)
+        // Only a finish that lists the picked style takes it, so weatherboard falls back to the east-west default.
+        string? style = SidingModePicker.FinishChoices(byPlayer).FirstOrDefault(s => SidingWallBlock.HasStyle(Attributes["Finishes"][finishKey], s, "FloorStyles"));
+
+        string? currentKey = face == "front" ? entity.Front : entity.Back;
+        string? currentStyle = face == "front" ? entity.FrontStyle : entity.BackStyle;
+        if (currentKey != null)
         {
+            // Restyling the same material is free: only the boards' direction changes.
+            if (style != null && currentKey == finishKey && currentStyle != style)
+            {
+                SetFinish(entity, face, finishKey, style);
+                return true;
+            }
+
             if (heldPlaces) return base.OnBlockInteractStart(world, byPlayer, blockSel);
             (byPlayer as IServerPlayer)?.SendIngameError("vssiding:alreadyfinished", Lang.Get("vssiding:build-already-finished"));
             return true;
@@ -77,11 +90,16 @@ public class SidingFloorBlock : Block
         var finishConsumes = Attributes["Finishes"][finishKey]["Consumes"];
         if (!SidingWallBlock.TryAffordOrError(byPlayer, isCreative, slot.StackSize, finishConsumes)) return true;
 
-        if (face == "front") entity.Front = finishKey;
-        else entity.Back = finishKey;
-        entity.MarkDirty(true);
+        SetFinish(entity, face, finishKey, style);
         SidingWallBlock.ConsumeHeld(slot, finishConsumes, isCreative);
         return true;
+    }
+
+    private static void SetFinish(SidingFloorEntity entity, string face, string finishKey, string? style)
+    {
+        if (face == "front") { entity.Front = finishKey; entity.FrontStyle = style; }
+        else { entity.Back = finishKey; entity.BackStyle = style; }
+        entity.MarkDirty(true);
     }
 
     // The top is the floor's front and the underside its back; the edges take no finish.
@@ -256,8 +274,8 @@ public class SidingFloorBlock : Block
     {
         switch (layer)
         {
-            case "front": entity.Front = null; entity.MarkDirty(true); break;
-            case "back": entity.Back = null; entity.MarkDirty(true); break;
+            case "front": entity.Front = null; entity.FrontStyle = null; entity.MarkDirty(true); break;
+            case "back": entity.Back = null; entity.BackStyle = null; entity.MarkDirty(true); break;
             default:
                 string? oldInfill = entity.Infill;
                 entity.Infill = null;
