@@ -15,7 +15,6 @@ namespace VSSiding.Tests;
 // panel's texture across a stacked join (decision 0041).
 // RunAxis names the axis a group runs along. A box cut out of a longer one then samples the texture
 // at its own position on that axis, so a course split into segments keeps one continuous strip.
-// RunBoth samples at the box's own position on x and z both, for the parquet tiles.
 // Three cases need more: the flat board groups rotate their outward face 90 to stand plank grain upright,
 // back-logs position-maps only its outward face, and infill-pane draws two of the six faces.
 public enum UvRule
@@ -33,8 +32,7 @@ public record Element(
     string[]? Faces = null,
     string[]? PositionalOverrides = null,
     string[]? RotatedFaces = null,
-    char? RunAxis = null,
-    bool RunBoth = false);
+    char? RunAxis = null);
 
 public static class WallShapeGen
 {
@@ -561,21 +559,11 @@ public static class WallShapeGen
         new("front-hboards", (0, 15, 0), (16, 16, 16), "front", UvRule.Flat),
         new("back-boards", (0, 12, 0), (16, 13, 16), "back", UvRule.Flat, RotatedFaces: ["down"]),
         new("back-hboards", (0, 12, 0), (16, 13, 16), "back", UvRule.Flat),
-        .. Parquet("front-parquet", "front", 15, 16, "up"),
-        .. Parquet("back-parquet", "back", 12, 13, "down"),
         // The daub slab sits on battens two voxels apart, so the lath shows on the underside and
         // tiles across any run.
         new("back-lath", (0, 12.5, 0), (16, 13, 16), "back", UvRule.Flat),
         .. Enumerable.Range(0, 8).Select(i => new Element("back-lath", (0, 12, 2 * i + 0.5), (16, 12.5, 2 * i + 1.5), "framing", UvRule.Flat, RunAxis: 'x')),
     ];
-
-    // Four tiles in a checkerboard, the grain turned on alternate ones, each sampling the texture
-    // where it sits so the grain keeps the scale the boards row gives it.
-    private static IEnumerable<Element> Parquet(string name, string slot, double y1, double y2, string turned) =>
-        from x in new[] { 0, 8 }
-        from z in new[] { 0, 8 }
-        select new Element(name, (x, y1, z), (x + 8, y2, z + 8), slot, UvRule.Flat,
-            RotatedFaces: (x + z) % 16 == 0 ? null : [turned], RunBoth: true);
 
     private static IEnumerable<Element> Rim(string name, double z1, double z2) =>
         new[] { (0.0, 2.0), (3.0, 7.5), (8.5, 13.0), (14.0, 16.0) }
@@ -679,7 +667,7 @@ public static class WallShapeGen
         // A box cut out of a longer one has to keep sampling the texture where it sits, or every
         // segment restarts the same strip and the painted grain repeats across the run.
         (double, double) Span(char axis) =>
-            element.RunAxis == axis || (element.RunBoth && axis != 'y') ? (Lo(axis), Hi(axis)) : (0.0, Hi(axis) - Lo(axis));
+            element.RunAxis == axis ? (Lo(axis), Hi(axis)) : (0.0, Hi(axis) - Lo(axis));
 
         var (u0, u1) = Span(uAxis);
         var (v0, v1) = positional ? (16 - ty, 16 - fy) : Span(vAxis);

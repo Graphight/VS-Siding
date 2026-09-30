@@ -137,9 +137,8 @@ public class FinishElementGroupsTests
 
         Assert.Equal(
             new[] { "planks", "planks-veryaged", "planks-{wood}" }.Select(name => $"{name}: {string.Join(", ", boards)}"),
-            entries.Select(e => (e.Name, Styles: (e.Value["Styles"] ?? new JArray()).Concat(e.Value["FloorStyles"] ?? new JArray()).Select(t => (string)t!).ToList()))
-                .Where(e => e.Styles.Any(boards.Contains))
-                .Select(e => $"{e.Name}: {string.Join(", ", e.Styles.Distinct())}"));
+            entries.Where(e => e.Value["Styles"]?.Any(t => boards.Contains((string)t!)) ?? false)
+                .Select(e => $"{e.Name}: {string.Join(", ", e.Value["Styles"]!.Select(t => (string)t!))}"));
     }
 
     // Glazing's own elements - the pane and its bezel - exist only for a glazed cell, so none of
