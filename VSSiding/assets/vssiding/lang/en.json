@@ -215,6 +215,7 @@
 	"toolmode-weatherboard": "Weatherboard",
 	"toolmode-boards": "Vertical boards",
 	"toolmode-hboards": "Horizontal boards",
+	"toolmode-parquet": "Parquet",
 	"toolmode-shakes": "Shakes",
 	"toolmode-logs": "Logs",
 	"build-wrong-face": "Click the wall's face",
