@@ -150,9 +150,6 @@ public class SidingFloorBlock : Block
             SidingWallBlock.ComputeLightAbsorption(framing, oldInfill, Attributes["Framings"], Attributes["Infills"]),
             GetLightAbsorption(accessor, pos), pos);
 
-    internal bool IsSealed(BlockEntity? be)
-        => be is SidingFloorEntity entity && SidingWallBlock.ComputeLightAbsorption(entity.Framing, entity.Infill, Attributes["Framings"], Attributes["Infills"]) > 0;
-
     // Every floor's joists run north-south, so the north rim (framing-top) and the south rim
     // (framing-bottom) each drop where a framed floor carries the joists on, the way a stacked
     // wall drops its plates. A glazed floor has no joists: its bezel merges on all four sides,
