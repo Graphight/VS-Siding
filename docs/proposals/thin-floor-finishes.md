@@ -2,7 +2,7 @@
 
 - Status: Draft
 - Created: 2026-09-29
-- Reflects: split out of `thin-floor-framing`; decisions 0007, 0019, 0027, 0045; not yet played
+- Reflects: split out of `thin-floor-framing`; its first playtest; decisions 0007, 0019, 0027, 0045; not yet played
 
 ## Summary
 `thin-floor-framing` draws a floor's top and underside as plain slabs.
@@ -18,15 +18,20 @@ Laid flat, a weatherboard floor is a staircase of ridges, so a floor cannot take
 A finish entry gains a floor pair beside its wall pair, e.g. `FloorElements: { top: "top-boards", bottom: "bottom-lath" }`; a finish without one draws the plain slab.
 `WallShapeGen`'s floor table grows the matching groups.
 
-**Board direction.**
-Floorboards run across the joists, as in a real floor, so the floor's `side` already fixes them and no picker row is needed.
+**Board direction on the Boards row.**
+Every floor's joists run north-south (`thin-floor-framing`), so the floor has no orientation for the boards to follow.
+The picker's Boards row picks it instead, the way it picks a wall's board style: `boards` lays them north-south and `hboards` east-west, stored per face like `FrontStyle` (decision 0027).
+Real floorboards run across the joists, so east-west would be the default; `weatherboard` has no flat form and falls back to it.
 
-**Glazing.**
-A glazed floor is a skylight in the storey below; it needs 0019's transparent pass and a decision about which light patches apply to a horizontal pane.
+**Glass floors.**
+The first playtest wanted them: a glass roof where a Roofing roof will not do, and see-through floors over water.
+A glazed floor takes glass as its infill and no finish, as a glazed wall does (decision 0019).
+The pane goes in the transparent pass the way a glazed wall's does, and absorbs no light, so it stays out of whatever `thin-floor-lighting` settles for sealed floors.
+Neighbouring glazed floors merge into one pane, which the joists already allow: they run through every cell, so only the rims drop.
 
 ## Alternatives considered
 - **Reuse the wall `Elements` on a floor.** Weatherboard and shakes read as ridges when laid flat.
-- **A picker row for board direction.** A floor already has an orientation; a second one would contradict it.
+- **Board direction from the floor's own orientation.** The first build did this; the joists followed the player's facing and the boards followed the joists, so the grain changed with the way the player happened to face while framing.
 
 ## Consequences & open questions
 - Which of the existing styles have a sensible flat form: `boards` and `hboards` do; `weatherboard` and `shakes` probably do not.
