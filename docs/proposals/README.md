@@ -8,8 +8,6 @@ An idea that's been thought through but not acted on. Mutable: edit freely, argu
 
 ## Open
 
-- `thin-floor-finishes`: floorboard, ceiling and glazed styles for a thin floor, since the wall's weatherboard and shakes elements read as ridges when laid flat.
-Board direction comes from the Boards row, since floors have no orientation of their own.
 - `thin-floor-lighting`: a sealed floor one block off the ground renders its underside badly lit; measure first, as decision 0018 did, then decide which cell the underside should read.
 - `deck-as-floor`: the deck gets the floor's layers, so a floor run up to a wall reads as one floor; decks built before it keep sealing as bare framing.
 - `hanging-under-thin-floors`: a thin floor's underside is 12/16 above the cell boundary, so hung lanterns float or are refused.
