@@ -37,4 +37,4 @@ A floor cell on a chunk mesh's bottom border layer is skipped: its cell below is
 - A face reading the floor cell from above, such as the bottom of a block standing on the floor, now takes the room below's light; it rests on the floor's top, where it is not seen.
 - With side AO, faces in the room below whose ring reaches the floor cell shade toward the ceiling, as under a vanilla plank ceiling.
 - Played: neither the chandelier nor a torch in the room above lights the joists or the wall tops below the floor, and a glazed floor still passes light.
-Not yet played: the side AO, with a torch in the room below and the room above dark, and the shading it adds under the ceiling.
+With a torch in the room below and the room above dark, nothing upstairs glows at its base, and the ceiling below shades like a plank ceiling.
