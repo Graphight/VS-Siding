@@ -18,8 +18,7 @@ public class FireScenarios : AtlasScenarioBase
         BlockPos inside = cell.WestCopy();
         World.SetBlock("game:planks-aged-ud", cell.DownCopy());
 
-        ITestPlayer player = await World.JoinPlayer("Builder");
-        WallBuilder.HoldSaw(player);
+        ITestPlayer player = await WallBuilder.JoinBuilder(World);
         await WallBuilder.Raise(World, player, cell, inside, "game:plank-oak", "game:clay-blue", "game:plank-oak");
 
         Assert.Equal(("oak", "clay", null, null, "planks"), WallBuilder.Layers(World, cell));

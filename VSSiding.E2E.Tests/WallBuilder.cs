@@ -10,8 +10,14 @@ namespace VSSiding.E2E.Tests;
 
 internal static class WallBuilder
 {
-    internal static void HoldSaw(ITestPlayer player)
-        => player.Entity.LeftHandItemSlot.Itemstack = new ItemStack(player.Entity.World.GetItem(new AssetLocation("game:saw-copper")));
+    // Atlas's default play style joins players in creative, which skips the mod's cost checks and consumption.
+    internal static async Task<ITestPlayer> JoinBuilder(IWorldSession world)
+    {
+        ITestPlayer player = await world.JoinPlayer("Builder");
+        player.Player.WorldData.CurrentGameMode = EnumGameMode.Survival;
+        player.Entity.LeftHandItemSlot.Itemstack = new ItemStack(player.Entity.World.GetItem(new AssetLocation("game:saw-copper")));
+        return player;
+    }
 
     // framing, infill, front, secondfront, back as the wall's entity saves them; the entity type is the mod's own, so it is read through its tree.
     internal static (string? Framing, string? Infill, string? Front, string? SecondFront, string? Back) Layers(IWorldSession world, BlockPos cell)
@@ -47,16 +53,19 @@ internal static class WallBuilder
         var handling = EnumHandHandling.NotHandled;
         slot.Itemstack!.Collectible.OnHeldInteractStart(slot, player.Entity, frameSel, null, true, ref handling);
         Assert.Equal(EnumHandHandling.PreventDefault, handling);
+        Assert.Null(slot.Itemstack);
 
         if (infill == null) return;
 
         await player.GiveItem(infill, 4);
         var infillSel = new BlockSelection { Position = cell.Copy(), Face = outward, HitPosition = new Vec3d(0.5, 0.5, 0.5) };
         Assert.True(world.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, infillSel));
+        Assert.Null(slot.Itemstack);
 
         if (finish == null) return;
 
-        await player.GiveItem(finish, 1);
+        await player.GiveItem(finish, 2);
         Assert.True(world.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, infillSel));
+        Assert.Null(slot.Itemstack);
     }
 }

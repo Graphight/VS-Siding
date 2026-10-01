@@ -20,8 +20,7 @@ public class AnimalScenarios : AtlasScenarioBase
             for (int dz = -4; dz <= 4; dz++)
                 World.SetBlock("game:planks-aged-ud", cell.Offset(dx, -1, dz));
 
-        ITestPlayer player = await World.JoinPlayer("Builder");
-        WallBuilder.HoldSaw(player);
+        ITestPlayer player = await WallBuilder.JoinBuilder(World);
         for (int dz = -2; dz <= 2; dz++)
             await WallBuilder.Raise(World, player, cell.SouthCopy(dz), inside.SouthCopy(dz), "game:plank-oak", "game:clay-blue");
         Assert.Equal(("oak", "clay", null, null, null), WallBuilder.Layers(World, cell));

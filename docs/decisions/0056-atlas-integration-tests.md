@@ -36,6 +36,8 @@ Wall and guest layers are read through the block entity's `ToTreeAttributes`, an
 Atlas has no click call, so a scenario gives the player the item and calls the block's own handler: `PlaceWallFrame` through the plank's `OnHeldInteractStart`, layers through `SidingWallBlock.OnBlockInteractStart` on the outward face, and hosting a chest through the wall's `OnBlockInteractStart` (`TryHost`, then the chest's `TryPlaceBlock`, then `GuestWalls.Set`).
 The player stands outside the cell and the wall claims the face towards the room, since vanilla's `SuggestedHVOrientation` reads the eye position minus the hit position.
 A plank finish clicked on the outward face lands in `Back`.
+Atlas's default `creativebuilding` play style joins players in creative, which skips every cost check and `ConsumeHeld`, so `WallBuilder.JoinBuilder` switches the player to survival.
+Each step is given exactly its `Consumes` quantity and expects an empty slot after, so a wrong cost fails either way: one short is refused, one over is left behind.
 
 **Scenarios.**
 All run under `StrictBootDiagnostics`, so any engine warning from asset loading onwards fails the class.

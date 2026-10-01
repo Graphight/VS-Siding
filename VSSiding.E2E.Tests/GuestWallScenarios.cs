@@ -33,22 +33,26 @@ public class GuestWallScenarios : AtlasScenarioBase
         BlockPos cell = Cell;
         World.SetBlock("game:planks-aged-ud", cell.DownCopy());
 
-        ITestPlayer player = await World.JoinPlayer("Builder");
-        WallBuilder.HoldSaw(player);
-        await WallBuilder.Raise(World, player, cell, cell.WestCopy(), "game:plank-oak", "game:clay-blue", "game:plank-oak");
-        Assert.Equal(Layers, WallBuilder.Layers(World, cell));
-        Assert.Null(WallBuilder.GuestLayers(World, cell));
+        ITestPlayer player = await WallBuilder.JoinBuilder(World);
+        try
+        {
+            await WallBuilder.Raise(World, player, cell, cell.WestCopy(), "game:plank-oak", "game:clay-blue", "game:plank-oak");
+            Assert.Equal(Layers, WallBuilder.Layers(World, cell));
+            Assert.Null(WallBuilder.GuestLayers(World, cell));
 
-        player.Entity.LeftHandItemSlot.Itemstack = null;
-        await player.GiveItem("game:chest-east", 1);
-        var selection = new BlockSelection { Position = cell.Copy(), Face = BlockFacing.EAST, HitPosition = new Vec3d(0.5, 0.5, 0.5) };
-        Assert.True(World.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, selection));
+            player.Entity.LeftHandItemSlot.Itemstack = null;
+            await player.GiveItem("game:chest-east", 1);
+            var selection = new BlockSelection { Position = cell.Copy(), Face = BlockFacing.EAST, HitPosition = new Vec3d(0.5, 0.5, 0.5) };
+            Assert.True(World.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, selection));
 
-        Assert.StartsWith("chest", World.BlockAt(cell).Code.Path);
-        Assert.Equal(Layers, WallBuilder.GuestLayers(World, cell));
-
-        player.Player.Disconnect();
-        await World.Until(() => !player.IsConnected);
+            Assert.StartsWith("chest", World.BlockAt(cell).Code.Path);
+            Assert.Equal(Layers, WallBuilder.GuestLayers(World, cell));
+        }
+        finally
+        {
+            player.Player.Disconnect();
+            await World.Until(() => !player.IsConnected);
+        }
     }
 
     [AtlasScenario(RestartWorld = true)]

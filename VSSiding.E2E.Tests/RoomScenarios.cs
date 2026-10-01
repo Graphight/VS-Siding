@@ -39,8 +39,7 @@ public class RoomScenarios : AtlasScenarioBase
             for (int dz = -1; dz <= 1; dz++)
                 World.SetBlock("game:planks-aged-ud", inside.Offset(dx, -1, dz));
 
-        ITestPlayer player = await World.JoinPlayer("Builder");
-        WallBuilder.HoldSaw(player);
+        ITestPlayer player = await WallBuilder.JoinBuilder(World);
         foreach (BlockFacing side in BlockFacing.HORIZONTALS)
             await WallBuilder.Raise(World, player, inside.AddCopy(side), inside, "game:plank-oak", filled.Contains(side) ? infill : null);
 
