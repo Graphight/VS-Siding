@@ -750,7 +750,9 @@ public static class WallShapeGen
             ["texture"] = "#" + element.Slot,
             ["uv"] = new JArray(u0, v0, u1, v1),
         };
-        if (element.RotatedFaces?.Contains(face) ?? false) result["rotation"] = 90;
+        // A face rotation turns the texture the opposite way to a texture's own rotation, so 270 on a side
+        // face matches vanilla's upright planks (rotation 90), seam for seam. Floors keep 90.
+        if (element.RotatedFaces?.Contains(face) ?? false) result["rotation"] = face is "up" or "down" ? 90 : 270;
         return result;
     }
 

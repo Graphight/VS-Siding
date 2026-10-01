@@ -1387,7 +1387,7 @@
             16.0,
             16.0
           ],
-          "rotation": 90
+          "rotation": 270
         },
         "south": {
           "texture": "#back",
@@ -1475,7 +1475,7 @@
             16.0,
             16.0
           ],
-          "rotation": 90
+          "rotation": 270
         },
         "up": {
           "texture": "#front",
