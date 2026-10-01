@@ -624,6 +624,34 @@ public class SidingModSystem : ModSystem
 
     internal static bool IsHostableId(int blockId) => Hostable is { } hostable && blockId < hostable.Length && hostable[blockId];
 
+    // Indexed by BlockId, like Hostable: whether the block hangs from the face above it (decision 0054).
+    internal static bool[]? Hangers;
+
+    internal static bool IsHangerId(int blockId) => Hangers is { } hangers && blockId < hangers.Length && hangers[blockId];
+
+    internal static readonly AccessTools.FieldRef<BlockBehaviorUnstableFalling, BlockFacing[]?> AttachableFacesRef =
+        AccessTools.FieldRefAccess<BlockBehaviorUnstableFalling, BlockFacing[]?>("attachableFaces");
+
+    // A lantern or oil lamp hangs as its "down" variant; a chandelier is unstable falling attached on UP.
+    internal static bool IsHanger(Block block)
+        => block.BlockBehaviors.Any(behavior => behavior switch
+        {
+            BlockBehaviorOmniAttachable omni => block.Variant[omni.facingCode] == "down",
+            BlockBehaviorUnstableFalling falling => AttachableFacesRef(falling)?.Contains(BlockFacing.UP) == true,
+            _ => false,
+        });
+
+    // How far a hung block at pos rises to meet the underside of the thin floor above; zero for anything else.
+    internal static double HangShiftAt(BlockPos pos, Block block)
+    {
+        if (!IsHangerId(block.BlockId)) return 0;
+
+        ICoreAPI? api = ApiRef(block);
+        if (api == null) return 0;
+
+        return api.World.BlockAccessor.GetBlock(pos.UpCopy()) is SidingFloorBlock ? 1 - PanelThickness : 0;
+    }
+
     // The four horizontal faces, in the order FaceShiftByBlock's per-block arrays are indexed.
     private static readonly string[] HorizontalFaces = { "north", "east", "south", "west" };
     private static readonly Dictionary<string, int> HorizontalFaceIndex =
@@ -650,17 +678,20 @@ public class SidingModSystem : ModSystem
         int maxId = api.World.Blocks.Where(b => b != null).Max(b => b.BlockId);
         var hostable = new bool[maxId + 1];
         var faceShift = new double[maxId + 1][];
+        var hangers = new bool[maxId + 1];
 
         foreach (var block in api.World.Blocks)
         {
             if (block == null) continue;
             hostable[block.BlockId] = IsHostable(block);
+            hangers[block.BlockId] = IsHanger(block);
             if (!hostable[block.BlockId]) continue;
 
             faceShift[block.BlockId] = FaceShifts(block);
         }
 
         Hostable = hostable;
+        Hangers = hangers;
         FaceShiftByBlock = faceShift;
     }
 
@@ -835,12 +866,13 @@ public class SidingModSystem : ModSystem
     // everything reading vars.finalX/finalZ downstream - land on the panel a hosted block shifts to.
     internal static void ShiftTowardWall(ChunkTesselator tesselator, Block block)
     {
-        if (!IsHostableId(block.BlockId)) return;
+        if (!IsHostableId(block.BlockId) && !IsHangerId(block.BlockId)) return;
 
         var vars = VarsRef(tesselator);
         var pos = new BlockPos(vars.posX, vars.posY, vars.posZ, vars.dimension);
         var (dx, dz) = GapShiftAt(pos, block);
         vars.finalX += (float)dx;
+        vars.finalY += (float)HangShiftAt(pos, block);
         vars.finalZ += (float)dz;
     }
 
