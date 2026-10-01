@@ -171,6 +171,19 @@ public class SidingFloorTests
             }.Select(c => $"{c.Item1.Code} oak {c.Item2 ?? "-"} {SidingFloorBlock.ComputeRetention(c.Item1, "oak", c.Item2, Attributes)}"));
     }
 
+    // Bare joists are enough to hang from; standing on the top still wants it sealed.
+    [Fact]
+    public void AFloorHoldsAHangerOnceFramedButASolidTopOnlyOnceFilled()
+    {
+        Assert.Equal(
+            new[] { "down oak - True", "down - - False", "up oak - False", "up oak wattle True", "north oak wattle False" },
+            new[]
+            {
+                (BlockFacing.DOWN, "oak", null), (BlockFacing.DOWN, null, null), (BlockFacing.UP, "oak", null),
+                (BlockFacing.UP, "oak", "wattle"), (BlockFacing.NORTH, "oak", "wattle"),
+            }.Select(c => $"{c.Item1.Code} {c.Item2 ?? "-"} {c.Item3 ?? "-"} {SidingFloorBlock.CanAttach(c.Item1, c.Item2, c.Item3, Attributes)}"));
+    }
+
     [Fact]
     public void OnlyTheTopAndUndersideTakeAFinish()
     {

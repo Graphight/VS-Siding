@@ -128,11 +128,15 @@ public class SidingFloorBlock : Block
         => SidingWallBlock.ComputeRetention(facing == BlockFacing.UP, framing, infill, attributes["Framings"], attributes["Infills"]);
 
     // sidesolid on UP would let anything stand on bare joists; only a sealed top holds it.
+    // Anything hangs from the underside once the joists are up, sealed or not.
     public override bool CanAttachBlockAt(IBlockAccessor blockAccessor, Block block, BlockPos pos, BlockFacing blockFace, Cuboidi? attachmentArea = null)
     {
         var entity = blockAccessor.GetBlockEntity<SidingFloorEntity>(pos);
-        return ComputeRetention(blockFace, entity?.Framing, entity?.Infill, Attributes) != 0;
+        return CanAttach(blockFace, entity?.Framing, entity?.Infill, Attributes);
     }
+
+    internal static bool CanAttach(BlockFacing facing, string? framing, string? infill, JsonObject attributes)
+        => facing == BlockFacing.DOWN ? framing != null : ComputeRetention(facing, framing, infill, attributes) != 0;
 
     public override int GetLightAbsorption(IBlockAccessor blockAccessor, BlockPos pos)
         => GetLightAbsorption(blockAccessor.GetChunkAtBlockPos(pos), pos);
