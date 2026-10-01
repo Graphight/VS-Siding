@@ -2,7 +2,7 @@
 
 - Status: Draft
 - Created: 2026-09-30
-- Reflects: mod page comments https://mods.vintagestory.at/vssiding#cmt-242349, #cmt-242478 and #cmt-242905; One-Roof 1.12.0's assets; `SidingWallBlock.HasSawInOffhand`, `PlaceWallFrame`, `config/materials.json`; vanilla `stone.json`, `packeddirt.json`, `rammed.json` and their grid recipes, `bone.json`, `hide.json`, `hide-species.json`, `cloth.json`; `SidingWallBlock.LayerMaterial`/`ResolveLayerCombustible`; decisions 0001, 0005, 0006, 0026, 0043; not yet played
+- Reflects: mod page comments https://mods.vintagestory.at/vssiding#cmt-242349, #cmt-242478 and #cmt-242905; One-Roof 1.12.0's assets; `SidingWallBlock.HasSawInOffhand`, `PlaceWallFrame`, `config/materials.json`; vanilla `stone.json`, `packeddirt.json`, `rammed.json` and their grid recipes, `bone.json`, `hide.json`, `hide-species.json`, `cloth.json`; the Roofing mod page's changelog; `SidingWallBlock.LayerMaterial`/`ResolveLayerCombustible`; decisions 0001, 0005, 0006, 0026, 0043; not yet played
 
 ## Summary
 Three players asked for "primitive" walls, meaning walls a stone-age player can build.
@@ -85,7 +85,7 @@ Decision 0043 lets only a `Wood` top layer catch, and `straw` already names `Blo
 `pelt` and `cloth-{color}` do the same, so a tent wall burns down to its frame like a straw one, and takes the plank sounds straw does.
 
 **The roof is Roofing's.**
-A tent is walls and a roof, and the Roofing mod's page already shows hide roofs.
+A tent is walls and a roof, and the Roofing mod already ships a cloth roof in leather and linen (its 1.3.0 changelog), taking hide and leather since 1.4.1 (https://mods.vintagestory.at/show/mod/30143).
 Siding stays walls; a stick-framed thin floor with a pelt infill is as near as it gets.
 
 **No per-framing restrictions.**
