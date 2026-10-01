@@ -87,6 +87,28 @@ public class SidingWallTexSourceTests
     }
 
     [Fact]
+    public void DeckLayersResolveFromTheDictionariesTheFloorsDo()
+    {
+        var actual = new[] { "deckinfill", "deckfront", "deckback" }
+            .Select(slot => SidingWallTexSource.ResolveTexture(
+                slot, "oak", "wattle", "daub", null, "daub", Framings, Infills, Finishes, deck: "oak",
+                deckInfill: "wattle", deckFront: "planks", deckBack: "brick")!.Base);
+
+        Assert.Equal(new[]
+        {
+            new AssetLocation("game:block/wood/wattle"),
+            new AssetLocation("game:block/wood/planks/aged1"),
+            new AssetLocation("game:block/clay/brick/four/running/red1"),
+        }, actual);
+    }
+
+    [Fact]
+    public void AnUnbuiltDeckLayerResolvesToNull()
+    {
+        Assert.Null(SidingWallTexSource.ResolveTexture("deckfront", "oak", "wattle", "daub", null, "daub", Framings, Infills, Finishes, deck: "oak"));
+    }
+
+    [Fact]
     public void EachSlotResolvesFromItsOwnDictionary()
     {
         var actual = new[] { "framing", "infill", "front", "secondfront", "back" }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Newtonsoft.Json.Linq;
+using Vintagestory.API.MathTools;
 using Xunit;
 
 namespace VSSiding.Tests;
@@ -254,20 +255,79 @@ public class WallShapeGenTests
         Assert.Equal(expected, actual);
     }
 
-    // The deck fills the wall's open 12/16 flush with the top of the cell, textured like framing
-    // but through its own "deck" texture code so it reads the Deck layer, not Framing.
-    [Theory]
-    [InlineData("wall", 4, 12, 0, 16, 16, 16)]
-    [InlineData("cornerout", 4, 12, 4, 16, 16, 16)]
-    public void DeckFillsTheOpenPartFlushWithTheTopOfTheCell(
-        string layout, double fx, double fy, double fz, double tx, double ty, double tz)
-    {
-        var deck = WallShapeGen.Generate(layout)["elements"]!
-            .Single(e => (string)e["name"]! == "deck");
+    private static readonly string[] Sides = ["west", "south", "east", "north"];
 
-        Assert.Equal(new JArray(fx, fy, fz).ToString(), deck["from"]!.ToString());
-        Assert.Equal(new JArray(tx, ty, tz).ToString(), deck["to"]!.ToString());
-        Assert.All(((JObject)deck["faces"]!).Properties(), p => Assert.Equal("#deck", p.Value["texture"]!.ToString()));
+    private static double[] DeckBoxVoxels(string layout, string side)
+    {
+        var box = SidingWallBlock.AddOpenPartBoxes(Array.Empty<Cuboidf>(), layout, side, "oak", null).Single();
+        return new[] { box.X1, box.Y1, box.Z1, box.X2, box.Y2, box.Z2 }.Select(v => Math.Round(v * 16.0, 3) + 0.0).ToArray();
+    }
+
+    // The deck is the floor's layers clipped to its area, a copy per side, each staying inside the box
+    // SidingWallBlock gives that side's deck, and all of them on the deck's own texture codes.
+    [Theory]
+    [InlineData("wall")]
+    [InlineData("cornerout")]
+    public void EverySidesDeckGroupsLieInsideItsDeckBox(string layout)
+    {
+        var elements = WallShapeGen.Generate(layout)["elements"]!.Cast<JObject>().ToArray();
+        var expected = new Dictionary<string, string[]>();
+        var actual = new Dictionary<string, string[]>();
+        foreach (string side in Sides)
+        {
+            var box = DeckBoxVoxels(layout, side);
+            var groups = elements.Where(e => ((string)e["name"]!).StartsWith($"deck-{side}-")).ToArray();
+            Assert.NotEmpty(groups);
+
+            expected[side] = [];
+            actual[side] = groups
+                .Where(e => !Inside(e, box))
+                .Select(e => (string)e["name"]!)
+                .ToArray();
+            Assert.All(groups.SelectMany(g => ((JObject)g["faces"]!).Properties()),
+                p => Assert.Contains((string)p.Value["texture"]!, new[] { "#deck", "#deckinfill", "#deckfront", "#deckback" }));
+        }
+
+        Assert.Equal(expected, actual);
+    }
+
+    private static bool Inside(JObject element, double[] box)
+    {
+        var lo = element["from"]!.Select(v => (double)v!).ToArray();
+        var hi = element["to"]!.Select(v => (double)v!).ToArray();
+        return Enumerable.Range(0, 3).All(i => lo[i] >= box[i] && hi[i] <= box[i + 3]);
+    }
+
+    // A clipped face samples the texels the floor's whole face has there: a flat face reads its uv
+    // the floor's way, and a rotated one runs u along z and v against x (up) or with x (down).
+    [Theory]
+    [InlineData("wall")]
+    [InlineData("cornerout")]
+    public void ClippedDeckFacesKeepTheFloorsUv(string layout)
+    {
+        var elements = WallShapeGen.Generate(layout)["elements"]!.Cast<JObject>().ToArray();
+        var expected = new Dictionary<string, string>();
+        var actual = new Dictionary<string, string>();
+        foreach (string side in Sides)
+        {
+            var b = DeckBoxVoxels(layout, side);
+            double x0 = b[0], z0 = b[2], x1 = b[3], z1 = b[5];
+            var cases = new (string Name, string Face, double[] Uv)[]
+            {
+                ("front-hboards", "up", [x0, z0, x1, z1]),
+                ("front-boards", "up", [z0, 16 - x1, z1, 16 - x0]),
+                ("back-hboards", "down", [16 - x1, z0, 16 - x0, z1]),
+                ("back-boards", "down", [z0, x0, z1, x1]),
+            };
+            foreach (var (name, face, uv) in cases)
+            {
+                string key = $"{side} {name} {face}";
+                expected[key] = new JArray(uv).ToString();
+                actual[key] = elements.Single(e => (string)e["name"]! == $"deck-{side}-{name}")["faces"]![face]!["uv"]!.ToString();
+            }
+        }
+
+        Assert.Equal(expected, actual);
     }
 
     [Theory]

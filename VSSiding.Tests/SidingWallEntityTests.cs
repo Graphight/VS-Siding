@@ -135,6 +135,57 @@ public class SidingWallEntityTests
     }
 
     [Fact]
+    public void DeckSavedBeforeLayersLoadsAsLegacy()
+    {
+        var tree = new TreeAttribute();
+        tree.SetString("deck", "oak");
+
+        Assert.True(SidingWallEntity.ReadLegacyDeck(tree, "oak"));
+    }
+
+    [Fact]
+    public void LegacyDeckFlagSurvivesByteRoundTrip()
+    {
+        var tree = new TreeAttribute();
+        tree.SetString("deck", "oak");
+        tree.SetBool("legacydeck", SidingWallEntity.ReadLegacyDeck(tree, "oak"));
+
+        var reloaded = new TreeAttribute();
+        reloaded.FromBytes(tree.ToBytes());
+
+        Assert.True(SidingWallEntity.ReadLegacyDeck(reloaded, "oak"));
+    }
+
+    [Fact]
+    public void NewDeckStaysNonLegacyAcrossByteRoundTrip()
+    {
+        var tree = new TreeAttribute();
+        tree.SetString("deck", "oak");
+        tree.SetBool("legacydeck", false);
+
+        var reloaded = new TreeAttribute();
+        reloaded.FromBytes(tree.ToBytes());
+
+        Assert.False(SidingWallEntity.ReadLegacyDeck(reloaded, "oak"));
+    }
+
+    [Fact]
+    public void DeckLayerKeysSurviveByteRoundTrip()
+    {
+        string[] keys = ["deckinfill", "deckfront", "deckback", "deckfrontstyle", "deckbackstyle"];
+        var tree = new TreeAttribute();
+        foreach (string key in keys) tree.SetString(key, key + "-value");
+        tree.SetString("deckback", null);
+
+        var reloaded = new TreeAttribute();
+        reloaded.FromBytes(tree.ToBytes());
+
+        Assert.Equal(
+            new string?[] { "deckinfill-value", "deckfront-value", null, "deckfrontstyle-value", "deckbackstyle-value" },
+            keys.Select(key => SidingWallEntity.NullIfEmpty(reloaded.GetString(key, null))));
+    }
+
+    [Fact]
     public void StepKeysSurviveByteRoundTrip()
     {
         var tree = new TreeAttribute();
@@ -159,11 +210,10 @@ public class SidingWallEntityTests
     }
 
     [Fact]
-    public void SelectiveElementsAddsDeckWhenSet()
+    public void SelectiveElementsLeavesTheDeckToItsOwnGroups()
     {
-        Assert.Equal(new[] { "framing-left", "framing-right", "framing-top", "framing-bottom", "deck" },
-            SidingWallEntity.SelectiveElements("wall", "oak", null, null, null, null, NoElementFinishes, (false, false, false, false), glazed: false,
-                deck: "oak"));
+        Assert.Equal(new[] { "framing-left", "framing-right", "framing-top", "framing-bottom" },
+            SidingWallEntity.SelectiveElements("wall", "oak", null, null, null, null, NoElementFinishes, (false, false, false, false), glazed: false));
     }
 
     [Fact]
@@ -316,8 +366,27 @@ public class SidingWallEntityTests
             SidingWallEntity.CacheKey("wall", "west", "oak", "wattle", "daub", "planks", "brick", (false, false, false, false), default, "oak"),
             SidingWallEntity.CacheKey("wall", "west", "oak", "wattle", "daub", "planks", "brick", (false, false, false, false), default, null, "game:plankstairs-oak-up-north-free"),
             SidingWallEntity.CacheKey("wall", "west", "oak", "wattle", "daub", "planks", "brick", (false, false, false, false), default, null, null, "up-north"),
+            SidingWallEntity.CacheKey("wall", "west", "oak", "wattle", "daub", "planks", "brick", (false, false, false, false), default, "oak", null, null, "wattle"),
+            SidingWallEntity.CacheKey("wall", "west", "oak", "wattle", "daub", "planks", "brick", (false, false, false, false), default, "oak", null, null, "glass-plain"),
+            SidingWallEntity.CacheKey("wall", "west", "oak", "wattle", "daub", "planks", "brick", (false, false, false, false), default, "oak", null, null, null, "planks"),
+            SidingWallEntity.CacheKey("wall", "west", "oak", "wattle", "daub", "planks", "brick", (false, false, false, false), default, "oak", null, null, null, null, "planks"),
+            SidingWallEntity.CacheKey("wall", "west", "oak", "wattle", "daub", "planks", "brick", (false, false, false, false), default, "oak", null, null, null, null, null, ("boards", null)),
+            SidingWallEntity.CacheKey("wall", "west", "oak", "wattle", "daub", "planks", "brick", (false, false, false, false), default, "oak", null, null, null, null, null, (null, "boards")),
+            SidingWallEntity.CacheKey("wall", "west", "oak", "wattle", "daub", "planks", "brick", (false, false, false, false), default, "oak", null, null, null, null, null, default, (true, false, false, false)),
+            SidingWallEntity.CacheKey("wall", "west", "oak", "wattle", "daub", "planks", "brick", (false, false, false, false), default, "oak", null, null, null, null, null, default, (false, true, false, false)),
+            SidingWallEntity.CacheKey("wall", "west", "oak", "wattle", "daub", "planks", "brick", (false, false, false, false), default, "oak", null, null, null, null, null, default, (false, false, true, false)),
+            SidingWallEntity.CacheKey("wall", "west", "oak", "wattle", "daub", "planks", "brick", (false, false, false, false), default, "oak", null, null, null, null, null, default, (false, false, false, true)),
         ];
 
         Assert.Equal(keys, keys.Distinct());
+    }
+
+    [Fact]
+    public void GlassGroupsOfTheWallAndItsDeckAreInfillElements()
+    {
+        Assert.Equal(
+            [true, true, true, false, false, false],
+            new[] { "infill-pane", "infill-top", "deck-west-infill-pane", "deck-west-glazing-top", "framing-left", "deck-north-front-hboards" }
+                .Select(SidingWallEntity.IsInfillElement));
     }
 }

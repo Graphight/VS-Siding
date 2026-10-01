@@ -128,23 +128,33 @@ public class SidingWallBlockRetentionTests
         Assert.Equal(new[] { 0, 0, 99, 99, 0, 0 }, actual);
     }
 
-    // A deck is always built from FramingFamilies (planks only), so unlike an infill it never
-    // cools - it seals positive or not at all.
+    // A new deck seals like a floor's top: framing and infill both, so a cooling infill cools.
     [Fact]
-    public void NoDeckIsZero()
+    public void DeckRetentionFollowsFramingAndInfill()
     {
-        Assert.Equal(0, SidingWallBlock.ComputeDeckRetention(null, Framings));
+        var actual = new (string? Deck, string? DeckInfill)[] { (null, null), ("uninstalled", "wattle"), ("oak", null), ("oak", "wattle"), ("oak", "clay") }
+            .Select(d => SidingWallBlock.ComputeDeckRetention(d.Deck, d.DeckInfill, false, Framings, Infills));
+
+        Assert.Equal(new[] { 0, 0, 0, 1, -1 }, actual);
     }
 
+    // A deck saved before decks took layers sealed as bare framing.
     [Fact]
-    public void UnknownDeckKeyIsZero()
+    public void LegacyDeckSealsPositiveWithoutInfill()
     {
-        Assert.Equal(0, SidingWallBlock.ComputeDeckRetention("uninstalled", Framings));
+        var actual = new (string? Deck, string? DeckInfill)[] { (null, null), ("uninstalled", null), ("oak", null) }
+            .Select(d => SidingWallBlock.ComputeDeckRetention(d.Deck, d.DeckInfill, true, Framings, Infills));
+
+        Assert.Equal(new[] { 0, 0, 1 }, actual);
     }
 
+    // Once filled, an old deck seals by its infill like a new one, so a clay fill cools.
     [Fact]
-    public void BuiltDeckSealsPositive()
+    public void FilledLegacyDeckFollowsItsInfill()
     {
-        Assert.Equal(1, SidingWallBlock.ComputeDeckRetention("oak", Framings));
+        var actual = new (string? Deck, string? DeckInfill)[] { ("oak", "wattle"), ("oak", "clay") }
+            .Select(d => SidingWallBlock.ComputeDeckRetention(d.Deck, d.DeckInfill, true, Framings, Infills));
+
+        Assert.Equal(new[] { 1, -1 }, actual);
     }
 }

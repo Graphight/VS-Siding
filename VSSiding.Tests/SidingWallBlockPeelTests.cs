@@ -71,4 +71,37 @@ public class SidingWallBlockPeelTests
     [Fact]
     public void StepComesOffBeforeTheFrame()
         => Assert.Equal("step", SidingWallBlock.PeelLayer("front", null, null, null, null, null, "game:plankstairs-oak-up-north-free"));
+
+    [Fact]
+    public void DeckTopHitPeelsTheTopFinishFirst()
+        => Assert.Equal("deckfront", SidingWallBlock.DeckPeelLayer("front", "wattle", "planks", "daub"));
+
+    [Fact]
+    public void DeckUndersideHitPeelsTheUndersideFinishFirst()
+        => Assert.Equal("deckback", SidingWallBlock.DeckPeelLayer("back", "wattle", "planks", "daub"));
+
+    [Fact]
+    public void DeckHitOnABareFacePeelsTheOtherFinish()
+        => Assert.Equal("deckback", SidingWallBlock.DeckPeelLayer("front", "wattle", null, "daub"));
+
+    [Fact]
+    public void DeckHitPeelsInfillOnceFinishesAreGone()
+        => Assert.Equal("deckinfill", SidingWallBlock.DeckPeelLayer("back", "wattle", null, null));
+
+    [Fact]
+    public void DeckHitPeelsJoistsOnceBare()
+        => Assert.Equal("deck", SidingWallBlock.DeckPeelLayer("front", null, null, null));
+
+    [Fact]
+    public void DeckWithNoFacePeelsTheOutermostLayer()
+    {
+        Assert.Equal("deckfront", SidingWallBlock.DeckPeelLayer(null, "wattle", "planks", "daub"));
+        Assert.Equal("deckback", SidingWallBlock.DeckPeelLayer(null, "wattle", null, "daub"));
+        Assert.Equal("deckinfill", SidingWallBlock.DeckPeelLayer(null, "wattle", null, null));
+        Assert.Equal("deck", SidingWallBlock.DeckPeelLayer(null, null, null, null));
+    }
+
+    [Fact]
+    public void AnyOtherHitOnADeckedWallStillResolvesThroughTheWallOrder()
+        => Assert.Equal("deck", SidingWallBlock.PeelLayer("back", "wattle", null, null, null, "oak"));
 }

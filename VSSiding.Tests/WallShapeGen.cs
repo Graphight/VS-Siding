@@ -32,7 +32,8 @@ public record Element(
     string[]? Faces = null,
     string[]? PositionalOverrides = null,
     string[]? RotatedFaces = null,
-    char? RunAxis = null);
+    char? RunAxis = null,
+    Element? ClippedFrom = null);
 
 public static class WallShapeGen
 {
@@ -247,8 +248,6 @@ public static class WallShapeGen
         new("glazing-top", (1.25, 14, 0), (2.75, 15.75, 16), "framing", UvRule.Flat),
         new("glazing-bottom", (1.25, 0.25, 0), (2.75, 2, 16), "framing", UvRule.Flat),
         new("back", (3, 0, 0), (4, 16, 16), "back", UvRule.Flat),
-        // Flush with the top of the cell, so a floor beside it meets it level.
-        new("deck", (4, 12, 0), (16, 16, 16), "deck", UvRule.Flat),
         // A step draws two of these: a full-length half plus the opposite-height half on the side it rises toward.
         new("step-lower", (4, 0, 0), (16, 8, 16), "step", UvRule.Flat),
         new("step-upper", (4, 8, 0), (16, 16, 16), "step", UvRule.Flat),
@@ -412,8 +411,6 @@ public static class WallShapeGen
         new("infill-pane", (3, 0, 2), (16, 16, 2), "infill", UvRule.Flat, Faces: ["north", "south"]),
         new("framing", (15, 0, 1), (16, 16, 3), "framing", UvRule.Flat),
         new("back", (3, 0, 3), (16, 16, 4), "back", UvRule.Flat),
-        // The open square beside both legs.
-        new("deck", (4, 12, 4), (16, 16, 16), "deck", UvRule.Flat),
         new("front-weatherboard", (0, 0, 0), (1, 1, 16), "front", UvRule.Positional),
         new("front-weatherboard", (0.25, 1, 0.5), (1, 2, 16), "front", UvRule.Positional),
         new("front-weatherboard", (0.5, 2, 0.5), (1, 3, 16), "front", UvRule.Positional),
@@ -522,6 +519,9 @@ public static class WallShapeGen
         ("front", "game:block/wood/planks/oak1"),
         ("back", "game:block/wood/planks/oak1"),
         ("deck", "game:block/wood/planks/oak1"),
+        ("deckinfill", "game:block/wood/planks/oak1"),
+        ("deckfront", "game:block/wood/planks/oak1"),
+        ("deckback", "game:block/wood/planks/oak1"),
         ("step", "game:block/wood/planks/oak1"),
     ];
 
@@ -533,6 +533,9 @@ public static class WallShapeGen
         ("secondfront", "game:block/wood/planks/aged/aged1"),
         ("back", "game:block/wood/planks/aged/aged1"),
         ("deck", "game:block/wood/planks/aged/aged1"),
+        ("deckinfill", "game:block/wood/planks/aged/aged1"),
+        ("deckfront", "game:block/wood/planks/aged/aged1"),
+        ("deckback", "game:block/wood/planks/aged/aged1"),
     ];
 
     // The wall's layers laid flat: top finish, joists with infill between, underside, filling y 12..16
@@ -585,11 +588,70 @@ public static class WallShapeGen
         ("back", "game:block/wood/planks/oak1"),
     ];
 
+    private static readonly (string Side, int RotationYDeg)[] DeckSides = [("west", 0), ("south", 90), ("east", 180), ("north", 270)];
+
+    private static readonly Dictionary<string, string> DeckSlots = new()
+    {
+        ["framing"] = "deck",
+        ["infill"] = "deckinfill",
+        ["front"] = "deckfront",
+        ["back"] = "deckback",
+    };
+
+    // The deck is the floor's layers clipped to the deck's area, one copy per side. The wall mesh is
+    // tesselated turned by the side, but every floor's joists run north-south, so each copy is cut from
+    // the floor to the area the side's deck box covers in world space and is tesselated unturned.
+    // The box is turned about the cell centre the way SidingWallBlock.BuildDeckBoxes turns it.
+    // A clipped face keeps the floor's uv where it sits, so the grain carries on from the floor beside.
+    public static (double X, double Y, double Z, double X2, double Y2, double Z2) DeckRegion(
+        (double X, double Y, double Z) from, (double X, double Y, double Z) to, int rotationYDeg)
+    {
+        double cos = Math.Round(Math.Cos(rotationYDeg * Math.PI / 180));
+        double sin = Math.Round(Math.Sin(rotationYDeg * Math.PI / 180));
+        var xs = new List<double>();
+        var zs = new List<double>();
+        foreach (double x in new[] { from.X, to.X })
+        {
+            foreach (double z in new[] { from.Z, to.Z })
+            {
+                xs.Add(8 + (x - 8) * cos + (z - 8) * sin);
+                zs.Add(8 - (x - 8) * sin + (z - 8) * cos);
+            }
+        }
+        return (xs.Min(), from.Y, zs.Min(), xs.Max(), to.Y, zs.Max());
+    }
+
+    private static IEnumerable<Element> DeckGroups((double X, double Y, double Z) from, (double X, double Y, double Z) to)
+    {
+        foreach (var (side, rotationYDeg) in DeckSides)
+        {
+            var region = DeckRegion(from, to, rotationYDeg);
+            foreach (var source in FloorElements)
+            {
+                var lo = (X: Math.Max(source.From.X, region.X), Y: Math.Max(source.From.Y, region.Y), Z: Math.Max(source.From.Z, region.Z));
+                var hi = (X: Math.Min(source.To.X, region.X2), Y: Math.Min(source.To.Y, region.Y2), Z: Math.Min(source.To.Z, region.Z2));
+                bool Empty(double l, double h, double sourceLo, double sourceHi) => l > h || (l == h && sourceLo != sourceHi);
+                if (Empty(lo.X, hi.X, source.From.X, source.To.X)
+                    || Empty(lo.Y, hi.Y, source.From.Y, source.To.Y)
+                    || Empty(lo.Z, hi.Z, source.From.Z, source.To.Z)) continue;
+
+                yield return source with
+                {
+                    Name = $"deck-{side}-{source.Name}",
+                    From = lo,
+                    To = hi,
+                    Slot = DeckSlots[source.Slot],
+                    ClippedFrom = source,
+                };
+            }
+        }
+    }
+
     public static JObject Generate(string layout) => layout switch
     {
-        "wall" => Emit(WallElements, WallTextures),
+        "wall" => Emit([.. WallElements, .. DeckGroups((4, 12, 0), (16, 16, 16))], WallTextures),
         "floor" => Emit(FloorElements, FloorTextures),
-        "cornerout" => Emit(CornerOutElements, CornerOutTextures),
+        "cornerout" => Emit([.. CornerOutElements, .. DeckGroups((4, 12, 4), (16, 16, 16))], CornerOutTextures),
         _ => throw new KeyNotFoundException(layout),
     };
 
@@ -680,6 +742,9 @@ public static class WallShapeGen
         var (u0, u1) = Span(uAxis);
         var (v0, v1) = positional ? (16 - ty, 16 - fy) : Span(vAxis);
 
+        if (element.ClippedFrom is { } source)
+            (u0, v0, u1, v1) = ClippedUv(source, element, face);
+
         var result = new JObject
         {
             ["texture"] = "#" + element.Slot,
@@ -687,5 +752,40 @@ public static class WallShapeGen
         };
         if (element.RotatedFaces?.Contains(face) ?? false) result["rotation"] = 90;
         return result;
+    }
+
+    // How the game lays a face's uv rect over the face, read from ModelCubeUtilExt.AddFace: which axis
+    // u and v run along, and whether they grow with it. A rotation of 90 turns the rect a quarter, so
+    // u runs along z and v along x on the two faces that carry one.
+    private static (char UAxis, int USign, char VAxis, int VSign) UvLayout(string face, bool rotated) => (face, rotated) switch
+    {
+        ("north", _) => ('x', -1, 'y', -1),
+        ("east", _) => ('z', -1, 'y', -1),
+        ("south", _) => ('x', 1, 'y', -1),
+        ("west", _) => ('z', 1, 'y', -1),
+        ("up", false) => ('x', 1, 'z', 1),
+        ("up", true) => ('z', 1, 'x', -1),
+        ("down", false) => ('x', -1, 'z', 1),
+        ("down", true) => ('z', 1, 'x', 1),
+        _ => throw new ArgumentException(face),
+    };
+
+    // The part of the source face's uv rect the clipped box covers, so the clip samples the texels the
+    // source would have drawn there.
+    private static (double, double, double, double) ClippedUv(Element source, Element clipped, string face)
+    {
+        var sourceUv = EmitFace(source, face)["uv"]!.Select(v => (double)v!).ToArray();
+        var (uAxis, uSign, vAxis, vSign) = UvLayout(face, clipped.RotatedFaces?.Contains(face) ?? false);
+
+        (double, double) Sub(double s0, double s1, char axis, int sign)
+        {
+            double a = Axis(clipped.From, axis) - Axis(source.From, axis);
+            double b = Axis(clipped.To, axis) - Axis(source.From, axis);
+            return sign > 0 ? (s0 + a, s0 + b) : (s1 - b, s1 - a);
+        }
+
+        var (u0, u1) = Sub(sourceUv[0], sourceUv[2], uAxis, uSign);
+        var (v0, v1) = Sub(sourceUv[1], sourceUv[3], vAxis, vSign);
+        return (u0, v0, u1, v1);
     }
 }

@@ -153,19 +153,32 @@ public class SidingFloorBlock : Block
     // Every floor's joists run north-south, so the north rim (framing-top) and the south rim
     // (framing-bottom) each drop where a framed floor carries the joists on, the way a stacked
     // wall drops its plates. A glazed floor has no joists: its bezel merges on all four sides,
-    // and only with glazed floors, as glazing does on a wall (decision 0019).
+    // and only with glazed floors, as glazing does on a wall (decision 0019). A wall's deck is
+    // laid the same way and counts as a neighbour wherever it reaches the shared edge.
     internal static (bool above, bool below, bool left, bool right) Joins(IBlockAccessor accessor, BlockPos pos, bool glazed)
         => glazed
-            ? (ContinuesGlazing(accessor, pos.NorthCopy()), ContinuesGlazing(accessor, pos.SouthCopy()),
-                ContinuesGlazing(accessor, pos.WestCopy()), ContinuesGlazing(accessor, pos.EastCopy()))
-            : (ContinuesJoists(accessor, pos.NorthCopy()), ContinuesJoists(accessor, pos.SouthCopy()), false, false);
+            ? (Continues(accessor, pos, BlockFacing.NORTH, true), Continues(accessor, pos, BlockFacing.SOUTH, true),
+                Continues(accessor, pos, BlockFacing.WEST, true), Continues(accessor, pos, BlockFacing.EAST, true))
+            : (Continues(accessor, pos, BlockFacing.NORTH, false), Continues(accessor, pos, BlockFacing.SOUTH, false), false, false);
 
-    private static bool ContinuesJoists(IBlockAccessor accessor, BlockPos neighbourPos)
-        => accessor.GetBlockEntity<SidingFloorEntity>(neighbourPos)?.Framing != null;
+    // Whether the cell `direction` of `pos` carries on the joists, or the glazing when `glazing`.
+    private static bool Continues(IBlockAccessor accessor, BlockPos pos, BlockFacing direction, bool glazing)
+    {
+        BlockPos neighbourPos = pos.AddCopy(direction);
+        if (accessor.GetBlockEntity<SidingFloorEntity>(neighbourPos) is { } floor)
+            return Continues(glazing, floor.Framing, floor.Infill, floor.Block.Attributes["Infills"]);
+        return accessor.GetBlockEntity<SidingWallEntity>(neighbourPos) is { } wall
+            && DeckReaches(wall.Block.Variant["layout"], wall.Block.Variant["side"], direction)
+            && Continues(glazing, wall.Deck, wall.DeckInfill, wall.Block.Attributes["Infills"]);
+    }
 
-    private static bool ContinuesGlazing(IBlockAccessor accessor, BlockPos neighbourPos)
-        => accessor.GetBlockEntity<SidingFloorEntity>(neighbourPos) is { Framing: not null } entity
-            && SidingWallBlock.IsTransparent(entity.Infill, entity.Block.Attributes["Infills"]);
+    internal static bool Continues(bool glazing, string? framing, string? infill, JsonObject infills)
+        => framing != null && (!glazing || SidingWallBlock.IsTransparent(infill, infills));
+
+    // A wall's panel stands on the faces it claims, and its deck stops short of them; `direction`
+    // is from the cell looking on to the wall, so the face it would touch is the opposite one.
+    internal static bool DeckReaches(string layout, string side, BlockFacing direction)
+        => !SidingWallBlock.ClaimsFace(layout, side, direction.Opposite.Code);
 
     // How far past the clicked floor a run can be extended, so a stray click cannot frame one across a lake.
     internal const int RunReach = 4;
@@ -189,11 +202,14 @@ public class SidingFloorBlock : Block
             ? (view.X > 0 ? BlockFacing.EAST : BlockFacing.WEST)
             : (view.Z > 0 ? BlockFacing.SOUTH : BlockFacing.NORTH);
 
-    // Setting Framing or Infill isn't a block change, so the floors whose rims or bezel it drops have to be told.
+    // Setting Framing or Infill isn't a block change, so the floors and wall decks whose rims or bezel it drops have to be told.
     internal static void MarkNeighboursDirty(IWorldAccessor world, BlockPos pos)
     {
         foreach (BlockFacing side in BlockFacing.HORIZONTALS)
+        {
             world.BlockAccessor.GetBlockEntity<SidingFloorEntity>(pos.AddCopy(side))?.MarkDirty(true);
+            world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos.AddCopy(side))?.MarkDirty(true);
+        }
     }
 
     // The wall's peel order with the top as front and the underside as back (decision 0013):

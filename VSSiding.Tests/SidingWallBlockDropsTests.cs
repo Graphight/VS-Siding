@@ -67,6 +67,13 @@ public class SidingWallBlockDropsTests
     }
 
     [Fact]
+    public void DeckLayersDropTheirOwnMaterials()
+    {
+        var drops = SidingWallBlock.ComputeDrops(null, null, null, null, null, "oak", Framings, Infills, Finishes, null, "wattle", "daub", "brick");
+        Assert.Equal(new[] { "game:plank-oak", "game:stick", "game:clay-blue", "game:burnedbrick-red" }, Codes(drops));
+    }
+
+    [Fact]
     public void StepDropsExactlyOneOfTheStoredStair()
     {
         var drops = SidingWallBlock.ComputeDrops(null, null, null, null, null, null, Framings, Infills, Finishes, "game:plankstairs-oak-up-north-free");

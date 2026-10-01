@@ -47,6 +47,15 @@ public class SidingWallBlockLayerMaterialTests
     }
 
     [Fact]
+    public void DeckLayerKeysResolveToTheirOwnMaterials()
+    {
+        var keys = new[] { "deckinfill", "deckfront", "deckback" }
+            .Select(layer => SidingWallBlock.LayerKey(layer, "clay", null, null, null, "oak", null, "wattle", "planks", "daub"))
+            .ToArray();
+        Assert.Equal(new[] { "wattle", "planks", "daub" }, keys);
+    }
+
+    [Fact]
     public void StepLayerKeyIsStep()
     {
         Assert.Equal("game:plankstairs-oak-up-north-free", SidingWallBlock.LayerKey("step", "clay", "ashlar-granite", "shakes-oak", "planks", null, "game:plankstairs-oak-up-north-free"));
@@ -86,6 +95,15 @@ public class SidingWallBlockLayerMaterialTests
     public void DeckLayerFallsBackLikeTheFrame()
     {
         Assert.Equal(EnumBlockMaterial.Wood, SidingWallBlock.LayerMaterial("deck", "oak", Infills, Finishes, EnumBlockMaterial.Wood));
+    }
+
+    [Fact]
+    public void DeckLayersReadTheirOwnDictionaries()
+    {
+        var materials = new[] { "deckinfill", "deckfront", "deckback" }
+            .Select(layer => SidingWallBlock.LayerMaterial(layer, layer == "deckinfill" ? "clay" : "ashlar-granite", Infills, Finishes, EnumBlockMaterial.Wood))
+            .ToArray();
+        Assert.Equal(new[] { EnumBlockMaterial.Soil, EnumBlockMaterial.Stone, EnumBlockMaterial.Stone }, materials);
     }
 
     // A material missing from LayerSounds or LayerResistance quietly falls back to the block's
