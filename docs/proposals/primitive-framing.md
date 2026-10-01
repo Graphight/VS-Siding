@@ -2,12 +2,12 @@
 
 - Status: Draft
 - Created: 2026-09-30
-- Reflects: mod page comments https://mods.vintagestory.at/vssiding#cmt-242349 and #cmt-242478; One-Roof 1.12.0's assets; `SidingWallBlock.HasSawInOffhand`, `PlaceWallFrame`, `config/materials.json`; vanilla `stone.json`, `packeddirt.json`, `rammed.json` and their grid recipes; decisions 0001, 0005, 0006, 0026; not yet played
+- Reflects: mod page comments https://mods.vintagestory.at/vssiding#cmt-242349, #cmt-242478 and #cmt-242905; One-Roof 1.12.0's assets; `SidingWallBlock.HasSawInOffhand`, `PlaceWallFrame`, `config/materials.json`; vanilla `stone.json`, `packeddirt.json`, `rammed.json` and their grid recipes, `bone.json`, `hide.json`, `hide-species.json`, `cloth.json`; the Roofing mod page's changelog; `SidingWallBlock.LayerMaterial`/`ResolveLayerCombustible`; decisions 0001, 0005, 0006, 0026, 0043; not yet played
 
 ## Summary
-Two players asked for "primitive" walls, meaning walls a stone-age player can build.
+Three players asked for "primitive" walls, meaning walls a stone-age player can build.
 The proposal adds a stick framing, and lets a stone in the off hand stand in for the saw as the build signal, without consuming it.
-It also adds packed earth as an infill and rammed earth as a finish, and everything after the frame stays the one shared wall system.
+It also adds a bone framing, packed earth, pelt and cloth infills and a rammed earth finish, and everything after the frame stays the one shared wall system.
 
 ## Context
 **The saw is the only metal gate.**
@@ -23,6 +23,7 @@ Planks, brick and metal plate each need a saw, a kiln or smelting, so their own 
 One player asked for "a primitive frame that doesnt require a saw that can only accept certain materials? ie wattle daub, logs, rammed earth, straw, etc.", with "sticks in offhand and cattails/cordage in main hand", the "opposite of one roof primitive frames".
 Of those materials, only rammed earth is missing: the logs style of `shakes-{wood}` is already a stone-age finish.
 Another said primitive walls would put the mod in their baseline pack, which means it has to work from the first day.
+A third asked for "bone frames/walls and cloth/hide/pelt walls" as "a 'neolithic tent' option".
 
 **What One-Roof does.**
 One-Roof 1.12.0 ships no primitive frames; nothing in its assets names one.
@@ -62,6 +63,31 @@ Both are vanilla grid recipes from soil with no tool, so they are stone age, and
 The handbook text (`gamemechanicinfo-siding-text` in `lang/en.json`) tells players to put a saw in the off hand and that planks build the framing.
 It names the stone and sticks too, since decision 0006 already found the off-hand gesture hard to discover, and the stone-age player this is for would otherwise never learn it.
 
+**A bone framing entry.**
+A `bone` entry in `Framings`, consuming and dropping `game:bone`, with `PlaceWallFrame` patched onto bones as it is onto sticks.
+Bones match no infill, so the stick clash does not arise.
+Vanilla has no bone block texture to borrow, so it needs its own.
+
+**Framings name their block material.**
+`LayerMaterial` looks a layer's `BlockMaterial` up in `Infills` and `Finishes` only, so a bare frame answers the block's own `Wood`: it sounds like planks and catches fire (decision 0043).
+That is right for planks and sticks and wrong for bone, so `LayerMaterial` reads `Framings` too, and `bone` names `BlockMaterial: "Other"`, which never burns.
+
+**Pelt and cloth infills.**
+A `pelt` entry in `Infills`, shown as "Pelt", consuming `game:hide-pelt-*`, which matches the plain hides and the fox and raccoon ones alike.
+A `cloth-{color}` template in `InfillFamilies`, matching `game:cloth-*` on `color`.
+Each takes one item, of any hide size, so a small pelt walls a cell as well as a huge one; sizing the cost by hide is a second matching rule for a looks difference.
+Raw hide and leather are left out: raw hide is a step on the way to a pelt, and leather needs a barrel, which needs planks.
+Cloth needs a loom, so it is not stone age, but it is a tent material the requester named, and its recipe gates it as every late layer is gated.
+Both need their own tiling textures, since vanilla draws pelts and cloth only as items.
+
+**Hide and cloth burn.**
+Decision 0043 lets only a `Wood` top layer catch, and `straw` already names `BlockMaterial: "Wood"` to burn.
+`pelt` and `cloth-{color}` do the same, so a tent wall burns down to its frame like a straw one, and takes the plank sounds straw does.
+
+**The roof is Roofing's.**
+A tent is walls and a roof, and the Roofing mod already ships a cloth roof in leather and linen (its 1.3.0 changelog), taking hide and leather since 1.4.1 (https://mods.vintagestory.at/show/mod/30143).
+Siding stays walls; a stick-framed thin floor with a pelt infill is as near as it gets.
+
 **No per-framing restrictions.**
 A stick frame takes every infill and finish a plank frame does.
 This is a looks mod with some function, not a realism mod: a player can peel a stick frame's layers and lay better ones when they have them, or retire the frame and raise a plank one.
@@ -70,13 +96,15 @@ Late materials gate themselves through their own recipes, and by the copper age 
 ## Alternatives considered
 - **Flax twine in the off hand.** It needs wild flax found and processed first, and stones are in every player's inventory from the start; it would need the same storage flag patch.
 - **A stone hammer like One-Roof's.** A new item, recipe and texture for what a plain stone already does.
+- **Tag pelt and cloth `Cloth` and let 0043 burn `Cloth` too.** The truer tag, but a second burning material in `ResolveLayerCombustible` and its own layer sounds, where straw's `Wood` tag already covers it.
 - **Restrict a stick frame to primitive layers, as requested.** Declined: two wall rule sets to keep in step for a difference the recipes already enforce, and players can swap layers later anyway.
 - **Consume the off-hand item per frame.** Plank framing consumes no fasteners, so this would make the early path cost more than the late one.
 - **A stone axe as the off-hand signal.** Players hold axes for other work, so it would claim right-clicks they meant for something else.
 - **No off-hand signal for sticks.** A right-click with sticks would then take every stick right-click in the game, which decision 0006's off-hand signal exists to avoid.
 
 ## Consequences & open questions
-- Frame cost in sticks, against planks' 2 and wattle's 4.
+- Frame cost in sticks and in bones, against planks' 2 and wattle's 4.
+- Whether a pelt or cloth wall seals a room like any infill, or reads as a tent and leaves retention to the roof; the proposal assumes it seals.
 - Texture: vanilla has no pole item, so pick a stick or bark texture that reads as lashed poles at wall scale.
 - Whether rammed earth's patterns (`plain`, `thinlight`, `thicklight`, `thinheavy`, `thickheavy`) become finish styles or stay one look.
 - Whether any vanilla behavior reacts to a stone held in the off hand once the slot takes it.
