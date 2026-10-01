@@ -1051,6 +1051,9 @@ public class SidingWallBlock : Block
     {
         // Vanilla's own GetSounds ignores its arguments, so a caller is free to pass no selection.
         if (blockSel?.Position == null) return base.GetSounds(blockAccessor, blockSel, stack);
+        // A hit on a rug breaks the rug first (OnBlockBroken), so it sounds like one, as on a floor.
+        if (blockSel.Face != null && blockAccessor.GetDecor(blockSel.Position, new DecorBits(blockSel.Face)) != null)
+            return base.GetSounds(blockAccessor, blockSel, stack);
 
         var material = HitLayerMaterial(blockAccessor, blockSel.Position, blockSel.Face, blockSel);
         return ResolveLayerSounds(material, layerSounds, base.GetSounds(blockAccessor, blockSel, stack));
@@ -1106,6 +1109,15 @@ public class SidingWallBlock : Block
         }
         BlockFacing? hitFace = selection?.Position.Equals(pos) == true ? selection.Face : null;
         bool deckHit = entity != null && hitFace != null && IsDeckHit(world.BlockAccessor, selection!, entity);
+
+        // A rug on the deck comes off before any layer, as on a floor (decision 0051): vanilla only
+        // breaks decor first in survival.
+        if (deckHit && world.BlockAccessor.GetDecor(pos, new DecorBits(hitFace!)) != null)
+        {
+            world.BlockAccessor.BreakDecor(pos, hitFace);
+            return;
+        }
+
         string? layer = entity == null ? null : PeelAt(entity, hitFace, deckHit);
         if (entity == null || byPlayer == null || layer == null)
         {

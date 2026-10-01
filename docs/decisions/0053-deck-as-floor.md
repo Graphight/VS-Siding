@@ -54,6 +54,7 @@ On a deck-box hit that is the hit face's finish, then any finish, then the infil
 Otherwise it is the outermost deck layer.
 This covers `OnBlockBroken`, the layer material used for sounds, resistance and fire, `RemoveLayer`, `ComputeDrops`, and the open-part drops in `HostChangePrefix`.
 Decision 0013's one layer per break holds.
+A rug on a filled deck's top comes off before any layer on a deck hit, and sounds like one, as on a floor (decision 0051): vanilla breaks decor first only in survival.
 The tooltip and `GetBlockInfo` add the deck's infill, top and underside lines under `Deck:`.
 
 **Sealing, and old decks.**
