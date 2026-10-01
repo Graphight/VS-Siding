@@ -8,8 +8,6 @@ An idea that's been thought through but not acted on. Mutable: edit freely, argu
 
 ## Open
 
-- `hosted-light-sources`: a torch or lantern hosted in a sealed wall's cell lights nothing, because `GuestLightPatches` raises the cell's absorption to the wall's 99 and vanilla's block-light walk subtracts the source cell's own absorption before light leaves it.
-The proposal exempts the source's own cell only while vanilla spreads or removes that source's light, so sunlight still meets the sealed wall and a burnt-out torch still goes dark.
 - `primitive-framing`: the copper saw is the only metal gate on building a wall, so a stone-age player cannot raise a frame.
 The proposal adds a stick framing, accepts a stone in the off hand, not consumed, as a second build signal beside the saw, and adds packed and rammed earth.
 - `walls-under-roofing`: a flat-topped wall leaves a stepped triangle under a Roofing gable.
