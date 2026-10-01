@@ -264,4 +264,26 @@ public class SidingFloorTests
             new[] { new Vec3f(0.9f, -0.8f, 0.2f), new Vec3f(-0.5f, -0.9f, 0.1f), new Vec3f(0.1f, -0.9f, 0.3f), new Vec3f(0.2f, 0.5f, -0.6f) }
                 .Select(SidingFloorBlock.Ahead));
     }
+
+    [Fact]
+    public void ADecorSelectionBoxCanStillBeBuiltByReflection()
+    {
+        Assert.NotNull(SidingFloorBlock.DecorSelectionBoxType);
+        Assert.NotNull(SidingFloorBlock.DecorSelectionBoxConstructor);
+        Assert.NotNull(SidingFloorBlock.PosAdjustField);
+        Assert.Equal(typeof(Vec3i), SidingFloorBlock.PosAdjustField!.FieldType);
+    }
+
+    [Fact]
+    public void AHangersBoxesComeFirstMovedIntoTheFloorsCellAndSelectTheCellBelow()
+    {
+        var floor = new Cuboidf(0, 0.75f, 0, 1, 1, 1);
+        var boxes = SidingFloorBlock.WithHangerBoxes(new[] { new Cuboidf(0.25f, 0, 0.25f, 0.75f, 0.5f, 0.75f) }, 0.75, new[] { floor });
+
+        Assert.Equal(
+            new[] { "0.25 -0.25 0.25 0.75 0.25 0.75 X=0,Y=-1,Z=0", "0 0.75 0 1 1 1 -" },
+            boxes.Select(box => $"{box.X1} {box.Y1} {box.Z1} {box.X2} {box.Y2} {box.Z2} "
+                + (SidingFloorBlock.PosAdjustField!.DeclaringType!.IsInstanceOfType(box)
+                    ? ((Vec3i)SidingFloorBlock.PosAdjustField.GetValue(box)!).ToString() : "-")));
+    }
 }

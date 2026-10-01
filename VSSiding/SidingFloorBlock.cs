@@ -1,6 +1,10 @@
+using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
+using HarmonyLib;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
 using Vintagestory.API.Datastructures;
@@ -137,6 +141,50 @@ public class SidingFloorBlock : Block
 
     internal static bool CanAttach(BlockFacing facing, string? framing, string? infill, JsonObject attributes)
         => facing == BlockFacing.DOWN ? framing != null : ComputeRetention(facing, framing, infill, attributes) != 0;
+
+    // A hanger rides up into this cell's underside (decision 0054), and the raytrace only tests the cell
+    // the ray is in, so the floor answers for it: the hanger's boxes come first, so the index vanilla
+    // reports names the hanger's own box, and a hit on one selects the cell below (PosAdjust).
+    public override Cuboidf[] GetSelectionBoxes(IBlockAccessor blockAccessor, BlockPos pos)
+    {
+        var floorBoxes = base.GetSelectionBoxes(blockAccessor, pos);
+        var belowPos = pos.DownCopy();
+        var below = blockAccessor.GetBlock(belowPos);
+        var shift = SidingModSystem.HangShiftAt(belowPos, below);
+        if (shift == 0) return floorBoxes;
+
+        // Called from inside this override, so the hanger's own patch sees depth 2 and leaves them unshifted.
+        var hangerBoxes = below.GetSelectionBoxes(blockAccessor, belowPos);
+        if (hangerBoxes is not { Length: > 0 }) return floorBoxes;
+
+        return HangerSelectionCache.GetValue(hangerBoxes, _ => new ConcurrentDictionary<Cuboidf[], Cuboidf[]>())
+            .GetOrAdd(floorBoxes, _ => WithHangerBoxes(hangerBoxes, shift, floorBoxes));
+    }
+
+    // Per (hanger array, floor array) pair: raytraces run every frame on several threads.
+    private static readonly ConditionalWeakTable<Cuboidf[], ConcurrentDictionary<Cuboidf[], Cuboidf[]>> HangerSelectionCache = new();
+
+    // DecorSelectionBox is internal to the API, so it is built by reflection.
+    internal static readonly Type? DecorSelectionBoxType = AccessTools.TypeByName("Vintagestory.API.Common.DecorSelectionBox");
+    internal static readonly System.Reflection.ConstructorInfo? DecorSelectionBoxConstructor = DecorSelectionBoxType == null ? null
+        : AccessTools.Constructor(DecorSelectionBoxType, new[] { typeof(float), typeof(float), typeof(float), typeof(float), typeof(float), typeof(float) });
+    internal static readonly System.Reflection.FieldInfo? PosAdjustField = DecorSelectionBoxType == null ? null
+        : AccessTools.Field(DecorSelectionBoxType, "PosAdjust");
+
+    // The hanger's boxes in this cell's coordinates: the hanger's cell is one below, and the shift
+    // lifts them to the underside, so each moves by shift - 1.
+    internal static Cuboidf[] WithHangerBoxes(Cuboidf[] hangerBoxes, double shift, Cuboidf[]? floorBoxes)
+    {
+        var dy = (float)(shift - 1);
+        var hanger = hangerBoxes.Select(box =>
+        {
+            var moved = box.OffsetCopy(0, dy, 0);
+            var decor = (Cuboidf)DecorSelectionBoxConstructor!.Invoke(new object[] { moved.X1, moved.Y1, moved.Z1, moved.X2, moved.Y2, moved.Z2 });
+            PosAdjustField!.SetValue(decor, new Vec3i(0, -1, 0));
+            return decor;
+        });
+        return hanger.Concat(floorBoxes ?? Array.Empty<Cuboidf>()).ToArray();
+    }
 
     public override int GetLightAbsorption(IBlockAccessor blockAccessor, BlockPos pos)
         => GetLightAbsorption(blockAccessor.GetChunkAtBlockPos(pos), pos);
