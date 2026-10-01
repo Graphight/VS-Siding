@@ -45,6 +45,39 @@ public class MaterialFamiliesTests
     }
 
     [Fact]
+    public void AnyDomainMatchFillsTheMatchedDomain()
+    {
+        var families = JObject.Parse("""
+        {
+            "planks-{wood}": {
+                "Match": { "type": "item", "code": "*:plank-*", "variant": "wood" },
+                "Texture": "{domain}:block/wood/planks/{wood}1",
+                "Consumes": { "type": "item", "code": "{domain}:plank-{wood}", "quantity": 2 }
+            }
+        }
+        """);
+
+        var actual = MaterialFamilies.Expand(families, new JObject(), new[]
+        {
+            Candidate("item", "game:plank-birch", "wood", "birch"),
+            Candidate("item", "wildcrafttree:plank-ash", "wood", "ash"),
+        });
+
+        AssertJson(JObject.Parse("""
+        {
+            "planks-birch": {
+                "Texture": "game:block/wood/planks/birch1",
+                "Consumes": { "type": "item", "code": "game:plank-birch", "quantity": 2 }
+            },
+            "planks-ash": {
+                "Texture": "wildcrafttree:block/wood/planks/ash1",
+                "Consumes": { "type": "item", "code": "wildcrafttree:plank-ash", "quantity": 2 }
+            }
+        }
+        """), actual);
+    }
+
+    [Fact]
     public void ExplicitKeyWins()
     {
         var explicitEntries = new JObject { ["birch"] = new JObject { ["Texture"] = "custom" } };

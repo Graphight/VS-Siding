@@ -48,7 +48,7 @@ public static class MaterialFamilies
                 entry.Remove("Match");
                 foreach (var str in entry.Descendants().OfType<JValue>().Where(v => v.Type == JTokenType.String).ToList())
                 {
-                    str.Value = ((string)str.Value!).Replace(placeholder, value);
+                    str.Value = ((string)str.Value!).Replace(placeholder, value).Replace("{domain}", code.Domain);
                 }
                 result[key] = entry;
             }
