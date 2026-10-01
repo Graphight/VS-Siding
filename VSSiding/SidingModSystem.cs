@@ -193,14 +193,18 @@ public class SidingModSystem : ModSystem
             }
         }
 
-        try
+        // BlockOilLamp sets its own basePos instead of calling base, so its flame needs its own patch.
+        foreach (var particleBlock in new[] { typeof(Block), typeof(BlockOilLamp) })
         {
-            harmony.Patch(AccessTools.Method(typeof(Block), nameof(Block.OnAsyncClientParticleTick)),
-                transpiler: new HarmonyMethod(typeof(SidingModSystem), nameof(ParticleSpawnTranspiler)));
-        }
-        catch (Exception e)
-        {
-            api.Logger.Error("vssiding: block particle shift patch skipped, a hosted torch's flame will burn unshifted, inside the panel: {0}", e);
+            try
+            {
+                harmony.Patch(AccessTools.Method(particleBlock, nameof(Block.OnAsyncClientParticleTick)),
+                    transpiler: new HarmonyMethod(typeof(SidingModSystem), nameof(ParticleSpawnTranspiler)));
+            }
+            catch (Exception e)
+            {
+                api.Logger.Error("vssiding: {0} particle shift patch skipped, a hosted or hung flame will burn unshifted: {1}", particleBlock.Name, e);
+            }
         }
 
         try
@@ -401,6 +405,7 @@ public class SidingModSystem : ModSystem
         {
             var (dx, dz) = GapShiftAt(pos, block);
             advanced.basePos.X += dx;
+            advanced.basePos.Y += HangShiftAt(pos, block);
             advanced.basePos.Z += dz;
         }
         return manager.Spawn(particles);
@@ -426,7 +431,7 @@ public class SidingModSystem : ModSystem
         }
 
         if (replaced != 1)
-            throw new InvalidOperationException($"Expected exactly one IAsyncParticleManager.Spawn call in Block.OnAsyncClientParticleTick, found {replaced}.");
+            throw new InvalidOperationException($"Expected exactly one IAsyncParticleManager.Spawn call in OnAsyncClientParticleTick, found {replaced}.");
     }
 
     // UpdateDecal calls this with the mesh still in block-local coordinates, then translates it by
@@ -436,8 +441,9 @@ public class SidingModSystem : ModSystem
     {
         block.OnDecalTesselation(world, decalMesh, pos);
         var (dx, dz) = GapShiftAt(pos, block);
-        if (dx == 0 && dz == 0) return;
-        decalMesh.Translate((float)dx, 0, (float)dz);
+        var dy = HangShiftAt(pos, block);
+        if (dx == 0 && dy == 0 && dz == 0) return;
+        decalMesh.Translate((float)dx, (float)dy, (float)dz);
     }
 
     internal static IEnumerable<CodeInstruction> DecalTesselationTranspiler(IEnumerable<CodeInstruction> instructions)
