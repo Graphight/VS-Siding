@@ -8,6 +8,8 @@ An idea that's been thought through but not acted on. Mutable: edit freely, argu
 
 ## Open
 
+- `atlas-integration-tests`: unit tests never run a world, so bugs in how vanilla calls the mod (saved guest walls, fire, mobs, furniture neighbours) are only caught in playtests.
+The proposal adds a second test project on Atlas, a headless server inside `dotnet test`, with one scenario per bug a playtest has caught.
 - `hosted-light-sources`: a torch or lantern hosted in a sealed wall's cell lights nothing, because `GuestLightPatches` raises the cell's absorption to the wall's 99 and vanilla's block-light walk subtracts the source cell's own absorption before light leaves it.
 The proposal exempts the source's own cell only while vanilla spreads or removes that source's light, so sunlight still meets the sealed wall and a burnt-out torch still goes dark.
 - `primitive-framing`: the copper saw is the only metal gate on building a wall, so a stone-age player cannot raise a frame.
