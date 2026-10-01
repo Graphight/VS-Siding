@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Created: 2026-09-30
-- Reflects: branch `thin-floor-cell-light`; `SidingModSystem.SealedCellLightPostfix`, `SidingFloorBlock.IsSealed`; commit `ab56ea9` from decision 0052, revived; decisions 0018, 0034, 0050, 0052; vanilla 1.22 `ChunkIlluminator.CollectLightValuesForLightSource` (decompiled); a playtest on the `hanging-under-thin-floors` branch on 2026-09-30; fix not yet played
+- Reflects: branch `thin-floor-cell-light`; `SidingModSystem.SealedCellLightPostfix`, `SidingFloorBlock.IsSealed`; commit `ab56ea9` from decision 0052, revived; decisions 0018, 0034, 0050, 0052; vanilla 1.22 `ChunkIlluminator.CollectLightValuesForLightSource` (decompiled); first seen and played on 2026-09-30, on the `hanging-under-thin-floors` branch
 
 ## Summary
 A chandelier in the room above a sealed thin floor lit the room below it: a fading diamond on the joists and on the tops of the walls just under the ceiling.
@@ -31,5 +31,5 @@ A floor cell on a chunk mesh's bottom border layer is skipped: its cell below is
 - **Absorb nothing, like glazing.** Decision 0052 already rejected this: sunlight would pass through every floor and break cellars (0015).
 
 ## Consequences & open questions
-- The same rewrite would also darken a face that reads the cell from above, but nothing draws one: the floor's own top sits at the cell's top and reads the cell above.
-- Not yet played; the playtest is the chandelier room again, with a torch upstairs as a second source, and a glazed floor still passing light.
+- A face reading the floor cell from above, such as the bottom of a block standing on the floor, now takes the room below's light; it rests on the floor's top, where it is not seen.
+- Played: neither the chandelier nor a torch in the room above lights the joists or the wall tops below the floor, and a glazed floor still passes light.
