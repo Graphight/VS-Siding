@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Created: 2026-09-30
-- Reflects: branch `deck-as-floor`; `WallShapeGen` deck groups; `SidingWallEntity` deck layers and `LegacyDeck`; `SidingWallBlock.IsDeckHit`/`LayerDeck`/`DeckPeelLayer`/`PeelAt`/`ComputeDeckRetention`; `SidingFloorBlock.Joins`/`DeckReaches`; `SidingModSystem.HostChangePrefix`; decisions 0013, 0019, 0042, 0050, 0051; not yet played
+- Reflects: branch `deck-as-floor`; `WallShapeGen` deck groups; `SidingWallEntity` deck layers and `LegacyDeck`; `SidingWallBlock.IsDeckHit`/`LayerDeck`/`DeckPeelLayer`/`PeelAt`/`ComputeDeckRetention`; `SidingFloorBlock.Joins`/`DeckReaches`; `SidingModSystem.HostChangePrefix`; decisions 0013, 0019, 0042, 0050, 0051; played
 
 ## Summary
 A deck (decision 0042) was bare framing timber, so a floor run up to a wall stopped 12/16 short of it: floorboards and a ceiling on the floor, raw plank on the deck.
@@ -78,5 +78,4 @@ A legacy deck seals at 1 until it is filled or broken; once filled, it seals by 
 - The wall entity's tree attributes, the tooltip (0030) and `GetBlockInfo` each grow more lines, and the shapes grow by a set of deck groups per side.
 - Deck light absorption is unchanged: the wall's absorption does not read the deck, so a filled deck does not darken the cell further.
 - The handbook's Deck and Floors text grows to say a deck takes infill and finishes.
-- Not yet played.
-  To play: a floor run into a decked wall on all four sides and a cornerout; board direction matching across the join; a glass floor merging into a glass deck; layering and peeling from above and below; rooms sealing above and below; a clay deck cooling; an old world's deck still sealing.
+- Played: a floor run into a decked wall on all four sides and a cornerout, with board direction matching across the join; a glass floor merging into a glass deck; layering and peeling from above and below; rooms sealing above and below; a clay deck cooling; an old world's deck still sealing; a rug on a filled deck breaking first in creative and survival, with its own sound.
