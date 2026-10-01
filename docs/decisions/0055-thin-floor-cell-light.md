@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Created: 2026-09-30
-- Reflects: branch `thin-floor-cell-light`; `SidingModSystem.SealedCellLightPostfix`, `SidingFloorBlock.IsSealed`; commit `ab56ea9` from decision 0052, revived; decisions 0018, 0034, 0050, 0052; vanilla 1.22 `ChunkIlluminator.CollectLightValuesForLightSource` (decompiled); first seen and played on 2026-09-30, on the `hanging-under-thin-floors` branch
+- Reflects: branch `thin-floor-cell-light`; `SidingModSystem.SealedCellLightPostfix`, `SidingFloorBlock.IsSealed`/`DoEmitSideAo`/`DoEmitSideAoByFlag`; commit `ab56ea9` from decision 0052, revived; decisions 0016, 0018, 0034, 0050, 0052; a self-review; vanilla 1.22 `ChunkIlluminator.CollectLightValuesForLightSource` (decompiled); first seen and played on 2026-09-30, on the `hanging-under-thin-floors` branch
 
 ## Summary
 A chandelier in the room above a sealed thin floor lit the room below it: a fading diamond on the joists and on the tops of the walls just under the ceiling.
@@ -23,6 +23,9 @@ A thin floor's cell is 12/16 open air belonging to the room below, and the joist
 
 **The fix.**
 `SealedCellLightPostfix`, decision 0018's postfix on `ChunkTesselator.BuildExtendedChunkData`, also rewrites each sealed floor cell's render-time light with the cell below's and marks it, so 0018's flat-path prefix keeps the smooth-lighting ring out of those faces too.
+The mask only reaches a face whose own neighbour is the floor cell.
+Smooth lighting also averages in the cells ringing that neighbour, and the cell under a wall or chest standing upstairs is the floor cell, so a lit room below would brighten the bottom corners of everything above.
+A sealed floor emits side AO, as a sealed wall does (decision 0016), so those corners take ambient occlusion from the floor cell instead of its light.
 A glazed floor absorbs nothing (decision 0019) and is not sealed by this test, so light still passes through it as before.
 A floor cell on a chunk mesh's bottom border layer is skipped: its cell below is in the neighbouring chunk, which has this cell in its interior and rewrites it there.
 
@@ -32,4 +35,6 @@ A floor cell on a chunk mesh's bottom border layer is skipped: its cell below is
 
 ## Consequences & open questions
 - A face reading the floor cell from above, such as the bottom of a block standing on the floor, now takes the room below's light; it rests on the floor's top, where it is not seen.
+- With side AO, faces in the room below whose ring reaches the floor cell shade toward the ceiling, as under a vanilla plank ceiling.
 - Played: neither the chandelier nor a torch in the room above lights the joists or the wall tops below the floor, and a glazed floor still passes light.
+Not yet played: the side AO, with a torch in the room below and the room above dark, and the shading it adds under the ceiling.
