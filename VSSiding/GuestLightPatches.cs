@@ -4,6 +4,7 @@ using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
 using Vintagestory.Client.NoObf;
+using Vintagestory.Common;
 
 namespace VSSiding;
 
@@ -13,6 +14,11 @@ namespace VSSiding;
 // postfix twice is harmless and no depth guard is needed.
 internal static class GuestLightPatches
 {
+    // The light source vanilla is walking or taking away on this thread. ChunkIlluminator subtracts a
+    // source cell's own absorption before its light leaves, so a hosted torch's cell must read the
+    // torch's absorption there, not the wall's, or the light never gets out.
+    [ThreadStatic] private static (int X, int Y, int Z)? source;
+
     internal static void PatchAll(Harmony harmony, ICoreAPI api)
     {
         EveryOverridePatches.PatchEveryOverride(harmony, api, nameof(Block.GetLightAbsorption),
@@ -30,7 +36,28 @@ internal static class GuestLightPatches
         EveryOverridePatches.PatchEveryOverride(harmony, api, nameof(Block.DoEmitSideAoByFlag),
             new[] { typeof(IGeometryTester), typeof(Vec3iAndFacingFlags), typeof(int) },
             null, new HarmonyMethod(typeof(GuestLightPatches), nameof(SideAoByFlagPostfix)), null);
+
+        try
+        {
+            var prefix = new HarmonyMethod(typeof(GuestLightPatches), nameof(SourcePrefix));
+            var finalizer = new HarmonyMethod(typeof(GuestLightPatches), nameof(SourceFinalizer));
+            harmony.Patch(AccessTools.Method(typeof(ChunkIlluminator), "CollectLightValuesForLightSource"), prefix, finalizer: finalizer);
+            harmony.Patch(AccessTools.Method(typeof(ChunkIlluminator), nameof(ChunkIlluminator.RemoveBlockLight)), prefix, finalizer: finalizer);
+        }
+        catch (Exception e)
+        {
+            api.Logger.Error("vssiding: hosted light source patch skipped, a light hosted in a sealed wall will not light the room: {0}", e);
+        }
     }
+
+    // RemoveBlockLight walks every other nearby source, so each walk puts back the one it replaced.
+    private static void SourcePrefix(int posX, int posY, int posZ, out (int X, int Y, int Z)? __state)
+    {
+        __state = source;
+        source = (posX, posY, posZ);
+    }
+
+    private static void SourceFinalizer((int X, int Y, int Z)? __state) => source = __state;
 
     // The Hostable read comes first: every chunk mesh and relight runs through here.
     private static void AbsorptionAccessorPostfix(Block __instance, object[] __args, ref int __result)
@@ -44,6 +71,7 @@ internal static class GuestLightPatches
     private static void AbsorptionChunkPostfix(Block __instance, object[] __args, ref int __result)
     {
         if (!SidingModSystem.IsHostableId(__instance.BlockId) || __args[0] is not IWorldChunk chunk || __args[1] is not BlockPos pos) return;
+        if (source == (pos.X, pos.Y, pos.Z)) return;
 
         ICoreAPI? api = SidingModSystem.ApiRef(__instance);
         if (api != null) __result = Math.Max(__result, GuestWalls.Absorption(GuestWalls.GuestAt(api, chunk, pos)));

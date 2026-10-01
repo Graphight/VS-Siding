@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Atlas.Api;
 using Vintagestory.API.Common;
@@ -67,5 +68,23 @@ internal static class WallBuilder
         await player.GiveItem(finish, 2);
         Assert.True(world.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, infillSel));
         Assert.Null(slot.Itemstack);
+    }
+
+    // A one-cell room on a plank floor under a plank roof, walled with oak framing on every side and the infill on the filled ones.
+    internal static async Task<(BlockPos Inside, ITestPlayer Player)> BuildRoom(IWorldSession world, string infill, BlockFacing[] filled)
+    {
+        BlockPos inside = world.Spawn.Offset(0, 2, 0);
+        for (int dx = -1; dx <= 1; dx++)
+            for (int dz = -1; dz <= 1; dz++)
+                world.SetBlock("game:planks-aged-ud", inside.Offset(dx, -1, dz));
+
+        ITestPlayer player = await JoinBuilder(world);
+        foreach (BlockFacing side in BlockFacing.HORIZONTALS)
+            await Raise(world, player, inside.AddCopy(side), inside, "game:plank-oak", filled.Contains(side) ? infill : null);
+
+        for (int dx = -1; dx <= 1; dx++)
+            for (int dz = -1; dz <= 1; dz++)
+                world.SetBlock("game:planks-aged-ud", inside.Offset(dx, 1, dz));
+        return (inside, player);
     }
 }
