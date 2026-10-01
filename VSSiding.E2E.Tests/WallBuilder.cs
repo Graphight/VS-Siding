@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Atlas.Api;
 using Vintagestory.API.Common;
+using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Xunit;
 
@@ -11,8 +12,17 @@ internal static class WallBuilder
     internal static void HoldSaw(ITestPlayer player)
         => player.Entity.LeftHandItemSlot.Itemstack = new ItemStack(player.Entity.World.GetItem(new AssetLocation("game:saw-copper")));
 
+    // framing, infill, front, secondfront, back as the wall's entity saves them; the entity type is the mod's own, so it is read through its tree.
+    internal static (string? Framing, string? Infill, string? Front, string? SecondFront, string? Back) Layers(IWorldSession world, BlockPos cell)
+    {
+        var tree = new TreeAttribute();
+        world.BlockEntityAt<BlockEntity>(cell)!.ToTreeAttributes(tree);
+        string? Read(string key) => tree.GetString(key) is { Length: > 0 } value ? value : null;
+        return (Read("framing"), Read("infill"), Read("front"), Read("secondfront"), Read("back"));
+    }
+
     // The player stands outside the cell looking in, as a builder does: the wall then claims the face towards the room.
-    internal static async Task Raise(IWorldSession world, ITestPlayer player, BlockPos cell, BlockPos inside, string framing, string? infill)
+    internal static async Task Raise(IWorldSession world, ITestPlayer player, BlockPos cell, BlockPos inside, string framing, string? infill, string? finish = null)
     {
         BlockFacing outward = BlockFacing.FromVector(cell.X - inside.X, 0, cell.Z - inside.Z);
         BlockPos outside = cell.AddCopy(outward);
@@ -30,6 +40,11 @@ internal static class WallBuilder
 
         await player.GiveItem(infill, 4);
         var infillSel = new BlockSelection { Position = cell.Copy(), Face = outward, HitPosition = new Vec3d(0.5, 0.5, 0.5) };
+        Assert.True(world.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, infillSel));
+
+        if (finish == null) return;
+
+        await player.GiveItem(finish, 1);
         Assert.True(world.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, infillSel));
     }
 }
