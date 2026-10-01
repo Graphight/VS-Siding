@@ -53,10 +53,12 @@ public class GapShiftRendererPatchTests
         Assert.Equal(identityAt, shiftAt);
     }
 
-    [Fact]
-    public void ParticleTickSpawnsThroughTheShift()
+    [Theory]
+    [InlineData(typeof(Block))]
+    [InlineData(typeof(BlockOilLamp))]
+    public void ParticleTickSpawnsThroughTheShift(Type particleBlock)
     {
-        var original = AccessTools.Method(typeof(Block), nameof(Block.OnAsyncClientParticleTick));
+        var original = AccessTools.Method(particleBlock, nameof(Block.OnAsyncClientParticleTick));
         var patched = SidingModSystem.ParticleSpawnTranspiler(PatchProcessor.GetOriginalInstructions(original)).ToList();
 
         var spawn = AccessTools.Method(typeof(IAsyncParticleManager), nameof(IAsyncParticleManager.Spawn));
