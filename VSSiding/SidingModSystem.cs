@@ -534,7 +534,10 @@ public class SidingModSystem : ModSystem
 
     // A sealed wall's cell stores the sunlight flowing in from outside (decision 0015), and the
     // floor face under it samples that cell. Show the light of the cell the wall's dead space
-    // opens onto instead - the room, or the outdoors if the panels face in.
+    // opens onto instead - the room, or the outdoors if the panels face in. A sealed floor's
+    // cell stores the room above's light, because vanilla subtracts a cell's absorption only as
+    // light leaves it. Faces in its open lower part sample that, so it shows the cell below's
+    // (decision 0055).
     internal static void SealedCellLightPostfix(ClientMain ___game, Block[] ___currentChunkBlocksExt, int[] ___currentChunkRgbsExt,
         int chunkX, int chunkY, int chunkZ)
     {
@@ -546,17 +549,31 @@ public class SidingModSystem : ModSystem
         var pos = new BlockPos(chunkY / 1024);
         for (int i = 0; i < ___currentChunkBlocksExt.Length; i++)
         {
-            if (___currentChunkBlocksExt[i] is not SidingWallBlock wall) continue;
+            var block = ___currentChunkBlocksExt[i];
+            if (block is not (SidingWallBlock or SidingFloorBlock)) continue;
 
             int x = i % size, z = i / size % size, y = i / (size * size);
+            // chunkY carries the dimension above the world's 32768 blocks (vanilla: dim = chunkY / 1024).
+            pos.Set(chunkX * 32 + x - 1, chunkY * 32 % 32768 + y - 1, chunkZ * 32 + z - 1);
+
+            if (block is SidingFloorBlock floor)
+            {
+                // A border cell on the bottom layer has its cell below in the neighbour chunk,
+                // which has this cell in its own interior and lights it there.
+                if (y == 0 || !floor.IsSealed(___game.BlockAccessor.GetBlockEntity(pos))) continue;
+
+                ___currentChunkRgbsExt[i] = ___currentChunkRgbsExt[i - size * size];
+                mask[i] = true;
+                continue;
+            }
+
+            var wall = (SidingWallBlock)block;
             var (dx, dz) = SidingWallBlock.OpenSide(wall.Variant["layout"], wall.Variant["side"]);
             // A border cell whose open side leaves the array opens away from this chunk, so its
             // dead space - and the floor face that shows it - belongs to the neighbour, which
             // has the same cell in its own interior and darkens it there.
             if (x + dx is < 0 or >= size || z + dz is < 0 or >= size) continue;
 
-            // chunkY carries the dimension above the world's 32768 blocks (vanilla: dim = chunkY / 1024).
-            pos.Set(chunkX * 32 + x - 1, chunkY * 32 % 32768 + y - 1, chunkZ * 32 + z - 1);
             if (!wall.IsSealed(___game.BlockAccessor.GetBlockEntity(pos))) continue;
 
             ___currentChunkRgbsExt[i] = ___currentChunkRgbsExt[i + dx + dz * size];
