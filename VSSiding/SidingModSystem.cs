@@ -1300,6 +1300,15 @@ public class SidingModSystem : ModSystem
         GuestWalls.StartServerSide(api);
         SidingModePicker.StartServerSide(api);
 
+        // A guest whose host went without the cell restoring it stays invisible until the cell next
+        // changes (#64), so every load re-checks. A tick later, once the column is in the map.
+        api.Event.ChunkColumnLoaded += (coord, chunks) =>
+        {
+            for (int chunkY = 0; chunkY < chunks.Length; chunkY++)
+                foreach (var (pos, _) in GuestWalls.GuestsIn(api, chunks[chunkY], coord.X, chunkY, coord.Y))
+                    api.World.RegisterCallback(_ => RestoreGuestWall(api.World, pos), 0);
+        };
+
         api.Event.BreakBlock += (IServerPlayer _, BlockSelection blockSel, ref float _, ref EnumHandling handling) =>
         {
             SidingWallBlock.ServerBreakSelection = blockSel;
