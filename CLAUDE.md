@@ -18,6 +18,7 @@ Framing plus infill is a complete wall: it seals rooms through vanilla's per-fac
 just            # build, then install into the game's Mods folder (same as `just deploy`)
 just build      # build only
 just test
+just e2e        # build, then boot the mod headless under Atlas and run the end-to-end tests
 just shapes     # rewrite the committed shapes/block/wall/*.json from WallShapeGen (0021)
 ```
 Needs [`just`](https://github.com/casey/just); recipes run on macOS and Windows.
@@ -46,6 +47,7 @@ Where things live. The decisions carry the *why*; `ls docs/decisions/` is the in
 - `PlaceWallFrame`: a `CollectibleBehavior` on every plank that raises the initial framing of a wall or a floor (0005/0006, 0050).
 - `SidingModePicker`: the saw's mode picker, opened by vanilla's tool mode hotkey whenever a saw is in the off hand; rows of framing (wall, corner, floor), the deck toggle, board and log styles stored per player, patched into `GuiDialogToolMode` with its own pick channel, icons from 0031 (0040).
 - `VSSiding.Tests/WallShapeGen`: generates the shapes `wall.json` and `cornerout.json` use (0021), and the floor's. It lives in the test project, not beside the assets it writes.
+- `VSSiding.E2E.Tests`: Atlas scenarios that boot the built `Releases/vssiding` folder on a headless server, so `just e2e` builds first. It does not reference the mod assembly; wall and guest layers are read through the block entity's tree and `GuestWalls` by reflection (0056).
 
 `config/materials.json` carries the `Framings`/`Infills`/`Finishes` dictionaries every one of those keys looks up; `AssetsFinalize` merges it into each block's attributes, where an entry in the block's own file wins.
 

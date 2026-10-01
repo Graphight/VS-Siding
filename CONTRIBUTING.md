@@ -47,9 +47,11 @@ just build
 just test
 ```
 
-Needs [`just`](https://github.com/casey/just); without it, `./build.sh` (or `build.ps1`) runs the same build and `dotnet test VSSiding.sln` the tests.
+Needs [`just`](https://github.com/casey/just); without it, `./build.sh` (or `build.ps1`) runs the same build and `dotnet test VSSiding.Tests` the tests.
 To try the branch in game, `just deploy` (or plain `just`) builds and swaps the installed `vssiding` zip in your `Mods` folder for this one.
-Changed `WallShapeGen`? Run `just shapes` (without `just`, `SIDING_REGEN=1 dotnet test VSSiding.sln`) to rewrite the committed shape JSON from it (decision 0021).
+Changed `WallShapeGen`? Run `just shapes` (without `just`, `SIDING_REGEN=1 dotnet test VSSiding.Tests`) to rewrite the committed shape JSON from it (decision 0021).
+
+Changed a Harmony patch, a block entity or saved state? Run `just e2e` too (without `just`, `./build.sh` first, then `dotnet test VSSiding.E2E.Tests`), which boots the built mod headless.
 
 Check the real exit status: a truncated or piped log can look reassuring and still exit non-zero.
 
