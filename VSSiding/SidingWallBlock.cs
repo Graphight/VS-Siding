@@ -782,7 +782,7 @@ public class SidingWallBlock : Block
     // and infill both, so a clay or stone deck cools. A deck saved before decks took layers sealed as
     // bare framing, and keeps doing so until infill is laid.
     internal static int ComputeDeckRetention(string? deckKey, string? deckInfill, bool legacyDeck, JsonObject framings, JsonObject infills)
-        => legacyDeck
+        => legacyDeck && deckInfill == null
             ? (deckKey != null && framings[deckKey].Exists ? 1 : 0)
             : ComputeRetention(true, deckKey, deckInfill, framings, infills);
 

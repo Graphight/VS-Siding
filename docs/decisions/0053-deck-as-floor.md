@@ -63,7 +63,7 @@ Old decks draw the new bare joists, since the solid slab is gone, but keep seali
 The flag is saved as `legacydeck` and set on load when the entity has a deck and no `legacydeck` key.
 It is detected by the key's absence, not by a missing new attribute, because a null string does not survive a save: an unfilled new deck saves no `deckinfill` key, and would read as old.
 Once saved, the flag is always present, so a new deck is never mistaken for an old one.
-A legacy deck seals at 1 until it is filled or broken.
+A legacy deck seals at 1 until it is filled or broken; once filled, it seals by its infill like a new deck.
 
 ## Alternatives considered
 - **Leave decks as framing only.** Free, and the floor stops 12/16 short of the wall in every finished room.

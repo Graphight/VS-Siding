@@ -147,4 +147,14 @@ public class SidingWallBlockRetentionTests
 
         Assert.Equal(new[] { 0, 0, 1 }, actual);
     }
+
+    // Once filled, an old deck seals by its infill like a new one, so a clay fill cools.
+    [Fact]
+    public void FilledLegacyDeckFollowsItsInfill()
+    {
+        var actual = new (string? Deck, string? DeckInfill)[] { ("oak", "wattle"), ("oak", "clay") }
+            .Select(d => SidingWallBlock.ComputeDeckRetention(d.Deck, d.DeckInfill, true, Framings, Infills));
+
+        Assert.Equal(new[] { 1, -1 }, actual);
+    }
 }
