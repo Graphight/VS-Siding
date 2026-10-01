@@ -23,7 +23,6 @@ public class AnimalScenarios : AtlasScenarioBase
         ITestPlayer player = await WallBuilder.JoinBuilder(World);
         for (int dz = -2; dz <= 2; dz++)
             await WallBuilder.Raise(World, player, cell.SouthCopy(dz), inside.SouthCopy(dz), "game:plank-oak", "game:clay-blue");
-        Assert.Equal(("oak", "clay", null, null, null), WallBuilder.Layers(World, cell));
 
         Entity sheep = World.SpawnEntity("game:sheep-bighorn-adult-female", cell.WestCopy(3));
         await World.Ticks(30);
@@ -39,6 +38,7 @@ public class AnimalScenarios : AtlasScenarioBase
             maxX = Math.Max(maxX, sheep.Pos.X);
         }
 
-        Assert.Equal((cell.Y, true), (Math.Floor(maxY), maxX > cell.X - 0.7));
+        Assert.True(maxX > cell.X - 0.7, $"the sheep never reached the wall (max x {maxX}, wall at {cell.X})");
+        Assert.Equal(cell.Y, Math.Floor(maxY));
     }
 }

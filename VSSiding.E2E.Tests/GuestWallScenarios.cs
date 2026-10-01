@@ -23,7 +23,7 @@ internal class MethodNameOrderer : ITestCaseOrderer
 [AtlasWorld(StrictBootDiagnostics = true)]
 public class GuestWallScenarios : AtlasScenarioBase
 {
-    private static readonly (string?, string?, string?, string?, string?) Layers = ("oak", "clay", null, null, "planks");
+    private static readonly (string?, string?, string?, string?, string?) Expected = ("oak", "clay", null, null, "planks");
 
     private BlockPos Cell => World.Spawn.Offset(1, 2, 0);
 
@@ -37,16 +37,17 @@ public class GuestWallScenarios : AtlasScenarioBase
         try
         {
             await WallBuilder.Raise(World, player, cell, cell.WestCopy(), "game:plank-oak", "game:clay-blue", "game:plank-oak");
-            Assert.Equal(Layers, WallBuilder.Layers(World, cell));
+            Assert.Equal(Expected, WallBuilder.Layers(World, cell));
             Assert.Null(WallBuilder.GuestLayers(World, cell));
 
+            // A saw in the off hand layers the wall instead of hosting (SidingWallBlock.OnBlockInteractStart).
             player.Entity.LeftHandItemSlot.Itemstack = null;
             await player.GiveItem("game:chest-east", 1);
             var selection = new BlockSelection { Position = cell.Copy(), Face = BlockFacing.EAST, HitPosition = new Vec3d(0.5, 0.5, 0.5) };
             Assert.True(World.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, selection));
 
             Assert.StartsWith("chest", World.BlockAt(cell).Code.Path);
-            Assert.Equal(Layers, WallBuilder.GuestLayers(World, cell));
+            Assert.Equal(Expected, WallBuilder.GuestLayers(World, cell));
         }
         finally
         {
@@ -61,7 +62,7 @@ public class GuestWallScenarios : AtlasScenarioBase
         BlockPos cell = Cell;
 
         Assert.StartsWith("chest", World.BlockAt(cell).Code.Path);
-        Assert.Equal(Layers, WallBuilder.GuestLayers(World, cell));
+        Assert.Equal(Expected, WallBuilder.GuestLayers(World, cell));
         Assert.Null(WallBuilder.GuestLayers(World, cell.NorthCopy()));
         return Task.CompletedTask;
     }
