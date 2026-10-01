@@ -210,6 +210,14 @@ public class SidingFloorBlock : Block
     internal bool IsSealed(BlockEntity? be)
         => be is SidingFloorEntity entity && SidingWallBlock.ComputeLightAbsorption(entity.Framing, entity.Infill, Attributes["Framings"], Attributes["Infills"]) > 0;
 
+    // As on the wall (decision 0016): a sealed cell shows the room below's light (decision 0055),
+    // so emitting side AO keeps it out of the smooth-lighting corners of faces in the room above.
+    public override bool DoEmitSideAo(IGeometryTester caller, BlockFacing facing)
+        => IsSealed(caller.GetCurrentBlockEntityOnSide(facing.Opposite)) || base.DoEmitSideAo(caller, facing);
+
+    public override bool DoEmitSideAoByFlag(IGeometryTester caller, Vec3iAndFacingFlags vec, int flags)
+        => IsSealed(caller.GetCurrentBlockEntityOnSide(vec)) || base.DoEmitSideAoByFlag(caller, vec, flags);
+
     // Every floor's joists run north-south, so the north rim (framing-top) and the south rim
     // (framing-bottom) each drop where a framed floor carries the joists on, the way a stacked
     // wall drops its plates. A glazed floor has no joists: its bezel merges on all four sides,
