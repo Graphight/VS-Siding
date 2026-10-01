@@ -16,11 +16,12 @@ Everything after the frame stays the one shared wall system.
 So a stone-age player cannot raise a single frame, and nothing downstream of the frame is reachable.
 
 **Most layers are already stone age.**
-Infills `wattle`, `straw`, `clay` and `stone-{rock}`, and finishes `daub`, `daub-{color}` and `drystone-{rock}`, need no metal to make.
-Planks, shakes, brick and metal plate each need a saw, a kiln or smelting, so their own recipes keep them late.
+Infills `wattle`, `straw`, `clay` and `stone-{rock}`, and finishes `daub`, `daub-{color}`, `drystone-{rock}` and `shakes-{wood}` (both its shakes and logs styles, which consume a placed log a stone axe fells), need no metal to make.
+Planks, brick and metal plate each need a saw, a kiln or smelting, so their own recipes keep them late.
 
 **What was asked.**
 One player suggested a frame that needs no saw, built from sticks and cordage held in opposite hands, taking wattle and daub, logs or straw.
+Of those, only the frame is missing: the logs style of `shakes-{wood}` is already a stone-age finish.
 Another said primitive walls would put the mod in their baseline pack, which means it has to work from the first day.
 
 **The saw is not consumed.**
@@ -34,12 +35,20 @@ It is one more material key, read by the same block class as every other framing
 
 **`PlaceWallFrame` on sticks.**
 The same behavior, patched onto `game:stick` alongside the plank patch.
-Sticks are also wattle's `Consumes`, as planks are both a framing and a finish, so a stick click on a standing frame layers wattle and a click elsewhere raises a frame, the way planks already split.
+Sticks are also wattle's `Consumes`, so on a bare frame a stick click matches both a framing and an infill.
+Planks never meet this, since planks are a finish and not an infill, and two branches of `SidingWallBlock.OnBlockInteractStart` match the held item against `Framings` before the infill match: the deck add (with the deck lit, on a side face) and decision 0026's corner upgrade (in corner mode).
+On a bare frame those two branches skip any held item that also matches an infill, so sticks layer wattle; a stick deck or corner upgrade then needs a filled wall or a plank in hand.
 
 **Flax twine as a second build signal.**
-`HasSawInOffhand` becomes a check for either a saw or `game:flaxtwine` in the off hand, and every caller (framing, layering, the floor, the mode picker) follows.
+`HasSawInOffhand` becomes a check for either a saw or `game:flaxtwine` in the off hand, and every caller (framing, layering, the floor, and the mode picker through `SidingModePicker.IsOurs`) follows.
+Vanilla's off-hand slot only takes items with the `Offhand` storage flag, and `flaxtwine.json` sets none, so twine needs a `storageFlags: 257` patch, as `patches/saw-offhand.json` does for the saw.
+That patch lets twine sit in the off hand for every mod, not only this one.
 Twine is never consumed, so one piece is all a player needs, which keeps it cheap however scarce flax is.
 Its only job is gating the right-click, exactly as the saw's is.
+
+**The guide says so.**
+The handbook text (`gamemechanicinfo-siding-text` in `lang/en.json`) tells players to put a saw in the off hand and that planks build the framing.
+It names twine and sticks too, since decision 0006 already found the off-hand gesture hard to discover, and the stone-age player this is for would otherwise never learn it.
 
 **No per-framing restrictions.**
 A stick frame takes every infill and finish a plank frame does.
@@ -57,4 +66,3 @@ The value it adds is that look and the earlier start; it does nothing a plank fr
 - Frame cost in sticks, against planks' 2 and wattle's 4.
 - Texture: vanilla has no pole item, so pick a stick or bark texture that reads as lashed poles at wall scale.
 - A stick frame under brick or iron plate is physically odd; add a per-framing list of allowed finishes only if players raise it.
-- The mode picker opens on a saw in the off hand (decision 0040); check it opens for twine too once the shared check changes.
