@@ -136,6 +136,14 @@ public class SidingFloorTests
         Assert.Equal(16, keys.Distinct().Count());
     }
 
+    [Fact]
+    public void EachPlankAlternateMeshesUnderItsOwnKey()
+    {
+        Assert.NotEqual(
+            SidingFloorEntity.CacheKey("oak", "wattle", "planks", null, default, default, alternate: 0),
+            SidingFloorEntity.CacheKey("oak", "wattle", "planks", null, default, default, alternate: 1));
+    }
+
     // Glass is one pane in a bezel with no joists, each member dropping where the next floor is glazed too.
     [Fact]
     public void AGlazedFloorDrawsItsBezelAndOnePane()

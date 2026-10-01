@@ -87,10 +87,18 @@ public class MaterialTextureOpacityTests
     private static string ResolveTextureFile(string vintageStoryPath, string textureCode)
     {
         var parts = textureCode.Split(':', 2);
-        var relativePath = parts[1] + ".png";
         foreach (var domainFolder in AssetDomainFolders)
         {
-            var candidate = Path.Combine(vintageStoryPath, "assets", domainFolder, "textures", relativePath);
+            var root = Path.Combine(vintageStoryPath, "assets", domainFolder, "textures");
+            // A "*" code is checked by its first variant, as CompositeTexture.Bake makes it the base.
+            if (parts[1].EndsWith('*'))
+            {
+                var dir = Path.Combine(root, Path.GetDirectoryName(parts[1])!);
+                var first = Directory.Exists(dir) ? Directory.GetFiles(dir, Path.GetFileName(parts[1]) + ".png").Order().FirstOrDefault() : null;
+                if (first != null) return first;
+                continue;
+            }
+            var candidate = Path.Combine(root, parts[1] + ".png");
             if (File.Exists(candidate))
                 return candidate;
         }

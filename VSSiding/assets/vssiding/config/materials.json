@@ -115,7 +115,7 @@
 		},
 		"planks": {
 			DisplayName: "vssiding:finish-planks",
-			Texture: "game:block/wood/planks/oak1",
+			Texture: "game:block/wood/planks/oak*",
 			Elements: { front: "front-weatherboard", back: "back-boards" },
 			FloorElements: {
 				front: { hboards: "front-hboards", boards: "front-boards" },
@@ -126,9 +126,22 @@
 			Consumes: { type: "item", code: "game:plank-oak", quantity: 2 },
 			Drops: [ { type: "item", code: "game:plank-oak", quantity: { avg: 2, var: 0 } } ]
 		},
+		"planks-aged": {
+			DisplayName: "vssiding:finish-planks-aged",
+			Texture: "game:block/wood/planks/aged/aged*",
+			Elements: { front: "front-weatherboard", back: "back-boards" },
+			FloorElements: {
+				front: { hboards: "front-hboards", boards: "front-boards" },
+				back: { hboards: "back-hboards", boards: "back-boards" }
+			},
+			Styles: ["weatherboard", "boards", "hboards"],
+			BlockMaterial: "Wood",
+			Consumes: { type: "item", code: "game:plank-aged", quantity: 2 },
+			Drops: [ { type: "item", code: "game:plank-aged", quantity: { avg: 2, var: 0 } } ]
+		},
 		"planks-veryaged": {
 			DisplayName: "vssiding:finish-planks-veryaged",
-			Texture: "game:block/wood/planks/aged/veryaged1",
+			Texture: "game:block/wood/planks/aged/veryaged*",
 			Elements: { front: "front-weatherboard", back: "back-boards" },
 			FloorElements: {
 				front: { hboards: "front-hboards", boards: "front-boards" },
@@ -144,7 +157,7 @@
 		"planks-{wood}": {
 			Match: { type: "item", code: "*:plank-*", variant: "wood" },
 			DisplayName: "vssiding:finish-planks-{wood}",
-			Texture: "{domain}:block/wood/planks/{wood}1",
+			Texture: "{domain}:block/wood/planks/{wood}*",
 			Elements: { front: "front-weatherboard", back: "back-boards" },
 			FloorElements: {
 				front: { hboards: "front-hboards", boards: "front-boards" },

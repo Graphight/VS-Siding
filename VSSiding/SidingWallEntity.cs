@@ -154,14 +154,16 @@ public class SidingWallEntity : BlockEntity
         string[] deckElements = DeckElements(side, Deck, DeckInfill, DeckFront, DeckBack, Block.Attributes["Finishes"], deckJoins, (DeckFrontStyle, DeckBackStyle), deckGlazed);
         if (selectiveElements.Length == 0 && deckElements.Length == 0) return false;
 
+        int alternate = SidingWallTexSource.AnyVaries(Block.Attributes["Finishes"], Front, SecondFront, Back, DeckFront, DeckBack)
+            ? SidingWallTexSource.Alternate(Pos) : 0;
         string cacheKey = CacheKey(layout, side, Framing, Infill, Front, SecondFront, Back, joins, Styles, Deck, Step, StepOrientation,
-            DeckInfill, DeckFront, DeckBack, (DeckFrontStyle, DeckBackStyle), deckJoins);
+            DeckInfill, DeckFront, DeckBack, (DeckFrontStyle, DeckBackStyle), deckJoins, alternate);
 
         MeshData[] meshes = ObjectCacheUtil.GetOrCreate(capi, cacheKey, () =>
         {
             Shape shape = Shape.TryGet(capi, new AssetLocation("vssiding", $"shapes/block/wall/{layout}.json"));
             var texSource = new SidingWallTexSource(
-                capi, this, Block.Attributes["Framings"], Block.Attributes["Infills"], Block.Attributes["Finishes"]);
+                capi, this, Block.Attributes["Framings"], Block.Attributes["Infills"], Block.Attributes["Finishes"], alternate);
             var rotation = new Vec3f(0, RotationYDeg(side), 0);
             return Meshes(tesselator, shape, texSource, rotation, selectiveElements, glazed)
                 .Concat(Meshes(tesselator, shape, texSource, new Vec3f(0, 0, 0), deckElements, deckGlazed))
@@ -217,9 +219,9 @@ public class SidingWallEntity : BlockEntity
         (bool above, bool below, bool left, bool right) joins,
         (string? front, string? secondFront, string? back) styles = default, string? deck = null, string? step = null, string? stepOrientation = null,
         string? deckInfill = null, string? deckFront = null, string? deckBack = null, (string? front, string? back) deckStyles = default,
-        (bool above, bool below, bool left, bool right) deckJoins = default)
+        (bool above, bool below, bool left, bool right) deckJoins = default, int alternate = 0)
         => $"vssiding-wall-mesh-{layout}-{side}-{framing}-{infill}-{front}-{secondFront}-{back}-{joins.above}-{joins.below}-{joins.left}-{joins.right}-{styles.front}-{styles.secondFront}-{styles.back}-{deck}-{step}-{stepOrientation}"
-            + $"-{deckInfill}-{deckFront}-{deckBack}-{deckStyles.front}-{deckStyles.back}-{deckJoins.above}-{deckJoins.below}-{deckJoins.left}-{deckJoins.right}";
+            + $"-{deckInfill}-{deckFront}-{deckBack}-{deckStyles.front}-{deckStyles.back}-{deckJoins.above}-{deckJoins.below}-{deckJoins.left}-{deckJoins.right}-{alternate}";
 
     // The floor's groups for the deck, which the wall shapes carry per side as deck-{side}-{name}.
     internal static string[] DeckElements(

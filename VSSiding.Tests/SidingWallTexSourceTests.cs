@@ -176,4 +176,29 @@ public class SidingWallTexSourceTests
         Assert.Equal(new AssetLocation("game:block/clay/blueclay"), texture!.Base);
         Assert.Equal([(new AssetLocation("game:block/clay/daub/browngolden/normal1"), EnumColorBlendMode.Overlay)], Overlays(texture));
     }
+
+    // Variant 0 is the base, then each alternate in turn, wrapping past the last.
+    [Fact]
+    public void PickAlternateWalksBaseThenAlternates()
+    {
+        var two = new CompositeTexture(new AssetLocation("game:block/wood/planks/oak2"));
+        var three = new CompositeTexture(new AssetLocation("game:block/wood/planks/oak3"));
+        var baked = new CompositeTexture(new AssetLocation("game:block/wood/planks/oak1")) { Alternates = [two, three] };
+
+        Assert.Equal(
+            new[] { baked, two, three, baked },
+            new[] { 0, 1, 2, 3 }.Select(alternate => SidingWallTexSource.PickAlternate(baked, alternate)));
+    }
+
+    [Fact]
+    public void AnyVariesOnlyForAWildcardFinish()
+    {
+        var finishes = Dict("""
+        { "planks": { "Texture": "game:block/wood/planks/oak*" }, "daub": { "Texture": "game:block/clay/daub/browngolden/normal1" } }
+        """);
+
+        Assert.Equal(
+            new[] { true, false, false },
+            new[] { SidingWallTexSource.AnyVaries(finishes, "daub", "planks"), SidingWallTexSource.AnyVaries(finishes, "daub", null), SidingWallTexSource.AnyVaries(finishes) });
+    }
 }

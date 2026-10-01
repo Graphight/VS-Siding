@@ -373,6 +373,7 @@ public class SidingWallEntityTests
             SidingWallEntity.CacheKey("wall", "west", "oak", "wattle", "daub", "planks", "brick", (false, false, false, false), default, "oak", null, null, null, null, null, ("boards", null)),
             SidingWallEntity.CacheKey("wall", "west", "oak", "wattle", "daub", "planks", "brick", (false, false, false, false), default, "oak", null, null, null, null, null, (null, "boards")),
             SidingWallEntity.CacheKey("wall", "west", "oak", "wattle", "daub", "planks", "brick", (false, false, false, false), default, "oak", null, null, null, null, null, default, (true, false, false, false)),
+            SidingWallEntity.CacheKey("wall", "west", "oak", "wattle", "daub", "planks", "brick", (false, false, false, false), alternate: 1),
             SidingWallEntity.CacheKey("wall", "west", "oak", "wattle", "daub", "planks", "brick", (false, false, false, false), default, "oak", null, null, null, null, null, default, (false, true, false, false)),
             SidingWallEntity.CacheKey("wall", "west", "oak", "wattle", "daub", "planks", "brick", (false, false, false, false), default, "oak", null, null, null, null, null, default, (false, false, true, false)),
             SidingWallEntity.CacheKey("wall", "west", "oak", "wattle", "daub", "planks", "brick", (false, false, false, false), default, "oak", null, null, null, null, null, default, (false, false, false, true)),
