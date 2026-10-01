@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Atlas.Api;
 using Vintagestory.API.Common;
@@ -14,9 +15,20 @@ internal static class WallBuilder
 
     // framing, infill, front, secondfront, back as the wall's entity saves them; the entity type is the mod's own, so it is read through its tree.
     internal static (string? Framing, string? Infill, string? Front, string? SecondFront, string? Back) Layers(IWorldSession world, BlockPos cell)
+        => LayersOf(world.BlockEntityAt<BlockEntity>(cell)!);
+
+    // The guest store's record for a cell, decoded the way the mod does; null when the cell holds no guest. GuestWalls is the mod's own static class, so it is reached by name.
+    internal static (string? Framing, string? Infill, string? Front, string? SecondFront, string? Back)? GuestLayers(IWorldSession world, BlockPos cell)
+    {
+        Type guestWalls = world.Api.ModLoader.GetModSystem("VSSiding.SidingModSystem").GetType().Assembly.GetType("VSSiding.GuestWalls")!;
+        var guest = (BlockEntity?)guestWalls.GetMethod("GuestAt", new[] { typeof(ICoreAPI), typeof(BlockPos) })!.Invoke(null, new object[] { world.Api, cell });
+        return guest == null ? null : LayersOf(guest);
+    }
+
+    private static (string? Framing, string? Infill, string? Front, string? SecondFront, string? Back) LayersOf(BlockEntity entity)
     {
         var tree = new TreeAttribute();
-        world.BlockEntityAt<BlockEntity>(cell)!.ToTreeAttributes(tree);
+        entity.ToTreeAttributes(tree);
         string? Read(string key) => tree.GetString(key) is { Length: > 0 } value ? value : null;
         return (Read("framing"), Read("infill"), Read("front"), Read("secondfront"), Read("back"));
     }
