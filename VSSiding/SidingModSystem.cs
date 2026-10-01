@@ -119,6 +119,9 @@ public class SidingModSystem : ModSystem
             api.Logger.Error("vssiding: guest box patches skipped entirely, hosted furniture will not collide or select where it renders, and its guest wall's panel will not collide or select at all: {0}", e);
         }
 
+        if (SidingFloorBlock.DecorSelectionBoxConstructor == null || SidingFloorBlock.PosAdjustField == null)
+            api.Logger.Warning("vssiding: vanilla's DecorSelectionBox has moved, a lantern hung under a thin floor selects only from below");
+
         try
         {
             GuestTooltipPatches.PatchAll(harmony, api);
@@ -193,14 +196,18 @@ public class SidingModSystem : ModSystem
             }
         }
 
-        try
+        // BlockOilLamp sets its own basePos instead of calling base, so its flame needs its own patch.
+        foreach (var particleBlock in new[] { typeof(Block), typeof(BlockOilLamp) })
         {
-            harmony.Patch(AccessTools.Method(typeof(Block), nameof(Block.OnAsyncClientParticleTick)),
-                transpiler: new HarmonyMethod(typeof(SidingModSystem), nameof(ParticleSpawnTranspiler)));
-        }
-        catch (Exception e)
-        {
-            api.Logger.Error("vssiding: block particle shift patch skipped, a hosted torch's flame will burn unshifted, inside the panel: {0}", e);
+            try
+            {
+                harmony.Patch(AccessTools.Method(particleBlock, nameof(Block.OnAsyncClientParticleTick)),
+                    transpiler: new HarmonyMethod(typeof(SidingModSystem), nameof(ParticleSpawnTranspiler)));
+            }
+            catch (Exception e)
+            {
+                api.Logger.Error("vssiding: {0} particle shift patch skipped, a hosted or hung flame will burn unshifted: {1}", particleBlock.Name, e);
+            }
         }
 
         try
@@ -401,6 +408,7 @@ public class SidingModSystem : ModSystem
         {
             var (dx, dz) = GapShiftAt(pos, block);
             advanced.basePos.X += dx;
+            advanced.basePos.Y += HangShiftAt(pos, block);
             advanced.basePos.Z += dz;
         }
         return manager.Spawn(particles);
@@ -426,7 +434,7 @@ public class SidingModSystem : ModSystem
         }
 
         if (replaced != 1)
-            throw new InvalidOperationException($"Expected exactly one IAsyncParticleManager.Spawn call in Block.OnAsyncClientParticleTick, found {replaced}.");
+            throw new InvalidOperationException($"Expected exactly one IAsyncParticleManager.Spawn call in OnAsyncClientParticleTick, found {replaced}.");
     }
 
     // UpdateDecal calls this with the mesh still in block-local coordinates, then translates it by
@@ -436,8 +444,9 @@ public class SidingModSystem : ModSystem
     {
         block.OnDecalTesselation(world, decalMesh, pos);
         var (dx, dz) = GapShiftAt(pos, block);
-        if (dx == 0 && dz == 0) return;
-        decalMesh.Translate((float)dx, 0, (float)dz);
+        var dy = HangShiftAt(pos, block);
+        if (dx == 0 && dy == 0 && dz == 0) return;
+        decalMesh.Translate((float)dx, (float)dy, (float)dz);
     }
 
     internal static IEnumerable<CodeInstruction> DecalTesselationTranspiler(IEnumerable<CodeInstruction> instructions)
@@ -624,6 +633,48 @@ public class SidingModSystem : ModSystem
 
     internal static bool IsHostableId(int blockId) => Hostable is { } hostable && blockId < hostable.Length && hostable[blockId];
 
+    // Indexed by BlockId, like Hostable: whether the block hangs from the face above it (decision 0054).
+    internal static bool[]? Hangers;
+
+    internal static bool IsHangerId(int blockId) => Hangers is { } hangers && blockId < hangers.Length && hangers[blockId];
+
+    internal static readonly AccessTools.FieldRef<BlockBehaviorUnstableFalling, BlockFacing[]?> AttachableFacesRef =
+        AccessTools.FieldRefAccess<BlockBehaviorUnstableFalling, BlockFacing[]?>("attachableFaces");
+
+    // A lantern or oil lamp hangs as its "down" variant; a chandelier is unstable falling attached on UP.
+    internal static bool IsHanger(Block block)
+        => block.BlockBehaviors.Any(behavior => behavior switch
+        {
+            BlockBehaviorOmniAttachable omni => block.Variant[omni.facingCode] == "down",
+            BlockBehaviorUnstableFalling falling => AttachableFacesRef(falling)?.Contains(BlockFacing.UP) == true,
+            _ => false,
+        });
+
+    // How far a hung block at pos rises to meet the underside of the thin floor above; zero for anything else.
+    internal static double HangShiftAt(BlockPos pos, Block block)
+    {
+        if (!IsHangerId(block.BlockId)) return 0;
+
+        ICoreAPI? api = ApiRef(block);
+        if (api == null) return 0;
+
+        return HangShift(api.World.BlockAccessor, pos, block);
+    }
+
+    // A chandelier attaches on DOWN as well as UP, so one the cell below holds up is standing, not hung.
+    internal static double HangShift(IBlockAccessor accessor, BlockPos pos, Block block)
+    {
+        if (accessor.GetBlock(pos.UpCopy()) is not SidingFloorBlock) return 0;
+
+        if (block.BlockBehaviors.OfType<BlockBehaviorUnstableFalling>().FirstOrDefault() is { } falling &&AttachableFacesRef(falling)?.Contains(BlockFacing.DOWN) == true)
+        {
+            var belowPos = pos.DownCopy();
+            if (accessor.GetBlock(belowPos).CanAttachBlockAt(accessor, block, belowPos, BlockFacing.UP)) return 0;
+        }
+
+        return 1 - PanelThickness;
+    }
+
     // The four horizontal faces, in the order FaceShiftByBlock's per-block arrays are indexed.
     private static readonly string[] HorizontalFaces = { "north", "east", "south", "west" };
     private static readonly Dictionary<string, int> HorizontalFaceIndex =
@@ -650,17 +701,20 @@ public class SidingModSystem : ModSystem
         int maxId = api.World.Blocks.Where(b => b != null).Max(b => b.BlockId);
         var hostable = new bool[maxId + 1];
         var faceShift = new double[maxId + 1][];
+        var hangers = new bool[maxId + 1];
 
         foreach (var block in api.World.Blocks)
         {
             if (block == null) continue;
             hostable[block.BlockId] = IsHostable(block);
+            hangers[block.BlockId] = IsHanger(block);
             if (!hostable[block.BlockId]) continue;
 
             faceShift[block.BlockId] = FaceShifts(block);
         }
 
         Hostable = hostable;
+        Hangers = hangers;
         FaceShiftByBlock = faceShift;
     }
 
@@ -835,12 +889,13 @@ public class SidingModSystem : ModSystem
     // everything reading vars.finalX/finalZ downstream - land on the panel a hosted block shifts to.
     internal static void ShiftTowardWall(ChunkTesselator tesselator, Block block)
     {
-        if (!IsHostableId(block.BlockId)) return;
+        if (!IsHostableId(block.BlockId) && !IsHangerId(block.BlockId)) return;
 
         var vars = VarsRef(tesselator);
         var pos = new BlockPos(vars.posX, vars.posY, vars.posZ, vars.dimension);
         var (dx, dz) = GapShiftAt(pos, block);
         vars.finalX += (float)dx;
+        vars.finalY += (float)HangShiftAt(pos, block);
         vars.finalZ += (float)dz;
     }
 

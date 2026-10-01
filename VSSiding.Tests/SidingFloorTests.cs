@@ -171,6 +171,19 @@ public class SidingFloorTests
             }.Select(c => $"{c.Item1.Code} oak {c.Item2 ?? "-"} {SidingFloorBlock.ComputeRetention(c.Item1, "oak", c.Item2, Attributes)}"));
     }
 
+    // Bare joists are enough to hang from; standing on the top still wants it sealed.
+    [Fact]
+    public void AFloorHoldsAHangerOnceFramedButASolidTopOnlyOnceFilled()
+    {
+        Assert.Equal(
+            new[] { "down oak - True", "down - - False", "up oak - False", "up oak wattle True", "north oak wattle False" },
+            new[]
+            {
+                (BlockFacing.DOWN, "oak", null), (BlockFacing.DOWN, null, null), (BlockFacing.UP, "oak", null),
+                (BlockFacing.UP, "oak", "wattle"), (BlockFacing.NORTH, "oak", "wattle"),
+            }.Select(c => $"{c.Item1.Code} {c.Item2 ?? "-"} {c.Item3 ?? "-"} {SidingFloorBlock.CanAttach(c.Item1, c.Item2, c.Item3, Attributes)}"));
+    }
+
     [Fact]
     public void OnlyTheTopAndUndersideTakeAFinish()
     {
@@ -250,5 +263,27 @@ public class SidingFloorTests
             new[] { BlockFacing.EAST, BlockFacing.WEST, BlockFacing.SOUTH, BlockFacing.NORTH },
             new[] { new Vec3f(0.9f, -0.8f, 0.2f), new Vec3f(-0.5f, -0.9f, 0.1f), new Vec3f(0.1f, -0.9f, 0.3f), new Vec3f(0.2f, 0.5f, -0.6f) }
                 .Select(SidingFloorBlock.Ahead));
+    }
+
+    [Fact]
+    public void ADecorSelectionBoxCanStillBeBuiltByReflection()
+    {
+        Assert.NotNull(SidingFloorBlock.DecorSelectionBoxType);
+        Assert.NotNull(SidingFloorBlock.DecorSelectionBoxConstructor);
+        Assert.NotNull(SidingFloorBlock.PosAdjustField);
+        Assert.Equal(typeof(Vec3i), SidingFloorBlock.PosAdjustField!.FieldType);
+    }
+
+    [Fact]
+    public void AHangersBoxesFollowTheFloorsMovedIntoItsCellAndSelectTheCellBelow()
+    {
+        var floor = new Cuboidf(0, 0.75f, 0, 1, 1, 1);
+        var boxes = SidingFloorBlock.WithHangerBoxes(new[] { floor }, new[] { new Cuboidf(0.25f, 0, 0.25f, 0.75f, 0.5f, 0.75f) }, 0.125, 0.75, 0);
+
+        Assert.Equal(
+            new[] { "0 0.75 0 1 1 1 -", "0.375 -0.25 0.25 0.875 0.25 0.75 X=0,Y=-1,Z=0" },
+            boxes.Select(box => $"{box.X1} {box.Y1} {box.Z1} {box.X2} {box.Y2} {box.Z2} "
+                + (SidingFloorBlock.PosAdjustField!.DeclaringType!.IsInstanceOfType(box)
+                    ? ((Vec3i)SidingFloorBlock.PosAdjustField.GetValue(box)!).ToString() : "-")));
     }
 }

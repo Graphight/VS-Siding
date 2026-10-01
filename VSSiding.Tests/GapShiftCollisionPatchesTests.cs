@@ -25,7 +25,17 @@ public class GapShiftCollisionPatchesTests
             new Cuboidf(0.25f, 0, 1f, 0.75f, 0.5f, 1.5f),
         };
 
-        Assert.Equal(expected, GapShiftCollisionPatches.Shifted(original, 0, 0.75));
+        Assert.Equal(expected, GapShiftCollisionPatches.Shifted(original, 0, 0, 0.75));
+    }
+
+    [Fact]
+    public void ShiftedLiftsEveryBoxByAHangersVerticalShift()
+    {
+        var original = new[] { new Cuboidf(0.375f, 0, 0.375f, 0.625f, 0.5f, 0.625f) };
+
+        var expected = new[] { new Cuboidf(0.375f, 0.75f, 0.375f, 0.625f, 1.25f, 0.625f) };
+
+        Assert.Equal(expected, GapShiftCollisionPatches.Shifted(original, 0, 0.75, 0));
     }
 
     [Fact]
@@ -33,7 +43,7 @@ public class GapShiftCollisionPatchesTests
     {
         var original = new Cuboidf[] { new CuboidfWithId(0, 0.5, 0, 1, 0.5625, 0.6875) { Id = "0-0-0" } };
 
-        var shifted = Assert.IsType<CuboidfWithId>(GapShiftCollisionPatches.Shifted(original, 0, 0.25).Single());
+        var shifted = Assert.IsType<CuboidfWithId>(GapShiftCollisionPatches.Shifted(original, 0, 0, 0.25).Single());
 
         Assert.Equal((0f, 0.5f, 0.25f, 1f, 0.5625f, 0.9375f, "0-0-0"),
             (shifted.X1, shifted.Y1, shifted.Z1, shifted.X2, shifted.Y2, shifted.Z2, shifted.Id));
@@ -44,8 +54,8 @@ public class GapShiftCollisionPatchesTests
     {
         var original = new[] { new Cuboidf(0, 0, 0, 1, 1, 1) };
 
-        var first = GapShiftCollisionPatches.Shifted(original, 0, -0.25);
-        var second = GapShiftCollisionPatches.Shifted(original, 0, -0.25);
+        var first = GapShiftCollisionPatches.Shifted(original, 0, 0, -0.25);
+        var second = GapShiftCollisionPatches.Shifted(original, 0, 0, -0.25);
 
         Assert.Same(first, second);
     }

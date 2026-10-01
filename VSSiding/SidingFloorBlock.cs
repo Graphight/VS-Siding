@@ -1,6 +1,10 @@
+using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
+using HarmonyLib;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
 using Vintagestory.API.Datastructures;
@@ -128,10 +132,63 @@ public class SidingFloorBlock : Block
         => SidingWallBlock.ComputeRetention(facing == BlockFacing.UP, framing, infill, attributes["Framings"], attributes["Infills"]);
 
     // sidesolid on UP would let anything stand on bare joists; only a sealed top holds it.
+    // Anything hangs from the underside once the joists are up, sealed or not.
     public override bool CanAttachBlockAt(IBlockAccessor blockAccessor, Block block, BlockPos pos, BlockFacing blockFace, Cuboidi? attachmentArea = null)
     {
         var entity = blockAccessor.GetBlockEntity<SidingFloorEntity>(pos);
-        return ComputeRetention(blockFace, entity?.Framing, entity?.Infill, Attributes) != 0;
+        return CanAttach(blockFace, entity?.Framing, entity?.Infill, Attributes);
+    }
+
+    internal static bool CanAttach(BlockFacing facing, string? framing, string? infill, JsonObject attributes)
+        => facing == BlockFacing.DOWN ? framing != null : ComputeRetention(facing, framing, infill, attributes) != 0;
+
+    // A hanger rides up into this cell's underside (decision 0054), and the raytrace only tests the cell
+    // the ray is in, so the floor answers for it with boxes whose hit selects the cell below (PosAdjust).
+    // The floor's own boxes come first: vanilla lets a later decor box replace an earlier hit only when
+    // it is nearer, while any ordinary box replaces a decor hit, so this order lets the nearer one win.
+    public override Cuboidf[] GetSelectionBoxes(IBlockAccessor blockAccessor, BlockPos pos)
+    {
+        var floorBoxes = base.GetSelectionBoxes(blockAccessor, pos);
+        if (DecorSelectionBoxConstructor == null || PosAdjustField == null) return floorBoxes;
+
+        var belowPos = pos.DownCopy();
+        var below = blockAccessor.GetBlock(belowPos);
+        var shift = SidingModSystem.HangShiftAt(belowPos, below);
+        if (shift == 0) return floorBoxes;
+
+        // Called from inside this override, so the hanger's own patch sees depth 2 and leaves them unshifted.
+        var hangerBoxes = below.GetSelectionBoxes(blockAccessor, belowPos);
+        if (hangerBoxes is not { Length: > 0 }) return floorBoxes;
+
+        // A hanger hosted in a guest wall's cell also sits off the panel.
+        var (dx, dz) = SidingModSystem.GapShiftAt(belowPos, below);
+        return HangerSelectionCache.GetValue(hangerBoxes, _ => new ConcurrentDictionary<(Cuboidf[]?, double, double), Cuboidf[]>())
+            .GetOrAdd((floorBoxes, dx, dz), _ => WithHangerBoxes(floorBoxes, hangerBoxes, dx, shift, dz));
+    }
+
+    // Per (hanger array, floor array, off-panel shift): raytraces run every frame on several threads.
+    private static readonly ConditionalWeakTable<Cuboidf[], ConcurrentDictionary<(Cuboidf[]?, double, double), Cuboidf[]>> HangerSelectionCache = new();
+
+    // DecorSelectionBox is internal to the API, so it is built by reflection; SidingModSystem.Start
+    // warns once if a game update moves it, and the floor then answers with its own boxes alone.
+    internal static readonly Type? DecorSelectionBoxType = AccessTools.TypeByName("Vintagestory.API.Common.DecorSelectionBox");
+    internal static readonly System.Reflection.ConstructorInfo? DecorSelectionBoxConstructor = DecorSelectionBoxType == null ? null
+        : AccessTools.Constructor(DecorSelectionBoxType, new[] { typeof(float), typeof(float), typeof(float), typeof(float), typeof(float), typeof(float) });
+    internal static readonly System.Reflection.FieldInfo? PosAdjustField = DecorSelectionBoxType == null ? null
+        : AccessTools.Field(DecorSelectionBoxType, "PosAdjust");
+
+    // The hanger's boxes in this cell's coordinates: the hanger's cell is one below, and the shift
+    // lifts them to the underside, so each moves by shift - 1.
+    internal static Cuboidf[] WithHangerBoxes(Cuboidf[]? floorBoxes, Cuboidf[] hangerBoxes, double dx, double shift, double dz)
+    {
+        var hanger = hangerBoxes.Select(box =>
+        {
+            var moved = box.OffsetCopy((float)dx, (float)(shift - 1), (float)dz);
+            var decor = (Cuboidf)DecorSelectionBoxConstructor!.Invoke(new object[] { moved.X1, moved.Y1, moved.Z1, moved.X2, moved.Y2, moved.Z2 });
+            PosAdjustField!.SetValue(decor, new Vec3i(0, -1, 0));
+            return decor;
+        });
+        return (floorBoxes ?? Array.Empty<Cuboidf>()).Concat(hanger).ToArray();
     }
 
     public override int GetLightAbsorption(IBlockAccessor blockAccessor, BlockPos pos)
