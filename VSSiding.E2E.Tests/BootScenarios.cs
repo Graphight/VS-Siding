@@ -6,6 +6,7 @@ using Xunit;
 
 namespace VSSiding.E2E.Tests;
 
+[AtlasWorld(StrictBootDiagnostics = true)]
 public class BootScenarios : AtlasScenarioBase
 {
     [AtlasScenario]
