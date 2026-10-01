@@ -10,6 +10,8 @@ namespace VSSiding.E2E.Tests;
 [AtlasWorld(StrictBootDiagnostics = true)]
 public class LightScenarios : AtlasScenarioBase
 {
+    private static readonly (string?, string?, string?, string?, string?) Expected = ("oak", "clay", null, null, null);
+
     [AtlasScenario(FreshWorld = true)]
     public async Task HostedTorch_Should_LightTheRoomThenGoDark_When_ItBurnsOut()
     {
@@ -18,8 +20,8 @@ public class LightScenarios : AtlasScenarioBase
         Block burnedOut = World.Api.World.GetBlock(World.BlockAt(cell).CodeWithVariant("state", "burnedout"));
         World.Api.World.BlockAccessor.ExchangeBlock(burnedOut.BlockId, cell);
 
-        await World.Until(() => BlockLight(inside) == 0, 3000);
-        Assert.Equal(("oak", "clay", null, null, null), WallBuilder.GuestLayers(World, cell));
+        await World.Until(() => BlockLight(inside) == 0, 100);
+        Assert.Equal(Expected, WallBuilder.GuestLayers(World, cell));
     }
 
     [AtlasScenario(FreshWorld = true)]
@@ -29,9 +31,9 @@ public class LightScenarios : AtlasScenarioBase
 
         World.Api.World.BlockAccessor.BreakBlock(cell, null);
 
-        await World.Until(() => World.BlockAt(cell).Code.Path.StartsWith("wall"), 3000);
-        await World.Until(() => BlockLight(inside) == 0, 3000);
-        Assert.Equal(("oak", "clay", null, null, null), WallBuilder.Layers(World, cell));
+        await World.Until(() => World.BlockAt(cell).Code.Path.StartsWith("wall"), 100);
+        await World.Until(() => BlockLight(inside) == 0, 100);
+        Assert.Equal(Expected, WallBuilder.Layers(World, cell));
     }
 
     // A sealed oak and clay wall with a lit torch hosted in its cell, lighting the room-side cell next to it.
@@ -52,9 +54,9 @@ public class LightScenarios : AtlasScenarioBase
         Assert.True(World.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, selection));
 
         Assert.StartsWith("torch-basic-lit-", World.BlockAt(cell).Code.Path);
-        Assert.Equal(("oak", "clay", null, null, null), WallBuilder.GuestLayers(World, cell));
+        Assert.Equal(Expected, WallBuilder.GuestLayers(World, cell));
 
-        await World.Until(() => BlockLight(inside) > 0, 3000);
+        await World.Until(() => BlockLight(inside) > 0, 100);
         return (cell, inside);
     }
 
