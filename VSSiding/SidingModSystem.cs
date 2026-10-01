@@ -649,7 +649,21 @@ public class SidingModSystem : ModSystem
         ICoreAPI? api = ApiRef(block);
         if (api == null) return 0;
 
-        return api.World.BlockAccessor.GetBlock(pos.UpCopy()) is SidingFloorBlock ? 1 - PanelThickness : 0;
+        return HangShift(api.World.BlockAccessor, pos, block);
+    }
+
+    // A chandelier attaches on DOWN as well as UP, so one the cell below holds up is standing, not hung.
+    internal static double HangShift(IBlockAccessor accessor, BlockPos pos, Block block)
+    {
+        if (accessor.GetBlock(pos.UpCopy()) is not SidingFloorBlock) return 0;
+
+        if (block.BlockBehaviors.OfType<BlockBehaviorUnstableFalling>().FirstOrDefault() is { } falling &&AttachableFacesRef(falling)?.Contains(BlockFacing.DOWN) == true)
+        {
+            var belowPos = pos.DownCopy();
+            if (accessor.GetBlock(belowPos).CanAttachBlockAt(accessor, block, belowPos, BlockFacing.UP)) return 0;
+        }
+
+        return 1 - PanelThickness;
     }
 
     // The four horizontal faces, in the order FaceShiftByBlock's per-block arrays are indexed.

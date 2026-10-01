@@ -1,5 +1,8 @@
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using Vintagestory.API.Common;
+using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Vintagestory.GameContent;
 using Xunit;
@@ -34,6 +37,7 @@ public class IsHangerTests
             ["hanging lantern"] = Lantern("down"),
             ["standing lantern"] = Lantern("up"),
             ["chandelier"] = Chandelier(BlockFacing.UP),
+            ["two-way chandelier"] = Chandelier(BlockFacing.UP, BlockFacing.DOWN),
             ["falling sand"] = Chandelier(BlockFacing.DOWN),
             ["plain block"] = new Block(),
         };
@@ -43,12 +47,64 @@ public class IsHangerTests
             ["hanging lantern"] = true,
             ["standing lantern"] = false,
             ["chandelier"] = true,
+            ["two-way chandelier"] = true,
             ["falling sand"] = false,
             ["plain block"] = false,
         };
 
         var actual = new Dictionary<string, bool>();
         foreach (var (name, block) in blocks) actual[name] = SidingModSystem.IsHanger(block);
+
+        Assert.Equal(expected, actual);
+    }
+
+    // Answers GetBlock(BlockPos) with the cell above or below the hanger; nothing else is stubbed.
+    private class ColumnAccessor : DispatchProxy
+    {
+        internal Block Above = null!, Below = null!;
+        internal int HangerY;
+
+        protected override object? Invoke(MethodInfo? targetMethod, object?[]? args)
+        {
+            if (targetMethod?.Name != nameof(IBlockAccessor.GetBlock) || args?.Length != 1)
+                throw new System.NotSupportedException($"{targetMethod?.Name} is not stubbed");
+            return ((BlockPos)args[0]!).Y > HangerY ? Above : Below;
+        }
+    }
+
+    [Fact]
+    public void OnlyAHangerHungUnderAThinFloorRises()
+    {
+        var floor = new SidingFloorBlock();
+        var plank = new Block();
+        var air = new Block { SideSolid = new SmallBoolArray(0) };
+        var pos = new BlockPos(5, 60, 9, 0);
+
+        var cases = new Dictionary<string, (Block hanger, Block above, Block below)>
+        {
+            ["lantern under a floor"] = (Lantern("down"), floor, plank),
+            ["lantern under planks"] = (Lantern("down"), plank, air),
+            ["chandelier hung under a floor"] = (Chandelier(BlockFacing.UP, BlockFacing.DOWN), floor, air),
+            ["chandelier standing under a floor"] = (Chandelier(BlockFacing.UP, BlockFacing.DOWN), floor, plank),
+            ["one-way chandelier over a table"] = (Chandelier(BlockFacing.UP), floor, plank),
+        };
+
+        var expected = new Dictionary<string, double>
+        {
+            ["lantern under a floor"] = 0.75,
+            ["lantern under planks"] = 0,
+            ["chandelier hung under a floor"] = 0.75,
+            ["chandelier standing under a floor"] = 0,
+            ["one-way chandelier over a table"] = 0.75,
+        };
+
+        var actual = cases.ToDictionary(kv => kv.Key, kv =>
+        {
+            var accessor = DispatchProxy.Create<IBlockAccessor, ColumnAccessor>();
+            var column = (ColumnAccessor)(object)accessor;
+            (column.Above, column.Below, column.HangerY) = (kv.Value.above, kv.Value.below, pos.Y);
+            return SidingModSystem.HangShift(accessor, pos, kv.Value.hanger);
+        });
 
         Assert.Equal(expected, actual);
     }
