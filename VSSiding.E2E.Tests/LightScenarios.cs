@@ -36,6 +36,20 @@ public class LightScenarios : AtlasScenarioBase
         Assert.Equal(Expected, WallBuilder.Layers(World, cell));
     }
 
+    [AtlasScenario(FreshWorld = true)]
+    public async Task HostedLantern_Should_LightASealedRoomButLetNoSunlightIn()
+    {
+        (BlockPos inside, _) = await WallBuilder.BuildRoom(World, "game:clay-blue", BlockFacing.HORIZONTALS);
+        BlockPos cell = inside.EastCopy();
+
+        // A lantern only places through a click against something it can attach to, which the wall's open side is not.
+        World.SetBlock("game:lantern-large-up", cell);
+        Assert.Equal(Expected, WallBuilder.GuestLayers(World, cell));
+
+        await World.Until(() => BlockLight(inside) > 0, 100);
+        Assert.Equal(0, World.Api.World.BlockAccessor.GetLightLevel(inside, EnumLightLevelType.OnlySunLight));
+    }
+
     // A sealed oak and clay wall with a lit torch hosted in its cell, lighting the room-side cell next to it.
     private async Task<(BlockPos Cell, BlockPos Inside)> HostLitTorch()
     {
@@ -57,6 +71,8 @@ public class LightScenarios : AtlasScenarioBase
         Assert.Equal(Expected, WallBuilder.GuestLayers(World, cell));
 
         await World.Until(() => BlockLight(inside) > 0, 100);
+        // The walk is cell-granular: the light leaves the wall's cell to the outdoor side at the room side's level.
+        Assert.Equal(BlockLight(inside), BlockLight(cell.EastCopy()));
         return (cell, inside);
     }
 
