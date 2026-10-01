@@ -6,6 +6,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CakeBuild", "CakeBuild\Cake
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VSSiding.Tests", "VSSiding.Tests\VSSiding.Tests.csproj", "{CF98381C-718C-40F2-B496-00EF821FA686}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VSSiding.E2E.Tests", "VSSiding.E2E.Tests\VSSiding.E2E.Tests.csproj", "{7DFF30CF-5116-496C-A2BF-A71046176B39}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -52,6 +54,18 @@ Global
 		{CF98381C-718C-40F2-B496-00EF821FA686}.Release|x64.Build.0 = Release|Any CPU
 		{CF98381C-718C-40F2-B496-00EF821FA686}.Release|x86.ActiveCfg = Release|Any CPU
 		{CF98381C-718C-40F2-B496-00EF821FA686}.Release|x86.Build.0 = Release|Any CPU
+		{7DFF30CF-5116-496C-A2BF-A71046176B39}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7DFF30CF-5116-496C-A2BF-A71046176B39}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7DFF30CF-5116-496C-A2BF-A71046176B39}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{7DFF30CF-5116-496C-A2BF-A71046176B39}.Debug|x64.Build.0 = Debug|Any CPU
+		{7DFF30CF-5116-496C-A2BF-A71046176B39}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{7DFF30CF-5116-496C-A2BF-A71046176B39}.Debug|x86.Build.0 = Debug|Any CPU
+		{7DFF30CF-5116-496C-A2BF-A71046176B39}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7DFF30CF-5116-496C-A2BF-A71046176B39}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7DFF30CF-5116-496C-A2BF-A71046176B39}.Release|x64.ActiveCfg = Release|Any CPU
+		{7DFF30CF-5116-496C-A2BF-A71046176B39}.Release|x64.Build.0 = Release|Any CPU
+		{7DFF30CF-5116-496C-A2BF-A71046176B39}.Release|x86.ActiveCfg = Release|Any CPU
+		{7DFF30CF-5116-496C-A2BF-A71046176B39}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -18,6 +18,7 @@ Framing plus infill is a complete wall: it seals rooms through vanilla's per-fac
 just            # build, then install into the game's Mods folder (same as `just deploy`)
 just build      # build only
 just test
+just e2e        # build, then boot the mod headless under Atlas and run the end-to-end tests
 just shapes     # rewrite the committed shapes/block/wall/*.json from WallShapeGen (0021)
 ```
 Needs [`just`](https://github.com/casey/just); recipes run on macOS and Windows.
