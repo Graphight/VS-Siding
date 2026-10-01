@@ -34,4 +34,15 @@ public class RoomSkylightPatchTests
             .GetParameters().Select(p => p.Name).ToArray();
         Assert.Equal(new[] { "pos", "horziontalSearchWidth", "verticalSearchWidth" }, actual);
     }
+
+    // The hosted light source patch reads the source position by name from both methods.
+    [Theory]
+    [InlineData("CollectLightValuesForLightSource")]
+    [InlineData(nameof(ChunkIlluminator.RemoveBlockLight))]
+    public void LightSourceMethodsStillTakePos(string method)
+    {
+        var actual = AccessTools.Method(typeof(ChunkIlluminator), method)
+            .GetParameters().Select(p => p.Name).Where(name => name is "posX" or "posY" or "posZ").ToArray();
+        Assert.Equal(new[] { "posX", "posY", "posZ" }, actual);
+    }
 }
