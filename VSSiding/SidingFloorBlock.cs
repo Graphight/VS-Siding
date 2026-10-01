@@ -143,11 +143,14 @@ public class SidingFloorBlock : Block
         => facing == BlockFacing.DOWN ? framing != null : ComputeRetention(facing, framing, infill, attributes) != 0;
 
     // A hanger rides up into this cell's underside (decision 0054), and the raytrace only tests the cell
-    // the ray is in, so the floor answers for it: the hanger's boxes come first, so the index vanilla
-    // reports names the hanger's own box, and a hit on one selects the cell below (PosAdjust).
+    // the ray is in, so the floor answers for it with boxes whose hit selects the cell below (PosAdjust).
+    // The floor's own boxes come first: vanilla lets a later decor box replace an earlier hit only when
+    // it is nearer, while any ordinary box replaces a decor hit, so this order lets the nearer one win.
     public override Cuboidf[] GetSelectionBoxes(IBlockAccessor blockAccessor, BlockPos pos)
     {
         var floorBoxes = base.GetSelectionBoxes(blockAccessor, pos);
+        if (DecorSelectionBoxConstructor == null || PosAdjustField == null) return floorBoxes;
+
         var belowPos = pos.DownCopy();
         var below = blockAccessor.GetBlock(belowPos);
         var shift = SidingModSystem.HangShiftAt(belowPos, below);
@@ -157,14 +160,17 @@ public class SidingFloorBlock : Block
         var hangerBoxes = below.GetSelectionBoxes(blockAccessor, belowPos);
         if (hangerBoxes is not { Length: > 0 }) return floorBoxes;
 
-        return HangerSelectionCache.GetValue(hangerBoxes, _ => new ConcurrentDictionary<Cuboidf[], Cuboidf[]>())
-            .GetOrAdd(floorBoxes, _ => WithHangerBoxes(hangerBoxes, shift, floorBoxes));
+        // A hanger hosted in a guest wall's cell also sits off the panel.
+        var (dx, dz) = SidingModSystem.GapShiftAt(belowPos, below);
+        return HangerSelectionCache.GetValue(hangerBoxes, _ => new ConcurrentDictionary<(Cuboidf[]?, double, double), Cuboidf[]>())
+            .GetOrAdd((floorBoxes, dx, dz), _ => WithHangerBoxes(floorBoxes, hangerBoxes, dx, shift, dz));
     }
 
-    // Per (hanger array, floor array) pair: raytraces run every frame on several threads.
-    private static readonly ConditionalWeakTable<Cuboidf[], ConcurrentDictionary<Cuboidf[], Cuboidf[]>> HangerSelectionCache = new();
+    // Per (hanger array, floor array, off-panel shift): raytraces run every frame on several threads.
+    private static readonly ConditionalWeakTable<Cuboidf[], ConcurrentDictionary<(Cuboidf[]?, double, double), Cuboidf[]>> HangerSelectionCache = new();
 
-    // DecorSelectionBox is internal to the API, so it is built by reflection.
+    // DecorSelectionBox is internal to the API, so it is built by reflection; SidingModSystem.Start
+    // warns once if a game update moves it, and the floor then answers with its own boxes alone.
     internal static readonly Type? DecorSelectionBoxType = AccessTools.TypeByName("Vintagestory.API.Common.DecorSelectionBox");
     internal static readonly System.Reflection.ConstructorInfo? DecorSelectionBoxConstructor = DecorSelectionBoxType == null ? null
         : AccessTools.Constructor(DecorSelectionBoxType, new[] { typeof(float), typeof(float), typeof(float), typeof(float), typeof(float), typeof(float) });
@@ -173,17 +179,16 @@ public class SidingFloorBlock : Block
 
     // The hanger's boxes in this cell's coordinates: the hanger's cell is one below, and the shift
     // lifts them to the underside, so each moves by shift - 1.
-    internal static Cuboidf[] WithHangerBoxes(Cuboidf[] hangerBoxes, double shift, Cuboidf[]? floorBoxes)
+    internal static Cuboidf[] WithHangerBoxes(Cuboidf[]? floorBoxes, Cuboidf[] hangerBoxes, double dx, double shift, double dz)
     {
-        var dy = (float)(shift - 1);
         var hanger = hangerBoxes.Select(box =>
         {
-            var moved = box.OffsetCopy(0, dy, 0);
+            var moved = box.OffsetCopy((float)dx, (float)(shift - 1), (float)dz);
             var decor = (Cuboidf)DecorSelectionBoxConstructor!.Invoke(new object[] { moved.X1, moved.Y1, moved.Z1, moved.X2, moved.Y2, moved.Z2 });
             PosAdjustField!.SetValue(decor, new Vec3i(0, -1, 0));
             return decor;
         });
-        return hanger.Concat(floorBoxes ?? Array.Empty<Cuboidf>()).ToArray();
+        return (floorBoxes ?? Array.Empty<Cuboidf>()).Concat(hanger).ToArray();
     }
 
     public override int GetLightAbsorption(IBlockAccessor blockAccessor, BlockPos pos)

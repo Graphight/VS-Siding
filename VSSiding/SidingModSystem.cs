@@ -119,6 +119,9 @@ public class SidingModSystem : ModSystem
             api.Logger.Error("vssiding: guest box patches skipped entirely, hosted furniture will not collide or select where it renders, and its guest wall's panel will not collide or select at all: {0}", e);
         }
 
+        if (SidingFloorBlock.DecorSelectionBoxConstructor == null || SidingFloorBlock.PosAdjustField == null)
+            api.Logger.Warning("vssiding: vanilla's DecorSelectionBox has moved, a lantern hung under a thin floor selects only from below");
+
         try
         {
             GuestTooltipPatches.PatchAll(harmony, api);

@@ -275,13 +275,13 @@ public class SidingFloorTests
     }
 
     [Fact]
-    public void AHangersBoxesComeFirstMovedIntoTheFloorsCellAndSelectTheCellBelow()
+    public void AHangersBoxesFollowTheFloorsMovedIntoItsCellAndSelectTheCellBelow()
     {
         var floor = new Cuboidf(0, 0.75f, 0, 1, 1, 1);
-        var boxes = SidingFloorBlock.WithHangerBoxes(new[] { new Cuboidf(0.25f, 0, 0.25f, 0.75f, 0.5f, 0.75f) }, 0.75, new[] { floor });
+        var boxes = SidingFloorBlock.WithHangerBoxes(new[] { floor }, new[] { new Cuboidf(0.25f, 0, 0.25f, 0.75f, 0.5f, 0.75f) }, 0.125, 0.75, 0);
 
         Assert.Equal(
-            new[] { "0.25 -0.25 0.25 0.75 0.25 0.75 X=0,Y=-1,Z=0", "0 0.75 0 1 1 1 -" },
+            new[] { "0 0.75 0 1 1 1 -", "0.375 -0.25 0.25 0.875 0.25 0.75 X=0,Y=-1,Z=0" },
             boxes.Select(box => $"{box.X1} {box.Y1} {box.Z1} {box.X2} {box.Y2} {box.Z2} "
                 + (SidingFloorBlock.PosAdjustField!.DeclaringType!.IsInstanceOfType(box)
                     ? ((Vec3i)SidingFloorBlock.PosAdjustField.GetValue(box)!).ToString() : "-")));
