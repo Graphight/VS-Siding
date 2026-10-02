@@ -65,6 +65,7 @@ Where things live. The decisions carry the *why*; `ls docs/decisions/` is the in
 `docs/decisions/`: numbered, Accepted, immutable. Supersede, don't rewrite.
 Read decision 0001 before touching block/material architecture.
 Full convention in `docs/README.md`; PR/commit workflow in `CONTRIBUTING.md`.
+`docs/moddb.html`: the ModDB description, pasted into the editor's source view. Inline styles and system fonts only, since the editor strips style blocks; edit it rather than the live page.
 
 ## Workflow
 
