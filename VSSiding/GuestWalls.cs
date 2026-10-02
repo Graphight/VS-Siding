@@ -154,8 +154,9 @@ public static class GuestWalls
     }
 
     // Server side: replaces the record, relights the cell, marks the chunk to save and tells every
-    // client. MarkAbsorptionChanged skips old == new (decision 0034), hence the real before and after.
-    public static void Set(IWorldAccessor world, IWorldChunk chunk, BlockPos pos, GuestRecord? record)
+    // client, unless sync is false and the caller calls Sync itself. MarkAbsorptionChanged skips
+    // old == new (decision 0034), hence the real before and after.
+    public static void Set(IWorldAccessor world, IWorldChunk chunk, BlockPos pos, GuestRecord? record, bool sync = true)
     {
         int oldAbsorption = Absorption(GuestAt(world.Api, chunk, pos));
         Replace(chunk, pos, record);
@@ -163,8 +164,11 @@ public static class GuestWalls
         if (oldAbsorption != newAbsorption) world.BlockAccessor.MarkAbsorptionChanged(oldAbsorption, newAbsorption, pos);
 
         chunk.MarkModified();
-        serverChannel?.BroadcastPacket(new GuestSyncPacket { Pos = pos, Record = record });
+        if (sync) Sync(pos, record);
     }
+
+    internal static void Sync(BlockPos pos, GuestRecord? record)
+        => serverChannel?.BroadcastPacket(new GuestSyncPacket { Pos = pos, Record = record });
 
     // Every guest a chunk holds, at absolute positions, for SealedCellLightPostfix's whole-chunk
     // scan. chunkY carries the dimension, as in the tessellator (decision 0018).

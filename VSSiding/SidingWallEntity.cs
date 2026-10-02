@@ -61,6 +61,18 @@ public class SidingWallEntity : BlockEntity
         tree.SetString("steporientation", StepOrientation);
     }
 
+    // A client builds a restored wall twice before the server's data arrives: once predicting the
+    // restore, once from the server's own SetBlock. Both start empty, and an empty wall draws as its
+    // default shape, a full plank cube (#58); the guest record still at the cell holds the layers.
+    public override void Initialize(ICoreAPI api)
+    {
+        base.Initialize(api);
+        if (api.Side != EnumAppSide.Client || Framing != null || GuestWalls.GuestAt(api, Pos) is not { } guest) return;
+        var tree = new TreeAttribute();
+        guest.ToTreeAttributes(tree);
+        FromTreeAttributes(tree, api.World);
+    }
+
     public override void FromTreeAttributes(ITreeAttribute tree, IWorldAccessor worldAccessForResolve)
     {
         base.FromTreeAttributes(tree, worldAccessForResolve);

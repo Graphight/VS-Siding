@@ -33,7 +33,7 @@ public class GuestRestoreScenarios : AtlasScenarioBase
         World.Api.World.BlockAccessor.SetBlock(0, cell);
         // After the cell's own neighbour update, which would otherwise restore the wall straight away.
         await World.Ticks(5);
-        guestWalls.GetMethod("Set")!.Invoke(null, new[] { World.Api.World, World.Api.World.BlockAccessor.GetChunkAtBlockPos(cell), cell, record });
+        guestWalls.GetMethod("Set")!.Invoke(null, new[] { World.Api.World, World.Api.World.BlockAccessor.GetChunkAtBlockPos(cell), cell, record, true });
         await World.Ticks(5);
 
         Assert.Equal("air", World.BlockAt(cell).Code.ToShortString());

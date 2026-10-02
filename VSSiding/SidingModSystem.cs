@@ -1180,7 +1180,9 @@ public class SidingModSystem : ModSystem
     // the deferred callback may outlive the guest. Clears the guest before SetBlock, or
     // HostChangePrefix would see the restored wall's own SetBlock over a guest and drop its layers.
     // The client only predicts: it keeps its record, which the server's packet clears, or which a
-    // refused break needs to draw the panel beside the host the server sends back.
+    // refused break needs to draw the panel beside the host the server sends back. The server tells
+    // clients of the cleared record only after its SetBlock has gone out, so a client building the
+    // wall from that SetBlock still has the record to fill it from (SidingWallEntity.Initialize).
     private static void RestoreGuestWall(IWorldAccessor world, BlockPos pos)
     {
         IWorldChunk? chunk = world.BlockAccessor.GetChunkAtBlockPos(pos);
@@ -1190,20 +1192,25 @@ public class SidingModSystem : ModSystem
         Block current = world.BlockAccessor.GetBlock(pos, BlockLayersAccess.Solid);
         if (ClassifyHostChange(current, guest.Block, Hostable) != HostChange.Restore) return;
 
-        bool server = world.Side == EnumAppSide.Server;
-        if (server) GuestWalls.Set(world, chunk, pos, null);
+        if (world.Side == EnumAppSide.Client)
+        {
+            world.BlockAccessor.SetBlock(guest.Block.BlockId, pos);
+            return;
+        }
+
+        GuestWalls.Set(world, chunk, pos, null, sync: false);
         world.BlockAccessor.SetBlock(guest.Block.BlockId, pos);
+        GuestWalls.Sync(pos, null);
 
         // The fresh entity starts with no infill, so relight and redraw it exactly as a saw would
         // when laying infill onto a bare frame (OnInfillChanged), instead of duplicating that here.
-        // A client entity relights and redraws itself in FromTreeAttributes.
         if (guest.Block is SidingWallBlock wallBlock
             && world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos) is { } entity)
         {
             var tree = new TreeAttribute();
             guest.ToTreeAttributes(tree);
             entity.FromTreeAttributes(tree, world);
-            if (server) wallBlock.OnInfillChanged(world, entity, pos, null);
+            wallBlock.OnInfillChanged(world, entity, pos, null);
         }
     }
 
