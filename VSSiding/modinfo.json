@@ -6,8 +6,8 @@
     "authors": [
         "Graphight"
     ],
-    "description": "Layered wall building: framing, infill, and finish materials for thinner, more realistic walls",
-    "version": "1.2.1",
+    "description": "Layered wall and floor building: framing, infill, and finish materials for thinner, more realistic walls and floors",
+    "version": "1.3.0",
     "dependencies": {
         "game": "1.22.0"
     }

@@ -74,7 +74,9 @@ public class SidingFloorEntity : BlockEntity
         string[] selectiveElements = SelectiveElements(Framing, Infill, Front, Back, Block.Attributes["Finishes"], joins, (FrontStyle, BackStyle), glazed);
         if (selectiveElements.Length == 0) return false;
 
-        int alternate = SidingWallTexSource.AnyVaries(Block.Attributes["Finishes"], Front, Back) ? SidingWallTexSource.Alternate(Pos) : 0;
+        int alternate = SidingWallTexSource.AnyVaries(Block.Attributes["Finishes"], Front, Back)
+            || SidingWallTexSource.AnyVaries(Block.Attributes["Framings"], Framing)
+            ? SidingWallTexSource.Alternate(Pos) : 0;
         string cacheKey = CacheKey(Framing, Infill, Front, Back, (FrontStyle, BackStyle), joins, alternate);
         MeshData[] meshes = ObjectCacheUtil.GetOrCreate(capi, cacheKey, () =>
         {

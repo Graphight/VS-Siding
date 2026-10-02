@@ -201,4 +201,16 @@ public class SidingWallTexSourceTests
             new[] { true, false, false },
             new[] { SidingWallTexSource.AnyVaries(finishes, "daub", "planks"), SidingWallTexSource.AnyVaries(finishes, "daub", null), SidingWallTexSource.AnyVaries(finishes) });
     }
+
+    // A cell's framing and plank finish share one alternate, so they must name the same variants.
+    [Fact]
+    public void PlankFramingDrawsTheSameTexturesAsItsFinish()
+    {
+        var attributes = MaterialTextureOpacityTests.BlockAttributes("wall.json");
+        string? Texture(string dictionary, string key) => (string?)attributes[dictionary]![key]!["Texture"];
+
+        Assert.Equal(
+            new[] { Texture("Finishes", "planks"), Texture("Finishes", "planks-veryaged"), Texture("FinishFamilies", "planks-{wood}") },
+            new[] { Texture("Framings", "oak"), Texture("Framings", "veryaged"), Texture("FramingFamilies", "{wood}") });
+    }
 }
