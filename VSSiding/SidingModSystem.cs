@@ -859,13 +859,10 @@ public class SidingModSystem : ModSystem
             ? pos.AddCopy(facing.Opposite)
             : pos;
 
-    // BlockBed is not a Multiblock, so each cell's CanPlaceBlock has no view of the other; the two
-    // cells are worked out here the way vanilla's TryPlaceBlock does. Both panel-click paths arrive
-    // with the wall's own cell as the feet, so the retarget sits here too.
     // Placement rounds atan2 of the player's offset to quarter turns, so one facing comes out as π or
     // -π by which side of the hit the player stands. A wall puts the player square in front of every
     // rack, and BlockEntityScrollRack.isRack compares angles exactly, so neighbours never join (#82).
-    // Kept in [0, 2π) after both writers, the load healing racks already placed.
+    // Both writers keep it in [0, 2π); the load also mends racks placed before this.
     internal static float NormalizedAngle(float angle) => GameMath.Mod(angle, GameMath.TWOPI);
 
     internal static void PlacedAnglePostfix(bool __result, IWorldAccessor world, BlockSelection blockSel)
@@ -877,6 +874,9 @@ public class SidingModSystem : ModSystem
     internal static void LoadedAnglePostfix(BEBehaviorShapeMaterialFromAttributes __instance)
         => __instance.MeshAngleY = NormalizedAngle(__instance.MeshAngleY);
 
+    // BlockBed is not a Multiblock, so each cell's CanPlaceBlock has no view of the other; the two
+    // cells are worked out here the way vanilla's TryPlaceBlock does. Both panel-click paths arrive
+    // with the wall's own cell as the feet, so the retarget sits here too.
     internal static bool BedFootprintPrefix(IWorldAccessor world, IPlayer byPlayer, ref BlockSelection blockSel,
         ref bool __result, ref string failureCode)
     {
@@ -1116,9 +1116,9 @@ public class SidingModSystem : ModSystem
     // the cell as air, and the client gets the wall back in the same tick instead of flashing empty.
     internal static void NeighbourUpdatePrefix(ServerMain __instance, BlockPos pos) => RestoreGuestWall(__instance, pos);
 
-    // The client predicts a break, air included, and runs its own TriggerNeighbourBlocksUpdate straight
-    // after (ClientMain.OnPlayerTryDestroyBlock), so it predicts the restore too instead of drawing an
-    // empty cell until the server's wall arrives (#58).
+    // The client predicts a break by setting air itself, then runs its own TriggerNeighbourBlocksUpdate
+    // (ClientMain.OnPlayerTryDestroyBlock), so it predicts the restore too instead of drawing an empty
+    // cell until the server's wall arrives (#58).
     internal static void ClientNeighbourUpdatePrefix(ClientMain __instance, BlockPos pos) => RestoreGuestWall(__instance, pos);
 
     // IsReplacableBy answers two questions for vanilla. CanPlaceBlock and the server's placement check

@@ -48,8 +48,6 @@ public class SidingWallTexSource : ITexPositionSource
     // 6 and 8 divides, so it can key the mesh cache and still pick vanilla's variant.
     internal static int Alternate(BlockPos pos) => GameMath.Mod(GameMath.MurmurHash3(pos.X, pos.Y, pos.Z), 24);
 
-    internal static bool Varies(CompositeTexture? texture) => texture?.Base.EndsWithWildCard == true;
-
     internal static bool AnyVaries(JsonObject finishes, params string?[] keys)
         => keys.Any(key => key != null && finishes[key]["Texture"].AsString(null!)?.EndsWith('*') == true);
 
@@ -64,7 +62,7 @@ public class SidingWallTexSource : ITexPositionSource
     internal static TextureAtlasPosition AtlasPosition(ICoreClientAPI capi, CompositeTexture? texture, int alternate = 0)
     {
         texture ??= new CompositeTexture(new AssetLocation("game:block/wood/planks/oak1"));
-        if (Varies(texture))
+        if (texture.Base.EndsWithWildCard)
         {
             texture.Bake(capi.Assets);
             texture = PickAlternate(texture, alternate);

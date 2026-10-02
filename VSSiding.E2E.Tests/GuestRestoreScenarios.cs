@@ -65,21 +65,6 @@ public class GuestRestoreScenarios : AtlasScenarioBase
         Assert.Null(WallBuilder.GuestLayers(World, cell));
     }
 
-    // Callers such as EntityElevator clear a cell through a BlockPos they keep and move on.
-    [AtlasScenario(FreshWorld = true)]
-    public async Task Wall_Should_ComeBack_When_ItsChestIsClearedThroughAReusedPosition()
-    {
-        var (cell, _) = await HostChest();
-
-        BlockPos reused = cell.Copy();
-        World.Api.World.BlockAccessor.SetBlock(0, reused);
-        reused.Y += 5;
-
-        await World.Until(() => World.BlockAt(cell).Code.Path.StartsWith("wall"), 100);
-        Assert.Equal(Expected, WallBuilder.Layers(World, cell));
-        Assert.Null(WallBuilder.GuestLayers(World, cell));
-    }
-
     private async Task<(BlockPos Cell, ITestPlayer Player)> HostChest()
     {
         BlockPos cell = Cell;

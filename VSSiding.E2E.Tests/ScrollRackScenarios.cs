@@ -53,8 +53,6 @@ public class ScrollRackScenarios : AtlasScenarioBase
         }
 
         var racks = cells.Select(cell => World.BlockEntityAt<BlockEntityScrollRack>(cell)!).ToArray();
-        Assert.Equal(
-            new[] { 1 },
-            new[] { racks.Count(r => LeftSlots.All(r.getOrCreateUsableSlots()!.Contains)) });
+        Assert.Equal(1, racks.Count(r => LeftSlots.All(r.getOrCreateUsableSlots()!.Contains)));
     }
 }
