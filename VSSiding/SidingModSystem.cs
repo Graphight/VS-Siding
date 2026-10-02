@@ -304,6 +304,18 @@ public class SidingModSystem : ModSystem
 
         try
         {
+            harmony.Patch(AccessTools.Method(typeof(BlockShapeMaterialFromAttributes), nameof(BlockShapeMaterialFromAttributes.DoPlaceBlock)),
+                postfix: new HarmonyMethod(typeof(SidingModSystem), nameof(PlacedAnglePostfix)));
+            harmony.Patch(AccessTools.Method(typeof(BEBehaviorShapeMaterialFromAttributes), nameof(BEBehaviorShapeMaterialFromAttributes.FromTreeAttributes)),
+                postfix: new HarmonyMethod(typeof(SidingModSystem), nameof(LoadedAnglePostfix)));
+        }
+        catch (Exception e)
+        {
+            api.Logger.Error("vssiding: shape angle patch skipped, scroll racks hosted in a north-facing wall may not share slots: {0}", e);
+        }
+
+        try
+        {
             harmony.Patch(AccessTools.PropertyGetter(typeof(BlockEntityBed), nameof(BlockEntityBed.Position)),
                 postfix: new HarmonyMethod(typeof(SidingModSystem), nameof(BedSeatPostfix)));
         }
@@ -850,6 +862,21 @@ public class SidingModSystem : ModSystem
     // BlockBed is not a Multiblock, so each cell's CanPlaceBlock has no view of the other; the two
     // cells are worked out here the way vanilla's TryPlaceBlock does. Both panel-click paths arrive
     // with the wall's own cell as the feet, so the retarget sits here too.
+    // Placement rounds atan2 of the player's offset to quarter turns, so one facing comes out as π or
+    // -π by which side of the hit the player stands. A wall puts the player square in front of every
+    // rack, and BlockEntityScrollRack.isRack compares angles exactly, so neighbours never join (#82).
+    // Kept in [0, 2π) after both writers, the load healing racks already placed.
+    internal static float NormalizedAngle(float angle) => GameMath.Mod(angle, GameMath.TWOPI);
+
+    internal static void PlacedAnglePostfix(bool __result, IWorldAccessor world, BlockSelection blockSel)
+    {
+        if (__result && world.BlockAccessor.GetBlockEntity(blockSel.Position)?.GetBehavior<BEBehaviorShapeMaterialFromAttributes>() is { } shape)
+            shape.MeshAngleY = NormalizedAngle(shape.MeshAngleY);
+    }
+
+    internal static void LoadedAnglePostfix(BEBehaviorShapeMaterialFromAttributes __instance)
+        => __instance.MeshAngleY = NormalizedAngle(__instance.MeshAngleY);
+
     internal static bool BedFootprintPrefix(IWorldAccessor world, IPlayer byPlayer, ref BlockSelection blockSel,
         ref bool __result, ref string failureCode)
     {
