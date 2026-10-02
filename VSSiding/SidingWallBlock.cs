@@ -359,11 +359,14 @@ public class SidingWallBlock : Block
         AssetLocation? heldCode = slot.Itemstack?.Collectible.Code;
         if (heldCode == null) return base.OnBlockInteractStart(world, byPlayer, blockSel);
 
+        var entity = world.BlockAccessor.GetBlockEntity<SidingWallEntity>(blockSel.Position);
+
         // With floor picked, planks frame a floor beside the wall (PlaceWallFrame) rather than work on it.
-        if (SidingModePicker.Layout(byPlayer) == "floor" && MatchConsumes(heldCode, Attributes["Framings"]) != null)
+        // A filled deck's top or underside still takes them as floorboards or a ceiling, as a floor's does.
+        if (SidingModePicker.Layout(byPlayer) == "floor" && MatchConsumes(heldCode, Attributes["Framings"]) != null
+            && !(entity?.DeckInfill != null && SidingFloorBlock.FinishFace(blockSel.Face) != null && IsDeckHit(world.BlockAccessor, blockSel, entity)))
             return base.OnBlockInteractStart(world, byPlayer, blockSel);
 
-        var entity = world.BlockAccessor.GetBlockEntity<SidingWallEntity>(blockSel.Position);
         if (entity == null || entity.Framing == null) return base.OnBlockInteractStart(world, byPlayer, blockSel);
 
         bool isCreative = byPlayer.WorldData.CurrentGameMode == EnumGameMode.Creative;
