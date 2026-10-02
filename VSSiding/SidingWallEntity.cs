@@ -167,6 +167,7 @@ public class SidingWallEntity : BlockEntity
         if (selectiveElements.Length == 0 && deckElements.Length == 0) return false;
 
         int alternate = SidingWallTexSource.AnyVaries(Block.Attributes["Finishes"], Front, SecondFront, Back, DeckFront, DeckBack)
+            || SidingWallTexSource.AnyVaries(Block.Attributes["Framings"], Framing, Deck)
             ? SidingWallTexSource.Alternate(Pos) : 0;
         string cacheKey = CacheKey(layout, side, Framing, Infill, Front, SecondFront, Back, joins, Styles, Deck, Step, StepOrientation,
             DeckInfill, DeckFront, DeckBack, (DeckFrontStyle, DeckBackStyle), deckJoins, alternate);

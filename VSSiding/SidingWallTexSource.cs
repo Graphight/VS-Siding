@@ -48,8 +48,8 @@ public class SidingWallTexSource : ITexPositionSource
     // 8 and 10 (very aged planks) divides, so it can key the mesh cache and still pick vanilla's variant.
     internal static int Alternate(BlockPos pos) => GameMath.Mod(GameMath.MurmurHash3(pos.X, pos.Y, pos.Z), 120);
 
-    internal static bool AnyVaries(JsonObject finishes, params string?[] keys)
-        => keys.Any(key => key != null && finishes[key]["Texture"].AsString(null!)?.EndsWith('*') == true);
+    internal static bool AnyVaries(JsonObject dictionary, params string?[] keys)
+        => keys.Any(key => key != null && dictionary[key]["Texture"].AsString(null!)?.EndsWith('*') == true);
 
     // Variant 0 is the base, then the alternates, the order Bake lists them in.
     internal static CompositeTexture PickAlternate(CompositeTexture baked, int alternate)
