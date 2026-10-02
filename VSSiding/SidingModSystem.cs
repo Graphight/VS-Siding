@@ -244,6 +244,16 @@ public class SidingModSystem : ModSystem
 
         try
         {
+            harmony.Patch(AccessTools.Method(typeof(ClientMain), nameof(ClientMain.TriggerNeighbourBlocksUpdate), new[] { typeof(BlockPos) }),
+                prefix: new HarmonyMethod(typeof(SidingModSystem), nameof(ClientNeighbourUpdatePrefix)));
+        }
+        catch (Exception e)
+        {
+            api.Logger.Error("vssiding: client neighbour update patch skipped, breaking hosted furniture will flash the wall away until the server restores it: {0}", e);
+        }
+
+        try
+        {
             harmony.Patch(AccessTools.Method(typeof(BEBehaviorBurning), nameof(BEBehaviorBurning.KillFire)),
                 prefix: new HarmonyMethod(typeof(SidingModSystem), nameof(BurnLayerPrefix)));
         }
@@ -1079,6 +1089,11 @@ public class SidingModSystem : ModSystem
     // the cell as air, and the client gets the wall back in the same tick instead of flashing empty.
     internal static void NeighbourUpdatePrefix(ServerMain __instance, BlockPos pos) => RestoreGuestWall(__instance, pos);
 
+    // The client predicts a break, air included, and runs its own TriggerNeighbourBlocksUpdate straight
+    // after (ClientMain.OnPlayerTryDestroyBlock), so it predicts the restore too instead of drawing an
+    // empty cell until the server's wall arrives (#58).
+    internal static void ClientNeighbourUpdatePrefix(ClientMain __instance, BlockPos pos) => RestoreGuestWall(__instance, pos);
+
     // IsReplacableBy answers two questions for vanilla. CanPlaceBlock and the server's placement check
     // ask it of the cell a block is going into, and a wall says yes to anything hostable so it can
     // take the wall's cell. The client's OnBlockBuild asks it of the block the player clicked, to
@@ -1137,6 +1152,8 @@ public class SidingModSystem : ModSystem
     // Re-checks the cell and the guest first: the cell may have taken another hostable block, and
     // the deferred callback may outlive the guest. Clears the guest before SetBlock, or
     // HostChangePrefix would see the restored wall's own SetBlock over a guest and drop its layers.
+    // The client only predicts: it keeps its record, which the server's packet clears, or which a
+    // refused break needs to draw the panel beside the host the server sends back.
     private static void RestoreGuestWall(IWorldAccessor world, BlockPos pos)
     {
         IWorldChunk? chunk = world.BlockAccessor.GetChunkAtBlockPos(pos);
@@ -1146,18 +1163,20 @@ public class SidingModSystem : ModSystem
         Block current = world.BlockAccessor.GetBlock(pos, BlockLayersAccess.Solid);
         if (ClassifyHostChange(current, guest.Block, Hostable) != HostChange.Restore) return;
 
-        GuestWalls.Set(world, chunk, pos, null);
+        bool server = world.Side == EnumAppSide.Server;
+        if (server) GuestWalls.Set(world, chunk, pos, null);
         world.BlockAccessor.SetBlock(guest.Block.BlockId, pos);
 
         // The fresh entity starts with no infill, so relight and redraw it exactly as a saw would
         // when laying infill onto a bare frame (OnInfillChanged), instead of duplicating that here.
+        // A client entity relights and redraws itself in FromTreeAttributes.
         if (guest.Block is SidingWallBlock wallBlock
             && world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos) is { } entity)
         {
             var tree = new TreeAttribute();
             guest.ToTreeAttributes(tree);
             entity.FromTreeAttributes(tree, world);
-            wallBlock.OnInfillChanged(world, entity, pos, null);
+            if (server) wallBlock.OnInfillChanged(world, entity, pos, null);
         }
     }
 
