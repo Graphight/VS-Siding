@@ -44,9 +44,9 @@ public class SidingWallTexSource : ITexPositionSource
     }
 
     // A "*" texture (planks-{wood}*) varies per cell as a vanilla plank block does: CubeTesselator takes
-    // MurmurHash3 of the position mod the variant count. Kept mod 24, which every count from 1 to 4,
-    // 6 and 8 divides, so it can key the mesh cache and still pick vanilla's variant.
-    internal static int Alternate(BlockPos pos) => GameMath.Mod(GameMath.MurmurHash3(pos.X, pos.Y, pos.Z), 24);
+    // MurmurHash3 of the position mod the variant count. Kept mod 120, which every count from 1 to 6,
+    // 8 and 10 (very aged planks) divides, so it can key the mesh cache and still pick vanilla's variant.
+    internal static int Alternate(BlockPos pos) => GameMath.Mod(GameMath.MurmurHash3(pos.X, pos.Y, pos.Z), 120);
 
     internal static bool AnyVaries(JsonObject finishes, params string?[] keys)
         => keys.Any(key => key != null && finishes[key]["Texture"].AsString(null!)?.EndsWith('*') == true);
