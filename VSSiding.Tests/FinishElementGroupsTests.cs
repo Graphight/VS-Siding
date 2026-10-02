@@ -134,7 +134,7 @@ public class FinishElementGroupsTests
         var boards = SidingModePicker.Rows.Single(r => r.Key == "vssidingBoards").Options;
 
         Assert.Equal(
-            new[] { "planks", "planks-veryaged", "planks-{wood}" }.Select(name => $"{name}: {string.Join(", ", boards)}"),
+            new[] { "planks", "planks-aged", "planks-veryaged", "planks-{wood}" }.Select(name => $"{name}: {string.Join(", ", boards)}"),
             entries.Where(e => e.Value["Styles"]?.Any(t => boards.Contains((string)t!)) ?? false)
                 .Select(e => $"{e.Name}: {string.Join(", ", e.Value["Styles"]!.Select(t => (string)t!))}"));
     }

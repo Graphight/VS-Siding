@@ -16,14 +16,16 @@ public class SidingWallTexSource : ITexPositionSource
     private readonly JsonObject framings;
     private readonly JsonObject infills;
     private readonly JsonObject finishes;
+    private readonly int alternate;
 
-    public SidingWallTexSource(ICoreClientAPI capi, SidingWallEntity entity, JsonObject framings, JsonObject infills, JsonObject finishes)
+    public SidingWallTexSource(ICoreClientAPI capi, SidingWallEntity entity, JsonObject framings, JsonObject infills, JsonObject finishes, int alternate)
     {
         this.capi = capi;
         this.entity = entity;
         this.framings = framings;
         this.infills = infills;
         this.finishes = finishes;
+        this.alternate = alternate;
     }
 
     public Size2i AtlasSize => capi.BlockTextureAtlas.Size;
@@ -37,13 +39,34 @@ public class SidingWallTexSource : ITexPositionSource
                 textureCode, entity.Framing, entity.Infill, entity.Front, entity.SecondFront, entity.Back,
                 framings, infills, finishes, entity.FrontStyle, entity.SecondFrontStyle, entity.BackStyle, entity.Deck,
                 entity.DeckInfill, entity.DeckFront, entity.DeckBack);
-            return AtlasPosition(capi, texture);
+            return AtlasPosition(capi, texture, alternate);
         }
     }
 
-    internal static TextureAtlasPosition AtlasPosition(ICoreClientAPI capi, CompositeTexture? texture)
+    // A "*" texture (planks-{wood}*) varies per cell as a vanilla plank block does: CubeTesselator takes
+    // MurmurHash3 of the position mod the variant count. Kept mod 120, which every count from 1 to 6,
+    // 8 and 10 (very aged planks) divides, so it can key the mesh cache and still pick vanilla's variant.
+    internal static int Alternate(BlockPos pos) => GameMath.Mod(GameMath.MurmurHash3(pos.X, pos.Y, pos.Z), 120);
+
+    internal static bool AnyVaries(JsonObject finishes, params string?[] keys)
+        => keys.Any(key => key != null && finishes[key]["Texture"].AsString(null!)?.EndsWith('*') == true);
+
+    // Variant 0 is the base, then the alternates, the order Bake lists them in.
+    internal static CompositeTexture PickAlternate(CompositeTexture baked, int alternate)
+    {
+        if (baked.Alternates is not { Length: > 0 } alternates) return baked;
+        int index = GameMath.Mod(alternate, alternates.Length + 1);
+        return index == 0 ? baked : alternates[index - 1];
+    }
+
+    internal static TextureAtlasPosition AtlasPosition(ICoreClientAPI capi, CompositeTexture? texture, int alternate = 0)
     {
         texture ??= new CompositeTexture(new AssetLocation("game:block/wood/planks/oak1"));
+        if (texture.Base.EndsWithWildCard)
+        {
+            texture.Bake(capi.Assets);
+            texture = PickAlternate(texture, alternate);
+        }
         var atlas = capi.BlockTextureAtlas;
         // The plain indexer only finds textures some other block/item already caused to
         // be packed into the atlas - most of our material textures aren't declared by

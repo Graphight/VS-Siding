@@ -54,20 +54,25 @@ public static class GuestWalls
         capi.Network.GetChannel(ChannelName).SetMessageHandler<GuestSyncPacket>(packet => OnClientSync(capi, packet));
     }
 
-    private static void OnClientSync(ICoreClientAPI capi, GuestSyncPacket packet)
+    private static void OnClientSync(ICoreClientAPI capi, GuestSyncPacket packet) => SetOnClient(capi, packet.Pos, packet.Record);
+
+    // Client side: replaces the record, relights and redraws the cell. A client gets the host
+    // block's own SetBlock before the server's record, relights without the guest, and never
+    // catches up otherwise - MarkAbsorptionChanged skips a no-op old == new (decision 0034), so the
+    // relight has to happen here too, not just on the server. Only a hostable block takes its
+    // guest's absorption (GuestLightPatches), so a record landing on a wall relights nothing.
+    internal static void SetOnClient(ICoreClientAPI capi, BlockPos pos, GuestRecord? record)
     {
-        IWorldChunk? chunk = capi.World.BlockAccessor.GetChunkAtBlockPos(packet.Pos);
+        IWorldChunk? chunk = capi.World.BlockAccessor.GetChunkAtBlockPos(pos);
         if (chunk == null) return;
 
-        // A client may get the host block's own SetBlock before this packet, relight without the
-        // guest, and never catch up otherwise - MarkAbsorptionChanged skips a no-op old == new
-        // (decision 0034), so the relight has to happen here too, not just on the server.
-        int oldAbsorption = Absorption(GuestAt(capi, chunk, packet.Pos));
-        Replace(chunk, packet.Pos, packet.Record);
-        int newAbsorption = Absorption(GuestAt(capi, chunk, packet.Pos));
-        if (oldAbsorption != newAbsorption) capi.World.BlockAccessor.MarkAbsorptionChanged(oldAbsorption, newAbsorption, packet.Pos);
+        int oldAbsorption = Absorption(GuestAt(capi, chunk, pos));
+        Replace(chunk, pos, record);
+        int newAbsorption = Absorption(GuestAt(capi, chunk, pos));
+        if (oldAbsorption != newAbsorption && SidingModSystem.IsHostableId(capi.World.BlockAccessor.GetBlock(pos).BlockId))
+            capi.World.BlockAccessor.MarkAbsorptionChanged(oldAbsorption, newAbsorption, pos);
 
-        capi.World.BlockAccessor.MarkBlockDirty(packet.Pos);
+        capi.World.BlockAccessor.MarkBlockDirty(pos);
     }
 
     // A guest's own light absorption; 0 for no guest.
@@ -154,8 +159,9 @@ public static class GuestWalls
     }
 
     // Server side: replaces the record, relights the cell, marks the chunk to save and tells every
-    // client. MarkAbsorptionChanged skips old == new (decision 0034), hence the real before and after.
-    public static void Set(IWorldAccessor world, IWorldChunk chunk, BlockPos pos, GuestRecord? record)
+    // client, unless sync is false and the caller calls Sync itself. MarkAbsorptionChanged skips
+    // old == new (decision 0034), hence the real before and after.
+    public static void Set(IWorldAccessor world, IWorldChunk chunk, BlockPos pos, GuestRecord? record, bool sync = true)
     {
         int oldAbsorption = Absorption(GuestAt(world.Api, chunk, pos));
         Replace(chunk, pos, record);
@@ -163,8 +169,11 @@ public static class GuestWalls
         if (oldAbsorption != newAbsorption) world.BlockAccessor.MarkAbsorptionChanged(oldAbsorption, newAbsorption, pos);
 
         chunk.MarkModified();
-        serverChannel?.BroadcastPacket(new GuestSyncPacket { Pos = pos, Record = record });
+        if (sync) Sync(pos, record);
     }
+
+    internal static void Sync(BlockPos pos, GuestRecord? record)
+        => serverChannel?.BroadcastPacket(new GuestSyncPacket { Pos = pos, Record = record });
 
     // Every guest a chunk holds, at absolute positions, for SealedCellLightPostfix's whole-chunk
     // scan. chunkY carries the dimension, as in the tessellator (decision 0018).

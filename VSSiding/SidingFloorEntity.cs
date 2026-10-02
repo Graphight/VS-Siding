@@ -74,11 +74,12 @@ public class SidingFloorEntity : BlockEntity
         string[] selectiveElements = SelectiveElements(Framing, Infill, Front, Back, Block.Attributes["Finishes"], joins, (FrontStyle, BackStyle), glazed);
         if (selectiveElements.Length == 0) return false;
 
-        string cacheKey = CacheKey(Framing, Infill, Front, Back, (FrontStyle, BackStyle), joins);
+        int alternate = SidingWallTexSource.AnyVaries(Block.Attributes["Finishes"], Front, Back) ? SidingWallTexSource.Alternate(Pos) : 0;
+        string cacheKey = CacheKey(Framing, Infill, Front, Back, (FrontStyle, BackStyle), joins, alternate);
         MeshData[] meshes = ObjectCacheUtil.GetOrCreate(capi, cacheKey, () =>
         {
             Shape shape = Shape.TryGet(capi, new AssetLocation("vssiding", "shapes/block/floor/floor.json"));
-            var texSource = new TexSource(capi, this);
+            var texSource = new TexSource(capi, this, alternate);
             if (!glazed) return new[] { Tesselate(tesselator, shape, texSource, selectiveElements) };
 
             // Two meshes, never merged: see SidingWallEntity.OnTesselation.
@@ -94,8 +95,8 @@ public class SidingFloorEntity : BlockEntity
 
     internal static string CacheKey(
         string? framing, string? infill, string? front, string? back, (string? front, string? back) styles,
-        (bool above, bool below, bool left, bool right) joins)
-        => $"vssiding-floor-mesh-{framing}-{infill}-{front}-{back}-{styles.front}-{styles.back}-{joins.above}-{joins.below}-{joins.left}-{joins.right}";
+        (bool above, bool below, bool left, bool right) joins, int alternate = 0)
+        => $"vssiding-floor-mesh-{framing}-{infill}-{front}-{back}-{styles.front}-{styles.back}-{joins.above}-{joins.below}-{joins.left}-{joins.right}-{alternate}";
 
     private static MeshData Tesselate(ITesselatorAPI tesselator, Shape shape, ITexPositionSource texSource, string[] selectiveElements)
     {
@@ -130,12 +131,12 @@ public class SidingFloorEntity : BlockEntity
     internal static bool HasFloorStyle(JsonObject finish, string face, string style)
         => finish["FloorElements"][face][style].Exists;
 
-    private class TexSource(ICoreClientAPI capi, SidingFloorEntity entity) : ITexPositionSource
+    private class TexSource(ICoreClientAPI capi, SidingFloorEntity entity, int alternate) : ITexPositionSource
     {
         public Size2i AtlasSize => capi.BlockTextureAtlas.Size;
 
         public TextureAtlasPosition this[string textureCode] => SidingWallTexSource.AtlasPosition(capi, SidingWallTexSource.ResolveTexture(
             textureCode, entity.Framing, entity.Infill, entity.Front, null, entity.Back,
-            entity.Block.Attributes["Framings"], entity.Block.Attributes["Infills"], entity.Block.Attributes["Finishes"]));
+            entity.Block.Attributes["Framings"], entity.Block.Attributes["Infills"], entity.Block.Attributes["Finishes"]), alternate);
     }
 }

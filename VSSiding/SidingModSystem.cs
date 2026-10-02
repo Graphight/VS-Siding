@@ -244,6 +244,16 @@ public class SidingModSystem : ModSystem
 
         try
         {
+            harmony.Patch(AccessTools.Method(typeof(ClientMain), nameof(ClientMain.TriggerNeighbourBlocksUpdate), new[] { typeof(BlockPos) }),
+                prefix: new HarmonyMethod(typeof(SidingModSystem), nameof(ClientNeighbourUpdatePrefix)));
+        }
+        catch (Exception e)
+        {
+            api.Logger.Error("vssiding: client neighbour update patch skipped, breaking hosted furniture will flash the wall away until the server restores it: {0}", e);
+        }
+
+        try
+        {
             harmony.Patch(AccessTools.Method(typeof(BEBehaviorBurning), nameof(BEBehaviorBurning.KillFire)),
                 prefix: new HarmonyMethod(typeof(SidingModSystem), nameof(BurnLayerPrefix)));
         }
@@ -290,6 +300,18 @@ public class SidingModSystem : ModSystem
         catch (Exception e)
         {
             api.Logger.Error("vssiding: bed footprint patch skipped, a bed may take a wall's cell in any footprint and sit misaligned with its panels: {0}", e);
+        }
+
+        try
+        {
+            harmony.Patch(AccessTools.Method(typeof(BlockShapeMaterialFromAttributes), nameof(BlockShapeMaterialFromAttributes.DoPlaceBlock)),
+                postfix: new HarmonyMethod(typeof(SidingModSystem), nameof(PlacedAnglePostfix)));
+            harmony.Patch(AccessTools.Method(typeof(BEBehaviorShapeMaterialFromAttributes), nameof(BEBehaviorShapeMaterialFromAttributes.FromTreeAttributes)),
+                postfix: new HarmonyMethod(typeof(SidingModSystem), nameof(LoadedAnglePostfix)));
+        }
+        catch (Exception e)
+        {
+            api.Logger.Error("vssiding: shape angle patch skipped, scroll racks hosted in a north-facing wall may not share slots: {0}", e);
         }
 
         try
@@ -837,6 +859,21 @@ public class SidingModSystem : ModSystem
             ? pos.AddCopy(facing.Opposite)
             : pos;
 
+    // Placement rounds atan2 of the player's offset to quarter turns, so one facing comes out as π or
+    // -π by which side of the hit the player stands. A wall puts the player square in front of every
+    // rack, and BlockEntityScrollRack.isRack compares angles exactly, so neighbours never join (#82).
+    // Both writers keep it in [0, 2π); the load also mends racks placed before this.
+    internal static float NormalizedAngle(float angle) => GameMath.Mod(angle, GameMath.TWOPI);
+
+    internal static void PlacedAnglePostfix(bool __result, IWorldAccessor world, BlockSelection blockSel)
+    {
+        if (__result && world.BlockAccessor.GetBlockEntity(blockSel.Position)?.GetBehavior<BEBehaviorShapeMaterialFromAttributes>() is { } shape)
+            shape.MeshAngleY = NormalizedAngle(shape.MeshAngleY);
+    }
+
+    internal static void LoadedAnglePostfix(BEBehaviorShapeMaterialFromAttributes __instance)
+        => __instance.MeshAngleY = NormalizedAngle(__instance.MeshAngleY);
+
     // BlockBed is not a Multiblock, so each cell's CanPlaceBlock has no view of the other; the two
     // cells are worked out here the way vanilla's TryPlaceBlock does. Both panel-click paths arrive
     // with the wall's own cell as the feet, so the retarget sits here too.
@@ -1013,7 +1050,17 @@ public class SidingModSystem : ModSystem
     // change, without having to patch every tool that can break or place over one.
     internal static void HostChangePrefix(WorldChunk __instance, IWorldAccessor world, BlockPos pos)
     {
-        if (world.Side != EnumAppSide.Server) return;
+        if (world.Api is ICoreClientAPI capi)
+        {
+            // The server's record is a mod channel packet, which a client handles after the host
+            // block's own SetBlock, so until then it would draw the furniture with no panel beside
+            // it (#65). The wall's entity is still here, so the client records the guest itself.
+            if (GuestWalls.GuestAt(capi, __instance, pos) == null
+                && __instance.GetLocalBlockEntityAtBlockPos(pos) is SidingWallEntity hosted
+                && IsHostableId(world.BlockAccessor.GetBlock(pos, BlockLayersAccess.Solid).BlockId))
+                GuestWalls.SetOnClient(capi, pos, GuestWalls.Encode(hosted));
+            return;
+        }
         var guest = GuestWalls.GuestAt(world.Api, __instance, pos);
         if (guest == null)
         {
@@ -1079,6 +1126,11 @@ public class SidingModSystem : ModSystem
     // the cell as air, and the client gets the wall back in the same tick instead of flashing empty.
     internal static void NeighbourUpdatePrefix(ServerMain __instance, BlockPos pos) => RestoreGuestWall(__instance, pos);
 
+    // The client predicts a break by setting air itself, then runs its own TriggerNeighbourBlocksUpdate
+    // (ClientMain.OnPlayerTryDestroyBlock), so it predicts the restore too instead of drawing an empty
+    // cell until the server's wall arrives (#58).
+    internal static void ClientNeighbourUpdatePrefix(ClientMain __instance, BlockPos pos) => RestoreGuestWall(__instance, pos);
+
     // IsReplacableBy answers two questions for vanilla. CanPlaceBlock and the server's placement check
     // ask it of the cell a block is going into, and a wall says yes to anything hostable so it can
     // take the wall's cell. The client's OnBlockBuild asks it of the block the player clicked, to
@@ -1137,6 +1189,10 @@ public class SidingModSystem : ModSystem
     // Re-checks the cell and the guest first: the cell may have taken another hostable block, and
     // the deferred callback may outlive the guest. Clears the guest before SetBlock, or
     // HostChangePrefix would see the restored wall's own SetBlock over a guest and drop its layers.
+    // The client only predicts: it keeps its record, which the server's packet clears, or which a
+    // refused break needs to draw the panel beside the host the server sends back. The server tells
+    // clients of the cleared record only after its SetBlock has gone out, so a client building the
+    // wall from that SetBlock still has the record to fill it from (SidingWallEntity.Initialize).
     private static void RestoreGuestWall(IWorldAccessor world, BlockPos pos)
     {
         IWorldChunk? chunk = world.BlockAccessor.GetChunkAtBlockPos(pos);
@@ -1146,8 +1202,15 @@ public class SidingModSystem : ModSystem
         Block current = world.BlockAccessor.GetBlock(pos, BlockLayersAccess.Solid);
         if (ClassifyHostChange(current, guest.Block, Hostable) != HostChange.Restore) return;
 
-        GuestWalls.Set(world, chunk, pos, null);
+        if (world.Side == EnumAppSide.Client)
+        {
+            world.BlockAccessor.SetBlock(guest.Block.BlockId, pos);
+            return;
+        }
+
+        GuestWalls.Set(world, chunk, pos, null, sync: false);
         world.BlockAccessor.SetBlock(guest.Block.BlockId, pos);
+        GuestWalls.Sync(pos, null);
 
         // The fresh entity starts with no infill, so relight and redraw it exactly as a saw would
         // when laying infill onto a bare frame (OnInfillChanged), instead of duplicating that here.
@@ -1299,6 +1362,15 @@ public class SidingModSystem : ModSystem
     {
         GuestWalls.StartServerSide(api);
         SidingModePicker.StartServerSide(api);
+
+        // A guest whose host went without the cell restoring it stays invisible until the cell next
+        // changes (#64), so every load re-checks. A tick later, once the column is in the map.
+        api.Event.ChunkColumnLoaded += (coord, chunks) =>
+        {
+            for (int chunkY = 0; chunkY < chunks.Length; chunkY++)
+                foreach (var (pos, _) in GuestWalls.GuestsIn(api, chunks[chunkY], coord.X, chunkY, coord.Y))
+                    api.World.RegisterCallback(_ => RestoreGuestWall(api.World, pos), 0);
+        };
 
         api.Event.BreakBlock += (IServerPlayer _, BlockSelection blockSel, ref float _, ref EnumHandling handling) =>
         {
