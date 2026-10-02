@@ -1050,7 +1050,17 @@ public class SidingModSystem : ModSystem
     // change, without having to patch every tool that can break or place over one.
     internal static void HostChangePrefix(WorldChunk __instance, IWorldAccessor world, BlockPos pos)
     {
-        if (world.Side != EnumAppSide.Server) return;
+        if (world.Api is ICoreClientAPI capi)
+        {
+            // The server's record is a mod channel packet, which a client handles after the host
+            // block's own SetBlock, so until then it would draw the furniture with no panel beside
+            // it (#65). The wall's entity is still here, so the client records the guest itself.
+            if (GuestWalls.GuestAt(capi, __instance, pos) == null
+                && __instance.GetLocalBlockEntityAtBlockPos(pos) is SidingWallEntity hosted
+                && IsHostableId(world.BlockAccessor.GetBlock(pos, BlockLayersAccess.Solid).BlockId))
+                GuestWalls.SetOnClient(capi, pos, GuestWalls.Encode(hosted));
+            return;
+        }
         var guest = GuestWalls.GuestAt(world.Api, __instance, pos);
         if (guest == null)
         {
