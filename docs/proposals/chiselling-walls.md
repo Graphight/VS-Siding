@@ -2,7 +2,7 @@
 
 - Status: Draft
 - Created: 2026-09-25
-- Reflects: decisions 0001, 0003, 0008, 0013, 0035; `SidingWallBlock.cs`; `wall.json`; decompiled 1.22.7 `ItemChisel.IsValidChiselingMaterial`, `BlockEntityMicroBlock.WasPlaced`; vanilla `plankslab.json`/`plankstairs.json`
+- Reflects: mod page comments https://mods.vintagestory.at/vssiding#cmt-240611, #cmt-241451, #cmt-243661 and #cmt-243968; decisions 0001, 0003, 0008, 0013, 0035; `SidingWallBlock.cs`; `wall.json`; decompiled 1.22.7 `ItemChisel.IsValidChiselingMaterial`, `BlockEntityMicroBlock.WasPlaced`; vanilla `plankslab.json`/`plankstairs.json`
 
 ## Summary
 A chisel does nothing to a siding wall, and says nothing either: vanilla refuses any block that isn't a cube.
@@ -10,6 +10,13 @@ Vanilla already chisels non-cube blocks, plank slabs and stairs, by building the
 The proposal opts the wall into that path, then rebuilds the microblock's materials from the wall's layers so the chiselled wall looks like the wall it was.
 
 ## Context
+**Who asked.**
+This was parked until players asked, and three requests now lead here.
+One wants windows cut into the outer layers.
+One wants log-framed edges and "funky ceiling shapes, like wall trims", chiselled the way Roofing's fill blocks are.
+One wants "passthrough objects such as axles or wires", which a hole chiselled through a wall would give without the wall hosting a mechanical block (`IsHostable` refuses `BlockMPBase`).
+Roofing's author also says its fill blocks are chisel blocks and that a wall "could somehow provide a chisel block version" of itself, which is this conversion.
+
 **What refuses it.**
 `ItemChisel.IsValidChiselingMaterial` (`ItemChisel.cs:278-337`) returns false at line 305 for any block whose `DrawType` isn't `Cube` and whose shape isn't `block/basic/cube`.
 A wall is `drawtype: "json"` with its own shapes (`wall.json:234-244`), so the click falls through silently.
