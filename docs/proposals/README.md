@@ -8,10 +8,28 @@ An idea that's been thought through but not acted on. Mutable: edit freely, argu
 
 ## Open
 
-- `primitive-framing`: the copper saw is the only metal gate on building a wall, so a stone-age player cannot raise a frame.
-The proposal adds a stick framing, accepts a stone in the off hand, not consumed, as a second build signal beside the saw, and adds packed and rammed earth.
+- `primitive-framing`: the copper saw is the only metal gate on building a wall or a floor, so a stone-age player cannot raise a frame.
+The proposal adds a stick framing and accepts a stone in the off hand, not consumed, as a second build signal beside the saw.
+Promised on the mod page, so it is first.
+- `primitive-earth-layers`: split from `primitive-framing`.
+A packed earth infill and a rammed earth finish, both grid recipes from soil with no tool, as entries in `config/materials.json`.
+- `tent-walls`: split from `primitive-framing`.
+A bone framing and pelt and cloth infills, each needing a texture the game does not ship, and a framing that names its block material so bone does not burn.
+- `plaster-finish`: two players want a finish lighter than daub.
+The proposal adds vanilla's four plaster blocks as flat finishes through two family templates, with no code.
+- `bark-log-finish`: the log finish offers shakes or debarked logs, so a wall cannot match the log blocks a house is framed with.
+The proposal adds two styles, bark running up and bark running along, as flat faces in vanilla's bark texture.
+- `quieter-tooltip`: looking at a wall prints up to a dozen lines.
+The proposal shows only whether the wall seals unless the saw is in the off hand.
+- `wall-junctions`: four players describe junctions they could not build, and a corner piece already covers a T and a crossing.
+The proposal says so in the guide and lets a filled wall be upgraded to a corner; new shapes wait on the players' answers.
+- `stained-plank-finishes`: a player asked for dyed wood compat, and three mods store a coloured plank three ways.
+The proposal confirms the one that should already match, adds two-placeholder family templates for Wood Stain, and leaves attribute stacks for Dyed Wood until asked.
 - `walls-under-roofing`: a flat-topped wall leaves a stepped triangle under a Roofing gable.
 The proposal adds a raked wall, its top cut to a pitch picked on the saw and measured to match Roofing's slopes, without reading Roofing's state.
+- `chiselling-walls`: vanilla refuses to chisel a non-cube block, and the proposal converts a wall through its collision-box path with materials rebuilt from its layers.
+Parked until players asked; three requests now lead to it, for windows, trims and a way through for axles.
+It is the largest of these by far, so it is last.
 
 ## Parked
 
@@ -20,11 +38,10 @@ Thought through and deliberately not planned; the reason is what would have to c
 - `multiple-walls-per-cell`: a `cornerout` already covers any two adjacent faces of a cell, which is every L corner and every T-junction.
 What's left is two walls on *opposite* faces of one cell, 0.75 apart, which no ordinary building needs, and the inside-corner notch, which decision 0002 already calls cosmetic.
 Revive if players show a real build that needs it.
+A one-wide stairwell was the first candidate (`wall-junctions`), but each slab is 0.25 thick, which leaves 0.5 between them for a player 0.6 wide.
 - `auto-corners`: walls picking their own corner piece from neighbours, fence-style.
 This works in theory, but players building something unusual would spend their time fighting the auto-correct over the pieces they placed on purpose.
 Placing corners by hand, plus decision 0026's in-place upgrade for ones found late, keeps the player in charge.
 Revive only if hand-placed corners turn out to be the main complaint in play.
 - `guest-furniture-collision`: a hosted chest or trunk lets a player walk in through its front, because its shifted box sticks into a cell vanilla's collision tester never asks.
 The proposal is written; revive when the walk-through bothers players enough to be worth a playtest.
-- `chiselling-walls`: vanilla refuses to chisel a non-cube block, and the proposal converts a wall through its collision-box path with materials rebuilt from its layers.
-Revive when players ask for it; it is the largest of these by far.
