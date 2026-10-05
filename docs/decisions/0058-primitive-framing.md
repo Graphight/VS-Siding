@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Created: 2026-09-30
-- Reflects: mod page comments https://mods.vintagestory.at/vssiding#cmt-242349 and #cmt-242478; One-Roof 1.12.0's assets; branch `feat/primitive-framing`; `SidingWallBlock.HasBuildSignal`/`IsBuildSignal`/`MatchFraming`, `PlaceWallFrame`, `SidingFloorBlock.OnBlockInteractStart`, `config/materials.json`, `patches/stone-offhand.json`, `patches/stick-frame-behavior.json`; `RoomScenarios`; vanilla 1.22 `stone.json`, `stick.json` and `CollectibleBehaviorGroundStorable` (decompiled); decisions 0001, 0005, 0006, 0026, 0050; split on 2026-10-04 into this, `primitive-earth-layers` and `tent-walls`; unit and end-to-end tests pass, not yet played
+- Reflects: mod page comments https://mods.vintagestory.at/vssiding#cmt-242349 and #cmt-242478; One-Roof 1.12.0's assets; branch `feat/primitive-framing`; `SidingWallBlock.HasBuildSignal`/`IsBuildSignal`/`MatchFraming`, `PlaceWallFrame`, `SidingFloorBlock.OnBlockInteractStart`, `config/materials.json`, `patches/stone-offhand.json`, `patches/stick-frame-behavior.json`; `RoomScenarios`; vanilla 1.22 `stone.json`, `stick.json` and `CollectibleBehaviorGroundStorable` (decompiled); decisions 0001, 0005, 0006, 0026, 0050; split on 2026-10-04 into this, `primitive-earth-layers` and `tent-walls`; unit and end-to-end tests pass; played on 2026-10-05
 
 ## Summary
 Players asked for "primitive" walls, meaning walls a stone-age player can build.
@@ -94,7 +94,10 @@ Late materials gate themselves through their own recipes, and by the copper age 
 - **No off-hand signal for sticks.** A right-click with sticks would then take every stick right-click in the game, which decision 0006's off-hand signal exists to avoid.
 
 ## Consequences & open questions
-- Played with the first texture: sticks and a stone build what planks and a saw do. The bark texture that replaced it is not yet played.
+- Played: sticks and a stone build what planks and a saw do, sticks fill a bare frame with Floor picked, and the bark frame is told apart from a plank one.
+- A stone makes the saw optional for every player, since either signal works with every material.
+That was noticed in play and left: the saw was only ever a token, and the rule that would stop it gates nothing.
+Revisit if players say it cheapens the saw; the smallest rule then is that any material consuming planks needs the saw.
 - A rougher frame, with spurs and knots, was wanted and left out: every framing shares one set of shape elements, so it needs framing-specific elements from `WallShapeGen` and is its own proposal, `rough-pole-frames`.
 - A stone in the off hand costs 20% more hunger while it sits there: vanilla 1.22.7's `InventoryPlayerHotbar.updateSlotStatMods` sets `hungerrate` to `OffHandHungerPenalty` (0.2) for any off-hand item with no `statModifier` attribute, and `stone.json` has none.
 The saw carries the same penalty.
