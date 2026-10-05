@@ -95,7 +95,7 @@ Late materials gate themselves through their own recipes, and by the copper age 
 
 ## Consequences & open questions
 - Played with the first texture: sticks and a stone build what planks and a saw do. The bark texture that replaced it is not yet played.
-- A rougher frame, with spurs and knots, was wanted and left out: every framing shares one set of shape elements, so it needs framing-specific elements from `WallShapeGen` and is its own proposal.
+- A rougher frame, with spurs and knots, was wanted and left out: every framing shares one set of shape elements, so it needs framing-specific elements from `WallShapeGen` and is its own proposal, `rough-pole-frames`.
 - A stone in the off hand costs 20% more hunger while it sits there: vanilla 1.22.7's `InventoryPlayerHotbar.updateSlotStatMods` sets `hungerrate` to `OffHandHungerPenalty` (0.2) for any off-hand item with no `statModifier` attribute, and `stone.json` has none.
 The saw carries the same penalty.
 The other off-hand readers in the four assemblies are tool checks (hammer, tongs, wrench) and rendering, and none matches a stone.
