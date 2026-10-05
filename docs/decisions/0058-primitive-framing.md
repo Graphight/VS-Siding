@@ -52,7 +52,7 @@ On a bare frame those two branches skip any held item that also matches an infil
 That holds on every face, so the clash is wider than the two branches: planks on a bare frame's top stack the next course and on its side frame the next cell, both through `PlaceWallFrame`, and sticks there lay wattle.
 A sneak-click skips the block's interaction and reaches `PlaceWallFrame`, which stacks or extends.
 Sticks carry vanilla's `GroundStorable` ahead of `PlaceWallFrame`, but it only claims a sneak-click on a top face that answers `CanAttachBlockAt`, and a bare floor and an undecked wall both answer false there.
-With Floor picked, sticks on a bare wall lay a floor beside it, the rule planks already follow.
+With Floor picked, a framing item on a wall lays a floor beside it, and that guard reads `MatchFraming` too, so sticks still fill a bare wall or a bare deck there as they did before sticks were a framing.
 
 **Stick floors.**
 `PlaceWallFrame` already lays a floor when Floor is picked, and sets the floor's `Framing` to whatever key the held item matched, so sticks lay stick joists with no floor code.

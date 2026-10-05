@@ -363,9 +363,12 @@ public class SidingWallBlock : Block
         var entity = world.BlockAccessor.GetBlockEntity<SidingWallEntity>(blockSel.Position);
 
         // With floor picked, planks frame a floor beside the wall (PlaceWallFrame) rather than work on it.
-        // A filled deck's top or underside still takes them as floorboards or a ceiling, as a floor's does.
-        if (SidingModePicker.Layout(byPlayer) == "floor" && MatchConsumes(heldCode, Attributes["Framings"]) != null
-            && !(entity?.DeckInfill != null && SidingFloorBlock.FinishFace(blockSel.Face) != null && IsDeckHit(world.BlockAccessor, blockSel, entity)))
+        // A filled deck's top or underside still takes them as floorboards or a ceiling, as a floor's does,
+        // and sticks still fill the bare wall or deck they hit (MatchFraming).
+        bool deckHit = entity != null && IsDeckHit(world.BlockAccessor, blockSel, entity);
+        bool hitFilled = (deckHit ? entity!.DeckInfill : entity?.Infill) != null;
+        if (SidingModePicker.Layout(byPlayer) == "floor" && MatchFraming(heldCode, hitFilled, Attributes["Framings"], Attributes["Infills"]) != null
+            && !(deckHit && hitFilled && SidingFloorBlock.FinishFace(blockSel.Face) != null))
             return base.OnBlockInteractStart(world, byPlayer, blockSel);
 
         if (entity == null || entity.Framing == null) return base.OnBlockInteractStart(world, byPlayer, blockSel);
