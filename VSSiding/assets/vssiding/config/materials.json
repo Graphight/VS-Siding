@@ -11,6 +11,12 @@
 			Texture: "game:block/wood/planks/aged/veryaged*",
 			Consumes: { type: "item", code: "game:plank-veryaged", quantity: 2 },
 			Drops: [ { type: "item", code: "game:plank-veryaged", quantity: { avg: 2, var: 0 } } ]
+		},
+		"sticks": {
+			DisplayName: "vssiding:framing-sticks",
+			Texture: "game:block/wood/debarked/oak",
+			Consumes: { type: "item", code: "game:stick", quantity: 4 },
+			Drops: [ { type: "item", code: "game:stick", quantity: { avg: 4, var: 0 } } ]
 		}
 	},
 	FramingFamilies: {
