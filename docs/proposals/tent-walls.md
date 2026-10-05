@@ -7,7 +7,7 @@
 ## Summary
 A player asked for "bone frames/walls and cloth/hide/pelt walls" as "a 'neolithic tent' option".
 The proposal adds a bone framing and pelt and cloth infills, and lets a framing name its block material so a bone frame does not burn.
-It follows `primitive-framing`, which supplies the build signal a stone-age player needs to raise any frame.
+It follows decision 0058, which supplies the build signal a stone-age player needs to raise any frame.
 
 ## Context
 The mod page reply promised these as part of primitive walls.
@@ -20,7 +20,7 @@ That art is most of this session.
 ## Design
 **A bone framing entry.**
 A `bone` entry in `Framings`, consuming and dropping `game:bone`, with `PlaceWallFrame` patched onto bones as it is onto planks.
-Bones match no infill, so the stick and wattle clash `primitive-framing` handles does not arise.
+Bones match no infill, so the stick and wattle clash decision 0058 handles does not arise.
 
 **Framings name their block material.**
 `LayerMaterial` looks a layer's `BlockMaterial` up in `Infills` and `Finishes` only, so a bare frame answers the block's own `Wood`: it sounds like planks and catches fire (decision 0043).
