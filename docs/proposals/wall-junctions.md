@@ -32,6 +32,12 @@ A first attempt the same day did not come out, and what differed was not written
 Four sealed rooms around it were not checked with `/sidingroom`.
 A dedicated four-way piece was considered and dropped: the piece that joins four aligned arms is the corner itself.
 
+**Which side a wall lands on.**
+Vanilla's `Block.SuggestedHVOrientation` hands `HorizontalOrientable` the direction the player is looking, and that becomes the wall's `side`.
+So a wall lands on the far face of its block from where the player stands, and the player sees its back across the block's open part.
+Decision 0002 expected the near face; the played crossing agrees with the code, since the wall placed from the lower left stands on the far side of its block.
+Keeping a line of walls on one side therefore means placing every wall in it while facing the same way.
+
 **What they do not cover.**
 - *The inside-corner notch.* Two walls on the inside faces of their cells meet at a point and leave a 4/16 square open in a third cell. Decision 0002 calls it cosmetic, since no player fits through a point. A post to fill it would stand in a cell neither wall owns, which may be the "small corner" that "ends up in other blocks".
 - *Two walls in one cell.* Slabs on opposite faces of a cell leave 8/16 between them. The player's collision box is 0.6 wide (`player.json`), so a stair between two such walls could not be walked. The stairwell needs no wall in the stair's cell at all: a wall in the cell on each side, hugging the face towards the stair, stands flush against a full-width stair. Built that way in creative on 2026-10-05. Each wall's open side faces the room beyond, so neither room loses the space.
@@ -50,7 +56,7 @@ None has been built to check.
 
 ## Design
 **A junctions paragraph in the guide.**
-"Corners and junctions", in `gamemechanicinfo-siding-text`: where a partition meets a wall, and where two walls cross, the cell the lines share takes a Corner, and each line of walls keeps to one side of its cells; a wall's own cell takes a deck and not a floor; a one-wide stair is walled from the cell on each side, and where that cell is also part of the floor above, the wall carries a deck.
+"Corners and junctions", in `gamemechanicinfo-siding-text`: where a partition meets a wall, and where two walls cross, the cell the lines share takes a Corner, and each line of walls keeps to one side of its cells, which means facing the same way for every wall in the line, since a wall lands on the far side of its block from you; a wall's own cell takes a deck and not a floor; a one-wide stair is walled from the cell on each side, and where that cell is also part of the floor above, the wall carries a deck.
 Text only, with the played crossing as its picture on the mod page.
 
 **Upgrade a filled wall.**
