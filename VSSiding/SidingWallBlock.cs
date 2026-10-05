@@ -290,7 +290,7 @@ public class SidingWallBlock : Block
 
     // Shared "are we in build mode" check for both framing (PlaceWallFrame) and layering
     // (below). A plain right-click, not shift - see decision 0006 for why shift was dropped.
-    internal static bool HasSawInOffhand(IPlayer byPlayer)
+    internal static bool HasBuildSignal(IPlayer byPlayer)
     {
         AssetLocation? offhandCode = byPlayer.InventoryManager.OffhandHotbarSlot?.Itemstack?.Collectible.Code;
         return offhandCode != null && WildcardUtil.Match(SawCode, offhandCode);
@@ -349,7 +349,7 @@ public class SidingWallBlock : Block
     // doesn't also fire. Plain right-click, not shift - see decision 0006.
     public override bool OnBlockInteractStart(IWorldAccessor world, IPlayer byPlayer, BlockSelection blockSel)
     {
-        if (!HasSawInOffhand(byPlayer))
+        if (!HasBuildSignal(byPlayer))
         {
             if (TryHost(world, byPlayer, blockSel)) return true;
             return base.OnBlockInteractStart(world, byPlayer, blockSel);
