@@ -29,7 +29,8 @@ public class SidingWallBlock : Block
 
     // Saws come in per-metal variants (saw-copper, saw-meteoriciron, ...) - there is no bare
     // "saw" item, so this has to be a wildcard match, not an exact AssetLocation comparison.
-    private static readonly AssetLocation SawCode = new("game", "saw-*");
+    // Any stone is the stone-age signal (decision 0058): never consumed, as the saw never is.
+    private static readonly AssetLocation[] BuildSignalCodes = { new("game", "saw-*"), new("game", "stone-*") };
 
     // Unrotated ("west") framing boxes per layout, matching the framing elements in
     // wall.json/cornerout.json: full-height posts, then top plates. Bottom plates don't
@@ -291,10 +292,10 @@ public class SidingWallBlock : Block
     // Shared "are we in build mode" check for both framing (PlaceWallFrame) and layering
     // (below). A plain right-click, not shift - see decision 0006 for why shift was dropped.
     internal static bool HasBuildSignal(IPlayer byPlayer)
-    {
-        AssetLocation? offhandCode = byPlayer.InventoryManager.OffhandHotbarSlot?.Itemstack?.Collectible.Code;
-        return offhandCode != null && WildcardUtil.Match(SawCode, offhandCode);
-    }
+        => IsBuildSignal(byPlayer.InventoryManager.OffhandHotbarSlot?.Itemstack?.Collectible.Code);
+
+    internal static bool IsBuildSignal(AssetLocation? offhandCode)
+        => offhandCode != null && BuildSignalCodes.Any(signal => WildcardUtil.Match(signal, offhandCode));
 
     // Any hostable block may take a wall's cell, whichever way it's placed - a click on the panel,
     // on the floor in the gap, a sneak-placement, ground storage. SidingModSystem.HostChangePrefix

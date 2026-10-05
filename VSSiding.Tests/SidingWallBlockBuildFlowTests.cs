@@ -19,6 +19,16 @@ public class SidingWallBlockBuildFlowTests
     }
     """);
 
+    [Theory]
+    [InlineData("game:saw-copper", true)]
+    [InlineData("game:stone-granite", true)]
+    [InlineData("game:stick", false)]
+    [InlineData(null, false)]
+    public void ASawOrAStoneInTheOffHandIsTheBuildSignal(string? offhandCode, bool expected)
+    {
+        Assert.Equal(expected, SidingWallBlock.IsBuildSignal(offhandCode == null ? null : new AssetLocation(offhandCode)));
+    }
+
     [Fact]
     public void MatchConsumesFindsExactCodeMatch()
     {

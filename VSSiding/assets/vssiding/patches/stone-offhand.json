@@ -1,0 +1,8 @@
+[
+	{
+		"op": "replace",
+		"file": "game:itemtypes/resource/stone.json",
+		"path": "/storageFlags",
+		"value": 261
+	}
+]
