@@ -27,7 +27,7 @@ A player walking through a finished house is not building, and the mod already h
 That is the line the complaint itself calls worth having.
 
 **The full list with it.**
-`SidingWallEntity.GetBlockInfo` passes `SidingWallBlock.HasSawInOffhand(forPlayer)`, and the full list is unchanged.
+`SidingWallEntity.GetBlockInfo` passes `SidingWallBlock.HasBuildSignal(forPlayer)`, and the full list is unchanged.
 `SidingFloorEntity` and `SidingFloorBlock.Describe` follow, and so does a hosted cell's tooltip, since `GuestTooltipPatches` calls the guest entity's `GetBlockInfo` with the same player.
 
 **The handbook pointer follows the list.**
