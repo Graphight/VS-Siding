@@ -105,6 +105,23 @@ public class SidingWallBlockBuildFlowTests
         Assert.Null(key);
     }
 
+    [Theory]
+    [InlineData("game:stick", false, null)]
+    [InlineData("game:stick", true, "sticks")]
+    [InlineData("game:plank-oak", false, "oak")]
+    [InlineData("game:plank-oak", true, "oak")]
+    public void AnItemThatIsAlsoAnInfillFramesOnlyAFilledWall(string held, bool filled, string? expected)
+    {
+        JsonObject framings = Dict("""
+        {
+            "oak": { "Consumes": { "type": "item", "code": "game:plank-oak", "quantity": 2 } },
+            "sticks": { "Consumes": { "type": "item", "code": "game:stick", "quantity": 4 } }
+        }
+        """);
+
+        Assert.Equal(expected, SidingWallBlock.MatchFraming(new AssetLocation(held), filled, framings, Infills));
+    }
+
     private static readonly JsonObject Finishes = Dict("""
     {
         "daub": { "Consumes": { "type": "item", "code": "game:clay-blue", "quantity": 2 } }

@@ -424,7 +424,7 @@ public class SidingWallBlock : Block
         // With the deck lit, planks on a side face add a deck in place. Ahead of finishing, since
         // planks are a finish too. The top face still stacks the next course (PlaceWallFrame).
         if (entity.Deck == null && blockSel.Face != BlockFacing.UP && SidingModePicker.Deck(byPlayer)
-            && MatchConsumes(heldCode, Attributes["Framings"]) is { } deckKey)
+            && MatchFraming(heldCode, entity.Infill != null, Attributes["Framings"], Attributes["Infills"]) is { } deckKey)
         {
             if (entity.Step != null)
             {
@@ -454,7 +454,7 @@ public class SidingWallBlock : Block
             // claim falls through to the infill match below, then to PlaceWallFrame.
             if (Variant["layout"] == "wall"
                 && SidingModePicker.Layout(byPlayer) == "cornerout"
-                && MatchConsumes(heldCode, Attributes["Framings"]) != null
+                && MatchFraming(heldCode, false, Attributes["Framings"], Attributes["Infills"]) != null
                 && ResolveFinishFace("wall", Variant["side"], blockSel.Face) != null)
             {
                 if (entity.Step != null)
@@ -1316,6 +1316,11 @@ public class SidingWallBlock : Block
             "infill" => "deckinfill",
             _ => "deck",
         };
+
+    // An item that is both a framing and an infill, as sticks are, fills a bare frame rather than
+    // decking or cornering it; a filled wall has no infill left to take, so there it frames.
+    internal static string? MatchFraming(AssetLocation heldCode, bool filled, JsonObject framings, JsonObject infills)
+        => !filled && MatchConsumes(heldCode, infills) != null ? null : MatchConsumes(heldCode, framings);
 
     // Finds the material dictionary entry whose Consumes.code matches the held item, so a
     // build-flow behavior can turn "the player right-clicked with plank-oak" into "oak".
