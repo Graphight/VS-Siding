@@ -34,7 +34,7 @@ A dedicated four-way piece was considered and dropped: the piece that joins four
 
 **What they do not cover.**
 - *The inside-corner notch.* Two walls on the inside faces of their cells meet at a point and leave a 4/16 square open in a third cell. Decision 0002 calls it cosmetic, since no player fits through a point. A post to fill it would stand in a cell neither wall owns, which may be the "small corner" that "ends up in other blocks".
-- *Two walls in one cell.* Slabs on opposite faces of a cell leave 8/16 between them. The player's collision box is 0.6 wide (`player.json`), so a stair between two such walls could not be walked. The stairwell works with one wall in the stair's cell (decision 0046) and the other in the cell next door.
+- *Two walls in one cell.* Slabs on opposite faces of a cell leave 8/16 between them. The player's collision box is 0.6 wide (`player.json`), so a stair between two such walls could not be walked. The stairwell needs no wall in the stair's cell at all: a wall in the cell on each side, hugging the face towards the stair, stands flush against a full-width stair. Built that way in creative on 2026-10-05. Each wall's open side faces the room beyond, so neither room loses the space.
 - *Front to front.* Two walls on either side of one cell boundary put their fronts on the same plane. The front finish is the outer 1/16 of each slab, so two unfinished fronts leave a 2/16 void between the framings, and no click can reach either face. This may be the "back-to-back" report: both rooms get the open side of a cell, which would be the symmetry.
 - *A floor through a wall's cell.* A thin floor and a wall cannot share a cell; the wall's deck is the floor there (decision 0042). Laying floors up to an internal wall without a deck leaves a strip, which may be the "subdivision that won't fill".
 
@@ -50,7 +50,7 @@ None has been built to check.
 
 ## Design
 **A junctions paragraph in the guide.**
-"Corners and junctions", in `gamemechanicinfo-siding-text`: where a partition meets a wall, and where two walls cross, the cell the lines share takes a Corner, and each line of walls keeps to one side of its cells; a wall's own cell takes a deck and not a floor; a stair shares a cell with one wall.
+"Corners and junctions", in `gamemechanicinfo-siding-text`: where a partition meets a wall, and where two walls cross, the cell the lines share takes a Corner, and each line of walls keeps to one side of its cells; a wall's own cell takes a deck and not a floor; a one-wide stair is walled from the cell on each side, and where that cell is also part of the floor above, the wall carries a deck.
 Text only, with the played crossing as its picture on the mod page.
 
 **Upgrade a filled wall.**
@@ -67,6 +67,7 @@ They wait for the players' answers.
 ## Alternatives considered
 - **Walls pick their own corners from their neighbours** (`auto-corners`, parked). Still parked for its own reason: it would fight a player placing pieces on purpose. The guide and a later upgrade leave the player in charge.
 - **Several walls per cell** (`multiple-walls-per-cell`, parked). Its revival test was a real build that needs it. The stairwell is the first candidate, and at 8/16 it cannot be walked, so it stays parked.
+- **A stair layer on a thin floor**, so a stair and a floor share a cell as a stair and a wall do. The clash in the stairwell report reads as a wall and a floor wanting the same cell beside the stair, and a wall with a deck is both (decision 0042).
 - **A dedicated four-way piece.** It would be the corner under another name. What players lack is the rule, not the block.
 - **A `cornerin` post now.** One state on `layout`, four more blocks, a shape, and a piece that claims no face. Cheap, but it is a guess at what one sentence meant.
 - **Treat front-to-front walls as joined, and draw the void filled.** It would be right if that is what the player built; a reply will say.
