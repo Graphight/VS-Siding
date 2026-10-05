@@ -39,7 +39,9 @@ Framing consumes no nails either, so there is no cost to balance a saw-free path
 **A stick framing entry.**
 A `sticks` entry in `Framings`, consuming and dropping four of `game:stick`.
 Four matches wattle, so eight sticks make a sealed wall, and sticks are cheap enough that double the plank count still undercuts planks.
-Its texture is `game:block/wood/debarked/oak`, the one vanilla draws the stick item with, so the frame matches what is in the hand.
+Its texture is `game:block/wood/bark/oak`.
+The first pick was `debarked/oak`, the one vanilla draws the stick item with, but in play it could not be told from an oak plank frame: the two average within 5% of each other in brightness.
+Oak bark is about 30% darker and furrowed top to bottom, which reads as unpeeled poles.
 It is one more material key, read by the same block class as every other framing (decision 0001).
 
 **`PlaceWallFrame` on sticks.**
@@ -90,7 +92,8 @@ Late materials gate themselves through their own recipes, and by the copper age 
 - **No off-hand signal for sticks.** A right-click with sticks would then take every stick right-click in the game, which decision 0006's off-hand signal exists to avoid.
 
 ## Consequences & open questions
-- Not yet played. To check in play: the debarked oak texture reading as poles on a wall and joists on a floor, the stone going into the off-hand slot and opening the picker, and the sneak-click stacking, extending and carrying a floor on.
+- Played with the first texture: sticks and a stone build what planks and a saw do. The bark texture that replaced it is not yet played.
+- A rougher frame, with spurs and knots, was wanted and left out: every framing shares one set of shape elements, so it needs framing-specific elements from `WallShapeGen` and is its own proposal.
 - Whether any vanilla behavior reacts to a stone held in the off hand once the slot takes it; unverified.
 - A stick corner upgrade is not reachable with sticks in hand, since the upgrade needs a bare frame and sticks fill one.
 - The end-to-end scenario sets the off-hand stack directly, so it checks the patched storage flags by value and not by moving a stone into the slot.
