@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Atlas.Api;
 using Atlas.XUnit;
+using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
 using Vintagestory.GameContent;
 using Xunit;
@@ -15,6 +16,19 @@ public class RoomScenarios : AtlasScenarioBase
     {
         (BlockPos inside, _) = await WallBuilder.BuildRoom(World, "game:stick", BlockFacing.HORIZONTALS);
         Assert.Equal((0, 6, 0), Measure(inside));
+    }
+
+    // Sticks are wattle's item too, so the second click on each bare stick frame has to fill it, not frame again.
+    [AtlasScenario(FreshWorld = true)]
+    public async Task Room_Should_BeSealedAndWarm_When_BuiltFromSticksWithAStoneInTheOffHand()
+    {
+        (BlockPos inside, _) = await WallBuilder.BuildRoom(
+            World, "game:stick", BlockFacing.HORIZONTALS, framing: "game:stick", framingCost: 4, offhand: "game:stone-granite");
+
+        var stone = World.Api.World.GetItem(new AssetLocation("game:stone-granite"));
+        Assert.Equal(
+            ((0, 6, 0), ("sticks", "wattle", null, null, null), EnumItemStorageFlags.General | EnumItemStorageFlags.Metallurgy | EnumItemStorageFlags.Offhand),
+            (Measure(inside), WallBuilder.Layers(World, inside.NorthCopy()), stone.StorageFlags));
     }
 
     [AtlasScenario(FreshWorld = true)]
