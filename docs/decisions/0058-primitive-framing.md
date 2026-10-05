@@ -79,6 +79,8 @@ The cut follows walls and floors and not modern and primitive: every layer after
 
 **No per-framing restrictions.**
 A stick frame takes every infill and finish a plank frame does.
+The two signals are interchangeable as well: a stone raises a plank frame and a saw a stick one.
+Neither signal costs anything, and planks still need a saw to make, so a rule tying planks to the saw would gate nothing and would need a matching rule for every plank finish.
 This is a looks mod with some function, not a realism mod: a player can peel a stick frame's layers and lay better ones when they have them, or retire the frame and raise a plank one.
 Late materials gate themselves through their own recipes, and by the copper age planks come faster than sticks, so the stick frame is chosen for its look rather than forced by progression.
 
@@ -94,7 +96,10 @@ Late materials gate themselves through their own recipes, and by the copper age 
 ## Consequences & open questions
 - Played with the first texture: sticks and a stone build what planks and a saw do. The bark texture that replaced it is not yet played.
 - A rougher frame, with spurs and knots, was wanted and left out: every framing shares one set of shape elements, so it needs framing-specific elements from `WallShapeGen` and is its own proposal.
-- Whether any vanilla behavior reacts to a stone held in the off hand once the slot takes it; unverified.
+- A stone in the off hand costs 20% more hunger while it sits there: vanilla 1.22.7's `InventoryPlayerHotbar.updateSlotStatMods` sets `hungerrate` to `OffHandHungerPenalty` (0.2) for any off-hand item with no `statModifier` attribute, and `stone.json` has none.
+The saw carries the same penalty.
+The other off-hand readers in the four assemblies are tool checks (hammer, tongs, wrench) and rendering, and none matches a stone.
+The guide says so, since the stone path is for first-day players.
 - A stick corner upgrade is not reachable with sticks in hand, since the upgrade needs a bare frame and sticks fill one.
 - The end-to-end scenario sets the off-hand stack directly, so it checks the patched storage flags by value and not by moving a stone into the slot.
 - `quieter-tooltip` keys the full tooltip on the build signal, so it calls `HasBuildSignal`.
