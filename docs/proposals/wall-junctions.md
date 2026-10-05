@@ -2,13 +2,12 @@
 
 - Status: Draft
 - Created: 2026-10-04
-- Reflects: a creative build of the crossing on 2026-10-05, found unsatisfactory; mod page comments https://mods.vintagestory.at/vssiding#cmt-243545, #cmt-243968, #cmt-243661 with its second screenshot, and #cmt-244456; `SidingWallBlock.OnBlockInteractStart`'s corner upgrade, `CorneroutSecondFace`, `shapes/block/wall/wall.json`'s layer extents; vanilla `player.json`; the handbook text in `lang/en.json`; decisions 0002, 0008, 0026, 0027, 0042; the parked `multiple-walls-per-cell` and `auto-corners` notes in `README.md`; none of the players' own builds reproduced
+- Reflects: a creative build of the crossing on 2026-10-04, one corner and four finished arms, which came out as a clean cross; mod page comments https://mods.vintagestory.at/vssiding#cmt-243545, #cmt-243968, #cmt-243661 with its second screenshot, and #cmt-244456; `SidingWallBlock.OnBlockInteractStart`'s corner upgrade, `CorneroutSecondFace`, `shapes/block/wall/wall.json`'s layer extents; vanilla `player.json`; the handbook text in `lang/en.json`; decisions 0002, 0008, 0026, 0027, 0042; the parked `multiple-walls-per-cell` and `auto-corners` notes in `README.md`; none of the players' own builds reproduced
 
 ## Summary
 Four players describe places where walls meet that they could not build: a partition butting a wall, a four-way crossing, walls back to back, a "small corner", a one-wide stairwell.
-On paper the two layouts the mod has cover the first two, and nothing in the game says so.
-In play the T works and the crossing, built from a corner, did not come out well enough.
-The proposal writes the T into the guide, lets a filled wall be upgraded to a corner, and leaves the crossing and every new shape open until it is known what fell short.
+The two layouts the mod has already cover the first two, and nothing in the game says so.
+The proposal writes that into the guide, lets a filled wall be upgraded to a corner, and holds every new shape until the players have said what they built.
 
 ## Context
 **What was reported.**
@@ -24,14 +23,14 @@ A wall is a 4/16 slab on one face of its cell, and a `cornerout` is an L on two 
 A wall line is a plane between cells, so any two lines that meet do so at a cell's corner.
 
 - *T-junction.* A partition along the plane z = 5 meets an outer wall in column x = 0. The outer wall's cell (0, 5) holds a slab on its west face and 12/16 of open cell beside it, which is the slot the fourth player chiselled shut. A `cornerout` in that cell closes it, and decision 0026 upgrades a bare frame to one in place.
-- *Crossing.* Walls along x = 5 and z = 5: every cell in column 5 takes its west face, every cell in row 5 its north face. Only cell (5, 5) is in both, and a `cornerout` there claims both faces. Every face on both planes is claimed, so on paper the four rooms seal from each other and the slabs touch with no slot.
+- *Crossing.* Walls along x = 5 and z = 5: every cell in column 5 takes its west face, every cell in row 5 its north face. Only cell (5, 5) is in both, and a `cornerout` there claims both faces. Every face on both planes is claimed, so the four rooms seal from each other, and the slabs touch with no slot. A "4-way corner" is one corner piece.
 
-**Played, 2026-10-05.**
-The crossing was built with a corner as above and was not satisfactory.
-What fell short is not recorded yet, and it decides the fix.
-Three candidates: each line has to hug one side of its plane along its whole length, so arms raised from different rooms meet with a 4/16 jog; the corner upgrade refuses a wall that is already filled; or the frames and finishes do not meet cleanly where the neighbours butt the corner.
-A dedicated four-way piece has been suggested.
-In this geometry the piece that joins four aligned arms is the corner itself, so a new piece only helps if the trouble is something a new shape changes.
+**Played, 2026-10-04.**
+The crossing was built in creative as above: a corner at the shared cell, four arms, clay infill and a drystone finish on every face.
+It reads as a clean cross with no slot and no jog, and the corner's tooltip lists all four directions finished.
+A first attempt the same day did not come out, and what differed was not written down; the likely slip, a line that changes side partway, is the one a player without the rule would make.
+Four sealed rooms around it were not checked with `/sidingroom`.
+A dedicated four-way piece was considered and dropped: the piece that joins four aligned arms is the corner itself.
 
 **What they do not cover.**
 - *The inside-corner notch.* Two walls on the inside faces of their cells meet at a point and leave a 4/16 square open in a third cell. Decision 0002 calls it cosmetic, since no player fits through a point. A post to fill it would stand in a cell neither wall owns, which may be the "small corner" that "ends up in other blocks".
@@ -41,7 +40,7 @@ In this geometry the piece that joins four aligned arms is the corner itself, so
 
 **Why the covered cases are missed.**
 The guide's whole account of a corner is "an outside corner, two faces meeting", and that a bare frame can be upgraded.
-It never mentions a partition.
+It never mentions a partition or a crossing, and the name Corner itself points away from both.
 The upgrade only runs while `Infill == null`: on a filled wall a corner-mode click with planks falls through to the finish match, or places a corner in the next cell.
 Decision 0026 kept it to frames so a conversion would not "build the new leg's infill and finish for free", and a player meets the gap when the partition arrives, which is usually after the outer wall is filled.
 
@@ -51,9 +50,8 @@ None has been built to check.
 
 ## Design
 **A junctions paragraph in the guide.**
-"Corners and junctions", in `gamemechanicinfo-siding-text`: where a partition meets a wall, the cell the lines share takes a Corner; a wall's own cell takes a deck and not a floor; a stair shares a cell with one wall.
-The crossing stays out of the guide until it builds well.
-Text only.
+"Corners and junctions", in `gamemechanicinfo-siding-text`: where a partition meets a wall, and where two walls cross, the cell the lines share takes a Corner, and each line of walls keeps to one side of its cells; a wall's own cell takes a deck and not a floor; a stair shares a cell with one wall.
+Text only, with the played crossing as its picture on the mod page.
 
 **Upgrade a filled wall.**
 A `cornerout` costs what a `wall` costs at every layer: the frame, the infill and the back are shared between the legs and charged once, with no multiplier for layout.
@@ -63,12 +61,13 @@ It needs the checks filling a wall already makes, since the new leg closes space
 A wall with a step refuses, as it does now.
 
 **No new shapes yet.**
-A corner post, a fill for the front-to-front void and a second wall per cell each answer one reading of one comment, and wait for the players' answers.
-A four-way piece waits for the played crossing's fault to be written down.
+A corner post, a fill for the front-to-front void and a second wall per cell each answer one reading of one comment.
+They wait for the players' answers.
 
 ## Alternatives considered
 - **Walls pick their own corners from their neighbours** (`auto-corners`, parked). Still parked for its own reason: it would fight a player placing pieces on purpose. The guide and a later upgrade leave the player in charge.
 - **Several walls per cell** (`multiple-walls-per-cell`, parked). Its revival test was a real build that needs it. The stairwell is the first candidate, and at 8/16 it cannot be walked, so it stays parked.
+- **A dedicated four-way piece.** It would be the corner under another name. What players lack is the rule, not the block.
 - **A `cornerin` post now.** One state on `layout`, four more blocks, a shape, and a piece that claims no face. Cheap, but it is a guess at what one sentence meant.
 - **Treat front-to-front walls as joined, and draw the void filled.** It would be right if that is what the player built; a reply will say.
 - **Refuse the corner click on a filled wall with a message.** Tells the player to peel the wall, where the upgrade can simply do it.
