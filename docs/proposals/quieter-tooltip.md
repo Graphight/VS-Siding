@@ -27,7 +27,7 @@ A player walking through a finished house is not building, and the mod already h
 That is the line the complaint itself calls worth having.
 
 **The full list with it.**
-`SidingWallEntity.GetBlockInfo` passes `SidingWallBlock.HasSawInOffhand(forPlayer)`, and the full list is unchanged.
+`SidingWallEntity.GetBlockInfo` passes `SidingWallBlock.HasBuildSignal(forPlayer)`, and the full list is unchanged.
 `SidingFloorEntity` and `SidingFloorBlock.Describe` follow, and so does a hosted cell's tooltip, since `GuestTooltipPatches` calls the guest entity's `GetBlockInfo` with the same player.
 
 **The handbook pointer follows the list.**
@@ -43,5 +43,5 @@ It still describes the block in the creative inventory and the handbook, which r
 ## Consequences & open questions
 - How the pointer is held back: an override of `GetPlacedBlockInfo` on the two blocks that leaves the description off, or dropping the lang key and appending the sentence in `Describe`. The second loses the creative inventory text.
 - Whether the HUD re-reads block info often enough that moving the saw into the off hand updates the tooltip without looking away; unverified.
-- `primitive-framing` widens the build signal to a stone, so this should call the same check and follow it.
+- Decision 0058 widened the build signal to a stone, so this should call `SidingWallBlock.HasBuildSignal` and follow it.
 - A player who never holds a saw near a wall no longer sees the handbook link there, and that tooltip is the only in-world link to the guide.

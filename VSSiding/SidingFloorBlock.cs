@@ -31,7 +31,7 @@ public class SidingFloorBlock : Block
     // top or the underside. Anything unclaimed falls through, so planks still extend the run (PlaceWallFrame).
     public override bool OnBlockInteractStart(IWorldAccessor world, IPlayer byPlayer, BlockSelection blockSel)
     {
-        if (!SidingWallBlock.HasSawInOffhand(byPlayer)) return base.OnBlockInteractStart(world, byPlayer, blockSel);
+        if (!SidingWallBlock.HasBuildSignal(byPlayer)) return base.OnBlockInteractStart(world, byPlayer, blockSel);
 
         ItemSlot slot = byPlayer.InventoryManager.ActiveHotbarSlot;
         AssetLocation? heldCode = slot.Itemstack?.Collectible.Code;

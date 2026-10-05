@@ -29,7 +29,8 @@ public class SidingWallBlock : Block
 
     // Saws come in per-metal variants (saw-copper, saw-meteoriciron, ...) - there is no bare
     // "saw" item, so this has to be a wildcard match, not an exact AssetLocation comparison.
-    private static readonly AssetLocation SawCode = new("game", "saw-*");
+    // Any stone is the stone-age signal (decision 0058): never consumed, as the saw never is.
+    private static readonly AssetLocation[] BuildSignalCodes = { new("game", "saw-*"), new("game", "stone-*") };
 
     // Unrotated ("west") framing boxes per layout, matching the framing elements in
     // wall.json/cornerout.json: full-height posts, then top plates. Bottom plates don't
@@ -290,11 +291,11 @@ public class SidingWallBlock : Block
 
     // Shared "are we in build mode" check for both framing (PlaceWallFrame) and layering
     // (below). A plain right-click, not shift - see decision 0006 for why shift was dropped.
-    internal static bool HasSawInOffhand(IPlayer byPlayer)
-    {
-        AssetLocation? offhandCode = byPlayer.InventoryManager.OffhandHotbarSlot?.Itemstack?.Collectible.Code;
-        return offhandCode != null && WildcardUtil.Match(SawCode, offhandCode);
-    }
+    internal static bool HasBuildSignal(IPlayer byPlayer)
+        => IsBuildSignal(byPlayer.InventoryManager.OffhandHotbarSlot?.Itemstack?.Collectible.Code);
+
+    internal static bool IsBuildSignal(AssetLocation? offhandCode)
+        => offhandCode != null && BuildSignalCodes.Any(signal => WildcardUtil.Match(signal, offhandCode));
 
     // Any hostable block may take a wall's cell, whichever way it's placed - a click on the panel,
     // on the floor in the gap, a sneak-placement, ground storage. SidingModSystem.HostChangePrefix
@@ -349,7 +350,7 @@ public class SidingWallBlock : Block
     // doesn't also fire. Plain right-click, not shift - see decision 0006.
     public override bool OnBlockInteractStart(IWorldAccessor world, IPlayer byPlayer, BlockSelection blockSel)
     {
-        if (!HasSawInOffhand(byPlayer))
+        if (!HasBuildSignal(byPlayer))
         {
             if (TryHost(world, byPlayer, blockSel)) return true;
             return base.OnBlockInteractStart(world, byPlayer, blockSel);
@@ -362,9 +363,12 @@ public class SidingWallBlock : Block
         var entity = world.BlockAccessor.GetBlockEntity<SidingWallEntity>(blockSel.Position);
 
         // With floor picked, planks frame a floor beside the wall (PlaceWallFrame) rather than work on it.
-        // A filled deck's top or underside still takes them as floorboards or a ceiling, as a floor's does.
-        if (SidingModePicker.Layout(byPlayer) == "floor" && MatchConsumes(heldCode, Attributes["Framings"]) != null
-            && !(entity?.DeckInfill != null && SidingFloorBlock.FinishFace(blockSel.Face) != null && IsDeckHit(world.BlockAccessor, blockSel, entity)))
+        // A filled deck's top or underside still takes them as floorboards or a ceiling, as a floor's does,
+        // and sticks still fill the bare wall or deck they hit (MatchFraming).
+        bool deckHit = entity != null && IsDeckHit(world.BlockAccessor, blockSel, entity);
+        bool hitFilled = (deckHit ? entity!.DeckInfill : entity?.Infill) != null;
+        if (SidingModePicker.Layout(byPlayer) == "floor" && MatchFraming(heldCode, hitFilled, Attributes["Framings"], Attributes["Infills"]) != null
+            && !(deckHit && hitFilled && SidingFloorBlock.FinishFace(blockSel.Face) != null))
             return base.OnBlockInteractStart(world, byPlayer, blockSel);
 
         if (entity == null || entity.Framing == null) return base.OnBlockInteractStart(world, byPlayer, blockSel);
@@ -423,7 +427,7 @@ public class SidingWallBlock : Block
         // With the deck lit, planks on a side face add a deck in place. Ahead of finishing, since
         // planks are a finish too. The top face still stacks the next course (PlaceWallFrame).
         if (entity.Deck == null && blockSel.Face != BlockFacing.UP && SidingModePicker.Deck(byPlayer)
-            && MatchConsumes(heldCode, Attributes["Framings"]) is { } deckKey)
+            && MatchFraming(heldCode, entity.Infill != null, Attributes["Framings"], Attributes["Infills"]) is { } deckKey)
         {
             if (entity.Step != null)
             {
@@ -453,7 +457,7 @@ public class SidingWallBlock : Block
             // claim falls through to the infill match below, then to PlaceWallFrame.
             if (Variant["layout"] == "wall"
                 && SidingModePicker.Layout(byPlayer) == "cornerout"
-                && MatchConsumes(heldCode, Attributes["Framings"]) != null
+                && MatchFraming(heldCode, false, Attributes["Framings"], Attributes["Infills"]) != null
                 && ResolveFinishFace("wall", Variant["side"], blockSel.Face) != null)
             {
                 if (entity.Step != null)
@@ -1315,6 +1319,11 @@ public class SidingWallBlock : Block
             "infill" => "deckinfill",
             _ => "deck",
         };
+
+    // An item that is both a framing and an infill, as sticks are, fills a bare frame rather than
+    // decking or cornering it; a filled wall has no infill left to take, so there it frames.
+    internal static string? MatchFraming(AssetLocation heldCode, bool filled, JsonObject framings, JsonObject infills)
+        => !filled && MatchConsumes(heldCode, infills) != null ? null : MatchConsumes(heldCode, framings);
 
     // Finds the material dictionary entry whose Consumes.code matches the held item, so a
     // build-flow behavior can turn "the player right-clicked with plank-oak" into "oak".

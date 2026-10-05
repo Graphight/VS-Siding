@@ -81,7 +81,7 @@ public static class SidingModePicker
 
     private static bool IsOurs(IClientPlayer player)
     {
-        if (!SidingWallBlock.HasSawInOffhand(player)) return false;
+        if (!SidingWallBlock.HasBuildSignal(player)) return false;
         ItemSlot slot = player.InventoryManager.ActiveHotbarSlot;
         return slot?.Itemstack?.Collectible.GetToolModes(slot, player, player.CurrentBlockSelection) == null;
     }

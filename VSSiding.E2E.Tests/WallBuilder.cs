@@ -12,11 +12,11 @@ namespace VSSiding.E2E.Tests;
 internal static class WallBuilder
 {
     // Atlas's default play style joins players in creative, which skips the mod's cost checks and consumption.
-    internal static async Task<ITestPlayer> JoinBuilder(IWorldSession world)
+    internal static async Task<ITestPlayer> JoinBuilder(IWorldSession world, string offhand = "game:saw-copper")
     {
         ITestPlayer player = await world.JoinPlayer("Builder");
         player.Player.WorldData.CurrentGameMode = EnumGameMode.Survival;
-        player.Entity.LeftHandItemSlot.Itemstack = new ItemStack(player.Entity.World.GetItem(new AssetLocation("game:saw-copper")));
+        player.Entity.LeftHandItemSlot.Itemstack = new ItemStack(player.Entity.World.GetItem(new AssetLocation(offhand)));
         return player;
     }
 
@@ -41,13 +41,13 @@ internal static class WallBuilder
     }
 
     // The player stands outside the cell looking in, as a builder does: the wall then claims the face towards the room.
-    internal static async Task Raise(IWorldSession world, ITestPlayer player, BlockPos cell, BlockPos inside, string framing, string? infill, string? finish = null)
+    internal static async Task Raise(IWorldSession world, ITestPlayer player, BlockPos cell, BlockPos inside, string framing, string? infill, string? finish = null, int framingCost = 2)
     {
         BlockFacing outward = BlockFacing.FromVector(cell.X - inside.X, 0, cell.Z - inside.Z);
         BlockPos outside = cell.AddCopy(outward);
         await player.TeleportTo(outside);
         player.Entity.Pos.SetPos(outside.X + 0.5, outside.Y, outside.Z + 0.5);
-        await player.GiveItem(framing, 2);
+        await player.GiveItem(framing, framingCost);
 
         ItemSlot slot = player.Player.InventoryManager.ActiveHotbarSlot;
         var frameSel = new BlockSelection { Position = cell.DownCopy(), Face = BlockFacing.UP, HitPosition = new Vec3d(0.5, 1, 0.5) };
@@ -70,17 +70,18 @@ internal static class WallBuilder
         Assert.Null(slot.Itemstack);
     }
 
-    // A one-cell room on a plank floor under a plank roof, walled with oak framing on every side and the infill on the filled ones.
-    internal static async Task<(BlockPos Inside, ITestPlayer Player)> BuildRoom(IWorldSession world, string infill, BlockFacing[] filled)
+    // A one-cell room on a plank floor under a plank roof, walled with the framing on every side and the infill on the filled ones.
+    internal static async Task<(BlockPos Inside, ITestPlayer Player)> BuildRoom(
+        IWorldSession world, string infill, BlockFacing[] filled, string framing = "game:plank-oak", int framingCost = 2, string offhand = "game:saw-copper")
     {
         BlockPos inside = world.Spawn.Offset(0, 2, 0);
         for (int dx = -1; dx <= 1; dx++)
             for (int dz = -1; dz <= 1; dz++)
                 world.SetBlock("game:planks-aged-ud", inside.Offset(dx, -1, dz));
 
-        ITestPlayer player = await JoinBuilder(world);
+        ITestPlayer player = await JoinBuilder(world, offhand);
         foreach (BlockFacing side in BlockFacing.HORIZONTALS)
-            await Raise(world, player, inside.AddCopy(side), inside, "game:plank-oak", filled.Contains(side) ? infill : null);
+            await Raise(world, player, inside.AddCopy(side), inside, framing, filled.Contains(side) ? infill : null, framingCost: framingCost);
 
         for (int dx = -1; dx <= 1; dx++)
             for (int dz = -1; dz <= 1; dz++)

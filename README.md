@@ -8,15 +8,18 @@ Inspired by how the [Roofing](https://mods.vintagestory.at/show/mod/30143) mod h
 
 ## Building a wall
 
-Put a saw in your off-hand slot, hold the material in your main hand, and right-click.
-Every layer goes on the same way: planks raise the framing, an infill fills it, a finish faces each side.
+Put a saw or a stone in your off-hand slot, hold the material in your main hand, and right-click.
+Every layer goes on the same way: planks or sticks raise the framing, an infill fills it, a finish faces each side.
 
-The saw carries a tool mode picker, and the mode decides what you build: a flat **wall**, an outside **corner** or a thin **floor**, and whether plank and log finishes go on as weatherboard, boards, shakes or logs.
+A stone works from the first day: it is never used up, and sticks build the frame.
+Sticks are also the wattle infill, so sneak to stack or extend a bare stick frame.
+
+The saw or stone carries a tool mode picker, and the mode decides what you build: a flat **wall**, an outside **corner** or a thin **floor**, and whether plank and log finishes go on as weatherboard, boards, shakes or logs.
 The in-game handbook page *VS Siding Mod: Guide* has the whole thing.
 
 ## What a wall is made of
 
-- **Framing**: planks, in any wood the game or another mod adds.
+- **Framing**: planks, in any wood the game or another mod adds, or sticks.
 - **Infill**: wattle, straw, clay, rubble stone or glass.
 - **Finish**: appearance only, per face, in wood, clay, brick, stone, or metal.
 

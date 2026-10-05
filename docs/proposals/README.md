@@ -8,13 +8,12 @@ An idea that's been thought through but not acted on. Mutable: edit freely, argu
 
 ## Open
 
-- `primitive-framing`: the copper saw is the only metal gate on building a wall or a floor, so a stone-age player cannot raise a frame.
-The proposal adds a stick framing and accepts a stone in the off hand, not consumed, as a second build signal beside the saw.
-Promised on the mod page, so it is first.
-- `primitive-earth-layers`: split from `primitive-framing`.
+- `primitive-earth-layers`: split from primitive framing, now decision 0058.
 A packed earth infill and a rammed earth finish, both grid recipes from soil with no tool, as entries in `config/materials.json`.
-- `tent-walls`: split from `primitive-framing`.
+- `tent-walls`: split from primitive framing, now decision 0058.
 A bone framing and pelt and cloth infills, each needing a texture the game does not ship, and a framing that names its block material so bone does not burn.
+- `rough-pole-frames`: a stick frame is a plank frame in a darker texture, and a post two texels wide cannot look rough through its texture.
+The proposal lets a framing entry name its own shape elements and draws the stick frame as uneven, lashed poles with branch stubs, walls and corners first.
 - `plaster-finish`: two players want a finish lighter than daub.
 The proposal adds vanilla's four plaster blocks as flat finishes through two family templates, with no code.
 - `bark-log-finish`: the log finish offers shakes or debarked logs, so a wall cannot match the log blocks a house is framed with.
