@@ -25,6 +25,8 @@ The proposal shows only whether the wall seals unless the saw is in the off hand
 The proposal says so in the guide and lets a filled wall be upgraded to a corner; new shapes wait on the players' answers.
 - `stained-plank-finishes`: a player asked for dyed wood compat, and three mods store a coloured plank three ways.
 The proposal confirms the one that should already match, adds two-placeholder family templates for Wood Stain, and leaves attribute stacks for Dyed Wood until asked.
+- `modded-furniture-hosting`: Kevins Furniture's two cabinets declare every side solid, so the hosting rule refuses them as cubes.
+The proposal adds an attribute a block can set to say whether it may be hosted, and ships it for those cabinets.
 - `walls-under-roofing`: a flat-topped wall leaves a stepped triangle under a Roofing gable.
 The proposal adds a raked wall, its top cut to a pitch picked on the saw and measured to match Roofing's slopes, without reading Roofing's state.
 - `chiselling-walls`: vanilla refuses to chisel a non-cube block, and the proposal converts a wall through its collision-box path with materials rebuilt from its layers.
