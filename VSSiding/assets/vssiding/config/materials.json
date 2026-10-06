@@ -91,6 +91,14 @@
 			Consumes: { type: "item", code: "game:hide-pelt-{size}", quantity: 1 },
 			Drops: [ { type: "item", code: "game:hide-pelt-{size}", quantity: { avg: 1, var: 0 } } ]
 		},
+		"cloth-{color}": {
+			Match: { type: "item", code: "game:cloth-*", variant: "color" },
+			DisplayName: "vssiding:infill-cloth-{color}",
+			Texture: "game:block/cloth/linen/{color}",
+			BlockMaterial: "Wood",
+			Consumes: { type: "item", code: "game:cloth-{color}", quantity: 1 },
+			Drops: [ { type: "item", code: "game:cloth-{color}", quantity: { avg: 1, var: 0 } } ]
+		},
 		"stone-{rock}": {
 			Match: { type: "item", code: "game:@stone-(?!travertine$|meteorite-iron$).*", variant: "rock" },
 			DisplayName: "vssiding:infill-stone-{rock}",
