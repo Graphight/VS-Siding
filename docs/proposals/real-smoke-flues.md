@@ -6,8 +6,8 @@
 
 ## Summary
 A player vents a kitchen through trellises so smoke gets out, which costs the room its heat, and asks for an oven or hearth built into a wall or a flue made from a trapdoor.
-The smoke is almost certainly the Real Smoke mod's, which the player did not name.
-Nothing is known yet about how that mod's smoke meets a thin wall, so the proposal is a playtest first and a vent only if the playtest asks for one.
+The smoke is probably the Real Smoke mod's, which the player did not name.
+How that mod's smoke meets a thin wall is not known, so the proposal is a playtest first and a vent only if the playtest shows the need.
 
 ## Context
 The request: "I use trellises in my kitchen area so smoke ventilates (non vs siding house) but this causes heating issues, it may be value added to look into how ovens or hearth spaces can be merged into your walls, or cannibalize the existing trap door behaviors to create a flue, so cooking can be done with out being exposed to the elements".
@@ -17,7 +17,7 @@ Fire sources emit smoke that rises, spreads and needs a way out; dense smoke put
 Version 2.0.0-pre.7 covers game 1.22.0 to 1.22.7, runs on both sides, and its page counts about 240,000 downloads.
 Smoke passes a block tagged `porous` or `semiporous`.
 `tag-porous.json` adds `porous` to fences and their gates, ladders, the refractory grating, branchy leaves, barred and window trapdoors, and barred and crude doors, and `semiporous` to thatch roofing.
-It removes vanilla's `Chimney` behaviour from `claybrickchimney` and gives chimneys its own.
+`remove-blockbehaviorchimney.json` takes vanilla's `Chimney` behaviour off `claybrickchimney`, and the page says the mod "adds functionality to chimneys".
 The handbook text: "A valid chimney consists of non-solid blocks, up to 16 in height (configurable), capped with a chimney block", and "smoke will be restricted by anything smaller than a 4x4 hole".
 Trellises are not in the tag list, so whatever lets smoke through the player's trellis is a rule the assets do not show.
 
@@ -26,7 +26,7 @@ The phrase "non-solid blocks" has two readings, and a Siding wall gives a differ
 Every face of a wall declares `sidesolid: false`, and every face of a thin floor but its top, so that a thin panel does not cull its neighbours (decision 0002).
 A rule that reads `SideSolid` would let smoke through every Siding wall, filled or not, and a Siding house would never hold smoke.
 A rule that reads collision boxes would meet a filled wall's full panel, 4/16 thick with 12/16 of open cell beside it, and the "4x4 hole" test would decide what a bare frame or a wattle panel passes.
-This is the mistake decision 0020 records three times over: a property set for rendering, read by a consumer nobody listed.
+Decision 0020 lists what vanilla reads `sidesolid` for; another mod's smoke is not on that list.
 
 **A tag cannot follow the infill.**
 A tag belongs to a block code, and a wall's code carries its `layout` and `side` and nothing else.
@@ -36,7 +36,7 @@ So `porous` on the wall block would mark a stone-filled wall and a bare frame al
 **What the player lacks.**
 An opening that lets smoke out and keeps the room.
 A trellis does the first and not the second.
-A Siding wall answers vanilla's room test itself, per face and from its infill (decisions 0002, 0003), so it is one of the few blocks that could do both.
+A Siding wall reports its own retention to vanilla's room test, per face and from its infill (decisions 0002, 0003), so it can do both.
 
 **Fires in a wall's cell.**
 A firepit, a forge and a clay oven each declare `sidesolid: false` on every face, so none fails the solidity test in `IsHostable` (decision 0035).
@@ -58,21 +58,21 @@ Its fix depends on which property Real Smoke reads, which the playtest shows and
 **A vent, if nothing above already serves.**
 An infill that seals and is drawn open: louvres between the timbers.
 Retention comes from the infill as it does for any other (decision 0003), and `Transparent` already separates "seals" from "blocks light" (decision 0019), so a louvre that passes light needs no new field.
-What it does need is for Real Smoke to see this cell as porous and the stone-filled one beside it as not.
+What it does need is for Real Smoke to treat this cell as porous and the stone-filled one beside it as not.
 Two routes, chosen after the playtest:
-- A block code of its own for the vented wall, tagged `porous` by a patch that applies only when Real Smoke is installed. It costs a variant state, and decision 0001 exists to keep material out of variants; one state for "vented" is the smallest breach of it.
-- A hook on Real Smoke's side that asks a block at a position. Its page lists an "Improved API" as planned and asks authors whose mods interact with it to get in touch.
+- A block code of its own for the vented wall, tagged `porous` by a patch that applies only when Real Smoke is installed. It costs a variant state, which decision 0001 keeps material out of; one state for "vented" is the least that route can cost.
+- A hook on Real Smoke's side that queries the block at a position. Its page lists an "Improved API" as planned and asks authors whose mods interact with it to get in touch.
 
 ## Alternatives considered
 - **Tag the wall block `porous`.** One patch line, and every Siding wall then leaks smoke whatever fills it.
 - **A flue block.** A chimney course is vanilla's, and Real Smoke already replaces its behaviour. A Siding flue would be a second chimney competing with the one that mod supports.
 - **An oven or hearth as a wall layer.** The request's first idea. Hosting already puts a fire block in a wall's cell (decision 0035), so a built-in hearth is the playtest's fourth question and no new layer.
 - **Simulate the heat a vent loses.** Heat beyond vanilla's room retention is out of scope for the mod.
-- **Do nothing and name a vanilla workaround.** Right if a porous trapdoor keeps the room; the playtest says.
+- **Do nothing and name a vanilla workaround.** Right if a porous trapdoor keeps the room, which is the playtest's third question.
 
 ## Consequences & open questions
 - Confirm with the player that the smoke is Real Smoke's, and which fire blocks their kitchen uses.
 - Real Smoke 2.0.0 is in pre-release and its page says more changes are coming, so whatever the playtest finds may move before release.
-- A vent that seals for heat and passes smoke is a fiction vanilla's own chimney does not need, since a chimney sits above the room. Whether that is acceptable is a call for after the playtest.
-- A wall cell is 12/16 open on one side whatever fills its panel. If smoke pools in that open part, a hosted fire's smoke starts on the room side of the panel, which is where it should start; this is not checked.
+- A vent that keeps heat and passes smoke is not physical. Vanilla's chimney avoids the question by sitting above the room. Whether that is acceptable is a call for after the playtest.
+- A hosted fire sits in the open 12/16 of the wall's cell, on the room side of the panel. Whether its smoke leaves that cell into the room is not checked.
 - Whether the thin floor needs the same vent, as a hatch over a hearth.

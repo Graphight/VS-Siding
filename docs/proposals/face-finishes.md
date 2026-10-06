@@ -26,7 +26,7 @@ This proposal answers the floor half, and the wall half for players who keep the
 A chunk keeps a dictionary of decors, one block id per position and face, with a sub-position and a rotation packed into the key (`WorldChunk.Decors`, `DecorBits`).
 It is saved with the chunk and sent to clients by vanilla (`ServerChunk`, `Packet_ServerSetDecors`).
 `WorldChunk.SetDecor` stores any block on any face and checks nothing.
-The rule that a decor needs a solid face lives in `BlockBehaviorDecor.TryPlaceBlock`, which asks the host's `CanAttachBlockAt` and rejects snow and ice.
+The rule that a decor needs a solid face is in `BlockBehaviorDecor.TryPlaceBlock`, which calls the host's `CanAttachBlockAt` and fails on snow and ice.
 
 **How one is drawn.**
 `ChunkTesselator.BuildDecorPolygons` tesselates the decor block in the cell its face looks at, and only where the host's own face is drawn.
@@ -44,7 +44,7 @@ None of that needs code from this mod.
 **What a decor cannot carry.**
 A decor has no block entity, so its look is its block code.
 Every finish a face can take is therefore a real block, which is what decision 0001 avoided for walls.
-It is one axis here and not three crossed: a wall is framing times infill times two finishes, and a face finish is a finish.
+It is one axis here, where a wall's variants would have crossed framing, infill and finish.
 The cost is that `FinishFamilies` (decision 0010) expands at `AssetsFinalize`, after blocks are registered, so a face finish's variants have to be listed in JSON and cannot follow the families.
 
 ## Design
@@ -52,20 +52,20 @@ The cost is that `FinishFamilies` (decision 0010) expands at `AssetsFinalize`, a
 `vssiding:facefinish-{wood}`: a `Decor` behaviour on all six sides, `surfacelayer`, thickness 0, textured with the plank texture the `planks-{wood}` finish names, and dropping the planks it cost.
 Its `wood` states load from the `block/wood` world property, as vanilla's plank blocks do, so a mod that adds its wood there gets a face finish and one that does not goes without.
 Planks are the whole of both requests.
-Stone, daub, shakes and plates wait for someone to ask.
+Stone, daub, shakes and plates wait until asked for.
 
-**Flat, on purpose.**
+**Flat, with no thickness.**
 A skin on a beam's top face is drawn in the cell above it.
 At thickness 0 it lies 2/1024 over the plane a thin floor's boards end on (decision 0051), which reads as one floor.
 A `json` decor with a board's 1/16 would stand proud of that floor as a lip.
 So `boards` and `hboards` carry over, as the key's rotation, and `weatherboard` does not.
 
 **Placed by the plank already in hand.**
-`PlaceWallFrame` sits on every plank (decision 0058) and asks `SidingModePicker.Layout` whether the first row says wall, corner or floor.
+`PlaceWallFrame` is on every plank (decision 0058) and reads the first row's choice of wall, corner or floor from `SidingModePicker.Layout`.
 A fourth option, `face`, joins `("vssidingFraming", { "wall", "corner", "floor" })` in `SidingModePicker.Rows`, with an icon drawn like the others (decision 0031).
 In that mode a plank click on a block's face, with the build signal in the off hand, calls `SetDecor` with the wood's face finish and takes two planks, the cost of a plank finish on a wall.
 The check is vanilla's own: the host's `CanAttachBlockAt` for that face, and not snow or ice.
-A Siding wall or floor is refused as a host, since its faces take finishes as layers.
+A Siding wall or floor is not a host, since its faces take finishes as layers.
 No other item needs a behaviour while planks are the only face finish.
 
 **Board direction.**
@@ -73,16 +73,16 @@ The boards row picks it, `boards` or `hboards`, as it does on a wall (decision 0
 On a top or bottom face the same two options are the two directions a floor's boards run (decision 0051).
 
 ## Alternatives considered
-- **The fill block as asked.** A layer filling the open 12/16 of a wall's or floor's cell with a block's material. Drawing it is one box. Everything else in the mod reads that space as open: furniture is hosted in it (decision 0035), collision, light and retention treat it as air, and `sidesolid` is false on the whole block, so a filled cell would still support nothing above it. A thin-wall mod would be answering for full blocks in exactly the cells its assumptions live in.
+- **The fill block as asked.** A layer filling the open 12/16 of a wall's or floor's cell with a block's material. Drawing it is one box. Everything else in the mod reads that space as open: furniture is hosted in it (decision 0035), collision, light and retention treat it as air, and `sidesolid` is false on the whole block, so a filled cell would still support nothing above it. The mod would have to handle full blocks in the cells where its code assumes open space.
 - **A store of this mod's own, keyed by position and face**, drawn through the `TesselateBlock` transpiler that draws a guest wall (decision 0035). It would keep the families, the relief and every style. It would also need its own sync, save, break, drop and selection, which is what vanilla's decor layer already is.
-- **A `json` decor with real board thickness.** Relief on a log's side face would be welcome; on a beam's top it is the lip above. Revisit for side faces if players ask for weatherboard on a post.
+- **A `json` decor with real board thickness.** Relief suits a log's side face; on a beam's top it is the lip above. Revisit for side faces if players ask for weatherboard on a post.
 - **Every finish as a variant from the start.** Eight finish entries and nine families, four of the families crossed with every rock and two with every wood. Two comments asked for boards.
 - **A different tool in the off hand.** It would keep plank clicks unambiguous, and the picker's first row already does: its options are exclusive answers to "what does this click put down".
-- **Chiselling.** Vanilla's chisel has an add-material mode (`ItemChisel`'s `addmat`), so a patient player can put a plank layer on a log today. `chiselling-walls` is about turning a wall into a microblock, which is a different job.
+- **Chiselling.** Vanilla's chisel has an add-material mode (`ItemChisel`'s `addmat`), so a player can put a plank layer on a log today. `chiselling-walls` is about turning a wall into a microblock, which is a different job.
 
 ## Consequences & open questions
 - Whether a plank texture on a flat quad lines up with a Siding floor's boards beside it. Issue #81 lined vertical boards up with vanilla plank blocks, which suggests it will; not looked at.
-- Chiselled hosts. `BlockEntityMicroBlock` takes decor through `IAcceptsDecor`, with its own storage, so a chiselled log needs that path or is refused at first.
+- Chiselled hosts. `BlockEntityMicroBlock` takes decor through `IAcceptsDecor`, with its own storage, so a chiselled log needs that path or is left out at first.
 - A decor is drawn only where its host's face is drawn, so a face against an opaque neighbour shows nothing. What a face shows against the open part of a Siding wall's cell is to be played.
 - The creative inventory would list a face finish per wood unless hidden, and a player holding one could place it by vanilla's own decor click, with no planks spent.
 - Breaking in creative removes block and decor together and drops nothing, as for any decor.

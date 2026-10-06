@@ -8,7 +8,7 @@
 Four players describe places where walls meet that they could not build: a partition butting a wall, a four-way crossing, walls back to back, a "small corner", a one-wide stairwell.
 The two layouts the mod has already cover the first two, and nothing in the game says so.
 The proposal writes that into the guide and lets a filled wall be upgraded to a corner.
-One answer is in: the gap at an inside corner is real to players, and a post for it follows once it is told apart from a glazing gap; every other new shape still waits on what the players built.
+One answer is in: a second player has raised the gap at an inside corner, and a post for it follows once it is told apart from a glazing gap; every other new shape still waits on what the players built.
 
 ## Context
 **What was reported.**
