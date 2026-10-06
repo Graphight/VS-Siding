@@ -71,4 +71,4 @@ Joists are seen from below in a cellar, where rough poles would show, so that is
 - Whether two variants are enough to break the pattern along a run of ten.
 - A corner's three posts are always drawn, so its stubs must not meet where two legs join.
 - `WallShapeGenTests` pins the committed shapes to the generator, so `just shapes` has to run in the same change.
-- `tent-walls` adds a bone framing that would want its own look by the same key.
+- Decision 0060 added a bone framing that would want its own look by the same key.
