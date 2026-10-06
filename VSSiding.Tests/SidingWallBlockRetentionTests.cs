@@ -84,7 +84,7 @@ public class SidingWallBlockRetentionTests
         Assert.Equal(
             new Dictionary<string, int>
             {
-                ["wattle"] = 1, ["straw"] = 1, ["clay"] = -1, ["clay-red"] = -1, ["clay-fire"] = -1,
+                ["wattle"] = 1, ["straw"] = 1, ["clay"] = -1, ["packeddirt"] = -1, ["clay-red"] = -1, ["clay-fire"] = -1,
                 ["stone-granite"] = -1, ["glass-plain"] = 1, ["glass-smoky"] = 1,
             },
             actual);
