@@ -10,7 +10,7 @@ namespace VSSiding.E2E.Tests;
 [AtlasWorld(StrictBootDiagnostics = true)]
 public class EarthScenarios : AtlasScenarioBase
 {
-    // Each earth layer costs one block, where WallBuilder.Raise pays four of an infill.
+    // WallBuilder.Raise gives four of an infill and two of a finish; an earth layer costs one block.
     [AtlasScenario(FreshWorld = true)]
     public async Task Wall_Should_TakePackedAndRammedEarth_When_EachBlockClicksTheFrame()
     {

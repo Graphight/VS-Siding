@@ -14,7 +14,7 @@ Wattle, daub, logs and straw are already layers; rammed earth is the one missing
 
 Vanilla makes both from soil in the crafting grid, with no tool.
 Six low-fertility soil blocks give six `game:packeddirt`, and six packed dirt give six `game:rammed-light-plain`.
-One more grid step turns plain rammed earth into `thinlight`, then `thicklight`, `thinheavy`, `thickheavy` and back to plain, one block in and one block out.
+Each further grid step moves a rammed earth block one pattern along, from plain to `thinlight`, `thicklight`, `thinheavy`, `thickheavy` and back to plain, one block in and one block out.
 
 These sat inside `primitive-framing`, which also carried the stick frame and the stone build signal.
 They need neither: a plank frame takes them, so they shipped on their own.
@@ -32,7 +32,8 @@ The held block picks the look, as rock type does for `cobblestone-{rock}`, so a 
 It is a flat face with no `Elements`, as `plate-{metal}` is.
 
 **Display names.**
-Each entry carries a `DisplayName` in `lang/en.json`, which `MaterialDisplayNameTests` checks against the real game assets once `rammed.json` is among the test's candidates.
+Each entry's `DisplayName` is a key in `lang/en.json`, one per pattern for the family.
+`MaterialDisplayNameTests` expands the family against vanilla's `rammed.json`, added to the test's candidates, and fails on a pattern with no key.
 The handbook, the README and the ModDB page name both.
 
 **One end-to-end scenario.**
