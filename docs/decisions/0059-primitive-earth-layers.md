@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Created: 2026-10-04
-- Reflects: split from `primitive-framing` (decision 0058) on 2026-10-04; mod page comment https://mods.vintagestory.at/vssiding#cmt-242349; branch `feat/primitive-earth-layers`; `config/materials.json`, `EarthScenarios`, `SidingWallBlockRetentionTests`; vanilla `packeddirt.json`, `rammed.json` and the grid recipes `packeddirt.json`, `rammedearth.json`; decisions 0001, 0010, 0015; unit and end-to-end tests pass; not yet played
+- Reflects: split from `primitive-framing` (decision 0058) on 2026-10-04; mod page comment https://mods.vintagestory.at/vssiding#cmt-242349; branch `feat/primitive-earth-layers`; `config/materials.json`, `EarthScenarios`, `SidingWallBlockRetentionTests`; vanilla `packeddirt.json`, `rammed.json` and the grid recipes `packeddirt.json`, `rammedearth.json`; decisions 0001, 0003, 0010; unit and end-to-end tests pass; played on 2026-10-06
 
 ## Summary
 Two earth materials a stone-age player can make with no tool: a packed earth infill and a rammed earth finish in vanilla's five patterns.
@@ -22,7 +22,7 @@ They need neither: a plank frame takes them, so they shipped on their own.
 ## Design
 **A packed earth infill.**
 A `packeddirt` entry in `Infills`, shown as "Packed Earth Infill", consuming and dropping one `game:packeddirt` block with its vanilla texture.
-It names `BlockMaterial: "Soil"`, as `clay` does, so it cools a cellar the way clay does (decision 0015) and takes the soil layer sounds.
+It names `BlockMaterial: "Soil"`, as `clay` does, so it cools a cellar the way clay does (decision 0003) and takes the soil layer sounds.
 The code is exact, so `packeddirt-trampledearth` does not match it.
 
 **A rammed earth finish, one per pattern.**
@@ -43,11 +43,12 @@ The unit sweeps check each entry's lang key and texture, and nothing checks that
 ## Alternatives considered
 - **Keep them in `primitive-framing`.** They share a theme and nothing else; splitting them out left the promised frame a one-session job.
 - **One `rammed` finish that consumes any pattern and drops plain.** The proposal's first shape. It gives one look for five blocks, and the family costs four more lang lines.
+- **One finish drawing a random pattern per cell, as planks draw a random board.** A `*` over all of the pattern textures would do it with one entry. Raised after play and left: the cell position fixes the pattern, so a player could not choose a look or change one by relaying it.
 - **Patterns as finish styles on the picker.** A style needs a picker row (decision 0040). The family gives the same five looks with no row, and the pattern step is already one block in, one block out at the crafting grid.
 - **Consume loose soil instead of the packed block.** Soil is a block with fertility variants and grass states, so a match on it would also take a right-click with any dirt in hand. The packed block is one code and its recipe sets the cost.
 - **A `drypackeddirt` infill too.** A second earth infill that differs only by a sand ingredient and a texture; left until someone asks.
 
 ## Consequences & open questions
-- Not yet played: how the banded textures read on a quarter-block slab, and laid flat on a floor, is only visible in game.
+- Played: both layers go on and come off in game.
 - Quantity: one block per layer, as cobblestone and polished rock take.
 - Rammed earth has one `soil` variant today, `light`. A second would need its own family entry, since a template fills one placeholder.
