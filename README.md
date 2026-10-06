@@ -20,11 +20,11 @@ The in-game handbook page *VS Siding Mod: Guide* has the whole thing.
 ## What a wall is made of
 
 - **Framing**: planks, in any wood the game or another mod adds, or sticks.
-- **Infill**: wattle, straw, clay, rubble stone or glass.
-- **Finish**: appearance only, per face, in wood, clay, brick, stone, or metal.
+- **Infill**: wattle, straw, clay, packed earth, rubble stone or glass.
+- **Finish**: appearance only, per face, in wood, clay, rammed earth, brick, stone, or metal.
 
 Framing plus infill is a complete wall, and seals a room the way solid blocks do.
-The infill decides whether it counts as a cooling (cellar) wall: rubble stone and clay do, wattle and straw do not.
+The infill decides whether it counts as a cooling (cellar) wall: rubble stone, clay and packed earth do, wattle and straw do not.
 Glass seals the same way but lets daylight through.
 
 ## Floors
