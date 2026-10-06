@@ -252,6 +252,14 @@
 			BlockMaterial: "Metal",
 			Consumes: { type: "item", code: "game:metalplate-{metal}", quantity: 1 },
 			Drops: [ { type: "item", code: "game:metalplate-{metal}", quantity: { avg: 1, var: 0 } } ]
+		},
+		"rammed-{pattern}": {
+			Match: { type: "block", code: "game:rammed-light-*", variant: "pattern" },
+			DisplayName: "vssiding:finish-rammed-{pattern}",
+			Texture: "game:block/soil/rammed/light/{pattern}*",
+			BlockMaterial: "Soil",
+			Consumes: { type: "block", code: "game:rammed-light-{pattern}", quantity: 1 },
+			Drops: [ { type: "block", code: "game:rammed-light-{pattern}", quantity: { avg: 1, var: 0 } } ]
 		}
 	}
 }
