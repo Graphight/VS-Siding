@@ -24,6 +24,8 @@ The proposal says so in the guide and lets a filled wall be upgraded to a corner
 The proposal confirms the one that should already match, adds two-placeholder family templates for Wood Stain, and leaves attribute stacks for Dyed Wood until asked.
 - `modded-furniture-hosting`: Kevins Furniture's two cabinets declare every side solid, so the hosting rule refuses them as cubes.
 The proposal adds an attribute a block can set to say whether it may be hosted, and ships it for those cabinets.
+- `face-finishes`: a player framing in full logs wants floorboards over a beam and siding on a post, asked for as a fill block.
+The proposal puts a plank finish on one face of any solid block as a vanilla decor block, flat, picked as a fourth option in the saw picker's first row.
 - `real-smoke-flues`: a player vents a kitchen through trellises, which costs the room its heat, and asks for a flue or a hearth in a wall.
 The proposal plays Siding under Real Smoke first, since the assets do not show whether smoke crosses a thin wall, and adds a vented infill only if no vanilla block already serves.
 - `walls-under-roofing`: a flat-topped wall leaves a stepped triangle under a Roofing gable.
