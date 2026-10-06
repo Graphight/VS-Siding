@@ -287,7 +287,7 @@ public class SidingFloorBlock : Block
 
     private EnumBlockMaterial LayerMaterialAt(string? layer, SidingFloorEntity entity)
         => SidingWallBlock.LayerMaterial(layer, SidingWallBlock.LayerKey(layer, entity.Infill, entity.Front, null, entity.Back, null),
-            Attributes["Infills"], Attributes["Finishes"], BlockMaterial);
+            entity.Framing, Attributes["Framings"], Attributes["Infills"], Attributes["Finishes"], BlockMaterial);
 
     private EnumBlockMaterial HitLayerMaterial(IBlockAccessor accessor, BlockPos pos, BlockFacing? hitFace)
         => accessor.GetBlockEntity<SidingFloorEntity>(pos) is { } entity ? LayerMaterialAt(PeelLayer(hitFace, entity), entity) : BlockMaterial;

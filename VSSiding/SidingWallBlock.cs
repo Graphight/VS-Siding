@@ -1046,7 +1046,7 @@ public class SidingWallBlock : Block
     {
         if (layer == "step" && entity.Step != null)
             return api?.World.GetBlock(new AssetLocation(entity.Step))?.BlockMaterial ?? BlockMaterial;
-        return LayerMaterial(layer, KeyAt(layer, entity), Attributes["Infills"], Attributes["Finishes"], BlockMaterial);
+        return LayerMaterial(layer, KeyAt(layer, entity), entity.Framing, Attributes["Framings"], Attributes["Infills"], Attributes["Finishes"], BlockMaterial);
     }
 
     // The fallback is a parameter rather than read from Sounds here, so GetSounds can defer to
@@ -1283,12 +1283,14 @@ public class SidingWallBlock : Block
             _ => infill,
         };
 
-    // Only "infill" and the finish layers look a material up. Framings are all planks and carry
-    // no BlockMaterial, so a frame or a deck falls through to the caller's fallback, the block's own Wood.
-    internal static EnumBlockMaterial LayerMaterial(string? layer, string? key, JsonObject infills, JsonObject finishes, EnumBlockMaterial fallback)
+    // Infills and finishes look their material up in their own dictionary; a bare frame looks up the
+    // framing and a deck its framing key, and an entry with no BlockMaterial (planks) falls through
+    // to the caller's fallback, the block's own Wood.
+    internal static EnumBlockMaterial LayerMaterial(string? layer, string? key, string? framing, JsonObject framings, JsonObject infills, JsonObject finishes, EnumBlockMaterial fallback)
     {
-        if (key == null || layer == "deck") return fallback;
-        var dictionary = layer is "infill" or "deckinfill" ? infills : finishes;
+        if (layer == null) key = framing;
+        if (key == null) return fallback;
+        var dictionary = layer is null or "deck" ? framings : layer is "infill" or "deckinfill" ? infills : finishes;
         string? materialName = dictionary[key]["BlockMaterial"].AsString(null!);
         return Enum.TryParse(materialName, true, out EnumBlockMaterial material) ? material : fallback;
     }

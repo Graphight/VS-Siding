@@ -12,6 +12,8 @@ public class SidingWallBlockLayerMaterialTests
 {
     private static JsonObject Dict(string json) => new(JToken.Parse(json));
 
+    private static readonly JsonObject Framings = Dict("""{ "oak": {}, "bone": { "BlockMaterial": "Other" } }""");
+
     private static readonly JsonObject Infills = Dict("""{ "clay": { "BlockMaterial": "Soil" } }""");
 
     private static readonly JsonObject Finishes = Dict("""{ "ashlar-granite": { "BlockMaterial": "Stone" } }""");
@@ -70,40 +72,52 @@ public class SidingWallBlockLayerMaterialTests
     [Fact]
     public void InfillLayerMaterialReadsInfillsDictionary()
     {
-        Assert.Equal(EnumBlockMaterial.Soil, SidingWallBlock.LayerMaterial("infill", "clay", Infills, Finishes, EnumBlockMaterial.Wood));
+        Assert.Equal(EnumBlockMaterial.Soil, SidingWallBlock.LayerMaterial("infill", "clay", null, Framings, Infills, Finishes, EnumBlockMaterial.Wood));
     }
 
     [Fact]
     public void FrontLayerMaterialReadsFinishesDictionary()
     {
-        Assert.Equal(EnumBlockMaterial.Stone, SidingWallBlock.LayerMaterial("front", "ashlar-granite", Infills, Finishes, EnumBlockMaterial.Wood));
+        Assert.Equal(EnumBlockMaterial.Stone, SidingWallBlock.LayerMaterial("front", "ashlar-granite", null, Framings, Infills, Finishes, EnumBlockMaterial.Wood));
     }
 
     [Fact]
     public void MissingKeyFallsBack()
     {
-        Assert.Equal(EnumBlockMaterial.Wood, SidingWallBlock.LayerMaterial("front", null, Infills, Finishes, EnumBlockMaterial.Wood));
+        Assert.Equal(EnumBlockMaterial.Wood, SidingWallBlock.LayerMaterial("front", null, null, Framings, Infills, Finishes, EnumBlockMaterial.Wood));
     }
 
     [Fact]
     public void UnknownKeyFallsBack()
     {
-        Assert.Equal(EnumBlockMaterial.Wood, SidingWallBlock.LayerMaterial("front", "planks", Infills, Finishes, EnumBlockMaterial.Wood));
+        Assert.Equal(EnumBlockMaterial.Wood, SidingWallBlock.LayerMaterial("front", "planks", null, Framings, Infills, Finishes, EnumBlockMaterial.Wood));
     }
 
     [Fact]
     public void DeckLayerFallsBackLikeTheFrame()
     {
-        Assert.Equal(EnumBlockMaterial.Wood, SidingWallBlock.LayerMaterial("deck", "oak", Infills, Finishes, EnumBlockMaterial.Wood));
+        Assert.Equal(EnumBlockMaterial.Wood, SidingWallBlock.LayerMaterial("deck", "oak", null, Framings, Infills, Finishes, EnumBlockMaterial.Wood));
     }
 
     [Fact]
     public void DeckLayersReadTheirOwnDictionaries()
     {
         var materials = new[] { "deckinfill", "deckfront", "deckback" }
-            .Select(layer => SidingWallBlock.LayerMaterial(layer, layer == "deckinfill" ? "clay" : "ashlar-granite", Infills, Finishes, EnumBlockMaterial.Wood))
+            .Select(layer => SidingWallBlock.LayerMaterial(layer, layer == "deckinfill" ? "clay" : "ashlar-granite", null, Framings, Infills, Finishes, EnumBlockMaterial.Wood))
             .ToArray();
         Assert.Equal(new[] { EnumBlockMaterial.Soil, EnumBlockMaterial.Stone, EnumBlockMaterial.Stone }, materials);
+    }
+
+    [Fact]
+    public void BareFrameReadsItsFramingEntry()
+    {
+        Assert.Equal(EnumBlockMaterial.Other, SidingWallBlock.LayerMaterial(null, null, "bone", Framings, Infills, Finishes, EnumBlockMaterial.Wood));
+    }
+
+    [Fact]
+    public void DeckReadsItsFramingEntry()
+    {
+        Assert.Equal(EnumBlockMaterial.Other, SidingWallBlock.LayerMaterial("deck", "bone", "oak", Framings, Infills, Finishes, EnumBlockMaterial.Wood));
     }
 
     // A material missing from LayerSounds or LayerResistance quietly falls back to the block's
