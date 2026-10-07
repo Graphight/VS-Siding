@@ -2,7 +2,7 @@
 
 - Status: Draft
 - Created: 2026-10-06
-- Reflects: mod page comments https://mods.vintagestory.at/vssiding#cmt-243661 with its first screenshot and #cmt-245197; decompiled 1.22.7 `BlockBehaviorDecor`, `WorldChunk.SetDecor`/`BreakDecor`/`AdjustSelectionBoxForDecor`, `ChunkTesselator.BuildDecorPolygons`, `SurfaceLayerTesselator`, `DecorFlags`, `ServerChunk`'s decor serialisation, `SystemMouseInWorldInteractions.ContinueBreakSurvival`; vanilla `cloth/wallpaper.json`, `overlay/plaster.json`, `cloth/rug.json`, `cloth/mediumcarpet.json`; `SidingModePicker.Rows`, `PlaceWallFrame`, `config/materials.json`'s `planks-{wood}`; decisions 0001, 0010, 0027, 0031, 0035, 0040, 0051, 0058; issue #81; not built, not played
+- Reflects: mod page comments https://mods.vintagestory.at/vssiding#cmt-243659, #cmt-243661 with its first screenshot and #cmt-245197; decompiled 1.22.7 `BlockBehaviorDecor`, `WorldChunk.SetDecor`/`BreakDecor`/`AdjustSelectionBoxForDecor`, `ChunkTesselator.BuildDecorPolygons`, `SurfaceLayerTesselator`, `DecorFlags`, `ServerChunk`'s decor serialisation, `SystemMouseInWorldInteractions.ContinueBreakSurvival`; vanilla `cloth/wallpaper.json`, `overlay/plaster.json`, `cloth/rug.json`, `cloth/mediumcarpet.json`; `SidingModePicker.Rows`, `PlaceWallFrame`, `config/materials.json`'s `planks-{wood}`; decisions 0001, 0010, 0027, 0031, 0035, 0040, 0051, 0058; issue #81; not built, not played
 
 ## Summary
 A player frames a house in full log blocks and wants a Siding finish on one face of a log: floorboards over a beam, siding on the room side of a post.
@@ -76,7 +76,7 @@ On a top or bottom face the same two options are the two directions a floor's bo
 - **The fill block as asked.** A layer filling the open 12/16 of a wall's or floor's cell with a block's material. Drawing it is one box. Everything else in the mod reads that space as open: furniture is hosted in it (decision 0035), collision, light and retention treat it as air, and `sidesolid` is false on the whole block, so a filled cell would still support nothing above it. The mod would have to handle full blocks in the cells where its code assumes open space.
 - **A store of this mod's own, keyed by position and face**, drawn through the `TesselateBlock` transpiler that draws a guest wall (decision 0035). It would keep the families, the relief and every style. It would also need its own sync, save, break, drop and selection, which is what vanilla's decor layer already is.
 - **A `json` decor with real board thickness.** Relief suits a log's side face; on a beam's top it is the lip above. Revisit for side faces if players ask for weatherboard on a post.
-- **Every finish as a variant from the start.** Eight finish entries and nine families, four of the families crossed with every rock and two with every wood. Two comments asked for boards.
+- **Every finish as a variant from the start.** Eight finish entries and ten families, four of the families crossed with every rock and two with every wood. Two comments asked for boards.
 - **A different tool in the off hand.** It would keep plank clicks unambiguous, and the picker's first row already does: its options are exclusive answers to "what does this click put down".
 - **Chiselling.** Vanilla's chisel has an add-material mode (`ItemChisel`'s `addmat`), so a player can put a plank layer on a log today. `chiselling-walls` is about turning a wall into a microblock, which is a different job.
 

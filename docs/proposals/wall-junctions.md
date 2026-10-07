@@ -87,7 +87,7 @@ They wait for the players' answers.
 ## Alternatives considered
 - **Walls pick their own corners from their neighbours** (`auto-corners`, parked). Still parked for its own reason: it would fight a player placing pieces on purpose. The guide and a later upgrade leave the player in charge.
 - **Several walls per cell** (`multiple-walls-per-cell`, parked). Its revival test was a real build that needs it. The stairwell is the first candidate, and at 8/16 it cannot be walked, so it stays parked.
-- **A stair layer on a thin floor**, so a stair and a floor share a cell as a stair and a wall do. The clash in the stairwell report reads as a wall and a floor wanting the same cell beside the stair, and a wall with a deck is both (decision 0042).
+- **A stair layer on a thin floor**, so a stair and a floor share a cell as a stair and a wall do. The clash in the stairwell report reads as a wall and a floor both falling in the same cell beside the stair, and a wall with a deck is both (decision 0042).
 - **A dedicated four-way piece.** It would be the corner under another name. What players lack is the rule, not the block.
 - **A `cornerin` post before the build.** It was held as a guess at what one sentence meant, and a second player has since confirmed the sentence. The one picture of it has a glazed cell in it, so the shape still waits on an unglazed corner.
 - **Leave the inside corner as decision 0002 has it**, looks only. Two players have now raised it, one with a picture.

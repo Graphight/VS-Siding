@@ -18,7 +18,7 @@ The proposal adds vanilla's four plaster blocks as flat finishes through two fam
 The proposal adds two styles, bark running up and bark running along, as flat faces in vanilla's bark texture.
 - `quieter-tooltip`: looking at a wall prints up to a dozen lines.
 The proposal shows only whether the wall seals unless the saw is in the off hand.
-- `wall-junctions`: four players describe junctions they could not build, and a corner piece already covers a T and a crossing, as a creative build confirmed.
+- `wall-junctions`: four players describe junctions they could not build, and a corner piece already covers a T and a crossing; a creative build confirmed the crossing.
 The proposal says so in the guide and lets a filled wall be upgraded to a corner; a post for the inside corner follows one unglazed build, and the other new shapes wait on the players' answers.
 - `stained-plank-finishes`: a player asked for dyed wood compat, and three mods store a coloured plank three ways.
 The proposal confirms the one that should already match, adds two-placeholder family templates for Wood Stain, and leaves attribute stacks for Dyed Wood until asked.
