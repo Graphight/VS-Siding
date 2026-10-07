@@ -18,12 +18,16 @@ The proposal adds vanilla's four plaster blocks as flat finishes through two fam
 The proposal adds two styles, bark running up and bark running along, as flat faces in vanilla's bark texture.
 - `quieter-tooltip`: looking at a wall prints up to a dozen lines.
 The proposal shows only whether the wall seals unless the saw is in the off hand.
-- `wall-junctions`: four players describe junctions they could not build, and a corner piece already covers a T and a crossing.
-The proposal says so in the guide and lets a filled wall be upgraded to a corner; new shapes wait on the players' answers.
+- `wall-junctions`: four players describe junctions they could not build, and a corner piece already covers a T and a crossing; a creative build confirmed the crossing.
+The proposal says so in the guide and lets a filled wall be upgraded to a corner; a post for the inside corner follows one unglazed build, and the other new shapes wait on the players' answers.
 - `stained-plank-finishes`: a player asked for dyed wood compat, and three mods store a coloured plank three ways.
 The proposal confirms the one that should already match, adds two-placeholder family templates for Wood Stain, and leaves attribute stacks for Dyed Wood until asked.
 - `modded-furniture-hosting`: Kevins Furniture's two cabinets declare every side solid, so the hosting rule refuses them as cubes.
 The proposal adds an attribute a block can set to say whether it may be hosted, and ships it for those cabinets.
+- `face-finishes`: a player framing in full logs wants floorboards over a beam and siding on a post, asked for as a fill block.
+The proposal puts a plank finish on one face of any solid block as a vanilla decor block, flat, picked as a fourth option in the saw picker's first row.
+- `real-smoke-flues`: a player vents a kitchen through trellises, which costs the room its heat, and asks for a flue or a hearth in a wall.
+Real Smoke stops smoke at a face that dams liquid, which a filled wall already reports, so the proposal plays what reading cannot settle and adds a vented wall on that mod's chimney behaviour only if no vanilla block already serves.
 - `walls-under-roofing`: a flat-topped wall leaves a stepped triangle under a Roofing gable.
 The proposal adds a raked wall, its top cut to a pitch picked on the saw and measured to match Roofing's slopes, without reading Roofing's state.
 - `chiselling-walls`: vanilla refuses to chisel a non-cube block, and the proposal converts a wall through its collision-box path with materials rebuilt from its layers.
