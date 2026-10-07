@@ -30,6 +30,28 @@ public class TentScenarios : AtlasScenarioBase
 
         Assert.Equal(wall, World.BlockAt(cell));
         Assert.Equal(("bone", null, null, null, null), WallBuilder.Layers(World, cell));
+        Assert.Null(wall.GetCombustibleProperties(player.Entity.World, null, cell));
+
+        BurnOut(cell);
+
+        Assert.Equal(wall, World.BlockAt(cell));
+    }
+
+    [AtlasScenario(FreshWorld = true)]
+    public async Task Floor_Should_StandOnItsBoneJoists_When_AFireBurnsOutOnThem()
+    {
+        BlockPos cell = World.Spawn.Offset(1, 2, 0);
+        World.SetBlock("game:planks-aged-ud", cell.DownCopy());
+        ITestPlayer player = await WallBuilder.JoinBuilder(World);
+        player.Entity.WatchedAttributes.SetString("vssidingFraming", "floor");
+        await WallBuilder.Raise(World, player, cell, cell.WestCopy(), "game:bone", null, framingCost: 2);
+
+        Assert.Equal(("bone", null, null, null, null), WallBuilder.Layers(World, cell));
+        Block floor = World.BlockAt(cell);
+
+        BurnOut(cell);
+
+        Assert.Equal(floor, World.BlockAt(cell));
     }
 
     [AtlasScenario(FreshWorld = true)]
@@ -48,6 +70,18 @@ public class TentScenarios : AtlasScenarioBase
         ITestPlayer player = await WallBuilder.JoinBuilder(World);
         await WallBuilder.Raise(World, player, cell, cell.WestCopy(), "game:bone", null, framingCost: 2);
         return (cell, player);
+    }
+
+    // A burnout that lands after the last layer that burns has gone, as a second fire's does:
+    // vanilla rechecks its fuel once a second, and its burn timer runs every 25 ms.
+    private void BurnOut(BlockPos cell)
+    {
+        BlockPos firePos = cell.UpCopy();
+        World.SetBlock("game:fire", firePos);
+        var burning = World.BlockEntityAt<BlockEntity>(firePos)!.GetBehavior<BEBehaviorBurning>();
+        burning.FirePos = firePos;
+        burning.FuelPos = cell.Copy();
+        burning.KillFire(true);
     }
 
     private async Task Layer(ITestPlayer player, BlockPos cell, string item)

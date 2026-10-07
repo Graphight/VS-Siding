@@ -31,6 +31,9 @@ Bone joists for a thin floor come with it and need no floor code, as stick joist
 It now reads `Framings`: a bare frame looks up its framing key and a deck its own.
 An entry with no `BlockMaterial` still falls back, so planks and sticks are unchanged.
 `bone` names `BlockMaterial: "Other"`, and decision 0043 burns only a `Wood` top layer, so a bone frame and a bone deck do not burn.
+`TryBurnLayer`, on the wall and on the floor, handed a bare frame back to vanilla to delete, which was right while every bare frame was `Wood`.
+It now keeps a bare frame that is not `Wood`.
+Vanilla rechecks a fire's fuel once a second and runs its burn timer every 25 ms, so a burnout can land on a bone frame whose pelt has just gone.
 
 **A pelt infill, one per hide size.**
 A `pelt-{size}` template in `InfillFamilies`, matching `game:hide-pelt-*` on its `size` variant.
@@ -45,10 +48,11 @@ It expands to thirteen infills, each consuming and dropping one cloth, drawing `
 Pelt and cloth name `BlockMaterial: "Wood"`, as `straw` does, so they burn (decision 0043) and take the plank layer sounds.
 They seal a room like any infill and are not cooling infills, since decision 0003's rule reads Stone, Ore, Soil and Ceramic.
 
-**One end-to-end scenario.**
+**End-to-end scenarios.**
 `TentScenarios` raises a bone frame, layers a small pelt and sets a fire; the fire burns the pelt off and the same wall block stands with only its bone framing.
-A second scenario layers blue cloth.
-This is the only check that the item codes are real and that the bone patch applies.
+It then reads the bare frame's combustible properties as null, which fails if the shipped `bone` entry loses its `BlockMaterial`, and runs a second burnout against the bare frame, which must stand.
+A second scenario runs that burnout against bare bone joists, and a third layers blue cloth.
+These are the only checks that the item codes are real and that the bone patch applies.
 
 **The `Other` consumer audit.**
 `GetBlockMaterial` now answers `Other` for a bare bone frame, a value no wall reported before.

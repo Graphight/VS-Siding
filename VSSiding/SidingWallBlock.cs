@@ -1159,16 +1159,17 @@ public class SidingWallBlock : Block
     }
 
     // A fire that burns out against a wall takes its topmost layer, not the whole block; a bare
-    // frame has none left, so vanilla deletes it. Vanilla only rechecks fuel once a second, so a
-    // non-wood layer added in that window is left standing and the fire just goes out.
+    // wood frame has none left, so vanilla deletes it. Vanilla only rechecks fuel once a second, so a
+    // non-wood layer added in that window, or a bare frame that is not wood, is left standing and the
+    // fire just goes out.
     internal bool TryBurnLayer(IWorldAccessor world, BlockPos pos)
     {
         var entity = world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos);
         if (entity == null) return false;
         string? layer = PeelAt(entity, null, false);
-        if (layer == null) return false;
-
         bool burns = LayerMaterialAt(layer, entity) == EnumBlockMaterial.Wood;
+        if (layer == null) return !burns;
+
         if (burns && world.Side == EnumAppSide.Server) RemoveLayer(world, entity, pos, layer);
         return true;
     }
