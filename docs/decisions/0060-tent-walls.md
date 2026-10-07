@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Created: 2026-10-04
-- Reflects: split from `primitive-framing` on 2026-10-04; mod page comment https://mods.vintagestory.at/vssiding#cmt-242905 and the reply at #cmt-243431; branch `feat/tent-walls`; `config/materials.json`, `SidingWallBlock.LayerMaterial`, `patches/bone-frame-behavior.json`, `TentScenarios`, `SidingWallBlockLayerMaterialTests`; vanilla 1.22 `bone.json`, `hide.json`, `hide-species.json`, `cloth.json` and the decompiled `Block`, `CollectibleObject` and `BlockMaterialUtil`; decisions 0001, 0010, 0043, 0058; unit and end-to-end tests pass; not yet played
+- Reflects: split from `primitive-framing` on 2026-10-04; mod page comment https://mods.vintagestory.at/vssiding#cmt-242905 and the reply at #cmt-243431; branch `feat/tent-walls`; `config/materials.json`, `SidingWallBlock.LayerMaterial`, `patches/bone-frame-behavior.json`, `TentScenarios`, `SidingWallBlockLayerMaterialTests`; vanilla 1.22 `bone.json`, `hide.json`, `hide-species.json`, `cloth.json` and the decompiled `Block`, `CollectibleObject` and `BlockMaterialUtil`; decisions 0001, 0010, 0043, 0058; unit and end-to-end tests pass; played on 2026-10-06
 
 ## Summary
 A player asked for "bone frames/walls and cloth/hide/pelt walls" as "a 'neolithic tent' option".
@@ -100,9 +100,8 @@ This reverses the proposal, which wanted fox and raccoon pelts to match.
 - **A `LayerSounds` entry for `Other`.** The plank fallback is acceptable for bone.
 
 ## Consequences & open questions
-- Not yet played.
-`dotnet test` and the headless server never exercise the texture atlas, so how the three textures look on a wall is unchecked: a bone frame is posts two texels wide in a pale texture and may not read as bone.
-A shaped bone frame belongs with `rough-pole-frames`.
+- Played: the bone frame is too clean edged, squared posts in a pale texture, and `rough-pole-frames` now covers bone as well as sticks.
+- The tent it builds is a box; `diagonal-walls` proposes a corner cut at forty-five degrees.
 - Fox, raccoon and bear pelts are not accepted.
 - A bare wood frame under a deck that does not burn is fireproof, since fire only steps over the deck for a wall layer.
 - A step is not stepped over as a deck is, so a stone stair filling a wall's open side still shields the layers under it.
