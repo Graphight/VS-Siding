@@ -8,8 +8,6 @@ An idea that's been thought through but not acted on. Mutable: edit freely, argu
 
 ## Open
 
-- `rough-pole-frames`: a stick or bone frame is a plank frame in another texture, and a post two texels wide cannot look rough through its texture.
-The proposal lets a framing entry name its own shape elements and draws the stick and bone frames as uneven, lashed poles with stubs, walls and corners first.
 - `plaster-finish`: two players want a finish lighter than daub.
 The proposal adds vanilla's four plaster blocks as flat finishes through two family templates, with no code.
 - `bark-log-finish`: the log finish offers shakes or debarked logs, so a wall cannot match the log blocks a house is framed with.

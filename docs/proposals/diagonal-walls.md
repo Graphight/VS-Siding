@@ -87,5 +87,5 @@ Decision 0058 set no per-framing restrictions, so planks, sticks and bones all f
 - A run of diagonals steps one cell sideways per cell, and the cells in its inside angle are ordinary open cells; furniture set against a diagonal will not sit flush.
 - A flat finish on a diagonal beside the same finish modelled on a straight wall will show a seam in relief.
 - Stacked diagonals share plates as stacked walls do (decision 0008); a diagonal beside a straight wall drops no member, since each keeps its post.
-- `rough-pole-frames` names framing elements by prefix, so a diagonal needs its `poles-` groups too if both ship.
+- Decision 0061 names framing elements by prefix, so a diagonal needs its `poles-` groups too if both ship.
 - `WallShapeGenTests` pins the committed shapes to the generator, so `just shapes` runs in the same change.
