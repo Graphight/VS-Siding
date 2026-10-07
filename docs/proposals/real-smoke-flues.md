@@ -2,7 +2,7 @@
 
 - Status: Draft
 - Created: 2026-10-06
-- Reflects: mod page comment https://mods.vintagestory.at/vssiding#cmt-245074; the mod page and shipped assets of Real Smoke 2.0.0-pre.7 (`patches/tag-porous.json`, `patches/realgaspump.json`, `patches/remove-blockbehaviorchimney.json`, the handbook text in `lang/en.json`); Real Smoke's public source at https://codeberg.org/xyrvexus/RealSmoke, branch `rs_v2` at 2.0.0-pre.7 (`SmokeFlowField.ReadCell`, `SmokeUtils.ChimneyOutputPosition`, `GasUtils.IsAdjacentSidePorous`, `EnvironmentSampler.IsPassableForRainfall`); `SidingWallBlock.GetLiquidBarrierHeightOnSide`, `GuestSealingPatches`, `blocktypes/wall.json`, `blocktypes/floor.json`, `SidingModSystem.IsHostable`; decompiled 1.22.7 `Block.GetLiquidBarrierHeightOnSide` and `Block.SideIsSolid`; vanilla `firepit.json`, `forge.json`, `clay/oven.json`, `clay/chimneycourse.json`, `wood/stickslayer.json`; decisions 0001, 0002, 0003, 0019, 0020, 0035, 0043; not played with that mod
+- Reflects: mod page comment https://mods.vintagestory.at/vssiding#cmt-245074; the mod page and shipped assets of Real Smoke 2.0.0-pre.7 (`patches/tag-porous.json`, `patches/realgaspump.json`, `patches/remove-blockbehaviorchimney.json`, the handbook text in `lang/en.json`); Real Smoke's public source at https://codeberg.org/xyrvexus/RealSmoke, branch `rs_v2` at 2.0.0-pre.7 (`SmokeFlowField.ReadCell`, `SmokeUtils.ChimneyOutputPosition`, `GasUtils.IsAdjacentSidePorous`, `EnvironmentSampler.IsPassableForRainfall`); `SidingWallBlock.GetLiquidBarrierHeightOnSide`, `GuestSealingPatches`, `blocktypes/wall.json`, `blocktypes/floor.json`, `SidingModSystem.IsHostable`; decompiled 1.22.7 `Block.GetLiquidBarrierHeightOnSide` and `Block.SideIsSolid`; vanilla `firepit.json`, `forge.json`, `clay/oven.json`, `clay/chimneycourse.json`, `wood/stickslayer.json`; decisions 0001, 0002, 0003, 0019, 0020, 0035, 0042, 0043, 0050; not played with that mod
 
 ## Summary
 A player vents a kitchen through trellises so smoke gets out, which costs the room its heat, and asks for an oven or hearth built into a wall or a flue made from a trapdoor.
@@ -33,8 +33,8 @@ Rainfall passes a block that is not `SideSolid` on the entered face or its oppos
 So a filled wall seals its face against smoke as it does against water, and a bare frame does not.
 `GuestSealingPatches` returns the same for a wall whose cell hosts furniture (decision 0035).
 A wall's collision is its 4/16 panel, which leaves 12/16 of the cell open, three times the 4 voxels smoke needs.
-It asks only the faces the wall claims, so a deck's top returns 0 although the deck retains there (decision 0042).
-The thin floor has no override, so vanilla's default reads `floor.json`, which declares the top solid whatever is built on the joists.
+It asks only the faces the wall claims, so a deck's top returns 0 although the deck retains there; decision 0042 left liquids on a deck's top false "until play says otherwise".
+The thin floor has no override, so vanilla's default reads `floor.json`, which declares the top solid whatever is built on the joists; decision 0050 chose that, "so water rests on joists".
 Every face of a wall declares `sidesolid: false`, and every face of a thin floor but its top (decision 0002), so the flue search never stops at either.
 Neither block overrides `SideIsSolid`: decision 0020 left it false as cosmetic, its one vanilla consumer being how water draws an edge.
 
@@ -72,7 +72,7 @@ One sealed Siding room with a firepit, under Real Smoke 2.0.0-pre.7, `/sidingroo
 
 **Fix what the playtest shows wrong.**
 A floor that holds smoke on bare joists needs the override the wall has, and a deck that passes it needs the wall's override to ask the top.
-Both would change what water does too, since the method is vanilla's liquid test.
+Both change what water does too, since the method is vanilla's liquid test, so each revisits a row decisions 0050 and 0042 settled for water alone (issue #101).
 A fire that vents into a sealed wall is a second consumer of `SideIsSolid`, which an override returning the liquid barrier's answer would settle.
 A flue that draws through a sealed floor reads the `SideSolid` field, which no override reaches.
 
