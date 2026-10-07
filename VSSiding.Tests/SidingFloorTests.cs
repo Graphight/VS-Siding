@@ -70,6 +70,8 @@ public class SidingFloorTests
                     "deck-south-infill-top", "deck-south-back-hboards"],
                 ["deck-north-glazing-top", "deck-north-glazing-bottom", "deck-north-infill-pane"],
                 [],
+                ["deck-west-poles2-left", "deck-west-poles2-right", "deck-west-poles2-top", "deck-west-poles2-bottom"],
+                ["deck-north-glazing-top", "deck-north-glazing-bottom", "deck-north-infill-pane"],
             },
             new[]
             {
@@ -77,6 +79,8 @@ public class SidingFloorTests
                 SidingWallEntity.DeckElements("south", "oak", "wattle", "planks", "planks", Finishes, (true, false, false, false), ("boards", null), false),
                 SidingWallEntity.DeckElements("north", "oak", "glass", null, null, Finishes, (false, false, true, true), default, true),
                 SidingWallEntity.DeckElements("east", null, "wattle", "planks", "planks", Finishes, (false, false, false, false), default, false),
+                SidingWallEntity.DeckElements("west", "sticks", null, null, null, Finishes, (false, false, false, false), default, false, "poles2"),
+                SidingWallEntity.DeckElements("north", "sticks", "glass", null, null, Finishes, (false, false, true, true), default, true, "poles"),
             });
     }
 

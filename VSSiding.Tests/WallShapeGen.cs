@@ -812,6 +812,9 @@ public static class WallShapeGen
                 if (Empty(lo.X, hi.X, source.From.X, source.To.X)
                     || Empty(lo.Y, hi.Y, source.From.Y, source.To.Y)
                     || Empty(lo.Z, hi.Z, source.From.Z, source.To.Z)) continue;
+                // A stub the deck's edge cuts would lie beside the wall with no joist behind it.
+                bool stub = source.Name.StartsWith("poles") && source.To.Y - source.From.Y == 0.5;
+                if (stub && (lo.X, hi.X) != (source.From.X, source.To.X)) continue;
 
                 yield return source with
                 {

@@ -83,6 +83,22 @@ public class FinishElementGroupsTests
             }
         }
 
+        // A deck is the floor clipped to its side, and the clip drops some members whole, such as the rim
+        // against the wall. A pole deck has to keep exactly the members the plain deck keeps.
+        foreach (var layout in new[] { "wall", "cornerout" })
+        {
+            var names = JObject.Parse(File.ReadAllText(Path.Combine(assets, "shapes", "block", "wall", layout + ".json")))["elements"]!
+                .Select(e => (string)e["name"]!).ToHashSet();
+            foreach (var side in new[] { "north", "east", "south", "west" })
+            {
+                string[] Kept(string frame) => SidingWallEntity.DeckElements(
+                        side, "sticks", null, null, null, new JsonObject(new JObject()), (false, false, false, false), default, false, frame)
+                    .Where(names.Contains).Select(name => name.Replace(frame, "framing")).ToArray();
+                offenders.AddRange(frames.Where(frame => !Kept(frame).SequenceEqual(Kept("framing")))
+                    .Select(frame => $"block/wall/{layout} keeps [{string.Join(", ", Kept(frame))}] of the {side} deck's {frame} groups, not [{string.Join(", ", Kept("framing"))}]"));
+            }
+        }
+
         var floorShape = JObject.Parse(File.ReadAllText(Path.Combine(assets, "shapes", "block", "floor", "floor.json")));
         var floorNames = floorShape["elements"]!.Select(e => (string)e["name"]!).ToHashSet();
         var floorJson = JObject.Parse(File.ReadAllText(Path.Combine(assets, "blocktypes", "floor.json")));

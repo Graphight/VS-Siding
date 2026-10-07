@@ -49,13 +49,15 @@ public class SidingWallEntityTests
             ("sticks", null, "packeddirt", null),
             ("sticks", null, "wattle", "planks"),
             ("sticks", "oak", null, null),
+            ("aged", "sticks", null, null),
+            ("sticks", "aged", null, null),
             ("aged", null, "packeddirt", null),
             ("oak", null, null, null),
             (null, null, null, null),
         ];
 
         Assert.Equal(
-            new[] { 0, 1, 77, 77, 77, 77, 77, 0 },
+            new[] { 0, 1, 77, 77, 77, 1, 1, 77, 77, 0 },
             cells.Select(c => SidingWallEntity.CellAlternate(attributes, 77, c.Framing, c.Deck, [c.Infill, null], [c.Front, null])));
     }
 
