@@ -8,8 +8,8 @@ An idea that's been thought through but not acted on. Mutable: edit freely, argu
 
 ## Open
 
-- `rough-pole-frames`: a stick frame is a plank frame in a darker texture, and a post two texels wide cannot look rough through its texture.
-The proposal lets a framing entry name its own shape elements and draws the stick frame as uneven, lashed poles with branch stubs, walls and corners first.
+- `rough-pole-frames`: a stick or bone frame is a plank frame in another texture, and a post two texels wide cannot look rough through its texture.
+The proposal lets a framing entry name its own shape elements and draws the stick and bone frames as uneven, lashed poles with stubs, walls and corners first.
 - `plaster-finish`: two players want a finish lighter than daub.
 The proposal adds vanilla's four plaster blocks as flat finishes through two family templates, with no code.
 - `bark-log-finish`: the log finish offers shakes or debarked logs, so a wall cannot match the log blocks a house is framed with.
@@ -24,6 +24,8 @@ The proposal confirms the one that should already match, adds two-placeholder fa
 The proposal adds an attribute a block can set to say whether it may be hosted, and ships it for those cabinets.
 - `walls-under-roofing`: a flat-topped wall leaves a stepped triangle under a Roofing gable.
 The proposal adds a raked wall, its top cut to a pitch picked on the saw and measured to match Roofing's slopes, without reading Roofing's state.
+- `diagonal-walls`: a tent built from these walls is a box, since a corner turns ninety degrees.
+The proposal adds a third framing layout, a panel crossing its cell corner to corner, which is a `cornerout` for every rule but its drawing and its boxes; whether a staircase of collision boxes can be walked along is tested first.
 - `chiselling-walls`: vanilla refuses to chisel a non-cube block, and the proposal converts a wall through its collision-box path with materials rebuilt from its layers.
 Parked until players asked; three requests now lead to it, for windows, trims and a way through for axles.
 It is the largest of these by far, so it is last.
