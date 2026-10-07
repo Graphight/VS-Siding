@@ -177,6 +177,7 @@ public class WallShapeGenTests
         var expected = new Dictionary<string, int>
         {
             ["wall bare frame"] = 24,
+            ["wall pole frame"] = 104,
             ["wall wattle"] = 30,
             ["wall wattle, mid-stack"] = 30,
             ["wall daub both faces"] = 42,
@@ -251,6 +252,13 @@ public class WallShapeGenTests
                 actual[$"{layout} {state}"] = names.Sum(n => quads[n]);
             }
         }
+
+        var wallQuads = WallShapeGen.Generate("wall")["elements"]!
+            .GroupBy(e => (string)e["name"]!)
+            .ToDictionary(g => g.Key, g => g.Sum(e => ((JObject)e["faces"]!).Properties().Count()));
+        actual["wall pole frame"] = SidingWallEntity.SelectiveElements(
+            "wall", "sticks", null, null, null, null, finishes, (false, false, false, false), false, frame: "poles")
+            .Sum(n => wallQuads[n]);
 
         Assert.Equal(expected, actual);
     }

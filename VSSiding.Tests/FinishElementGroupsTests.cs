@@ -100,9 +100,11 @@ public class FinishElementGroupsTests
     // for every layout and every join state. A name the shape lacks draws nothing and says
     // nothing - which is how glazing silently kept its seam-prone filler stack.
     [Theory]
-    [InlineData("wall")]
-    [InlineData("cornerout")]
-    public void EveryElementSelectiveElementsCanAskForExistsInItsShape(string layout)
+    [InlineData("wall", "framing")]
+    [InlineData("wall", "poles")]
+    [InlineData("cornerout", "framing")]
+    [InlineData("cornerout", "poles")]
+    public void EveryElementSelectiveElementsCanAskForExistsInItsShape(string layout, string frame)
     {
         var repoRoot = MaterialTextureOpacityTests.GetAssemblyMetadata("RepoRoot");
         var shapeJson = JObject.Parse(File.ReadAllText(
@@ -117,7 +119,7 @@ public class FinishElementGroupsTests
             from transparent in new[] { false, true }
             from name in SidingWallEntity.SelectiveElements(
                 layout, "oak", "glass", null, null, null, new JsonObject(new JObject()),
-                (above, below, left, right), glazed: transparent)
+                (above, below, left, right), glazed: transparent, frame: frame)
             select name;
 
         Assert.Equal([], asked.Distinct().Where(name => !names.Contains(name)).ToArray());

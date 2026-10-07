@@ -158,7 +158,7 @@ public class SidingWallEntity : BlockEntity
         bool glazed = SidingWallBlock.IsTransparent(Infill, Block.Attributes["Infills"]);
         string side = Block.Variant["side"];
         string[]? step = Step != null && layout == "wall" ? StepElements(side, StepOrientation) : null;
-        string[] selectiveElements = SelectiveElements(layout, Framing, Infill, Front, SecondFront, Back, Block.Attributes["Finishes"], joins, glazed, Styles, step);
+        string[] selectiveElements = SelectiveElements(layout, Framing, Infill, Front, SecondFront, Back, Block.Attributes["Finishes"], joins, glazed, Styles, step, FrameElements(Block.Attributes["Framings"], Framing));
 
         // The deck is laid like a floor, in world directions, so its groups are tesselated unrotated.
         bool deckGlazed = SidingWallBlock.IsTransparent(DeckInfill, Block.Attributes["Infills"]);
@@ -186,6 +186,10 @@ public class SidingWallEntity : BlockEntity
         foreach (MeshData mesh in meshes) mesher.AddMeshData(mesh);
         return true;
     }
+
+    // The shape-group prefix a framing entry draws its frame with; most draw the plain "framing" groups.
+    internal static string FrameElements(JsonObject framings, string? framing)
+        => framing == null ? "framing" : framings[framing]["Elements"].AsString("framing");
 
     private static IEnumerable<MeshData> Meshes(
         ITesselatorAPI tesselator, Shape shape, ITexPositionSource texSource, Vec3f rotation, string[] elements, bool glazed)
@@ -250,7 +254,7 @@ public class SidingWallEntity : BlockEntity
     internal static string[] SelectiveElements(
         string layout, string? framing, string? infill, string? front, string? secondFront, string? back, JsonObject finishes,
         (bool above, bool below, bool left, bool right) joins, bool glazed,
-        (string? front, string? secondFront, string? back) styles = default, string[]? step = null)
+        (string? front, string? secondFront, string? back) styles = default, string[]? step = null, string frame = "framing")
     {
         var names = new List<string>();
         if (front != null) names.Add(FinishElement(finishes, front, "front", styles.front));
@@ -264,7 +268,7 @@ public class SidingWallEntity : BlockEntity
             // the frame still reaches the pane where the member beside it has been dropped. A
             // plain wall's plates stop short at its posts, which is right while the posts are
             // always there and leaves a notch at every cell edge once they aren't.
-            string member = glazed && !corner ? "glazing" : "framing";
+            string member = glazed && !corner ? "glazing" : corner ? "framing" : frame;
             if (corner) names.Add("framing");
             else
             {

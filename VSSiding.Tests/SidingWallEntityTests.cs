@@ -20,6 +20,16 @@ public class SidingWallEntityTests
     }
     """);
 
+    [Fact]
+    public void AFramingNamesItsGroupsOrFallsBackToThePlainOnes()
+    {
+        var framings = Dict("""{ "oak": {}, "sticks": { "Elements": "poles" } }""");
+
+        Assert.Equal(
+            new[] { "framing", "poles", "framing" },
+            new[] { "oak", "sticks", null }.Select(framing => SidingWallEntity.FrameElements(framings, framing)));
+    }
+
     // Three stacked infill boxes share a face at each seam; for glass that blends twice and draws
     // a bright line where a cross-beam would be. Glazing must take the single full-cell pane
     // instead, in every join state, and the pane must still count as infill for the render split.
