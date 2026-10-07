@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Created: 2026-10-07
-- Reflects: decision 0061 and its playtest of 2026-10-06; branch `feat/rough-pole-joists`; `SidingFloorEntity.SelectiveElements`/`OnTesselation`, `SidingWallEntity.CellAlternate`/`DeckElements`, `VSSiding.Tests/WallShapeGen` (`FloorPoleElements`, `FloorPole2Elements`, `PoleRim`, `DeckGroups`, `DeckSlots`), `blocktypes/floor.json` (`ignoreElements`), the generated `floor.json`, `wall.json` and `cornerout.json` shapes, `WallShapeGenTests`, `FinishElementGroupsTests`, `SidingFloorTests`, `SidingWallEntityTests`; unit and end-to-end tests pass; NOT played
+- Reflects: decision 0061 and its playtest of 2026-10-06; branch `feat/rough-pole-joists`; `SidingFloorEntity.SelectiveElements`/`OnTesselation`, `SidingWallEntity.CellAlternate`/`DeckElements`, `VSSiding.Tests/WallShapeGen` (`FloorPoleElements`, `FloorPole2Elements`, `PoleRim`, `DeckGroups`, `DeckSlots`), `blocktypes/floor.json` (`ignoreElements`), the generated `floor.json`, `wall.json` and `cornerout.json` shapes, `WallShapeGenTests`, `FinishElementGroupsTests`, `SidingFloorTests`, `SidingWallEntityTests`; unit and end-to-end tests pass; played on 2026-10-07 before the ledge was added, and the ledge has NOT been played
 
 ## Summary
 A stick or bone floor, and a stick or bone deck, draw their joists as rough poles: recessed, uneven in width, with stubs, rims that read as running over the joist ends, and rope lashing.
@@ -62,10 +62,22 @@ Rope is one constant, so the deck copies use the wall shape's own `lashing` slot
 
 **Clipped members.**
 The clip drops some members whole: the rim against the wall, and a joist that falls inside the wall panel.
-Where it removed a joist its stubs survived with nothing behind them, so `DeckGroups` drops any pole stub the deck's edge cuts.
+Where it removed a joist its stubs survived with nothing behind them.
+Only a rim runs across a deck's edge, so `DeckGroups` drops any other pole piece an edge cuts: a stub, cheek or lashing whose joist is on the far side, or a sliver of a joist's swelling.
 `APoleDeckKeepsTheMembersThePlainDeckKeeps` asserts a pole deck keeps exactly the members the plain deck keeps, per shape and side.
 That check compares group names, and `poles-left` holds two joists, so its name survives the loss of one.
 `EveryPieceOfAFloorOrDeckPoleGroupHangsOffAMember` covers that case: every stub, cheek and lashing is joined, through boxes of its group, to a joist or rim that crosses the frame's mid-plane.
+
+**The ledge.**
+In play the deck did not connect to the wall's frame.
+Decision 0042 made a deck fill the open 12/16 of the cell, so it stops a voxel short of the frame, at the slot the wall's room-side finish takes.
+A plank deck has the same gap; a stick wall shows it more, since its room side is often bare and its posts are recessed a further quarter voxel.
+The shapes now carry the deck's groups a second time, clipped to that slot, as `ledge-{side}-{name}`.
+`WallShapeGen.Ledge` reads the slot from the layout's own `back` boxes, at the deck's height, so a corner's ledge is the L its back finish is.
+`SidingWallEntity.DeckElements` asks for the ledge while the wall's `Back` is null, so every layer of the deck, its infill and finishes included, runs to the frame, and steps back out of the slot when the finish is laid.
+This holds for every deck, plank as well as pole, and changes what decision 0042 draws against a bare room side.
+Collision is not changed: the deck's box still starts where it did.
+`EveryLedgeBoxLiesInTheSlotOfTheRoomSideFinish` asserts each ledge box lies where that side's back slab would.
 
 **Invariant tests.**
 The three pole invariant theories of decision 0061 read the frame's depth axis, thickness range and mid-plane from the layout (`Frame` in `WallShapeGenTests`) and run for the floor too, with the floor as y, 13 to 15, mid-plane 14.
@@ -81,13 +93,13 @@ The three pole invariant theories of decision 0061 read the frame's depth axis, 
 A pole floor is about 3.6 times the quads of a plain one.
 
 **Shape growth.**
-Each floor pole box is copied into both wall shapes for up to four deck sides.
+Each floor pole box is copied into both wall shapes for up to four deck sides, and every floor box again for the ledge.
 Lines of generated JSON, at `main` and at this branch:
 
 | Shape | `main` | This branch |
 | --- | --- | --- |
-| `wall.json` | 24394 | 39670 |
-| `cornerout.json` | 32400 | 42480 |
+| `wall.json` | 24394 | 47352 |
+| `cornerout.json` | 32400 | 54244 |
 | `floor.json` | 2801 | 8532 |
 
 **What keeps the plain groups.**
@@ -99,14 +111,18 @@ Collision keeps the plain boxes, as for a wall.
 - **A `decklashing` slot.** Rope is one constant, so one slot serves, and the deck copies use the wall shape's `lashing`.
 - **Keeping the orphan stubs on decks.** A stub left beside the wall with its joist clipped away has nothing to hang from, so `DeckGroups` drops it.
 - **Leaving decks plain.** A stick deck would sit beside a rough stick floor with square joists.
+- **A single ledger pole in the slot.** The deck's infill and top finish would still stop a voxel short, leaving a trench along the wall.
+- **Starting the deck at the frame for good.** The slot is the room-side finish's, and a deck standing in it would show through the slab's relief.
 - **A separate floor-only recipe.** The wall's recipe laid flat reuses the group names, `FrameElements` and `CellAlternate`, and a second recipe would need its own paths for each.
 
 ## Consequences & open questions
-This has not been played.
+Played on 2026-10-07, before the ledge existed.
+The frames and joists were liked: "I love the little character bits on the frames and joists now", and "everything else is looking amazing".
+The one fault raised was that "it does look exceptionally weird that the deck does not connect to the frame", which the ledge answers.
+The ledge has not been played.
 A playtest answers:
-- Whether stubs and uneven joists read from below in a cellar and from above on a bare floor.
-- Whether rope only at a floor's edges looks right or looks like an omission.
-- Whether a stick deck matches a stick floor beside it.
+- Whether a deck that runs to the frame looks right on a bare room side, on a wall and on a corner, for a plank deck and a pole one.
+- Whether the deck stepping back out of the slot when the room side is finished is noticed.
 - Whether a deck with dropped stubs near the wall looks bare.
 - Whether 240 quads a cell matters on a large floor.
 - Whether the larger shape files cost load time.
