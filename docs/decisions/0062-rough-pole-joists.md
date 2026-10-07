@@ -64,6 +64,8 @@ Rope is one constant, so the deck copies use the wall shape's own `lashing` slot
 The clip drops some members whole: the rim against the wall, and a joist that falls inside the wall panel.
 Where it removed a joist its stubs survived with nothing behind them, so `DeckGroups` drops any pole stub the deck's edge cuts.
 `APoleDeckKeepsTheMembersThePlainDeckKeeps` asserts a pole deck keeps exactly the members the plain deck keeps, per shape and side.
+That check compares group names, and `poles-left` holds two joists, so its name survives the loss of one.
+`EveryPieceOfAFloorOrDeckPoleGroupHangsOffAMember` covers that case: every stub, cheek and lashing is joined, through boxes of its group, to a joist or rim that crosses the frame's mid-plane.
 
 **Invariant tests.**
 The three pole invariant theories of decision 0061 read the frame's depth axis, thickness range and mid-plane from the layout (`Frame` in `WallShapeGenTests`) and run for the floor too, with the floor as y, 13 to 15, mid-plane 14.

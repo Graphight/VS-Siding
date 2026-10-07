@@ -551,6 +551,38 @@ public class WallShapeGenTests
         Assert.Equal([], offenders);
     }
 
+    // A stub, a cheek or a lashing never crosses the frame's mid-plane, so it has to be joined, through
+    // boxes of its own group, to a joist or a rim that does. A deck is the floor clipped to its side, and
+    // the clip once took a joist and left its stubs; a group's name survives that when it holds two joists.
+    [Theory]
+    [InlineData("floor")]
+    [InlineData("wall")]
+    [InlineData("cornerout")]
+    public void EveryPieceOfAFloorOrDeckPoleGroupHangsOffAMember(string layout)
+    {
+        var frame = Frame("floor");
+        double mid = (frame.Lo + frame.Hi) / 2;
+        var groups = WallShapeGen.Generate(layout)["elements"]!
+            .Where(e => ((string)e["name"]!).StartsWith(layout == "floor" ? "poles" : "deck-") && ((string)e["name"]!).Contains("poles"))
+            .GroupBy(e => (string)e["name"]!, Box);
+        Assert.NotEmpty(groups);
+
+        var offenders = new List<string>();
+        foreach (var group in groups)
+        {
+            var joined = group.Where(b => b.Lo[1] < mid && mid < b.Hi[1]).ToList();
+            var loose = group.Except(joined).ToList();
+            while (loose.FirstOrDefault(b => joined.Any(j => Enumerable.Range(0, 3).All(k => b.Lo[k] <= j.Hi[k] && j.Lo[k] <= b.Hi[k]))) is { Lo: not null } next)
+            {
+                joined.Add(next);
+                loose.Remove(next);
+            }
+            offenders.AddRange(loose.Select(b => $"{group.Key} {string.Join(",", b.Lo)} to {string.Join(",", b.Hi)}"));
+        }
+
+        Assert.Equal([], offenders);
+    }
+
     // Two faces that look the same way from one plane and overlap fight over the pixels. Only groups
     // a built cell draws together can meet: one pole variant, the infill, and the plain finishes.
     // The infill's top and bottom slivers fill a dropped plate, so they never meet a pole plate.
