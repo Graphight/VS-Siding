@@ -177,8 +177,8 @@ public class WallShapeGenTests
         var expected = new Dictionary<string, int>
         {
             ["wall bare frame"] = 24,
-            ["wall pole frame"] = 104,
-            ["wall second pole frame"] = 104,
+            ["wall pole frame"] = 144,
+            ["wall second pole frame"] = 144,
             ["wall wattle"] = 30,
             ["wall wattle, mid-stack"] = 30,
             ["wall daub both faces"] = 42,
@@ -187,8 +187,8 @@ public class WallShapeGenTests
             ["wall glazed"] = 26,
             ["wall glazed, merged all round"] = 2,
             ["cornerout bare frame"] = 42,
-            ["cornerout pole frame"] = 118,
-            ["cornerout second pole frame"] = 118,
+            ["cornerout pole frame"] = 158,
+            ["cornerout second pole frame"] = 158,
             ["cornerout wattle"] = 54,
             ["cornerout wattle, mid-stack"] = 54,
             ["cornerout daub both faces"] = 77,

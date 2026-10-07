@@ -86,6 +86,8 @@ public class SidingWallTexSource : ITexPositionSource
         return pos ?? capi.BlockTextureAtlas.UnknownTexturePosition;
     }
 
+    private const string LashingTexture = "game:item/resource/rope";
+
     // Unbuilt slots (null key), a key no longer present in its dictionary, or an entry with
     // no usable Texture resolve to null - callers only reach here for selectiveElements actually being tesselated, so
     // this is a defensive fallback, not the expected path.
@@ -95,6 +97,8 @@ public class SidingWallTexSource : ITexPositionSource
         string? frontStyle = null, string? secondFrontStyle = null, string? backStyle = null, string? deck = null,
         string? deckInfill = null, string? deckFront = null, string? deckBack = null)
     {
+        if (slotCode == "lashing") return new CompositeTexture(new AssetLocation(LashingTexture));
+
         (string? key, JsonObject dictionary, string face, string? style) = slotCode switch
         {
             "framing" => (framing, framings, "framing", null),
