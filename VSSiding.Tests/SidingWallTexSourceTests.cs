@@ -78,6 +78,16 @@ public class SidingWallTexSourceTests
         Assert.Null(texture);
     }
 
+    [Theory]
+    [InlineData(null)]
+    [InlineData("oak")]
+    [InlineData("sticks")]
+    public void LashingResolvesToRopeWhateverTheFraming(string? framing)
+    {
+        CompositeTexture? texture = SidingWallTexSource.ResolveTexture("lashing", framing, null, null, null, null, Framings, Infills, Finishes);
+        Assert.Equal(new AssetLocation("game:item/resource/rope"), texture!.Base);
+    }
+
     [Fact]
     public void DeckResolvesFromTheFramingsDictionaryByItsOwnKey()
     {

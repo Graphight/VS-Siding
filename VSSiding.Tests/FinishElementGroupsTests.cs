@@ -50,6 +50,42 @@ public class FinishElementGroupsTests
         Assert.Equal([], offenders);
     }
 
+    // A framing's Elements is a prefix that FrameElements turns into one name per variant. Read from
+    // the real entries, so a prefix the shapes lack, or one variant of it, is caught here and not in play.
+    [Fact]
+    public void EveryFramingElementGroupExistsAndIsIgnoredByTheDefaultShape()
+    {
+        var repoRoot = MaterialTextureOpacityTests.GetAssemblyMetadata("RepoRoot");
+        var assets = Path.Combine(repoRoot, "VSSiding", "assets", "vssiding");
+        var wallJson = JObject.Parse(File.ReadAllText(Path.Combine(assets, "blocktypes", "wall.json")));
+        var attributes = MaterialTextureOpacityTests.BlockAttributes("wall.json");
+
+        var frames = new[] { "Framings", "FramingFamilies" }.Select(name => attributes[name]).OfType<JObject>()
+            .SelectMany(entries => entries.Properties().SelectMany(entry => new[] { 0, 1 }
+                .Select(alternate => SidingWallEntity.FrameElements(new JsonObject(entries), entry.Name, alternate))))
+            .Where(frame => frame != "framing").Distinct().ToList();
+        Assert.NotEmpty(frames);
+
+        var offenders = new List<string>();
+        foreach (var layout in new[] { "wall", "cornerout" })
+        {
+            string shape = "block/wall/" + layout;
+            var groups = frames.SelectMany(frame => SidingWallEntity.SelectiveElements(
+                layout, "sticks", null, null, null, null, new JsonObject(new JObject()), (false, false, false, false), glazed: false, frame: frame)).ToList();
+            var shapeJson = JObject.Parse(File.ReadAllText(Path.Combine(assets, "shapes", shape + ".json")));
+            var names = shapeJson["elements"]!.Select(e => (string)e["name"]!).ToHashSet();
+            offenders.AddRange(groups.Where(g => !names.Contains(g)).Select(g => $"{shape} has no element '{g}'"));
+
+            foreach (var variant in ((JObject)wallJson["shapebytype"]!).Properties().Where(p => (string)p.Value["base"]! == shape))
+            {
+                var ignored = variant.Value["ignoreElements"]?.Select(t => (string)t!).ToHashSet() ?? [];
+                offenders.AddRange(groups.Where(g => !ignored.Contains(g)).Select(g => $"{variant.Name} doesn't ignore '{g}'"));
+            }
+        }
+
+        Assert.Equal([], offenders);
+    }
+
     [Fact]
     public void EveryFloorElementGroupExistsAndIsIgnoredByTheFloorBlock()
     {

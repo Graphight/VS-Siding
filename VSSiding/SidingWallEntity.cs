@@ -158,7 +158,10 @@ public class SidingWallEntity : BlockEntity
         bool glazed = SidingWallBlock.IsTransparent(Infill, Block.Attributes["Infills"]);
         string side = Block.Variant["side"];
         string[]? step = Step != null && layout == "wall" ? StepElements(side, StepOrientation) : null;
-        string[] selectiveElements = SelectiveElements(layout, Framing, Infill, Front, SecondFront, Back, Block.Attributes["Finishes"], joins, glazed, Styles, step);
+        int alternate = CellAlternate(Block.Attributes, SidingWallTexSource.Alternate(Pos), Framing, Deck,
+            [Infill, DeckInfill], [Front, SecondFront, Back, DeckFront, DeckBack]);
+        string[] selectiveElements = SelectiveElements(layout, Framing, Infill, Front, SecondFront, Back, Block.Attributes["Finishes"], joins, glazed, Styles, step,
+            FrameElements(Block.Attributes["Framings"], Framing, alternate));
 
         // The deck is laid like a floor, in world directions, so its groups are tesselated unrotated.
         bool deckGlazed = SidingWallBlock.IsTransparent(DeckInfill, Block.Attributes["Infills"]);
@@ -166,9 +169,6 @@ public class SidingWallEntity : BlockEntity
         string[] deckElements = DeckElements(side, Deck, DeckInfill, DeckFront, DeckBack, Block.Attributes["Finishes"], deckJoins, (DeckFrontStyle, DeckBackStyle), deckGlazed);
         if (selectiveElements.Length == 0 && deckElements.Length == 0) return false;
 
-        int alternate = SidingWallTexSource.AnyVaries(Block.Attributes["Finishes"], Front, SecondFront, Back, DeckFront, DeckBack)
-            || SidingWallTexSource.AnyVaries(Block.Attributes["Framings"], Framing, Deck)
-            ? SidingWallTexSource.Alternate(Pos) : 0;
         string cacheKey = CacheKey(layout, side, Framing, Infill, Front, SecondFront, Back, joins, Styles, Deck, Step, StepOrientation,
             DeckInfill, DeckFront, DeckBack, (DeckFrontStyle, DeckBackStyle), deckJoins, alternate);
 
@@ -185,6 +185,27 @@ public class SidingWallEntity : BlockEntity
 
         foreach (MeshData mesh in meshes) mesher.AddMeshData(mesh);
         return true;
+    }
+
+    // The position hash has three readers: the texture source picks each wildcard texture's variant by it,
+    // FrameElements picks the rough frame's variant by its parity, and the mesh cache keys on it. So a
+    // cell keeps the whole hash while any layer's texture varies, the parity alone for a rough frame,
+    // and nothing otherwise, which is what lets a long plain wall share one mesh.
+    internal static int CellAlternate(
+        JsonObject attributes, int hash, string? framing, string? deck, string?[] infills, string?[] finishes)
+    {
+        if (SidingWallTexSource.AnyVaries(attributes["Framings"], framing, deck)
+            || SidingWallTexSource.AnyVaries(attributes["Infills"], infills)
+            || SidingWallTexSource.AnyVaries(attributes["Finishes"], finishes)) return hash;
+        return FrameElements(attributes["Framings"], framing) != "framing" ? hash % 2 : 0;
+    }
+
+    // The shape-group prefix a framing entry draws its frame with; most draw the plain "framing" groups.
+    // A rough frame has a second variant, named with a trailing 2, that odd cells take.
+    internal static string FrameElements(JsonObject framings, string? framing, int alternate = 0)
+    {
+        string frame = framing == null ? "framing" : framings[framing]["Elements"].AsString("framing");
+        return frame != "framing" && alternate % 2 == 1 ? frame + "2" : frame;
     }
 
     private static IEnumerable<MeshData> Meshes(
@@ -250,7 +271,7 @@ public class SidingWallEntity : BlockEntity
     internal static string[] SelectiveElements(
         string layout, string? framing, string? infill, string? front, string? secondFront, string? back, JsonObject finishes,
         (bool above, bool below, bool left, bool right) joins, bool glazed,
-        (string? front, string? secondFront, string? back) styles = default, string[]? step = null)
+        (string? front, string? secondFront, string? back) styles = default, string[]? step = null, string frame = "framing")
     {
         var names = new List<string>();
         if (front != null) names.Add(FinishElement(finishes, front, "front", styles.front));
@@ -264,8 +285,8 @@ public class SidingWallEntity : BlockEntity
             // the frame still reaches the pane where the member beside it has been dropped. A
             // plain wall's plates stop short at its posts, which is right while the posts are
             // always there and leaves a notch at every cell edge once they aren't.
-            string member = glazed && !corner ? "glazing" : "framing";
-            if (corner) names.Add("framing");
+            string member = glazed && !corner ? "glazing" : frame;
+            if (corner) names.Add(frame);
             else
             {
                 if (!joins.left) names.Add(member + "-left");

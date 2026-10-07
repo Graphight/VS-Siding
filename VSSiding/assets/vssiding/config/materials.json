@@ -15,12 +15,14 @@
 		"sticks": {
 			DisplayName: "vssiding:framing-sticks",
 			Texture: "game:block/wood/bark/oak",
+			Elements: "poles",
 			Consumes: { type: "item", code: "game:stick", quantity: 4 },
 			Drops: [ { type: "item", code: "game:stick", quantity: { avg: 4, var: 0 } } ]
 		},
 		"bone": {
 			DisplayName: "vssiding:framing-bone",
 			Texture: "game:block/creature/bone",
+			Elements: "poles",
 			BlockMaterial: "Other",
 			Consumes: { type: "item", code: "game:bone", quantity: 2 },
 			Drops: [ { type: "item", code: "game:bone", quantity: { avg: 2, var: 0 } } ]
