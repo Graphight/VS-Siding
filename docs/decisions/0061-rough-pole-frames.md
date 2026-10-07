@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Created: 2026-10-05
-- Reflects: the playtests of decision 0058 on branch `feat/primitive-framing` and of decision 0060 on branch `feat/tent-walls`; branch `feat/rough-pole-frames`; `SidingWallEntity.FrameElements`/`SelectiveElements`, `SidingWallTexSource.ResolveTexture`, `VSSiding.Tests/WallShapeGen`, `config/materials.json`, `blocktypes/wall.json` (`ignoreElements`), `WallShapeGenTests`, `FinishElementGroupsTests`, `SidingWallEntityTests`, `SidingWallTexSourceTests`; vanilla textures `block/wood/bark/oak`, `block/creature/bone` and `item/resource/rope`; decisions 0007, 0008, 0019, 0021, 0058, 0060; unit tests pass; NOT yet played, so no playtest has confirmed that any of it reads as rough
+- Reflects: the playtests of decision 0058 on branch `feat/primitive-framing` and of decision 0060 on branch `feat/tent-walls`; branch `feat/rough-pole-frames`; `SidingWallEntity.FrameElements`/`SelectiveElements`, `SidingWallTexSource.ResolveTexture`, `VSSiding.Tests/WallShapeGen`, `config/materials.json`, `blocktypes/wall.json` (`ignoreElements`), `WallShapeGenTests`, `FinishElementGroupsTests`, `SidingWallEntityTests`, `SidingWallTexSourceTests`; vanilla textures `block/wood/bark/oak`, `block/creature/bone` and `item/resource/rope`; decisions 0007, 0008, 0019, 0021, 0058, 0060; unit and end-to-end tests pass; played on 2026-10-06
 
 ## Summary
 A stick frame is a plank frame in a darker texture, and a bone frame is one in a paler texture: the same squared posts and plates, ruler straight.
@@ -123,18 +123,15 @@ Joists are seen from below in a cellar, where rough poles would show, so they ar
 - **The rope texture as a key on the framing entry.** One lashing material exists, so one constant serves.
 
 ## Consequences & open questions
-This has not been played.
-It was built and checked by unit tests only, and nobody has looked at it in game.
-Every question below is one a playtest answers.
-- Whether stubs a quarter voxel deep are visible at all at wall scale, or only the uneven edge and the lashing are.
-If they do not read, the recipe changes; the invariant tests exist so the numbers can be turned.
-- Whether two variants are enough to break the pattern along a run of ten.
-- Whether a stub reads as a knuckle on a bone frame or as a twig; if a twig, bone takes groups of its own.
-- Whether the rope texture reads as lashing at a quarter voxel wide, and whether its colour sits well on bark and on bone.
-- Whether the cheeks read as a plate running over its post, or only as a notch.
-- Whether a stacked pair, where the plates and lashing drop at the join, looks right.
-- Whether a pole frame shows through a finish on either face.
-- Whether a glazed stick cell, which keeps the plain bezel, looks wrong beside a glazed corner, which takes the pole plates.
+Played on 2026-10-06, after all of it was built: "it all looks fine", and the textures were liked.
+The playtest stop the plan set after the first wall cell was passed over, so the recipe was seen whole and not turned.
+- The stubs, the uneven edge and the lashing read at wall scale, and the first-cut numbers stand.
+- The cheeks read as a plate running over its post.
+- A stub on a bone frame looks fine, so bone keeps the shared groups.
+- Two variants are enough along a run.
+- Nothing shows through a finish, and a stacked pair looks right where the plates and lashing drop at the join.
+- The rope texture reads as lashing on bark and on bone.
+- A glazed stick cell, which keeps the plain bezel, was not looked at beside a glazed corner, which takes the pole plates.
 - Bark is furrowed top to bottom, so a plate shows the furrows across its length; vanilla ships `bark/oak-h` for a log lying down, and a plate could take it through a second framing slot.
 - A pole frame costs six times the quads of a plain wall frame and nearly four times a plain corner frame; whether that matters on a long wall is unmeasured.
 - A stick deck, stick joists and bone ones keep the plain groups, as the proposal said.
