@@ -450,16 +450,22 @@ public class WallShapeGenTests
 
     // Each group of one pole variant beside the plain group it stands in for.
     private static (string Pole, string Plain)[] PolesOf(string layout, string prefix)
-        => (layout == "wall" ? new[] { "-left", "-right", "-top", "-bottom" } : ["", "-top", "-bottom"])
+        => (layout != "cornerout" ? new[] { "-left", "-right", "-top", "-bottom" } : ["", "-top", "-bottom"])
             .Select(suffix => (prefix + suffix, "framing" + suffix)).ToArray();
 
     private static (double[] Lo, double[] Hi) Box(JToken element)
         => (element["from"]!.Select(v => (double)v!).ToArray(), element["to"]!.Select(v => (double)v!).ToArray());
 
-    // A wall's frame is thick on x; a corner's second leg is thick on z.
-    private static int[] DepthAxes(string layout) => layout == "wall" ? [0] : [0, 2];
+    // A wall's frame is thick on x; a corner's second leg is thick on z; a floor's is thick on y, at the top of the cell.
+    private static (int[] Axes, double Lo, double Hi) Frame(string layout) => layout switch
+    {
+        "wall" => ([0], 1, 3),
+        "cornerout" => ([0, 2], 1, 3),
+        _ => ([1], 13, 15),
+    };
 
-    private static bool Thick(double[] lo, double[] hi, int axis) => lo[axis] >= 1 && hi[axis] <= 3;
+    private static bool Thick(double[] lo, double[] hi, int axis, (int[] Axes, double Lo, double Hi) frame)
+        => lo[axis] >= frame.Lo && hi[axis] <= frame.Hi;
 
     // A pole that leaves the frame's thickness shows through a finish. A corner's frame is an L, so a
     // box inside one leg's thickness also has to start clear of the slab on the other leg's outer face.
@@ -471,11 +477,12 @@ public class WallShapeGenTests
     public void EveryPoleBoxLiesInsideTheFramesThickness(string layout, string prefix)
     {
         string[] groups = PolesOf(layout, prefix).Select(p => p.Pole).ToArray();
+        var frame = Frame(layout);
         var offenders = new List<string>();
         foreach (var element in WallShapeGen.Generate(layout)["elements"]!.Where(e => groups.Contains((string)e["name"]!)))
         {
             var (lo, hi) = Box(element);
-            if (!DepthAxes(layout).Any(depth => Thick(lo, hi, depth) && (layout == "wall" || lo[2 - depth] >= 1)))
+            if (!frame.Axes.Any(depth => Thick(lo, hi, depth, frame) && (layout != "cornerout" || lo[2 - depth] >= 1)))
                 offenders.Add($"{element["name"]} spans x {lo[0]}..{hi[0]}, z {lo[2]}..{hi[2]}");
         }
 
@@ -492,27 +499,29 @@ public class WallShapeGenTests
     public void EveryPoleGroupCoversTheMidPlaneOfThePlainMemberItReplaces(string layout, string prefix)
     {
         var elements = WallShapeGen.Generate(layout)["elements"]!.ToArray();
+        var frame = Frame(layout);
+        double mid = (frame.Lo + frame.Hi) / 2;
         var offenders = new List<string>();
         foreach (var (group, plain) in PolesOf(layout, prefix))
         {
             var poles = elements.Where(e => (string)e["name"]! == group).Select(Box).ToArray();
             foreach (var (lo, hi) in elements.Where(e => (string)e["name"]! == plain).Select(Box))
             {
-                foreach (int depth in DepthAxes(layout).Where(axis => Thick(lo, hi, axis)))
+                foreach (int depth in frame.Axes.Where(axis => Thick(lo, hi, axis, frame)))
                 {
-                    int run = 2 - depth;
-                    var cover = poles.Where(b => b.Lo[depth] < 2 && b.Hi[depth] > 2).ToArray();
+                    int[] across = [.. Enumerable.Range(0, 3).Where(axis => axis != depth)];
+                    var cover = poles.Where(b => b.Lo[depth] < mid && b.Hi[depth] > mid).ToArray();
                     // The pole edges inside the member cut it into rectangles, each covered whole or open whole.
                     double[] Cuts(int axis) => cover.SelectMany(b => new[] { b.Lo[axis], b.Hi[axis] })
                         .Where(c => c > lo[axis] && c < hi[axis]).Append(lo[axis]).Append(hi[axis]).Distinct().Order().ToArray();
-                    var (ys, runs) = (Cuts(1), Cuts(run));
-                    for (int i = 0; i < ys.Length - 1; i++)
+                    var (firsts, seconds) = (Cuts(across[0]), Cuts(across[1]));
+                    for (int i = 0; i < firsts.Length - 1; i++)
                     {
-                        for (int j = 0; j < runs.Length - 1; j++)
+                        for (int j = 0; j < seconds.Length - 1; j++)
                         {
-                            double y = (ys[i] + ys[i + 1]) / 2, r = (runs[j] + runs[j + 1]) / 2;
-                            if (!cover.Any(b => b.Lo[1] < y && y < b.Hi[1] && b.Lo[run] < r && r < b.Hi[run]))
-                                offenders.Add($"{group} leaves y {ys[i]}..{ys[i + 1]}, {"xyz"[run]} {runs[j]}..{runs[j + 1]} of {plain} open");
+                            double u = (firsts[i] + firsts[i + 1]) / 2, v = (seconds[j] + seconds[j + 1]) / 2;
+                            if (!cover.Any(b => b.Lo[across[0]] < u && u < b.Hi[across[0]] && b.Lo[across[1]] < v && v < b.Hi[across[1]]))
+                                offenders.Add($"{group} leaves {"xyz"[across[0]]} {firsts[i]}..{firsts[i + 1]}, {"xyz"[across[1]]} {seconds[j]}..{seconds[j + 1]} of {plain} open");
                         }
                     }
                 }
