@@ -121,7 +121,7 @@ The frames and joists were liked: "I love the little character bits on the frame
 The one fault raised was that "it does look exceptionally weird that the deck does not connect to the frame", which the ledge answers.
 The ledge was played the same day: "much better", though the deck "still looks a little weird floating below the frame rim".
 A bare deck's joists and rims top out at y 15, a voxel under the top of the wall's plate, since the deck's top finish takes y 15 to 16 and sits flush with the plate once laid.
-Whether a finished deck still looks as if it floats was not looked at.
+The look goes away once the wall's frame has its infill or the deck its finish; a bare deck on a bare frame "just looks kind of weird until you do that", and that is left as it is.
 Still open:
 - Whether the deck stepping back out of the slot when the room side is finished is noticed.
 - Whether a deck with dropped stubs near the wall looks bare.
