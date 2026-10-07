@@ -31,6 +31,34 @@ public class SidingWallEntityTests
                 .Select(c => SidingWallEntity.FrameElements(framings, c.Item1, c.Item2)));
     }
 
+    // A stick wall of packed dirt once took the pole variant's parity as its dirt texture's variant too.
+    [Fact]
+    public void ACellKeepsTheWholeHashWhileAnyLayersTextureVaries()
+    {
+        var attributes = Dict("""
+        {
+            "Framings": { "oak": { "Texture": "planks/oak*" }, "aged": { "Texture": "planks/aged1" }, "sticks": { "Texture": "bark/oak", "Elements": "poles" } },
+            "Infills": { "wattle": { "Texture": "wattle" }, "packeddirt": { "Texture": "packeddirt1*" } },
+            "Finishes": { "daub": { "Texture": "daub1" }, "planks": { "Texture": "planks/oak*" } }
+        }
+        """);
+        (string? Framing, string? Deck, string? Infill, string? Front)[] cells =
+        [
+            ("aged", null, "wattle", "daub"),
+            ("sticks", null, "wattle", "daub"),
+            ("sticks", null, "packeddirt", null),
+            ("sticks", null, "wattle", "planks"),
+            ("sticks", "oak", null, null),
+            ("aged", null, "packeddirt", null),
+            ("oak", null, null, null),
+            (null, null, null, null),
+        ];
+
+        Assert.Equal(
+            new[] { 0, 1, 77, 77, 77, 77, 77, 0 },
+            cells.Select(c => SidingWallEntity.CellAlternate(attributes, 77, c.Framing, c.Deck, [c.Infill, null], [c.Front, null])));
+    }
+
     // Three stacked infill boxes share a face at each seam; for glass that blends twice and draws
     // a bright line where a cross-beam would be. Glazing must take the single full-cell pane
     // instead, in every join state, and the pane must still count as infill for the render split.
