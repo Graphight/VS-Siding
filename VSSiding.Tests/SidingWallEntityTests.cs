@@ -427,8 +427,12 @@ public class SidingWallEntityTests
     public void GlassGroupsOfTheWallAndItsDeckAreInfillElements()
     {
         Assert.Equal(
-            [true, true, true, false, false, false],
-            new[] { "infill-pane", "infill-top", "deck-west-infill-pane", "deck-west-glazing-top", "framing-left", "deck-north-front-hboards" }
+            [true, true, true, false, false, false, true, false],
+            new[]
+            {
+                "infill-pane", "infill-top", "deck-west-infill-pane", "deck-west-glazing-top", "framing-left", "deck-north-front-hboards",
+                "ledge-west-infill-pane", "ledge-west-glazing-top",
+            }
                 .Select(SidingWallEntity.IsInfillElement));
     }
 }

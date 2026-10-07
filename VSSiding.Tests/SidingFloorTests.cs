@@ -85,6 +85,26 @@ public class SidingFloorTests
     }
 
     [Fact]
+    public void ADeckAlsoAsksForItsLedgeWhileTheWallsRoomSideIsBare()
+    {
+        Assert.Equal(
+            new string[][]
+            {
+                ["deck-west-framing-left", "deck-west-framing-right", "deck-west-framing-top", "deck-west-framing-bottom",
+                    "ledge-west-framing-left", "ledge-west-framing-right", "ledge-west-framing-top", "ledge-west-framing-bottom"],
+                ["deck-east-poles-left", "deck-east-poles-right", "deck-east-poles-bottom", "deck-east-infill", "deck-east-infill-top",
+                    "ledge-east-poles-left", "ledge-east-poles-right", "ledge-east-poles-bottom", "ledge-east-infill", "ledge-east-infill-top"],
+                [],
+            },
+            new[]
+            {
+                SidingWallEntity.DeckElements("west", "oak", null, null, null, Finishes, (false, false, false, false), default, false, ledge: true),
+                SidingWallEntity.DeckElements("east", "sticks", "wattle", null, null, Finishes, (true, false, false, false), default, false, "poles", ledge: true),
+                SidingWallEntity.DeckElements("west", null, "wattle", null, null, Finishes, (false, false, false, false), default, false, ledge: true),
+            });
+    }
+
+    [Fact]
     public void AJoinedRimDropsAndTheInfillCarriesAcross()
     {
         Assert.Equal(

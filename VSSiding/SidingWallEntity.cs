@@ -167,7 +167,7 @@ public class SidingWallEntity : BlockEntity
         bool deckGlazed = SidingWallBlock.IsTransparent(DeckInfill, Block.Attributes["Infills"]);
         var deckJoins = SidingFloorBlock.Joins(Api.World.BlockAccessor, Pos, deckGlazed);
         string[] deckElements = DeckElements(side, Deck, DeckInfill, DeckFront, DeckBack, Block.Attributes["Finishes"], deckJoins, (DeckFrontStyle, DeckBackStyle), deckGlazed,
-            FrameElements(Block.Attributes["Framings"], Deck, alternate));
+            FrameElements(Block.Attributes["Framings"], Deck, alternate), ledge: Back == null);
         if (selectiveElements.Length == 0 && deckElements.Length == 0) return false;
 
         string cacheKey = CacheKey(layout, side, Framing, Infill, Front, SecondFront, Back, joins, Styles, Deck, Step, StepOrientation,
@@ -236,7 +236,10 @@ public class SidingWallEntity : BlockEntity
     }
 
     internal static bool IsInfillElement(string name)
-        => name.StartsWith("infill") || (name.StartsWith("deck-") && name[(name.IndexOf('-', 5) + 1)..].StartsWith("infill"));
+    {
+        if (name.StartsWith("deck-") || name.StartsWith("ledge-")) name = name[(name.IndexOf('-', name.IndexOf('-') + 1) + 1)..];
+        return name.StartsWith("infill");
+    }
 
     // TesselateShape already writes one entry per quad - ShapeElement.RenderPass, which defaults
     // to -1 and counts as opaque - so the frame half needs nothing and this only overwrites.
@@ -258,14 +261,19 @@ public class SidingWallEntity : BlockEntity
         => $"vssiding-wall-mesh-{layout}-{side}-{framing}-{infill}-{front}-{secondFront}-{back}-{joins.above}-{joins.below}-{joins.left}-{joins.right}-{styles.front}-{styles.secondFront}-{styles.back}-{deck}-{step}-{stepOrientation}"
             + $"-{deckInfill}-{deckFront}-{deckBack}-{deckStyles.front}-{deckStyles.back}-{deckJoins.above}-{deckJoins.below}-{deckJoins.left}-{deckJoins.right}-{alternate}";
 
-    // The floor's groups for the deck, which the wall shapes carry per side as deck-{side}-{name}.
+    // The floor's groups for the deck, which the wall shapes carry per side as deck-{side}-{name}. The
+    // deck stops a voxel short of the frame, at the slot the wall's room-side finish takes, so the shapes
+    // carry the same groups again for that slot as ledge-{side}-{name}, drawn until the finish is laid.
     internal static string[] DeckElements(
         string side, string? deck, string? infill, string? front, string? back, JsonObject finishes,
         (bool above, bool below, bool left, bool right) joins, (string? front, string? back) styles, bool glazed,
-        string frame = "framing")
-        => deck == null
-            ? []
-            : SidingFloorEntity.SelectiveElements(deck, infill, front, back, finishes, joins, styles, glazed, frame: frame).Select(name => $"deck-{side}-{name}").ToArray();
+        string frame = "framing", bool ledge = false)
+    {
+        if (deck == null) return [];
+        string[] names = SidingFloorEntity.SelectiveElements(deck, infill, front, back, finishes, joins, styles, glazed, frame: frame);
+        string[] copies = ledge ? ["deck", "ledge"] : ["deck"];
+        return copies.SelectMany(copy => names.Select(name => $"{copy}-{side}-{name}")).ToArray();
+    }
 
     // Unbuilt parts (null key) are left out so a frame-only wall shows just its frame.
     // A finish can name its own element per face (decision 0007) instead of the plain slab.

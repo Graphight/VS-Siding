@@ -551,6 +551,33 @@ public class WallShapeGenTests
         Assert.Equal([], offenders);
     }
 
+    // The ledge is the deck's reach into the slot a wall's room-side finish takes. Every ledge box has to
+    // lie where that side's back slab would, at the deck's height, or laying the finish leaves a piece of
+    // deck standing in it.
+    [Theory]
+    [InlineData("wall")]
+    [InlineData("cornerout")]
+    public void EveryLedgeBoxLiesInTheSlotOfTheRoomSideFinish(string layout)
+    {
+        var elements = WallShapeGen.Generate(layout)["elements"]!.ToArray();
+        var backs = elements.Where(e => (string)e["name"]! == "back").Select(Box).ToArray();
+        var offenders = new List<string>();
+        foreach (string side in Sides)
+        {
+            var slots = backs.Select(b => WallShapeGen.DeckRegion((b.Lo[0], 12, b.Lo[2]), (b.Hi[0], 16, b.Hi[2]), (int)SidingWallEntity.RotationYDeg(side))).ToArray();
+            var ledge = elements.Where(e => ((string)e["name"]!).StartsWith($"ledge-{side}-")).ToArray();
+            Assert.NotEmpty(ledge);
+            foreach (var element in ledge)
+            {
+                var (lo, hi) = Box(element);
+                if (!slots.Any(s => lo[0] >= s.X && lo[1] >= s.Y && lo[2] >= s.Z && hi[0] <= s.X2 && hi[1] <= s.Y2 && hi[2] <= s.Z2))
+                    offenders.Add($"{element["name"]} {string.Join(",", lo)} to {string.Join(",", hi)}");
+            }
+        }
+
+        Assert.Equal([], offenders);
+    }
+
     // A stub, a cheek or a lashing never crosses the frame's mid-plane, so it has to be joined, through
     // boxes of its own group, to a joist or a rim that does. A deck is the floor clipped to its side, and
     // the clip once took a joist and left its stubs; a group's name survives that when it holds two joists.
@@ -563,7 +590,8 @@ public class WallShapeGenTests
         var frame = Frame("floor");
         double mid = (frame.Lo + frame.Hi) / 2;
         var groups = WallShapeGen.Generate(layout)["elements"]!
-            .Where(e => ((string)e["name"]!).StartsWith(layout == "floor" ? "poles" : "deck-") && ((string)e["name"]!).Contains("poles"))
+            .Where(e => layout == "floor" || ((string)e["name"]!).StartsWith("deck-") || ((string)e["name"]!).StartsWith("ledge-"))
+            .Where(e => ((string)e["name"]!).Contains("poles"))
             .GroupBy(e => (string)e["name"]!, Box);
         Assert.NotEmpty(groups);
 

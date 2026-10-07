@@ -799,9 +799,16 @@ public static class WallShapeGen
         return (xs.Min(), from.Y, zs.Min(), xs.Max(), to.Y, zs.Max());
     }
 
-    private static IEnumerable<Element> DeckGroups((double X, double Y, double Z) from, (double X, double Y, double Z) to)
+    // The deck fills the cell's open part. The ledge is the same copy for the slot between the deck and
+    // the frame, where a wall's room-side finish goes; the deck reaches into it until that finish is laid.
+    private static ((double X, double Y, double Z) From, (double X, double Y, double Z) To)[] Ledge(Element[] elements)
+        => elements.Where(e => e.Name == "back").Select(e => ((e.From.X, 12.0, e.From.Z), (e.To.X, 16.0, e.To.Z))).ToArray();
+
+    private static IEnumerable<Element> DeckGroups(
+        string prefix, params ((double X, double Y, double Z) From, (double X, double Y, double Z) To)[] boxes)
     {
         foreach (var (side, rotationYDeg) in DeckSides)
+        foreach (var (from, to) in boxes)
         {
             var region = DeckRegion(from, to, rotationYDeg);
             foreach (var source in FloorElements)
@@ -812,13 +819,13 @@ public static class WallShapeGen
                 if (Empty(lo.X, hi.X, source.From.X, source.To.X)
                     || Empty(lo.Y, hi.Y, source.From.Y, source.To.Y)
                     || Empty(lo.Z, hi.Z, source.From.Z, source.To.Z)) continue;
-                // A stub the deck's edge cuts would lie beside the wall with no joist behind it.
-                bool stub = source.Name.StartsWith("poles") && source.To.Y - source.From.Y == 0.5;
-                if (stub && (lo.X, hi.X) != (source.From.X, source.To.X)) continue;
+                // Only a rim runs across an edge. Any other pole piece an edge cuts is a sliver of a joist,
+                // or a stub, cheek or lashing whose joist is on the far side.
+                if (source.Name.StartsWith("poles") && source.RunAxis != 'x' && (lo.X, hi.X) != (source.From.X, source.To.X)) continue;
 
                 yield return source with
                 {
-                    Name = $"deck-{side}-{source.Name}",
+                    Name = $"{prefix}-{side}-{source.Name}",
                     From = lo,
                     To = hi,
                     Slot = DeckSlots[source.Slot],
@@ -830,9 +837,10 @@ public static class WallShapeGen
 
     public static JObject Generate(string layout) => layout switch
     {
-        "wall" => Emit([.. WallElements, .. DeckGroups((4, 12, 0), (16, 16, 16))], WallTextures),
+        "wall" => Emit([.. WallElements, .. DeckGroups("deck", ((4, 12, 0), (16, 16, 16))), .. DeckGroups("ledge", Ledge(WallElements))], WallTextures),
         "floor" => Emit(FloorElements, FloorTextures),
-        "cornerout" => Emit([.. CornerOutElements, .. DeckGroups((4, 12, 4), (16, 16, 16))], CornerOutTextures),
+        "cornerout" => Emit(
+            [.. CornerOutElements, .. DeckGroups("deck", ((4, 12, 4), (16, 16, 16))), .. DeckGroups("ledge", Ledge(CornerOutElements))], CornerOutTextures),
         _ => throw new KeyNotFoundException(layout),
     };
 

@@ -39665,6 +39665,7688 @@
           ]
         }
       }
+    },
+    {
+      "name": "ledge-west-front",
+      "from": [
+        3.0,
+        15.0,
+        0.0
+      ],
+      "to": [
+        4.0,
+        16.0,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckfront",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckfront",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            16.0
+          ]
+        },
+        "down": {
+          "texture": "#deckfront",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-west-framing-top",
+      "from": [
+        3.0,
+        13.0,
+        0.0
+      ],
+      "to": [
+        4.0,
+        15.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            6.5,
+            0.0,
+            7.5,
+            2.0
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            2.0
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            6.5,
+            0.0,
+            7.5,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-west-framing-bottom",
+      "from": [
+        3.0,
+        13.0,
+        15.0
+      ],
+      "to": [
+        4.0,
+        15.0,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            6.5,
+            0.0,
+            7.5,
+            2.0
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            2.0
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            6.5,
+            0.0,
+            7.5,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-west-poles-top",
+      "from": [
+        3.0,
+        13.0,
+        0.0
+      ],
+      "to": [
+        4.0,
+        15.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            6.5,
+            0.0,
+            7.5,
+            2.0
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            2.0
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            6.5,
+            0.0,
+            7.5,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-west-poles-bottom",
+      "from": [
+        3.0,
+        13.0,
+        15.0
+      ],
+      "to": [
+        4.0,
+        15.0,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            6.5,
+            0.0,
+            7.5,
+            2.0
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            2.0
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            6.5,
+            0.0,
+            7.5,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-west-poles2-top",
+      "from": [
+        3.0,
+        13.0,
+        0.0
+      ],
+      "to": [
+        4.0,
+        15.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            6.5,
+            0.0,
+            7.5,
+            2.0
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            2.0
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            6.5,
+            0.0,
+            7.5,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-west-poles2-bottom",
+      "from": [
+        3.0,
+        13.0,
+        15.0
+      ],
+      "to": [
+        4.0,
+        15.0,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            6.5,
+            0.0,
+            7.5,
+            2.0
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            2.0
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            6.5,
+            0.0,
+            7.5,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-west-infill-top",
+      "from": [
+        3.0,
+        13.5,
+        0.0
+      ],
+      "to": [
+        4.0,
+        14.5,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-west-infill",
+      "from": [
+        3.0,
+        13.5,
+        1.0
+      ],
+      "to": [
+        4.0,
+        14.5,
+        15.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            1.0,
+            4.0,
+            15.0
+          ]
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            1.0,
+            13.0,
+            15.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-west-infill-bottom",
+      "from": [
+        3.0,
+        13.5,
+        15.0
+      ],
+      "to": [
+        4.0,
+        14.5,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            15.0,
+            4.0,
+            16.0
+          ]
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            15.0,
+            13.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-west-back",
+      "from": [
+        3.0,
+        12.0,
+        0.0
+      ],
+      "to": [
+        4.0,
+        13.0,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckback",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckback",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckback",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            16.0
+          ]
+        },
+        "down": {
+          "texture": "#deckback",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-west-infill-pane",
+      "from": [
+        3.0,
+        14.0,
+        0.0
+      ],
+      "to": [
+        4.0,
+        14.0,
+        16.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            16.0
+          ]
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-west-glazing-top",
+      "from": [
+        3.0,
+        13.25,
+        0.25
+      ],
+      "to": [
+        4.0,
+        14.75,
+        2.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.75,
+            1.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.75,
+            1.5
+          ]
+        },
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.75
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.75
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-west-glazing-bottom",
+      "from": [
+        3.0,
+        13.25,
+        14.0
+      ],
+      "to": [
+        4.0,
+        14.75,
+        15.75
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.75,
+            1.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.75,
+            1.5
+          ]
+        },
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.75
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.75
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-west-front-boards",
+      "from": [
+        3.0,
+        15.0,
+        0.0
+      ],
+      "to": [
+        4.0,
+        16.0,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckfront",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckfront",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            12.0,
+            16.0,
+            13.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckfront",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-west-front-hboards",
+      "from": [
+        3.0,
+        15.0,
+        0.0
+      ],
+      "to": [
+        4.0,
+        16.0,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckfront",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckfront",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            16.0
+          ]
+        },
+        "down": {
+          "texture": "#deckfront",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-west-back-boards",
+      "from": [
+        3.0,
+        12.0,
+        0.0
+      ],
+      "to": [
+        4.0,
+        13.0,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckback",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckback",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckback",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            16.0
+          ]
+        },
+        "down": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            3.0,
+            16.0,
+            4.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "ledge-west-back-hboards",
+      "from": [
+        3.0,
+        12.0,
+        0.0
+      ],
+      "to": [
+        4.0,
+        13.0,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckback",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckback",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckback",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            16.0
+          ]
+        },
+        "down": {
+          "texture": "#deckback",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-west-back-lath-hboards",
+      "from": [
+        3.0,
+        12.5,
+        0.0
+      ],
+      "to": [
+        4.0,
+        13.0,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckback",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deckback",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#deckback",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            16.0
+          ]
+        },
+        "down": {
+          "texture": "#deckback",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-west-back-lath-hboards",
+      "from": [
+        3.0,
+        12.0,
+        0.5
+      ],
+      "to": [
+        4.0,
+        12.5,
+        1.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-west-back-lath-hboards",
+      "from": [
+        3.0,
+        12.0,
+        2.5
+      ],
+      "to": [
+        4.0,
+        12.5,
+        3.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-west-back-lath-hboards",
+      "from": [
+        3.0,
+        12.0,
+        4.5
+      ],
+      "to": [
+        4.0,
+        12.5,
+        5.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-west-back-lath-hboards",
+      "from": [
+        3.0,
+        12.0,
+        6.5
+      ],
+      "to": [
+        4.0,
+        12.5,
+        7.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-west-back-lath-hboards",
+      "from": [
+        3.0,
+        12.0,
+        8.5
+      ],
+      "to": [
+        4.0,
+        12.5,
+        9.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-west-back-lath-hboards",
+      "from": [
+        3.0,
+        12.0,
+        10.5
+      ],
+      "to": [
+        4.0,
+        12.5,
+        11.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-west-back-lath-hboards",
+      "from": [
+        3.0,
+        12.0,
+        12.5
+      ],
+      "to": [
+        4.0,
+        12.5,
+        13.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-west-back-lath-hboards",
+      "from": [
+        3.0,
+        12.0,
+        14.5
+      ],
+      "to": [
+        4.0,
+        12.5,
+        15.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-west-back-lath-boards",
+      "from": [
+        3.0,
+        12.5,
+        0.0
+      ],
+      "to": [
+        4.0,
+        13.0,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckback",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deckback",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#deckback",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            16.0
+          ]
+        },
+        "down": {
+          "texture": "#deckback",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-west-back-lath-boards",
+      "from": [
+        3.0,
+        12.0,
+        0.0
+      ],
+      "to": [
+        3.5,
+        12.5,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.5,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-south-front",
+      "from": [
+        0.0,
+        15.0,
+        12.0
+      ],
+      "to": [
+        16.0,
+        16.0,
+        13.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckfront",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckfront",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            12.0,
+            16.0,
+            13.0
+          ]
+        },
+        "down": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            12.0,
+            16.0,
+            13.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-south-framing-left",
+      "from": [
+        2.0,
+        13.0,
+        12.0
+      ],
+      "to": [
+        3.0,
+        15.0,
+        13.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            2.0
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            2.0
+          ]
+        },
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            12.0,
+            1.0,
+            13.0
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            12.0,
+            1.0,
+            13.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-south-framing-left",
+      "from": [
+        7.5,
+        13.0,
+        12.0
+      ],
+      "to": [
+        8.5,
+        15.0,
+        13.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            2.0
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            2.0
+          ]
+        },
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            12.0,
+            1.0,
+            13.0
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            12.0,
+            1.0,
+            13.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-south-framing-right",
+      "from": [
+        13.0,
+        13.0,
+        12.0
+      ],
+      "to": [
+        14.0,
+        15.0,
+        13.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            2.0
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            2.0
+          ]
+        },
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            12.0,
+            1.0,
+            13.0
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            12.0,
+            1.0,
+            13.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-south-poles-left",
+      "from": [
+        2.0,
+        13.25,
+        12.0
+      ],
+      "to": [
+        3.0,
+        14.75,
+        13.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            1.0,
+            0.0,
+            2.0,
+            1.5
+          ]
+        },
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            1.0,
+            1.0,
+            2.0
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            1.0,
+            1.0,
+            2.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-south-poles-left",
+      "from": [
+        7.5,
+        13.25,
+        12.0
+      ],
+      "to": [
+        8.5,
+        14.75,
+        13.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.5
+          ]
+        },
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            3.0,
+            1.0,
+            4.0
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            3.0,
+            1.0,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-south-poles-right",
+      "from": [
+        13.0,
+        13.25,
+        12.0
+      ],
+      "to": [
+        14.0,
+        14.75,
+        13.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.5
+          ]
+        },
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-south-poles2-left",
+      "from": [
+        2.0,
+        13.25,
+        12.0
+      ],
+      "to": [
+        3.0,
+        14.75,
+        13.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            2.0,
+            0.0,
+            3.0,
+            1.5
+          ]
+        },
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            2.0,
+            1.0,
+            3.0
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            2.0,
+            1.0,
+            3.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-south-poles2-left",
+      "from": [
+        7.5,
+        13.25,
+        12.0
+      ],
+      "to": [
+        8.5,
+        14.75,
+        13.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.5
+          ]
+        },
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-south-poles2-right",
+      "from": [
+        13.0,
+        13.25,
+        12.0
+      ],
+      "to": [
+        14.0,
+        14.75,
+        13.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.5
+          ]
+        },
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            3.0,
+            1.0,
+            4.0
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            3.0,
+            1.0,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-south-infill",
+      "from": [
+        0.0,
+        13.5,
+        12.0
+      ],
+      "to": [
+        16.0,
+        14.5,
+        13.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            12.0,
+            16.0,
+            13.0
+          ]
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            12.0,
+            16.0,
+            13.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-south-back",
+      "from": [
+        0.0,
+        12.0,
+        12.0
+      ],
+      "to": [
+        16.0,
+        13.0,
+        13.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckback",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckback",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            12.0,
+            16.0,
+            13.0
+          ]
+        },
+        "down": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            12.0,
+            16.0,
+            13.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-south-infill-pane",
+      "from": [
+        0.0,
+        14.0,
+        12.0
+      ],
+      "to": [
+        16.0,
+        14.0,
+        13.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            12.0,
+            16.0,
+            13.0
+          ]
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            12.0,
+            16.0,
+            13.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-south-glazing-left",
+      "from": [
+        0.25,
+        13.0,
+        12.0
+      ],
+      "to": [
+        2.0,
+        15.0,
+        13.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.75,
+            2.0
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            2.0
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.75,
+            2.0
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            2.0
+          ]
+        },
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            12.0,
+            1.75,
+            13.0
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            12.0,
+            1.75,
+            13.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-south-glazing-right",
+      "from": [
+        14.0,
+        13.0,
+        12.0
+      ],
+      "to": [
+        15.75,
+        15.0,
+        13.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.75,
+            2.0
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            2.0
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.75,
+            2.0
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            2.0
+          ]
+        },
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            12.0,
+            1.75,
+            13.0
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            12.0,
+            1.75,
+            13.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-south-front-boards",
+      "from": [
+        0.0,
+        15.0,
+        12.0
+      ],
+      "to": [
+        16.0,
+        16.0,
+        13.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckfront",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckfront",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            16.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            12.0,
+            16.0,
+            13.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-south-front-hboards",
+      "from": [
+        0.0,
+        15.0,
+        12.0
+      ],
+      "to": [
+        16.0,
+        16.0,
+        13.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckfront",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckfront",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            12.0,
+            16.0,
+            13.0
+          ]
+        },
+        "down": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            12.0,
+            16.0,
+            13.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-south-back-boards",
+      "from": [
+        0.0,
+        12.0,
+        12.0
+      ],
+      "to": [
+        16.0,
+        13.0,
+        13.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckback",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckback",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            12.0,
+            16.0,
+            13.0
+          ]
+        },
+        "down": {
+          "texture": "#deckback",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            16.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "ledge-south-back-hboards",
+      "from": [
+        0.0,
+        12.0,
+        12.0
+      ],
+      "to": [
+        16.0,
+        13.0,
+        13.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckback",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckback",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            12.0,
+            16.0,
+            13.0
+          ]
+        },
+        "down": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            12.0,
+            16.0,
+            13.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-south-back-lath-hboards",
+      "from": [
+        0.0,
+        12.5,
+        12.0
+      ],
+      "to": [
+        16.0,
+        13.0,
+        13.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deckback",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deckback",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            12.0,
+            16.0,
+            13.0
+          ]
+        },
+        "down": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            12.0,
+            16.0,
+            13.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-south-back-lath-hboards",
+      "from": [
+        0.0,
+        12.0,
+        12.5
+      ],
+      "to": [
+        16.0,
+        12.5,
+        13.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.5,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-south-back-lath-boards",
+      "from": [
+        0.0,
+        12.5,
+        12.0
+      ],
+      "to": [
+        16.0,
+        13.0,
+        13.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deckback",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deckback",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            12.0,
+            16.0,
+            13.0
+          ]
+        },
+        "down": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            12.0,
+            16.0,
+            13.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-south-back-lath-boards",
+      "from": [
+        0.5,
+        12.0,
+        12.0
+      ],
+      "to": [
+        1.5,
+        12.5,
+        13.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            12.0,
+            1.0,
+            13.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-south-back-lath-boards",
+      "from": [
+        2.5,
+        12.0,
+        12.0
+      ],
+      "to": [
+        3.5,
+        12.5,
+        13.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            12.0,
+            1.0,
+            13.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-south-back-lath-boards",
+      "from": [
+        4.5,
+        12.0,
+        12.0
+      ],
+      "to": [
+        5.5,
+        12.5,
+        13.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            12.0,
+            1.0,
+            13.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-south-back-lath-boards",
+      "from": [
+        6.5,
+        12.0,
+        12.0
+      ],
+      "to": [
+        7.5,
+        12.5,
+        13.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            12.0,
+            1.0,
+            13.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-south-back-lath-boards",
+      "from": [
+        8.5,
+        12.0,
+        12.0
+      ],
+      "to": [
+        9.5,
+        12.5,
+        13.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            12.0,
+            1.0,
+            13.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-south-back-lath-boards",
+      "from": [
+        10.5,
+        12.0,
+        12.0
+      ],
+      "to": [
+        11.5,
+        12.5,
+        13.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            12.0,
+            1.0,
+            13.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-south-back-lath-boards",
+      "from": [
+        12.5,
+        12.0,
+        12.0
+      ],
+      "to": [
+        13.5,
+        12.5,
+        13.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            12.0,
+            1.0,
+            13.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-south-back-lath-boards",
+      "from": [
+        14.5,
+        12.0,
+        12.0
+      ],
+      "to": [
+        15.5,
+        12.5,
+        13.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            12.0,
+            1.0,
+            13.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-east-front",
+      "from": [
+        12.0,
+        15.0,
+        0.0
+      ],
+      "to": [
+        13.0,
+        16.0,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckfront",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckfront",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            16.0
+          ]
+        },
+        "down": {
+          "texture": "#deckfront",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-east-framing-top",
+      "from": [
+        12.0,
+        13.0,
+        0.0
+      ],
+      "to": [
+        13.0,
+        15.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            8.5,
+            0.0,
+            9.5,
+            2.0
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            2.0
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            8.5,
+            0.0,
+            9.5,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-east-framing-bottom",
+      "from": [
+        12.0,
+        13.0,
+        15.0
+      ],
+      "to": [
+        13.0,
+        15.0,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            8.5,
+            0.0,
+            9.5,
+            2.0
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            2.0
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            8.5,
+            0.0,
+            9.5,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-east-poles-top",
+      "from": [
+        12.0,
+        13.0,
+        0.0
+      ],
+      "to": [
+        13.0,
+        15.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            8.5,
+            0.0,
+            9.5,
+            2.0
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            2.0
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            8.5,
+            0.0,
+            9.5,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-east-poles-bottom",
+      "from": [
+        12.0,
+        13.0,
+        15.0
+      ],
+      "to": [
+        13.0,
+        15.0,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            8.5,
+            0.0,
+            9.5,
+            2.0
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            2.0
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            8.5,
+            0.0,
+            9.5,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-east-poles2-top",
+      "from": [
+        12.0,
+        13.0,
+        0.0
+      ],
+      "to": [
+        13.0,
+        15.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            8.5,
+            0.0,
+            9.5,
+            2.0
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            2.0
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            8.5,
+            0.0,
+            9.5,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-east-poles2-bottom",
+      "from": [
+        12.0,
+        13.0,
+        15.0
+      ],
+      "to": [
+        13.0,
+        15.0,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            8.5,
+            0.0,
+            9.5,
+            2.0
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            2.0
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            8.5,
+            0.0,
+            9.5,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-east-infill-top",
+      "from": [
+        12.0,
+        13.5,
+        0.0
+      ],
+      "to": [
+        13.0,
+        14.5,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-east-infill",
+      "from": [
+        12.0,
+        13.5,
+        1.0
+      ],
+      "to": [
+        13.0,
+        14.5,
+        15.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            1.0,
+            13.0,
+            15.0
+          ]
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            1.0,
+            4.0,
+            15.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-east-infill-bottom",
+      "from": [
+        12.0,
+        13.5,
+        15.0
+      ],
+      "to": [
+        13.0,
+        14.5,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            15.0,
+            13.0,
+            16.0
+          ]
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            15.0,
+            4.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-east-back",
+      "from": [
+        12.0,
+        12.0,
+        0.0
+      ],
+      "to": [
+        13.0,
+        13.0,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckback",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckback",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckback",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            16.0
+          ]
+        },
+        "down": {
+          "texture": "#deckback",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-east-infill-pane",
+      "from": [
+        12.0,
+        14.0,
+        0.0
+      ],
+      "to": [
+        13.0,
+        14.0,
+        16.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            16.0
+          ]
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-east-glazing-top",
+      "from": [
+        12.0,
+        13.25,
+        0.25
+      ],
+      "to": [
+        13.0,
+        14.75,
+        2.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.75,
+            1.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.75,
+            1.5
+          ]
+        },
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.75
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.75
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-east-glazing-bottom",
+      "from": [
+        12.0,
+        13.25,
+        14.0
+      ],
+      "to": [
+        13.0,
+        14.75,
+        15.75
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.75,
+            1.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.75,
+            1.5
+          ]
+        },
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.75
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.75
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-east-front-boards",
+      "from": [
+        12.0,
+        15.0,
+        0.0
+      ],
+      "to": [
+        13.0,
+        16.0,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckfront",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckfront",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            3.0,
+            16.0,
+            4.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckfront",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-east-front-hboards",
+      "from": [
+        12.0,
+        15.0,
+        0.0
+      ],
+      "to": [
+        13.0,
+        16.0,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckfront",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckfront",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            16.0
+          ]
+        },
+        "down": {
+          "texture": "#deckfront",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-east-back-boards",
+      "from": [
+        12.0,
+        12.0,
+        0.0
+      ],
+      "to": [
+        13.0,
+        13.0,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckback",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckback",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckback",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            16.0
+          ]
+        },
+        "down": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            12.0,
+            16.0,
+            13.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "ledge-east-back-hboards",
+      "from": [
+        12.0,
+        12.0,
+        0.0
+      ],
+      "to": [
+        13.0,
+        13.0,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckback",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckback",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckback",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            16.0
+          ]
+        },
+        "down": {
+          "texture": "#deckback",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-east-back-lath-hboards",
+      "from": [
+        12.0,
+        12.5,
+        0.0
+      ],
+      "to": [
+        13.0,
+        13.0,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckback",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deckback",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#deckback",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            16.0
+          ]
+        },
+        "down": {
+          "texture": "#deckback",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-east-back-lath-hboards",
+      "from": [
+        12.0,
+        12.0,
+        0.5
+      ],
+      "to": [
+        13.0,
+        12.5,
+        1.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-east-back-lath-hboards",
+      "from": [
+        12.0,
+        12.0,
+        2.5
+      ],
+      "to": [
+        13.0,
+        12.5,
+        3.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-east-back-lath-hboards",
+      "from": [
+        12.0,
+        12.0,
+        4.5
+      ],
+      "to": [
+        13.0,
+        12.5,
+        5.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-east-back-lath-hboards",
+      "from": [
+        12.0,
+        12.0,
+        6.5
+      ],
+      "to": [
+        13.0,
+        12.5,
+        7.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-east-back-lath-hboards",
+      "from": [
+        12.0,
+        12.0,
+        8.5
+      ],
+      "to": [
+        13.0,
+        12.5,
+        9.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-east-back-lath-hboards",
+      "from": [
+        12.0,
+        12.0,
+        10.5
+      ],
+      "to": [
+        13.0,
+        12.5,
+        11.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-east-back-lath-hboards",
+      "from": [
+        12.0,
+        12.0,
+        12.5
+      ],
+      "to": [
+        13.0,
+        12.5,
+        13.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-east-back-lath-hboards",
+      "from": [
+        12.0,
+        12.0,
+        14.5
+      ],
+      "to": [
+        13.0,
+        12.5,
+        15.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-east-back-lath-boards",
+      "from": [
+        12.0,
+        12.5,
+        0.0
+      ],
+      "to": [
+        13.0,
+        13.0,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckback",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deckback",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#deckback",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            16.0
+          ]
+        },
+        "down": {
+          "texture": "#deckback",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-east-back-lath-boards",
+      "from": [
+        12.5,
+        12.0,
+        0.0
+      ],
+      "to": [
+        13.0,
+        12.5,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.5,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.5,
+            0.0,
+            1.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-north-front",
+      "from": [
+        0.0,
+        15.0,
+        3.0
+      ],
+      "to": [
+        16.0,
+        16.0,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckfront",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckfront",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            3.0,
+            16.0,
+            4.0
+          ]
+        },
+        "down": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            3.0,
+            16.0,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-north-framing-left",
+      "from": [
+        2.0,
+        13.0,
+        3.0
+      ],
+      "to": [
+        3.0,
+        15.0,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            2.0
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            2.0
+          ]
+        },
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            3.0,
+            1.0,
+            4.0
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            3.0,
+            1.0,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-north-framing-left",
+      "from": [
+        7.5,
+        13.0,
+        3.0
+      ],
+      "to": [
+        8.5,
+        15.0,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            2.0
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            2.0
+          ]
+        },
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            3.0,
+            1.0,
+            4.0
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            3.0,
+            1.0,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-north-framing-right",
+      "from": [
+        13.0,
+        13.0,
+        3.0
+      ],
+      "to": [
+        14.0,
+        15.0,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            2.0
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            2.0
+          ]
+        },
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            3.0,
+            1.0,
+            4.0
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            3.0,
+            1.0,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-north-poles-left",
+      "from": [
+        2.0,
+        13.25,
+        3.0
+      ],
+      "to": [
+        3.0,
+        14.75,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            1.0,
+            0.0,
+            2.0,
+            1.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.5
+          ]
+        },
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            3.0,
+            1.0,
+            4.0
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            3.0,
+            1.0,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-north-poles-left",
+      "from": [
+        7.5,
+        13.25,
+        3.0
+      ],
+      "to": [
+        8.5,
+        14.75,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.5
+          ]
+        },
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            3.0,
+            1.0,
+            4.0
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            3.0,
+            1.0,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-north-poles-right",
+      "from": [
+        13.0,
+        13.25,
+        3.0
+      ],
+      "to": [
+        14.0,
+        14.75,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            2.0,
+            0.0,
+            3.0,
+            1.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.5
+          ]
+        },
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            3.0,
+            1.0,
+            4.0
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            3.0,
+            1.0,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-north-poles2-left",
+      "from": [
+        2.0,
+        13.25,
+        3.0
+      ],
+      "to": [
+        3.0,
+        14.75,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.5
+          ]
+        },
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            3.0,
+            1.0,
+            4.0
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            3.0,
+            1.0,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-north-poles2-left",
+      "from": [
+        7.5,
+        13.25,
+        3.0
+      ],
+      "to": [
+        8.5,
+        14.75,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            2.0,
+            0.0,
+            3.0,
+            1.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.5
+          ]
+        },
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            3.0,
+            1.0,
+            4.0
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            3.0,
+            1.0,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-north-poles2-right",
+      "from": [
+        13.0,
+        13.25,
+        3.0
+      ],
+      "to": [
+        14.0,
+        14.75,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            1.0,
+            0.0,
+            2.0,
+            1.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.5
+          ]
+        },
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            3.0,
+            1.0,
+            4.0
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            3.0,
+            1.0,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-north-infill",
+      "from": [
+        0.0,
+        13.5,
+        3.0
+      ],
+      "to": [
+        16.0,
+        14.5,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            3.0,
+            16.0,
+            4.0
+          ]
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            3.0,
+            16.0,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-north-back",
+      "from": [
+        0.0,
+        12.0,
+        3.0
+      ],
+      "to": [
+        16.0,
+        13.0,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckback",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckback",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            3.0,
+            16.0,
+            4.0
+          ]
+        },
+        "down": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            3.0,
+            16.0,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-north-infill-pane",
+      "from": [
+        0.0,
+        14.0,
+        3.0
+      ],
+      "to": [
+        16.0,
+        14.0,
+        4.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            3.0,
+            16.0,
+            4.0
+          ]
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            3.0,
+            16.0,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-north-glazing-left",
+      "from": [
+        0.25,
+        13.0,
+        3.0
+      ],
+      "to": [
+        2.0,
+        15.0,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.75,
+            2.0
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            2.0
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.75,
+            2.0
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            2.0
+          ]
+        },
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            3.0,
+            1.75,
+            4.0
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            3.0,
+            1.75,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-north-glazing-right",
+      "from": [
+        14.0,
+        13.0,
+        3.0
+      ],
+      "to": [
+        15.75,
+        15.0,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.75,
+            2.0
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            2.0
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.75,
+            2.0
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            2.0
+          ]
+        },
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            3.0,
+            1.75,
+            4.0
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            3.0,
+            1.75,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-north-front-boards",
+      "from": [
+        0.0,
+        15.0,
+        3.0
+      ],
+      "to": [
+        16.0,
+        16.0,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckfront",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckfront",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            16.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            3.0,
+            16.0,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-north-front-hboards",
+      "from": [
+        0.0,
+        15.0,
+        3.0
+      ],
+      "to": [
+        16.0,
+        16.0,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckfront",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckfront",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            3.0,
+            16.0,
+            4.0
+          ]
+        },
+        "down": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            3.0,
+            16.0,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-north-back-boards",
+      "from": [
+        0.0,
+        12.0,
+        3.0
+      ],
+      "to": [
+        16.0,
+        13.0,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckback",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckback",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            3.0,
+            16.0,
+            4.0
+          ]
+        },
+        "down": {
+          "texture": "#deckback",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            16.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "ledge-north-back-hboards",
+      "from": [
+        0.0,
+        12.0,
+        3.0
+      ],
+      "to": [
+        16.0,
+        13.0,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckback",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckback",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            3.0,
+            16.0,
+            4.0
+          ]
+        },
+        "down": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            3.0,
+            16.0,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-north-back-lath-hboards",
+      "from": [
+        0.0,
+        12.5,
+        3.0
+      ],
+      "to": [
+        16.0,
+        13.0,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deckback",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deckback",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            3.0,
+            16.0,
+            4.0
+          ]
+        },
+        "down": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            3.0,
+            16.0,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-north-back-lath-hboards",
+      "from": [
+        0.0,
+        12.0,
+        3.0
+      ],
+      "to": [
+        16.0,
+        12.5,
+        3.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            0.5,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.5,
+            16.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-north-back-lath-boards",
+      "from": [
+        0.0,
+        12.5,
+        3.0
+      ],
+      "to": [
+        16.0,
+        13.0,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deckback",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deckback",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            3.0,
+            16.0,
+            4.0
+          ]
+        },
+        "down": {
+          "texture": "#deckback",
+          "uv": [
+            0.0,
+            3.0,
+            16.0,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-north-back-lath-boards",
+      "from": [
+        0.5,
+        12.0,
+        3.0
+      ],
+      "to": [
+        1.5,
+        12.5,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            3.0,
+            1.0,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-north-back-lath-boards",
+      "from": [
+        2.5,
+        12.0,
+        3.0
+      ],
+      "to": [
+        3.5,
+        12.5,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            3.0,
+            1.0,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-north-back-lath-boards",
+      "from": [
+        4.5,
+        12.0,
+        3.0
+      ],
+      "to": [
+        5.5,
+        12.5,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            3.0,
+            1.0,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-north-back-lath-boards",
+      "from": [
+        6.5,
+        12.0,
+        3.0
+      ],
+      "to": [
+        7.5,
+        12.5,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            3.0,
+            1.0,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-north-back-lath-boards",
+      "from": [
+        8.5,
+        12.0,
+        3.0
+      ],
+      "to": [
+        9.5,
+        12.5,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            3.0,
+            1.0,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-north-back-lath-boards",
+      "from": [
+        10.5,
+        12.0,
+        3.0
+      ],
+      "to": [
+        11.5,
+        12.5,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            3.0,
+            1.0,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-north-back-lath-boards",
+      "from": [
+        12.5,
+        12.0,
+        3.0
+      ],
+      "to": [
+        13.5,
+        12.5,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            3.0,
+            1.0,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "ledge-north-back-lath-boards",
+      "from": [
+        14.5,
+        12.0,
+        3.0
+      ],
+      "to": [
+        15.5,
+        12.5,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#deck",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#deck",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#deck",
+          "uv": [
+            0.0,
+            3.0,
+            1.0,
+            4.0
+          ]
+        }
+      }
     }
   ]
 }
