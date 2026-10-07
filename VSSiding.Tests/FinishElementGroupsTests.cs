@@ -83,6 +83,15 @@ public class FinishElementGroupsTests
             }
         }
 
+        var floorShape = JObject.Parse(File.ReadAllText(Path.Combine(assets, "shapes", "block", "floor", "floor.json")));
+        var floorNames = floorShape["elements"]!.Select(e => (string)e["name"]!).ToHashSet();
+        var floorJson = JObject.Parse(File.ReadAllText(Path.Combine(assets, "blocktypes", "floor.json")));
+        var floorIgnored = floorJson["shape"]!["ignoreElements"]?.Select(t => (string)t!).ToHashSet() ?? [];
+        var floorGroups = frames.SelectMany(frame => SidingFloorEntity.SelectiveElements(
+            "sticks", null, null, null, new JsonObject(new JObject()), (false, false, false, false), frame: frame)).ToList();
+        offenders.AddRange(floorGroups.Where(g => !floorNames.Contains(g)).Select(g => $"floor shape has no element '{g}'"));
+        offenders.AddRange(floorGroups.Where(g => !floorIgnored.Contains(g)).Select(g => $"floor doesn't ignore '{g}'"));
+
         Assert.Equal([], offenders);
     }
 

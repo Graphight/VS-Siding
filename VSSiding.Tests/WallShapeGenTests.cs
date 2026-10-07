@@ -181,6 +181,9 @@ public class WallShapeGenTests
             ["wall bare frame"] = 24,
             ["wall pole frame"] = 144,
             ["wall second pole frame"] = 144,
+            ["floor bare frame"] = 66,
+            ["floor pole frame"] = 240,
+            ["floor second pole frame"] = 240,
             ["wall wattle"] = 30,
             ["wall wattle, mid-stack"] = 30,
             ["wall daub both faces"] = 42,
@@ -263,6 +266,16 @@ public class WallShapeGenTests
                     layout, "sticks", null, null, null, null, finishes, (false, false, false, false), false, frame: frame)
                     .Sum(n => quads[n]);
             }
+        }
+
+        var floorQuads = WallShapeGen.Generate("floor")["elements"]!
+            .GroupBy(e => (string)e["name"]!)
+            .ToDictionary(g => g.Key, g => g.Sum(e => ((JObject)e["faces"]!).Properties().Count()));
+        foreach (var (state, framing, frame) in new[] { ("bare frame", "oak", "framing"), ("pole frame", "sticks", "poles"), ("second pole frame", "sticks", "poles2") })
+        {
+            actual[$"floor {state}"] = SidingFloorEntity.SelectiveElements(
+                framing, null, null, null, finishes, (false, false, false, false), frame: frame)
+                .Sum(n => floorQuads[n]);
         }
 
         Assert.Equal(expected, actual);

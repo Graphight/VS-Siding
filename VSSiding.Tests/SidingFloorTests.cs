@@ -89,6 +89,24 @@ public class SidingFloorTests
     }
 
     [Fact]
+    public void APoleFloorAsksForThePoleGroupsAndStillDropsAJoinedRimAndKeepsTheBezel()
+    {
+        Assert.Equal(
+            new string[][]
+            {
+                ["poles-left", "poles-right", "poles-bottom", "infill", "infill-top"],
+                ["poles2-left", "poles2-right", "poles2-top", "poles2-bottom"],
+                ["glazing-left", "glazing-right", "glazing-top", "glazing-bottom", "infill-pane"],
+            },
+            new[]
+            {
+                SidingFloorEntity.SelectiveElements("sticks", "wattle", null, null, Finishes, (true, false, false, false), frame: "poles"),
+                SidingFloorEntity.SelectiveElements("sticks", null, null, null, Finishes, (false, false, false, false), frame: "poles2"),
+                SidingFloorEntity.SelectiveElements("sticks", "glass", null, null, Finishes, (false, false, false, false), glazed: true, frame: "poles"),
+            });
+    }
+
+    [Fact]
     public void ANeighbourContinuesJoistsOnFramingAndGlazingOnTransparentInfill()
     {
         JsonObject infills = SidingWallEntityTests.Dict("""{ "glass": { "Transparent": true }, "wattle": {} }""");
