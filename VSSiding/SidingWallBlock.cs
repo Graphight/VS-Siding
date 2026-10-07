@@ -1046,7 +1046,7 @@ public class SidingWallBlock : Block
     {
         if (layer == "step" && entity.Step != null)
             return api?.World.GetBlock(new AssetLocation(entity.Step))?.BlockMaterial ?? BlockMaterial;
-        return LayerMaterial(layer, KeyAt(layer, entity), Attributes["Infills"], Attributes["Finishes"], BlockMaterial);
+        return LayerMaterial(layer, KeyAt(layer, entity), entity.Framing, Attributes["Framings"], Attributes["Infills"], Attributes["Finishes"], BlockMaterial);
     }
 
     // The fallback is a parameter rather than read from Sounds here, so GetSounds can defer to
@@ -1089,7 +1089,19 @@ public class SidingWallBlock : Block
     {
         if (pos == null) return base.GetCombustibleProperties(world, itemstack, pos);
 
-        return ResolveLayerCombustible(HitLayerMaterial(world.BlockAccessor, pos, null), base.GetCombustibleProperties(world, itemstack, pos));
+        var entity = world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos);
+        var material = entity == null ? BlockMaterial : LayerMaterialAt(BurnLayer(entity), entity);
+        return ResolveLayerCombustible(material, base.GetCombustibleProperties(world, itemstack, pos));
+    }
+
+    // The layer a fire takes: the topmost, except that a deck whose own top layer does not burn is
+    // stepped over for the wall's layers under it, so a bone deck does not fireproof a pelt (decision 0060).
+    // A wall with no layer of its own keeps the deck's answer, so its frame does not burn out from under the deck.
+    internal string? BurnLayer(SidingWallEntity entity)
+    {
+        string? layer = PeelAt(entity, null, false);
+        if (layer?.StartsWith("deck") != true || LayerMaterialAt(layer, entity) == EnumBlockMaterial.Wood) return layer;
+        return PeelLayer(null, entity.Infill, entity.Front, entity.SecondFront, entity.Back, null, entity.Step) ?? layer;
     }
 
     // pos may be null, with only a stack to go on, so that falls back to base. The API warns this
@@ -1159,16 +1171,17 @@ public class SidingWallBlock : Block
     }
 
     // A fire that burns out against a wall takes its topmost layer, not the whole block; a bare
-    // frame has none left, so vanilla deletes it. Vanilla only rechecks fuel once a second, so a
-    // non-wood layer added in that window is left standing and the fire just goes out.
+    // wood frame has none left, so vanilla deletes it. Vanilla only rechecks fuel once a second, so a
+    // non-wood layer added in that window, or a bare frame that is not wood, is left standing and the
+    // fire just goes out.
     internal bool TryBurnLayer(IWorldAccessor world, BlockPos pos)
     {
         var entity = world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos);
         if (entity == null) return false;
-        string? layer = PeelAt(entity, null, false);
-        if (layer == null) return false;
-
+        string? layer = BurnLayer(entity);
         bool burns = LayerMaterialAt(layer, entity) == EnumBlockMaterial.Wood;
+        if (layer == null) return !burns;
+
         if (burns && world.Side == EnumAppSide.Server) RemoveLayer(world, entity, pos, layer);
         return true;
     }
@@ -1283,12 +1296,14 @@ public class SidingWallBlock : Block
             _ => infill,
         };
 
-    // Only "infill" and the finish layers look a material up. Framings are all planks and carry
-    // no BlockMaterial, so a frame or a deck falls through to the caller's fallback, the block's own Wood.
-    internal static EnumBlockMaterial LayerMaterial(string? layer, string? key, JsonObject infills, JsonObject finishes, EnumBlockMaterial fallback)
+    // Infills and finishes look their material up in their own dictionary; a bare frame looks up the
+    // framing and a deck its framing key, and an entry with no BlockMaterial (planks) falls through
+    // to the caller's fallback, the block's own Wood.
+    internal static EnumBlockMaterial LayerMaterial(string? layer, string? key, string? framing, JsonObject framings, JsonObject infills, JsonObject finishes, EnumBlockMaterial fallback)
     {
-        if (key == null || layer == "deck") return fallback;
-        var dictionary = layer is "infill" or "deckinfill" ? infills : finishes;
+        if (layer == null) key = framing;
+        if (key == null) return fallback;
+        var dictionary = layer is null or "deck" ? framings : layer is "infill" or "deckinfill" ? infills : finishes;
         string? materialName = dictionary[key]["BlockMaterial"].AsString(null!);
         return Enum.TryParse(materialName, true, out EnumBlockMaterial material) ? material : fallback;
     }

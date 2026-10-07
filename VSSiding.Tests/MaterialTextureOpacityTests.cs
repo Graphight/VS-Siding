@@ -121,6 +121,8 @@ public class MaterialTextureOpacityTests
             .Concat(Candidates(vintageStoryPath, "block", "blocktypes/glass/full-colored.json"))
             .Concat(Candidates(vintageStoryPath, "block", "blocktypes/glass/full-quartz.json"))
             .Concat(Candidates(vintageStoryPath, "block", "blocktypes/soil/rammed.json", 1, "{0}-light-{1}"))
+            .Concat(Candidates(vintageStoryPath, "item", "itemtypes/resource/hide.json", 1, "{0}-pelt-{1}"))
+            .Concat(Candidates(vintageStoryPath, "item", "itemtypes/resource/cloth.json"))
             .ToList();
 
     [Fact]

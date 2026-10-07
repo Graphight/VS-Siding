@@ -3,7 +3,7 @@ using Vintagestory.API.MathTools;
 
 namespace VSSiding;
 
-// Patched onto game:itemtypes/resource/plank.json and stick.json - see docs/decisions/0005/0006/0058.
+// Patched onto game:itemtypes/resource/plank.json, stick.json and bone.json - see docs/decisions/0005/0006/0058/0060.
 // A saw or a stone in the off hand tells this apart from Roofing's own plank-placing behavior (and is also the
 // whole build flow's "you're building" signal, see SidingWallBlock.HasBuildSignal); the
 // picker's framing row picks wall vs cornerout, and placement itself is handed to the

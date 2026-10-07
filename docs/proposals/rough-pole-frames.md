@@ -2,16 +2,19 @@
 
 - Status: Draft
 - Created: 2026-10-05
-- Reflects: the playtest of decision 0058 on branch `feat/primitive-framing`; `SidingWallEntity.SelectiveElements`/`CacheKey`, `SidingWallTexSource.Alternate`, `SidingWallBlock.UnrotatedFramingBoxes`, `VSSiding.Tests/WallShapeGen`, `config/materials.json`; vanilla textures `block/wood/bark/oak` and `item/resource/rope`; decisions 0007, 0008, 0019, 0021, 0058; not yet played
+- Reflects: the playtests of decision 0058 on branch `feat/primitive-framing` and of decision 0060 on branch `feat/tent-walls`; `SidingWallEntity.SelectiveElements`/`CacheKey`, `SidingWallTexSource.Alternate`, `SidingWallBlock.UnrotatedFramingBoxes`, `VSSiding.Tests/WallShapeGen`, `config/materials.json`; vanilla textures `block/wood/bark/oak`, `block/creature/bone` and `item/resource/rope`; decisions 0007, 0008, 0019, 0021, 0058, 0060; not yet played
 
 ## Summary
-A stick frame is a plank frame in a darker texture: the same squared posts and plates, ruler straight.
-The proposal lets a framing entry name its own shape elements, as a finish already can, and draws the stick frame as rough poles with uneven posts, branch stubs and lashed joints.
+A stick frame is a plank frame in a darker texture, and a bone frame is one in a paler texture: the same squared posts and plates, ruler straight.
+The proposal lets a framing entry name its own shape elements, as a finish already can, and draws the stick and bone frames as rough poles with uneven posts, stubs and lashed joints.
 
 ## Context
 Decision 0058 added the `sticks` framing.
 In play its first texture could not be told from oak planks, and oak bark fixed the colour.
 What was wanted beyond that was "a more rugged look with spurs and bits", and it was left out of 0058 as too much for that change.
+
+Decision 0060 added the `bone` framing on the same shared elements.
+In play it was "a little too clean edged": a bone frame is as square as a sawn one.
 
 **A texture cannot do it.**
 A post is one voxel wide on the face a player looks at, and vanilla's wood textures are 32 pixels across a block, so that face is two texels wide.
@@ -32,13 +35,14 @@ A member drops where two cells join (decision 0008), a glazed cell swaps the fra
 
 ## Design
 **`Elements` on a framing entry.**
-An optional string, `Elements: "poles"` on `sticks`, read by `SelectiveElements` as the prefix in place of `framing`, so the wall asks for `poles-left` and the corner for `poles`.
+An optional string, `Elements: "poles"` on `sticks` and on `bone`, read by `SelectiveElements` as the prefix in place of `framing`, so the wall asks for `poles-left` and the corner for `poles`.
 Entries without it keep `framing`, so no plank frame changes.
+Sticks and bones share the one set of groups: the unevenness, the overrun and the lashing are what a pole frame is, whatever the pole.
 `CacheKey` already carries the framing key, so a rough frame meshes under its own key with no change there.
 
 **Pole groups from `WallShapeGen`.**
 Each `poles-` group holds the member it replaces, broken into two or three lengths that differ by a quarter voxel in width so the edge is not one straight line.
-A post gains one or two branch stubs lying in the half voxel over the infill, and each plate overruns its post by the post's width, the way a lashed pole does.
+A post gains one or two stubs, a branch on a stick and a knuckle on a bone, lying in the half voxel over the infill, and each plate overruns its post by the post's width, the way a lashed pole does.
 The groups keep the plain groups' names after the prefix, so every join in decision 0008 drops the same member it drops today.
 
 **Two variants, picked by position.**
@@ -63,6 +67,7 @@ Joists are seen from below in a cellar, where rough poles would show, so that is
 - **Roughness that stands proud of the wall.** It would poke through any finish, or need a rule that strips it once a face is finished.
 - **A random pattern per cell, built at run time.** Each cell would mesh under its own key, and the cache exists so that a long wall is a handful of meshes.
 - **Rough elements on every framing.** Planks are sawn timber; a square frame is right for them.
+- **A second set of groups for bone, with knobbed ends in place of stubs.** A second table in the generator and two more groups per member, for a difference a quarter voxel deep; left until the shared groups have been seen on bone.
 - **A separate `poles` framing beside `sticks`.** Two entries consuming the same stick would match the held item twice, and `MatchConsumes` returns the first.
 
 ## Consequences & open questions
@@ -71,4 +76,5 @@ Joists are seen from below in a cellar, where rough poles would show, so that is
 - Whether two variants are enough to break the pattern along a run of ten.
 - A corner's three posts are always drawn, so its stubs must not meet where two legs join.
 - `WallShapeGenTests` pins the committed shapes to the generator, so `just shapes` has to run in the same change.
-- `tent-walls` adds a bone framing that would want its own look by the same key.
+- Whether a stub reads as a knuckle on a bone frame or as a twig; if a twig, bone takes groups of its own.
+- A bone deck and bone joists keep the plain groups, as stick ones do.

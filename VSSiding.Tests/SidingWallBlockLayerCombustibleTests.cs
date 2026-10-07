@@ -18,6 +18,7 @@ public class SidingWallBlockLayerCombustibleTests
     [InlineData(EnumBlockMaterial.Glass)]
     [InlineData(EnumBlockMaterial.Ceramic)]
     [InlineData(EnumBlockMaterial.Stone)]
+    [InlineData(EnumBlockMaterial.Other)]
     public void NonWoodDoesNotBurn(EnumBlockMaterial material)
     {
         Assert.Null(SidingWallBlock.ResolveLayerCombustible(material, Props));

@@ -287,7 +287,7 @@ public class SidingFloorBlock : Block
 
     private EnumBlockMaterial LayerMaterialAt(string? layer, SidingFloorEntity entity)
         => SidingWallBlock.LayerMaterial(layer, SidingWallBlock.LayerKey(layer, entity.Infill, entity.Front, null, entity.Back, null),
-            Attributes["Infills"], Attributes["Finishes"], BlockMaterial);
+            entity.Framing, Attributes["Framings"], Attributes["Infills"], Attributes["Finishes"], BlockMaterial);
 
     private EnumBlockMaterial HitLayerMaterial(IBlockAccessor accessor, BlockPos pos, BlockFacing? hitFace)
         => accessor.GetBlockEntity<SidingFloorEntity>(pos) is { } entity ? LayerMaterialAt(PeelLayer(hitFace, entity), entity) : BlockMaterial;
@@ -366,14 +366,16 @@ public class SidingFloorBlock : Block
     }
 
     // As on the wall (decision 0043): a fire that burns out on a floor takes its topmost layer, and
-    // only a wood one; bare joists have none left, so vanilla deletes the block.
+    // only a wood one; bare wood joists have none left, so vanilla deletes the block.
     internal bool TryBurnLayer(IWorldAccessor world, BlockPos pos)
     {
         var entity = world.BlockAccessor.GetBlockEntity<SidingFloorEntity>(pos);
-        string? layer = entity == null ? null : PeelLayer(null, entity);
-        if (layer == null) return false;
+        if (entity == null) return false;
+        string? layer = PeelLayer(null, entity);
+        bool burns = LayerMaterialAt(layer, entity) == EnumBlockMaterial.Wood;
+        if (layer == null) return !burns;
 
-        if (LayerMaterialAt(layer, entity!) == EnumBlockMaterial.Wood && world.Side == EnumAppSide.Server) RemoveLayer(world, entity!, pos, layer);
+        if (burns && world.Side == EnumAppSide.Server) RemoveLayer(world, entity, pos, layer);
         return true;
     }
 

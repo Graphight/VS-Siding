@@ -13,18 +13,19 @@ Every layer goes on the same way: planks or sticks raise the framing, an infill 
 
 A stone works from the first day: it is never used up, and sticks build the frame.
 Sticks are also the wattle infill, so sneak to stack or extend a bare stick frame.
+Bones build a frame too, two to a frame, and a pelt or a cloth fills one.
 
 The saw or stone carries a tool mode picker, and the mode decides what you build: a flat **wall**, an outside **corner** or a thin **floor**, and whether plank and log finishes go on as weatherboard, boards, shakes or logs.
 The in-game handbook page *VS Siding Mod: Guide* has the whole thing.
 
 ## What a wall is made of
 
-- **Framing**: planks, in any wood the game or another mod adds, or sticks.
-- **Infill**: wattle, straw, clay, packed earth, rubble stone or glass.
+- **Framing**: planks, in any wood the game or another mod adds, sticks, or bones. Bone does not burn.
+- **Infill**: wattle, straw, clay, packed earth, pelt, cloth, rubble stone or glass.
 - **Finish**: appearance only, per face, in wood, clay, rammed earth, brick, stone, or metal.
 
 Framing plus infill is a complete wall, and seals a room the way solid blocks do.
-The infill decides whether it counts as a cooling (cellar) wall: rubble stone, clay and packed earth do, wattle and straw do not.
+The infill decides whether it counts as a cooling (cellar) wall: rubble stone, clay and packed earth do, wattle, straw, pelt and cloth do not.
 Glass seals the same way but lets daylight through.
 
 ## Floors
