@@ -245,12 +245,14 @@ public class WallShapeGenTests
             ("rubble both faces", "wattle", "rubble", "rubble", "rubble", (false, false, false, false), false),
         ];
 
+        static Dictionary<string, int> Quads(string layout) => WallShapeGen.Generate(layout)["elements"]!
+            .GroupBy(e => (string)e["name"]!)
+            .ToDictionary(g => g.Key, g => g.Sum(e => ((JObject)e["faces"]!).Properties().Count()));
+
         var actual = new Dictionary<string, int>();
         foreach (var layout in new[] { "wall", "cornerout" })
         {
-            var quads = WallShapeGen.Generate(layout)["elements"]!
-                .GroupBy(e => (string)e["name"]!)
-                .ToDictionary(g => g.Key, g => g.Sum(e => ((JObject)e["faces"]!).Properties().Count()));
+            var quads = Quads(layout);
 
             foreach (var (state, infill, front, secondFront, back, joins, glazed) in states)
             {
@@ -268,9 +270,7 @@ public class WallShapeGenTests
             }
         }
 
-        var floorQuads = WallShapeGen.Generate("floor")["elements"]!
-            .GroupBy(e => (string)e["name"]!)
-            .ToDictionary(g => g.Key, g => g.Sum(e => ((JObject)e["faces"]!).Properties().Count()));
+        var floorQuads = Quads("floor");
         foreach (var (state, framing, frame) in new[] { ("bare frame", "oak", "framing"), ("pole frame", "sticks", "poles"), ("second pole frame", "sticks", "poles2") })
         {
             actual[$"floor {state}"] = SidingFloorEntity.SelectiveElements(
@@ -489,8 +489,8 @@ public class WallShapeGenTests
     [InlineData("wall", "poles")]
     [InlineData("wall", "poles2")]
     [InlineData("cornerout", "poles")]
-    [InlineData("floor", "poles")]
     [InlineData("cornerout", "poles2")]
+    [InlineData("floor", "poles")]
     [InlineData("floor", "poles2")]
     public void EveryPoleBoxLiesInsideTheFramesThickness(string layout, string prefix)
     {
@@ -513,8 +513,8 @@ public class WallShapeGenTests
     [InlineData("wall", "poles")]
     [InlineData("wall", "poles2")]
     [InlineData("cornerout", "poles")]
-    [InlineData("floor", "poles")]
     [InlineData("cornerout", "poles2")]
+    [InlineData("floor", "poles")]
     [InlineData("floor", "poles2")]
     public void EveryPoleGroupCoversTheMidPlaneOfThePlainMemberItReplaces(string layout, string prefix)
     {
@@ -558,8 +558,8 @@ public class WallShapeGenTests
     [InlineData("wall", "poles")]
     [InlineData("wall", "poles2")]
     [InlineData("cornerout", "poles")]
-    [InlineData("floor", "poles")]
     [InlineData("cornerout", "poles2")]
+    [InlineData("floor", "poles")]
     [InlineData("floor", "poles2")]
     public void NoTwoEmittedFacesOfGroupsDrawnTogetherShareAPlaneAndOverlap(string layout, string prefix)
     {

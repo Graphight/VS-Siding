@@ -60,10 +60,7 @@ public class FinishElementGroupsTests
         var wallJson = JObject.Parse(File.ReadAllText(Path.Combine(assets, "blocktypes", "wall.json")));
         var attributes = MaterialTextureOpacityTests.BlockAttributes("wall.json");
 
-        var frames = new[] { "Framings", "FramingFamilies" }.Select(name => attributes[name]).OfType<JObject>()
-            .SelectMany(entries => entries.Properties().SelectMany(entry => new[] { 0, 1 }
-                .Select(alternate => SidingWallEntity.FrameElements(new JsonObject(entries), entry.Name, alternate))))
-            .Where(frame => frame != "framing").Distinct().ToList();
+        var frames = RoughFrames(attributes);
         Assert.NotEmpty(frames);
 
         var offenders = new List<string>();
@@ -83,8 +80,28 @@ public class FinishElementGroupsTests
             }
         }
 
-        // A deck is the floor clipped to its side, and the clip drops some members whole, such as the rim
-        // against the wall. A pole deck has to keep exactly the members the plain deck keeps.
+        var floorShape = JObject.Parse(File.ReadAllText(Path.Combine(assets, "shapes", "block", "floor", "floor.json")));
+        var floorNames = floorShape["elements"]!.Select(e => (string)e["name"]!).ToHashSet();
+        var floorJson = JObject.Parse(File.ReadAllText(Path.Combine(assets, "blocktypes", "floor.json")));
+        var floorIgnored = floorJson["shape"]!["ignoreElements"]?.Select(t => (string)t!).ToHashSet() ?? [];
+        var floorGroups = frames.SelectMany(frame => SidingFloorEntity.SelectiveElements(
+            "sticks", null, null, null, new JsonObject(new JObject()), (false, false, false, false), frame: frame)).ToList();
+        offenders.AddRange(floorGroups.Where(g => !floorNames.Contains(g)).Select(g => $"floor shape has no element '{g}'"));
+        offenders.AddRange(floorGroups.Where(g => !floorIgnored.Contains(g)).Select(g => $"floor doesn't ignore '{g}'"));
+
+        Assert.Equal([], offenders);
+    }
+
+    // A deck is the floor clipped to its side, and the clip drops some members whole, such as the rim
+    // against the wall. A pole deck has to keep exactly the members the plain deck keeps, or it draws a
+    // piece of a member with the rest of it clipped away.
+    [Fact]
+    public void APoleDeckKeepsTheMembersThePlainDeckKeeps()
+    {
+        var assets = Path.Combine(MaterialTextureOpacityTests.GetAssemblyMetadata("RepoRoot"), "VSSiding", "assets", "vssiding");
+        var frames = RoughFrames(MaterialTextureOpacityTests.BlockAttributes("wall.json"));
+
+        var offenders = new List<string>();
         foreach (var layout in new[] { "wall", "cornerout" })
         {
             var names = JObject.Parse(File.ReadAllText(Path.Combine(assets, "shapes", "block", "wall", layout + ".json")))["elements"]!
@@ -99,17 +116,15 @@ public class FinishElementGroupsTests
             }
         }
 
-        var floorShape = JObject.Parse(File.ReadAllText(Path.Combine(assets, "shapes", "block", "floor", "floor.json")));
-        var floorNames = floorShape["elements"]!.Select(e => (string)e["name"]!).ToHashSet();
-        var floorJson = JObject.Parse(File.ReadAllText(Path.Combine(assets, "blocktypes", "floor.json")));
-        var floorIgnored = floorJson["shape"]!["ignoreElements"]?.Select(t => (string)t!).ToHashSet() ?? [];
-        var floorGroups = frames.SelectMany(frame => SidingFloorEntity.SelectiveElements(
-            "sticks", null, null, null, new JsonObject(new JObject()), (false, false, false, false), frame: frame)).ToList();
-        offenders.AddRange(floorGroups.Where(g => !floorNames.Contains(g)).Select(g => $"floor shape has no element '{g}'"));
-        offenders.AddRange(floorGroups.Where(g => !floorIgnored.Contains(g)).Select(g => $"floor doesn't ignore '{g}'"));
-
         Assert.Equal([], offenders);
     }
+
+    // Every prefix a real framing entry can draw with, both variants of it.
+    private static List<string> RoughFrames(JObject attributes)
+        => new[] { "Framings", "FramingFamilies" }.Select(name => attributes[name]).OfType<JObject>()
+            .SelectMany(entries => entries.Properties().SelectMany(entry => new[] { 0, 1 }
+                .Select(alternate => SidingWallEntity.FrameElements(new JsonObject(entries), entry.Name, alternate))))
+            .Where(frame => frame != "framing").Distinct().ToList();
 
     [Fact]
     public void EveryFloorElementGroupExistsAndIsIgnoredByTheFloorBlock()

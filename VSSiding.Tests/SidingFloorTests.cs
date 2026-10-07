@@ -93,7 +93,7 @@ public class SidingFloorTests
     }
 
     [Fact]
-    public void APoleFloorAsksForThePoleGroupsAndStillDropsAJoinedRimAndKeepsTheBezel()
+    public void APoleFloorDropsAJoinedRimAndAGlazedOneKeepsItsBezel()
     {
         Assert.Equal(
             new string[][]
