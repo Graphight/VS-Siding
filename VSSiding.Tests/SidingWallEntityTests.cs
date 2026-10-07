@@ -49,13 +49,15 @@ public class SidingWallEntityTests
             ("sticks", null, "packeddirt", null),
             ("sticks", null, "wattle", "planks"),
             ("sticks", "oak", null, null),
+            ("aged", "sticks", null, null),
+            ("sticks", "aged", null, null),
             ("aged", null, "packeddirt", null),
             ("oak", null, null, null),
             (null, null, null, null),
         ];
 
         Assert.Equal(
-            new[] { 0, 1, 77, 77, 77, 77, 77, 0 },
+            new[] { 0, 1, 77, 77, 77, 1, 1, 77, 77, 0 },
             cells.Select(c => SidingWallEntity.CellAlternate(attributes, 77, c.Framing, c.Deck, [c.Infill, null], [c.Front, null])));
     }
 
@@ -425,8 +427,12 @@ public class SidingWallEntityTests
     public void GlassGroupsOfTheWallAndItsDeckAreInfillElements()
     {
         Assert.Equal(
-            [true, true, true, false, false, false],
-            new[] { "infill-pane", "infill-top", "deck-west-infill-pane", "deck-west-glazing-top", "framing-left", "deck-north-front-hboards" }
+            [true, true, true, false, false, false, true, false],
+            new[]
+            {
+                "infill-pane", "infill-top", "deck-west-infill-pane", "deck-west-glazing-top", "framing-left", "deck-north-front-hboards",
+                "ledge-west-infill-pane", "ledge-west-glazing-top",
+            }
                 .Select(SidingWallEntity.IsInfillElement));
     }
 }

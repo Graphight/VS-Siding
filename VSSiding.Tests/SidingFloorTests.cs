@@ -70,6 +70,8 @@ public class SidingFloorTests
                     "deck-south-infill-top", "deck-south-back-hboards"],
                 ["deck-north-glazing-top", "deck-north-glazing-bottom", "deck-north-infill-pane"],
                 [],
+                ["deck-west-poles2-left", "deck-west-poles2-right", "deck-west-poles2-top", "deck-west-poles2-bottom"],
+                ["deck-north-glazing-top", "deck-north-glazing-bottom", "deck-north-infill-pane"],
             },
             new[]
             {
@@ -77,6 +79,28 @@ public class SidingFloorTests
                 SidingWallEntity.DeckElements("south", "oak", "wattle", "planks", "planks", Finishes, (true, false, false, false), ("boards", null), false),
                 SidingWallEntity.DeckElements("north", "oak", "glass", null, null, Finishes, (false, false, true, true), default, true),
                 SidingWallEntity.DeckElements("east", null, "wattle", "planks", "planks", Finishes, (false, false, false, false), default, false),
+                SidingWallEntity.DeckElements("west", "sticks", null, null, null, Finishes, (false, false, false, false), default, false, "poles2"),
+                SidingWallEntity.DeckElements("north", "sticks", "glass", null, null, Finishes, (false, false, true, true), default, true, "poles"),
+            });
+    }
+
+    [Fact]
+    public void ADeckAlsoAsksForItsLedgeWhileTheWallsRoomSideIsBare()
+    {
+        Assert.Equal(
+            new string[][]
+            {
+                ["deck-west-framing-left", "deck-west-framing-right", "deck-west-framing-top", "deck-west-framing-bottom",
+                    "ledge-west-framing-left", "ledge-west-framing-right", "ledge-west-framing-top", "ledge-west-framing-bottom"],
+                ["deck-east-poles-left", "deck-east-poles-right", "deck-east-poles-bottom", "deck-east-infill", "deck-east-infill-top",
+                    "ledge-east-poles-left", "ledge-east-poles-right", "ledge-east-poles-bottom", "ledge-east-infill", "ledge-east-infill-top"],
+                [],
+            },
+            new[]
+            {
+                SidingWallEntity.DeckElements("west", "oak", null, null, null, Finishes, (false, false, false, false), default, false, ledge: true),
+                SidingWallEntity.DeckElements("east", "sticks", "wattle", null, null, Finishes, (true, false, false, false), default, false, "poles", ledge: true),
+                SidingWallEntity.DeckElements("west", null, "wattle", null, null, Finishes, (false, false, false, false), default, false, ledge: true),
             });
     }
 
@@ -86,6 +110,24 @@ public class SidingFloorTests
         Assert.Equal(
             ["framing-left", "framing-right", "framing-bottom", "infill", "infill-top"],
             SidingFloorEntity.SelectiveElements("oak", "wattle", null, null, Finishes, (true, false, false, false)));
+    }
+
+    [Fact]
+    public void APoleFloorDropsAJoinedRimAndAGlazedOneKeepsItsBezel()
+    {
+        Assert.Equal(
+            new string[][]
+            {
+                ["poles-left", "poles-right", "poles-bottom", "infill", "infill-top"],
+                ["poles2-left", "poles2-right", "poles2-top", "poles2-bottom"],
+                ["glazing-left", "glazing-right", "glazing-top", "glazing-bottom", "infill-pane"],
+            },
+            new[]
+            {
+                SidingFloorEntity.SelectiveElements("sticks", "wattle", null, null, Finishes, (true, false, false, false), frame: "poles"),
+                SidingFloorEntity.SelectiveElements("sticks", null, null, null, Finishes, (false, false, false, false), frame: "poles2"),
+                SidingFloorEntity.SelectiveElements("sticks", "glass", null, null, Finishes, (false, false, false, false), glazed: true, frame: "poles"),
+            });
     }
 
     [Fact]

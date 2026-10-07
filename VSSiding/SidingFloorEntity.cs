@@ -71,12 +71,11 @@ public class SidingFloorEntity : BlockEntity
 
         bool glazed = SidingWallBlock.IsTransparent(Infill, Block.Attributes["Infills"]);
         var joins = SidingFloorBlock.Joins(Api.World.BlockAccessor, Pos, glazed);
-        string[] selectiveElements = SelectiveElements(Framing, Infill, Front, Back, Block.Attributes["Finishes"], joins, (FrontStyle, BackStyle), glazed);
+        int alternate = SidingWallEntity.CellAlternate(Block.Attributes, SidingWallTexSource.Alternate(Pos), Framing, null, [Infill], [Front, Back]);
+        string[] selectiveElements = SelectiveElements(Framing, Infill, Front, Back, Block.Attributes["Finishes"], joins, (FrontStyle, BackStyle), glazed,
+            SidingWallEntity.FrameElements(Block.Attributes["Framings"], Framing, alternate));
         if (selectiveElements.Length == 0) return false;
 
-        int alternate = SidingWallTexSource.AnyVaries(Block.Attributes["Finishes"], Front, Back)
-            || SidingWallTexSource.AnyVaries(Block.Attributes["Framings"], Framing)
-            ? SidingWallTexSource.Alternate(Pos) : 0;
         string cacheKey = CacheKey(Framing, Infill, Front, Back, (FrontStyle, BackStyle), joins, alternate);
         MeshData[] meshes = ObjectCacheUtil.GetOrCreate(capi, cacheKey, () =>
         {
@@ -111,9 +110,9 @@ public class SidingFloorEntity : BlockEntity
     // FloorElements by its style, or the plain slab where it has none.
     internal static string[] SelectiveElements(
         string? framing, string? infill, string? front, string? back, JsonObject finishes,
-        (bool above, bool below, bool left, bool right) joins, (string? front, string? back) styles = default, bool glazed = false)
+        (bool above, bool below, bool left, bool right) joins, (string? front, string? back) styles = default, bool glazed = false, string frame = "framing")
     {
-        var names = SidingWallEntity.SelectiveElements("wall", framing, infill, null, null, null, finishes, joins, glazed).ToList();
+        var names = SidingWallEntity.SelectiveElements("wall", framing, infill, null, null, null, finishes, joins, glazed, frame: frame).ToList();
         if (front != null) names.Insert(0, FloorElement(finishes, front, "front", styles.front));
         if (back != null) names.Add(FloorElement(finishes, back, "back", styles.back));
         return names.ToArray();

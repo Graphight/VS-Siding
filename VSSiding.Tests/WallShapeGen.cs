@@ -652,6 +652,52 @@ public static class WallShapeGen
         ("lashing", "game:item/resource/rope"),
     ];
 
+    // The wall's rough frame laid flat: joists recessed a quarter voxel in y and cut in three along z with
+    // the middle length swelling in x, stubs in the half voxel over the infill, and rims that keep the plain
+    // boxes and run over the joist ends through cheeks in the two skins, lashed beside them. A cheek instead
+    // of one proud box keeps two same-facing faces from sharing the plane at a rim's end.
+    private static readonly Element[] FloorPoleElements =
+    [
+        new("poles-left", (2, 13.25, 0), (3, 14.75, 5), "framing", UvRule.Flat),
+        new("poles-left", (2, 13.25, 5), (3.25, 14.75, 11), "framing", UvRule.Flat),
+        new("poles-left", (2, 13.25, 11), (3, 14.75, 16), "framing", UvRule.Flat),
+        new("poles-left", (7.5, 13.25, 0), (8.5, 14.75, 4), "framing", UvRule.Flat),
+        new("poles-left", (7.25, 13.25, 4), (8.5, 14.75, 9), "framing", UvRule.Flat),
+        new("poles-left", (7.5, 13.25, 9), (8.5, 14.75, 16), "framing", UvRule.Flat),
+        new("poles-left", (0.5, 13, 7), (2, 13.5, 8), "framing", UvRule.Flat),
+        new("poles-left", (3.25, 14.5, 9), (5, 15, 10), "framing", UvRule.Flat),
+        new("poles-left", (8.5, 13, 5), (10.5, 13.5, 6), "framing", UvRule.Flat),
+        new("poles-left", (5.75, 14.5, 11), (7.5, 15, 12), "framing", UvRule.Flat),
+        new("poles-right", (13, 13.25, 0), (14, 14.75, 6), "framing", UvRule.Flat),
+        new("poles-right", (13, 13.25, 6), (14.25, 14.75, 12), "framing", UvRule.Flat),
+        new("poles-right", (13, 13.25, 12), (14, 14.75, 16), "framing", UvRule.Flat),
+        new("poles-right", (11, 14.5, 8), (13, 15, 9), "framing", UvRule.Flat),
+        new("poles-right", (14.25, 13, 10), (15.5, 13.5, 11), "framing", UvRule.Flat),
+        .. PoleRim("poles-top", 0, 1, 1, 2.5),
+        .. PoleRim("poles-bottom", 15, 16, 13.5, 15),
+    ];
+
+    private static readonly Element[] FloorPole2Elements =
+    [
+        // Second variant: cuts, stubs and their faces move, the swelling flips sides, the rims are the first one's renamed.
+        new("poles2-left", (2, 13.25, 0), (3, 14.75, 4), "framing", UvRule.Flat),
+        new("poles2-left", (1.75, 13.25, 4), (3, 14.75, 10), "framing", UvRule.Flat),
+        new("poles2-left", (2, 13.25, 10), (3, 14.75, 16), "framing", UvRule.Flat),
+        new("poles2-left", (7.5, 13.25, 0), (8.5, 14.75, 6), "framing", UvRule.Flat),
+        new("poles2-left", (7.5, 13.25, 6), (8.75, 14.75, 12), "framing", UvRule.Flat),
+        new("poles2-left", (7.5, 13.25, 12), (8.5, 14.75, 16), "framing", UvRule.Flat),
+        new("poles2-left", (3, 13, 6), (4.75, 13.5, 7), "framing", UvRule.Flat),
+        new("poles2-left", (0.25, 14.5, 8), (1.75, 15, 9), "framing", UvRule.Flat),
+        new("poles2-left", (5.5, 13, 8), (7.5, 13.5, 9), "framing", UvRule.Flat),
+        new("poles2-left", (8.5, 14.5, 4), (10.5, 15, 5), "framing", UvRule.Flat),
+        new("poles2-right", (13, 13.25, 0), (14, 14.75, 5), "framing", UvRule.Flat),
+        new("poles2-right", (12.75, 13.25, 5), (14, 14.75, 9), "framing", UvRule.Flat),
+        new("poles2-right", (13, 13.25, 9), (14, 14.75, 16), "framing", UvRule.Flat),
+        new("poles2-right", (10.75, 14.5, 6), (12.75, 15, 7), "framing", UvRule.Flat),
+        new("poles2-right", (14, 13, 11), (15.25, 13.5, 12), "framing", UvRule.Flat),
+        .. FloorPoleElements.Where(e => e.Name is "poles-top" or "poles-bottom").Select(e => e with { Name = e.Name.Replace("poles", "poles2") }),
+    ];
+
     // The wall's layers laid flat: top finish, joists with infill between, underside, filling y 12..16
     // so the top sits where a plank block's would. Every floor's joists run north-south (along z) at
     // the same x, three to a cell and never more than 4.5 voxels apart, so they tile across any run
@@ -667,6 +713,8 @@ public static class WallShapeGen
         new("framing-right", (13, 13, 0), (14, 15, 16), "framing", UvRule.Flat),
         .. Rim("framing-top", 0, 1),
         .. Rim("framing-bottom", 15, 16),
+        .. FloorPoleElements,
+        .. FloorPole2Elements,
         new("infill-top", (0, 13.5, 0), (16, 14.5, 1), "infill", UvRule.Flat, RunAxis: 'z'),
         new("infill", (0, 13.5, 1), (16, 14.5, 15), "infill", UvRule.Flat, RunAxis: 'z'),
         new("infill-bottom", (0, 13.5, 15), (16, 14.5, 16), "infill", UvRule.Flat, RunAxis: 'z'),
@@ -694,12 +742,27 @@ public static class WallShapeGen
         new[] { (0.0, 2.0), (3.0, 7.5), (8.5, 13.0), (14.0, 16.0) }
             .Select(x => new Element(name, (x.Item1, 13, z1), (x.Item2, 15, z2), "framing", UvRule.Flat, RunAxis: 'x'));
 
+    // A pole rim: the plain boxes, a cheek in each skin across each joist, and lashing cheeks beside the rim.
+    private static IEnumerable<Element> PoleRim(string name, double z1, double z2, double lashZ1, double lashZ2)
+    {
+        foreach (var (x1, x2) in new[] { (2.0, 3.0), (7.5, 8.5), (13.0, 14.0) })
+        {
+            foreach (var (y1, y2) in new[] { (13.0, 13.25), (14.75, 15.0) })
+            {
+                yield return new Element(name, (x1, y1, z1), (x2, y2, z2), "framing", UvRule.Flat);
+                yield return new Element(name, (x1 - 0.25, y1, lashZ1), (x2 + 0.25, y2, lashZ2), "lashing", UvRule.Flat);
+            }
+        }
+        foreach (var box in Rim(name, z1, z2)) yield return box;
+    }
+
     private static readonly (string Slot, string Texture)[] FloorTextures =
     [
         ("framing", "game:block/wood/planks/oak1"),
         ("infill", "game:block/wood/planks/oak1"),
         ("front", "game:block/wood/planks/oak1"),
         ("back", "game:block/wood/planks/oak1"),
+        ("lashing", "game:item/resource/rope"),
     ];
 
     private static readonly (string Side, int RotationYDeg)[] DeckSides = [("west", 0), ("south", 90), ("east", 180), ("north", 270)];
@@ -710,6 +773,7 @@ public static class WallShapeGen
         ["infill"] = "deckinfill",
         ["front"] = "deckfront",
         ["back"] = "deckback",
+        ["lashing"] = "lashing",
     };
 
     // The deck is the floor's layers clipped to the deck's area, one copy per side. The wall mesh is
@@ -735,9 +799,16 @@ public static class WallShapeGen
         return (xs.Min(), from.Y, zs.Min(), xs.Max(), to.Y, zs.Max());
     }
 
-    private static IEnumerable<Element> DeckGroups((double X, double Y, double Z) from, (double X, double Y, double Z) to)
+    // The deck fills the cell's open part. The ledge is the same copy for the slot between the deck and
+    // the frame, where a wall's room-side finish goes; the deck reaches into it until that finish is laid.
+    private static ((double X, double Y, double Z) From, (double X, double Y, double Z) To)[] Ledge(Element[] elements)
+        => elements.Where(e => e.Name == "back").Select(e => ((e.From.X, 12.0, e.From.Z), (e.To.X, 16.0, e.To.Z))).ToArray();
+
+    private static IEnumerable<Element> DeckGroups(
+        string prefix, params ((double X, double Y, double Z) From, (double X, double Y, double Z) To)[] boxes)
     {
         foreach (var (side, rotationYDeg) in DeckSides)
+        foreach (var (from, to) in boxes)
         {
             var region = DeckRegion(from, to, rotationYDeg);
             foreach (var source in FloorElements)
@@ -748,10 +819,13 @@ public static class WallShapeGen
                 if (Empty(lo.X, hi.X, source.From.X, source.To.X)
                     || Empty(lo.Y, hi.Y, source.From.Y, source.To.Y)
                     || Empty(lo.Z, hi.Z, source.From.Z, source.To.Z)) continue;
+                // Only a rim runs across an edge. Any other pole piece an edge cuts is a sliver of a joist,
+                // or a stub, cheek or lashing whose joist is on the far side.
+                if (source.Name.StartsWith("poles") && source.RunAxis != 'x' && (lo.X, hi.X) != (source.From.X, source.To.X)) continue;
 
                 yield return source with
                 {
-                    Name = $"deck-{side}-{source.Name}",
+                    Name = $"{prefix}-{side}-{source.Name}",
                     From = lo,
                     To = hi,
                     Slot = DeckSlots[source.Slot],
@@ -763,9 +837,10 @@ public static class WallShapeGen
 
     public static JObject Generate(string layout) => layout switch
     {
-        "wall" => Emit([.. WallElements, .. DeckGroups((4, 12, 0), (16, 16, 16))], WallTextures),
+        "wall" => Emit([.. WallElements, .. DeckGroups("deck", ((4, 12, 0), (16, 16, 16))), .. DeckGroups("ledge", Ledge(WallElements))], WallTextures),
         "floor" => Emit(FloorElements, FloorTextures),
-        "cornerout" => Emit([.. CornerOutElements, .. DeckGroups((4, 12, 4), (16, 16, 16))], CornerOutTextures),
+        "cornerout" => Emit(
+            [.. CornerOutElements, .. DeckGroups("deck", ((4, 12, 4), (16, 16, 16))), .. DeckGroups("ledge", Ledge(CornerOutElements))], CornerOutTextures),
         _ => throw new KeyNotFoundException(layout),
     };
 

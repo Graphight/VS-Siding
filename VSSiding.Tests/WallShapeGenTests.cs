@@ -105,6 +105,7 @@ public class WallShapeGenTests
     }
 
     // The floor's whole layout, written out: a 4/16 panel at y 12..16, three joists running north-south.
+    // The poles* groups are left out: the committed shape and the pole invariants pin them.
     [Fact]
     public void FloorLaysTheWallsLayersFlatAtTheTopOfTheCell()
     {
@@ -141,6 +142,7 @@ public class WallShapeGenTests
             .. Enumerable.Range(0, 8).Select(i => $"back-lath-boards {2 * i + 0.5},12,0 {2 * i + 1.5},12.5,16"),
         ];
         Assert.Equal(expected, WallShapeGen.Generate("floor")["elements"]!
+            .Where(e => !((string)e["name"]!).StartsWith("poles"))
             .Select(e => $"{e["name"]} {string.Join(",", e["from"]!.Select(v => (double)v!))} {string.Join(",", e["to"]!.Select(v => (double)v!))}")
             .ToArray());
     }
@@ -179,6 +181,9 @@ public class WallShapeGenTests
             ["wall bare frame"] = 24,
             ["wall pole frame"] = 144,
             ["wall second pole frame"] = 144,
+            ["floor bare frame"] = 66,
+            ["floor pole frame"] = 240,
+            ["floor second pole frame"] = 240,
             ["wall wattle"] = 30,
             ["wall wattle, mid-stack"] = 30,
             ["wall daub both faces"] = 42,
@@ -240,12 +245,14 @@ public class WallShapeGenTests
             ("rubble both faces", "wattle", "rubble", "rubble", "rubble", (false, false, false, false), false),
         ];
 
+        static Dictionary<string, int> Quads(string layout) => WallShapeGen.Generate(layout)["elements"]!
+            .GroupBy(e => (string)e["name"]!)
+            .ToDictionary(g => g.Key, g => g.Sum(e => ((JObject)e["faces"]!).Properties().Count()));
+
         var actual = new Dictionary<string, int>();
         foreach (var layout in new[] { "wall", "cornerout" })
         {
-            var quads = WallShapeGen.Generate(layout)["elements"]!
-                .GroupBy(e => (string)e["name"]!)
-                .ToDictionary(g => g.Key, g => g.Sum(e => ((JObject)e["faces"]!).Properties().Count()));
+            var quads = Quads(layout);
 
             foreach (var (state, infill, front, secondFront, back, joins, glazed) in states)
             {
@@ -263,6 +270,14 @@ public class WallShapeGenTests
             }
         }
 
+        var floorQuads = Quads("floor");
+        foreach (var (state, framing, frame) in new[] { ("bare frame", "oak", "framing"), ("pole frame", "sticks", "poles"), ("second pole frame", "sticks", "poles2") })
+        {
+            actual[$"floor {state}"] = SidingFloorEntity.SelectiveElements(
+                framing, null, null, null, finishes, (false, false, false, false), frame: frame)
+                .Sum(n => floorQuads[n]);
+        }
+
         Assert.Equal(expected, actual);
     }
 
@@ -275,7 +290,8 @@ public class WallShapeGenTests
     }
 
     // The deck is the floor's layers clipped to its area, a copy per side, each staying inside the box
-    // SidingWallBlock gives that side's deck, and all of them on the deck's own texture codes.
+    // SidingWallBlock gives that side's deck, and all of them on the deck's own texture codes, or on the
+    // lashing's, which is one rope whatever the frame.
     [Theory]
     [InlineData("wall")]
     [InlineData("cornerout")]
@@ -296,7 +312,7 @@ public class WallShapeGenTests
                 .Select(e => (string)e["name"]!)
                 .ToArray();
             Assert.All(groups.SelectMany(g => ((JObject)g["faces"]!).Properties()),
-                p => Assert.Contains((string)p.Value["texture"]!, new[] { "#deck", "#deckinfill", "#deckfront", "#deckback" }));
+                p => Assert.Contains((string)p.Value["texture"]!, new[] { "#deck", "#deckinfill", "#deckfront", "#deckback", "#lashing" }));
         }
 
         Assert.Equal(expected, actual);
@@ -450,16 +466,22 @@ public class WallShapeGenTests
 
     // Each group of one pole variant beside the plain group it stands in for.
     private static (string Pole, string Plain)[] PolesOf(string layout, string prefix)
-        => (layout == "wall" ? new[] { "-left", "-right", "-top", "-bottom" } : ["", "-top", "-bottom"])
+        => (layout != "cornerout" ? new[] { "-left", "-right", "-top", "-bottom" } : ["", "-top", "-bottom"])
             .Select(suffix => (prefix + suffix, "framing" + suffix)).ToArray();
 
     private static (double[] Lo, double[] Hi) Box(JToken element)
         => (element["from"]!.Select(v => (double)v!).ToArray(), element["to"]!.Select(v => (double)v!).ToArray());
 
-    // A wall's frame is thick on x; a corner's second leg is thick on z.
-    private static int[] DepthAxes(string layout) => layout == "wall" ? [0] : [0, 2];
+    // A wall's frame is thick on x; a corner's second leg is thick on z; a floor's is thick on y, at the top of the cell.
+    private static (int[] Axes, double Lo, double Hi) Frame(string layout) => layout switch
+    {
+        "wall" => ([0], 1, 3),
+        "cornerout" => ([0, 2], 1, 3),
+        _ => ([1], 13, 15),
+    };
 
-    private static bool Thick(double[] lo, double[] hi, int axis) => lo[axis] >= 1 && hi[axis] <= 3;
+    private static bool Thick(double[] lo, double[] hi, int axis, (int[] Axes, double Lo, double Hi) frame)
+        => lo[axis] >= frame.Lo && hi[axis] <= frame.Hi;
 
     // A pole that leaves the frame's thickness shows through a finish. A corner's frame is an L, so a
     // box inside one leg's thickness also has to start clear of the slab on the other leg's outer face.
@@ -468,15 +490,18 @@ public class WallShapeGenTests
     [InlineData("wall", "poles2")]
     [InlineData("cornerout", "poles")]
     [InlineData("cornerout", "poles2")]
+    [InlineData("floor", "poles")]
+    [InlineData("floor", "poles2")]
     public void EveryPoleBoxLiesInsideTheFramesThickness(string layout, string prefix)
     {
         string[] groups = PolesOf(layout, prefix).Select(p => p.Pole).ToArray();
+        var frame = Frame(layout);
         var offenders = new List<string>();
         foreach (var element in WallShapeGen.Generate(layout)["elements"]!.Where(e => groups.Contains((string)e["name"]!)))
         {
             var (lo, hi) = Box(element);
-            if (!DepthAxes(layout).Any(depth => Thick(lo, hi, depth) && (layout == "wall" || lo[2 - depth] >= 1)))
-                offenders.Add($"{element["name"]} spans x {lo[0]}..{hi[0]}, z {lo[2]}..{hi[2]}");
+            if (!frame.Axes.Any(depth => Thick(lo, hi, depth, frame) && (layout != "cornerout" || lo[2 - depth] >= 1)))
+                offenders.Add($"{element["name"]} spans {string.Join(",", lo)} to {string.Join(",", hi)}");
         }
 
         Assert.Equal([], offenders);
@@ -489,34 +514,98 @@ public class WallShapeGenTests
     [InlineData("wall", "poles2")]
     [InlineData("cornerout", "poles")]
     [InlineData("cornerout", "poles2")]
+    [InlineData("floor", "poles")]
+    [InlineData("floor", "poles2")]
     public void EveryPoleGroupCoversTheMidPlaneOfThePlainMemberItReplaces(string layout, string prefix)
     {
         var elements = WallShapeGen.Generate(layout)["elements"]!.ToArray();
+        var frame = Frame(layout);
+        double mid = (frame.Lo + frame.Hi) / 2;
         var offenders = new List<string>();
         foreach (var (group, plain) in PolesOf(layout, prefix))
         {
             var poles = elements.Where(e => (string)e["name"]! == group).Select(Box).ToArray();
             foreach (var (lo, hi) in elements.Where(e => (string)e["name"]! == plain).Select(Box))
             {
-                foreach (int depth in DepthAxes(layout).Where(axis => Thick(lo, hi, axis)))
+                foreach (int depth in frame.Axes.Where(axis => Thick(lo, hi, axis, frame)))
                 {
-                    int run = 2 - depth;
-                    var cover = poles.Where(b => b.Lo[depth] < 2 && b.Hi[depth] > 2).ToArray();
+                    int[] across = [.. Enumerable.Range(0, 3).Where(axis => axis != depth)];
+                    var cover = poles.Where(b => b.Lo[depth] < mid && b.Hi[depth] > mid).ToArray();
                     // The pole edges inside the member cut it into rectangles, each covered whole or open whole.
                     double[] Cuts(int axis) => cover.SelectMany(b => new[] { b.Lo[axis], b.Hi[axis] })
                         .Where(c => c > lo[axis] && c < hi[axis]).Append(lo[axis]).Append(hi[axis]).Distinct().Order().ToArray();
-                    var (ys, runs) = (Cuts(1), Cuts(run));
-                    for (int i = 0; i < ys.Length - 1; i++)
+                    var (firsts, seconds) = (Cuts(across[0]), Cuts(across[1]));
+                    for (int i = 0; i < firsts.Length - 1; i++)
                     {
-                        for (int j = 0; j < runs.Length - 1; j++)
+                        for (int j = 0; j < seconds.Length - 1; j++)
                         {
-                            double y = (ys[i] + ys[i + 1]) / 2, r = (runs[j] + runs[j + 1]) / 2;
-                            if (!cover.Any(b => b.Lo[1] < y && y < b.Hi[1] && b.Lo[run] < r && r < b.Hi[run]))
-                                offenders.Add($"{group} leaves y {ys[i]}..{ys[i + 1]}, {"xyz"[run]} {runs[j]}..{runs[j + 1]} of {plain} open");
+                            double u = (firsts[i] + firsts[i + 1]) / 2, v = (seconds[j] + seconds[j + 1]) / 2;
+                            if (!cover.Any(b => b.Lo[across[0]] < u && u < b.Hi[across[0]] && b.Lo[across[1]] < v && v < b.Hi[across[1]]))
+                                offenders.Add($"{group} leaves {"xyz"[across[0]]} {firsts[i]}..{firsts[i + 1]}, {"xyz"[across[1]]} {seconds[j]}..{seconds[j + 1]} of {plain} open");
                         }
                     }
                 }
             }
+        }
+
+        Assert.Equal([], offenders);
+    }
+
+    // The ledge is the deck's reach into the slot a wall's room-side finish takes. Every ledge box has to
+    // lie where that side's back slab would, at the deck's height, or laying the finish leaves a piece of
+    // deck standing in it.
+    [Theory]
+    [InlineData("wall")]
+    [InlineData("cornerout")]
+    public void EveryLedgeBoxLiesInTheSlotOfTheRoomSideFinish(string layout)
+    {
+        var elements = WallShapeGen.Generate(layout)["elements"]!.ToArray();
+        var backs = elements.Where(e => (string)e["name"]! == "back").Select(Box).ToArray();
+        var offenders = new List<string>();
+        foreach (string side in Sides)
+        {
+            var slots = backs.Select(b => WallShapeGen.DeckRegion((b.Lo[0], 12, b.Lo[2]), (b.Hi[0], 16, b.Hi[2]), (int)SidingWallEntity.RotationYDeg(side))).ToArray();
+            var ledge = elements.Where(e => ((string)e["name"]!).StartsWith($"ledge-{side}-")).ToArray();
+            Assert.NotEmpty(ledge);
+            foreach (var element in ledge)
+            {
+                var (lo, hi) = Box(element);
+                if (!slots.Any(s => lo[0] >= s.X && lo[1] >= s.Y && lo[2] >= s.Z && hi[0] <= s.X2 && hi[1] <= s.Y2 && hi[2] <= s.Z2))
+                    offenders.Add($"{element["name"]} {string.Join(",", lo)} to {string.Join(",", hi)}");
+            }
+        }
+
+        Assert.Equal([], offenders);
+    }
+
+    // A stub, a cheek or a lashing never crosses the frame's mid-plane, so it has to be joined, through
+    // boxes of its own group, to a joist or a rim that does. A deck is the floor clipped to its side, and
+    // the clip once took a joist and left its stubs; a group's name survives that when it holds two joists.
+    [Theory]
+    [InlineData("floor")]
+    [InlineData("wall")]
+    [InlineData("cornerout")]
+    public void EveryPieceOfAFloorOrDeckPoleGroupHangsOffAMember(string layout)
+    {
+        var frame = Frame("floor");
+        double mid = (frame.Lo + frame.Hi) / 2;
+        var groups = WallShapeGen.Generate(layout)["elements"]!
+            .Where(e => layout == "floor" || ((string)e["name"]!).StartsWith("deck-") || ((string)e["name"]!).StartsWith("ledge-"))
+            .Where(e => ((string)e["name"]!).Contains("poles"))
+            .GroupBy(e => (string)e["name"]!, Box);
+        Assert.NotEmpty(groups);
+
+        var offenders = new List<string>();
+        foreach (var group in groups)
+        {
+            var joined = group.Where(b => b.Lo[1] < mid && mid < b.Hi[1]).ToList();
+            var loose = group.Except(joined).ToList();
+            while (loose.FirstOrDefault(b => joined.Any(j => Enumerable.Range(0, 3).All(k => b.Lo[k] <= j.Hi[k] && j.Lo[k] <= b.Hi[k]))) is { Lo: not null } next)
+            {
+                joined.Add(next);
+                loose.Remove(next);
+            }
+            offenders.AddRange(loose.Select(b => $"{group.Key} {string.Join(",", b.Lo)} to {string.Join(",", b.Hi)}"));
         }
 
         Assert.Equal([], offenders);
@@ -530,6 +619,8 @@ public class WallShapeGenTests
     [InlineData("wall", "poles2")]
     [InlineData("cornerout", "poles")]
     [InlineData("cornerout", "poles2")]
+    [InlineData("floor", "poles")]
+    [InlineData("floor", "poles2")]
     public void NoTwoEmittedFacesOfGroupsDrawnTogetherShareAPlaneAndOverlap(string layout, string prefix)
     {
         string[] together = [.. PolesOf(layout, prefix).Select(p => p.Pole), "infill", "infill-pane", "front", "secondfront", "back"];
