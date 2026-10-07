@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Created: 2026-10-07
-- Reflects: decision 0061 and its playtest of 2026-10-06; branch `feat/rough-pole-joists`; `SidingFloorEntity.SelectiveElements`/`OnTesselation`, `SidingWallEntity.CellAlternate`/`DeckElements`, `VSSiding.Tests/WallShapeGen` (`FloorPoleElements`, `FloorPole2Elements`, `PoleRim`, `DeckGroups`, `DeckSlots`), `blocktypes/floor.json` (`ignoreElements`), the generated `floor.json`, `wall.json` and `cornerout.json` shapes, `WallShapeGenTests`, `FinishElementGroupsTests`, `SidingFloorTests`, `SidingWallEntityTests`; unit and end-to-end tests pass; played on 2026-10-07 before the ledge was added, and the ledge has NOT been played
+- Reflects: decision 0061 and its playtest of 2026-10-06; branch `feat/rough-pole-joists`; `SidingFloorEntity.SelectiveElements`/`OnTesselation`, `SidingWallEntity.CellAlternate`/`DeckElements`, `VSSiding.Tests/WallShapeGen` (`FloorPoleElements`, `FloorPole2Elements`, `PoleRim`, `DeckGroups`, `DeckSlots`), `blocktypes/floor.json` (`ignoreElements`), the generated `floor.json`, `wall.json` and `cornerout.json` shapes, `WallShapeGenTests`, `FinishElementGroupsTests`, `SidingFloorTests`, `SidingWallEntityTests`; unit and end-to-end tests pass; played on 2026-10-07, before and after the ledge was added
 
 ## Summary
 A stick or bone floor, and a stick or bone deck, draw their joists as rough poles: recessed, uneven in width, with stubs, rims that read as running over the joist ends, and rope lashing.
@@ -119,9 +119,10 @@ Collision keeps the plain boxes, as for a wall.
 Played on 2026-10-07, before the ledge existed.
 The frames and joists were liked: "I love the little character bits on the frames and joists now", and "everything else is looking amazing".
 The one fault raised was that "it does look exceptionally weird that the deck does not connect to the frame", which the ledge answers.
-The ledge has not been played.
-A playtest answers:
-- Whether a deck that runs to the frame looks right on a bare room side, on a wall and on a corner, for a plank deck and a pole one.
+The ledge was played the same day: "much better", though the deck "still looks a little weird floating below the frame rim".
+A bare deck's joists and rims top out at y 15, a voxel under the top of the wall's plate, since the deck's top finish takes y 15 to 16 and sits flush with the plate once laid.
+Whether a finished deck still looks as if it floats was not looked at.
+Still open:
 - Whether the deck stepping back out of the slot when the room side is finished is noticed.
 - Whether a deck with dropped stubs near the wall looks bare.
 - Whether 240 quads a cell matters on a large floor.
