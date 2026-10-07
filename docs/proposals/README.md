@@ -27,7 +27,7 @@ The proposal adds an attribute a block can set to say whether it may be hosted, 
 - `face-finishes`: a player framing in full logs wants floorboards over a beam and siding on a post, asked for as a fill block.
 The proposal puts a plank finish on one face of any solid block as a vanilla decor block, flat, picked as a fourth option in the saw picker's first row.
 - `real-smoke-flues`: a player vents a kitchen through trellises, which costs the room its heat, and asks for a flue or a hearth in a wall.
-The proposal plays Siding under Real Smoke first, since the assets do not show whether smoke crosses a thin wall, and adds a vented infill only if no vanilla block already serves.
+Real Smoke stops smoke at a face that dams liquid, which a filled wall already reports, so the proposal plays what reading cannot settle and adds a vented wall on that mod's chimney behaviour only if no vanilla block already serves.
 - `walls-under-roofing`: a flat-topped wall leaves a stepped triangle under a Roofing gable.
 The proposal adds a raked wall, its top cut to a pitch picked on the saw and measured to match Roofing's slopes, without reading Roofing's state.
 - `chiselling-walls`: vanilla refuses to chisel a non-cube block, and the proposal converts a wall through its collision-box path with materials rebuilt from its layers.
