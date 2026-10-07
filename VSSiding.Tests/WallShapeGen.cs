@@ -239,6 +239,31 @@ public static class WallShapeGen
         new("framing-bottom", (1, 0, 1), (3, 1, 15), "framing", UvRule.Flat),
         new("framing-left", (1, 0, 0), (3, 16, 1), "framing", UvRule.Flat),
         new("framing-right", (1, 0, 15), (3, 16, 16), "framing", UvRule.Flat),
+        // The rough frame: posts a quarter voxel inside the frame's thickness, cut into three lengths with
+        // the middle one swelling inward, stubs standing out beside them, and plates that keep the plain
+        // box and run over the post through cheeks in the quarter-voxel skins. A cheek instead of one
+        // proud box keeps two same-facing faces from sharing the plane at a run's end. The plates' own
+        // north and south faces sit behind the posts, so they are left out.
+        new("poles-left", (1.25, 0, 0), (2.75, 5, 1), "framing", UvRule.Flat),
+        new("poles-left", (1.25, 5, 0), (2.75, 11, 1.25), "framing", UvRule.Flat),
+        new("poles-left", (1.25, 11, 0), (2.75, 16, 1), "framing", UvRule.Flat),
+        new("poles-left", (1, 2, 1), (1.5, 3, 2.5), "framing", UvRule.Flat),
+        new("poles-left", (2.5, 12.5, 1), (3, 13.5, 2), "framing", UvRule.Flat),
+        new("poles-right", (1.25, 0, 15), (2.75, 3, 16), "framing", UvRule.Flat),
+        new("poles-right", (1.25, 3, 14.75), (2.75, 9, 16), "framing", UvRule.Flat),
+        new("poles-right", (1.25, 9, 15), (2.75, 16, 16), "framing", UvRule.Flat),
+        new("poles-right", (2.5, 1.5, 13.5), (3, 2.5, 15), "framing", UvRule.Flat),
+        new("poles-right", (1, 10.5, 14), (1.5, 11.5, 15), "framing", UvRule.Flat),
+        new("poles-top", (1, 15, 1), (3, 16, 15), "framing", UvRule.Flat, Faces: ["west", "east", "up", "down"]),
+        new("poles-top", (1, 15, 0), (1.25, 16, 1), "framing", UvRule.Flat),
+        new("poles-top", (2.75, 15, 0), (3, 16, 1), "framing", UvRule.Flat),
+        new("poles-top", (1, 15, 15), (1.25, 16, 16), "framing", UvRule.Flat),
+        new("poles-top", (2.75, 15, 15), (3, 16, 16), "framing", UvRule.Flat),
+        new("poles-bottom", (1, 0, 1), (3, 1, 15), "framing", UvRule.Flat, Faces: ["west", "east", "up", "down"]),
+        new("poles-bottom", (1, 0, 0), (1.25, 1, 1), "framing", UvRule.Flat),
+        new("poles-bottom", (2.75, 0, 0), (3, 1, 1), "framing", UvRule.Flat),
+        new("poles-bottom", (1, 0, 15), (1.25, 1, 16), "framing", UvRule.Flat),
+        new("poles-bottom", (2.75, 0, 15), (3, 1, 16), "framing", UvRule.Flat),
         new("infill-top", (1.5, 15, 1), (2.5, 16, 15), "infill", UvRule.Positional),
         new("infill", (1.5, 1, 1), (2.5, 15, 15), "infill", UvRule.Positional),
         new("infill-bottom", (1.5, 0, 1), (2.5, 1, 15), "infill", UvRule.Positional),

@@ -436,4 +436,87 @@ public class WallShapeGenTests
         Assert.NotEmpty(actual);
         Assert.Equal(expected, actual);
     }
+
+    private static readonly string[] PoleGroups = ["poles-left", "poles-right", "poles-top", "poles-bottom"];
+
+    private static (double[] Lo, double[] Hi) Box(JToken element)
+        => (element["from"]!.Select(v => (double)v!).ToArray(), element["to"]!.Select(v => (double)v!).ToArray());
+
+    // A pole that leaves the frame's thickness shows through a finish on either face.
+    [Fact]
+    public void EveryPoleBoxLiesInsideTheFramesThickness()
+    {
+        var offenders = new List<string>();
+        foreach (var element in WallShapeGen.Generate("wall")["elements"]!.Where(e => PoleGroups.Contains((string)e["name"]!)))
+        {
+            var (lo, hi) = Box(element);
+            if (lo[0] < 1 || hi[0] > 3) offenders.Add($"'{element["name"]}' spans x {lo[0]}..{hi[0]}");
+        }
+
+        Assert.Equal([], offenders);
+    }
+
+    // A pole group stands in for a plain member, so where the member's mid-plane had material, the
+    // group's has too; otherwise a glance along the wall finds a gap the plain frame did not have.
+    [Fact]
+    public void EveryPoleGroupCoversTheMidPlaneOfThePlainMemberItReplaces()
+    {
+        var elements = WallShapeGen.Generate("wall")["elements"]!.ToArray();
+        var offenders = new List<string>();
+        foreach (var group in PoleGroups)
+        {
+            var (plainLo, plainHi) = Box(elements.First(e => (string)e["name"]! == "framing-" + group["poles-".Length..]));
+            var cover = elements.Where(e => (string)e["name"]! == group).Select(Box).Where(b => b.Lo[0] < 2 && b.Hi[0] > 2).ToArray();
+            var ys = cover.SelectMany(b => new[] { b.Lo[1], b.Hi[1] }).Concat([plainLo[1], plainHi[1]]).Distinct().Order().ToArray();
+            var zs = cover.SelectMany(b => new[] { b.Lo[2], b.Hi[2] }).Concat([plainLo[2], plainHi[2]]).Distinct().Order().ToArray();
+            for (int i = 0; i < ys.Length - 1; i++)
+            {
+                for (int j = 0; j < zs.Length - 1; j++)
+                {
+                    double y = (ys[i] + ys[i + 1]) / 2, z = (zs[j] + zs[j + 1]) / 2;
+                    bool inPlain = y > plainLo[1] && y < plainHi[1] && z > plainLo[2] && z < plainHi[2];
+                    if (inPlain && !cover.Any(b => y > b.Lo[1] && y < b.Hi[1] && z > b.Lo[2] && z < b.Hi[2]))
+                        offenders.Add($"{group} leaves y {ys[i]}..{ys[i + 1]}, z {zs[j]}..{zs[j + 1]} open");
+                }
+            }
+        }
+
+        Assert.Equal([], offenders);
+    }
+
+    // Two faces that look the same way from one plane and overlap fight over the pixels. Only groups
+    // a built cell draws together can meet: one pole frame, the infill, and the plain finishes.
+    // The infill's top and bottom slivers fill a dropped plate, so they never meet a pole plate.
+    [Fact]
+    public void NoTwoEmittedFacesOfGroupsDrawnTogetherShareAPlaneAndOverlap()
+    {
+        string[] together = [.. PoleGroups, "infill", "infill-pane", "front", "back"];
+        string[] facings = ["west", "east", "down", "up", "north", "south"];
+        int[] axes = [0, 0, 1, 1, 2, 2];
+        var faces = new List<(string Name, string Face, double Plane, double[] Lo, double[] Hi)>();
+        foreach (var element in WallShapeGen.Generate("wall")["elements"]!.Where(e => together.Contains((string)e["name"]!)))
+        {
+            var (lo, hi) = Box(element);
+            foreach (var face in ((JObject)element["faces"]!).Properties())
+            {
+                int facing = Array.IndexOf(facings, face.Name);
+                faces.Add(((string)element["name"]!, face.Name, facing % 2 == 0 ? lo[axes[facing]] : hi[axes[facing]], lo, hi));
+            }
+        }
+
+        var offenders = new List<string>();
+        for (int i = 0; i < faces.Count; i++)
+        {
+            for (int j = i + 1; j < faces.Count; j++)
+            {
+                var (a, b) = (faces[i], faces[j]);
+                int axis = axes[Array.IndexOf(facings, a.Face)];
+                if (a.Face != b.Face || a.Plane != b.Plane) continue;
+                if (Enumerable.Range(0, 3).Where(k => k != axis).All(k => Math.Max(a.Lo[k], b.Lo[k]) < Math.Min(a.Hi[k], b.Hi[k])))
+                    offenders.Add($"{a.Name} and {b.Name} both draw {a.Face} at {a.Plane}");
+            }
+        }
+
+        Assert.Equal([], offenders);
+    }
 }
