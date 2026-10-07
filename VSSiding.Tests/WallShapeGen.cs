@@ -232,13 +232,8 @@ public static class WallShapeGen
         new("front-shakes", (0.5, 13, 12), (1, 16, 16), "front", UvRule.Positional, RunAxis: 'z'),
     ];
 
-    private static readonly Element[] WallElements =
+    private static readonly Element[] WallPoleElements =
     [
-        new("front", (0, 0, 0), (1, 16, 16), "front", UvRule.Flat),
-        new("framing-top", (1, 15, 1), (3, 16, 15), "framing", UvRule.Flat),
-        new("framing-bottom", (1, 0, 1), (3, 1, 15), "framing", UvRule.Flat),
-        new("framing-left", (1, 0, 0), (3, 16, 1), "framing", UvRule.Flat),
-        new("framing-right", (1, 0, 15), (3, 16, 16), "framing", UvRule.Flat),
         // The rough frame: posts a quarter voxel inside the frame's thickness, cut into three lengths with
         // the middle one swelling inward, stubs standing out beside them, and plates that keep the plain
         // box and run over the post through cheeks in the quarter-voxel skins. A cheek instead of one
@@ -264,6 +259,33 @@ public static class WallShapeGen
         new("poles-bottom", (2.75, 0, 0), (3, 1, 1), "framing", UvRule.Flat),
         new("poles-bottom", (1, 0, 15), (1.25, 1, 16), "framing", UvRule.Flat),
         new("poles-bottom", (2.75, 0, 15), (3, 1, 16), "framing", UvRule.Flat),
+    ];
+
+    private static readonly Element[] WallPole2Elements =
+    [
+        // Second variant: cuts, stubs and their sides move, the plates are the first one's renamed.
+        new("poles2-left", (1.25, 0, 0), (2.75, 4, 1), "framing", UvRule.Flat),
+        new("poles2-left", (1.25, 4, 0), (2.75, 12, 1.25), "framing", UvRule.Flat),
+        new("poles2-left", (1.25, 12, 0), (2.75, 16, 1), "framing", UvRule.Flat),
+        new("poles2-left", (2.5, 1.5, 1), (3, 2.5, 2.5), "framing", UvRule.Flat),
+        new("poles2-left", (1, 13.5, 1), (1.5, 14.5, 2), "framing", UvRule.Flat),
+        new("poles2-right", (1.25, 0, 15), (2.75, 6, 16), "framing", UvRule.Flat),
+        new("poles2-right", (1.25, 6, 14.75), (2.75, 13, 16), "framing", UvRule.Flat),
+        new("poles2-right", (1.25, 13, 15), (2.75, 16, 16), "framing", UvRule.Flat),
+        new("poles2-right", (1, 3, 13.5), (1.5, 4, 15), "framing", UvRule.Flat),
+        new("poles2-right", (2.5, 7.5, 13.5), (3, 8.5, 14.75), "framing", UvRule.Flat),
+        .. WallPoleElements.Where(e => e.Name is "poles-top" or "poles-bottom").Select(e => e with { Name = "poles2" + e.Name[5..] }),
+    ];
+
+    private static readonly Element[] WallElements =
+    [
+        new("front", (0, 0, 0), (1, 16, 16), "front", UvRule.Flat),
+        new("framing-top", (1, 15, 1), (3, 16, 15), "framing", UvRule.Flat),
+        new("framing-bottom", (1, 0, 1), (3, 1, 15), "framing", UvRule.Flat),
+        new("framing-left", (1, 0, 0), (3, 16, 1), "framing", UvRule.Flat),
+        new("framing-right", (1, 0, 15), (3, 16, 16), "framing", UvRule.Flat),
+        .. WallPoleElements,
+        .. WallPole2Elements,
         new("infill-top", (1.5, 15, 1), (2.5, 16, 15), "infill", UvRule.Positional),
         new("infill", (1.5, 1, 1), (2.5, 15, 15), "infill", UvRule.Positional),
         new("infill-bottom", (1.5, 0, 1), (2.5, 1, 15), "infill", UvRule.Positional),
@@ -415,27 +437,9 @@ public static class WallShapeGen
         new("secondfront-shakes", (12, 13, 0.5), (16, 16, 1), "secondfront", UvRule.Positional, RunAxis: 'x'),
     ];
 
-    private static readonly Element[] CornerOutElements =
+    private static readonly Element[] CornerPoleElements =
     [
-        new("front", (0, 0, 0), (1, 16, 16), "front", UvRule.Flat),
-        new("framing-top", (1, 15, 3), (3, 16, 15), "framing", UvRule.Flat),
-        new("framing-bottom", (1, 0, 3), (3, 1, 15), "framing", UvRule.Flat),
-        new("framing", (1, 0, 1), (3, 16, 3), "framing", UvRule.Flat),
-        new("infill-top", (1.5, 15, 3), (2.5, 16, 15), "infill", UvRule.Positional),
-        new("infill", (1.5, 1, 3), (2.5, 15, 15), "infill", UvRule.Positional),
-        new("infill-bottom", (1.5, 0, 3), (2.5, 1, 15), "infill", UvRule.Positional),
-        new("framing", (1, 0, 15), (3, 16, 16), "framing", UvRule.Flat),
-        new("back", (3, 0, 4), (4, 16, 16), "back", UvRule.Flat),
-        new("secondfront", (1, 0, 0), (16, 16, 1), "secondfront", UvRule.Flat),
-        new("framing-top", (3, 15, 1), (15, 16, 3), "framing", UvRule.Flat),
-        new("framing-bottom", (3, 0, 1), (15, 1, 3), "framing", UvRule.Flat),
-        new("infill-top", (3, 15, 1.5), (15, 16, 2.5), "infill", UvRule.Positional),
-        new("infill", (3, 1, 1.5), (15, 15, 2.5), "infill", UvRule.Positional),
-        new("infill-bottom", (3, 0, 1.5), (15, 1, 2.5), "infill", UvRule.Positional),
-        new("infill-pane", (2, 0, 3), (2, 16, 16), "infill", UvRule.Flat, Faces: ["west", "east"]),
-        new("infill-pane", (3, 0, 2), (16, 16, 2), "infill", UvRule.Flat, Faces: ["north", "south"]),
-        new("framing", (15, 0, 1), (16, 16, 3), "framing", UvRule.Flat),
-        // The wall's rough frame (see WallElements), turned around the corner: the corner post keeps the
+        // The wall's rough frame (see WallPoleElements), turned around the corner: the corner post keeps the
         // plain box, each end post recesses on its own leg's depth axis, and the plates gain cheeks at
         // the end posts only. Nothing stands out beside the corner post.
         new("poles", (1, 0, 1), (3, 16, 3), "framing", UvRule.Flat),
@@ -461,6 +465,47 @@ public static class WallShapeGen
         new("poles-bottom", (3, 0, 1), (15, 1, 3), "framing", UvRule.Flat, Faces: ["north", "south", "up", "down"]),
         new("poles-bottom", (15, 0, 1), (16, 1, 1.25), "framing", UvRule.Flat),
         new("poles-bottom", (15, 0, 2.75), (16, 1, 3), "framing", UvRule.Flat),
+    ];
+
+    private static readonly Element[] CornerPole2Elements =
+    [
+        // Second variant, as the wall's.
+        new("poles2", (1, 0, 1), (3, 16, 3), "framing", UvRule.Flat),
+        new("poles2", (1.25, 0, 15), (2.75, 7, 16), "framing", UvRule.Flat),
+        new("poles2", (1.25, 7, 14.75), (2.75, 13, 16), "framing", UvRule.Flat),
+        new("poles2", (1.25, 13, 15), (2.75, 16, 16), "framing", UvRule.Flat),
+        new("poles2", (2.5, 3, 12.5), (3, 4, 15), "framing", UvRule.Flat),
+        new("poles2", (1, 13.5, 13), (1.5, 14.5, 15), "framing", UvRule.Flat),
+        new("poles2", (15, 0, 1.25), (16, 5, 2.75), "framing", UvRule.Flat),
+        new("poles2", (14.75, 5, 1.25), (16, 11, 2.75), "framing", UvRule.Flat),
+        new("poles2", (15, 11, 1.25), (16, 16, 2.75), "framing", UvRule.Flat),
+        new("poles2", (13, 2, 2.5), (15, 3, 3), "framing", UvRule.Flat),
+        new("poles2", (13.5, 13, 1), (15, 14, 1.5), "framing", UvRule.Flat),
+        .. CornerPoleElements.Where(e => e.Name is "poles-top" or "poles-bottom").Select(e => e with { Name = "poles2" + e.Name[5..] }),
+    ];
+
+    private static readonly Element[] CornerOutElements =
+    [
+        new("front", (0, 0, 0), (1, 16, 16), "front", UvRule.Flat),
+        new("framing-top", (1, 15, 3), (3, 16, 15), "framing", UvRule.Flat),
+        new("framing-bottom", (1, 0, 3), (3, 1, 15), "framing", UvRule.Flat),
+        new("framing", (1, 0, 1), (3, 16, 3), "framing", UvRule.Flat),
+        new("infill-top", (1.5, 15, 3), (2.5, 16, 15), "infill", UvRule.Positional),
+        new("infill", (1.5, 1, 3), (2.5, 15, 15), "infill", UvRule.Positional),
+        new("infill-bottom", (1.5, 0, 3), (2.5, 1, 15), "infill", UvRule.Positional),
+        new("framing", (1, 0, 15), (3, 16, 16), "framing", UvRule.Flat),
+        new("back", (3, 0, 4), (4, 16, 16), "back", UvRule.Flat),
+        new("secondfront", (1, 0, 0), (16, 16, 1), "secondfront", UvRule.Flat),
+        new("framing-top", (3, 15, 1), (15, 16, 3), "framing", UvRule.Flat),
+        new("framing-bottom", (3, 0, 1), (15, 1, 3), "framing", UvRule.Flat),
+        new("infill-top", (3, 15, 1.5), (15, 16, 2.5), "infill", UvRule.Positional),
+        new("infill", (3, 1, 1.5), (15, 15, 2.5), "infill", UvRule.Positional),
+        new("infill-bottom", (3, 0, 1.5), (15, 1, 2.5), "infill", UvRule.Positional),
+        new("infill-pane", (2, 0, 3), (2, 16, 16), "infill", UvRule.Flat, Faces: ["west", "east"]),
+        new("infill-pane", (3, 0, 2), (16, 16, 2), "infill", UvRule.Flat, Faces: ["north", "south"]),
+        new("framing", (15, 0, 1), (16, 16, 3), "framing", UvRule.Flat),
+        .. CornerPoleElements,
+        .. CornerPole2Elements,
         new("back", (3, 0, 3), (16, 16, 4), "back", UvRule.Flat),
         new("front-weatherboard", (0, 0, 0), (1, 1, 16), "front", UvRule.Positional),
         new("front-weatherboard", (0.25, 1, 0.5), (1, 2, 16), "front", UvRule.Positional),

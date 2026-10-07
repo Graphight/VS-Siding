@@ -158,7 +158,11 @@ public class SidingWallEntity : BlockEntity
         bool glazed = SidingWallBlock.IsTransparent(Infill, Block.Attributes["Infills"]);
         string side = Block.Variant["side"];
         string[]? step = Step != null && layout == "wall" ? StepElements(side, StepOrientation) : null;
-        string[] selectiveElements = SelectiveElements(layout, Framing, Infill, Front, SecondFront, Back, Block.Attributes["Finishes"], joins, glazed, Styles, step, FrameElements(Block.Attributes["Framings"], Framing));
+        string frame = FrameElements(Block.Attributes["Framings"], Framing);
+        int alternate = SidingWallTexSource.AnyVaries(Block.Attributes["Finishes"], Front, SecondFront, Back, DeckFront, DeckBack)
+            || SidingWallTexSource.AnyVaries(Block.Attributes["Framings"], Framing, Deck)
+            ? SidingWallTexSource.Alternate(Pos) : frame != "framing" ? SidingWallTexSource.Alternate(Pos) % 2 : 0;
+        string[] selectiveElements = SelectiveElements(layout, Framing, Infill, Front, SecondFront, Back, Block.Attributes["Finishes"], joins, glazed, Styles, step, FrameElements(Block.Attributes["Framings"], Framing, alternate));
 
         // The deck is laid like a floor, in world directions, so its groups are tesselated unrotated.
         bool deckGlazed = SidingWallBlock.IsTransparent(DeckInfill, Block.Attributes["Infills"]);
@@ -166,9 +170,6 @@ public class SidingWallEntity : BlockEntity
         string[] deckElements = DeckElements(side, Deck, DeckInfill, DeckFront, DeckBack, Block.Attributes["Finishes"], deckJoins, (DeckFrontStyle, DeckBackStyle), deckGlazed);
         if (selectiveElements.Length == 0 && deckElements.Length == 0) return false;
 
-        int alternate = SidingWallTexSource.AnyVaries(Block.Attributes["Finishes"], Front, SecondFront, Back, DeckFront, DeckBack)
-            || SidingWallTexSource.AnyVaries(Block.Attributes["Framings"], Framing, Deck)
-            ? SidingWallTexSource.Alternate(Pos) : 0;
         string cacheKey = CacheKey(layout, side, Framing, Infill, Front, SecondFront, Back, joins, Styles, Deck, Step, StepOrientation,
             DeckInfill, DeckFront, DeckBack, (DeckFrontStyle, DeckBackStyle), deckJoins, alternate);
 
@@ -188,8 +189,12 @@ public class SidingWallEntity : BlockEntity
     }
 
     // The shape-group prefix a framing entry draws its frame with; most draw the plain "framing" groups.
-    internal static string FrameElements(JsonObject framings, string? framing)
-        => framing == null ? "framing" : framings[framing]["Elements"].AsString("framing");
+    // A rough frame has a second variant, named with a trailing 2, that odd cells take.
+    internal static string FrameElements(JsonObject framings, string? framing, int alternate = 0)
+    {
+        string frame = framing == null ? "framing" : framings[framing]["Elements"].AsString("framing");
+        return frame != "framing" && alternate % 2 == 1 ? frame + "2" : frame;
+    }
 
     private static IEnumerable<MeshData> Meshes(
         ITesselatorAPI tesselator, Shape shape, ITexPositionSource texSource, Vec3f rotation, string[] elements, bool glazed)

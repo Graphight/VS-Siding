@@ -26,8 +26,9 @@ public class SidingWallEntityTests
         var framings = Dict("""{ "oak": {}, "sticks": { "Elements": "poles" } }""");
 
         Assert.Equal(
-            new[] { "framing", "poles", "framing" },
-            new[] { "oak", "sticks", null }.Select(framing => SidingWallEntity.FrameElements(framings, framing)));
+            new[] { "framing", "poles", "framing", "poles", "poles2", "framing" },
+            new (string?, int)[] { ("oak", 0), ("sticks", 0), (null, 0), ("sticks", 2), ("sticks", 3), ("oak", 3) }
+                .Select(c => SidingWallEntity.FrameElements(framings, c.Item1, c.Item2)));
     }
 
     // Three stacked infill boxes share a face at each seam; for glass that blends twice and draws

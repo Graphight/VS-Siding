@@ -102,8 +102,10 @@ public class FinishElementGroupsTests
     [Theory]
     [InlineData("wall", "framing")]
     [InlineData("wall", "poles")]
+    [InlineData("wall", "poles2")]
     [InlineData("cornerout", "framing")]
     [InlineData("cornerout", "poles")]
+    [InlineData("cornerout", "poles2")]
     public void EveryElementSelectiveElementsCanAskForExistsInItsShape(string layout, string frame)
     {
         var repoRoot = MaterialTextureOpacityTests.GetAssemblyMetadata("RepoRoot");

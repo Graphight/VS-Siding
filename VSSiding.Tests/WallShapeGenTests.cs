@@ -178,6 +178,7 @@ public class WallShapeGenTests
         {
             ["wall bare frame"] = 24,
             ["wall pole frame"] = 104,
+            ["wall second pole frame"] = 104,
             ["wall wattle"] = 30,
             ["wall wattle, mid-stack"] = 30,
             ["wall daub both faces"] = 42,
@@ -187,6 +188,7 @@ public class WallShapeGenTests
             ["wall glazed, merged all round"] = 2,
             ["cornerout bare frame"] = 42,
             ["cornerout pole frame"] = 118,
+            ["cornerout second pole frame"] = 118,
             ["cornerout wattle"] = 54,
             ["cornerout wattle, mid-stack"] = 54,
             ["cornerout daub both faces"] = 77,
@@ -255,6 +257,9 @@ public class WallShapeGenTests
 
             actual[$"{layout} pole frame"] = SidingWallEntity.SelectiveElements(
                 layout, "sticks", null, null, null, null, finishes, (false, false, false, false), false, frame: "poles")
+                .Sum(n => quads[n]);
+            actual[$"{layout} second pole frame"] = SidingWallEntity.SelectiveElements(
+                layout, "sticks", null, null, null, null, finishes, (false, false, false, false), false, frame: "poles2")
                 .Sum(n => quads[n]);
         }
 
@@ -443,13 +448,19 @@ public class WallShapeGenTests
         Assert.Equal(expected, actual);
     }
 
-    // Each pole group beside the plain group it stands in for.
+    // Each pole group beside the plain group it stands in for, for both variants.
     private static readonly (string Pole, string Plain)[] WallPoles =
-        [("poles-left", "framing-left"), ("poles-right", "framing-right"), ("poles-top", "framing-top"), ("poles-bottom", "framing-bottom")];
+        [("poles-left", "framing-left"), ("poles-right", "framing-right"), ("poles-top", "framing-top"), ("poles-bottom", "framing-bottom"),
+         ("poles2-left", "framing-left"), ("poles2-right", "framing-right"), ("poles2-top", "framing-top"), ("poles2-bottom", "framing-bottom")];
     private static readonly (string Pole, string Plain)[] CornerPoles =
-        [("poles", "framing"), ("poles-top", "framing-top"), ("poles-bottom", "framing-bottom")];
+        [("poles", "framing"), ("poles-top", "framing-top"), ("poles-bottom", "framing-bottom"),
+         ("poles2", "framing"), ("poles2-top", "framing-top"), ("poles2-bottom", "framing-bottom")];
 
     private static (string Pole, string Plain)[] PolesOf(string layout) => layout == "wall" ? WallPoles : CornerPoles;
+
+    // The groups one built cell draws, so two variants are never drawn together.
+    private static IEnumerable<string[]> VariantsOf(string layout)
+        => PolesOf(layout).Select(p => p.Pole).GroupBy(n => n.StartsWith("poles2") ? 2 : 1).Select(g => g.ToArray());
 
     private static (double[] Lo, double[] Hi) Box(JToken element)
         => (element["from"]!.Select(v => (double)v!).ToArray(), element["to"]!.Select(v => (double)v!).ToArray());
@@ -518,9 +529,17 @@ public class WallShapeGenTests
     [InlineData("cornerout")]
     public void NoTwoEmittedFacesOfGroupsDrawnTogetherShareAPlaneAndOverlap(string layout)
     {
+        var offenders = new List<string>();
+        foreach (var variant in VariantsOf(layout)) offenders.AddRange(SamePlaneOverlaps(layout, variant));
+
+        Assert.Equal([], offenders);
+    }
+
+    private static List<string> SamePlaneOverlaps(string layout, string[] poles)
+    {
         string[] together =
         [
-            .. PolesOf(layout).Select(p => p.Pole), "infill", "infill-pane", "front", "back",
+            .. poles, "infill", "infill-pane", "front", "back",
             .. layout == "cornerout" ? new[] { "secondfront" } : [],
         ];
         string[] facings = ["west", "east", "down", "up", "north", "south"];
@@ -549,6 +568,6 @@ public class WallShapeGenTests
             }
         }
 
-        Assert.Equal([], offenders);
+        return offenders;
     }
 }
