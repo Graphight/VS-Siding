@@ -133,7 +133,8 @@ The playtest stop the plan set after the first wall cell was passed over, so the
 - Two variants are enough along a run.
 - Nothing shows through a finish, and a stacked pair looks right where the plates and lashing drop at the join.
 - The rope texture reads as lashing on bark and on bone.
-- A glazed stick cell, which keeps the plain bezel, was not looked at beside a glazed corner, which takes the pole plates.
+- A corner, a glazed stick cell beside a glazed corner, and packed dirt under a stick and a plank frame were played afterwards the same day, and nothing was raised.
+- A stick floor's joists "look a little weird without the spurs and texture" the walls now have; rough joists are the follow-up.
 - Bark is furrowed top to bottom, so a plate shows the furrows across its length; vanilla ships `bark/oak-h` for a log lying down, and a plate could take it through a second framing slot.
 - A floor keeps its own check in `SidingFloorEntity`, which still leaves the infill out, so packed dirt in a floor varies only under a plank joist frame or a plank finish.
 - A pole frame costs six times the quads of a plain wall frame and nearly four times a plain corner frame; whether that matters on a long wall is unmeasured.
