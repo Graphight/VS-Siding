@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Created: 2026-10-05
-- Reflects: the playtests of decision 0058 on branch `feat/primitive-framing` and of decision 0060 on branch `feat/tent-walls`; branch `feat/rough-pole-frames`; `SidingWallEntity.FrameElements`/`SelectiveElements`, `SidingWallTexSource.ResolveTexture`, `VSSiding.Tests/WallShapeGen`, `config/materials.json`, `blocktypes/wall.json` (`ignoreElements`), `WallShapeGenTests`, `FinishElementGroupsTests`, `SidingWallEntityTests`, `SidingWallTexSourceTests`; vanilla textures `block/wood/bark/oak`, `block/creature/bone` and `item/resource/rope`; decisions 0007, 0008, 0019, 0021, 0058, 0060; unit and end-to-end tests pass; played on 2026-10-06
+- Reflects: the playtests of decision 0058 on branch `feat/primitive-framing` and of decision 0060 on branch `feat/tent-walls`; branch `feat/rough-pole-frames`; `SidingWallEntity.FrameElements`/`CellAlternate`/`SelectiveElements`, `SidingWallTexSource.ResolveTexture`, `VSSiding.Tests/WallShapeGen`, `config/materials.json`, `blocktypes/wall.json` (`ignoreElements`), `WallShapeGenTests`, `FinishElementGroupsTests`, `SidingWallEntityTests`, `SidingWallTexSourceTests`; vanilla textures `block/wood/bark/oak`, `block/creature/bone` and `item/resource/rope`; decisions 0007, 0008, 0019, 0021, 0058, 0060; unit and end-to-end tests pass; played on 2026-10-06
 
 ## Summary
 A stick frame is a plank frame in a darker texture, and a bone frame is one in a paler texture: the same squared posts and plates, ruler straight.
@@ -42,6 +42,7 @@ A wall asks for `poles-left`, `poles-right`, `poles-top` and `poles-bottom`, and
 Sticks and bones share the one set of groups: the unevenness, the overrun and the lashing are what a pole frame is, whatever the pole.
 Guest walls tesselate through the same `OnTesselation`, so they follow with no change.
 Every new group name is in the `ignoreElements` list of each `*-wall-*` and `*-cornerout-*` variant in `blocktypes/wall.json`, or an unbuilt cell would draw poles over the plain frame.
+`EveryFramingElementGroupExistsAndIsIgnoredByTheDefaultShape` reads the prefixes from the real entries and checks both variants against both shapes and all eight lists, since a name a shape lacks draws nothing and reports nothing.
 
 **Pole groups from `WallShapeGen`.**
 The generator emits the groups into `wall.json` and `cornerout.json`, and `just shapes` rewrites them; `GeneratedShapeMatchesTheCommittedOne` pins them.
@@ -79,14 +80,19 @@ Its stubs stand on the end posts, at the far ends of the legs, so none meets ano
 One pattern stamped on every cell reads as wallpaper along a run.
 The generator emits `poles` and `poles2` for both layouts, the second with different cut heights, stub heights and stub sides.
 The plates, cheeks and lashing of `poles2` are the first variant's renamed.
-`FrameElements` appends `2` when `SidingWallTexSource.Alternate(pos)` is odd.
-A pole frame whose textures do not vary keys the mesh cache on `Alternate(pos) % 2` alone, so the cache separates the two variants without multiplying by 120.
-A frame whose textures do vary already keys on the whole value, and its parity picks the variant.
+`FrameElements` appends `2` when the cell's alternate is odd.
+
+**One hash, three readers.**
+`SidingWallTexSource.Alternate(pos)` already picked each `*` texture's variant and keyed the mesh cache; the pole variant is its third reader.
+`SidingWallEntity.CellAlternate` hands all three the whole hash while any layer's texture varies, its parity alone for a pole frame with no varying texture, and 0 otherwise, so the cache separates the two variants without multiplying by 120.
+The infills count as layers there, which they did not before.
+`packeddirt` is the one infill with a `*` texture, and it drew four textures under a plank frame and one under a stick frame; with the parity it would have drawn two, changing with the pole variant.
+It now draws all four under every wall frame.
 
 **Invariant tests.**
-Three tests in `WallShapeGenTests`, each run for `wall` and `cornerout`, pin the recipe so the numbers can be turned in play:
-1. Every `poles*` box lies inside the frame's thickness.
-2. Every `poles*` group covers the mid-plane of the plain member it replaces.
+Three tests in `WallShapeGenTests`, each run for both layouts and both variants, pin the recipe so the numbers can be turned in play:
+1. Every pole box lies inside the frame's thickness, and on a corner starts clear of the slab on the other leg's outer face.
+2. Every pole group covers the mid-plane of the plain member it replaces.
 3. Among groups drawn together, no two emitted faces with the same facing share a plane and overlap.
 
 **Quad cost.**
@@ -106,17 +112,13 @@ A glazed corner has no bezel groups and takes the pole plates.
 A floor's joists, a deck's rim and collision keep the plain frame; `UnrotatedFramingBoxes` is not touched, since stubs and cheeks are a quarter to two voxels inside the cell and a player cannot feel them.
 Joists are seen from below in a cellar, where rough poles would show, so they are the first follow-up if this is liked.
 
-**Changed from the proposal.**
-- The overrun is cheeks in the skins, not a plate that runs one post's width past it.
-- Lashing is cheeks on a slot, not a band that wraps the post.
-
 ## Alternatives considered
 - **A hand-drawn texture with knots.** Two texels of post width show none of it, and the mod ships no texture of its own for walls.
 - **Round poles from angled boxes.** A vanilla shape is boxes; an eight-sided post is four boxes per length, each rotated, and their faces z-fight with the infill and the finish slabs.
 - **Roughness that stands proud of the wall.** It would poke through any finish, or need a rule that strips it once a face is finished.
 - **A random pattern per cell, built at run time.** Each cell would mesh under its own key, and the cache exists so that a long wall is a handful of meshes.
 - **Rough elements on every framing.** Planks are sawn timber; a square frame is right for them.
-- **A second set of groups for bone, with knobbed ends in place of stubs.** A second table in the generator and two more groups per member, for a difference a quarter voxel deep; left until the shared groups have been seen on bone.
+- **A second set of groups for bone, with knobbed ends in place of stubs.** A second table in the generator and two more groups per member, for a difference a quarter voxel deep; the shared groups looked fine on bone in play.
 - **A separate `poles` framing beside `sticks`.** Two entries consuming the same stick would match the held item twice, and `MatchConsumes` returns the first.
 - **One proud box for each plate.** Two same-facing faces on one plane at a run's end, which z-fight; the cheeks replace it.
 - **A recessed corner post.** It opens a line of sight between the post and the infill on a corner's two depth axes.
@@ -133,6 +135,7 @@ The playtest stop the plan set after the first wall cell was passed over, so the
 - The rope texture reads as lashing on bark and on bone.
 - A glazed stick cell, which keeps the plain bezel, was not looked at beside a glazed corner, which takes the pole plates.
 - Bark is furrowed top to bottom, so a plate shows the furrows across its length; vanilla ships `bark/oak-h` for a log lying down, and a plate could take it through a second framing slot.
+- A floor keeps its own check in `SidingFloorEntity`, which still leaves the infill out, so packed dirt in a floor varies only under a plank joist frame or a plank finish.
 - A pole frame costs six times the quads of a plain wall frame and nearly four times a plain corner frame; whether that matters on a long wall is unmeasured.
 - A stick deck, stick joists and bone ones keep the plain groups, as the proposal said.
 - `diagonal-walls` needs its own `poles-` groups if both ship, since a framing entry names groups by prefix.
