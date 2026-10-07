@@ -1089,7 +1089,19 @@ public class SidingWallBlock : Block
     {
         if (pos == null) return base.GetCombustibleProperties(world, itemstack, pos);
 
-        return ResolveLayerCombustible(HitLayerMaterial(world.BlockAccessor, pos, null), base.GetCombustibleProperties(world, itemstack, pos));
+        var entity = world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos);
+        var material = entity == null ? BlockMaterial : LayerMaterialAt(BurnLayer(entity), entity);
+        return ResolveLayerCombustible(material, base.GetCombustibleProperties(world, itemstack, pos));
+    }
+
+    // The layer a fire takes: the topmost, except that a deck whose own top layer does not burn is
+    // stepped over for the wall's layers under it, so a bone deck does not fireproof a pelt (decision 0060).
+    // A wall with no layer of its own keeps the deck's answer, so its frame does not burn out from under the deck.
+    internal string? BurnLayer(SidingWallEntity entity)
+    {
+        string? layer = PeelAt(entity, null, false);
+        if (layer?.StartsWith("deck") != true || LayerMaterialAt(layer, entity) == EnumBlockMaterial.Wood) return layer;
+        return PeelLayer(null, entity.Infill, entity.Front, entity.SecondFront, entity.Back, null, entity.Step) ?? layer;
     }
 
     // pos may be null, with only a stack to go on, so that falls back to base. The API warns this
@@ -1166,7 +1178,7 @@ public class SidingWallBlock : Block
     {
         var entity = world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos);
         if (entity == null) return false;
-        string? layer = PeelAt(entity, null, false);
+        string? layer = BurnLayer(entity);
         bool burns = LayerMaterialAt(layer, entity) == EnumBlockMaterial.Wood;
         if (layer == null) return !burns;
 

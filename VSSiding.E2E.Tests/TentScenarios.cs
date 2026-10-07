@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using Atlas.Api;
 using Atlas.XUnit;
 using Vintagestory.API.Common;
+using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Vintagestory.GameContent;
 using Xunit;
@@ -20,13 +21,7 @@ public class TentScenarios : AtlasScenarioBase
         Assert.Equal(("bone", "pelt-small", null, null, null), WallBuilder.Layers(World, cell));
         Block wall = World.BlockAt(cell);
 
-        BlockPos firePos = cell.UpCopy();
-        World.SetBlock("game:fire", firePos);
-        var burning = World.BlockEntityAt<BlockEntity>(firePos)!.GetBehavior<BEBehaviorBurning>();
-        burning.OnFirePlaced(firePos, cell, null);
-        Assert.True(burning.IsBurning);
-
-        await World.Until(() => !burning.IsBurning, 3000);
+        await Burn(cell);
 
         Assert.Equal(wall, World.BlockAt(cell));
         Assert.Equal(("bone", null, null, null, null), WallBuilder.Layers(World, cell));
@@ -35,6 +30,23 @@ public class TentScenarios : AtlasScenarioBase
         BurnOut(cell);
 
         Assert.Equal(wall, World.BlockAt(cell));
+    }
+
+    [AtlasScenario(FreshWorld = true)]
+    public async Task Wall_Should_LoseItsPelt_When_FireBurnsItUnderABoneDeck()
+    {
+        (BlockPos cell, ITestPlayer player) = await RaiseBoneFrame();
+        await Layer(player, cell, "game:hide-pelt-small");
+
+        player.Entity.WatchedAttributes.SetString("vssidingDeck", "deck");
+        await player.GiveItem("game:bone", 2);
+        var sideSel = new BlockSelection { Position = cell.Copy(), Face = BlockFacing.EAST, HitPosition = new Vec3d(1, 0.5, 0.5) };
+        Assert.True(World.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, sideSel));
+        Assert.Equal((("bone", "pelt-small", null, null, null), "bone"), (WallBuilder.Layers(World, cell), Deck(cell)));
+
+        await Burn(cell);
+
+        Assert.Equal((("bone", null, null, null, null), "bone"), (WallBuilder.Layers(World, cell), Deck(cell)));
     }
 
     [AtlasScenario(FreshWorld = true)]
@@ -70,6 +82,24 @@ public class TentScenarios : AtlasScenarioBase
         ITestPlayer player = await WallBuilder.JoinBuilder(World);
         await WallBuilder.Raise(World, player, cell, cell.WestCopy(), "game:bone", null, framingCost: 2);
         return (cell, player);
+    }
+
+    private string? Deck(BlockPos cell)
+    {
+        var tree = new TreeAttribute();
+        World.BlockEntityAt<BlockEntity>(cell)!.ToTreeAttributes(tree);
+        return tree.GetString("deck");
+    }
+
+    private async Task Burn(BlockPos cell)
+    {
+        BlockPos firePos = cell.UpCopy();
+        World.SetBlock("game:fire", firePos);
+        var burning = World.BlockEntityAt<BlockEntity>(firePos)!.GetBehavior<BEBehaviorBurning>();
+        burning.OnFirePlaced(firePos, cell, null);
+        Assert.True(burning.IsBurning);
+
+        await World.Until(() => !burning.IsBurning, 3000);
     }
 
     // A burnout that lands after the last layer that burns has gone, as a second fire's does:

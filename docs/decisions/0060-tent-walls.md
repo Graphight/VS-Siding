@@ -35,6 +35,14 @@ An entry with no `BlockMaterial` still falls back, so planks and sticks are unch
 It now keeps a bare frame that is not `Wood`.
 Vanilla rechecks a fire's fuel once a second and runs its burn timer every 25 ms, so a burnout can land on a bone frame whose pelt has just gone.
 
+**Fire steps over a deck that does not burn.**
+With no hit face the peel order answers a deck before the infill, and fire always asks with no hit face.
+A bare bone deck is `Other`, so a bone frame raised with the deck on would never catch, pelt and all.
+`SidingWallBlock.BurnLayer` is the layer fire takes: the topmost, except that a deck whose own top layer is not `Wood` is stepped over for the wall's layers under it.
+A wall with no layer of its own keeps the deck's answer, so a wood frame does not burn out from under a deck that does not burn.
+This changes decisions 0043 and 0053 for every deck, not only a bone one: a straw or wattle wall under a deck filled with clay or finished in daub now burns, where the deck shielded it before.
+Breaking, sounds and resistance still read the plain peel order.
+
 **A pelt infill, one per hide size.**
 A `pelt-{size}` template in `InfillFamilies`, matching `game:hide-pelt-*` on its `size` variant.
 It expands to four infills (small, medium, large, huge) that share one display name, "Pelt Infill", and one texture, `game:block/cloth/pelt`.
@@ -51,7 +59,7 @@ They seal a room like any infill and are not cooling infills, since decision 000
 **End-to-end scenarios.**
 `TentScenarios` raises a bone frame, layers a small pelt and sets a fire; the fire burns the pelt off and the same wall block stands with only its bone framing.
 It then reads the bare frame's combustible properties as null, which fails if the shipped `bone` entry loses its `BlockMaterial`, and runs a second burnout against the bare frame, which must stand.
-A second scenario runs that burnout against bare bone joists, and a third layers blue cloth.
+A second scenario burns a pelt off a bone frame under a bone deck, a third runs the late burnout against bare bone joists, and a fourth layers blue cloth.
 These are the only checks that the item codes are real and that the bone patch applies.
 
 **The `Other` consumer audit.**
@@ -96,6 +104,8 @@ This reverses the proposal, which wanted fox and raccoon pelts to match.
 `dotnet test` and the headless server never exercise the texture atlas, so how the three textures look on a wall is unchecked: a bone frame is posts two texels wide in a pale texture and may not read as bone.
 A shaped bone frame belongs with `rough-pole-frames`.
 - Fox, raccoon and bear pelts are not accepted.
+- A bare wood frame under a deck that does not burn is fireproof, since fire only steps over the deck for a wall layer.
+- A step is not stepped over as a deck is, so a stone stair filling a wall's open side still shields the layers under it.
 - Cloth needs a loom, so it is not stone age; its recipe gates it, as every late layer's does.
 - A bare bone frame is slower to break with an axe than a plank one and weaker to blasts, from the audit above.
 - Raw hide and leather are left out: raw hide is a step on the way to a pelt, and leather needs a barrel, which needs planks.
