@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Created: 2026-10-07
-- Reflects: decision 0061 and its playtest of 2026-10-06; branch `feat/rough-pole-joists`; `SidingFloorEntity.SelectiveElements`/`OnTesselation`, `SidingWallEntity.CellAlternate`/`DeckElements`, `VSSiding.Tests/WallShapeGen` (`FloorPoleElements`, `FloorPole2Elements`, `PoleRim`, `DeckGroups`, `DeckSlots`), `blocktypes/floor.json` (`ignoreElements`), the generated `floor.json`, `wall.json` and `cornerout.json` shapes, `WallShapeGenTests`, `FinishElementGroupsTests`, `SidingFloorTests`, `SidingWallEntityTests`; unit tests pass; NOT played
+- Reflects: decision 0061 and its playtest of 2026-10-06; branch `feat/rough-pole-joists`; `SidingFloorEntity.SelectiveElements`/`OnTesselation`, `SidingWallEntity.CellAlternate`/`DeckElements`, `VSSiding.Tests/WallShapeGen` (`FloorPoleElements`, `FloorPole2Elements`, `PoleRim`, `DeckGroups`, `DeckSlots`), `blocktypes/floor.json` (`ignoreElements`), the generated `floor.json`, `wall.json` and `cornerout.json` shapes, `WallShapeGenTests`, `FinishElementGroupsTests`, `SidingFloorTests`, `SidingWallEntityTests`; unit and end-to-end tests pass; NOT played
 
 ## Summary
 A stick or bone floor, and a stick or bone deck, draw their joists as rough poles: recessed, uneven in width, with stubs, rims that read as running over the joist ends, and rope lashing.
@@ -41,7 +41,7 @@ Depth is y: front slab 15 to 16, frame 13 to 15, infill 13.5 to 14.5, back slab 
 **The joists cannot open a line of sight.**
 A floor's infill is one sheet across the cell, x 0 to 16, with the joists passing through it.
 No joist shape, however recessed or cut, opens a line of sight through the floor.
-The wall needed its "inward only" rule for the swelling of a post, and the floor does not.
+A wall's post may swell inward only, or it leaves a gap beside the infill; a joist may swell to either side.
 
 **Lashing shows at a floor's north and south edges.**
 `SidingFloorBlock.Joins` drops a rim wherever the floor carries on north or south and never drops a joist.
@@ -63,7 +63,7 @@ Rope is one constant, so the deck copies use the wall shape's own `lashing` slot
 **Clipped members.**
 The clip drops some members whole: the rim against the wall, and a joist that falls inside the wall panel.
 Where it removed a joist its stubs survived with nothing behind them, so `DeckGroups` drops any pole stub the deck's edge cuts.
-`EveryFramingElementGroupExistsAndIsIgnoredByTheDefaultShape` asserts a pole deck keeps exactly the members the plain deck keeps, per shape and side.
+`APoleDeckKeepsTheMembersThePlainDeckKeeps` asserts a pole deck keeps exactly the members the plain deck keeps, per shape and side.
 
 **Invariant tests.**
 The three pole invariant theories of decision 0061 read the frame's depth axis, thickness range and mid-plane from the layout (`Frame` in `WallShapeGenTests`) and run for the floor too, with the floor as y, 13 to 15, mid-plane 14.
@@ -101,7 +101,6 @@ Collision keeps the plain boxes, as for a wall.
 
 ## Consequences & open questions
 This has not been played.
-Unit tests pass, and no result of a playtest is recorded here.
 A playtest answers:
 - Whether stubs and uneven joists read from below in a cellar and from above on a bare floor.
 - Whether rope only at a floor's edges looks right or looks like an omission.

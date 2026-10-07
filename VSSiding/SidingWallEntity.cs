@@ -190,8 +190,8 @@ public class SidingWallEntity : BlockEntity
 
     // The position hash has three readers: the texture source picks each wildcard texture's variant by it,
     // FrameElements picks the rough frame's variant by its parity, and the mesh cache keys on it. So a
-    // cell keeps the whole hash while any layer's texture varies, the parity alone for a rough wall or deck frame,
-    // and nothing otherwise, which is what lets a long plain wall share one mesh.
+    // cell keeps the whole hash while any layer's texture varies, the parity alone for a rough wall or
+    // deck frame, and nothing otherwise, which is what lets a long plain wall share one mesh.
     internal static int CellAlternate(
         JsonObject attributes, int hash, string? framing, string? deck, string?[] infills, string?[] finishes)
     {
