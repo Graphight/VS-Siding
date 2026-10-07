@@ -268,8 +268,8 @@ public class SidingWallEntity : BlockEntity
             // the frame still reaches the pane where the member beside it has been dropped. A
             // plain wall's plates stop short at its posts, which is right while the posts are
             // always there and leaves a notch at every cell edge once they aren't.
-            string member = glazed && !corner ? "glazing" : corner ? "framing" : frame;
-            if (corner) names.Add("framing");
+            string member = glazed && !corner ? "glazing" : frame;
+            if (corner) names.Add(frame);
             else
             {
                 if (!joins.left) names.Add(member + "-left");
