@@ -282,7 +282,7 @@ public static class WallShapeGen
         new("poles2-right", (1.25, 13, 15), (2.75, 16, 16), "framing", UvRule.Flat),
         new("poles2-right", (1, 3, 13.5), (1.5, 4, 15), "framing", UvRule.Flat),
         new("poles2-right", (2.5, 7.5, 13.5), (3, 8.5, 14.75), "framing", UvRule.Flat),
-        .. WallPoleElements.Where(e => e.Name is "poles-top" or "poles-bottom").Select(e => e with { Name = "poles2" + e.Name[5..] }),
+        .. WallPoleElements.Where(e => e.Name is "poles-top" or "poles-bottom").Select(e => e with { Name = e.Name.Replace("poles", "poles2") }),
     ];
 
     private static readonly Element[] WallElements =
@@ -497,7 +497,7 @@ public static class WallShapeGen
         new("poles2", (15, 11, 1.25), (16, 16, 2.75), "framing", UvRule.Flat),
         new("poles2", (13, 7, 2.5), (15, 8, 3), "framing", UvRule.Flat),
         new("poles2", (13.5, 8.5, 1), (15, 9.5, 1.5), "framing", UvRule.Flat),
-        .. CornerPoleElements.Where(e => e.Name is "poles-top" or "poles-bottom").Select(e => e with { Name = "poles2" + e.Name[5..] }),
+        .. CornerPoleElements.Where(e => e.Name is "poles-top" or "poles-bottom").Select(e => e with { Name = e.Name.Replace("poles", "poles2") }),
     ];
 
     private static readonly Element[] CornerOutElements =
