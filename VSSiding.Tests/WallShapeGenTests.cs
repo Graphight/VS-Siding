@@ -105,6 +105,7 @@ public class WallShapeGenTests
     }
 
     // The floor's whole layout, written out: a 4/16 panel at y 12..16, three joists running north-south.
+    // The poles* groups are left out: the committed shape and the pole invariants pin them.
     [Fact]
     public void FloorLaysTheWallsLayersFlatAtTheTopOfTheCell()
     {
@@ -141,6 +142,7 @@ public class WallShapeGenTests
             .. Enumerable.Range(0, 8).Select(i => $"back-lath-boards {2 * i + 0.5},12,0 {2 * i + 1.5},12.5,16"),
         ];
         Assert.Equal(expected, WallShapeGen.Generate("floor")["elements"]!
+            .Where(e => !((string)e["name"]!).StartsWith("poles"))
             .Select(e => $"{e["name"]} {string.Join(",", e["from"]!.Select(v => (double)v!))} {string.Join(",", e["to"]!.Select(v => (double)v!))}")
             .ToArray());
     }
@@ -275,7 +277,8 @@ public class WallShapeGenTests
     }
 
     // The deck is the floor's layers clipped to its area, a copy per side, each staying inside the box
-    // SidingWallBlock gives that side's deck, and all of them on the deck's own texture codes.
+    // SidingWallBlock gives that side's deck, and all of them on the deck's own texture codes, or on the
+    // lashing's, which is one rope whatever the frame.
     [Theory]
     [InlineData("wall")]
     [InlineData("cornerout")]
@@ -296,7 +299,7 @@ public class WallShapeGenTests
                 .Select(e => (string)e["name"]!)
                 .ToArray();
             Assert.All(groups.SelectMany(g => ((JObject)g["faces"]!).Properties()),
-                p => Assert.Contains((string)p.Value["texture"]!, new[] { "#deck", "#deckinfill", "#deckfront", "#deckback" }));
+                p => Assert.Contains((string)p.Value["texture"]!, new[] { "#deck", "#deckinfill", "#deckfront", "#deckback", "#lashing" }));
         }
 
         Assert.Equal(expected, actual);
@@ -473,7 +476,9 @@ public class WallShapeGenTests
     [InlineData("wall", "poles")]
     [InlineData("wall", "poles2")]
     [InlineData("cornerout", "poles")]
+    [InlineData("floor", "poles")]
     [InlineData("cornerout", "poles2")]
+    [InlineData("floor", "poles2")]
     public void EveryPoleBoxLiesInsideTheFramesThickness(string layout, string prefix)
     {
         string[] groups = PolesOf(layout, prefix).Select(p => p.Pole).ToArray();
@@ -483,7 +488,7 @@ public class WallShapeGenTests
         {
             var (lo, hi) = Box(element);
             if (!frame.Axes.Any(depth => Thick(lo, hi, depth, frame) && (layout != "cornerout" || lo[2 - depth] >= 1)))
-                offenders.Add($"{element["name"]} spans x {lo[0]}..{hi[0]}, z {lo[2]}..{hi[2]}");
+                offenders.Add($"{element["name"]} spans {string.Join(",", lo)} to {string.Join(",", hi)}");
         }
 
         Assert.Equal([], offenders);
@@ -495,7 +500,9 @@ public class WallShapeGenTests
     [InlineData("wall", "poles")]
     [InlineData("wall", "poles2")]
     [InlineData("cornerout", "poles")]
+    [InlineData("floor", "poles")]
     [InlineData("cornerout", "poles2")]
+    [InlineData("floor", "poles2")]
     public void EveryPoleGroupCoversTheMidPlaneOfThePlainMemberItReplaces(string layout, string prefix)
     {
         var elements = WallShapeGen.Generate(layout)["elements"]!.ToArray();
@@ -538,7 +545,9 @@ public class WallShapeGenTests
     [InlineData("wall", "poles")]
     [InlineData("wall", "poles2")]
     [InlineData("cornerout", "poles")]
+    [InlineData("floor", "poles")]
     [InlineData("cornerout", "poles2")]
+    [InlineData("floor", "poles2")]
     public void NoTwoEmittedFacesOfGroupsDrawnTogetherShareAPlaneAndOverlap(string layout, string prefix)
     {
         string[] together = [.. PolesOf(layout, prefix).Select(p => p.Pole), "infill", "infill-pane", "front", "secondfront", "back"];
