@@ -822,11 +822,14 @@ public class SidingWallBlock : Block
         string? framing, string? infill, string? deck, JsonObject framings, JsonObject infills,
         string layout, string side, string? front, string? secondFront, string? back, JsonObject finishes,
         System.Func<string, string?> translate, string? stepName = null,
-        string? deckInfill = null, string? deckFront = null, string? deckBack = null)
+        string? deckInfill = null, string? deckFront = null, string? deckBack = null, bool full = true)
     {
         string? builtFraming = Installed(framing, framings);
         string? builtInfill = Installed(infill, infills);
         string? builtDeck = Installed(deck, framings);
+
+        if (!full)
+            return Translate(SealKey(builtFraming, builtInfill, framings, infills), translate) + "\n";
 
         var sb = new StringBuilder();
         sb.AppendLine();
