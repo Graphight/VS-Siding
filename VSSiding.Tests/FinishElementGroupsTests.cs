@@ -199,20 +199,59 @@ public class FinishElementGroupsTests
         Assert.Equal([], asked.Distinct().Where(name => !names.Contains(name)).ToArray());
     }
 
-    // A plank finish missing one of the boards row's styles falls back to its default look when
-    // that style is picked, with no error.
-    [Fact]
-    public void EveryPlankFinishOffersTheWholeBoardsRow()
+    private static readonly string[] PlankFinishes = ["planks", "planks-aged", "planks-veryaged", "planks-{wood}"];
+
+    private static List<JProperty> FinishEntries()
     {
-        var repoRoot = MaterialTextureOpacityTests.GetAssemblyMetadata("RepoRoot");
         var attributes = MaterialTextureOpacityTests.BlockAttributes("wall.json");
-        var entries = ((JObject)attributes["Finishes"]!).Properties().Concat(((JObject)attributes["FinishFamilies"]!).Properties());
-        var boards = SidingModePicker.Rows.Single(r => r.Key == "vssidingBoards").Options;
+        return ((JObject)attributes["Finishes"]!).Properties().Concat(((JObject)attributes["FinishFamilies"]!).Properties()).ToList();
+    }
+
+    // A finish missing one of its row's styles falls back to its default look when that style is
+    // picked, with no error.
+    [Fact]
+    public void EveryStyledFinishOffersItsWholePickerRow()
+    {
+        var entries = FinishEntries();
+        string[] Row(string key) => SidingModePicker.Rows.Single(r => r.Key == key).Options;
+        var finishesByRow = new (string Row, string[] Finishes)[] { ("vssidingBoards", PlankFinishes), ("vssidingLogs", ["shakes-{wood}"]) };
 
         Assert.Equal(
-            new[] { "planks", "planks-aged", "planks-veryaged", "planks-{wood}" }.Select(name => $"{name}: {string.Join(", ", boards)}"),
-            entries.Where(e => e.Value["Styles"]?.Any(t => boards.Contains((string)t!)) ?? false)
-                .Select(e => $"{e.Name}: {string.Join(", ", e.Value["Styles"]!.Select(t => (string)t!))}"));
+            finishesByRow.SelectMany(row => row.Finishes.Select(name => $"{name}: {string.Join(", ", Row(row.Row))}")),
+            finishesByRow.SelectMany(row => entries
+                .Where(e => e.Value["Styles"]?.Any(t => Row(row.Row).Contains((string)t!)) ?? false)
+                .Select(e => $"{e.Name}: {string.Join(", ", e.Value["Styles"]!.Select(t => (string)t!))}")));
+    }
+
+    // A style a wall takes and a floor face refuses falls back to that face's default with no error,
+    // which in play reads as the picker being ignored. Weatherboard is the one style refused: laid
+    // flat it is a run of ridges (decision 0051).
+    [Fact]
+    public void AFloorFaceRefusesNoStyleButWeatherboard()
+    {
+        var refused =
+            from entry in FinishEntries()
+            from style in entry.Value["Styles"]?.Select(t => (string)t!) ?? []
+            from face in new[] { "front", "back" }
+            where !SidingFloorEntity.HasFloorStyle(new JsonObject(entry.Value), face, style)
+            select $"{entry.Name} {face} {style}";
+
+        Assert.Equal(PlankFinishes.SelectMany(name => new[] { $"{name} front weatherboard", $"{name} back weatherboard" }), refused);
+    }
+
+    // A style with no StyleTextures entry draws the finish's own Texture. The log finish's bark styles
+    // share one flat shape, so a missing entry would draw one of them as shakes with nothing to say so.
+    [Fact]
+    public void EveryLogStyleDrawsItsOwnTexture()
+    {
+        var families = new JsonObject(MaterialTextureOpacityTests.BlockAttributes("wall.json")["FinishFamilies"]!);
+        var none = new JsonObject(new JObject());
+        var textures = SidingModePicker.Rows.Single(r => r.Key == "vssidingLogs").Options
+            .Select(style => SidingWallTexSource.ResolveTexture(
+                "front", null, null, "shakes-{wood}", null, null, none, none, families, frontStyle: style)!.Base.ToString())
+            .ToList();
+
+        Assert.Equal(textures.Distinct(), textures);
     }
 
     // Glazing's own elements - the pane and its bezel - exist only for a glazed cell, so none of

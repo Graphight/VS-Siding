@@ -55,15 +55,20 @@ public class SidingFloorTests
     [Fact]
     public void AFaceTakesOnlyTheStylesItsFloorElementsList()
     {
+        var cases = new[]
+        {
+            ("planks", "front", "boards"), ("planks", "front", "weatherboard"), ("planks", "back", "hboards"),
+            ("daub", "front", "boards"), ("daub", "back", "boards"),
+            ("shakes", "front", "bark"), ("shakes", "back", "hbark"), ("shakes", "front", "boards"),
+        };
+
         Assert.Equal(
-            ["planks front boards True", "planks front weatherboard False", "planks back hboards True", "daub front boards False", "daub back boards True",
-                "shakes front bark True", "shakes back hbark True", "shakes front boards False"],
-            new[]
-                {
-                    ("planks", "front", "boards"), ("planks", "front", "weatherboard"), ("planks", "back", "hboards"), ("daub", "front", "boards"), ("daub", "back", "boards"),
-                    ("shakes", "front", "bark"), ("shakes", "back", "hbark"), ("shakes", "front", "boards"),
-                }
-                .Select(c => $"{c.Item1} {c.Item2} {c.Item3} {SidingFloorEntity.HasFloorStyle(Finishes[c.Item1], c.Item2, c.Item3)}"));
+            [
+                "planks front boards True", "planks front weatherboard False", "planks back hboards True",
+                "daub front boards False", "daub back boards True",
+                "shakes front bark True", "shakes back hbark True", "shakes front boards False",
+            ],
+            cases.Select(c => $"{c.Item1} {c.Item2} {c.Item3} {SidingFloorEntity.HasFloorStyle(Finishes[c.Item1], c.Item2, c.Item3)}"));
     }
 
     // The style picks a log finish's texture and never its element: a floor has no relief groups.
