@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Created: 2026-10-07
-- Reflects: mod page comments https://mods.vintagestory.at/vssiding#cmt-243659 and #cmt-243661 with its first screenshot; branch `feat/bark-and-plaster-finishes`; `config/materials.json`'s `shakes-{wood}`, `SidingWallEntity.FinishElement`, `SidingWallTexSource`, `SidingModePicker.Rows`, `SidingFloorEntity.HasFloorStyle`, `VSSiding.Tests/WallShapeGen`, `VSSiding.E2E.Tests/FloorScenarios`, `MaterialTextureOpacityTests`; vanilla textures under `block/wood/bark/`; decisions 0007, 0017, 0027, 0031, 0040, 0045; unit tests pass; played 2026-10-08, floors and decks not replayed since their fix
+- Reflects: mod page comments https://mods.vintagestory.at/vssiding#cmt-243659 and #cmt-243661 with its first screenshot; branch `feat/bark-and-plaster-finishes`; `config/materials.json`'s `shakes-{wood}`, `SidingWallEntity.FinishElement`, `SidingWallTexSource`, `SidingModePicker.Rows`, `SidingFloorEntity.HasFloorStyle`, `VSSiding.Tests/WallShapeGen`, `VSSiding.E2E.Tests/FloorScenarios`, `MaterialTextureOpacityTests`; vanilla textures under `block/wood/bark/`; decisions 0007, 0017, 0027, 0031, 0040, 0045; unit tests pass; played 2026-10-08, floors and decks replayed the same day after they took the Logs row
 
 ## Summary
 A player frames houses with full log blocks and cannot make a siding wall match them: the log finish offered shakes or debarked logs, never bark.
@@ -69,5 +69,5 @@ Of vanilla's 26 bark textures it alone has partial alpha, one column of 32 pixel
 Played 2026-10-08, on walls and corners with a vanilla wood and a Wildcraft wood: the four styles draw as expected.
 The session covered bark across two stacked walls and the right edge of bald cypress vertical bark, and reported nothing wrong with either, so the flat UVs stay and the exemption stands.
 
-Still open, and only play can settle it:
-- Floors and decks have not been replayed since they took the Logs row. `FloorScenarios` pins the stored style on a headless server, but the texture a client then draws, and which way `bark` and `hbark` run on a floor and on each side's deck, are unseen.
+Floors and decks were replayed the same day, once they took the Logs row, and nothing wrong was reported.
+`FloorScenarios` pins the stored style on a headless server; the texture a client draws from it has no automated check.
