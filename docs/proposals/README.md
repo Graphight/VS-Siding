@@ -10,8 +10,6 @@ An idea that's been thought through but not acted on. Mutable: edit freely, argu
 
 - `plaster-finish`: two players want a finish lighter than daub.
 The proposal adds vanilla's four plaster blocks as flat finishes through two family templates, with no code.
-- `bark-log-finish`: the log finish offers shakes or debarked logs, so a wall cannot match the log blocks a house is framed with.
-The proposal adds two styles, bark running up and bark running along, as flat faces in vanilla's bark texture.
 - `quieter-tooltip`: looking at a wall prints up to a dozen lines.
 The proposal shows only whether the wall seals unless the saw is in the off hand.
 - `wall-junctions`: four players describe junctions they could not build, and a corner piece already covers a T and a crossing; a creative build confirmed the crossing.
