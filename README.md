@@ -15,7 +15,7 @@ A stone works from the first day: it is never used up, and sticks build the fram
 Sticks are also the wattle infill, so sneak to stack or extend a bare stick frame.
 Bones build a frame too, two to a frame, and a pelt or a cloth fills one.
 
-The saw or stone carries a tool mode picker, and the mode decides what you build: a flat **wall**, an outside **corner** or a thin **floor**, and whether plank and log finishes go on as weatherboard, boards, shakes, logs or bark.
+The saw or stone carries a tool mode picker, and the mode decides what you build: a flat **wall**, an outside **corner**, a **diagonal** across the block or a thin **floor**, and whether plank and log finishes go on as weatherboard, boards, shakes, logs or bark.
 The in-game handbook page *VS Siding Mod: Guide* has the whole thing.
 
 ## What a wall is made of
