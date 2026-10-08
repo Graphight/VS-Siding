@@ -59,15 +59,23 @@ public class SidingWallTooltipTests
     private static string Describe(
         string? framing = "oak", string? infill = "wattle", string? deck = null, string layout = "wall",
         string? front = null, string? secondFront = null, string? back = null, string? stepName = null,
-        string? deckInfill = null, string? deckFront = null, string? deckBack = null)
+        string? deckInfill = null, string? deckFront = null, string? deckBack = null, bool full = true)
         => SidingWallBlock.Describe(
             framing, infill, deck, Framings, Infills, layout, "west", front, secondFront, back, Finishes,
-            key => Lang.GetValueOrDefault(key), stepName, deckInfill, deckFront, deckBack);
+            key => Lang.GetValueOrDefault(key), stepName, deckInfill, deckFront, deckBack, full);
 
     [Fact]
     public void BuiltFramingAndInfillNameTheirMaterials()
     {
         Assert.Equal("\n  Oak Framing\n  Wattle Infill\n  West, East: unfinished\n  Seals the room\n", Describe());
+    }
+
+    [Fact]
+    public void WithoutTheBuildSignalOnlyTheSealLineShows()
+    {
+        Assert.Equal(
+            "Seals the room\n",
+            Describe(deck: "oak", deckInfill: "wattle", deckFront: "planks", front: "daub", stepName: "Oak Stairs", full: false));
     }
 
     [Fact]

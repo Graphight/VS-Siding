@@ -116,8 +116,8 @@ public class SidingWallEntity : BlockEntity
     internal static bool ReadLegacyDeck(ITreeAttribute tree, string? deck)
         => tree.HasAttribute("legacydeck") ? tree.GetBool("legacydeck") : deck != null;
 
-    // Block.GetPlacedBlockInfo already calls this inside a try/catch and appends the
-    // blockdesc- line after it, so overriding here is the one hook rather than two.
+    // Block.GetPlacedBlockInfo calls this inside a try/catch and appends the blockdesc- line
+    // after it; SidingWallBlock's override takes that line back off without the build signal.
     public override void GetBlockInfo(IPlayer forPlayer, StringBuilder dsc)
     {
         base.GetBlockInfo(forPlayer, dsc);
@@ -127,7 +127,8 @@ public class SidingWallEntity : BlockEntity
         dsc.Append(SidingWallBlock.Describe(
             Framing, Infill, Deck, Block.Attributes["Framings"], Block.Attributes["Infills"],
             Block.Variant["layout"], Block.Variant["side"], Front, SecondFront, Back, Block.Attributes["Finishes"],
-            key => Lang.GetIfExists(key), stepName, DeckInfill, DeckFront, DeckBack));
+            key => Lang.GetIfExists(key), stepName, DeckInfill, DeckFront, DeckBack,
+            SidingWallBlock.HasBuildSignal(forPlayer)));
     }
 
     // Everything OnTesselation reads off this entity, which is exactly what CacheKey covers.

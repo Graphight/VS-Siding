@@ -1,6 +1,6 @@
 # 0030 — Wall tooltip names its layers
 
-- Status: Accepted
+- Status: Accepted; the list on every look superseded by 0065
 - Created: 2026-09-20
 - Reflects: branch `wall-tooltip-layers`, after decision 0029
 

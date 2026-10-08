@@ -289,6 +289,13 @@ public class SidingWallBlock : Block
     internal static bool SharesStack(string? infill, SidingWallEntity? neighbour)
         => neighbour?.Framing != null && (neighbour.Infill == null) == (infill == null);
 
+    // The handbook sentence base appends belongs with the layer list: both show only with the build signal.
+    public override string GetPlacedBlockInfo(IWorldAccessor world, BlockPos pos, IPlayer forPlayer)
+    {
+        string info = base.GetPlacedBlockInfo(world, pos, forPlayer);
+        return HasBuildSignal(forPlayer) ? info : info.Replace(Lang.GetMatching($"{Code.Domain}:blockdesc-{Code.Path}"), "").TrimEnd();
+    }
+
     // Shared "are we in build mode" check for both framing (PlaceWallFrame) and layering
     // (below). A plain right-click, not shift - see decision 0006 for why shift was dropped.
     internal static bool HasBuildSignal(IPlayer byPlayer)
@@ -822,11 +829,14 @@ public class SidingWallBlock : Block
         string? framing, string? infill, string? deck, JsonObject framings, JsonObject infills,
         string layout, string side, string? front, string? secondFront, string? back, JsonObject finishes,
         System.Func<string, string?> translate, string? stepName = null,
-        string? deckInfill = null, string? deckFront = null, string? deckBack = null)
+        string? deckInfill = null, string? deckFront = null, string? deckBack = null, bool full = true)
     {
         string? builtFraming = Installed(framing, framings);
         string? builtInfill = Installed(infill, infills);
         string? builtDeck = Installed(deck, framings);
+
+        if (!full)
+            return Translate(SealKey(builtFraming, builtInfill, framings, infills), translate) + "\n";
 
         var sb = new StringBuilder();
         sb.AppendLine();

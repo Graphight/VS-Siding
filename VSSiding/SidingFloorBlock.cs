@@ -406,11 +406,14 @@ public class SidingFloorBlock : Block
         return SidingWallBlock.ResolveDrops(world, drops, dropQuantityMultiplier, Code);
     }
 
-    internal static string Describe(string? framing, string? infill, string? front, string? back, JsonObject attributes, System.Func<string, string?> translate)
+    internal static string Describe(string? framing, string? infill, string? front, string? back, JsonObject attributes, System.Func<string, string?> translate, bool full = true)
     {
         JsonObject framings = attributes["Framings"], infills = attributes["Infills"], finishes = attributes["Finishes"];
         string? builtFraming = SidingWallBlock.Installed(framing, framings);
         string? builtInfill = SidingWallBlock.Installed(infill, infills);
+
+        if (!full)
+            return SidingWallBlock.Translate(SidingWallBlock.SealKey(builtFraming, builtInfill, framings, infills), translate) + "\n";
 
         var sb = new StringBuilder();
         sb.AppendLine();

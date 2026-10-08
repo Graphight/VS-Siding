@@ -308,6 +308,23 @@ public class SidingFloorTests
             SidingFloorBlock.Describe("oak", "stone", "planks", null, attributes, key => lang.GetValueOrDefault(key) ?? (key.StartsWith("vssiding:") ? null : key)));
     }
 
+    [Fact]
+    public void WithoutTheBuildSignalOnlyTheSealLineShows()
+    {
+        var attributes = SidingWallEntityTests.Dict("""
+        {
+            "Framings": { "oak": { "DisplayName": "Oak Framing" } },
+            "Infills": { "stone": { "DisplayName": "Stone Infill", "BlockMaterial": "Stone" } },
+            "Finishes": { "planks": { "DisplayName": "Oak Planks" } }
+        }
+        """);
+        var lang = new Dictionary<string, string> { ["vssiding:tooltip-sealed-cool"] = "Seals the room and keeps it cool" };
+
+        Assert.Equal(
+            "Seals the room and keeps it cool\n",
+            SidingFloorBlock.Describe("oak", "stone", "planks", null, attributes, key => lang.GetValueOrDefault(key) ?? key, full: false));
+    }
+
     // From a clicked floor at x 0 looking east: the first gap past the run, unless it is solid or out of reach.
     [Fact]
     public void ARunExtendsIntoItsFirstGapWithinReach()
