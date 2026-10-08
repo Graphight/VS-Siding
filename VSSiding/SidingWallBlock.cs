@@ -289,6 +289,16 @@ public class SidingWallBlock : Block
     internal static bool SharesStack(string? infill, SidingWallEntity? neighbour)
         => neighbour?.Framing != null && (neighbour.Infill == null) == (infill == null);
 
+    public override string GetPlacedBlockInfo(IWorldAccessor world, BlockPos pos, IPlayer forPlayer)
+        => WithoutDescription(this, base.GetPlacedBlockInfo(world, pos, forPlayer), forPlayer);
+
+    // The handbook sentence base appends belongs with the layer list: both show only with the build signal.
+    internal static string WithoutDescription(Block block, string info, IPlayer forPlayer)
+    {
+        string description = Lang.GetMatching($"{block.Code.Domain}:blockdesc-{block.Code.Path}");
+        return HasBuildSignal(forPlayer) || description.Length == 0 ? info : info.Replace(description, "").TrimEnd();
+    }
+
     // Shared "are we in build mode" check for both framing (PlaceWallFrame) and layering
     // (below). A plain right-click, not shift - see decision 0006 for why shift was dropped.
     internal static bool HasBuildSignal(IPlayer byPlayer)

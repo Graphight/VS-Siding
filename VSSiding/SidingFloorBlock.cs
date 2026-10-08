@@ -121,6 +121,9 @@ public class SidingFloorBlock : Block
         MarkNeighboursDirty(world, pos);
     }
 
+    public override string GetPlacedBlockInfo(IWorldAccessor world, BlockPos pos, IPlayer forPlayer)
+        => SidingWallBlock.WithoutDescription(this, base.GetPlacedBlockInfo(world, pos, forPlayer), forPlayer);
+
     // Only the top is ever claimed: the room below walks into the open part and meets it there.
     public override int GetRetention(BlockPos pos, BlockFacing facing, EnumRetentionType type)
     {
