@@ -1174,7 +1174,7 @@ public class SidingModSystem : ModSystem
     {
         IWorldAccessor? world = byEntity?.World;
         if (world == null || blockSel == null || !byEntity!.Controls.ShiftKey || blockSel.Face != BlockFacing.UP) return true;
-        if (world.BlockAccessor.GetBlock(blockSel.Position.UpCopy()) is not SidingWallBlock { Variant: { } variant } || variant["layout"] == "diagonal") return true;
+        if (world.BlockAccessor.GetBlock(blockSel.Position.UpCopy()) is not SidingWallBlock wall || wall.Variant["layout"] == "diagonal") return true;
         if (world.BlockAccessor.GetBlockEntity<SidingWallEntity>(blockSel.Position.UpCopy())?.OpenPartFilled == true) return true;
         if (world.GetBlock(new AssetLocation("groundstorage")) is not BlockGroundStorage storage || !IsHostableId(storage.BlockId)) return true;
         if (byEntity is not EntityPlayer entityPlayer || world.PlayerByUid(entityPlayer.PlayerUID) is not { } player) return true;

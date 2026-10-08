@@ -22,7 +22,7 @@ public class DiagonalScenarios : AtlasScenarioBase
     [AtlasScenario(FreshWorld = true)]
     public async Task Wall_Should_RetainOnItsTwoClaimedFaces_When_FramedAndFilledAsADiagonal()
     {
-        (BlockPos cell, _) = await RaiseDiagonal(deck: false, infill: "game:clay-blue");
+        BlockPos cell = await RaiseDiagonal(deck: false, infill: "game:clay-blue");
 
         Block wall = World.BlockAt(cell);
         string side = wall.Variant["side"];
@@ -38,7 +38,7 @@ public class DiagonalScenarios : AtlasScenarioBase
     [AtlasScenario(FreshWorld = true)]
     public async Task Frame_Should_StoreNoDeck_When_DeckIsLitAndADiagonalIsPicked()
     {
-        (BlockPos cell, _) = await RaiseDiagonal(deck: true, infill: null);
+        BlockPos cell = await RaiseDiagonal(deck: true, infill: null);
 
         var tree = new TreeAttribute();
         World.BlockEntityAt<BlockEntity>(cell)!.ToTreeAttributes(tree);
@@ -46,7 +46,7 @@ public class DiagonalScenarios : AtlasScenarioBase
         Assert.Equal((("oak", null, null, null, null), null), (WallBuilder.Layers(World, cell), tree.GetString("deck")));
     }
 
-    private async Task<(BlockPos Cell, ITestPlayer Player)> RaiseDiagonal(bool deck, string? infill)
+    private async Task<BlockPos> RaiseDiagonal(bool deck, string? infill)
     {
         BlockPos cell = World.Spawn.Offset(1, 2, 0);
         World.SetBlock("game:planks-aged-ud", cell.DownCopy());
@@ -54,6 +54,6 @@ public class DiagonalScenarios : AtlasScenarioBase
         player.Entity.WatchedAttributes.SetString("vssidingFraming", "diagonal");
         if (deck) player.Entity.WatchedAttributes.SetString("vssidingDeck", "deck");
         await WallBuilder.Raise(World, player, cell, cell.WestCopy(), "game:plank-oak", infill);
-        return (cell, player);
+        return cell;
     }
 }

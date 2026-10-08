@@ -64,35 +64,35 @@ public class WallShapeGenTests
     [Fact]
     public void TheDiagonalsPanelRunsPostToPostWithItsFrontToTheNorthWest()
     {
-        var elements = WallShapeGen.Generate("diagonal")["elements"]!.Cast<JObject>().ToArray();
-        var turned = elements.Where(e => e["rotationY"] != null).ToArray();
-        Assert.NotEmpty(turned);
+        var turned = WallShapeGen.Generate("diagonal")["elements"]!.Where(e => e["rotationY"] != null).ToArray();
 
-        var offenders = new List<string>();
-        foreach (var element in turned)
+        static (double X, double Z) Turn(JToken element, double x, double z)
         {
-            string name = (string)element["name"]!;
-            var (lo, hi) = Box(element);
             double theta = (double)element["rotationY"]! * Math.PI / 180;
             double ox = (double)element["rotationOrigin"]![0]!, oz = (double)element["rotationOrigin"]![2]!;
-            (double X, double Z) Turn(double x, double z)
-                => (ox + (x - ox) * Math.Cos(theta) + (z - oz) * Math.Sin(theta), oz - (x - ox) * Math.Sin(theta) + (z - oz) * Math.Cos(theta));
-            static bool InPost((double X, double Z) p)
-                => p.X is >= -1e-9 and <= 4 + 1e-9 && p.Z is >= 12 - 1e-9 and <= 16 + 1e-9
-                    || p.X is >= 12 - 1e-9 and <= 16 + 1e-9 && p.Z is >= -1e-9 and <= 4 + 1e-9;
-
-            foreach (double z in new[] { lo[2], hi[2] })
-                foreach (double x in new[] { lo[0], hi[0] })
-                    if (!InPost(Turn(x, z))) offenders.Add($"{name} end ({x}, {z})");
-
-            var centre = Turn((lo[0] + hi[0]) / 2, (lo[2] + hi[2]) / 2);
-            if (name == "front" && centre.X + centre.Z >= 16) offenders.Add("front is not north-west");
-            if (name == "back" && centre.X + centre.Z <= 16) offenders.Add("back is not south-east");
+            return (ox + (x - ox) * Math.Cos(theta) + (z - oz) * Math.Sin(theta), oz - (x - ox) * Math.Sin(theta) + (z - oz) * Math.Cos(theta));
         }
 
-        Assert.Equal([], offenders);
-        Assert.Contains(turned, e => (string)e["name"]! == "front");
-        Assert.Contains(turned, e => (string)e["name"]! == "back");
+        static bool InAPost((double X, double Z) p)
+            => p is ( >= 0 and <= 4, >= 12 and <= 16) or ( >= 12 and <= 16, >= 0 and <= 4);
+
+        string Side(string name)
+        {
+            var element = turned.Single(e => (string)e["name"]! == name);
+            var (lo, hi) = Box(element);
+            var centre = Turn(element, (lo[0] + hi[0]) / 2, (lo[2] + hi[2]) / 2);
+            return centre.X + centre.Z < 16 ? "north-west" : "south-east";
+        }
+
+        var endsOutsideAPost =
+            from element in turned
+            let box = Box(element)
+            from z in new[] { box.Lo[2], box.Hi[2] }
+            from x in new[] { box.Lo[0], box.Hi[0] }
+            where !InAPost(Turn(element, x, z))
+            select $"{element["name"]} ({x}, {z})";
+
+        Assert.Equal((Array.Empty<string>(), "north-west", "south-east"), (endsOutsideAPost.ToArray(), Side("front"), Side("back")));
     }
 
     // The depths in the shake table are a tuning knob, and a knob gets turned. A box that inverts
