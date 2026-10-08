@@ -291,7 +291,7 @@ public class SidingWallEntity : BlockEntity
         {
             // A cornerout's three posts are structural and always drawn; a wall's two drop
             // individually wherever glazing merges sideways.
-            bool corner = layout == "cornerout";
+            bool corner = SidingWallBlock.ClaimsTwoFaces(layout);
             // Glazing gets its own frame: a bezel whose members each span the full cell edge, so
             // the frame still reaches the pane where the member beside it has been dropped. A
             // plain wall's plates stop short at its posts, which is right while the posts are

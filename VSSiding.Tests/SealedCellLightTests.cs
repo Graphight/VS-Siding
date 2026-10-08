@@ -30,7 +30,7 @@ public class SealedCellLightTests
     public void OpenSideFacesAwayFromThePanel()
     {
         var actual = new Dictionary<(string, string), (int, int)>();
-        foreach (var layout in new[] { "wall", "cornerout" })
+        foreach (var layout in new[] { "wall", "cornerout", "diagonal" })
         foreach (var side in new[] { "north", "east", "south", "west" })
             actual[(layout, side)] = SidingWallBlock.OpenSide(layout, side);
 
@@ -44,6 +44,10 @@ public class SealedCellLightTests
             [("cornerout", "east")] = (-1, -1),
             [("cornerout", "south")] = (1, -1),
             [("cornerout", "west")] = (1, 1),
+            [("diagonal", "north")] = (-1, 1),
+            [("diagonal", "east")] = (-1, -1),
+            [("diagonal", "south")] = (1, -1),
+            [("diagonal", "west")] = (1, 1),
         };
         Assert.Equal(expected, actual);
     }

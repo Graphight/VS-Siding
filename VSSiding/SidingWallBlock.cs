@@ -207,7 +207,7 @@ public class SidingWallBlock : Block
         {
             bool above = ContinuesGlazing(blockAccessor, pos.UpCopy(), infill);
             bool below = ContinuesGlazing(blockAccessor, pos.DownCopy(), infill);
-            if (Variant["layout"] == "cornerout") return (above, below, false, false);
+            if (ClaimsTwoFaces(Variant["layout"])) return (above, below, false, false);
             var (left, right) = RunNeighbours(Variant["side"]);
             return (above, below,
                 ContinuesGlazing(blockAccessor, pos.AddCopy(left), infill),
@@ -703,7 +703,7 @@ public class SidingWallBlock : Block
             // Only glazing merges sideways, and only along its own run, so those are the only
             // horizontal neighbours that can change what this cell draws - an opaque wall never
             // joins one. Just this cell: merging is local, nothing propagates past the neighbour.
-            if (neibpos.Y != pos.Y || Variant["layout"] == "cornerout") return;
+            if (neibpos.Y != pos.Y || ClaimsTwoFaces(Variant["layout"])) return;
             var entity = world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos);
             if (entity == null || !IsTransparent(entity.Infill, Attributes["Infills"])) return;
             var (left, right) = RunNeighbours(Variant["side"]);
@@ -723,7 +723,7 @@ public class SidingWallBlock : Block
         // Unconditional, unlike OnNeighbourBlockChange's check on this cell's own glazing: this
         // fires when infill changes, and peeling glass out has to redraw the neighbours that were
         // merged with it - by which point this cell is no longer glazed. No walk either way.
-        if (world.BlockAccessor.GetBlock(pos) is not SidingWallBlock block || block.Variant["layout"] == "cornerout") return;
+        if (world.BlockAccessor.GetBlock(pos) is not SidingWallBlock block || ClaimsTwoFaces(block.Variant["layout"])) return;
         var (left, right) = RunNeighbours(block.Variant["side"]);
         world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos.AddCopy(left))?.MarkDirty(true);
         world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos.AddCopy(right))?.MarkDirty(true);
@@ -738,11 +738,14 @@ public class SidingWallBlock : Block
         }
     }
 
-    // The faces this block's panels actually cover: the hugged side, plus a cornerout's second leg.
+    // A cornerout and a diagonal both claim the hugged side and the face counter-clockwise from it.
+    internal static bool ClaimsTwoFaces(string layout) => layout is "cornerout" or "diagonal";
+
+    // The faces this block's panels actually cover: the hugged side, plus a cornerout's or diagonal's second face.
     internal bool ClaimsFace(BlockFacing facing) => ClaimsFace(Variant["layout"], Variant["side"], facing.Code);
 
     internal static bool ClaimsFace(string layout, string side, string faceCode)
-        => faceCode == side || (layout == "cornerout" && faceCode == CorneroutSecondFace[side]);
+        => faceCode == side || (ClaimsTwoFaces(layout) && faceCode == CorneroutSecondFace[side]);
 
     public override int GetRetention(BlockPos pos, BlockFacing facing, EnumRetentionType type)
     {
@@ -880,10 +883,10 @@ public class SidingWallBlock : Block
     {
         string? builtFront = Installed(front, finishes), builtBack = Installed(back, finishes);
         var directions = new List<(string direction, string? finish)> { (side, builtFront), (Opposite(side), builtBack) };
-        if (layout == "cornerout")
+        if (ClaimsTwoFaces(layout))
         {
             string secondSide = CorneroutSecondFace[side];
-            directions.Add((secondSide, Installed(secondFront, finishes)));
+            directions.Add((secondSide, Installed(layout == "diagonal" ? front : secondFront, finishes)));
             directions.Add((Opposite(secondSide), builtBack));
         }
 
@@ -965,7 +968,7 @@ public class SidingWallBlock : Block
     internal static (int dx, int dz) OpenSide(string layout, string side)
     {
         var open = BlockFacing.FromCode(side).Opposite.Normali;
-        if (layout != "cornerout") return (open.X, open.Z);
+        if (!ClaimsTwoFaces(layout)) return (open.X, open.Z);
         var second = BlockFacing.FromCode(CorneroutSecondFace[side]).Opposite.Normali;
         return (open.X + second.X, open.Z + second.Z);
     }
@@ -1380,7 +1383,8 @@ public class SidingWallBlock : Block
     internal static string? ResolveFinishFace(string layout, string side, BlockFacing clickedFace)
     {
         if (FinishFaceFor(side, clickedFace, "front") is string face) return face;
-        return layout == "cornerout" ? FinishFaceFor(CorneroutSecondFace[side], clickedFace, "secondfront") : null;
+        if (!ClaimsTwoFaces(layout)) return null;
+        return FinishFaceFor(CorneroutSecondFace[side], clickedFace, layout == "diagonal" ? "front" : "secondfront");
     }
 
     private static string? FinishFaceFor(string side, BlockFacing clickedFace, string frontLayer)

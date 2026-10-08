@@ -154,6 +154,13 @@ public class SidingWallBlockBuildFlowTests
     [InlineData("cornerout", "west", "up", null)]
     [InlineData("cornerout", "north", "east", "secondfront")]
     [InlineData("cornerout", "north", "west", "back")]
+    [InlineData("diagonal", "west", "west", "front")]
+    [InlineData("diagonal", "west", "north", "front")]
+    [InlineData("diagonal", "west", "east", "back")]
+    [InlineData("diagonal", "west", "south", "back")]
+    [InlineData("diagonal", "west", "up", null)]
+    [InlineData("diagonal", "north", "east", "front")]
+    [InlineData("diagonal", "north", "west", "back")]
     public void ResolveFinishFaceMapsClickedFaceToLayer(string layout, string side, string clicked, string? expected)
     {
         Assert.Equal(expected, SidingWallBlock.ResolveFinishFace(layout, side, BlockFacing.FromCode(clicked)));
