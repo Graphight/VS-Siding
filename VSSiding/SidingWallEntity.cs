@@ -116,8 +116,8 @@ public class SidingWallEntity : BlockEntity
     internal static bool ReadLegacyDeck(ITreeAttribute tree, string? deck)
         => tree.HasAttribute("legacydeck") ? tree.GetBool("legacydeck") : deck != null;
 
-    // Block.GetPlacedBlockInfo already calls this inside a try/catch and appends the
-    // blockdesc- line after it, so overriding here is the one hook rather than two.
+    // Block.GetPlacedBlockInfo calls this inside a try/catch and appends the blockdesc- line
+    // after it; SidingWallBlock's override takes that line back off without the build signal.
     public override void GetBlockInfo(IPlayer forPlayer, StringBuilder dsc)
     {
         base.GetBlockInfo(forPlayer, dsc);
