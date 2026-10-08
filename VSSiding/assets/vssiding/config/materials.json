@@ -263,9 +263,9 @@
 			Match: { type: "block", code: "*:log-placed-*-ud", variant: "wood" },
 			DisplayName: "vssiding:finish-shakes-{wood}",
 			Texture: "{domain}:block/wood/shingles/{wood}-top",
-			StyleTextures: { logs: "game:block/wood/debarked/{wood}" },
+			StyleTextures: { logs: "game:block/wood/debarked/{wood}", bark: "{domain}:block/wood/bark/{wood}", hbark: "{domain}:block/wood/bark/{wood}-h" },
 			Elements: { front: "front-shakes", back: "back-logs" },
-			Styles: ["shakes", "logs"],
+			Styles: ["shakes", "logs", "bark", "hbark"],
 			BlockMaterial: "Wood",
 			Consumes: { type: "block", code: "{domain}:log-placed-{wood}-ud", quantity: 1 },
 			Drops: [ { type: "block", code: "{domain}:log-placed-{wood}-ud", quantity: { avg: 1, var: 0 } } ]

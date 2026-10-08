@@ -15,6 +15,10 @@ public class MaterialTextureOpacityTests
 {
     private static readonly string[] AssetDomainFolders = ["survival", "game", "creative"];
 
+    // Exempt by name: vanilla's bald cypress bark has one column of 32 pixels at alpha 248 to 254,
+    // against the 163 that drew brick as x-ray (decision 0007).
+    private static readonly string[] NearOpaque = ["game:block/wood/bark/baldcypress"];
+
     internal static string GetAssemblyMetadata(string key)
     {
         var value = typeof(MaterialTextureOpacityTests).Assembly
@@ -142,7 +146,7 @@ public class MaterialTextureOpacityTests
         foreach (var (textureCode, mustBeOpaque) in textureCodes)
         {
             var file = ResolveTextureFile(vintageStoryPath, textureCode);
-            if (!mustBeOpaque) continue;
+            if (!mustBeOpaque || NearOpaque.Contains(textureCode)) continue;
             using var bitmap = SKBitmap.Decode(file);
             int partial = bitmap.Pixels.Count(p => p.Alpha != 0 && p.Alpha != 255);
             if (partial > 0)
