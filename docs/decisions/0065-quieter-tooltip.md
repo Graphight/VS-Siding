@@ -48,6 +48,7 @@ This was read from the decompiled 1.22 DLL and seen in play.
 
 ## Consequences & open questions
 A player who never holds a saw near a wall no longer sees the handbook link there, and that tooltip was the only in-world link to the guide.
+The list itself is out of sight the same way, so the handbook's Walls page and the ModDB description both say that the off hand shows it.
 
 The floor never showed a handbook sentence at all.
 Its block code is plain `floor` with no variants, and vanilla's `TranslationService` stores a key ending in `*` as a prefix (`vssiding:blockdesc-floor-`), which `vssiding:blockdesc-floor` does not start with.
