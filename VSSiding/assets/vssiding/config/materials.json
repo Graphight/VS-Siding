@@ -189,6 +189,34 @@
 			BlockMaterial: "Wood",
 			Consumes: { type: "item", code: "game:plank-veryaged", quantity: 2 },
 			Drops: [ { type: "item", code: "game:plank-veryaged", quantity: { avg: 2, var: 0 } } ]
+		},
+		"plaster-plain": {
+			DisplayName: "vssiding:finish-plaster-plain",
+			Texture: "game:block/stone/plaster/plain",
+			BlockMaterial: "Stone",
+			Consumes: { type: "block", code: "game:plaster-plain", quantity: 1 },
+			Drops: [ { type: "block", code: "game:plaster-plain", quantity: { avg: 1, var: 0 } } ]
+		},
+		"plaster-square": {
+			DisplayName: "vssiding:finish-plaster-square",
+			Texture: "game:block/stone/plaster/square",
+			BlockMaterial: "Stone",
+			Consumes: { type: "block", code: "game:plaster-square", quantity: 1 },
+			Drops: [ { type: "block", code: "game:plaster-square", quantity: { avg: 1, var: 0 } } ]
+		},
+		"plaster-diagonal": {
+			DisplayName: "vssiding:finish-plaster-diagonal",
+			Texture: "game:block/stone/plaster/diagonal",
+			BlockMaterial: "Stone",
+			Consumes: { type: "block", code: "game:plaster-diagonal-ud", quantity: 1 },
+			Drops: [ { type: "block", code: "game:plaster-diagonal-ud", quantity: { avg: 1, var: 0 } } ]
+		},
+		"plaster-stripes": {
+			DisplayName: "vssiding:finish-plaster-stripes",
+			Texture: "game:block/stone/plaster/stripes",
+			BlockMaterial: "Stone",
+			Consumes: { type: "block", code: "game:plaster-stripes-ud", quantity: 1 },
+			Drops: [ { type: "block", code: "game:plaster-stripes-ud", quantity: { avg: 1, var: 0 } } ]
 		}
 	},
 	FinishFamilies: {
