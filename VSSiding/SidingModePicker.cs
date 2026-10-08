@@ -17,8 +17,9 @@ namespace VSSiding;
 // the main-hand item has no picker of its own (a chisel keeps its own). Vanilla only opens a picker
 // the held item supplies and hands the click to the held item on the server, so both are ours here:
 // a prefix on GuiDialogToolMode's hotkey and compose, and a channel that carries the click. Rows are
-// framing (wall, corner), boards (weatherboard, boards, hboards) and logs (shakes, logs). The choice
-// lives on the player, in Entity.WatchedAttributes, so it reads the same whatever is in hand.
+// framing (wall, corner), boards (weatherboard, boards, hboards) and logs (shakes, logs, bark,
+// hbark). The choice lives on the player, in Entity.WatchedAttributes, so it reads the same
+// whatever is in hand.
 public static class SidingModePicker
 {
     // Row definitions as plain data, so a later row is one more entry here. Framing is never empty -
@@ -29,7 +30,7 @@ public static class SidingModePicker
         ("vssidingFraming", new[] { "wall", "corner", "floor" }, false),
         ("vssidingDeck", new[] { "deck" }, true),
         ("vssidingBoards", new[] { "weatherboard", "boards", "hboards" }, true),
-        ("vssidingLogs", new[] { "shakes", "logs" }, true),
+        ("vssidingLogs", new[] { "shakes", "logs", "bark", "hbark" }, true),
     };
 
     private const string ChannelName = "vssiding-modepicker";

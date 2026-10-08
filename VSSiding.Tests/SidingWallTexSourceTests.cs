@@ -165,6 +165,21 @@ public class SidingWallTexSourceTests
     }
 
     [Fact]
+    public void ADecksStyleOverridesTheDefaultOnEachFace()
+    {
+        var actual = new[] { "deckfront", "deckback" }
+            .Select(slot => SidingWallTexSource.ResolveTexture(
+                slot, "oak", "wattle", null, null, null, Framings, Infills, Finishes,
+                deck: "oak", deckFront: "shakes", deckBack: "shakes", deckFrontStyle: "logs", deckBackStyle: "shakes")!.Base);
+
+        Assert.Equal(new[]
+        {
+            new AssetLocation("game:block/wood/debarked/oak"),
+            new AssetLocation("game:block/wood/shingles/oak-top"),
+        }, actual);
+    }
+
+    [Fact]
     public void CompositeTextureWithOverlayResolves()
     {
         CompositeTexture? texture = SidingWallTexSource.ResolveTexture(

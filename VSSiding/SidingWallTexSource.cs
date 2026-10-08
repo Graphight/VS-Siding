@@ -38,7 +38,7 @@ public class SidingWallTexSource : ITexPositionSource
             CompositeTexture? texture = ResolveTexture(
                 textureCode, entity.Framing, entity.Infill, entity.Front, entity.SecondFront, entity.Back,
                 framings, infills, finishes, entity.FrontStyle, entity.SecondFrontStyle, entity.BackStyle, entity.Deck,
-                entity.DeckInfill, entity.DeckFront, entity.DeckBack);
+                entity.DeckInfill, entity.DeckFront, entity.DeckBack, entity.DeckFrontStyle, entity.DeckBackStyle);
             return AtlasPosition(capi, texture, alternate);
         }
     }
@@ -95,7 +95,8 @@ public class SidingWallTexSource : ITexPositionSource
         string slotCode, string? framing, string? infill, string? front, string? secondFront, string? back,
         JsonObject framings, JsonObject infills, JsonObject finishes,
         string? frontStyle = null, string? secondFrontStyle = null, string? backStyle = null, string? deck = null,
-        string? deckInfill = null, string? deckFront = null, string? deckBack = null)
+        string? deckInfill = null, string? deckFront = null, string? deckBack = null,
+        string? deckFrontStyle = null, string? deckBackStyle = null)
     {
         if (slotCode == "lashing") return new CompositeTexture(new AssetLocation(LashingTexture));
 
@@ -104,8 +105,8 @@ public class SidingWallTexSource : ITexPositionSource
             "framing" => (framing, framings, "framing", null),
             "deck" => (deck, framings, "framing", null),
             "deckinfill" => (deckInfill, infills, "infill", null),
-            "deckfront" => (deckFront, finishes, "front", null),
-            "deckback" => (deckBack, finishes, "back", null),
+            "deckfront" => (deckFront, finishes, "front", deckFrontStyle),
+            "deckback" => (deckBack, finishes, "back", deckBackStyle),
             "infill" => (infill, infills, "infill", null),
             // secondfront reads the front face's Elements default (decision 0027's naming), so its
             // style falls back the same way.

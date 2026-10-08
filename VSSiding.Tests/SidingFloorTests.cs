@@ -17,7 +17,8 @@ public class SidingFloorTests
                 "front": { "hboards": "front-hboards", "boards": "front-boards" },
                 "back": { "hboards": "back-hboards", "boards": "back-boards" }
             }
-        }
+        },
+        "shakes": { "Elements": { "front": "front-shakes", "back": "back-logs" }, "Styles": ["shakes", "logs", "bark", "hbark"] }
     }
     """);
 
@@ -49,14 +50,34 @@ public class SidingFloorTests
                 SidingFloorEntity.SelectiveElements("oak", "wattle", c.Item1, c.Item1, Finishes, (false, false, false, false), c.Item2)));
     }
 
-    // A style counts per face, so boards picked while daubing the top leave the plain slab there.
+    // A style counts per face, so boards picked while daubing the top leave the plain slab there. A log
+    // finish has no FloorElements, so it takes its own styles on either face and no one else's.
     [Fact]
     public void AFaceTakesOnlyTheStylesItsFloorElementsList()
     {
+        var cases = new[]
+        {
+            ("planks", "front", "boards"), ("planks", "front", "weatherboard"), ("planks", "back", "hboards"),
+            ("daub", "front", "boards"), ("daub", "back", "boards"),
+            ("shakes", "front", "bark"), ("shakes", "back", "hbark"), ("shakes", "front", "boards"),
+        };
+
         Assert.Equal(
-            ["planks front boards True", "planks front weatherboard False", "planks back hboards True", "daub front boards False", "daub back boards True"],
-            new[] { ("planks", "front", "boards"), ("planks", "front", "weatherboard"), ("planks", "back", "hboards"), ("daub", "front", "boards"), ("daub", "back", "boards") }
-                .Select(c => $"{c.Item1} {c.Item2} {c.Item3} {SidingFloorEntity.HasFloorStyle(Finishes[c.Item1], c.Item2, c.Item3)}"));
+            [
+                "planks front boards True", "planks front weatherboard False", "planks back hboards True",
+                "daub front boards False", "daub back boards True",
+                "shakes front bark True", "shakes back hbark True", "shakes front boards False",
+            ],
+            cases.Select(c => $"{c.Item1} {c.Item2} {c.Item3} {SidingFloorEntity.HasFloorStyle(Finishes[c.Item1], c.Item2, c.Item3)}"));
+    }
+
+    // The style picks a log finish's texture and never its element: a floor has no relief groups.
+    [Fact]
+    public void AStyledLogFinishStillDrawsThePlainSlab()
+    {
+        Assert.Equal(
+            ["front", "framing-left", "framing-right", "framing-top", "framing-bottom", "infill", "back"],
+            SidingFloorEntity.SelectiveElements("oak", "wattle", "shakes", "shakes", Finishes, (false, false, false, false), ("bark", "logs")));
     }
 
     [Fact]

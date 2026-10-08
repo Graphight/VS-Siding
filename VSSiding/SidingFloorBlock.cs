@@ -73,8 +73,8 @@ public class SidingFloorBlock : Block
             return true;
         }
 
-        // Only a face whose FloorElements lists the picked style takes it, so weatherboard, or boards
-        // on a daub top, falls back to the face's default.
+        // A face takes the picked style only if its FloorElements lists it, or it has none and the
+        // finish lists the style, so weatherboard, or boards on a daub top, falls back to the face's default.
         string? style = SidingModePicker.FinishChoices(byPlayer).FirstOrDefault(s => SidingFloorEntity.HasFloorStyle(Attributes["Finishes"][finishKey], face, s));
 
         string? currentKey = face == "front" ? entity.Front : entity.Back;

@@ -19,7 +19,7 @@ The first screenshot shows a house on log stilts with log beams under the floor'
 A cell holds one block.
 Where a log beam sits, a thin floor cannot, so the floor shows the beam's top; where a wall sits, the log post cannot.
 The first report of it: "I like to frame my houses with logs, but I can't frame, and use your wall mod in the same block".
-`bark-log-finish` answers the wall half from the other side, a thin wall that looks like a log.
+Decision 0063 answers the wall half from the other side, a thin wall that looks like a log.
 This proposal answers the floor half, and the wall half for players who keep the real log.
 
 **Vanilla already has a skin on one face of a block.**
@@ -86,5 +86,5 @@ On a top or bottom face the same two options are the two directions a floor's bo
 - A decor is drawn only where its host's face is drawn, so a face against an opaque neighbour shows nothing. What a face shows against the open part of a Siding wall's cell is to be played.
 - The creative inventory would list a face finish per wood unless hidden, and a player holding one could place it by vanilla's own decor click, with no planks spent.
 - Breaking in creative removes block and decor together and drops nothing, as for any decor.
-- A stick has `PlaceWallFrame` too. Whether a stick click in face mode does nothing or puts up a bark skin is `bark-log-finish`'s question once both exist.
+- A stick has `PlaceWallFrame` too. Whether a stick click in face mode does nothing or puts up a bark skin to match decision 0063's bark styles is open.
 - The tooltip. A decor adds no line to its host's block info, so nothing says which finish is on a face.
