@@ -488,7 +488,8 @@ public class SidingWallBlock : Block
             // cornerout or diagonal frame costs the same as a fresh wall frame. Everything this
             // doesn't claim falls through to the infill match below, then to PlaceWallFrame.
             string layout = Variant["layout"];
-            string? upgrade = ResolveFramingUpgrade(layout, Variant["side"], SidingModePicker.Layout(byPlayer), blockSel.HitPosition);
+            string picked = SidingModePicker.Layout(byPlayer);
+            string? upgrade = ResolveFramingUpgrade(layout, Variant["side"], picked, blockSel.HitPosition);
             if (upgrade != null
                 && MatchFraming(heldCode, false, Attributes["Framings"], Attributes["Infills"]) != null
                 && ResolveFinishFace(layout, Variant["side"], blockSel.Face) != null)
@@ -499,12 +500,19 @@ public class SidingWallBlock : Block
                     return true;
                 }
 
-                var corner = world.GetBlock(new AssetLocation("vssiding", upgrade));
-                if (corner != null)
+                // The swap keeps the entity, deck and all, and a diagonal has no box for one (decision 0066).
+                if (entity.Deck != null && picked == "diagonal")
+                {
+                    (byPlayer as IServerPlayer)?.SendIngameError("vssiding:decked", Lang.Get("vssiding:build-decked"));
+                    return true;
+                }
+
+                var target = world.GetBlock(new AssetLocation("vssiding", upgrade));
+                if (target != null)
                 {
                     // Keeps the block entity, and the engine repoints its Block at the new
                     // type, so Framing survives and OnTesselation reads the new layout.
-                    world.BlockAccessor.ExchangeBlock(corner.Id, blockSel.Position);
+                    world.BlockAccessor.ExchangeBlock(target.Id, blockSel.Position);
                     entity.MarkDirty(true);
                     // Plates key off the cells above and below sharing this one's layout
                     // (decision 0008), which the swap just changed.

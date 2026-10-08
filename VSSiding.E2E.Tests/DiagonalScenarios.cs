@@ -22,7 +22,7 @@ public class DiagonalScenarios : AtlasScenarioBase
     [AtlasScenario(FreshWorld = true)]
     public async Task Wall_Should_RetainOnItsTwoClaimedFaces_When_FramedAndFilledAsADiagonal()
     {
-        BlockPos cell = await RaiseDiagonal(deck: false, infill: "game:clay-blue");
+        (BlockPos cell, _) = await RaiseFrame("diagonal", deck: false, infill: "game:clay-blue");
 
         Block wall = World.BlockAt(cell);
         string side = wall.Variant["side"];
@@ -35,25 +35,45 @@ public class DiagonalScenarios : AtlasScenarioBase
         Assert.Equal((("diagonal", claimed), ("oak", "clay", null, null, null)), ((wall.Variant["layout"], retaining), WallBuilder.Layers(World, cell)));
     }
 
+    // One charge of planks is all the builder is given, so a deck would leave the frame unpaid for.
     [AtlasScenario(FreshWorld = true)]
     public async Task Frame_Should_StoreNoDeck_When_DeckIsLitAndADiagonalIsPicked()
     {
-        BlockPos cell = await RaiseDiagonal(deck: true, infill: null);
+        (BlockPos cell, _) = await RaiseFrame("diagonal", deck: true);
 
-        var tree = new TreeAttribute();
-        World.BlockEntityAt<BlockEntity>(cell)!.ToTreeAttributes(tree);
-
-        Assert.Equal((("oak", null, null, null, null), null), (WallBuilder.Layers(World, cell), tree.GetString("deck")));
+        Assert.Equal((("oak", null, null, null, null), null), (WallBuilder.Layers(World, cell), Deck(cell)));
     }
 
-    private async Task<BlockPos> RaiseDiagonal(bool deck, string? infill)
+    // The in-place upgrade keeps the block entity, and a diagonal has no box for a deck it carries over.
+    [AtlasScenario(FreshWorld = true)]
+    public async Task Frame_Should_StayAWall_When_ADeckedFrameIsClickedWithADiagonalPicked()
+    {
+        (BlockPos cell, ITestPlayer player) = await RaiseFrame("wall", deck: true, framingCost: 4);
+
+        player.Entity.WatchedAttributes.SetString("vssidingFraming", "diagonal");
+        await player.GiveItem("game:plank-oak", 2);
+        Block wall = World.BlockAt(cell);
+        var frontSel = new BlockSelection { Position = cell.Copy(), Face = BlockFacing.FromCode(wall.Variant["side"]), HitPosition = new Vec3d(0.5, 0.5, 0.5) };
+        wall.OnBlockInteractStart(player.Entity.World, player.Player, frontSel);
+
+        Assert.Equal(("wall", "oak"), (World.BlockAt(cell).Variant["layout"], Deck(cell)));
+    }
+
+    private string? Deck(BlockPos cell)
+    {
+        var tree = new TreeAttribute();
+        World.BlockEntityAt<BlockEntity>(cell)!.ToTreeAttributes(tree);
+        return tree.GetString("deck") is { Length: > 0 } deck ? deck : null;
+    }
+
+    private async Task<(BlockPos Cell, ITestPlayer Player)> RaiseFrame(string layout, bool deck, string? infill = null, int framingCost = 2)
     {
         BlockPos cell = World.Spawn.Offset(1, 2, 0);
         World.SetBlock("game:planks-aged-ud", cell.DownCopy());
         ITestPlayer player = await WallBuilder.JoinBuilder(World);
-        player.Entity.WatchedAttributes.SetString("vssidingFraming", "diagonal");
+        player.Entity.WatchedAttributes.SetString("vssidingFraming", layout);
         if (deck) player.Entity.WatchedAttributes.SetString("vssidingDeck", "deck");
-        await WallBuilder.Raise(World, player, cell, cell.WestCopy(), "game:plank-oak", infill);
-        return cell;
+        await WallBuilder.Raise(World, player, cell, cell.WestCopy(), "game:plank-oak", infill, framingCost: framingCost);
+        return (cell, player);
     }
 }
