@@ -22,6 +22,8 @@ Real Smoke stops smoke at a face that dams liquid, which a filled wall already r
 The proposal adds a raked wall, its top cut to a pitch picked on the saw and measured to match Roofing's slopes, without reading Roofing's state.
 - `diagonal-walls`: a tent built from these walls is a box, since a corner turns ninety degrees.
 The proposal adds a third framing layout, a panel crossing its cell corner to corner, which is a `cornerout` for every rule but its drawing and its boxes; whether a staircase of collision boxes can be walked along is tested first.
+- `diagonal-floors`: a diagonal wall cuts its cell in two, and a cell holds one block, so neither an upper storey nor a tent's ground floor has a floor in the inner triangle.
+The proposal adds a triangular deck on a diagonal, and a ground floor with no digging as `face-finishes` with a diagonal cut; the first plays after the diagonal wall, the second waits on `face-finishes`.
 - `chiselling-walls`: vanilla refuses to chisel a non-cube block, and the proposal converts a wall through its collision-box path with materials rebuilt from its layers.
 Parked until players asked; three requests now lead to it, for windows, trims and a way through for axles.
 It is the largest of these by far, so it is last.
