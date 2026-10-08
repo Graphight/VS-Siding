@@ -262,6 +262,16 @@ public class SidingWallBlock : Block
         return towardsLeft > 0 ? side : right.Code;
     }
 
+    // The block a bare frame becomes when the saw picks another layout (decision 0026): a wall turns
+    // into a cornerout or a diagonal at the end clicked, a cornerout into a diagonal on the same
+    // side, and nothing turns back. Null when the pick offers no upgrade.
+    internal static string? ResolveFramingUpgrade(string layout, string side, string picked, Vec3d hitPosition) => (layout, picked) switch
+    {
+        ("wall", "cornerout" or "diagonal") => $"wall-{picked}-{ResolveCornerUpgrade(side, hitPosition)}",
+        ("cornerout", "diagonal") => $"wall-diagonal-{side}",
+        _ => null,
+    };
+
     // A stair beside the wall running along it is copied; otherwise the player picks, as vanilla
     // places stairs: look direction for the along-wall facing, clicked face and hit height for upside-down.
     // A stair with no upside-down variant (noDownVariant, like the stone path) always steps upright.
@@ -473,14 +483,15 @@ public class SidingWallBlock : Block
 
         if (entity.Infill == null)
         {
-            // A bare frame clicked in corner mode becomes a cornerout in place, for a T-junction
+            // A bare frame clicked in corner or diagonal mode becomes one in place, for a T-junction
             // found once a partition reaches it (decision 0026). Nothing is charged: a fresh
-            // cornerout frame costs the same as a fresh wall frame. Everything this doesn't
-            // claim falls through to the infill match below, then to PlaceWallFrame.
-            if (Variant["layout"] == "wall"
-                && SidingModePicker.Layout(byPlayer) == "cornerout"
+            // cornerout or diagonal frame costs the same as a fresh wall frame. Everything this
+            // doesn't claim falls through to the infill match below, then to PlaceWallFrame.
+            string layout = Variant["layout"];
+            string? upgrade = ResolveFramingUpgrade(layout, Variant["side"], SidingModePicker.Layout(byPlayer), blockSel.HitPosition);
+            if (upgrade != null
                 && MatchFraming(heldCode, false, Attributes["Framings"], Attributes["Infills"]) != null
-                && ResolveFinishFace("wall", Variant["side"], blockSel.Face) != null)
+                && ResolveFinishFace(layout, Variant["side"], blockSel.Face) != null)
             {
                 if (entity.Step != null)
                 {
@@ -488,12 +499,11 @@ public class SidingWallBlock : Block
                     return true;
                 }
 
-                string cornerSide = ResolveCornerUpgrade(Variant["side"], blockSel.HitPosition);
-                var corner = world.GetBlock(new AssetLocation("vssiding", $"wall-cornerout-{cornerSide}"));
+                var corner = world.GetBlock(new AssetLocation("vssiding", upgrade));
                 if (corner != null)
                 {
                     // Keeps the block entity, and the engine repoints its Block at the new
-                    // type, so Framing survives and OnTesselation reads the cornerout layout.
+                    // type, so Framing survives and OnTesselation reads the new layout.
                     world.BlockAccessor.ExchangeBlock(corner.Id, blockSel.Position);
                     entity.MarkDirty(true);
                     // Plates key off the cells above and below sharing this one's layout

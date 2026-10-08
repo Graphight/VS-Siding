@@ -236,6 +236,7 @@
 	"toolmoderow-logs": "Logs",
 	"toolmode-wall": "Wall",
 	"toolmode-corner": "Corner",
+	"toolmode-diagonal": "Diagonal",
 	"toolmode-floor": "Floor",
 	"toolmode-deck": "Deck",
 	"toolmode-weatherboard": "Weatherboard",

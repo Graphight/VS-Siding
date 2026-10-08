@@ -6,7 +6,7 @@ namespace VSSiding;
 // Patched onto game:itemtypes/resource/plank.json, stick.json and bone.json - see docs/decisions/0005/0006/0058/0060.
 // A saw or a stone in the off hand tells this apart from Roofing's own plank-placing behavior (and is also the
 // whole build flow's "you're building" signal, see SidingWallBlock.HasBuildSignal); the
-// picker's framing row picks wall vs cornerout, and placement itself is handed to the
+// picker's framing row picks wall, cornerout or diagonal, and placement itself is handed to the
 // placeholder wall block so its existing HorizontalOrientable behavior does the "hug the
 // player's side" orientation. With floor picked the placeholder is the floor, which has no orientation.
 public class PlaceWallFrame : CollectibleBehavior
@@ -30,7 +30,7 @@ public class PlaceWallFrame : CollectibleBehavior
         if (framingKey == null) return;
 
         string layout = SidingModePicker.Layout(byPlayer);
-        bool withDeck = layout != "floor" && SidingModePicker.Deck(byPlayer);
+        bool withDeck = layout is not ("floor" or "diagonal") && SidingModePicker.Deck(byPlayer);
 
         var consumes = wallBlock.Attributes["Framings"][framingKey]["Consumes"];
         int times = withDeck ? 2 : 1;

@@ -200,6 +200,36 @@ public class SidingWallBlockBuildFlowTests
             hits.ToDictionary(hit => hit.Key, hit => SidingWallBlock.ResolveCornerUpgrade(hit.Key.side, hit.Value)));
     }
 
+    // A wall takes either, a cornerout only a diagonal, on its own side; nothing turns back and a
+    // pick that is not a corner or diagonal upgrades nothing.
+    [Fact]
+    public void FramingUpgradeOnlyTurnsAWallOrCorneroutForward()
+    {
+        var hit = new Vec3d(0, 0.5, 0.8);
+        var cases = new (string Layout, string Picked)[]
+        {
+            ("wall", "wall"), ("wall", "cornerout"), ("wall", "diagonal"), ("wall", "floor"),
+            ("cornerout", "wall"), ("cornerout", "cornerout"), ("cornerout", "diagonal"),
+            ("diagonal", "wall"), ("diagonal", "cornerout"), ("diagonal", "diagonal"),
+        };
+
+        Assert.Equal(
+            new Dictionary<(string, string), string?>
+            {
+                [("wall", "wall")] = null,
+                [("wall", "cornerout")] = "wall-cornerout-south",
+                [("wall", "diagonal")] = "wall-diagonal-south",
+                [("wall", "floor")] = null,
+                [("cornerout", "wall")] = null,
+                [("cornerout", "cornerout")] = null,
+                [("cornerout", "diagonal")] = "wall-diagonal-west",
+                [("diagonal", "wall")] = null,
+                [("diagonal", "cornerout")] = null,
+                [("diagonal", "diagonal")] = null,
+            },
+            cases.ToDictionary(c => c, c => SidingWallBlock.ResolveFramingUpgrade(c.Layout, "west", c.Picked, hit)));
+    }
+
     [Fact]
     public void CanAffordIsTrueWhenStackCoversQuantity()
     {
