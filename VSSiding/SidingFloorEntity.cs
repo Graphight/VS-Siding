@@ -129,8 +129,13 @@ public class SidingFloorEntity : BlockEntity
         return looks.Exists ? looks[style ?? DefaultStyle].AsString(null!) ?? looks[DefaultStyle].AsString(face) : face;
     }
 
+    // A face FloorElements leaves out draws the plain slab whatever the style, so there a style the
+    // finish lists picks the texture alone: bark on a log finish (decision 0063).
     internal static bool HasFloorStyle(JsonObject finish, string face, string style)
-        => finish["FloorElements"][face][style].Exists;
+    {
+        var looks = finish["FloorElements"][face];
+        return looks.Exists ? looks[style].Exists : SidingWallBlock.HasStyle(finish, style);
+    }
 
     private class TexSource(ICoreClientAPI capi, SidingFloorEntity entity, int alternate) : ITexPositionSource
     {
@@ -138,6 +143,7 @@ public class SidingFloorEntity : BlockEntity
 
         public TextureAtlasPosition this[string textureCode] => SidingWallTexSource.AtlasPosition(capi, SidingWallTexSource.ResolveTexture(
             textureCode, entity.Framing, entity.Infill, entity.Front, null, entity.Back,
-            entity.Block.Attributes["Framings"], entity.Block.Attributes["Infills"], entity.Block.Attributes["Finishes"]), alternate);
+            entity.Block.Attributes["Framings"], entity.Block.Attributes["Infills"], entity.Block.Attributes["Finishes"],
+            entity.FrontStyle, null, entity.BackStyle), alternate);
     }
 }
