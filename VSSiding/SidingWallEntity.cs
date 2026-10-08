@@ -148,7 +148,7 @@ public class SidingWallEntity : BlockEntity
     public override bool OnTesselation(ITerrainMeshPool mesher, ITesselatorAPI tesselator)
     {
         string layout = Block.Variant["layout"];
-        if (layout != "wall" && layout != "cornerout" && layout != "diagonal") return false;
+        if (layout is not ("wall" or "cornerout" or "diagonal")) return false;
         if (Api is not ICoreClientAPI capi) return false;
 
         var joins = ((SidingWallBlock)Block).NeighbourJoins(Api.World.BlockAccessor, Pos, Infill);
@@ -285,6 +285,8 @@ public class SidingWallEntity : BlockEntity
         (string? front, string? secondFront, string? back) styles = default, string[]? step = null, string frame = "framing")
     {
         var names = new List<string>();
+        // A diagonal's shape has one frame group and one slab per face, whatever the framing's
+        // Elements, the finish's or the picked style name (decision 0066).
         bool diagonal = layout == "diagonal";
         if (diagonal) frame = "framing";
         if (front != null) names.Add(diagonal ? "front" : FinishElement(finishes, front, "front", styles.front));

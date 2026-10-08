@@ -206,28 +206,21 @@ public class SidingWallBlockBuildFlowTests
     public void FramingUpgradeOnlyTurnsAWallOrCorneroutForward()
     {
         var hit = new Vec3d(0, 0.5, 0.8);
-        var cases = new (string Layout, string Picked)[]
+        var expected = new Dictionary<(string Layout, string Picked), string?>
         {
-            ("wall", "wall"), ("wall", "cornerout"), ("wall", "diagonal"), ("wall", "floor"),
-            ("cornerout", "wall"), ("cornerout", "cornerout"), ("cornerout", "diagonal"),
-            ("diagonal", "wall"), ("diagonal", "cornerout"), ("diagonal", "diagonal"),
+            [("wall", "wall")] = null,
+            [("wall", "cornerout")] = "wall-cornerout-south",
+            [("wall", "diagonal")] = "wall-diagonal-south",
+            [("wall", "floor")] = null,
+            [("cornerout", "wall")] = null,
+            [("cornerout", "cornerout")] = null,
+            [("cornerout", "diagonal")] = "wall-diagonal-west",
+            [("diagonal", "wall")] = null,
+            [("diagonal", "cornerout")] = null,
+            [("diagonal", "diagonal")] = null,
         };
 
-        Assert.Equal(
-            new Dictionary<(string, string), string?>
-            {
-                [("wall", "wall")] = null,
-                [("wall", "cornerout")] = "wall-cornerout-south",
-                [("wall", "diagonal")] = "wall-diagonal-south",
-                [("wall", "floor")] = null,
-                [("cornerout", "wall")] = null,
-                [("cornerout", "cornerout")] = null,
-                [("cornerout", "diagonal")] = "wall-diagonal-west",
-                [("diagonal", "wall")] = null,
-                [("diagonal", "cornerout")] = null,
-                [("diagonal", "diagonal")] = null,
-            },
-            cases.ToDictionary(c => c, c => SidingWallBlock.ResolveFramingUpgrade(c.Layout, "west", c.Picked, hit)));
+        Assert.Equal(expected, expected.Keys.ToDictionary(c => c, c => SidingWallBlock.ResolveFramingUpgrade(c.Layout, "west", c.Picked, hit)));
     }
 
     [Fact]

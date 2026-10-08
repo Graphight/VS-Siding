@@ -35,6 +35,8 @@ public class SidingWallBlock : Block
     // Unrotated ("west") framing boxes per layout, matching the framing elements in
     // wall.json/cornerout.json: full-height posts, then top plates. Bottom plates don't
     // collide - standing on one would lift the player into a two-high doorway's top plate.
+    // A diagonal's are the two ends of its staircase in blocktypes/wall.json, then the five
+    // steps between them at plate height.
     private static readonly Dictionary<string, (Cuboidf[] posts, Cuboidf[] top)> UnrotatedFramingBoxes = new()
     {
         ["wall"] = (
@@ -326,6 +328,7 @@ public class SidingWallBlock : Block
     // Any hostable block may take a wall's cell, whichever way it's placed - a click on the panel,
     // on the floor in the gap, a sneak-placement, ground storage. SidingModSystem.HostChangePrefix
     // turns the wall's state into a guest in the same SetBlock, so neighbours never see air.
+    // Not a diagonal's: the open part of its cell is a triangle (decision 0066).
     public override bool IsReplacableBy(Block block)
         => (SidingModSystem.IsHostableId(block.BlockId) && Variant["layout"] != "diagonal") || base.IsReplacableBy(block);
 
@@ -909,7 +912,8 @@ public class SidingWallBlock : Block
     // Faces are named by the direction they point - the only vocabulary that covers a cornerout's
     // three finishable faces without inventing words for them. Both of its legs share one Back
     // layer, so two directions carry the same finish; grouping by first appearance is what puts
-    // them on one line even with a SecondFront direction between them.
+    // them on one line even with a SecondFront direction between them. A diagonal's two claimed
+    // faces are one front, so its four directions come out as two lines.
     private static IEnumerable<string> DescribeFaces(
         string layout, string side, string? front, string? secondFront, string? back, JsonObject finishes,
         System.Func<string, string?> translate)
@@ -919,7 +923,7 @@ public class SidingWallBlock : Block
         if (ClaimsTwoFaces(layout))
         {
             string secondSide = CorneroutSecondFace[side];
-            directions.Add((secondSide, Installed(layout == "diagonal" ? front : secondFront, finishes)));
+            directions.Add((secondSide, layout == "diagonal" ? builtFront : Installed(secondFront, finishes)));
             directions.Add((Opposite(secondSide), builtBack));
         }
 
@@ -1412,7 +1416,7 @@ public class SidingWallBlock : Block
     // Which finish layer a build-flow click's clicked face targets - the hugged side is
     // "front", the opposite side is "back", an end/top/bottom face is neither. A cornerout's
     // second leg has its own hugged-side layer, "secondfront", but still shares "back" with
-    // the first leg.
+    // the first leg. A diagonal's second claimed face is the same "front": the panel has one outer face.
     internal static string? ResolveFinishFace(string layout, string side, BlockFacing clickedFace)
     {
         if (FinishFaceFor(side, clickedFace, "front") is string face) return face;

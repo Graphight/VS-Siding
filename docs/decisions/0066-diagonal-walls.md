@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Created: 2026-10-08
-- Reflects: the playtest of decision 0060 on branch `feat/tent-walls`; branch `feat/diagonal-walls`; `SidingWallBlock.ClaimsTwoFaces`/`ClaimsFace`/`OpenSide`/`ResolveFinishFace`/`ResolveFramingUpgrade`/`UnrotatedFramingBoxes`/`ComputeCollisionBoxes`/`IsReplacableBy`/`TryHost`, `SidingWallEntity.SelectiveElements`, `SidingModePicker.Rows`/`Layout`, `PlaceWallFrame`, `SidingModSystem`'s ground-storage prefix, `VSSiding.Tests/WallShapeGen`, `blocktypes/wall.json`, `shapes/block/wall/diagonal.json`, `textures/icons/diagonal.svg`, `lang/en.json`; `VSSiding.E2E.Tests/DiagonalScenarios.cs`; decompiled `ShapeTesselator`; decisions 0001, 0002, 0007, 0008, 0009, 0021, 0026, 0035, 0040, 0058, 0060, 0061; unit tests (460) and e2e scenarios (32) pass; NOT PLAYED
+- Reflects: the playtest of decision 0060 on branch `feat/tent-walls`; branch `feat/diagonal-walls`; `SidingWallBlock.ClaimsTwoFaces`/`ClaimsFace`/`OpenSide`/`ResolveFinishFace`/`ResolveFramingUpgrade`/`UnrotatedFramingBoxes`/`ComputeCollisionBoxes`/`IsReplacableBy`/`TryHost`, `SidingWallEntity.SelectiveElements`, `SidingModePicker.Rows`/`Layout`, `PlaceWallFrame`, `SidingModSystem`'s ground-storage prefix, `VSSiding.Tests/WallShapeGen`, `blocktypes/wall.json`, `shapes/block/wall/diagonal.json`, `textures/icons/diagonal.svg`, `lang/en.json`; `WallShapeGenTests`' pin of the panel's ends and front, `VSSiding.E2E.Tests/DiagonalScenarios.cs`; decompiled `ShapeTesselator`; decisions 0001, 0002, 0007, 0008, 0009, 0021, 0026, 0035, 0040, 0058, 0060, 0061; unit tests (460) and e2e scenarios (32) pass; NOT PLAYED
 
 ## Summary
 A tent built from these walls is a box, since a wall runs along a cell's face and a corner turns ninety degrees.
@@ -77,10 +77,6 @@ Decision 0058 set no per-framing restrictions, so planks, sticks and bones all f
 A deck over a diagonal cell is a triangle, a step applies only to a `wall`, and the open part of the cell is a triangle no furniture fits (decision 0035).
 The deck branch of `OnBlockInteractStart` returns an in-game error (`build-diagonal-deck`) for a diagonal, and the step message now names it.
 `IsReplacableBy` and `TryHost` return false for a diagonal, and the ground-storage prefix in `SidingModSystem` hands the click back to vanilla, so furniture lands in the cell in front.
-
-**Tests.**
-Unit tests: `SidingWallBlockClaimsFaceTests`, `SidingWallTooltipTests` (the shared front and back), `SidingWallBlockCollisionTests` (the posts and the five middle boxes), `SealedCellLightTests` (`OpenSide`), `SidingWallBlockBuildFlowTests` (`ResolveFinishFace`, and `FramingUpgradeOnlyTurnsAWallOrCorneroutForward`), `SidingWallEntityTests` (plain frame and finish), `SidingModePickerTests`, `ModeIconsTests`, and `WallShapeGenTests` (a turned element emits its rotation, and the panel runs post to post with its front to the north-west).
-`VSSiding.E2E.Tests/DiagonalScenarios.cs` boots the built mod, frames and fills a diagonal with `vssidingFraming` set to `diagonal`, and reads retention on its two claimed faces and none on the other two; a second places a frame with the deck lit and reads no deck, and a third clicks a decked wall frame with `Diagonal` picked and reads a wall still.
 
 ## Alternatives considered
 - **Diagonals for bone frames only.** Where the idea came from, but it is a second rule set for one framing, which decision 0058 declined for sticks.

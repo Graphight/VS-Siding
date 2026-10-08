@@ -661,9 +661,9 @@ public static class WallShapeGen
         ("lashing", "game:item/resource/rope"),
     ];
 
-    // The diagonal's panel is the straight wall's own boxes, moved onto the cell centre and turned 45
-    // degrees so the front faces north-west; its 16 run ends inside the two posts, which are the only
-    // full-height framing. A finish, plates and the pane are the wall's groups under the wall's names.
+    // The diagonal (decision 0066): a 4x4 post in each of two corners, and between them the straight
+    // wall's own panel boxes, moved onto the cell centre and turned 45 degrees so the front faces
+    // north-west. A 16 run turned that way ends inside the posts, so nothing is mitred or split.
     private static readonly string[] DiagonalPanel =
         ["front", "framing-top", "framing-bottom", "infill-top", "infill", "infill-bottom", "infill-pane", "back"];
 
