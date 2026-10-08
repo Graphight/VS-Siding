@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Created: 2026-10-04
-- Reflects: mod page comment https://mods.vintagestory.at/vssiding#cmt-243545 and the second screenshot on #cmt-243661; `SidingWallEntity.GetBlockInfo`, `SidingWallBlock.Describe`, `SidingWallBlock.WithoutDescription`, `SidingWallBlock.GetPlacedBlockInfo`, `SidingFloorEntity.GetBlockInfo`, `SidingFloorBlock.Describe`, `SidingFloorBlock.GetPlacedBlockInfo`, `GuestTooltipPatches`, `lang/en.json`'s `blockdesc-wall-*` and `blockdesc-floor-*`; `SidingWallTooltipTests`, `SidingFloorTests`, `VSSiding.E2E.Tests/TooltipScenarios.cs`; decompiled 1.22 `Block.GetPlacedBlockInfo` and `HudElementBlockAndEntityInfo`; decisions 0006, 0030, 0035, 0058; unit tests and e2e scenarios pass; not yet played
+- Reflects: mod page comment https://mods.vintagestory.at/vssiding#cmt-243545 and the second screenshot on #cmt-243661; `SidingWallEntity.GetBlockInfo`, `SidingWallBlock.Describe`, `SidingWallBlock.GetPlacedBlockInfo`, `SidingFloorEntity.GetBlockInfo`, `SidingFloorBlock.Describe`, `GuestTooltipPatches`, `lang/en.json`'s `blockdesc-wall-*` and `blockdesc-floor-*`; `SidingWallTooltipTests`, `SidingFloorTests`, `VSSiding.E2E.Tests/TooltipScenarios.cs`; decompiled 1.22 `Block.GetPlacedBlockInfo` and `HudElementBlockAndEntityInfo`; decisions 0006, 0030, 0035, 0058; unit tests and e2e scenarios pass; played 2026-10-08
 
 ## Summary
 Looking at a wall printed up to a dozen lines at the top of the screen, and a player asked to see them only while building.
@@ -31,13 +31,13 @@ There is no leading blank line and no indent.
 A hosted cell follows with no code of its own, since `GuestTooltipPatches` calls the guest entity's `GetBlockInfo` with the same player.
 
 **The handbook sentence is held back by an override.**
-`SidingWallBlock` and `SidingFloorBlock` override `GetPlacedBlockInfo`: the override calls the base and, when there is no build signal, `SidingWallBlock.WithoutDescription` removes the `blockdesc-` text from the result.
+`SidingWallBlock` overrides `GetPlacedBlockInfo`: the override calls the base and, when there is no build signal, removes the `blockdesc-` text from the result.
 The lang key stays, so the creative inventory and the handbook, which read the same key, are untouched.
 Reimplementing the base body instead would have dropped the decor, mining-tier and behavior lines it appends after the sentence.
 
 **The HUD recomposes on its own.**
 Vanilla's `HudElementBlockAndEntityInfo.Every500ms` calls `ComposeBlockInfoHud` unconditionally and recomposes when the text differs, so moving the saw into the off hand updates the tooltip within half a second.
-This was read from the decompiled 1.22 DLL and has not been played.
+This was read from the decompiled 1.22 DLL and seen in play.
 
 ## Alternatives considered
 - **A config option.** A setting to find, for something the off hand already says.
@@ -51,7 +51,7 @@ A player who never holds a saw near a wall no longer sees the handbook link ther
 
 The floor never showed a handbook sentence at all.
 Its block code is plain `floor` with no variants, and vanilla's `TranslationService` stores a key ending in `*` as a prefix (`vssiding:blockdesc-floor-`), which `vssiding:blockdesc-floor` does not start with.
-So the floor's `GetPlacedBlockInfo` override changes nothing today, and takes effect only if that key is made to match.
-Fixing the key was left out of this change.
+So the floor takes no `GetPlacedBlockInfo` override: one was written and removed, since deleting it changed no test and no tooltip.
+Fixing the key was left out of this change, and a floor whose key is made to match needs the wall's override with it.
 
 Covered by unit facts in `SidingWallTooltipTests` and `SidingFloorTests`, and by the e2e scenarios in `TooltipScenarios.cs`.
