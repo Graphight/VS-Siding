@@ -33,7 +33,9 @@ public record Element(
     string[]? PositionalOverrides = null,
     string[]? RotatedFaces = null,
     char? RunAxis = null,
-    Element? ClippedFrom = null);
+    Element? ClippedFrom = null,
+    double RotationY = 0,
+    (double X, double Y, double Z)? RotationOrigin = null);
 
 public static class WallShapeGen
 {
@@ -865,7 +867,7 @@ public static class WallShapeGen
         };
     }
 
-    private static JObject EmitElement(Element element, Element[] elements)
+    internal static JObject EmitElement(Element element, Element[] elements)
     {
         var sameName = elements.Where(e => e.Name == element.Name).ToArray();
 
@@ -876,13 +878,20 @@ public static class WallShapeGen
             faces[face] = EmitFace(element, face);
         }
 
-        return new JObject
+        var emitted = new JObject
         {
             ["name"] = element.Name,
             ["from"] = new JArray(element.From.X, element.From.Y, element.From.Z),
             ["to"] = new JArray(element.To.X, element.To.Y, element.To.Z),
-            ["faces"] = faces,
         };
+        if (element.RotationY != 0)
+        {
+            var origin = element.RotationOrigin ?? (8, 0, 8);
+            emitted["rotationOrigin"] = new JArray(origin.X, origin.Y, origin.Z);
+            emitted["rotationY"] = element.RotationY;
+        }
+        emitted["faces"] = faces;
+        return emitted;
     }
 
     private static double Axis((double X, double Y, double Z) corner, char axis)

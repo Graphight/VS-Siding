@@ -36,6 +36,27 @@ public class WallShapeGenTests
         Assert.Equal(committed.ToString(), WallShapeGen.Generate(layout).ToString());
     }
 
+    [Fact]
+    public void ATurnedElementEmitsItsRotationBeforeItsFaces()
+    {
+        var turned = new Element("panel", (6, 0, 0), (10, 16, 16), "infill", UvRule.Flat, ["north"], RotationY: 45);
+
+        var expected = new JObject
+        {
+            ["name"] = "panel",
+            ["from"] = new JArray(6.0, 0.0, 0.0),
+            ["to"] = new JArray(10.0, 16.0, 16.0),
+            ["rotationOrigin"] = new JArray(8.0, 0.0, 8.0),
+            ["rotationY"] = 45.0,
+            ["faces"] = new JObject
+            {
+                ["north"] = new JObject { ["texture"] = "#infill", ["uv"] = new JArray(0.0, 0.0, 4.0, 16.0) },
+            },
+        };
+
+        Assert.Equal(expected.ToString(), WallShapeGen.EmitElement(turned, [turned]).ToString());
+    }
+
     // The depths in the shake table are a tuning knob, and a knob gets turned. A box that inverts
     // or runs past the framing renders as a hole rather than an error, so the bound is asserted
     // here instead of being re-checked by hand after every tune.
