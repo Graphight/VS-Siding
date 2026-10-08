@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Created: 2026-10-07
-- Reflects: mod page comments https://mods.vintagestory.at/vssiding#cmt-243659 and #cmt-243661 with its first screenshot; branch `feat/bark-and-plaster-finishes`; `config/materials.json`'s `shakes-{wood}`, `SidingWallEntity.FinishElement`, `SidingWallTexSource`, `SidingModePicker.Rows`, `VSSiding.Tests/WallShapeGen`, `MaterialTextureOpacityTests`; vanilla textures under `block/wood/bark/`; decisions 0007, 0017, 0027, 0031, 0040, 0045; unit tests pass; not yet played
+- Reflects: mod page comments https://mods.vintagestory.at/vssiding#cmt-243659 and #cmt-243661 with its first screenshot; branch `feat/bark-and-plaster-finishes`; `config/materials.json`'s `shakes-{wood}`, `SidingWallEntity.FinishElement`, `SidingWallTexSource`, `SidingModePicker.Rows`, `SidingFloorEntity.HasFloorStyle`, `VSSiding.Tests/WallShapeGen`, `MaterialTextureOpacityTests`; vanilla textures under `block/wood/bark/`; decisions 0007, 0017, 0027, 0031, 0040, 0045; unit tests pass; played 2026-10-08, floors and decks not replayed since their fix
 
 ## Summary
 A player frames houses with full log blocks and cannot make a siding wall match them: the log finish offered shakes or debarked logs, never bark.
@@ -36,10 +36,13 @@ They use the boxes and `UvRule.Flat` of `front-hboards` and `back-hboards`, with
 Both styles are therefore the flat slab `hboards` is, under two names.
 The new names are in the `ignoreElements` lists of `blocktypes/wall.json`, so a wall that does not ask for them does not draw them.
 
-**Walls only.**
-A floor or deck picks a style through `SidingFloorEntity.HasFloorStyle`, which reads the entry's `FloorElements`.
-`shakes-{wood}` has none, so a log finish on a floor draws the plain slab whatever style is picked, and bark cannot land on a floor.
-No code was needed to stop it.
+**Floors and decks take the texture, not a shape.**
+A floor or deck picks a style through `SidingFloorEntity.HasFloorStyle`, which at first read only the entry's `FloorElements`.
+`shakes-{wood}` has none, so a log finish on a floor stored no style and drew its default, shakes, whatever was picked.
+The first draft of this decision called that "walls only"; in play on 2026-10-08 it read as the picker being ignored.
+`HasFloorStyle` now also accepts a style the finish lists in `Styles`, on a face `FloorElements` leaves out.
+That face is the plain slab whatever the style, so the style picks the texture alone: `logs` is the debarked texture laid flat, and `bark` and `hbark` are bark in its two directions.
+The floor's texture source and the two deck slots of `SidingWallTexSource.ResolveTexture` now pass the stored style; neither did, since no floor finish had a `StyleTextures` to read.
 
 **Two more options on the Logs row.**
 `SidingModePicker.Rows` lists `shakes`, `logs`, `bark`, `hbark` on `vssidingLogs`, with an icon each (decision 0031) and the names "Vertical bark" and "Horizontal bark" under `toolmode-bark` and `toolmode-hbark`.
@@ -56,15 +59,18 @@ With the row off, the finish keeps its defaults: shakes on the front, logs on th
 Findings from reading, settled:
 - Wildcraft Trees 1.3.4 ships `bark/{wood}.png` and `bark/{wood}-h.png` for all 44 of its woods under `assets/wildcrafttree/`, and its debarked textures under `assets/game/`.
   The bark styles use `{domain}:`, so a modded wood shows its own bark, and the existing `logs` path with `game:` is correct and stays.
-- A floor cannot show bark, for the reason in Design: `shakes-{wood}` has no `FloorElements`, so `HasFloorStyle` is false for every style and the face stores none.
+- A floor has no relief groups for a log finish, so `shakes` and `logs` are flat there and differ from each other only in texture.
 - Vanilla's `bark/{wood}` is drawn upright and `{wood}-h` is its copy with the grain turned, so neither style needs a rotation rule.
 
 `MaterialTextureOpacityTests.NoMaterialTextureHasPartialAlpha` resolves both bark textures for every vanilla wood and checks they are opaque.
 It exempts `game:block/wood/bark/baldcypress` by name.
 Of vanilla's 26 bark textures it alone has partial alpha, one column of 32 pixels at alpha 248 to 254, where the brick texture that prompted the test had 840 pixels at alpha 163 (decision 0007).
 
-Nothing here has been played.
-Still open, and only play can settle them:
-- Whether the bark texture tiles cleanly across stacked walls as a flat face, or needs the positional UVs decision 0028 gave weatherboard.
-- Four options on one picker row; the Boards row has three.
-- Whether the one partly transparent column at the right edge of bald cypress vertical bark shows.
+Played 2026-10-08, on walls and corners with a vanilla wood and a Wildcraft wood: the four styles draw as expected.
+The session covered bark across two stacked walls and the right edge of bald cypress vertical bark, and reported nothing wrong with either, so the flat UVs stay and the exemption stands.
+It also found the floor ignoring the picked style, fixed as Design describes.
+
+The Logs row now has four options where the Boards row has three.
+
+Still open, and only play can settle it:
+- Floors and decks since the fix: the texture source's use of the stored style has no unit test, as it needs a client, and which way `bark` and `hbark` run on a floor and on each side's deck is unseen.

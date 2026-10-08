@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Created: 2026-10-07
-- Reflects: mod page comments https://mods.vintagestory.at/vssiding#cmt-243765 and #cmt-244452; branch `feat/bark-and-plaster-finishes`; `config/materials.json`'s `Finishes`, `MaterialFamilies.Expand`, `MaterialTextureOpacityTests`, `MaterialDisplayNameTests`; vanilla `plaster-plain.json`, `plaster-fancy.json`, `overlay/plaster.json`, the grid recipes under `recipes/grid/plaster/` and the textures under `block/stone/plaster/`; decisions 0001, 0010, 0048; unit tests pass; not yet played
+- Reflects: mod page comments https://mods.vintagestory.at/vssiding#cmt-243765 and #cmt-244452; branch `feat/bark-and-plaster-finishes`; `config/materials.json`'s `Finishes`, `MaterialFamilies.Expand`, `MaterialTextureOpacityTests`, `MaterialDisplayNameTests`; vanilla `plaster-plain.json`, `plaster-fancy.json`, `overlay/plaster.json`, the grid recipes under `recipes/grid/plaster/` and the textures under `block/stone/plaster/`; decisions 0001, 0010, 0048; unit tests pass; played 2026-10-08
 
 ## Summary
 Two players asked for a plaster finish, one because "the daubs just dont go light enough" and one for interiors.
@@ -48,6 +48,4 @@ Finding, settled:
 
 One block per face, as cobblestone and polished rock take; a full plaster block for a 1/16 skin is generous to vanilla's recipe.
 
-Nothing here has been played.
-Still open, and only play can settle it:
-- Whether `stripes` and `diagonal` read the right way up on a wall face, and which way they run on a floor.
+Played 2026-10-08, on a wall, a floor's top and a ceiling: the four finishes draw as expected, `stripes` and `diagonal` included.
