@@ -56,6 +56,15 @@ public class SidingWallBlock : Block
                 new Cuboidf(1f / 16, 15f / 16, 3f / 16, 3f / 16, 1, 15f / 16),
                 new Cuboidf(3f / 16, 15f / 16, 1f / 16, 15f / 16, 1, 3f / 16),
             }),
+        ["diagonal"] = (
+            new[]
+            {
+                new Cuboidf(0, 0, 12f / 16, 4f / 16, 1, 1),
+                new Cuboidf(12f / 16, 0, 0, 1, 1, 4f / 16),
+            },
+            Enumerable.Range(1, 5)
+                .Select(k => new Cuboidf(2f * k / 16, 15f / 16, (12f - 2 * k) / 16, (2f * k + 4) / 16, 1, (16f - 2 * k) / 16))
+                .ToArray()),
     };
 
     // Unrotated ("west") deck box per layout, matching the area WallShapeGen clips the floor's layers to.
@@ -308,7 +317,7 @@ public class SidingWallBlock : Block
     // on the floor in the gap, a sneak-placement, ground storage. SidingModSystem.HostChangePrefix
     // turns the wall's state into a guest in the same SetBlock, so neighbours never see air.
     public override bool IsReplacableBy(Block block)
-        => SidingModSystem.IsHostableId(block.BlockId) || base.IsReplacableBy(block);
+        => (SidingModSystem.IsHostableId(block.BlockId) && Variant["layout"] != "diagonal") || base.IsReplacableBy(block);
 
     // Right-click on the wall's open side with a hostable block and no saw places that block in the
     // wall's own cell, where vanilla would put it in the cell in front. The client only reports the
@@ -318,7 +327,7 @@ public class SidingWallBlock : Block
     {
         ItemSlot slot = byPlayer.InventoryManager.ActiveHotbarSlot;
         Block? heldBlock = slot.Itemstack?.Block;
-        if (heldBlock == null || !SidingModSystem.IsHostableId(heldBlock.BlockId)) return false;
+        if (heldBlock == null || !SidingModSystem.IsHostableId(heldBlock.BlockId) || Variant["layout"] == "diagonal") return false;
         if (ResolveFinishFace(Variant["layout"], Variant["side"], blockSel.Face) != "back") return false;
 
         // Furniture would sit where the deck or step is. Swallowed rather than returning false,
@@ -436,6 +445,12 @@ public class SidingWallBlock : Block
         if (entity.Deck == null && blockSel.Face != BlockFacing.UP && SidingModePicker.Deck(byPlayer)
             && MatchFraming(heldCode, entity.Infill != null, Attributes["Framings"], Attributes["Infills"]) is { } deckKey)
         {
+            if (Variant["layout"] == "diagonal")
+            {
+                (byPlayer as IServerPlayer)?.SendIngameError("vssiding:diagonaldeck", Lang.Get("vssiding:build-diagonal-deck"));
+                return true;
+            }
+
             if (entity.Step != null)
             {
                 (byPlayer as IServerPlayer)?.SendIngameError("vssiding:stepped", Lang.Get("vssiding:build-stepped"));

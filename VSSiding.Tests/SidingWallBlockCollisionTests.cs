@@ -92,6 +92,35 @@ public class SidingWallBlockCollisionTests
     }
 
     [Fact]
+    public void DiagonalWestPostBoxesAreUnrotated()
+    {
+        var expected = new[]
+        {
+            new Cuboidf(0, 0, 12f / 16, 4f / 16, 1, 1),
+            new Cuboidf(12f / 16, 0, 0, 1, 1, 4f / 16),
+        };
+
+        Assert.Equal(expected, SidingWallBlock.ComputeCollisionBoxes("diagonal", "west", "oak", null, true, FullBoxes), Comparer);
+    }
+
+    [Fact]
+    public void UnjoinedDiagonalWestAddsTheFiveMiddleStaircaseBoxesAtTheTop()
+    {
+        var expected = new[]
+        {
+            new Cuboidf(0, 0, 12f / 16, 4f / 16, 1, 1),
+            new Cuboidf(12f / 16, 0, 0, 1, 1, 4f / 16),
+            new Cuboidf(2f / 16, 15f / 16, 10f / 16, 6f / 16, 1, 14f / 16),
+            new Cuboidf(4f / 16, 15f / 16, 8f / 16, 8f / 16, 1, 12f / 16),
+            new Cuboidf(6f / 16, 15f / 16, 6f / 16, 10f / 16, 1, 10f / 16),
+            new Cuboidf(8f / 16, 15f / 16, 4f / 16, 12f / 16, 1, 8f / 16),
+            new Cuboidf(10f / 16, 15f / 16, 2f / 16, 14f / 16, 1, 6f / 16),
+        };
+
+        Assert.Equal(expected, SidingWallBlock.ComputeCollisionBoxes("diagonal", "west", "oak", null, false, FullBoxes), Comparer);
+    }
+
+    [Fact]
     public void UnjoinedWallWestCollidesOnItsTopPlateButNotItsBottomPlate()
     {
         var expected = new[]
