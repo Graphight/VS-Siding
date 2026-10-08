@@ -139,6 +139,20 @@ public class SidingWallEntityTests
                 "cornerout", "oak", "glass", null, null, null, NoElementFinishes, (true, true, false, false), glazed: true));
     }
 
+    // The diagonal's shape has one frame group and one slab per face, so a rough frame or a picked style
+    // that would name a group on a straight wall still asks for the plain ones.
+    [Fact]
+    public void DiagonalDrawsPlainFrameAndFinishWhateverTheEntryAndStyleSay()
+    {
+        var finishes = Dict("""{ "brick": { "Elements": { "front": "front-brick", "back": "back-brick" }, "Styles": ["boards"] } }""");
+
+        Assert.Equal(
+            ["front", "framing", "framing-top", "framing-bottom", "infill", "back"],
+            SidingWallEntity.SelectiveElements(
+                "diagonal", "sticks", "wattle", "brick", null, "brick", finishes, (false, false, false, false), glazed: false,
+                styles: ("boards", null, "boards"), frame: "poles"));
+    }
+
     [Fact]
     public void UnsetKeySurvivesByteRoundTripAsNullNotEmptyString()
     {

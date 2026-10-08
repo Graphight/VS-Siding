@@ -661,6 +661,27 @@ public static class WallShapeGen
         ("lashing", "game:item/resource/rope"),
     ];
 
+    // The diagonal's panel is the straight wall's own boxes, moved onto the cell centre and turned 45
+    // degrees so the front faces north-west; its 16 run ends inside the two posts, which are the only
+    // full-height framing. A finish, plates and the pane are the wall's groups under the wall's names.
+    private static readonly string[] DiagonalPanel =
+        ["front", "framing-top", "framing-bottom", "infill-top", "infill", "infill-bottom", "infill-pane", "back"];
+
+    private static readonly Element[] DiagonalElements =
+    [
+        new("framing", (0, 0, 12), (4, 16, 16), "framing", UvRule.Flat),
+        new("framing", (12, 0, 0), (16, 16, 4), "framing", UvRule.Flat),
+        .. WallElements.Where(e => DiagonalPanel.Contains(e.Name)).Select(e => e with
+        {
+            From = (e.From.X + 6, e.From.Y, e.From.Z),
+            To = (e.To.X + 6, e.To.Y, e.To.Z),
+            RotationY = -45,
+        }),
+    ];
+
+    private static readonly (string Slot, string Texture)[] DiagonalTextures =
+        [.. WallTextures.Where(t => t.Slot is "front" or "framing" or "infill" or "back")];
+
     // The wall's rough frame laid flat: joists recessed a quarter voxel in y and cut in three along z with
     // the middle length swelling in x, stubs in the half voxel over the infill, and rims that keep the plain
     // boxes and run over the joist ends through cheeks in the two skins, lashed beside them. A cheek instead
@@ -850,6 +871,7 @@ public static class WallShapeGen
         "floor" => Emit(FloorElements, FloorTextures),
         "cornerout" => Emit(
             [.. CornerOutElements, .. DeckGroups("deck", ((4, 12, 4), (16, 16, 16))), .. DeckGroups("ledge", Ledge(CornerOutElements))], CornerOutTextures),
+        "diagonal" => Emit(DiagonalElements, DiagonalTextures),
         _ => throw new KeyNotFoundException(layout),
     };
 

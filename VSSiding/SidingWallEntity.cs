@@ -140,15 +140,15 @@ public class SidingWallEntity : BlockEntity
     // SetString value into "" - normalize back to null so "unbuilt" survives a reload.
     internal static string? NullIfEmpty(string? value) => string.IsNullOrEmpty(value) ? null : value;
 
-    // "wall" and "cornerout" each have their own layered shape file (same four element
+    // "wall", "cornerout" and "diagonal" each have their own layered shape file (same four element
     // names - front/framing/infill/back - so selectiveElements works identically on
-    // either). A cornerout wraps both claimed faces (decision 0002's CorneroutSecondFace)
+    // any). A cornerout wraps both claimed faces (decision 0002's CorneroutSecondFace)
     // with a shared Framing/Infill/Back but its own SecondFront (decision 0009) - the
     // second leg's front faces a different room, so it finishes independently.
     public override bool OnTesselation(ITerrainMeshPool mesher, ITesselatorAPI tesselator)
     {
         string layout = Block.Variant["layout"];
-        if (layout != "wall" && layout != "cornerout") return false;
+        if (layout != "wall" && layout != "cornerout" && layout != "diagonal") return false;
         if (Api is not ICoreClientAPI capi) return false;
 
         var joins = ((SidingWallBlock)Block).NeighbourJoins(Api.World.BlockAccessor, Pos, Infill);
@@ -285,7 +285,9 @@ public class SidingWallEntity : BlockEntity
         (string? front, string? secondFront, string? back) styles = default, string[]? step = null, string frame = "framing")
     {
         var names = new List<string>();
-        if (front != null) names.Add(FinishElement(finishes, front, "front", styles.front));
+        bool diagonal = layout == "diagonal";
+        if (diagonal) frame = "framing";
+        if (front != null) names.Add(diagonal ? "front" : FinishElement(finishes, front, "front", styles.front));
         if (secondFront != null) names.Add("second" + FinishElement(finishes, secondFront, "front", styles.secondFront));
         if (framing != null)
         {
@@ -320,7 +322,7 @@ public class SidingWallEntity : BlockEntity
                 if (joins.below) names.Add("infill-bottom");
             }
         }
-        if (back != null) names.Add(FinishElement(finishes, back, "back", styles.back));
+        if (back != null) names.Add(diagonal ? "back" : FinishElement(finishes, back, "back", styles.back));
         if (step != null) names.AddRange(step);
         return names.ToArray();
     }

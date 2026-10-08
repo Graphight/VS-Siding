@@ -19,6 +19,7 @@ public class WallShapeGenTests
     [Theory]
     [InlineData("wall")]
     [InlineData("cornerout")]
+    [InlineData("diagonal")]
     [InlineData("floor")]
     public void GeneratedShapeMatchesTheCommittedOne(string layout)
     {
@@ -57,12 +58,50 @@ public class WallShapeGenTests
         Assert.Equal(expected.ToString(), WallShapeGen.EmitElement(turned, [turned]).ToString());
     }
 
+    // The turn is vanilla's translate(origin) * rotate(theta about +y) * translate(from - origin), so in plan
+    // x' = x cos + z sin and z' = -x sin + z cos about the origin. A -45 turn then lands a panel's two ends in
+    // the two posts and its west-facing front on the north-west side of the diagonal.
+    [Fact]
+    public void TheDiagonalsPanelRunsPostToPostWithItsFrontToTheNorthWest()
+    {
+        var elements = WallShapeGen.Generate("diagonal")["elements"]!.Cast<JObject>().ToArray();
+        var turned = elements.Where(e => e["rotationY"] != null).ToArray();
+        Assert.NotEmpty(turned);
+
+        var offenders = new List<string>();
+        foreach (var element in turned)
+        {
+            string name = (string)element["name"]!;
+            var (lo, hi) = Box(element);
+            double theta = (double)element["rotationY"]! * Math.PI / 180;
+            double ox = (double)element["rotationOrigin"]![0]!, oz = (double)element["rotationOrigin"]![2]!;
+            (double X, double Z) Turn(double x, double z)
+                => (ox + (x - ox) * Math.Cos(theta) + (z - oz) * Math.Sin(theta), oz - (x - ox) * Math.Sin(theta) + (z - oz) * Math.Cos(theta));
+            static bool InPost((double X, double Z) p)
+                => p.X is >= -1e-9 and <= 4 + 1e-9 && p.Z is >= 12 - 1e-9 and <= 16 + 1e-9
+                    || p.X is >= 12 - 1e-9 and <= 16 + 1e-9 && p.Z is >= -1e-9 and <= 4 + 1e-9;
+
+            foreach (double z in new[] { lo[2], hi[2] })
+                foreach (double x in new[] { lo[0], hi[0] })
+                    if (!InPost(Turn(x, z))) offenders.Add($"{name} end ({x}, {z})");
+
+            var centre = Turn((lo[0] + hi[0]) / 2, (lo[2] + hi[2]) / 2);
+            if (name == "front" && centre.X + centre.Z >= 16) offenders.Add("front is not north-west");
+            if (name == "back" && centre.X + centre.Z <= 16) offenders.Add("back is not south-east");
+        }
+
+        Assert.Equal([], offenders);
+        Assert.Contains(turned, e => (string)e["name"]! == "front");
+        Assert.Contains(turned, e => (string)e["name"]! == "back");
+    }
+
     // The depths in the shake table are a tuning knob, and a knob gets turned. A box that inverts
     // or runs past the framing renders as a hole rather than an error, so the bound is asserted
     // here instead of being re-checked by hand after every tune.
     [Theory]
     [InlineData("wall")]
     [InlineData("cornerout")]
+    [InlineData("diagonal")]
     [InlineData("floor")]
     public void EveryGeneratedBoxIsNonDegenerateAndInsideTheBlock(string layout)
     {
@@ -116,6 +155,7 @@ public class WallShapeGenTests
     [Theory]
     [InlineData("wall")]
     [InlineData("cornerout")]
+    [InlineData("diagonal")]
     [InlineData("floor")]
     public void NoElementIsPrunedDownToNothing(string layout)
     {
@@ -464,6 +504,7 @@ public class WallShapeGenTests
     [Theory]
     [InlineData("wall")]
     [InlineData("cornerout")]
+    [InlineData("diagonal")]
     public void EveryInfillBoxSamplesItsOwnSliceOfTheTexture(string layout)
     {
         var slices = new Dictionary<string, (double, double)>
