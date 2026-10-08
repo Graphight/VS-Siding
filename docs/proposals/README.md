@@ -8,8 +8,6 @@ An idea that's been thought through but not acted on. Mutable: edit freely, argu
 
 ## Open
 
-- `quieter-tooltip`: looking at a wall prints up to a dozen lines.
-The proposal shows only whether the wall seals unless the saw is in the off hand.
 - `wall-junctions`: four players describe junctions they could not build, and a corner piece already covers a T and a crossing; a creative build confirmed the crossing.
 The proposal says so in the guide and lets a filled wall be upgraded to a corner; a post for the inside corner follows one unglazed build, and the other new shapes wait on the players' answers.
 - `stained-plank-finishes`: a player asked for dyed wood compat, and three mods store a coloured plank three ways.
