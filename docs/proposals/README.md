@@ -10,8 +10,6 @@ An idea that's been thought through but not acted on. Mutable: edit freely, argu
 
 - `wall-junctions`: four players describe junctions they could not build, and a corner piece already covers a T and a crossing; a creative build confirmed the crossing.
 The proposal says so in the guide and lets a filled wall be upgraded to a corner; a post for the inside corner follows one unglazed build, and the other new shapes wait on the players' answers.
-- `stained-plank-finishes`: a player asked for dyed wood compat, and three mods store a coloured plank three ways.
-The proposal confirms the one that should already match, adds two-placeholder family templates for Wood Stain, and leaves attribute stacks for Dyed Wood until asked.
 - `modded-furniture-hosting`: Kevins Furniture's two cabinets declare every side solid, so the hosting rule refuses them as cubes.
 The proposal adds an attribute a block can set to say whether it may be hosted, and ships it for those cabinets.
 - `face-finishes`: a player framing in full logs wants floorboards over a beam and siding on a post, asked for as a fill block.
