@@ -69,11 +69,15 @@ public class SidingWallBlock : Block
                 .ToArray()),
     };
 
-    // Unrotated ("west") deck box per layout, matching the area WallShapeGen clips the floor's layers to.
+    // Unrotated ("west") deck boxes per layout, matching the area WallShapeGen clips the floor's layers to.
+    // A diagonal's are eight strips stepping across the half of the cell on the room side of its panel.
     private static readonly Dictionary<string, Cuboidf[]> UnrotatedDeckBoxes = new()
     {
         ["wall"] = new[] { new Cuboidf(4f / 16, 12f / 16, 0, 1, 1, 1) },
         ["cornerout"] = new[] { new Cuboidf(4f / 16, 12f / 16, 4f / 16, 1, 1, 1) },
+        ["diagonal"] = Enumerable.Range(0, 8)
+            .Select(k => new Cuboidf((15f - 2 * k) / 16, 12f / 16, 2f * k / 16, 1, 1, (2f * k + 2) / 16))
+            .ToArray(),
     };
 
     // Unrotated ("west") step boxes per element, matching WallShapeGen's six step elements.

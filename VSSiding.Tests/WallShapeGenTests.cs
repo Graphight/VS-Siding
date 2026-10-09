@@ -370,11 +370,12 @@ public class WallShapeGenTests
 
     private static readonly string[] Sides = ["west", "south", "east", "north"];
 
-    private static double[] DeckBoxVoxels(string layout, string side)
-    {
-        var box = SidingWallBlock.AddOpenPartBoxes(Array.Empty<Cuboidf>(), layout, side, "oak", null).Single();
-        return new[] { box.X1, box.Y1, box.Z1, box.X2, box.Y2, box.Z2 }.Select(v => Math.Round(v * 16.0, 3) + 0.0).ToArray();
-    }
+    private static double[][] DeckBoxesVoxels(string layout, string side)
+        => SidingWallBlock.AddOpenPartBoxes(Array.Empty<Cuboidf>(), layout, side, "oak", null)
+            .Select(box => new[] { box.X1, box.Y1, box.Z1, box.X2, box.Y2, box.Z2 }.Select(v => Math.Round(v * 16.0, 3) + 0.0).ToArray())
+            .ToArray();
+
+    private static double[] DeckBoxVoxels(string layout, string side) => DeckBoxesVoxels(layout, side).Single();
 
     // The deck is the floor's layers clipped to its area, a copy per side, each staying inside the box
     // SidingWallBlock gives that side's deck, and all of them on the deck's own texture codes, or on the
@@ -382,6 +383,7 @@ public class WallShapeGenTests
     [Theory]
     [InlineData("wall")]
     [InlineData("cornerout")]
+    [InlineData("diagonal")]
     public void EverySidesDeckGroupsLieInsideItsDeckBox(string layout)
     {
         var elements = WallShapeGen.Generate(layout)["elements"]!.Cast<JObject>().ToArray();
@@ -389,13 +391,13 @@ public class WallShapeGenTests
         var actual = new Dictionary<string, string[]>();
         foreach (string side in Sides)
         {
-            var box = DeckBoxVoxels(layout, side);
+            var boxes = DeckBoxesVoxels(layout, side);
             var groups = elements.Where(e => ((string)e["name"]!).StartsWith($"deck-{side}-")).ToArray();
             Assert.NotEmpty(groups);
 
             expected[side] = [];
             actual[side] = groups
-                .Where(e => !Inside(e, box))
+                .Where(e => !boxes.Any(box => Inside(e, box)))
                 .Select(e => (string)e["name"]!)
                 .ToArray();
             Assert.All(groups.SelectMany(g => ((JObject)g["faces"]!).Properties()),
@@ -442,6 +444,16 @@ public class WallShapeGenTests
         }
 
         Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void DiagonalDeckTopsSitBelowTheFillersCaps()
+    {
+        var elements = WallShapeGen.Generate("diagonal")["elements"]!.Cast<JObject>()
+            .Where(e => ((string)e["name"]!).StartsWith("deck-")).ToArray();
+
+        Assert.NotEmpty(elements);
+        Assert.Equal(elements.Select(_ => true), elements.Select(e => (double)e["to"]![1]! <= 15.98));
     }
 
     [Theory]

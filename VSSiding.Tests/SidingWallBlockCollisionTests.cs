@@ -192,6 +192,16 @@ public class SidingWallBlockCollisionTests
     }
 
     [Fact]
+    public void DiagonalWestDeckBoxesAreEightStripsAcrossTheRoomSide()
+    {
+        var expected = new[] { FullBoxes[0] }
+            .Concat(Enumerable.Range(0, 8).Select(k => new Cuboidf((15f - 2 * k) / 16, 12f / 16, 2f * k / 16, 1, 1, (2f * k + 2) / 16)))
+            .ToArray();
+
+        Assert.Equal(expected, SidingWallBlock.AddOpenPartBoxes(FullBoxes, "diagonal", "west", "oak", null), Comparer);
+    }
+
+    [Fact]
     public void CorneroutWestDeckBoxIsUnrotated()
     {
         var expected = new[] { FullBoxes[0], new Cuboidf(4f / 16, 12f / 16, 4f / 16, 1, 1, 1) };

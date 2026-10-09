@@ -712,7 +712,15 @@ public static class WallShapeGen
     ];
 
     private static readonly (string Slot, string Texture)[] DiagonalTextures =
-        [.. WallTextures.Where(t => t.Slot is "front" or "framing" or "infill" or "back")];
+        [.. WallTextures.Where(t => t.Slot is "front" or "framing" or "infill" or "back" or "deck" or "deckinfill" or "deckfront" or "deckback" or "lashing")];
+
+    // The strips of the block's own west diagonal deck, a hair low so their top never shares a plane with
+    // the plate and the fillers' caps it overlaps in plan.
+    private static ((double X, double Y, double Z) From, (double X, double Y, double Z) To)[] DiagonalDeckStrips() =>
+        SidingWallBlock.AddOpenPartBoxes(Array.Empty<Vintagestory.API.MathTools.Cuboidf>(), "diagonal", "west", "oak", null)
+            .Select(b => ((Math.Round(b.X1 * 16.0, 3), Math.Round(b.Y1 * 16.0, 3), Math.Round(b.Z1 * 16.0, 3)),
+                          (Math.Round(b.X2 * 16.0, 3), 15.98, Math.Round(b.Z2 * 16.0, 3))))
+            .ToArray();
 
     // The wall's rough frame laid flat: joists recessed a quarter voxel in y and cut in three along z with
     // the middle length swelling in x, stubs in the half voxel over the infill, and rims that keep the plain
@@ -903,7 +911,7 @@ public static class WallShapeGen
         "floor" => Emit(FloorElements, FloorTextures),
         "cornerout" => Emit(
             [.. CornerOutElements, .. DeckGroups("deck", ((4, 12, 4), (16, 16, 16))), .. DeckGroups("ledge", Ledge(CornerOutElements))], CornerOutTextures),
-        "diagonal" => Rounded(Emit(DiagonalElements, DiagonalTextures)),
+        "diagonal" => Rounded(Emit([.. DiagonalElements, .. DeckGroups("deck", DiagonalDeckStrips())], DiagonalTextures)),
         _ => throw new KeyNotFoundException(layout),
     };
 
