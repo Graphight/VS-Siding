@@ -69,11 +69,15 @@ public class SidingWallBlock : Block
                 .ToArray()),
     };
 
-    // Unrotated ("west") deck box per layout, matching the area WallShapeGen clips the floor's layers to.
-    private static readonly Dictionary<string, Cuboidf> UnrotatedDeckBoxes = new()
+    // Unrotated ("west") deck boxes per layout, matching the area WallShapeGen clips the floor's layers to.
+    // A diagonal's are eight strips stepping across the half of the cell on the room side of its panel.
+    private static readonly Dictionary<string, Cuboidf[]> UnrotatedDeckBoxes = new()
     {
-        ["wall"] = new Cuboidf(4f / 16, 12f / 16, 0, 1, 1, 1),
-        ["cornerout"] = new Cuboidf(4f / 16, 12f / 16, 4f / 16, 1, 1, 1),
+        ["wall"] = new[] { new Cuboidf(4f / 16, 12f / 16, 0, 1, 1, 1) },
+        ["cornerout"] = new[] { new Cuboidf(4f / 16, 12f / 16, 4f / 16, 1, 1, 1) },
+        ["diagonal"] = Enumerable.Range(0, 8)
+            .Select(k => new Cuboidf((15f - 2 * k) / 16, 12f / 16, 2f * k / 16, 1, 1, (2f * k + 2) / 16))
+            .ToArray(),
     };
 
     // Unrotated ("west") step boxes per element, matching WallShapeGen's six step elements.
@@ -90,20 +94,20 @@ public class SidingWallBlock : Block
     // Built once up front so collision calls from client and server threads only ever read it.
     private static readonly Dictionary<(string layout, string side, bool joinsAbove), Cuboidf[]> FramingBoxes = BuildFramingBoxes();
 
-    private static readonly Dictionary<(string layout, string side), Cuboidf> DeckBoxes = BuildDeckBoxes();
+    private static readonly Dictionary<(string layout, string side), Cuboidf[]> DeckBoxes = BuildDeckBoxes();
 
     private static readonly Dictionary<(string side, string element), Cuboidf> StepBoxes = BuildStepBoxes();
 
-    private static Dictionary<(string layout, string side), Cuboidf> BuildDeckBoxes()
+    private static Dictionary<(string layout, string side), Cuboidf[]> BuildDeckBoxes()
     {
         var origin = new Vec3d(0.5, 0.5, 0.5);
-        var boxes = new Dictionary<(string layout, string side), Cuboidf>();
-        foreach (var (layout, box) in UnrotatedDeckBoxes)
+        var boxes = new Dictionary<(string layout, string side), Cuboidf[]>();
+        foreach (var (layout, layoutBoxes) in UnrotatedDeckBoxes)
         {
             foreach (string side in CorneroutSecondFace.Keys)
             {
                 float rotationYDeg = SidingWallEntity.RotationYDeg(side);
-                boxes[(layout, side)] = box.RotatedCopy(0, rotationYDeg, 0, origin);
+                boxes[(layout, side)] = layoutBoxes.Select(box => box.RotatedCopy(0, rotationYDeg, 0, origin)).ToArray();
             }
         }
         return boxes;
@@ -152,10 +156,11 @@ public class SidingWallBlock : Block
         => framing != null && infill == null ? FramingBoxes[(layout, side, joinsAbove)] : fullBoxes;
 
     // The deck and the step both sit in the open 12/16, outside both the frame's boxes and the
-    // panel's. A step only applies to layout "wall"; a cornerout never has one.
+    // panel's, except a diagonal's deck, whose strips run on under its plate to the middle of the frame.
+    // A step only applies to layout "wall"; a cornerout or a diagonal never has one.
     internal static Cuboidf[] AddOpenPartBoxes(Cuboidf[] boxes, string layout, string side, string? deck, string? stepOrientation)
     {
-        if (deck != null) boxes = boxes.Append(DeckBoxes[(layout, side)]).ToArray();
+        if (deck != null) boxes = boxes.Concat(DeckBoxes[(layout, side)]).ToArray();
         if (layout == "wall" && stepOrientation != null)
         {
             foreach (string element in SidingWallEntity.StepElements(side, stepOrientation))
@@ -480,12 +485,6 @@ public class SidingWallBlock : Block
         if (entity.Deck == null && blockSel.Face != BlockFacing.UP && SidingModePicker.Deck(byPlayer)
             && MatchFraming(heldCode, entity.Infill != null, Attributes["Framings"], Attributes["Infills"]) is { } deckKey)
         {
-            if (Variant["layout"] == "diagonal")
-            {
-                (byPlayer as IServerPlayer)?.SendIngameError("vssiding:diagonaldeck", Lang.Get("vssiding:build-diagonal-deck"));
-                return true;
-            }
-
             if (entity.Step != null)
             {
                 (byPlayer as IServerPlayer)?.SendIngameError("vssiding:stepped", Lang.Get("vssiding:build-stepped"));
@@ -522,13 +521,6 @@ public class SidingWallBlock : Block
                 if (entity.Step != null)
                 {
                     (byPlayer as IServerPlayer)?.SendIngameError("vssiding:stepped", Lang.Get("vssiding:build-stepped"));
-                    return true;
-                }
-
-                // The swap keeps the entity, deck and all, and a diagonal has no box for one (decision 0066).
-                if (entity.Deck != null && picked == "diagonal")
-                {
-                    (byPlayer as IServerPlayer)?.SendIngameError("vssiding:decked", Lang.Get("vssiding:build-decked"));
                     return true;
                 }
 
@@ -621,9 +613,13 @@ public class SidingWallBlock : Block
         return true;
     }
 
-    // The deck box is appended after the block's own selection boxes (AddOpenPartBoxes).
+    // The deck's boxes are appended after the block's own selection boxes (AddOpenPartBoxes).
     internal bool IsDeckHit(IBlockAccessor blockAccessor, BlockSelection blockSel, SidingWallEntity entity)
-        => entity.Deck != null && blockSel.SelectionBoxIndex == base.GetSelectionBoxes(blockAccessor, blockSel.Position).Length;
+    {
+        if (entity.Deck == null) return false;
+        int first = base.GetSelectionBoxes(blockAccessor, blockSel.Position).Length;
+        return blockSel.SelectionBoxIndex >= first && blockSel.SelectionBoxIndex < first + DeckBoxes[(Variant["layout"], Variant["side"])].Length;
+    }
 
     // The deck takes layers the way a floor does (SidingFloorBlock.OnBlockInteractStart): infill on any
     // face, then a finish on the top or the underside. Anything unclaimed falls through, so planks on a
@@ -881,7 +877,7 @@ public class SidingWallBlock : Block
     // The deck changes the UP face's retention, and rooms only recompute on a chunk-dirty event,
     // so the block is exchanged for itself as OnInfillChanged does.
     internal bool DeckOccupied(IWorldAccessor world, BlockPos pos)
-        => world.GetIntersectingEntities(pos, new[] { DeckBoxes[(Variant["layout"], Variant["side"])] }, e => e.IsInteractable) is { Length: > 0 };
+        => world.GetIntersectingEntities(pos, DeckBoxes[(Variant["layout"], Variant["side"])], e => e.IsInteractable) is { Length: > 0 };
 
     internal bool StepOccupied(IWorldAccessor world, BlockPos pos, string orientation)
     {

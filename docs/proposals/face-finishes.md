@@ -88,4 +88,8 @@ On a top or bottom face the same two options are the two directions a floor's bo
 - Breaking in creative removes block and decor together and drops nothing, as for any decor.
 - A stick has `PlaceWallFrame` too. Whether a stick click in face mode does nothing or puts up a bark skin to match decision 0063's bark styles is open.
 - The tooltip. A decor adds no line to its host's block info, so nothing says which finish is on a face.
-- A diagonal cut of a face finish, laid under a diagonal wall as a ground floor, is the `diagonal-floors` proposal.
+- A ground floor under a diagonal wall with no digging (decision 0067 built the deck for an upper storey only).
+The block below stays as it was and half of its top face is skinned, the triangle on the room side.
+A `surfacelayer` decor is one flat quad over the whole face, so the triangle needs a `json` decor of stepped strips or a texture with a transparent half; neither is checked.
+Whether one rotated variant covers the four orientations is not checked.
+The cut edge lies under the panel's base, which covers 2 voxels either side of the diagonal.

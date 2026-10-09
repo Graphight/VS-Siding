@@ -168,7 +168,7 @@ public class SidingWallEntity : BlockEntity
         bool deckGlazed = SidingWallBlock.IsTransparent(DeckInfill, Block.Attributes["Infills"]);
         var deckJoins = SidingFloorBlock.Joins(Api.World.BlockAccessor, Pos, deckGlazed);
         string[] deckElements = DeckElements(side, Deck, DeckInfill, DeckFront, DeckBack, Block.Attributes["Finishes"], deckJoins, (DeckFrontStyle, DeckBackStyle), deckGlazed,
-            FrameElements(Block.Attributes["Framings"], Deck, alternate), ledge: Back == null);
+            FrameElements(Block.Attributes["Framings"], Deck, alternate), ledge: Back == null && layout != "diagonal");
         if (selectiveElements.Length == 0 && deckElements.Length == 0) return false;
 
         string cacheKey = CacheKey(layout, side, Framing, Infill, Front, SecondFront, Back, joins, Styles, Deck, Step, StepOrientation,
