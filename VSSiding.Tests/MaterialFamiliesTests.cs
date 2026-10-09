@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Newtonsoft.Json.Linq;
 using Vintagestory.API.Common;
 using Xunit;
@@ -259,5 +260,42 @@ public class MaterialFamiliesTests
         """);
         Assert.True(JToken.DeepEquals(expected, MaterialFamilies.MergeShared(shared, attributes)),
             MaterialFamilies.MergeShared(shared, attributes).ToString());
+    }
+
+    private static (string, AssetLocation, IDictionary<string, string>) StainCandidate(string stain, string wood, string orientation)
+        => ("block", new AssetLocation($"woodstain:stainedplanks-{stain}-{wood}-{orientation}"),
+            new Dictionary<string, string> { ["stain"] = stain, ["wood"] = wood, ["orientation"] = orientation });
+
+    [Fact]
+    public void ShippedWoodStainTemplateExpandsOneEntryPerStainAndWood()
+    {
+        var families = (JObject)MaterialTextureOpacityTests.BlockAttributes("wall.json")["FinishFamilies"]!;
+
+        var actual = MaterialFamilies.Expand(families, new JObject(), new[]
+        {
+            StainCandidate("red", "oak", "ns"),
+            StainCandidate("blue", "agedebony", "ns"),
+            StainCandidate("green", "cedar", "ns"),
+            StainCandidate("red", "oak", "ud"),
+            ("block", new AssetLocation("woodstain:stainedplankslab-red-oak-ns"),
+                (IDictionary<string, string>)new Dictionary<string, string> { ["stain"] = "red", ["wood"] = "oak", ["orientation"] = "ns" }),
+        });
+
+        Assert.Equal(new[] { "stained-red-oak", "stained-blue-agedebony", "stained-green-cedar" },
+            actual.Properties().Where(p => p.Name.StartsWith("stained-")).Select(p => p.Name));
+        AssertJson(JObject.Parse("""
+        {
+            "TextureBlock": "woodstain:stainedplanks-red-oak-ns",
+            "Elements": { "front": "front-weatherboard", "back": "back-boards" },
+            "FloorElements": {
+                "front": { "hboards": "front-hboards", "boards": "front-boards" },
+                "back": { "hboards": "back-hboards", "boards": "back-boards" }
+            },
+            "Styles": [ "weatherboard", "boards", "hboards" ],
+            "BlockMaterial": "Wood",
+            "Consumes": { "type": "block", "code": "woodstain:stainedplanks-red-oak-*", "quantity": 1 },
+            "Drops": [ { "type": "block", "code": "woodstain:stainedplanks-red-oak-ns", "quantity": { "avg": 1, "var": 0 } } ]
+        }
+        """), (JObject)actual["stained-red-oak"]!);
     }
 }
