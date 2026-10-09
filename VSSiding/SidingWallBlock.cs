@@ -156,7 +156,8 @@ public class SidingWallBlock : Block
         => framing != null && infill == null ? FramingBoxes[(layout, side, joinsAbove)] : fullBoxes;
 
     // The deck and the step both sit in the open 12/16, outside both the frame's boxes and the
-    // panel's. A step only applies to layout "wall"; a cornerout never has one.
+    // panel's, except a diagonal's deck, whose strips run on under its plate to the middle of the frame.
+    // A step only applies to layout "wall"; a cornerout or a diagonal never has one.
     internal static Cuboidf[] AddOpenPartBoxes(Cuboidf[] boxes, string layout, string side, string? deck, string? stepOrientation)
     {
         if (deck != null) boxes = boxes.Concat(DeckBoxes[(layout, side)]).ToArray();

@@ -375,8 +375,6 @@ public class WallShapeGenTests
             .Select(box => new[] { box.X1, box.Y1, box.Z1, box.X2, box.Y2, box.Z2 }.Select(v => Math.Round(v * 16.0, 3) + 0.0).ToArray())
             .ToArray();
 
-    private static double[] DeckBoxVoxels(string layout, string side) => DeckBoxesVoxels(layout, side).Single();
-
     // The deck is the floor's layers clipped to its area, a copy per side, each staying inside the box
     // SidingWallBlock gives that side's deck, and all of them on the deck's own texture codes, or on the
     // lashing's, which is one rope whatever the frame.
@@ -426,7 +424,7 @@ public class WallShapeGenTests
         var actual = new Dictionary<string, string>();
         foreach (string side in Sides)
         {
-            var b = DeckBoxVoxels(layout, side);
+            var b = DeckBoxesVoxels(layout, side).Single();
             double x0 = b[0], z0 = b[2], x1 = b[3], z1 = b[5];
             var cases = new (string Name, string Face, double[] Uv)[]
             {
@@ -454,6 +452,38 @@ public class WallShapeGenTests
 
         Assert.NotEmpty(elements);
         Assert.Equal([], elements.Where(e => (double)e["to"]![1]! > 15.98).Select(e => (string)e["name"]!));
+    }
+
+    // A corner filler is unturned, so a deck box that ends on one of its outer planes and overlaps it
+    // there draws a second face in that plane. The fillers turn with the wall's side and the deck groups
+    // are cut per side, so each side's are compared where they stand.
+    [Fact]
+    public void NoDiagonalDeckBoxEndsOnAFillersPlane()
+    {
+        var elements = WallShapeGen.Generate("diagonal")["elements"]!.ToArray();
+        var offenders = new List<string>();
+        foreach (string side in Sides)
+        {
+            var fillers = elements.Where(e => (string)e["name"]! is "framing-left" or "framing-right").Select(Box)
+                .Select(b => WallShapeGen.DeckRegion((b.Lo[0], b.Lo[1], b.Lo[2]), (b.Hi[0], b.Hi[1], b.Hi[2]), (int)SidingWallEntity.RotationYDeg(side)))
+                .Select(r => (Lo: new[] { r.X, r.Y, r.Z }, Hi: new[] { r.X2, r.Y2, r.Z2 }))
+                .ToArray();
+            foreach (var deck in elements.Where(e => ((string)e["name"]!).StartsWith($"deck-{side}-")))
+            {
+                var (lo, hi) = Box(deck);
+                foreach (var filler in fillers)
+                {
+                    for (int axis = 0; axis < 3; axis++)
+                    {
+                        bool shares = Math.Abs(lo[axis] - filler.Lo[axis]) < 1e-6 || Math.Abs(hi[axis] - filler.Hi[axis]) < 1e-6;
+                        if (shares && Enumerable.Range(0, 3).Where(k => k != axis).All(k => Math.Max(lo[k], filler.Lo[k]) < Math.Min(hi[k], filler.Hi[k])))
+                            offenders.Add($"{deck["name"]} {string.Join(",", lo)} to {string.Join(",", hi)}");
+                    }
+                }
+            }
+        }
+
+        Assert.Equal([], offenders);
     }
 
     [Theory]
@@ -685,6 +715,7 @@ public class WallShapeGenTests
     [InlineData("floor")]
     [InlineData("wall")]
     [InlineData("cornerout")]
+    [InlineData("diagonal")]
     public void EveryPieceOfAFloorOrDeckPoleGroupHangsOffAMember(string layout)
     {
         var frame = Frame("floor");

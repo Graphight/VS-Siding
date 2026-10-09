@@ -714,13 +714,35 @@ public static class WallShapeGen
     private static readonly (string Slot, string Texture)[] DiagonalTextures =
         [.. WallTextures.Where(t => t.Slot is "front" or "framing" or "infill" or "back" or "deck" or "deckinfill" or "deckfront" or "deckback" or "lashing")];
 
-    // The strips of the block's own west diagonal deck, a hair low so their top never shares a plane with
-    // the plate and the fillers' caps it overlaps in plan.
-    private static ((double X, double Y, double Z) From, (double X, double Y, double Z) To)[] DiagonalDeckStrips() =>
-        SidingWallBlock.AddOpenPartBoxes([], "diagonal", "west", "oak", null)
-            .Select(b => ((Math.Round(b.X1 * 16.0, 3), Math.Round(b.Y1 * 16.0, 3), Math.Round(b.Z1 * 16.0, 3)),
-                          (Math.Round(b.X2 * 16.0, 3), 15.98, Math.Round(b.Z2 * 16.0, 3))))
-            .ToArray();
+    private const double DeckHair = 0.02;
+
+    // The strips of the block's own west diagonal deck, a hair off every plane the panel's unturned
+    // pieces share with them: the top, under the plate and the fillers' caps, and the cell's own faces
+    // in the two corners the fillers stand in. A strip that runs on past a corner is cut a voxel clear
+    // of the filler, so the rest of it still meets the floor beside it.
+    private static ((double X, double Y, double Z) From, (double X, double Y, double Z) To)[] DiagonalDeckStrips()
+    {
+        double corner = Math.Ceiling(DiagonalFiller);
+        static double[] Cut(double lo, double hi, double at) => lo < at && at < hi ? [lo, at, hi] : [lo, hi];
+        static double Voxels(float v) => Math.Round(v * 16.0, 3);
+        static double Inset(double v) => Math.Clamp(v, DeckHair, 16 - DeckHair);
+
+        var strips = new List<((double X, double Y, double Z) From, (double X, double Y, double Z) To)>();
+        foreach (var box in SidingWallBlock.AddOpenPartBoxes([], "diagonal", "west", "oak", null))
+        {
+            double[] xs = Cut(Voxels(box.X1), Voxels(box.X2), corner);
+            double[] zs = Cut(Voxels(box.Z1), Voxels(box.Z2), corner);
+            for (int i = 0; i + 1 < xs.Length; i++)
+            for (int j = 0; j + 1 < zs.Length; j++)
+            {
+                var (x, x2, z, z2) = (xs[i], xs[i + 1], zs[j], zs[j + 1]);
+                if ((x >= 16 - corner && z2 <= corner) || (x2 <= corner && z >= 16 - corner))
+                    (x, x2, z, z2) = (Inset(x), Inset(x2), Inset(z), Inset(z2));
+                strips.Add(((x, Voxels(box.Y1), z), (x2, 16 - DeckHair, z2)));
+            }
+        }
+        return [.. strips];
+    }
 
     // The wall's rough frame laid flat: joists recessed a quarter voxel in y and cut in three along z with
     // the middle length swelling in x, stubs in the half voxel over the infill, and rims that keep the plain
@@ -878,9 +900,9 @@ public static class WallShapeGen
         string prefix, params ((double X, double Y, double Z) From, (double X, double Y, double Z) To)[] boxes)
     {
         foreach (var (side, rotationYDeg) in DeckSides)
-        foreach (var (from, to) in boxes)
         {
-            var region = DeckRegion(from, to, rotationYDeg);
+            var regions = boxes.Select(box => DeckRegion(box.From, box.To, rotationYDeg)).ToArray();
+            foreach (var region in regions)
             foreach (var source in FloorElements)
             {
                 var lo = (X: Math.Max(source.From.X, region.X), Y: Math.Max(source.From.Y, region.Y), Z: Math.Max(source.From.Z, region.Z));
@@ -889,18 +911,47 @@ public static class WallShapeGen
                 if (Empty(lo.X, hi.X, source.From.X, source.To.X)
                     || Empty(lo.Y, hi.Y, source.From.Y, source.To.Y)
                     || Empty(lo.Z, hi.Z, source.From.Z, source.To.Z)) continue;
-                // Only a rim runs across an edge. Any other pole piece an edge cuts is a sliver of a joist,
-                // or a stub, cheek or lashing whose joist is on the far side.
-                if (source.Name.StartsWith("poles") && source.RunAxis != 'x' && (lo.X, hi.X) != (source.From.X, source.To.X)) continue;
 
-                yield return source with
+                // Only a rim runs across an edge. Any other pole piece an edge cuts is a sliver of a joist,
+                // or a stub, cheek or lashing whose joist is on the far side, so a box draws its part of one
+                // only along the lengths where the side's boxes together cover the piece's whole width.
+                var lengths = source.Name.StartsWith("poles") && source.RunAxis != 'x'
+                    ? CoveredLengths(source, regions, lo.Z, hi.Z)
+                    : [(lo.Z, hi.Z)];
+                foreach (var (z, z2) in lengths)
                 {
-                    Name = $"{prefix}-{side}-{source.Name}",
-                    From = lo,
-                    To = hi,
-                    Slot = DeckSlots[source.Slot],
-                    ClippedFrom = source,
-                };
+                    yield return source with
+                    {
+                        Name = $"{prefix}-{side}-{source.Name}",
+                        From = lo with { Z = z },
+                        To = hi with { Z = z2 },
+                        Slot = DeckSlots[source.Slot],
+                        ClippedFrom = source,
+                    };
+                }
+            }
+        }
+    }
+
+    // The lengths between two z over which the boxes, taken together, cover a piece from one side of its
+    // width to the other. Two boxes that meet inside the width cover it between them.
+    private static IEnumerable<(double Z, double Z2)> CoveredLengths(
+        Element source, (double X, double Y, double Z, double X2, double Y2, double Z2)[] regions, double from, double to)
+    {
+        double[] cuts = [.. regions.SelectMany(r => new[] { r.Z, r.Z2 }).Where(z => z > from && z < to).Append(from).Append(to).Distinct().Order()];
+        double? start = null;
+        for (int i = 0; i + 1 < cuts.Length; i++)
+        {
+            double reach = source.From.X;
+            foreach (var r in regions.Where(r => r.Z <= cuts[i] && r.Z2 >= cuts[i + 1]).OrderBy(r => r.X))
+                if (r.X <= reach) reach = Math.Max(reach, r.X2);
+
+            bool covered = reach >= source.To.X;
+            if (covered) start ??= cuts[i];
+            if (start != null && (!covered || i + 2 == cuts.Length))
+            {
+                yield return (start.Value, covered ? cuts[i + 1] : cuts[i]);
+                start = null;
             }
         }
     }
