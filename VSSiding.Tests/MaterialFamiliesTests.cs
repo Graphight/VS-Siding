@@ -298,4 +298,38 @@ public class MaterialFamiliesTests
         }
         """), (JObject)actual["stained-red-oak"]!);
     }
+
+    private static (string, AssetLocation, IDictionary<string, string>) DyeCandidate(string color, string wood)
+        => ("block", new AssetLocation($"dyedwood:chiselmaterial-{color}-{wood}"),
+            new Dictionary<string, string> { ["color"] = color, ["wood"] = wood });
+
+    [Fact]
+    public void ShippedDyedWoodTemplateExpandsUnderItsOwnPrefix()
+    {
+        var families = (JObject)MaterialTextureOpacityTests.BlockAttributes("wall.json")["FinishFamilies"]!;
+
+        var actual = MaterialFamilies.Expand(families, new JObject(), new[]
+        {
+            DyeCandidate("red", "oak"),
+            DyeCandidate("blue", "rottenebony"),
+            StainCandidate("red", "oak", "ns"),
+        });
+
+        Assert.Equal(new[] { "stained-red-oak", "dyed-red-oak", "dyed-blue-rottenebony" },
+            actual.Properties().Where(p => p.Name.StartsWith("dyed-") || p.Name.StartsWith("stained-")).Select(p => p.Name));
+        AssertJson(JObject.Parse("""
+        {
+            "Texture": "dyedwood:block/wood/planks/redoak1",
+            "Elements": { "front": "front-weatherboard", "back": "back-boards" },
+            "FloorElements": {
+                "front": { "hboards": "front-hboards", "boards": "front-boards" },
+                "back": { "hboards": "back-hboards", "boards": "back-boards" }
+            },
+            "Styles": [ "weatherboard", "boards", "hboards" ],
+            "BlockMaterial": "Wood",
+            "Consumes": { "type": "block", "code": "dyedwood:planks", "quantity": 1, "attributes": { "types": { "color": "red", "wood": "oak" } } },
+            "Drops": [ { "type": "block", "code": "dyedwood:planks", "quantity": { "avg": 1, "var": 0 }, "attributes": { "types": { "color": "red", "wood": "oak" } } } ]
+        }
+        """), (JObject)actual["dyed-red-oak"]!);
+    }
 }

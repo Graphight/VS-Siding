@@ -247,6 +247,19 @@
 			Consumes: { type: "block", code: "woodstain:stainedplanks-{stain}-{wood}-*", quantity: 1 },
 			Drops: [ { type: "block", code: "woodstain:stainedplanks-{stain}-{wood}-ns", quantity: { avg: 1, var: 0 } } ]
 		},
+		"dyed-{color}-{wood}": {
+			Match: { type: "block", code: "dyedwood:chiselmaterial-*-*", variant: ["color", "wood"] },
+			Texture: "dyedwood:block/wood/planks/{color}{wood}1",
+			Elements: { front: "front-weatherboard", back: "back-boards" },
+			FloorElements: {
+				front: { hboards: "front-hboards", boards: "front-boards" },
+				back: { hboards: "back-hboards", boards: "back-boards" }
+			},
+			Styles: ["weatherboard", "boards", "hboards"],
+			BlockMaterial: "Wood",
+			Consumes: { type: "block", code: "dyedwood:planks", quantity: 1, attributes: { types: { color: "{color}", wood: "{wood}" } } },
+			Drops: [ { type: "block", code: "dyedwood:planks", quantity: { avg: 1, var: 0 }, attributes: { types: { color: "{color}", wood: "{wood}" } } } ]
+		},
 		"cobblestone-{rock}": {
 			Match: { type: "block", code: "game:cobblestone-*", variant: "rock" },
 			DisplayName: "vssiding:finish-cobblestone-{rock}",
