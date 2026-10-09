@@ -38,7 +38,8 @@ public class SidingWallTexSource : ITexPositionSource
             CompositeTexture? texture = ResolveTexture(
                 textureCode, entity.Framing, entity.Infill, entity.Front, entity.SecondFront, entity.Back,
                 framings, infills, finishes, entity.FrontStyle, entity.SecondFrontStyle, entity.BackStyle, entity.Deck,
-                entity.DeckInfill, entity.DeckFront, entity.DeckBack, entity.DeckFrontStyle, entity.DeckBackStyle, BlockTexture(capi));
+                entity.DeckInfill, entity.DeckFront, entity.DeckBack, entity.DeckFrontStyle, entity.DeckBackStyle,
+                blockTexture: BlockTexture(capi));
             return AtlasPosition(capi, texture, alternate);
         }
     }

@@ -21,8 +21,8 @@ public class SidingWallBlockBuildFlowTests
 
     private static readonly JsonObject DyedFinishes = Dict("""
     {
-        "red-oak": { "Consumes": { "type": "item", "code": "dyedwood:planks", "attributes": { "types": { "color": "red", "wood": "oak" } } } },
-        "red-acacia": { "Consumes": { "type": "item", "code": "dyedwood:planks", "attributes": { "types": { "color": "red", "wood": "acacia" } } } },
+        "red-oak": { "Consumes": { "type": "block", "code": "dyedwood:planks", "attributes": { "types": { "color": "red", "wood": "oak" } } } },
+        "red-acacia": { "Consumes": { "type": "block", "code": "dyedwood:planks", "attributes": { "types": { "color": "red", "wood": "acacia" } } } },
         "clay": { "Consumes": { "type": "item", "code": "game:clay-blue" } },
         "malformed": { "Consumes": { "type": "item", "code": "game:stick", "attributes": "red" } }
     }

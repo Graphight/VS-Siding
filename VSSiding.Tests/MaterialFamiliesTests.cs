@@ -262,8 +262,19 @@ public class MaterialFamiliesTests
             MaterialFamilies.MergeShared(shared, attributes).ToString());
     }
 
-    private static (string, AssetLocation, IDictionary<string, string>) StainCandidate(string stain, string wood, string orientation)
-        => ("block", new AssetLocation($"woodstain:stainedplanks-{stain}-{wood}-{orientation}"),
+    // What every plank finish shares, whichever mod the plank comes from.
+    private const string PlankLook = """
+        "Elements": { "front": "front-weatherboard", "back": "back-boards" },
+        "FloorElements": {
+            "front": { "hboards": "front-hboards", "boards": "front-boards" },
+            "back": { "hboards": "back-hboards", "boards": "back-boards" }
+        },
+        "Styles": [ "weatherboard", "boards", "hboards" ],
+        "BlockMaterial": "Wood"
+        """;
+
+    private static (string, AssetLocation, IDictionary<string, string>) StainCandidate(string stain, string wood, string orientation, string block = "stainedplanks")
+        => ("block", new AssetLocation($"woodstain:{block}-{stain}-{wood}-{orientation}"),
             new Dictionary<string, string> { ["stain"] = stain, ["wood"] = wood, ["orientation"] = orientation });
 
     [Fact]
@@ -276,23 +287,16 @@ public class MaterialFamiliesTests
             StainCandidate("red", "oak", "ns"),
             StainCandidate("blue", "agedebony", "ns"),
             StainCandidate("green", "cedar", "ns"),
-            StainCandidate("red", "oak", "ud"),
-            ("block", new AssetLocation("woodstain:stainedplankslab-red-oak-ns"),
-                (IDictionary<string, string>)new Dictionary<string, string> { ["stain"] = "red", ["wood"] = "oak", ["orientation"] = "ns" }),
+            StainCandidate("pink", "birch", "ud"),
+            StainCandidate("black", "pine", "ns", "stainedplankslab"),
         });
 
         Assert.Equal(new[] { "stained-red-oak", "stained-blue-agedebony", "stained-green-cedar" },
-            actual.Properties().Where(p => p.Name.StartsWith("stained-")).Select(p => p.Name));
-        AssertJson(JObject.Parse("""
+            actual.Properties().Select(p => p.Name));
+        AssertJson(JObject.Parse($$"""
         {
             "TextureBlock": "woodstain:stainedplanks-red-oak-ns",
-            "Elements": { "front": "front-weatherboard", "back": "back-boards" },
-            "FloorElements": {
-                "front": { "hboards": "front-hboards", "boards": "front-boards" },
-                "back": { "hboards": "back-hboards", "boards": "back-boards" }
-            },
-            "Styles": [ "weatherboard", "boards", "hboards" ],
-            "BlockMaterial": "Wood",
+            {{PlankLook}},
             "Consumes": { "type": "block", "code": "woodstain:stainedplanks-red-oak-*", "quantity": 1 },
             "Drops": [ { "type": "block", "code": "woodstain:stainedplanks-red-oak-ns", "quantity": { "avg": 1, "var": 0 } } ]
         }
@@ -316,17 +320,11 @@ public class MaterialFamiliesTests
         });
 
         Assert.Equal(new[] { "stained-red-oak", "dyed-red-oak", "dyed-blue-rottenebony" },
-            actual.Properties().Where(p => p.Name.StartsWith("dyed-") || p.Name.StartsWith("stained-")).Select(p => p.Name));
-        AssertJson(JObject.Parse("""
+            actual.Properties().Select(p => p.Name));
+        AssertJson(JObject.Parse($$"""
         {
             "Texture": "dyedwood:block/wood/planks/redoak1",
-            "Elements": { "front": "front-weatherboard", "back": "back-boards" },
-            "FloorElements": {
-                "front": { "hboards": "front-hboards", "boards": "front-boards" },
-                "back": { "hboards": "back-hboards", "boards": "back-boards" }
-            },
-            "Styles": [ "weatherboard", "boards", "hboards" ],
-            "BlockMaterial": "Wood",
+            {{PlankLook}},
             "Consumes": { "type": "block", "code": "dyedwood:planks", "quantity": 1, "attributes": { "types": { "color": "red", "wood": "oak" } } },
             "Drops": [ { "type": "block", "code": "dyedwood:planks", "quantity": { "avg": 1, "var": 0 }, "attributes": { "types": { "color": "red", "wood": "oak" } } } ]
         }

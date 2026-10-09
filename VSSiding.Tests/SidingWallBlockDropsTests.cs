@@ -105,7 +105,7 @@ public class SidingWallBlockDropsTests
     public void DropsKeepTheirAttributes()
     {
         var finishes = Dict("""
-        { "red-oak": { "Drops": [ { "type": "item", "code": "dyedwood:planks", "attributes": { "types": { "color": "red", "wood": "oak" } }, "quantity": { "avg": 2, "var": 0 } } ] } }
+        { "red-oak": { "Drops": [ { "type": "block", "code": "dyedwood:planks", "attributes": { "types": { "color": "red", "wood": "oak" } }, "quantity": { "avg": 1, "var": 0 } } ] } }
         """);
         var drops = new List<BlockDropItemStack>();
 

@@ -216,7 +216,7 @@ public class SidingWallTexSourceTests
     }
 
     [Fact]
-    public void AnyVariesOnlyForAWildcardFinish()
+    public void AnyVariesForAWildcardFinish()
     {
         var finishes = Dict("""
         { "planks": { "Texture": "game:block/wood/planks/oak*" }, "daub": { "Texture": "game:block/clay/daub/browngolden/normal1" } }
@@ -254,6 +254,20 @@ public class SidingWallTexSourceTests
 
         Assert.Same(blockTexture, resolved);
         Assert.Equal([new AssetLocation("woodstain:stainedplanks-red-oak-ns")], asked);
+    }
+
+    [Fact]
+    public void AStyleTextureWinsOverTextureBlock()
+    {
+        var finishes = Dict("""
+        { "stained": { "TextureBlock": "woodstain:stainedplanks-red-oak-ns", "StyleTextures": { "logs": "game:block/wood/debarked/oak" } } }
+        """);
+
+        CompositeTexture? resolved = SidingWallTexSource.ResolveTexture(
+            "front", null, null, "stained", null, null, Framings, Infills, finishes, frontStyle: "logs",
+            blockTexture: _ => new CompositeTexture(new AssetLocation("woodstain:block/wood/stain/red-oak")));
+
+        Assert.Equal(new AssetLocation("game:block/wood/debarked/oak"), resolved?.Base);
     }
 
     [Fact]
