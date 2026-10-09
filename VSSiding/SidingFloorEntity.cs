@@ -145,6 +145,7 @@ public class SidingFloorEntity : BlockEntity
         public TextureAtlasPosition this[string textureCode] => SidingWallTexSource.AtlasPosition(capi, SidingWallTexSource.ResolveTexture(
             textureCode, entity.Framing, entity.Infill, entity.Front, null, entity.Back,
             entity.Block.Attributes["Framings"], entity.Block.Attributes["Infills"], entity.Block.Attributes["Finishes"],
-            entity.FrontStyle, null, entity.BackStyle), alternate);
+            entity.FrontStyle, null, entity.BackStyle,
+            blockTexture: SidingWallTexSource.BlockTexture(capi)), alternate);
     }
 }

@@ -100,4 +100,17 @@ public class SidingWallBlockDropsTests
 
         Assert.Equal(new[] { (EnumItemClass.Item, "game:plank-oak"), (EnumItemClass.Block, "game:cobblestone-granite") }, drops.ConvertAll(d => (d.Type, d.Code!.ToString())).ToArray());
     }
+
+    [Fact]
+    public void DropsKeepTheirAttributes()
+    {
+        var finishes = Dict("""
+        { "red-oak": { "Drops": [ { "type": "block", "code": "dyedwood:planks", "attributes": { "types": { "color": "red", "wood": "oak" } }, "quantity": { "avg": 1, "var": 0 } } ] } }
+        """);
+        var drops = new List<BlockDropItemStack>();
+
+        SidingWallBlock.AddDrops(drops, "red-oak", finishes);
+
+        Assert.Equal(JToken.Parse("""{ "types": { "color": "red", "wood": "oak" } }"""), Assert.Single(drops).Attributes?.Token);
+    }
 }

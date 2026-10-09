@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json.Linq;
 using Vintagestory.API.Client;
@@ -38,7 +39,8 @@ public class SidingWallTexSource : ITexPositionSource
             CompositeTexture? texture = ResolveTexture(
                 textureCode, entity.Framing, entity.Infill, entity.Front, entity.SecondFront, entity.Back,
                 framings, infills, finishes, entity.FrontStyle, entity.SecondFrontStyle, entity.BackStyle, entity.Deck,
-                entity.DeckInfill, entity.DeckFront, entity.DeckBack, entity.DeckFrontStyle, entity.DeckBackStyle);
+                entity.DeckInfill, entity.DeckFront, entity.DeckBack, entity.DeckFrontStyle, entity.DeckBackStyle,
+                blockTexture: BlockTexture(capi));
             return AtlasPosition(capi, texture, alternate);
         }
     }
@@ -49,7 +51,20 @@ public class SidingWallTexSource : ITexPositionSource
     internal static int Alternate(BlockPos pos) => GameMath.Mod(GameMath.MurmurHash3(pos.X, pos.Y, pos.Z), 120);
 
     internal static bool AnyVaries(JsonObject dictionary, params string?[] keys)
-        => keys.Any(key => key != null && dictionary[key]["Texture"].AsString(null!)?.EndsWith('*') == true);
+        => keys.Any(key => key != null
+            && (dictionary[key]["Texture"].AsString(null!)?.EndsWith('*') == true || dictionary[key]["TextureBlock"].Exists));
+
+    // A block's own baked texture, for a material entry's TextureBlock.
+    internal static System.Func<AssetLocation, CompositeTexture?> BlockTexture(ICoreClientAPI capi)
+        => code => SideTexture(capi.World.GetBlock(code)?.Textures);
+
+    // The texture a wall would show: a side face's. A pillar block turns its top and bottom a
+    // quarter turn so the boards run its way, and lists them ahead of its sides (Wood Stain's
+    // planks on a client: verticals, up, down, then north), so the first texture is the turned one.
+    internal static CompositeTexture? SideTexture(IDictionary<string, CompositeTexture>? textures)
+        => textures == null ? null
+            : textures.TryGetValue(BlockFacing.NORTH.Code, out var side) ? side
+            : textures.Values.FirstOrDefault();
 
     // Variant 0 is the base, then the alternates, the order Bake lists them in.
     internal static CompositeTexture PickAlternate(CompositeTexture baked, int alternate)
@@ -62,11 +77,8 @@ public class SidingWallTexSource : ITexPositionSource
     internal static TextureAtlasPosition AtlasPosition(ICoreClientAPI capi, CompositeTexture? texture, int alternate = 0)
     {
         texture ??= new CompositeTexture(new AssetLocation("game:block/wood/planks/oak1"));
-        if (texture.Base.EndsWithWildCard)
-        {
-            texture.Bake(capi.Assets);
-            texture = PickAlternate(texture, alternate);
-        }
+        if (texture.Base.EndsWithWildCard) texture.Bake(capi.Assets);
+        texture = PickAlternate(texture, alternate);
         var atlas = capi.BlockTextureAtlas;
         // The plain indexer only finds textures some other block/item already caused to
         // be packed into the atlas - most of our material textures aren't declared by
@@ -96,7 +108,8 @@ public class SidingWallTexSource : ITexPositionSource
         JsonObject framings, JsonObject infills, JsonObject finishes,
         string? frontStyle = null, string? secondFrontStyle = null, string? backStyle = null, string? deck = null,
         string? deckInfill = null, string? deckFront = null, string? deckBack = null,
-        string? deckFrontStyle = null, string? deckBackStyle = null)
+        string? deckFrontStyle = null, string? deckBackStyle = null,
+        System.Func<AssetLocation, CompositeTexture?>? blockTexture = null)
     {
         if (slotCode == "lashing") return new CompositeTexture(new AssetLocation(LashingTexture));
 
@@ -121,9 +134,10 @@ public class SidingWallTexSource : ITexPositionSource
         if (!entry.Exists) return null;
 
         string? resolvedStyle = style ?? StyleSuffix(entry, face);
-        var texture = resolvedStyle != null && entry["StyleTextures"][resolvedStyle].Exists
-            ? entry["StyleTextures"][resolvedStyle]
-            : entry["Texture"];
+        bool styled = resolvedStyle != null && entry["StyleTextures"][resolvedStyle].Exists;
+        if (!styled && entry["TextureBlock"].AsString(null!) is { } blockCode)
+            return blockTexture?.Invoke(new AssetLocation(blockCode));
+        var texture = styled ? entry["StyleTextures"][resolvedStyle!] : entry["Texture"];
         if (texture.Token?.Type == JTokenType.Object)
             return texture.AsObject<CompositeTexture>() is { Base: not null } composite ? composite : null;
         string? path = texture.AsString(null!);

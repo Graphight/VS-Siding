@@ -25,22 +25,20 @@ public static class MaterialFamilies
             // Family entries can come from other mods' patches, so a malformed one costs that material, not the load.
             if (family.Value is not JObject template || template["Match"] is not JObject match
                 || match["code"] is not JValue { Type: JTokenType.String } codeToken
-                || match["variant"] is not JValue { Type: JTokenType.String } variantToken)
+                || VariantNames(match["variant"]) is not { } variantNames)
             {
                 warn?.Invoke($"material family '{family.Name}' needs Match.code and Match.variant; skipped");
                 continue;
             }
             string type = (string?)match["type"] ?? "item";
             var codePattern = new AssetLocation((string)codeToken!);
-            string variant = (string)variantToken!;
-            string placeholder = "{" + variant + "}";
 
             foreach (var (candidateType, code, variants) in candidates)
             {
                 if (candidateType != type || !WildcardUtil.Match(codePattern, code)) continue;
-                if (!variants.TryGetValue(variant, out string? value)) continue;
+                if (!variantNames.All(variants.ContainsKey)) continue;
 
-                string key = family.Name.Replace(placeholder, value);
+                string key = Fill(family.Name, variantNames, variants);
                 if (result.ContainsKey(key)) continue;
                 if (SidingWallBlock.MatchConsumes(code, explicitMaterials) != null) continue;
 
@@ -48,7 +46,7 @@ public static class MaterialFamilies
                 entry.Remove("Match");
                 foreach (var str in entry.Descendants().OfType<JValue>().Where(v => v.Type == JTokenType.String).ToList())
                 {
-                    str.Value = ((string)str.Value!).Replace(placeholder, value).Replace("{domain}", code.Domain);
+                    str.Value = Fill((string)str.Value!, variantNames, variants).Replace("{domain}", code.Domain);
                 }
                 result[key] = entry;
             }
@@ -56,6 +54,16 @@ public static class MaterialFamilies
 
         return result;
     }
+
+    private static List<string>? VariantNames(JToken? token) => token switch
+    {
+        JValue { Type: JTokenType.String } name => [(string)name!],
+        JArray { Count: > 0 } names when names.All(n => n is JValue { Type: JTokenType.String }) => names.Select(n => (string)n!).ToList(),
+        _ => null,
+    };
+
+    private static string Fill(string text, List<string> variantNames, IDictionary<string, string> variants)
+        => variantNames.Aggregate(text, (current, name) => current.Replace("{" + name + "}", variants[name]));
 
     // Lays a block's own attributes over the shared config/materials.json: each shared dictionary
     // keeps its entries, and an entry of the same key in the block's file replaces it whole.

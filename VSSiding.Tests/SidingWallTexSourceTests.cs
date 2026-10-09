@@ -216,7 +216,7 @@ public class SidingWallTexSourceTests
     }
 
     [Fact]
-    public void AnyVariesOnlyForAWildcardFinish()
+    public void AnyVariesForAWildcardFinish()
     {
         var finishes = Dict("""
         { "planks": { "Texture": "game:block/wood/planks/oak*" }, "daub": { "Texture": "game:block/clay/daub/browngolden/normal1" } }
@@ -225,6 +225,84 @@ public class SidingWallTexSourceTests
         Assert.Equal(
             new[] { true, false, false },
             new[] { SidingWallTexSource.AnyVaries(finishes, "daub", "planks"), SidingWallTexSource.AnyVaries(finishes, "daub", null), SidingWallTexSource.AnyVaries(finishes) });
+    }
+
+    [Fact]
+    public void AnyVariesForAFinishTakenFromABlock()
+    {
+        var finishes = Dict("""
+        { "stained": { "TextureBlock": "woodstain:stainedplanks-red-oak-ns" }, "daub": { "Texture": "game:block/clay/daub/browngolden/normal1" } }
+        """);
+
+        Assert.Equal(
+            new[] { true, false },
+            new[] { SidingWallTexSource.AnyVaries(finishes, "stained"), SidingWallTexSource.AnyVaries(finishes, "daub") });
+    }
+
+    [Fact]
+    public void TextureBlockResolvesThroughTheBlockLookup()
+    {
+        var finishes = Dict("""
+        { "stained": { "TextureBlock": "woodstain:stainedplanks-red-oak-ns", "Texture": "game:block/wood/planks/oak1" } }
+        """);
+        var blockTexture = new CompositeTexture(new AssetLocation("woodstain:block/wood/stain/red-oak"));
+        var asked = new List<AssetLocation>();
+
+        CompositeTexture? resolved = SidingWallTexSource.ResolveTexture(
+            "front", null, null, "stained", null, null, Framings, Infills, finishes,
+            blockTexture: code => { asked.Add(code); return blockTexture; });
+
+        Assert.Same(blockTexture, resolved);
+        Assert.Equal([new AssetLocation("woodstain:stainedplanks-red-oak-ns")], asked);
+    }
+
+    private static CompositeTexture Turned(string path, int rotation) => new(new AssetLocation(path)) { Rotation = rotation };
+
+    // What a client holds for woodstain:stainedplanks-red-aged-ns, read from its log.
+    [Fact]
+    public void SideTextureIsASideFaceNotTheFirstTexture()
+    {
+        var side = Turned("game:block/wood/planks/aged/aged1", 0);
+        var pillar = new Dictionary<string, CompositeTexture>
+        {
+            ["verticals"] = Turned("game:block/wood/planks/aged/aged1", 90),
+            ["up"] = Turned("game:block/wood/planks/aged/aged1", 90),
+            ["north"] = side,
+            ["all"] = Turned("game:unknown", 0),
+        };
+        var faceless = new Dictionary<string, CompositeTexture> { ["wood"] = side };
+
+        Assert.Equal(
+            new CompositeTexture?[] { side, side, null, null },
+            new[]
+            {
+                SidingWallTexSource.SideTexture(pillar), SidingWallTexSource.SideTexture(faceless),
+                SidingWallTexSource.SideTexture(new Dictionary<string, CompositeTexture>()), SidingWallTexSource.SideTexture(null),
+            });
+    }
+
+    [Fact]
+    public void AStyleTextureWinsOverTextureBlock()
+    {
+        var finishes = Dict("""
+        { "stained": { "TextureBlock": "woodstain:stainedplanks-red-oak-ns", "StyleTextures": { "logs": "game:block/wood/debarked/oak" } } }
+        """);
+
+        CompositeTexture? resolved = SidingWallTexSource.ResolveTexture(
+            "front", null, null, "stained", null, null, Framings, Infills, finishes, frontStyle: "logs",
+            blockTexture: _ => new CompositeTexture(new AssetLocation("woodstain:block/wood/stain/red-oak")));
+
+        Assert.Equal(new AssetLocation("game:block/wood/debarked/oak"), resolved?.Base);
+    }
+
+    [Fact]
+    public void TextureBlockWithoutALookupResolvesToNull()
+    {
+        var finishes = Dict("""
+        { "stained": { "TextureBlock": "woodstain:stainedplanks-red-oak-ns" } }
+        """);
+
+        Assert.Null(SidingWallTexSource.ResolveTexture("front", null, null, "stained", null, null, Framings, Infills, finishes));
     }
 
     // A cell's framing and plank finish share one alternate, so they must name the same variants.

@@ -559,7 +559,7 @@ public class SidingWallBlock : Block
             return true;
         }
 
-        string? finishKey = MatchConsumes(heldCode, Attributes["Finishes"]);
+        string? finishKey = MatchConsumes(heldCode, Attributes["Finishes"], slot.Itemstack!.Attributes);
         if (finishKey == null) return base.OnBlockInteractStart(world, byPlayer, blockSel);
 
         // The picker's chosen style is used only if this finish lists it; otherwise the entry's
@@ -646,7 +646,7 @@ public class SidingWallBlock : Block
             return true;
         }
 
-        string? finishKey = MatchConsumes(heldCode, Attributes["Finishes"]);
+        string? finishKey = MatchConsumes(heldCode, Attributes["Finishes"], slot.Itemstack!.Attributes);
         if (finishKey == null) return base.OnBlockInteractStart(world, byPlayer, blockSel);
 
         bool heldPlaces = slot.Itemstack!.Class == EnumItemClass.Block || MatchConsumes(heldCode, Attributes["Framings"]) != null;
@@ -1427,8 +1427,10 @@ public class SidingWallBlock : Block
         => !filled && MatchConsumes(heldCode, infills) != null ? null : MatchConsumes(heldCode, framings);
 
     // Finds the material dictionary entry whose Consumes.code matches the held item, so a
-    // build-flow behavior can turn "the player right-clicked with plank-oak" into "oak".
-    internal static string? MatchConsumes(AssetLocation heldCode, JsonObject materials)
+    // build-flow behavior can turn "the player right-clicked with plank-oak" into "oak". An entry
+    // with Consumes.attributes also needs the held stack to carry them, which is what tells one
+    // dyed plank from another under a single block code (decision 0068).
+    internal static string? MatchConsumes(AssetLocation heldCode, JsonObject materials, ITreeAttribute? heldAttributes = null)
     {
         if (!materials.Exists) return null;
 
@@ -1441,10 +1443,32 @@ public class SidingWallBlock : Block
             string? code = consumes["code"].AsString(null!);
             if (code == null) continue;
 
-            if (WildcardUtil.Match(new AssetLocation(code), heldCode)) return key;
+            if (!WildcardUtil.Match(new AssetLocation(code), heldCode)) continue;
+
+            var wanted = consumes["attributes"];
+            if (wanted.Exists && (heldAttributes == null || wanted.ToAttribute() is not ITreeAttribute tree || !Carries(heldAttributes, tree))) continue;
+
+            return key;
         }
 
         return null;
+    }
+
+    // Every wanted key is in the held tree with an equal value, at every depth. Vanilla's
+    // TreeAttribute.IsSubSetOf turns the test round one level down, held inside wanted, and casts the
+    // held value to a tree unchecked; a dyed plank's types sit exactly one level down.
+    internal static bool Carries(ITreeAttribute held, ITreeAttribute wanted)
+    {
+        foreach (var (key, wantedValue) in wanted)
+        {
+            IAttribute? heldValue = held[key];
+            if (wantedValue is ITreeAttribute wantedTree)
+            {
+                if (heldValue is not ITreeAttribute heldTree || !Carries(heldTree, wantedTree)) return false;
+            }
+            else if (heldValue == null || !wantedValue.Equals(null!, heldValue)) return false;
+        }
+        return true;
     }
 
     internal static int ConsumeQuantity(JsonObject consumes) => consumes["quantity"].AsInt(1);

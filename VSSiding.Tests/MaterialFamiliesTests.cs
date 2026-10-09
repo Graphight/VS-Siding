@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Newtonsoft.Json.Linq;
 using Vintagestory.API.Common;
 using Xunit;
@@ -146,6 +147,56 @@ public class MaterialFamiliesTests
     }
 
     [Fact]
+    public void ListedVariantsFillEveryPlaceholderAndALackingCandidateIsLeftOut()
+    {
+        var families = JObject.Parse("""
+        {
+            "stained-{stain}-{wood}": {
+                "Match": { "type": "block", "code": "woodstain:stainedplanks-*-*-ns", "variant": ["stain", "wood"] },
+                "Texture": "{domain}:block/{stain}/{wood}1",
+                "Consumes": { "type": "block", "code": "{domain}:stainedplanks-{stain}-{wood}-*", "quantity": 1 }
+            }
+        }
+        """);
+
+        var actual = MaterialFamilies.Expand(families, new JObject(), new (string, AssetLocation, IDictionary<string, string>)[]
+        {
+            ("block", new AssetLocation("woodstain:stainedplanks-red-oak-ns"), new Dictionary<string, string> { ["stain"] = "red", ["wood"] = "oak" }),
+            ("block", new AssetLocation("woodstain:stainedplanks-blue-pine-ns"), new Dictionary<string, string> { ["stain"] = "blue" }),
+        });
+
+        AssertJson(JObject.Parse("""
+        {
+            "stained-red-oak": {
+                "Texture": "woodstain:block/red/oak1",
+                "Consumes": { "type": "block", "code": "woodstain:stainedplanks-red-oak-*", "quantity": 1 }
+            }
+        }
+        """), actual);
+    }
+
+    [Fact]
+    public void AnEmptyOrNonStringVariantListIsSkippedWithAWarning()
+    {
+        var families = JObject.Parse("""
+        {
+            "empty-{wood}": { "Match": { "code": "game:plank-*", "variant": [] }, "Texture": "x" },
+            "number-{wood}": { "Match": { "code": "game:plank-*", "variant": ["wood", 3] }, "Texture": "x" }
+        }
+        """);
+        var warnings = new List<string>();
+
+        var actual = MaterialFamilies.Expand(families, new JObject(), new[] { Candidate("item", "game:plank-birch", "wood", "birch") }, warnings.Add);
+
+        AssertJson(new JObject(), actual);
+        Assert.Equal(new[]
+        {
+            "material family 'empty-{wood}' needs Match.code and Match.variant; skipped",
+            "material family 'number-{wood}' needs Match.code and Match.variant; skipped",
+        }, warnings);
+    }
+
+    [Fact]
     public void RegexMatchExcludesVariants()
     {
         var families = JObject.Parse("""
@@ -209,5 +260,74 @@ public class MaterialFamiliesTests
         """);
         Assert.True(JToken.DeepEquals(expected, MaterialFamilies.MergeShared(shared, attributes)),
             MaterialFamilies.MergeShared(shared, attributes).ToString());
+    }
+
+    // What every plank finish shares, whichever mod the plank comes from.
+    private const string PlankLook = """
+        "Elements": { "front": "front-weatherboard", "back": "back-boards" },
+        "FloorElements": {
+            "front": { "hboards": "front-hboards", "boards": "front-boards" },
+            "back": { "hboards": "back-hboards", "boards": "back-boards" }
+        },
+        "Styles": [ "weatherboard", "boards", "hboards" ],
+        "BlockMaterial": "Wood"
+        """;
+
+    private static (string, AssetLocation, IDictionary<string, string>) StainCandidate(string stain, string wood, string orientation, string block = "stainedplanks")
+        => ("block", new AssetLocation($"woodstain:{block}-{stain}-{wood}-{orientation}"),
+            new Dictionary<string, string> { ["stain"] = stain, ["wood"] = wood, ["orientation"] = orientation });
+
+    [Fact]
+    public void ShippedWoodStainTemplateExpandsOneEntryPerStainAndWood()
+    {
+        var families = (JObject)MaterialTextureOpacityTests.BlockAttributes("wall.json")["FinishFamilies"]!;
+
+        var actual = MaterialFamilies.Expand(families, new JObject(), new[]
+        {
+            StainCandidate("red", "oak", "ns"),
+            StainCandidate("blue", "agedebony", "ns"),
+            StainCandidate("green", "cedar", "ns"),
+            StainCandidate("pink", "birch", "ud"),
+            StainCandidate("black", "pine", "ns", "stainedplankslab"),
+        });
+
+        Assert.Equal(new[] { "stained-red-oak", "stained-blue-agedebony", "stained-green-cedar" },
+            actual.Properties().Select(p => p.Name));
+        AssertJson(JObject.Parse($$"""
+        {
+            "TextureBlock": "woodstain:stainedplanks-red-oak-ns",
+            {{PlankLook}},
+            "Consumes": { "type": "block", "code": "woodstain:stainedplanks-red-oak-*", "quantity": 1 },
+            "Drops": [ { "type": "block", "code": "woodstain:stainedplanks-red-oak-ns", "quantity": { "avg": 1, "var": 0 } } ]
+        }
+        """), (JObject)actual["stained-red-oak"]!);
+    }
+
+    private static (string, AssetLocation, IDictionary<string, string>) DyeCandidate(string color, string wood)
+        => ("block", new AssetLocation($"dyedwood:chiselmaterial-{color}-{wood}"),
+            new Dictionary<string, string> { ["color"] = color, ["wood"] = wood });
+
+    [Fact]
+    public void ShippedDyedWoodTemplateExpandsUnderItsOwnPrefix()
+    {
+        var families = (JObject)MaterialTextureOpacityTests.BlockAttributes("wall.json")["FinishFamilies"]!;
+
+        var actual = MaterialFamilies.Expand(families, new JObject(), new[]
+        {
+            DyeCandidate("red", "oak"),
+            DyeCandidate("blue", "rottenebony"),
+            StainCandidate("red", "oak", "ns"),
+        });
+
+        Assert.Equal(new[] { "stained-red-oak", "dyed-red-oak", "dyed-blue-rottenebony" },
+            actual.Properties().Select(p => p.Name));
+        AssertJson(JObject.Parse($$"""
+        {
+            "Texture": "dyedwood:block/wood/planks/redoak1",
+            {{PlankLook}},
+            "Consumes": { "type": "block", "code": "dyedwood:planks", "quantity": 1, "attributes": { "types": { "color": "red", "wood": "oak" } } },
+            "Drops": [ { "type": "block", "code": "dyedwood:planks", "quantity": { "avg": 1, "var": 0 }, "attributes": { "types": { "color": "red", "wood": "oak" } } } ]
+        }
+        """), (JObject)actual["dyed-red-oak"]!);
     }
 }
