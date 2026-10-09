@@ -59,11 +59,13 @@ A generator test pins the panel's ends inside the posts and its front on the nor
 `WallShapeGen`'s `Element` gains `RotationY` and `RotationOrigin`, and `EmitElement` writes vanilla's `rotationY` and `rotationOrigin` only when an element is turned.
 The three earlier shapes are byte-identical, and `WallShapeGenTests` still pins every committed shape to the generator, so `just shapes` ran in the same change.
 
-**A staircase of seven boxes.**
-Collision and selection are seven overlapping 4x4 boxes in plan, k = 0 to 6, stepping corner to corner.
+**A staircase of thirteen boxes.**
+Collision and selection are thirteen overlapping 4x4 boxes in plan, k = 0 to 12, each one voxel along from the last, stepping corner to corner.
 The first and the last are the posts.
-A bare frame collides on the posts and the five middle boxes at the top plate's height, as a bare wall does (decision 0008).
-Eight 2x2 boxes were the proposal's count; seven 4x4 boxes cover the panel's 4 voxel thickness, and the first and the last are the posts' own boxes.
+A bare frame collides on the posts and the eleven middle boxes at the top plate's height, as a bare wall does (decision 0008).
+Eight 2x2 boxes were the proposal's count; 4x4 boxes cover the panel's 4 voxel thickness, and the first and the last are the posts' own boxes.
+The first build stepped by two voxels, seven boxes, and in play a player running along the wall caught on the steps.
+One voxel is the size of a chiselled step.
 
 **One front, one back.**
 A click on either claimed face resolves to `front` and on either opposite face to `back`; there is no `secondfront` (decision 0009), since the panel has one outer face.
@@ -96,11 +98,11 @@ The deck branch of `OnBlockInteractStart` returns an in-game error (`build-diago
 - **Auto-chamfer a corner from its neighbours.** `auto-corners` is parked for the same reason: the player places the piece.
 
 ## Consequences & open questions
-- **This has not been played.**
+- **The one-voxel staircase has not been played.**
 The proposal made walking along the staircase of boxes the test that decides whether the idea goes ahead.
-The build went ahead without it because the work was done unattended.
-It must be played before this is merged: walk, sprint and slide along both faces of a run of three, then `/sidingroom` in an octagon of four straight runs and four diagonals.
-If the steps catch, the idea stops there.
+The two-voxel staircase was played and caught, and the walls sealed.
+The one-voxel staircase must be played before this is merged: walk, sprint and slide along both faces of a run.
+If the steps still catch, the idea stops there.
 - Whether the turned faces light and cull as an axis-aligned one's do, next to a sealed cell, is unplayed (decisions 0015, 0018, 0034), as is the join to a straight wall at each post.
 - The triangle outside a filled diagonal takes the room's light and wind, as the design says.
 How it looks is unplayed: the ground there by day beside a dark room and by night beside a lit one, and the wind standing in it.

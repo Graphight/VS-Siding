@@ -35,7 +35,7 @@ public class SidingWallBlock : Block
     // Unrotated ("west") framing boxes per layout, matching the framing elements in
     // wall.json/cornerout.json: full-height posts, then top plates. Bottom plates don't
     // collide - standing on one would lift the player into a two-high doorway's top plate.
-    // A diagonal's are the two ends of its staircase in blocktypes/wall.json, then the five
+    // A diagonal's are the two ends of its staircase in blocktypes/wall.json, then the eleven
     // steps between them at plate height.
     private static readonly Dictionary<string, (Cuboidf[] posts, Cuboidf[] top)> UnrotatedFramingBoxes = new()
     {
@@ -64,8 +64,8 @@ public class SidingWallBlock : Block
                 new Cuboidf(0, 0, 12f / 16, 4f / 16, 1, 1),
                 new Cuboidf(12f / 16, 0, 0, 1, 1, 4f / 16),
             },
-            Enumerable.Range(1, 5)
-                .Select(k => new Cuboidf(2f * k / 16, 15f / 16, (12f - 2 * k) / 16, (2f * k + 4) / 16, 1, (16f - 2 * k) / 16))
+            Enumerable.Range(1, 11)
+                .Select(k => new Cuboidf(k / 16f, 15f / 16, (12f - k) / 16, (k + 4f) / 16, 1, (16f - k) / 16))
                 .ToArray()),
     };
 
