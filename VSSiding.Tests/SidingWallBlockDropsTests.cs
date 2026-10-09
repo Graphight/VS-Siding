@@ -111,6 +111,6 @@ public class SidingWallBlockDropsTests
 
         SidingWallBlock.AddDrops(drops, "red-oak", finishes);
 
-        Assert.Equal(JToken.Parse("""{ "types": { "color": "red", "wood": "oak" } }"""), Assert.Single(drops).Attributes.Token);
+        Assert.Equal(JToken.Parse("""{ "types": { "color": "red", "wood": "oak" } }"""), Assert.Single(drops).Attributes?.Token);
     }
 }

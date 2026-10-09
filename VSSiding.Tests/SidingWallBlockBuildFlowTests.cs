@@ -28,14 +28,18 @@ public class SidingWallBlockBuildFlowTests
     }
     """);
 
-    private static TreeAttribute Types(string color, string wood)
+    private static TreeAttribute Held(IAttribute types)
     {
-        var types = new TreeAttribute();
-        types.SetString("color", color);
-        types.SetString("wood", wood);
         var held = new TreeAttribute();
         held["types"] = types;
         return held;
+    }
+
+    private static TreeAttribute Types(params (string Key, string Value)[] entries)
+    {
+        var types = new TreeAttribute();
+        foreach (var (key, value) in entries) types.SetString(key, value);
+        return Held(types);
     }
 
     [Fact]
@@ -43,17 +47,23 @@ public class SidingWallBlockBuildFlowTests
     {
         var dyed = new AssetLocation("dyedwood:planks");
 
+        var redOak = Types(("color", "red"), ("wood", "oak"));
+
         var keys = new[]
         {
-            SidingWallBlock.MatchConsumes(dyed, DyedFinishes, Types("red", "oak")),
-            SidingWallBlock.MatchConsumes(dyed, DyedFinishes, Types("red", "acacia")),
+            SidingWallBlock.MatchConsumes(dyed, DyedFinishes, redOak),
+            SidingWallBlock.MatchConsumes(dyed, DyedFinishes, Types(("color", "red"), ("wood", "acacia"))),
+            SidingWallBlock.MatchConsumes(dyed, DyedFinishes, Types(("color", "red"), ("wood", "oak"), ("grain", "fine"))),
+            SidingWallBlock.MatchConsumes(dyed, DyedFinishes, Types(("color", "red"))),
+            SidingWallBlock.MatchConsumes(dyed, DyedFinishes, Types()),
+            SidingWallBlock.MatchConsumes(dyed, DyedFinishes, Held(new StringAttribute("red"))),
             SidingWallBlock.MatchConsumes(dyed, DyedFinishes, null),
             SidingWallBlock.MatchConsumes(dyed, DyedFinishes, new TreeAttribute()),
-            SidingWallBlock.MatchConsumes(new AssetLocation("game:clay-blue"), DyedFinishes, Types("red", "oak")),
-            SidingWallBlock.MatchConsumes(new AssetLocation("game:stick"), DyedFinishes, Types("red", "oak")),
+            SidingWallBlock.MatchConsumes(new AssetLocation("game:clay-blue"), DyedFinishes, redOak),
+            SidingWallBlock.MatchConsumes(new AssetLocation("game:stick"), DyedFinishes, redOak),
         };
 
-        Assert.Equal(new string?[] { "red-oak", "red-acacia", null, null, "clay", null }, keys);
+        Assert.Equal(new string?[] { "red-oak", "red-acacia", "red-oak", null, null, null, null, null, "clay", null }, keys);
     }
 
     [Theory]

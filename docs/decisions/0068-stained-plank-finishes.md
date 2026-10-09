@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Created: 2026-10-08
-- Reflects: mod page comment https://mods.vintagestory.at/vssiding#cmt-244452; branch `feat/stained-plank-finishes`; Dyed Wood 2.1.0's shipped assets and its shipped source (the zip carries `src/`); Wood Stain 1.3.2's and Vanilla Varnished Planks 1.0.6's shipped assets only; the game 1.22.7 decompile for `BlockDropItemStack.Resolve`, `CompositeTexture.Bake`, `TextureAtlasManager.GetOrInsertTexture` and `TreeAttribute.IsSubSetOf`; `MaterialFamilies.Expand`, `SidingWallTexSource.ResolveTexture`/`AtlasPosition`/`AnyVaries`, `SidingWallBlock.MatchConsumes`, `config/materials.json`; decisions 0001, 0007, 0010; unit tests for each; none of the three mods has been played with Siding
+- Reflects: mod page comment https://mods.vintagestory.at/vssiding#cmt-244452; branch `feat/stained-plank-finishes`; Dyed Wood 2.1.0's shipped assets and its shipped source (the zip carries `src/`); Wood Stain 1.3.2's and Vanilla Varnished Planks 1.0.6's shipped assets only; the game 1.22.7 decompile for `BlockDropItemStack.Resolve`, `CompositeTexture.Bake`, `TextureAtlasManager.GetOrInsertTexture` and `TreeAttribute.IsSubSetOf`; `MaterialFamilies.Expand`, `SidingWallTexSource.ResolveTexture`/`AtlasPosition`/`AnyVaries`, `SidingWallBlock.MatchConsumes`, `config/materials.json`; decisions 0001, 0007, 0010; unit tests for each; the review of PR #112; none of the three mods has been played with Siding
 
 ## Summary
 A player asked for "compat with the dyed wood mod", and three mods could be meant, each storing a coloured plank differently.
@@ -25,7 +25,9 @@ A plank finish comes from the `planks-{wood}` template, which matches any `*:pla
   That block is what lets `Expand` enumerate the 154 pairs.
 - `BlockDropItemStack` has `Attributes`, and `Resolve` copies them onto the stack, so a `Drops` entry with `attributes` needs no code.
 - `ITextureAtlasAPI.GetOrInsertTexture(CompositeTexture, ...)` bakes the texture and looks it up by baked name, which includes blended overlays and their blend mode.
-- `TreeAttribute.IsSubSetOf(IWorldAccessor, IAttribute)` is what vanilla uses to match a wanted attribute tree against a stack's.
+- `TreeAttribute.IsSubSetOf(IWorldAccessor, IAttribute)` tests wanted inside held at the top level only.
+  One level down it recurses as held inside wanted, and it casts the held value to a tree without a check.
+  A dyed plank's `types` sit one level down.
 
 ## Design
 **`Match.variant` takes a string or a list of strings.**
@@ -42,7 +44,9 @@ A Wood Stain block's texture already carries the overlay, its blend mode and the
 
 **`Consumes.attributes` is matched against the held stack.**
 `SidingWallBlock.MatchConsumes` takes the held stack's attributes as an optional third argument.
-After the code matches, an entry whose `Consumes.attributes` exists is skipped unless the held attributes are non-null and the wanted tree is a subset of them (`IsSubSetOf`).
+After the code matches, an entry whose `Consumes.attributes` exists is skipped unless the held attributes are non-null and carry the wanted tree.
+`SidingWallBlock.Carries` is that test: every wanted key is in the held tree with an equal value, at every depth, and a held value that is not a tree where a tree is wanted fails.
+A held `types` with a key more than the entry names still matches; one with a key fewer, an empty one, or one that is not a tree matches nothing.
 A malformed `attributes` value, one that is not a tree, skips the entry.
 Only the three finish lookups pass the held stack's attributes: the two in `SidingWallBlock` and the one in `SidingFloorBlock`.
 Framing and infill lookups keep matching by code alone.
@@ -66,13 +70,14 @@ The existing `planks-{wood}` template picks up its `plank-{wood}` items, as it d
 - **A patch shipped by the other mod.** `FinishFamilies` is open to other mods' patches, but a two-variant block could not be expressed in it, so the template work came first either way.
 - **A path template limited by regex to the 12 vanilla woods.** It needs no texture code, since the base and overlay could be named from paths, but it leaves Wood Stain's aged woods and the Wildcraft Trees woods unsupported.
 - **Candidates taken from a block's creative inventory stacks.** It was the proposal's way to enumerate Dyed Wood's pairs, and it is not needed once `dyedwood:chiselmaterial-{color}-{wood}` was found.
+- **Vanilla's `IsSubSetOf` for the attribute match.** It was the first build, and the review of PR #112 showed what it does one level down: a held `types` with an extra key matched nothing, one with only a colour matched the first entry of that colour, an empty one matched the first dyed entry, and a string threw out of `OnBlockInteractStart`.
 - **Stained framings.** The frame is mostly covered once a wall is finished; left until someone asks.
 
 ## Consequences & open questions
 **Not seen in play.**
 The unit tests pin the expanded entries, the texture resolution and the attribute match; none of the three mods was loaded beside Siding.
 - That the atlas returns a block's already-packed texture by its baked name, overlay and blend mode included.
-- The shape of the `types` attribute on a held Dyed Wood stack, which `IsSubSetOf` must find the wanted tree inside.
+- The shape of the `types` attribute on a held Dyed Wood stack, which `Carries` must find the wanted tree inside.
 - Whether a peeled stack merges with the stack it came from, for both mods.
 - How each mod's plank looks on a wall and a floor beside the mod's own block.
 

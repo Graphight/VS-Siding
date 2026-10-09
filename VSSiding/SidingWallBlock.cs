@@ -1446,12 +1446,29 @@ public class SidingWallBlock : Block
             if (!WildcardUtil.Match(new AssetLocation(code), heldCode)) continue;
 
             var wanted = consumes["attributes"];
-            if (wanted.Exists && (heldAttributes == null || wanted.ToAttribute() is not TreeAttribute tree || !tree.IsSubSetOf(null!, heldAttributes))) continue;
+            if (wanted.Exists && (heldAttributes == null || wanted.ToAttribute() is not ITreeAttribute tree || !Carries(heldAttributes, tree))) continue;
 
             return key;
         }
 
         return null;
+    }
+
+    // Every wanted key is in the held tree with an equal value, at every depth. Vanilla's
+    // TreeAttribute.IsSubSetOf turns the test round one level down, held inside wanted, and casts the
+    // held value to a tree unchecked; a dyed plank's types sit exactly one level down.
+    internal static bool Carries(ITreeAttribute held, ITreeAttribute wanted)
+    {
+        foreach (var (key, wantedValue) in wanted)
+        {
+            IAttribute? heldValue = held[key];
+            if (wantedValue is ITreeAttribute wantedTree)
+            {
+                if (heldValue is not ITreeAttribute heldTree || !Carries(heldTree, wantedTree)) return false;
+            }
+            else if (heldValue == null || !wantedValue.Equals(null!, heldValue)) return false;
+        }
+        return true;
     }
 
     internal static int ConsumeQuantity(JsonObject consumes) => consumes["quantity"].AsInt(1);
