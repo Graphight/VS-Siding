@@ -146,6 +146,56 @@ public class MaterialFamiliesTests
     }
 
     [Fact]
+    public void ListedVariantsFillEveryPlaceholderAndALackingCandidateIsLeftOut()
+    {
+        var families = JObject.Parse("""
+        {
+            "stained-{stain}-{wood}": {
+                "Match": { "type": "block", "code": "woodstain:stainedplanks-*-*-ns", "variant": ["stain", "wood"] },
+                "Texture": "{domain}:block/{stain}/{wood}1",
+                "Consumes": { "type": "block", "code": "{domain}:stainedplanks-{stain}-{wood}-*", "quantity": 1 }
+            }
+        }
+        """);
+
+        var actual = MaterialFamilies.Expand(families, new JObject(), new (string, AssetLocation, IDictionary<string, string>)[]
+        {
+            ("block", new AssetLocation("woodstain:stainedplanks-red-oak-ns"), new Dictionary<string, string> { ["stain"] = "red", ["wood"] = "oak" }),
+            ("block", new AssetLocation("woodstain:stainedplanks-blue-pine-ns"), new Dictionary<string, string> { ["stain"] = "blue" }),
+        });
+
+        AssertJson(JObject.Parse("""
+        {
+            "stained-red-oak": {
+                "Texture": "woodstain:block/red/oak1",
+                "Consumes": { "type": "block", "code": "woodstain:stainedplanks-red-oak-*", "quantity": 1 }
+            }
+        }
+        """), actual);
+    }
+
+    [Fact]
+    public void AnEmptyOrNonStringVariantListIsSkippedWithAWarning()
+    {
+        var families = JObject.Parse("""
+        {
+            "empty-{wood}": { "Match": { "code": "game:plank-*", "variant": [] }, "Texture": "x" },
+            "number-{wood}": { "Match": { "code": "game:plank-*", "variant": ["wood", 3] }, "Texture": "x" }
+        }
+        """);
+        var warnings = new List<string>();
+
+        var actual = MaterialFamilies.Expand(families, new JObject(), new[] { Candidate("item", "game:plank-birch", "wood", "birch") }, warnings.Add);
+
+        AssertJson(new JObject(), actual);
+        Assert.Equal(new[]
+        {
+            "material family 'empty-{wood}' needs Match.code and Match.variant; skipped",
+            "material family 'number-{wood}' needs Match.code and Match.variant; skipped",
+        }, warnings);
+    }
+
+    [Fact]
     public void RegexMatchExcludesVariants()
     {
         var families = JObject.Parse("""
