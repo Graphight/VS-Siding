@@ -44,6 +44,33 @@ public class DiagonalScenarios : AtlasScenarioBase
         Assert.Equal((("oak", null, null, null, null), null), (WallBuilder.Layers(World, cell), Deck(cell)));
     }
 
+    [AtlasScenario(FreshWorld = true)]
+    public async Task Diagonal_Should_KeepItsPlanks_When_ItsSideIsClickedWithTheDeckLit()
+    {
+        (BlockPos cell, ITestPlayer player) = await RaiseFrame("diagonal", deck: true);
+
+        await player.GiveItem("game:plank-oak", 2);
+        Assert.True(World.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, RoomSide(cell)));
+
+        Assert.Equal((null, 2), (Deck(cell), player.Player.InventoryManager.ActiveHotbarSlot.Itemstack?.StackSize));
+    }
+
+    // With no saw held the wall's click hosts or hands the click on; vanilla's placement asks IsReplacableBy.
+    [AtlasScenario(FreshWorld = true)]
+    public async Task Diagonal_Should_StayInItsCell_When_AChestIsPlacedThere()
+    {
+        (BlockPos cell, ITestPlayer player) = await RaiseFrame("diagonal", deck: false, infill: "game:clay-blue");
+
+        player.Entity.LeftHandItemSlot.Itemstack = null;
+        await player.GiveItem("game:chest-east", 1);
+        ItemStack chest = player.Player.InventoryManager.ActiveHotbarSlot.Itemstack!;
+        bool handled = World.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, RoomSide(cell));
+        string failure = "";
+        bool placed = chest.Block.TryPlaceBlock(player.Entity.World, player.Player, chest, RoomSide(cell), ref failure);
+
+        Assert.Equal((false, false, "diagonal", null), (handled, placed, World.BlockAt(cell).Variant["layout"], WallBuilder.GuestLayers(World, cell)));
+    }
+
     // The in-place upgrade keeps the block entity, and a diagonal has no box for a deck it carries over.
     [AtlasScenario(FreshWorld = true)]
     public async Task Frame_Should_StayAWall_When_ADeckedFrameIsClickedWithADiagonalPicked()
@@ -58,6 +85,9 @@ public class DiagonalScenarios : AtlasScenarioBase
 
         Assert.Equal(("wall", "oak"), (World.BlockAt(cell).Variant["layout"], Deck(cell)));
     }
+
+    private BlockSelection RoomSide(BlockPos cell)
+        => new() { Position = cell.Copy(), Face = BlockFacing.FromCode(World.BlockAt(cell).Variant["side"]).Opposite, HitPosition = new Vec3d(0.5, 0.5, 0.5) };
 
     private string? Deck(BlockPos cell)
     {
