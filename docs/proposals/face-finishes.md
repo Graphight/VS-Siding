@@ -2,7 +2,7 @@
 
 - Status: Draft
 - Created: 2026-10-06
-- Reflects: mod page comments https://mods.vintagestory.at/vssiding#cmt-243659, #cmt-243661 with its first screenshot and #cmt-245197; decompiled 1.22.7 `BlockBehaviorDecor`, `WorldChunk.SetDecor`/`BreakDecor`/`AdjustSelectionBoxForDecor`, `ChunkTesselator.BuildDecorPolygons`, `SurfaceLayerTesselator`, `DecorFlags`, `ServerChunk`'s decor serialisation, `SystemMouseInWorldInteractions.ContinueBreakSurvival`; vanilla `cloth/wallpaper.json`, `overlay/plaster.json`, `cloth/rug.json`, `cloth/mediumcarpet.json`; `SidingModePicker.Rows`, `PlaceWallFrame`, `config/materials.json`'s `planks-{wood}`; decisions 0001, 0010, 0027, 0031, 0035, 0040, 0051, 0058; issue #81; not built, not played
+- Reflects: mod page comments https://mods.vintagestory.at/vssiding#cmt-243659, #cmt-243661 with its first screenshot, #cmt-245197, the reply offering a face mode (#cmt-245413) and the player's answer (#cmt-245601); decompiled 1.22.7 `BlockBehaviorDecor`, `WorldChunk.SetDecor`/`BreakDecor`/`AdjustSelectionBoxForDecor`, `ChunkTesselator.BuildDecorPolygons`, `SurfaceLayerTesselator`, `DecorFlags`, `ServerChunk`'s decor serialisation, `SystemMouseInWorldInteractions.ContinueBreakSurvival`; vanilla `cloth/wallpaper.json`, `overlay/plaster.json`, `cloth/rug.json`, `cloth/mediumcarpet.json`; `SidingModePicker.Rows`, `PlaceWallFrame`, `config/materials.json`'s `planks-{wood}`; decisions 0001, 0010, 0027, 0031, 0035, 0040, 0051, 0058; issue #81; not built, not played
 
 ## Summary
 A player frames a house in full log blocks and wants a Siding finish on one face of a log: floorboards over a beam, siding on the room side of a post.
@@ -14,6 +14,12 @@ The proposal goes the other way round: the log stays vanilla's, and a finish goe
 "A 'fill block' sort of like Vs Roofings 'CTRL' to fill the block, and still have a flooring type on the top side, so I can have full block sides and everything else, but a proper floor inside the wall wthout seeing the log."
 And again: "to be able to place logs and other solid blocks, going down like my original screenshot, which would allow finishing the top of the 'floor'/'Deck' with whatever you want, but provide the bottom as a full block to build off".
 The first screenshot shows a house on log stilts with log beams under the floor's edge.
+
+**The player's answer.**
+Offered "a saw mode that replaces the current face on an existing block with a particular finish", which is this proposal, the player answered "definitely no full blocks. I was just saying I COULD solve it with a plank block", and went on to describe what Roofing's fill does under a roof frame.
+That description is recorded in `walls-under-roofing`.
+The player agrees that the mod should add no full block, and said neither yes nor no to the face mode.
+The four screenshots on the two requests show log stilts and beams under a floor and a one-wide stairwell from above and below, and none shows a roof, so the request is still read here as floors and posts.
 
 **The problem under it.**
 A cell holds one block.
@@ -81,6 +87,7 @@ On a top or bottom face the same two options are the two directions a floor's bo
 - **Chiselling.** Vanilla's chisel has an add-material mode (`ItemChisel`'s `addmat`), so a player can put a plank layer on a log today. `chiselling-walls` is about turning a wall into a microblock, which is a different job.
 
 ## Consequences & open questions
+- The player has not said the face mode is what they meant. Ask with a screenshot of a skinned beam before building past the first block.
 - Whether a plank texture on a flat quad lines up with a Siding floor's boards beside it. Issue #81 lined vertical boards up with vanilla plank blocks, which suggests it will; not looked at.
 - Chiselled hosts. `BlockEntityMicroBlock` takes decor through `IAcceptsDecor`, with its own storage, so a chiselled log needs that path or is left out at first.
 - A decor is drawn only where its host's face is drawn, so a face against an opaque neighbour shows nothing. What a face shows against the open part of a Siding wall's cell is to be played.

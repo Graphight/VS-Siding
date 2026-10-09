@@ -14,12 +14,15 @@ The proposal says so in the guide and lets a filled wall be upgraded to a corner
 The proposal confirms the one that should already match, adds two-placeholder family templates for Wood Stain, and leaves attribute stacks for Dyed Wood until asked.
 - `modded-furniture-hosting`: Kevins Furniture's two cabinets declare every side solid, so the hosting rule refuses them as cubes.
 The proposal adds an attribute a block can set to say whether it may be hosted, and ships it for those cabinets.
+A second player wants machinery flush to walls; Vintage Engineering's 21 machines are refused for a solid bottom, and 18 of them fill their cell, which is left open.
 - `face-finishes`: a player framing in full logs wants floorboards over a beam and siding on a post, asked for as a fill block.
 The proposal puts a plank finish on one face of any solid block as a vanilla decor block, flat, picked as a fourth option in the saw picker's first row.
+The player agreed that the mod should add no full block, and has not yet said the face mode is what they meant.
 - `real-smoke-flues`: a player vents a kitchen through trellises, which costs the room its heat, and asks for a flue or a hearth in a wall.
 Real Smoke stops smoke at a face that dams liquid, which a filled wall already reports, so the proposal plays what reading cannot settle and adds a vented wall on that mod's chimney behaviour only if no vanilla block already serves.
 - `walls-under-roofing`: a flat-topped wall leaves a stepped triangle under a Roofing gable.
 The proposal adds a raked wall, its top cut to a pitch picked on the saw and measured to match Roofing's slopes, without reading Roofing's state.
+A first cut takes framing and infill only, one generated shape per pitch as the diagonal wall's is; which cells of a Roofing gable are free for it is still to be built and looked at.
 - `chiselling-walls`: vanilla refuses to chisel a non-cube block, and the proposal converts a wall through its collision-box path with materials rebuilt from its layers.
 Parked until players asked; three requests now lead to it, for windows, trims and a way through for axles.
 It is the largest of these by far, so it is last.
