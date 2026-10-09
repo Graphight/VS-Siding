@@ -84,6 +84,3 @@ Join time with every mod loaded is not measured.
 
 **No Atlas scenario.**
 The templates match nothing without the third-party mods, so a headless run of the built mod expands neither.
-
-**Stained framings are not built.**
-A stained plank is a finish only, apart from the varnished planks, which are plank items and also frame.

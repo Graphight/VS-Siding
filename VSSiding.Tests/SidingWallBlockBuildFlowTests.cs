@@ -23,7 +23,8 @@ public class SidingWallBlockBuildFlowTests
     {
         "red-oak": { "Consumes": { "type": "item", "code": "dyedwood:planks", "attributes": { "types": { "color": "red", "wood": "oak" } } } },
         "red-acacia": { "Consumes": { "type": "item", "code": "dyedwood:planks", "attributes": { "types": { "color": "red", "wood": "acacia" } } } },
-        "clay": { "Consumes": { "type": "item", "code": "game:clay-blue" } }
+        "clay": { "Consumes": { "type": "item", "code": "game:clay-blue" } },
+        "malformed": { "Consumes": { "type": "item", "code": "game:stick", "attributes": "red" } }
     }
     """);
 
@@ -49,9 +50,10 @@ public class SidingWallBlockBuildFlowTests
             SidingWallBlock.MatchConsumes(dyed, DyedFinishes, null),
             SidingWallBlock.MatchConsumes(dyed, DyedFinishes, new TreeAttribute()),
             SidingWallBlock.MatchConsumes(new AssetLocation("game:clay-blue"), DyedFinishes, Types("red", "oak")),
+            SidingWallBlock.MatchConsumes(new AssetLocation("game:stick"), DyedFinishes, Types("red", "oak")),
         };
 
-        Assert.Equal(new string?[] { "red-oak", "red-acacia", null, null, "clay" }, keys);
+        Assert.Equal(new string?[] { "red-oak", "red-acacia", null, null, "clay", null }, keys);
     }
 
     [Theory]

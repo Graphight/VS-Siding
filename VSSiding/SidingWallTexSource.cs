@@ -67,10 +67,7 @@ public class SidingWallTexSource : ITexPositionSource
     internal static TextureAtlasPosition AtlasPosition(ICoreClientAPI capi, CompositeTexture? texture, int alternate = 0)
     {
         texture ??= new CompositeTexture(new AssetLocation("game:block/wood/planks/oak1"));
-        if (texture.Base.EndsWithWildCard)
-        {
-            texture.Bake(capi.Assets);
-        }
+        if (texture.Base.EndsWithWildCard) texture.Bake(capi.Assets);
         texture = PickAlternate(texture, alternate);
         var atlas = capi.BlockTextureAtlas;
         // The plain indexer only finds textures some other block/item already caused to

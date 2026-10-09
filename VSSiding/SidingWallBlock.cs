@@ -1427,7 +1427,9 @@ public class SidingWallBlock : Block
         => !filled && MatchConsumes(heldCode, infills) != null ? null : MatchConsumes(heldCode, framings);
 
     // Finds the material dictionary entry whose Consumes.code matches the held item, so a
-    // build-flow behavior can turn "the player right-clicked with plank-oak" into "oak".
+    // build-flow behavior can turn "the player right-clicked with plank-oak" into "oak". An entry
+    // with Consumes.attributes also needs the held stack to carry them, which is what tells one
+    // dyed plank from another under a single block code (decision 0068).
     internal static string? MatchConsumes(AssetLocation heldCode, JsonObject materials, ITreeAttribute? heldAttributes = null)
     {
         if (!materials.Exists) return null;
