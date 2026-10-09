@@ -2,12 +2,12 @@
 
 - Status: Accepted
 - Created: 2026-10-08
-- Reflects: the playtest of decision 0060 on branch `feat/tent-walls`; branch `feat/diagonal-walls`; `SidingWallBlock.ClaimsTwoFaces`/`ClaimsFace`/`OpenSide`/`ResolveFinishFace`/`ResolveFramingUpgrade`/`UnrotatedFramingBoxes`/`ComputeCollisionBoxes`/`IsReplacableBy`/`TryHost`, `SidingWallEntity.SelectiveElements`, `SidingModePicker.Rows`/`Layout`, `PlaceWallFrame`, `SidingModSystem`'s ground-storage prefix, `VSSiding.Tests/WallShapeGen`, `blocktypes/wall.json`, `shapes/block/wall/diagonal.json`, `textures/icons/diagonal.svg`, `lang/en.json`; `WallShapeGenTests`' pin of the panel's ends and front, `VSSiding.E2E.Tests/DiagonalScenarios.cs`; decompiled `ShapeTesselator`; decisions 0001, 0002, 0007, 0008, 0009, 0021, 0026, 0035, 0040, 0058, 0060, 0061; unit tests (460) and e2e scenarios (32) pass; NOT PLAYED
+- Reflects: the playtest of decision 0060 on branch `feat/tent-walls`; branch `feat/diagonal-walls`; `SidingWallBlock.ClaimsTwoFaces`/`ClaimsFace`/`OpenSide`/`ResolveFinishFace`/`ResolveFramingUpgrade`/`UnrotatedFramingBoxes`/`ComputeCollisionBoxes`/`IsReplacableBy`/`TryHost`, `SidingWallEntity.SelectiveElements`, `SidingModePicker.Rows`/`Layout`, `PlaceWallFrame`, `SidingModSystem`'s ground-storage prefix, `RainFallFromOpenSidePrefix` and `SealedCellLightPostfix`, `VSSiding.Tests/WallShapeGen`, `blocktypes/wall.json`, `shapes/block/wall/diagonal.json`, `textures/icons/diagonal.svg`, `lang/en.json`; `WallShapeGenTests`' pin of the panel's ends and front, `VSSiding.E2E.Tests/DiagonalScenarios.cs`; decompiled `ShapeTesselator`; decisions 0001, 0002, 0007, 0008, 0009, 0015, 0018, 0021, 0026, 0034, 0035, 0040, 0058, 0060, 0061; the review of PR #106; unit tests (460) and e2e scenarios (34) pass; NOT PLAYED
 
 ## Summary
 A tent built from these walls is a box, since a wall runs along a cell's face and a corner turns ninety degrees.
 A third framing layout, `diagonal`, is a panel that crosses its cell corner to corner between two posts, so a corner can be cut at forty-five degrees and a round tent built as an octagon.
-For every rule except its drawing, its boxes and what may stand in its cell it is a `cornerout`.
+It answers every per-face rule as a `cornerout` does; its drawing, its boxes and what may stand in its cell are its own, and the two open-side rules hold only for the half of its cell inside the panel.
 
 ## Context
 Decision 0060 added bone frames and pelt and cloth infills, and the first thing built with them was a tent.
@@ -18,7 +18,7 @@ Take a north wall that ends at a cell, and an east wall that starts one cell fur
 A `cornerout` in the cell between them puts a leg on its north face and a leg on its east face.
 A diagonal in that cell runs from its north-west corner to its south-east corner, and the room is still to the south-west of it.
 Vanilla's room search crosses a cell's faces, and both layouts answer the same two: north and east closed, south and west open.
-So retention, the liquid barrier, attachment, `ClaimsFace`, `OpenSide` and the four orientations are a corner's, unchanged.
+So retention, the liquid barrier, attachment, `ClaimsFace` and the four orientations are a corner's, unchanged.
 
 **What is not a corner's.**
 The shape, the collision and selection boxes, the finish faces and what may be hosted in the cell.
@@ -34,6 +34,15 @@ A third state of the `layout` variant group in `wall.json`, beside `wall` and `c
 It is four more blocks and no more material entries, since materials are attributes (decision 0001).
 `diagonal-{side}` claims what `cornerout-{side}` claims, so `CorneroutSecondFace` names its second face.
 `SidingWallBlock.ClaimsTwoFaces` answers for `cornerout` and `diagonal`, and the checks that read `layout == "cornerout"` for a rule the two share now call it: `ClaimsFace`, `OpenSide`, glazing joins (`NeighbourJoins`), the neighbour updates (`OnNeighbourBlockChange`, `MarkNeighboursDirty`) and the entity's `corner` flag in `SelectiveElements`.
+
+**The open side is right for half the cell.**
+`OpenSide` returns the diagonal step for a `diagonal` as for a `cornerout`, and two patches take that step as the place all of the cell's open part opens onto.
+`RainFallFromOpenSidePrefix` starts the search for open sky from that neighbour for any position in the cell (decision 0034), and `SealedCellLightPostfix` shows that neighbour's light on every face that samples the cell (decision 0018).
+A corner's legs stand against its two claimed faces, so all of its open part is on that side.
+A diagonal's panel crosses the cell, so the triangle between the panel and the two claimed faces is open, walkable and outside the room.
+The ground under that triangle is drawn with the room's light, and a player standing in it hears the wind at the room's volume.
+Both patches work on one answer per cell, a `BlockPos` and one light value, so the cell is not split.
+The other answer would put the outdoors' light and wind on the room's half, which is what those two decisions removed.
 
 **The run is 16, with a post in each corner.**
 The proposal laid the panel along the cell's diagonal, 22.6 voxels long.
@@ -93,6 +102,16 @@ The build went ahead without it because the work was done unattended.
 It must be played before this is merged: walk, sprint and slide along both faces of a run of three, then `/sidingroom` in an octagon of four straight runs and four diagonals.
 If the steps catch, the idea stops there.
 - Whether the turned faces light and cull as an axis-aligned one's do, next to a sealed cell, is unplayed (decisions 0015, 0018, 0034), as is the join to a straight wall at each post.
+- The triangle outside a filled diagonal takes the room's light and wind, as the design says.
+How it looks is unplayed: the ground there by day beside a dark room and by night beside a lit one, and the wind standing in it.
+- Two diagonals in a run touch along one vertical line.
+Each keeps its two posts inside its own cell and the next cell in the run is the diagonal neighbour, so one cell's post meets the next cell's post corner to corner, and each panel ends inside its own post.
+The drawn wall and the staircase of boxes both narrow to nothing at each cell boundary of the run.
+A gap of no width passes nothing, but whether a run reads as one wall is unplayed, and the run of three has two such boundaries.
+A panel that carries on into the next cell is the 22.6 run again, with ends that depend on the neighbour.
+- The turned slabs' `up` and `down` faces lie in the planes of the posts' caps, y 0 and y 16, and the slabs end inside the posts.
+So each cap has a second quad in its own plane, a finish's or the plate's, under one square voxel each.
+Whether that flickers on a top course seen from above is unplayed.
 - A flat finish on a diagonal beside the same finish modelled on a straight wall will show a seam in relief.
 - A run of diagonals steps one cell sideways per cell, and the cells in its inside angle are ordinary open cells; furniture does not sit flush against a diagonal.
 - Stacked diagonals share plates as stacked walls do (decision 0008); a diagonal beside a straight wall drops no member, since each keeps its post.

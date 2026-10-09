@@ -1002,6 +1002,7 @@ public class SidingWallBlock : Block
         => be is SidingWallEntity entity && ComputeLightAbsorption(entity.Framing, entity.Infill, Attributes["Framings"], Attributes["Infills"]) > 0;
 
     // The horizontal step from a wall cell to the cell its dead space opens onto: away from the panel, diagonally for a cornerout.
+    // A diagonal takes the same step, which is wrong for the triangle outside its panel (decision 0066).
     internal static (int dx, int dz) OpenSide(string layout, string side)
     {
         var open = BlockFacing.FromCode(side).Opposite.Normali;
