@@ -559,7 +559,7 @@ public class SidingWallBlock : Block
             return true;
         }
 
-        string? finishKey = MatchConsumes(heldCode, Attributes["Finishes"]);
+        string? finishKey = MatchConsumes(heldCode, Attributes["Finishes"], slot.Itemstack!.Attributes);
         if (finishKey == null) return base.OnBlockInteractStart(world, byPlayer, blockSel);
 
         // The picker's chosen style is used only if this finish lists it; otherwise the entry's
@@ -646,7 +646,7 @@ public class SidingWallBlock : Block
             return true;
         }
 
-        string? finishKey = MatchConsumes(heldCode, Attributes["Finishes"]);
+        string? finishKey = MatchConsumes(heldCode, Attributes["Finishes"], slot.Itemstack!.Attributes);
         if (finishKey == null) return base.OnBlockInteractStart(world, byPlayer, blockSel);
 
         bool heldPlaces = slot.Itemstack!.Class == EnumItemClass.Block || MatchConsumes(heldCode, Attributes["Framings"]) != null;
@@ -1428,7 +1428,7 @@ public class SidingWallBlock : Block
 
     // Finds the material dictionary entry whose Consumes.code matches the held item, so a
     // build-flow behavior can turn "the player right-clicked with plank-oak" into "oak".
-    internal static string? MatchConsumes(AssetLocation heldCode, JsonObject materials)
+    internal static string? MatchConsumes(AssetLocation heldCode, JsonObject materials, ITreeAttribute? heldAttributes = null)
     {
         if (!materials.Exists) return null;
 
@@ -1441,7 +1441,12 @@ public class SidingWallBlock : Block
             string? code = consumes["code"].AsString(null!);
             if (code == null) continue;
 
-            if (WildcardUtil.Match(new AssetLocation(code), heldCode)) return key;
+            if (!WildcardUtil.Match(new AssetLocation(code), heldCode)) continue;
+
+            var wanted = consumes["attributes"];
+            if (wanted.Exists && (heldAttributes == null || wanted.ToAttribute() is not TreeAttribute tree || !tree.IsSubSetOf(null!, heldAttributes))) continue;
+
+            return key;
         }
 
         return null;

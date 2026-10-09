@@ -54,7 +54,7 @@ public class SidingFloorBlock : Block
             return true;
         }
 
-        string? finishKey = SidingWallBlock.MatchConsumes(heldCode, Attributes["Finishes"]);
+        string? finishKey = SidingWallBlock.MatchConsumes(heldCode, Attributes["Finishes"], slot.Itemstack!.Attributes);
         if (finishKey == null) return base.OnBlockInteractStart(world, byPlayer, blockSel);
 
         bool heldPlaces = slot.Itemstack!.Class == EnumItemClass.Block || SidingWallBlock.MatchConsumes(heldCode, Attributes["Framings"]) != null;
