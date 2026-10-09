@@ -1,6 +1,6 @@
 # 0066 — Diagonal walls
 
-- Status: Accepted
+- Status: Accepted; no deck superseded by 0067
 - Created: 2026-10-08
 - Reflects: the playtest of decision 0060 on branch `feat/tent-walls`; branch `feat/diagonal-walls`; `SidingWallBlock.ClaimsTwoFaces`/`ClaimsFace`/`OpenSide`/`ResolveFinishFace`/`ResolveFramingUpgrade`/`UnrotatedFramingBoxes`/`ComputeCollisionBoxes`/`IsReplacableBy`/`TryHost`/`NeighbourJoins`/`DiagonalRunNeighbours`/`OnBlockRemoved`, `SidingWallEntity.SelectiveElements`, `SidingModePicker.Rows`/`Layout`, `PlaceWallFrame`, `SidingModSystem`'s ground-storage prefix, `RainFallFromOpenSidePrefix` and `SealedCellLightPostfix`, `VSSiding.Tests/WallShapeGen`, `blocktypes/wall.json`, `shapes/block/wall/diagonal.json`, `textures/icons/diagonal.svg`, `lang/en.json`; `WallShapeGenTests`' pin of the panel's ends and front, `VSSiding.E2E.Tests/DiagonalScenarios.cs`; decompiled `ShapeTesselator` and `CollisionTester`; decisions 0001, 0002, 0007, 0008, 0009, 0015, 0018, 0021, 0026, 0034, 0035, 0040, 0058, 0060, 0061; the review of PR #106; the author's play of the first build and of the second, 2026-10-08, the second as an octagonal room under a Roofing roof; unit tests (462) and e2e scenarios (34) pass
 

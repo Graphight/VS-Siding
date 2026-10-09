@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Created: 2026-10-08
-- Reflects: the author's questions of 2026-10-08 while planning the diagonal wall; branch `feat/diagonal-decks`; `SidingWallBlock.UnrotatedDeckBoxes`/`BuildDeckBoxes`/`AddOpenPartBoxes`/`IsDeckHit`/`DeckOccupied`/`OnBlockInteractStart` and the framing upgrade's deck check, `SidingWallEntity.OnTesselation`, `PlaceWallFrame`, `lang/en.json`, `docs/moddb.html`, `shapes/block/wall/diagonal.json`, `VSSiding.Tests/WallShapeGen`'s `DeckGroups` and `DiagonalDeckStrips`, `SidingFloorBlock.DeckReaches` (read, not changed); decisions 0042, 0050, 0053, 0066; `WallShapeGenTests`' pins of the deck groups to the deck boxes and of the triangle's top, `SidingWallBlockCollisionTests`' pin of the west strips, `SidingFloorTests`' `DeckReaches` rows for `diagonal`, `VSSiding.E2E.Tests/DiagonalScenarios.cs`; unit tests (465) and e2e scenarios (35) pass; not played
+- Reflects: the author's questions of 2026-10-08 while planning the diagonal wall; branch `feat/diagonal-decks`; `SidingWallBlock.UnrotatedDeckBoxes`/`BuildDeckBoxes`/`AddOpenPartBoxes`/`IsDeckHit`/`DeckOccupied`/`OnBlockInteractStart` and the framing upgrade's deck check, `SidingWallEntity.OnTesselation`, `PlaceWallFrame`, `lang/en.json`, `docs/moddb.html`, `shapes/block/wall/diagonal.json`, `VSSiding.Tests/WallShapeGen`'s `DeckGroups`, `CoveredLengths` and `DiagonalDeckStrips`, `SidingFloorBlock.DeckReaches` (read, not changed); decisions 0042, 0050, 0053, 0066; `WallShapeGenTests`' pins of the deck groups to the deck boxes, of the triangle's top, of the fillers' planes and of the pole groups, `SidingWallBlockCollisionTests`' pin of the west strips, `SidingFloorTests`' `DeckReaches` rows for `diagonal`, `VSSiding.E2E.Tests/DiagonalScenarios.cs` and `RoomScenarios.cs`; the review of PR #107; unit tests (467) and e2e scenarios (37) pass; not played
 
 ## Summary
 A diagonal wall (decision 0066) cuts its cell corner to corner, so the half of the cell inside the room has no floor of its own.
@@ -38,8 +38,11 @@ Decision 0042 gave a deck one box per layout; the table now holds a list per lay
 **The strips start one voxel to the room side of the centre line.**
 Each strip's cut end then lies between 0.71 voxels either side of the centre line.
 Starting on the line reaches 1.41 voxels past it, which was the proposal's version.
-The frame is 1 voxel either side of the centre line, so the top plate covers the stepped edge from above, and no tooth reaches a finish's slot or the outside.
-This settles the proposal's question of 2-voxel against 1-voxel strips by arithmetic: 2-voxel strips fit once they are offset.
+The frame is 1 voxel either side of the centre line, so the top plate covers the stepped edge from above, and no tooth reaches a finish's slot.
+The infill is half a voxel either side, which the plan for this build missed.
+On a filled wall with no outer finish each cut end stands 0.21 voxels proud of the infill's outer face, under the plate, from y 12 to 15.
+On the room side the same 0.21 is a notch between the deck and the infill's inner face, seen from below while that side is bare.
+So the proposal's question of 2-voxel against 1-voxel strips is not settled by arithmetic, and play decides whether 0.21 shows.
 
 **The shape is cut from the same strips.**
 `WallShapeGen.Generate("diagonal")` adds `DeckGroups("deck", ...)` over the strips `DiagonalDeckStrips` reads from the block's own boxes, so the drawing and the collision cannot drift apart.
@@ -47,11 +50,20 @@ This settles the proposal's question of 2-voxel against 1-voxel strips by arithm
 The deck is laid in world directions as any deck is, because the wall mesh turns with its side and the joists must not; the generator writes a group set per side.
 `DiagonalTextures` gains the `deck*` and `lashing` slots.
 
-**The top is cut to y 15.98.**
+**The drawn triangle keeps 0.02 off every plane it would share with the panel.**
 The triangle overlaps the panel in plan.
-At y 16 its top would share a plane with the top plate and the finishes' caps, and at 15.99 with the corner fillers' caps.
+At y 16 its top would share a plane with the top plate and the finishes' caps, and at 15.99 with the corner fillers' caps, so its top is cut to 15.98.
+The fillers are unturned boxes in the two corners the panel runs between, and their outer faces are the cell's own.
+The strips reach the cell's faces there too, so the first build of this decision drew two faces in one plane on three of them, one on the outside of the building.
+`DiagonalDeckStrips` cuts each strip 3 voxels from those two corners and pulls the piece in the corner 0.02 off the cell's faces; the rest of the strip still meets the floor beside it.
 Decision 0066's first build flickered on a shared plane.
-Collision stays at the full height of 16.
+Collision stays at the full boxes.
+
+**A pole joist is drawn where the strips together cover its width.**
+`DeckGroups` dropped any pole piece that a box's edge cut across its width, since with one box that piece is a sliver of a joist or a stub whose joist is on the far side.
+On a `south` or `north` diagonal the strips lie side by side across the joists, and the boundary between two strips cut the middle joist of a stick or bone deck, so the joist was not drawn.
+`CoveredLengths` keeps a box's part of a pole piece along the lengths where the side's boxes together cover the piece's whole width.
+One box gives what the old rule gave, and `wall.json` and `cornerout.json` are byte-identical.
 
 **No ledge.**
 The triangle always runs to the frame, through the slot of the room-side finish, which covers it once laid.
@@ -72,7 +84,8 @@ The `build-diagonal-deck` branch of `OnBlockInteractStart` returned an in-game e
 `PlaceWallFrame` left a diagonal out of `withDeck`, so a picked deck was dropped when a diagonal was raised; a diagonal is now raised with the deck and costs the deck's planks as well.
 The framing upgrade returned `build-decked` for a decked frame clicked with `Diagonal` picked; the reason in decision 0066 was that a diagonal had no box for the deck, and that reason is gone.
 
-**What it changes in decision 0066, which is not edited.**
+**What it changes in decision 0066.**
+Decision 0066's status line now says its no-deck rule is superseded here; its text is as it was.
 Its "No deck, no step, nothing hosted" paragraph no longer holds as far as the deck goes; no step and nothing hosted still hold.
 In "Picked on the saw, placed and upgraded", "with no deck" and "a frame that carries a deck is not turned" no longer hold.
 Its last consequence pointed floors and decks at the `diagonal-floors` proposal; that proposal is this decision, and the ground floor moved into `face-finishes`.
@@ -80,7 +93,7 @@ Its last consequence pointed floors and decks at the `diagonal-floors` proposal;
 ## Alternatives considered
 - **A square deck on a diagonal.** It stands outside the wall as a triangular ear.
 - **Strips starting on the centre line.** The teeth reach 1.41 voxels past it, 0.41 beyond the plate's 1 voxel: into the outer finish's slot on a finished wall, and past the plate's edge on a bare frame.
-- **1-voxel strips.** Sixteen boxes for what the one-voxel offset gets with eight, and twice the collision boxes in a cell that already holds thirteen.
+- **1-voxel strips, drawn or collided.** Offset by half a voxel their cut ends lie 0.35 either side of the centre line, inside the infill's 0.5, so nothing stands proud and nothing is notched. Sixteen boxes double the deck's elements, and as collision boxes they join a cell that already holds thirteen. Not built until play says the 0.21 shows; drawing each collision strip as two 1-voxel halves would keep the boxes at eight.
 - **A ledge copy, as the other layouts have.** A ledge fills the gap between a deck and the frame while the room side is bare, and the triangle leaves no gap: it already runs through that slot to the frame.
 - **Keeping the decked-frame refusal.** Its reason was the missing box, and that box exists now.
 - **A half-and-half block for the ground floor that replaces the block below and redraws its outer half.** The mod would stand in for arbitrary vanilla blocks, with their drops, collision and behaviours. It is the guest wall of decision 0035 in reverse and larger.
@@ -92,18 +105,21 @@ The unit tests pin the boxes, the shape and the answers; the e2e scenarios pin t
 Meshes, flicker and walking are invisible to both.
 Play has to settle:
 - The stepped edge seen from below through a bare frame.
+- A filled wall with no outer finish seen from outside, just under the top plate, for the cut ends standing 0.21 proud of the infill; a pelt tent is this case.
 - Flicker on a top storey seen from above, where the triangle's top lies 0.02 under the plate's.
 - A floor run up to the triangle, which `DeckReaches` reads as a joined edge on each leg.
 - Walking the deck's stepped edge beside a bare frame.
 - The selection outline of eight boxes on top of the wall's thirteen.
 - `/sidingroom` on the room below, with the UP face of the cell retaining.
 
-**What the e2e scenarios pin.**
-`DiagonalScenarios.cs` pins a diagonal raised with a deck, a deck added in place to a diagonal, a decked wall turned into a diagonal keeping its deck, and the UP face retaining once the deck's infill is laid.
+**The room below seals, as far as the registry goes.**
+`RoomScenarios.cs` builds a one-cell room whose only way out is up through a decked diagonal's cell: vanilla's `RoomRegistry` counts exits with the deck bare and none with it filled.
+Each scenario measures its room once.
+In the headless server a room measured before a wall or a deck is filled keeps its first answer until another block changes in the chunk, although the fill exchanges the block for itself; a plain wall on `main` does the same, and it is not looked into here.
 
 **The strips are not merged.**
 A joist the cut does not touch is still written as several pieces.
-`diagonal.json` went from 649K to 1.4M and holds 830 deck elements.
+`diagonal.json` went from 649K to 1.6M and holds 1038 deck elements.
 Merging pieces is a generator change if size or quad count turns out to matter.
 Only diagonal cells pay it.
 
