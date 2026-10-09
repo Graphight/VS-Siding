@@ -453,7 +453,7 @@ public class WallShapeGenTests
             .Where(e => ((string)e["name"]!).StartsWith("deck-")).ToArray();
 
         Assert.NotEmpty(elements);
-        Assert.Equal(elements.Select(_ => true), elements.Select(e => (double)e["to"]![1]! <= 15.98));
+        Assert.Equal([], elements.Where(e => (double)e["to"]![1]! > 15.98).Select(e => (string)e["name"]!));
     }
 
     [Theory]

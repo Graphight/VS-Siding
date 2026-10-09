@@ -717,7 +717,7 @@ public static class WallShapeGen
     // The strips of the block's own west diagonal deck, a hair low so their top never shares a plane with
     // the plate and the fillers' caps it overlaps in plan.
     private static ((double X, double Y, double Z) From, (double X, double Y, double Z) To)[] DiagonalDeckStrips() =>
-        SidingWallBlock.AddOpenPartBoxes(Array.Empty<Vintagestory.API.MathTools.Cuboidf>(), "diagonal", "west", "oak", null)
+        SidingWallBlock.AddOpenPartBoxes([], "diagonal", "west", "oak", null)
             .Select(b => ((Math.Round(b.X1 * 16.0, 3), Math.Round(b.Y1 * 16.0, 3), Math.Round(b.Z1 * 16.0, 3)),
                           (Math.Round(b.X2 * 16.0, 3), 15.98, Math.Round(b.Z2 * 16.0, 3))))
             .ToArray();
