@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using Xunit;
 
 namespace VSSiding.Tests;
@@ -33,5 +35,25 @@ public class SidingWallBlockClaimsFaceTests
     public void ClaimsOnlyThePanelledFaces(string layout, string side, string faceCode, bool expected)
     {
         Assert.Equal(expected, SidingWallBlock.ClaimsFace(layout, side, faceCode));
+    }
+
+    // diagonal-west crosses its cell from the south-west corner to the north-east one, so the run carries
+    // on north-east (left, the z = 0 end of the unrotated shape) and south-west; the other sides turn with it.
+    [Fact]
+    public void ADiagonalsRunCarriesOnThroughItsTwoCorners()
+    {
+        var expected = new Dictionary<string, ((int, int), (int, int))>
+        {
+            ["west"] = ((1, -1), (-1, 1)),
+            ["south"] = ((-1, -1), (1, 1)),
+            ["east"] = ((-1, 1), (1, -1)),
+            ["north"] = ((1, 1), (-1, -1)),
+        };
+
+        Assert.Equal(expected, expected.Keys.ToDictionary(side => side, side =>
+        {
+            var (left, right) = SidingWallBlock.DiagonalRunNeighbours(side);
+            return ((left.X, left.Z), (right.X, right.Z));
+        }));
     }
 }

@@ -272,7 +272,9 @@ public class FinishElementGroupsTests
             var glazingOnly = shapeJson["elements"]!.Select(e => (string)e["name"]!)
                 .Where(n => n == "infill-pane" || n.StartsWith("glazing")).Distinct();
             var ignored = variant.Value["ignoreElements"]?.Select(t => (string)t!).ToHashSet() ?? [];
-            offenders.AddRange(glazingOnly.Where(n => !ignored.Contains(n)).Select(n => $"{variant.Name} draws '{n}'"));
+            // A diagonal names what it draws instead, its shape having two end pieces for every group.
+            var selected = variant.Value["selectiveElements"]?.Select(t => (string)t!).ToHashSet();
+            offenders.AddRange(glazingOnly.Where(n => !ignored.Contains(n) && selected?.Contains(n) != false).Select(n => $"{variant.Name} draws '{n}'"));
         }
 
         var floorJson = JObject.Parse(File.ReadAllText(Path.Combine(assets, "blocktypes", "floor.json")));

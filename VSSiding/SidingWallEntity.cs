@@ -285,11 +285,11 @@ public class SidingWallEntity : BlockEntity
         (string? front, string? secondFront, string? back) styles = default, string[]? step = null, string frame = "framing")
     {
         var names = new List<string>();
-        // A diagonal's shape has one frame group and one slab per face, whatever the framing's
-        // Elements, the finish's or the picked style name (decision 0066).
+        // A diagonal's shape has no rough frame groups, so it draws the plain ones whatever the
+        // framing's Elements say (decision 0066).
         bool diagonal = layout == "diagonal";
         if (diagonal) frame = "framing";
-        if (front != null) names.Add(diagonal ? "front" : FinishElement(finishes, front, "front", styles.front));
+        if (front != null) names.Add(FinishElement(finishes, front, "front", styles.front));
         if (secondFront != null) names.Add("second" + FinishElement(finishes, secondFront, "front", styles.secondFront));
         if (framing != null)
         {
@@ -301,12 +301,12 @@ public class SidingWallEntity : BlockEntity
             // plain wall's plates stop short at its posts, which is right while the posts are
             // always there and leaves a notch at every cell edge once they aren't.
             string member = glazed && !corner ? "glazing" : frame;
-            if (corner) names.Add(frame);
-            else
+            if (!corner)
             {
                 if (!joins.left) names.Add(member + "-left");
                 if (!joins.right) names.Add(member + "-right");
             }
+            else if (!diagonal) names.Add(frame);
             if (!joins.above) names.Add(member + "-top");
             if (!joins.below) names.Add(member + "-bottom");
         }
@@ -324,7 +324,18 @@ public class SidingWallEntity : BlockEntity
                 if (joins.below) names.Add("infill-bottom");
             }
         }
-        if (back != null) names.Add(diagonal ? "back" : FinishElement(finishes, back, "back", styles.back));
+        if (back != null) names.Add(FinishElement(finishes, back, "back", styles.back));
+        // A diagonal's end is the filler in its corner, or, where the next cell carries the run on,
+        // each group's own piece out to the corner and half a post there.
+        if (diagonal)
+        {
+            string[] panel = names.ToArray();
+            foreach (var (runsOn, end) in new[] { (joins.left, "left"), (joins.right, "right") })
+            {
+                if (runsOn) names.AddRange(panel.Select(name => $"{name}-{end}"));
+                if (framing != null) names.Add(runsOn ? $"framing-join-{end}" : $"framing-{end}");
+            }
+        }
         if (step != null) names.AddRange(step);
         return names.ToArray();
     }
