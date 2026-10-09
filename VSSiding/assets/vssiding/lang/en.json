@@ -254,7 +254,6 @@
 	"build-decked": "Remove the deck first",
 	"build-stepped": "Remove the step first",
 	"build-step-corner": "A corner or a diagonal takes no step",
-	"build-diagonal-deck": "A diagonal takes no deck",
 	"build-already-stepped": "This wall already has a step",
 	"build-cant-afford": "Not enough material",
 	"tooltip-no-framing": "No framing",

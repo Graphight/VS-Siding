@@ -30,7 +30,7 @@ public class PlaceWallFrame : CollectibleBehavior
         if (framingKey == null) return;
 
         string layout = SidingModePicker.Layout(byPlayer);
-        bool withDeck = layout is not ("floor" or "diagonal") && SidingModePicker.Deck(byPlayer);
+        bool withDeck = layout != "floor" && SidingModePicker.Deck(byPlayer);
 
         var consumes = wallBlock.Attributes["Framings"][framingKey]["Consumes"];
         int times = withDeck ? 2 : 1;

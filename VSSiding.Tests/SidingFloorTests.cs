@@ -173,7 +173,7 @@ public class SidingFloorTests
     public void ADeckReachesTheEdgesItsWallDoesNotClaim()
     {
         Assert.Equal(
-            [false, true, true, true, false, true],
+            [false, true, true, true, false, true, false, false, true, true],
             new[]
             {
                 SidingFloorBlock.DeckReaches("wall", "west", BlockFacing.EAST),
@@ -182,6 +182,10 @@ public class SidingFloorTests
                 SidingFloorBlock.DeckReaches("cornerout", "west", BlockFacing.WEST),
                 SidingFloorBlock.DeckReaches("cornerout", "west", BlockFacing.SOUTH),
                 SidingFloorBlock.DeckReaches("cornerout", "west", BlockFacing.NORTH),
+                SidingFloorBlock.DeckReaches("diagonal", "west", BlockFacing.EAST),
+                SidingFloorBlock.DeckReaches("diagonal", "west", BlockFacing.SOUTH),
+                SidingFloorBlock.DeckReaches("diagonal", "west", BlockFacing.WEST),
+                SidingFloorBlock.DeckReaches("diagonal", "west", BlockFacing.NORTH),
             });
     }
 

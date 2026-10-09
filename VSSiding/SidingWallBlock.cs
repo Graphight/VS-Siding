@@ -484,12 +484,6 @@ public class SidingWallBlock : Block
         if (entity.Deck == null && blockSel.Face != BlockFacing.UP && SidingModePicker.Deck(byPlayer)
             && MatchFraming(heldCode, entity.Infill != null, Attributes["Framings"], Attributes["Infills"]) is { } deckKey)
         {
-            if (Variant["layout"] == "diagonal")
-            {
-                (byPlayer as IServerPlayer)?.SendIngameError("vssiding:diagonaldeck", Lang.Get("vssiding:build-diagonal-deck"));
-                return true;
-            }
-
             if (entity.Step != null)
             {
                 (byPlayer as IServerPlayer)?.SendIngameError("vssiding:stepped", Lang.Get("vssiding:build-stepped"));
@@ -526,13 +520,6 @@ public class SidingWallBlock : Block
                 if (entity.Step != null)
                 {
                     (byPlayer as IServerPlayer)?.SendIngameError("vssiding:stepped", Lang.Get("vssiding:build-stepped"));
-                    return true;
-                }
-
-                // The swap keeps the entity, deck and all, and a diagonal has no box for one (decision 0066).
-                if (entity.Deck != null && picked == "diagonal")
-                {
-                    (byPlayer as IServerPlayer)?.SendIngameError("vssiding:decked", Lang.Get("vssiding:build-decked"));
                     return true;
                 }
 
