@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Created: 2026-10-08
-- Reflects: mod page comment https://mods.vintagestory.at/vssiding#cmt-244452; branch `feat/stained-plank-finishes`; Dyed Wood 2.1.0's shipped assets and its shipped source (the zip carries `src/`); Wood Stain 1.3.2's and Vanilla Varnished Planks 1.0.6's shipped assets only; the game 1.22.7 decompile for `BlockDropItemStack.Resolve`, `CompositeTexture.Bake`, `TextureAtlasManager.GetOrInsertTexture` and `TreeAttribute.IsSubSetOf`; `MaterialFamilies.Expand`, `SidingWallTexSource.ResolveTexture`/`AtlasPosition`/`AnyVaries`, `SidingWallBlock.MatchConsumes`, `config/materials.json`; decisions 0001, 0007, 0010; unit tests for each; the review of PR #112; the author's play of 2026-10-08 with all three mods and Attribute Rendering Library 3.2.0 loaded, and the client log of a stained wall
+- Reflects: mod page comment https://mods.vintagestory.at/vssiding#cmt-244452; branch `feat/stained-plank-finishes`; Dyed Wood 2.1.0's shipped assets and its shipped source (the zip carries `src/`); Wood Stain 1.3.2's and Vanilla Varnished Planks 1.0.6's shipped assets only; the game 1.22.7 decompile for `BlockDropItemStack.Resolve`, `CompositeTexture.Bake`, `TextureAtlasManager.GetOrInsertTexture` and `TreeAttribute.IsSubSetOf`; `MaterialFamilies.Expand`, `SidingWallTexSource.ResolveTexture`/`AtlasPosition`/`AnyVaries`, `SidingWallBlock.MatchConsumes`, `config/materials.json`; decisions 0001, 0007, 0010; unit tests for each; the review of PR #112; the author's play of 2026-10-08 and 2026-10-09 with all three mods and Attribute Rendering Library 3.2.0 loaded, and the client log of a stained wall
 
 ## Summary
 A player asked for "compat with the dyed wood mod", and three mods could be meant, each storing a coloured plank differently.
@@ -78,16 +78,13 @@ The existing `planks-{wood}` template picks up its `plank-{wood}` items, as it d
 - **Stained framings.** The frame is mostly covered once a wall is finished; left until someone asks.
 
 ## Consequences & open questions
-**Seen in play, 2026-10-08.**
-- A varnished plank finishes a wall.
-- A held Dyed Wood stack matches its entry, so the `types` shape read from its files is the shape in play, and its boards draw the right way as vertical boards and as weatherboard.
+**Seen in play, 2026-10-08 and 2026-10-09.**
+- A plank from each of the three mods finishes a wall and a floor.
+- A held Dyed Wood stack matches its entry, so the `types` shape read from its files is the shape in play.
 - A Wood Stain finish draws its block's texture, stain overlay included, so the atlas returns a block's already-packed texture by its baked name.
-
-**Not seen in play.**
-- A stained finish after the change to a side face; the play above is what found the turned one.
-- Whether a peeled stack merges with the stack it came from, for both mods.
-- A red oak plank from each stain mod on one wall.
-- Any of the three on a floor or a deck.
+- Stained boards run the way the picker says once the texture comes from a side face; the first play is what found them turned.
+- A peeled finish drops a stack that merges with the stack it came from, for both stain mods.
+- A red oak plank from each stain mod lands as its own finish on one wall.
 
 **The payload grows.**
 Every siding block carries its own copy of the expanded attributes.
