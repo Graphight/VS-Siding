@@ -177,6 +177,14 @@ public class SidingWallTooltipTests
     }
 
     [Fact]
+    public void DiagonalSharesItsFrontAcrossBothClaimedFacesAndItsBackAcrossTheOpposites()
+    {
+        Assert.Equal(
+            "\n  Oak Framing\n  Wattle Infill\n  West, North: Daub Finish\n  East, South: Planks Finish\n  Seals the room\n",
+            Describe(layout: "diagonal", front: "daub", back: "planks"));
+    }
+
+    [Fact]
     public void CorneroutGroupsEveryUnfinishedFaceTogether()
     {
         Assert.Equal(

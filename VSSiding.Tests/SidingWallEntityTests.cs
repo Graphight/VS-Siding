@@ -139,6 +139,29 @@ public class SidingWallEntityTests
                 "cornerout", "oak", "glass", null, null, null, NoElementFinishes, (true, true, false, false), glazed: true));
     }
 
+    // A diagonal takes a finish's own groups as a wall does, draws the plain frame for a rough one, and at
+    // each end either the corner filler or, where the next cell carries the run on, every group's piece
+    // to the corner and half a post.
+    [Fact]
+    public void DiagonalEndsInAFillerOrRunsOnToTheCorner()
+    {
+        var finishes = Dict("""{ "brick": { "Elements": { "front": "front-brick", "back": "back-brick" }, "Styles": ["boards"] } }""");
+        string[] Elements((bool, bool, bool, bool) joins) => SidingWallEntity.SelectiveElements(
+            "diagonal", "sticks", "wattle", "brick", null, "brick", finishes, joins, glazed: false, styles: ("boards", null, null), frame: "poles");
+
+        string[][] expected =
+        [
+            ["front-boards", "framing-top", "framing-bottom", "infill", "back-brick", "framing-left", "framing-right"],
+            [
+                "front-boards", "framing-top", "framing-bottom", "infill", "back-brick",
+                "front-boards-left", "framing-top-left", "framing-bottom-left", "infill-left", "back-brick-left", "framing-join-left",
+                "framing-right",
+            ],
+        ];
+
+        Assert.Equal(expected, [Elements((false, false, false, false)), Elements((false, false, true, false))]);
+    }
+
     [Fact]
     public void UnsetKeySurvivesByteRoundTripAsNullNotEmptyString()
     {

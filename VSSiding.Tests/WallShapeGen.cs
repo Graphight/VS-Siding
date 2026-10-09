@@ -33,7 +33,10 @@ public record Element(
     string[]? PositionalOverrides = null,
     string[]? RotatedFaces = null,
     char? RunAxis = null,
-    Element? ClippedFrom = null);
+    Element? ClippedFrom = null,
+    double RotationY = 0,
+    (double X, double Y, double Z)? RotationOrigin = null,
+    (double X, double Y, double Z) Offset = default);
 
 public static class WallShapeGen
 {
@@ -659,6 +662,58 @@ public static class WallShapeGen
         ("lashing", "game:item/resource/rope"),
     ];
 
+    // The diagonal (decision 0066): the straight wall's own boxes, moved onto the cell centre and turned
+    // 45 degrees so the front faces north-west. Its run is longer than a face's 16, so the frame and the
+    // infill are redrawn as two halves, and a finish repeats along the run as it does from one straight
+    // wall to the next, uv and all, which is what Offset is for. A square end 2 short of the corner
+    // touches both of the cell's faces there, and a filler in the corner behind it makes the mitre to a
+    // straight wall. Where the next cell carries the run on, the -left and -right groups take every
+    // piece to the corner instead, and half a post stands there; their square ends reach into the two
+    // cells beside the corner, and with the next cell's they make one band.
+    private const double DiagonalCorner = 11.3137;
+    private const double DiagonalEnd = 9.3137;
+    private const double DiagonalFiller = 2.8284;
+
+    private static readonly string[] DiagonalFrame =
+        ["framing-top", "framing-bottom", "infill-top", "infill", "infill-bottom", "infill-pane"];
+
+    private static Element OnDiagonal(Element e, string suffix = "", double shift = 0)
+        => e with { Name = e.Name + suffix, Offset = (6, 0, shift), RotationY = -45 };
+
+    private static Element DiagonalRun(Element e, double lo, double hi, string suffix = "")
+        => OnDiagonal(e with { From = (e.From.X, e.From.Y, 8 + lo), To = (e.To.X, e.To.Y, 8 + hi) }, suffix);
+
+    private static IEnumerable<Element> DiagonalFinish(double runLo, double runHi, string suffix = "")
+        => from shift in new[] { -16, 0, 16 }
+           from e in WallElements
+           where e.Name.StartsWith("front") || e.Name.StartsWith("back")
+           let lo = Math.Max(e.From.Z, 8 + runLo - shift)
+           let hi = Math.Min(e.To.Z, 8 + runHi - shift)
+           where hi > lo
+           select OnDiagonal(e with { From = (e.From.X, e.From.Y, lo), To = (e.To.X, e.To.Y, hi), ClippedFrom = e }, suffix, shift);
+
+    private static readonly Element[] DiagonalElements =
+    [
+        // A hair short of the cell's height, so a cap never shares a plane with the plate lying over it.
+        new("framing-left", (16 - DiagonalFiller, 0.01, 0), (16, 15.99, DiagonalFiller), "framing", UvRule.Flat),
+        new("framing-right", (0, 0.01, 16 - DiagonalFiller), (DiagonalFiller, 15.99, 16), "framing", UvRule.Flat),
+        OnDiagonal(new("framing-join-left", (1, 0, 8 - DiagonalCorner), (3, 16, 9 - DiagonalCorner), "framing", UvRule.Flat)),
+        OnDiagonal(new("framing-join-right", (1, 0, 7 + DiagonalCorner), (3, 16, 8 + DiagonalCorner), "framing", UvRule.Flat)),
+        .. WallElements.Where(e => DiagonalFrame.Contains(e.Name)).SelectMany(e => new[]
+        {
+            DiagonalRun(e, -DiagonalEnd, 0),
+            DiagonalRun(e, 0, DiagonalEnd),
+            DiagonalRun(e, 1 - DiagonalCorner, -DiagonalEnd, "-left"),
+            DiagonalRun(e, DiagonalEnd, DiagonalCorner - 1, "-right"),
+        }),
+        .. DiagonalFinish(-DiagonalEnd, DiagonalEnd),
+        .. DiagonalFinish(-DiagonalCorner, -DiagonalEnd, "-left"),
+        .. DiagonalFinish(DiagonalEnd, DiagonalCorner, "-right"),
+    ];
+
+    private static readonly (string Slot, string Texture)[] DiagonalTextures =
+        [.. WallTextures.Where(t => t.Slot is "front" or "framing" or "infill" or "back")];
+
     // The wall's rough frame laid flat: joists recessed a quarter voxel in y and cut in three along z with
     // the middle length swelling in x, stubs in the half voxel over the infill, and rims that keep the plain
     // boxes and run over the joist ends through cheeks in the two skins, lashed beside them. A cheek instead
@@ -848,8 +903,17 @@ public static class WallShapeGen
         "floor" => Emit(FloorElements, FloorTextures),
         "cornerout" => Emit(
             [.. CornerOutElements, .. DeckGroups("deck", ((4, 12, 4), (16, 16, 16))), .. DeckGroups("ledge", Ledge(CornerOutElements))], CornerOutTextures),
+        "diagonal" => Rounded(Emit(DiagonalElements, DiagonalTextures)),
         _ => throw new KeyNotFoundException(layout),
     };
+
+    // The diagonal's lengths are irrational, and a sum of two of them carries float noise into the file.
+    private static JObject Rounded(JObject shape)
+    {
+        foreach (var number in shape.Descendants().OfType<JValue>().Where(v => v.Type == JTokenType.Float).ToArray())
+            number.Value = Math.Round((double)number.Value!, 4);
+        return shape;
+    }
 
     private static JObject Emit(Element[] elements, (string Slot, string Texture)[] textures)
     {
@@ -865,7 +929,7 @@ public static class WallShapeGen
         };
     }
 
-    private static JObject EmitElement(Element element, Element[] elements)
+    internal static JObject EmitElement(Element element, Element[] elements)
     {
         var sameName = elements.Where(e => e.Name == element.Name).ToArray();
 
@@ -876,13 +940,20 @@ public static class WallShapeGen
             faces[face] = EmitFace(element, face);
         }
 
-        return new JObject
+        var emitted = new JObject
         {
             ["name"] = element.Name,
-            ["from"] = new JArray(element.From.X, element.From.Y, element.From.Z),
-            ["to"] = new JArray(element.To.X, element.To.Y, element.To.Z),
-            ["faces"] = faces,
+            ["from"] = new JArray(element.From.X + element.Offset.X, element.From.Y + element.Offset.Y, element.From.Z + element.Offset.Z),
+            ["to"] = new JArray(element.To.X + element.Offset.X, element.To.Y + element.Offset.Y, element.To.Z + element.Offset.Z),
         };
+        if (element.RotationY != 0)
+        {
+            var origin = element.RotationOrigin ?? (8, 0, 8);
+            emitted["rotationOrigin"] = new JArray(origin.X, origin.Y, origin.Z);
+            emitted["rotationY"] = element.RotationY;
+        }
+        emitted["faces"] = faces;
+        return emitted;
     }
 
     private static double Axis((double X, double Y, double Z) corner, char axis)
@@ -954,9 +1025,12 @@ public static class WallShapeGen
 
     // How the game lays a face's uv rect over the face, read from ModelCubeUtilExt.AddFace: which axis
     // u and v run along, and whether they grow with it. A rotation of 90 turns the rect a quarter, so
-    // u runs along z and v along x on the two faces that carry one.
+    // u runs along z and v along x on the two faces that carry one. A side face's 270 is three of those
+    // turns, which stands u up the wall and lays v along the run.
     private static (char UAxis, int USign, char VAxis, int VSign) UvLayout(string face, bool rotated) => (face, rotated) switch
     {
+        ("east", true) => ('y', 1, 'z', -1),
+        ("west", true) => ('y', 1, 'z', 1),
         ("north", _) => ('x', -1, 'y', -1),
         ("east", _) => ('z', -1, 'y', -1),
         ("south", _) => ('x', 1, 'y', -1),

@@ -154,6 +154,13 @@ public class SidingWallBlockBuildFlowTests
     [InlineData("cornerout", "west", "up", null)]
     [InlineData("cornerout", "north", "east", "secondfront")]
     [InlineData("cornerout", "north", "west", "back")]
+    [InlineData("diagonal", "west", "west", "front")]
+    [InlineData("diagonal", "west", "north", "front")]
+    [InlineData("diagonal", "west", "east", "back")]
+    [InlineData("diagonal", "west", "south", "back")]
+    [InlineData("diagonal", "west", "up", null)]
+    [InlineData("diagonal", "north", "east", "front")]
+    [InlineData("diagonal", "north", "west", "back")]
     public void ResolveFinishFaceMapsClickedFaceToLayer(string layout, string side, string clicked, string? expected)
     {
         Assert.Equal(expected, SidingWallBlock.ResolveFinishFace(layout, side, BlockFacing.FromCode(clicked)));
@@ -191,6 +198,29 @@ public class SidingWallBlockBuildFlowTests
                 [("south", "east")] = "east",
             },
             hits.ToDictionary(hit => hit.Key, hit => SidingWallBlock.ResolveCornerUpgrade(hit.Key.side, hit.Value)));
+    }
+
+    // A wall takes either, a cornerout only a diagonal, on its own side; nothing turns back and a
+    // pick that is not a corner or diagonal upgrades nothing.
+    [Fact]
+    public void FramingUpgradeOnlyTurnsAWallOrCorneroutForward()
+    {
+        var hit = new Vec3d(0, 0.5, 0.8);
+        var expected = new Dictionary<(string Layout, string Picked), string?>
+        {
+            [("wall", "wall")] = null,
+            [("wall", "cornerout")] = "wall-cornerout-south",
+            [("wall", "diagonal")] = "wall-diagonal-south",
+            [("wall", "floor")] = null,
+            [("cornerout", "wall")] = null,
+            [("cornerout", "cornerout")] = null,
+            [("cornerout", "diagonal")] = "wall-diagonal-west",
+            [("diagonal", "wall")] = null,
+            [("diagonal", "cornerout")] = null,
+            [("diagonal", "diagonal")] = null,
+        };
+
+        Assert.Equal(expected, expected.Keys.ToDictionary(c => c, c => SidingWallBlock.ResolveFramingUpgrade(c.Layout, "west", c.Picked, hit)));
     }
 
     [Fact]

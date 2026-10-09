@@ -19,6 +19,7 @@ public class WallShapeGenTests
     [Theory]
     [InlineData("wall")]
     [InlineData("cornerout")]
+    [InlineData("diagonal")]
     [InlineData("floor")]
     public void GeneratedShapeMatchesTheCommittedOne(string layout)
     {
@@ -36,12 +37,96 @@ public class WallShapeGenTests
         Assert.Equal(committed.ToString(), WallShapeGen.Generate(layout).ToString());
     }
 
+    [Fact]
+    public void ATurnedElementEmitsItsOffsetBoxAndItsRotationBeforeItsFaces()
+    {
+        var turned = new Element("panel", (0, 0, 0), (4, 16, 16), "infill", UvRule.Flat, ["north"], RotationY: 45, Offset: (6, 0, -16));
+
+        var expected = new JObject
+        {
+            ["name"] = "panel",
+            ["from"] = new JArray(6.0, 0.0, -16.0),
+            ["to"] = new JArray(10.0, 16.0, 0.0),
+            ["rotationOrigin"] = new JArray(8.0, 0.0, 8.0),
+            ["rotationY"] = 45.0,
+            ["faces"] = new JObject
+            {
+                ["north"] = new JObject { ["texture"] = "#infill", ["uv"] = new JArray(0.0, 0.0, 4.0, 16.0) },
+            },
+        };
+
+        Assert.Equal(expected.ToString(), WallShapeGen.EmitElement(turned, [turned]).ToString());
+    }
+
+    // The turn is vanilla's translate(origin) * rotate(theta about +y) * translate(from - origin), so in plan
+    // x' = x cos + z sin and z' = -x sin + z cos about the origin. Each group is then measured along the
+    // diagonal: run from the cell's centre towards its north-east corner, and depth from the centre line
+    // towards the room on the south-east. The corner is 8 root 2 = 11.31 along, and a square end 2 short
+    // of it, at 9.31, touches both of the cell's faces, so the panel itself never leaves the cell. The
+    // left pieces are the ones the north-east cell carries on from.
+    [Fact]
+    public void TheDiagonalRunsCornerToCornerWithItsFrontToTheNorthWest()
+    {
+        var elements = WallShapeGen.Generate("diagonal")["elements"]!.Where(e => e["rotationY"] != null).ToArray();
+
+        static (double Run, double Depth) Along(JToken element, double x, double z)
+        {
+            double theta = (double)element["rotationY"]! * Math.PI / 180;
+            double ox = (double)element["rotationOrigin"]![0]!, oz = (double)element["rotationOrigin"]![2]!;
+            double tx = ox + (x - ox) * Math.Cos(theta) + (z - oz) * Math.Sin(theta), tz = oz - (x - ox) * Math.Sin(theta) + (z - oz) * Math.Cos(theta);
+            return ((tx - tz) / Math.Sqrt(2), (tx + tz - 16) / Math.Sqrt(2));
+        }
+
+        (double, double, double, double) Extent(string name)
+        {
+            var corners = (
+                from element in elements
+                where (string)element["name"]! == name
+                let box = Box(element)
+                from x in new[] { box.Lo[0], box.Hi[0] }
+                from z in new[] { box.Lo[2], box.Hi[2] }
+                select Along(element, x, z)).ToArray();
+            return (Math.Round(corners.Min(c => c.Run), 2), Math.Round(corners.Max(c => c.Run), 2),
+                Math.Round(corners.Min(c => c.Depth), 2), Math.Round(corners.Max(c => c.Depth), 2));
+        }
+
+        var expected = new Dictionary<string, (double, double, double, double)>
+        {
+            ["front"] = (-9.31, 9.31, -2, -1),
+            ["front-brick"] = (-9.31, 9.31, -2, -1),
+            ["framing-top"] = (-9.31, 9.31, -1, 1),
+            ["infill"] = (-9.31, 9.31, -0.5, 0.5),
+            ["back"] = (-9.31, 9.31, 1, 2),
+            ["front-left"] = (9.31, 11.31, -2, -1),
+            ["framing-top-left"] = (9.31, 10.31, -1, 1),
+            ["framing-join-left"] = (10.31, 11.31, -1, 1),
+            ["back-right"] = (-11.31, -9.31, 1, 2),
+            ["infill-right"] = (-10.31, -9.31, -0.5, 0.5),
+            ["framing-join-right"] = (-11.31, -10.31, -1, 1),
+        };
+
+        Assert.Equal(expected, expected.Keys.ToDictionary(name => name, Extent));
+    }
+
+    // The fillers stand in the two corners the panel runs between, unturned, their diagonal on the
+    // panel's square end.
+    [Fact]
+    public void TheDiagonalsFillersSitInItsTwoCorners()
+    {
+        var fillers = WallShapeGen.Generate("diagonal")["elements"]!
+            .Where(e => (string)e["name"]! is "framing-left" or "framing-right")
+            .Select(e => $"{e["name"]} {string.Join(",", e["from"]!)} {string.Join(",", e["to"]!)} {e["rotationY"]}");
+
+        Assert.Equal(["framing-left 13.1716,0.01,0 16,15.99,2.8284 ", "framing-right 0,0.01,13.1716 2.8284,15.99,16 "], fillers);
+    }
+
     // The depths in the shake table are a tuning knob, and a knob gets turned. A box that inverts
     // or runs past the framing renders as a hole rather than an error, so the bound is asserted
     // here instead of being re-checked by hand after every tune.
     [Theory]
     [InlineData("wall")]
     [InlineData("cornerout")]
+    [InlineData("diagonal")]
     [InlineData("floor")]
     public void EveryGeneratedBoxIsNonDegenerateAndInsideTheBlock(string layout)
     {
@@ -56,8 +141,9 @@ public class WallShapeGenTests
                 from axis in Enumerable.Range(0, 3)
                 where lo[axis] > hi[axis]
                 select $"{layout} '{name}' inverts on axis {axis}: {lo[axis]} > {hi[axis]}");
+            // A turned element's plan is measured after the turn (TheDiagonalRunsCornerToCornerWithItsFrontToTheNorthWest).
             offenders.AddRange(
-                from v in lo.Concat(hi)
+                from v in element["rotationY"] == null ? lo.Concat(hi) : [lo[1], hi[1]]
                 where v < 0 || v > 16
                 select $"{layout} '{name}' leaves the block: {v}");
         }
@@ -95,6 +181,7 @@ public class WallShapeGenTests
     [Theory]
     [InlineData("wall")]
     [InlineData("cornerout")]
+    [InlineData("diagonal")]
     [InlineData("floor")]
     public void NoElementIsPrunedDownToNothing(string layout)
     {
@@ -443,6 +530,7 @@ public class WallShapeGenTests
     [Theory]
     [InlineData("wall")]
     [InlineData("cornerout")]
+    [InlineData("diagonal")]
     public void EveryInfillBoxSamplesItsOwnSliceOfTheTexture(string layout)
     {
         var slices = new Dictionary<string, (double, double)>

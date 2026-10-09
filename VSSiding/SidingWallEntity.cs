@@ -140,15 +140,15 @@ public class SidingWallEntity : BlockEntity
     // SetString value into "" - normalize back to null so "unbuilt" survives a reload.
     internal static string? NullIfEmpty(string? value) => string.IsNullOrEmpty(value) ? null : value;
 
-    // "wall" and "cornerout" each have their own layered shape file (same four element
+    // "wall", "cornerout" and "diagonal" each have their own layered shape file (same four element
     // names - front/framing/infill/back - so selectiveElements works identically on
-    // either). A cornerout wraps both claimed faces (decision 0002's CorneroutSecondFace)
+    // any). A cornerout wraps both claimed faces (decision 0002's CorneroutSecondFace)
     // with a shared Framing/Infill/Back but its own SecondFront (decision 0009) - the
     // second leg's front faces a different room, so it finishes independently.
     public override bool OnTesselation(ITerrainMeshPool mesher, ITesselatorAPI tesselator)
     {
         string layout = Block.Variant["layout"];
-        if (layout != "wall" && layout != "cornerout") return false;
+        if (layout is not ("wall" or "cornerout" or "diagonal")) return false;
         if (Api is not ICoreClientAPI capi) return false;
 
         var joins = ((SidingWallBlock)Block).NeighbourJoins(Api.World.BlockAccessor, Pos, Infill);
@@ -285,24 +285,28 @@ public class SidingWallEntity : BlockEntity
         (string? front, string? secondFront, string? back) styles = default, string[]? step = null, string frame = "framing")
     {
         var names = new List<string>();
+        // A diagonal's shape has no rough frame groups, so it draws the plain ones whatever the
+        // framing's Elements say (decision 0066).
+        bool diagonal = layout == "diagonal";
+        if (diagonal) frame = "framing";
         if (front != null) names.Add(FinishElement(finishes, front, "front", styles.front));
         if (secondFront != null) names.Add("second" + FinishElement(finishes, secondFront, "front", styles.secondFront));
         if (framing != null)
         {
             // A cornerout's three posts are structural and always drawn; a wall's two drop
             // individually wherever glazing merges sideways.
-            bool corner = layout == "cornerout";
+            bool corner = SidingWallBlock.ClaimsTwoFaces(layout);
             // Glazing gets its own frame: a bezel whose members each span the full cell edge, so
             // the frame still reaches the pane where the member beside it has been dropped. A
             // plain wall's plates stop short at its posts, which is right while the posts are
             // always there and leaves a notch at every cell edge once they aren't.
             string member = glazed && !corner ? "glazing" : frame;
-            if (corner) names.Add(frame);
-            else
+            if (!corner)
             {
                 if (!joins.left) names.Add(member + "-left");
                 if (!joins.right) names.Add(member + "-right");
             }
+            else if (!diagonal) names.Add(frame);
             if (!joins.above) names.Add(member + "-top");
             if (!joins.below) names.Add(member + "-bottom");
         }
@@ -321,6 +325,17 @@ public class SidingWallEntity : BlockEntity
             }
         }
         if (back != null) names.Add(FinishElement(finishes, back, "back", styles.back));
+        // A diagonal's end is the filler in its corner, or, where the next cell carries the run on,
+        // each group's own piece out to the corner and half a post there.
+        if (diagonal)
+        {
+            string[] panel = names.ToArray();
+            foreach (var (runsOn, end) in new[] { (joins.left, "left"), (joins.right, "right") })
+            {
+                if (runsOn) names.AddRange(panel.Select(name => $"{name}-{end}"));
+                if (framing != null) names.Add(runsOn ? $"framing-join-{end}" : $"framing-{end}");
+            }
+        }
         if (step != null) names.AddRange(step);
         return names.ToArray();
     }

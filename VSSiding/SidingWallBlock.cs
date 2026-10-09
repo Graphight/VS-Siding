@@ -35,6 +35,8 @@ public class SidingWallBlock : Block
     // Unrotated ("west") framing boxes per layout, matching the framing elements in
     // wall.json/cornerout.json: full-height posts, then top plates. Bottom plates don't
     // collide - standing on one would lift the player into a two-high doorway's top plate.
+    // A diagonal's are the two ends of its staircase in blocktypes/wall.json, then the eleven
+    // steps between them at plate height.
     private static readonly Dictionary<string, (Cuboidf[] posts, Cuboidf[] top)> UnrotatedFramingBoxes = new()
     {
         ["wall"] = (
@@ -56,6 +58,15 @@ public class SidingWallBlock : Block
                 new Cuboidf(1f / 16, 15f / 16, 3f / 16, 3f / 16, 1, 15f / 16),
                 new Cuboidf(3f / 16, 15f / 16, 1f / 16, 15f / 16, 1, 3f / 16),
             }),
+        ["diagonal"] = (
+            new[]
+            {
+                new Cuboidf(0, 0, 12f / 16, 4f / 16, 1, 1),
+                new Cuboidf(12f / 16, 0, 0, 1, 1, 4f / 16),
+            },
+            Enumerable.Range(1, 11)
+                .Select(k => new Cuboidf(k / 16f, 15f / 16, (12f - k) / 16, (k + 4f) / 16, 1, (16f - k) / 16))
+                .ToArray()),
     };
 
     // Unrotated ("west") deck box per layout, matching the area WallShapeGen clips the floor's layers to.
@@ -194,10 +205,18 @@ public class SidingWallBlock : Block
         return AddOpenPartBoxes(boxes, Variant["layout"], Variant["side"], entity.Deck, entity.Step == null ? null : entity.StepOrientation);
     }
 
-    // Which neighbours this cell shares a member with, i.e. draws no plate or post against.
+    // Which neighbours this cell shares a member with, i.e. draws no plate or post against. For a
+    // diagonal, left and right say which ends the next cell carries the run on from (decision 0066).
     internal (bool above, bool below, bool left, bool right) NeighbourJoins(
         IBlockAccessor blockAccessor, BlockPos pos, string? infill)
     {
+        var runsOn = (left: false, right: false);
+        if (Variant["layout"] == "diagonal")
+        {
+            var (leftStep, rightStep) = DiagonalRunNeighbours(Variant["side"]);
+            runsOn = (ContinuesDiagonal(blockAccessor, pos.AddCopy(leftStep)), ContinuesDiagonal(blockAccessor, pos.AddCopy(rightStep)));
+        }
+
         // Glazing merges with the glazing around it in every direction, with no member between,
         // so a run of it reads as one sheet however large. Opaque fill keeps decision 0008's
         // alternating cross-beam. That is why this asks the infill and not the layout: merging
@@ -207,7 +226,7 @@ public class SidingWallBlock : Block
         {
             bool above = ContinuesGlazing(blockAccessor, pos.UpCopy(), infill);
             bool below = ContinuesGlazing(blockAccessor, pos.DownCopy(), infill);
-            if (Variant["layout"] == "cornerout") return (above, below, false, false);
+            if (ClaimsTwoFaces(Variant["layout"])) return (above, below, runsOn.left, runsOn.right);
             var (left, right) = RunNeighbours(Variant["side"]);
             return (above, below,
                 ContinuesGlazing(blockAccessor, pos.AddCopy(left), infill),
@@ -216,8 +235,13 @@ public class SidingWallBlock : Block
 
         int cellsBelow = 0;
         for (BlockPos p = pos.DownCopy(); ContinuesFrame(blockAccessor, p, infill); p.Down()) cellsBelow++;
-        return (JoinsAbove(ContinuesFrame(blockAccessor, pos.UpCopy(), infill), cellsBelow), cellsBelow > 0, false, false);
+        return (JoinsAbove(ContinuesFrame(blockAccessor, pos.UpCopy(), infill), cellsBelow), cellsBelow > 0, runsOn.left, runsOn.right);
     }
+
+    // A diagonal on the same line, whichever way it faces.
+    private bool ContinuesDiagonal(IBlockAccessor blockAccessor, BlockPos neighbourPos)
+        => blockAccessor.GetBlock(neighbourPos) is SidingWallBlock other && other.Variant["layout"] == "diagonal"
+            && (other.Variant["side"] == Variant["side"] || other.Variant["side"] == BlockFacing.FromCode(Variant["side"]).Opposite.Code);
 
     private bool ContinuesGlazing(IBlockAccessor blockAccessor, BlockPos neighbourPos, string? infill)
     {
@@ -241,6 +265,15 @@ public class SidingWallBlock : Block
         return (left, left.Opposite);
     }
 
+    // The two cells a diagonal's run carries on into: a step along the run and a step out through the
+    // hugged side at the left end, and the reverse at the right.
+    internal static (Vec3i left, Vec3i right) DiagonalRunNeighbours(string side)
+    {
+        var (left, right) = RunNeighbours(side);
+        Vec3i face = BlockFacing.FromCode(side).Normali;
+        return (new Vec3i(left.Normali.X - face.X, 0, left.Normali.Z - face.Z), new Vec3i(right.Normali.X + face.X, 0, right.Normali.Z + face.Z));
+    }
+
     // Which cornerout a wall becomes when it's upgraded in place (decision 0026): the new leg
     // goes on the end of the run clicked nearer. cornerout-`side` puts its second leg on the
     // left end; cornerout-`right` puts its own second leg back on `side`, so the leg it adds
@@ -252,6 +285,16 @@ public class SidingWallBlock : Block
         double towardsLeft = (hitPosition.X - 0.5) * left.Normali.X + (hitPosition.Z - 0.5) * left.Normali.Z;
         return towardsLeft > 0 ? side : right.Code;
     }
+
+    // The block a bare frame becomes when the saw picks another layout (decision 0026): a wall turns
+    // into a cornerout or a diagonal at the end clicked, a cornerout into a diagonal on the same
+    // side, and nothing turns back. Null when the pick offers no upgrade.
+    internal static string? ResolveFramingUpgrade(string layout, string side, string picked, Vec3d hitPosition) => (layout, picked) switch
+    {
+        ("wall", "cornerout" or "diagonal") => $"wall-{picked}-{ResolveCornerUpgrade(side, hitPosition)}",
+        ("cornerout", "diagonal") => $"wall-diagonal-{side}",
+        _ => null,
+    };
 
     // A stair beside the wall running along it is copied; otherwise the player picks, as vanilla
     // places stairs: look direction for the along-wall facing, clicked face and hit height for upside-down.
@@ -307,8 +350,9 @@ public class SidingWallBlock : Block
     // Any hostable block may take a wall's cell, whichever way it's placed - a click on the panel,
     // on the floor in the gap, a sneak-placement, ground storage. SidingModSystem.HostChangePrefix
     // turns the wall's state into a guest in the same SetBlock, so neighbours never see air.
+    // Not a diagonal's: the open part of its cell is a triangle (decision 0066).
     public override bool IsReplacableBy(Block block)
-        => SidingModSystem.IsHostableId(block.BlockId) || base.IsReplacableBy(block);
+        => (SidingModSystem.IsHostableId(block.BlockId) && Variant["layout"] != "diagonal") || base.IsReplacableBy(block);
 
     // Right-click on the wall's open side with a hostable block and no saw places that block in the
     // wall's own cell, where vanilla would put it in the cell in front. The client only reports the
@@ -318,7 +362,7 @@ public class SidingWallBlock : Block
     {
         ItemSlot slot = byPlayer.InventoryManager.ActiveHotbarSlot;
         Block? heldBlock = slot.Itemstack?.Block;
-        if (heldBlock == null || !SidingModSystem.IsHostableId(heldBlock.BlockId)) return false;
+        if (heldBlock == null || !SidingModSystem.IsHostableId(heldBlock.BlockId) || Variant["layout"] == "diagonal") return false;
         if (ResolveFinishFace(Variant["layout"], Variant["side"], blockSel.Face) != "back") return false;
 
         // Furniture would sit where the deck or step is. Swallowed rather than returning false,
@@ -436,6 +480,12 @@ public class SidingWallBlock : Block
         if (entity.Deck == null && blockSel.Face != BlockFacing.UP && SidingModePicker.Deck(byPlayer)
             && MatchFraming(heldCode, entity.Infill != null, Attributes["Framings"], Attributes["Infills"]) is { } deckKey)
         {
+            if (Variant["layout"] == "diagonal")
+            {
+                (byPlayer as IServerPlayer)?.SendIngameError("vssiding:diagonaldeck", Lang.Get("vssiding:build-diagonal-deck"));
+                return true;
+            }
+
             if (entity.Step != null)
             {
                 (byPlayer as IServerPlayer)?.SendIngameError("vssiding:stepped", Lang.Get("vssiding:build-stepped"));
@@ -458,14 +508,16 @@ public class SidingWallBlock : Block
 
         if (entity.Infill == null)
         {
-            // A bare frame clicked in corner mode becomes a cornerout in place, for a T-junction
+            // A bare frame clicked in corner or diagonal mode becomes one in place, for a T-junction
             // found once a partition reaches it (decision 0026). Nothing is charged: a fresh
-            // cornerout frame costs the same as a fresh wall frame. Everything this doesn't
-            // claim falls through to the infill match below, then to PlaceWallFrame.
-            if (Variant["layout"] == "wall"
-                && SidingModePicker.Layout(byPlayer) == "cornerout"
+            // cornerout or diagonal frame costs the same as a fresh wall frame. Everything this
+            // doesn't claim falls through to the infill match below, then to PlaceWallFrame.
+            string layout = Variant["layout"];
+            string picked = SidingModePicker.Layout(byPlayer);
+            string? upgrade = ResolveFramingUpgrade(layout, Variant["side"], picked, blockSel.HitPosition);
+            if (upgrade != null
                 && MatchFraming(heldCode, false, Attributes["Framings"], Attributes["Infills"]) != null
-                && ResolveFinishFace("wall", Variant["side"], blockSel.Face) != null)
+                && ResolveFinishFace(layout, Variant["side"], blockSel.Face) != null)
             {
                 if (entity.Step != null)
                 {
@@ -473,13 +525,19 @@ public class SidingWallBlock : Block
                     return true;
                 }
 
-                string cornerSide = ResolveCornerUpgrade(Variant["side"], blockSel.HitPosition);
-                var corner = world.GetBlock(new AssetLocation("vssiding", $"wall-cornerout-{cornerSide}"));
-                if (corner != null)
+                // The swap keeps the entity, deck and all, and a diagonal has no box for one (decision 0066).
+                if (entity.Deck != null && picked == "diagonal")
+                {
+                    (byPlayer as IServerPlayer)?.SendIngameError("vssiding:decked", Lang.Get("vssiding:build-decked"));
+                    return true;
+                }
+
+                var target = world.GetBlock(new AssetLocation("vssiding", upgrade));
+                if (target != null)
                 {
                     // Keeps the block entity, and the engine repoints its Block at the new
-                    // type, so Framing survives and OnTesselation reads the cornerout layout.
-                    world.BlockAccessor.ExchangeBlock(corner.Id, blockSel.Position);
+                    // type, so Framing survives and OnTesselation reads the new layout.
+                    world.BlockAccessor.ExchangeBlock(target.Id, blockSel.Position);
                     entity.MarkDirty(true);
                     // Plates key off the cells above and below sharing this one's layout
                     // (decision 0008), which the swap just changed.
@@ -703,7 +761,7 @@ public class SidingWallBlock : Block
             // Only glazing merges sideways, and only along its own run, so those are the only
             // horizontal neighbours that can change what this cell draws - an opaque wall never
             // joins one. Just this cell: merging is local, nothing propagates past the neighbour.
-            if (neibpos.Y != pos.Y || Variant["layout"] == "cornerout") return;
+            if (neibpos.Y != pos.Y || ClaimsTwoFaces(Variant["layout"])) return;
             var entity = world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos);
             if (entity == null || !IsTransparent(entity.Infill, Attributes["Infills"])) return;
             var (left, right) = RunNeighbours(Variant["side"]);
@@ -723,10 +781,27 @@ public class SidingWallBlock : Block
         // Unconditional, unlike OnNeighbourBlockChange's check on this cell's own glazing: this
         // fires when infill changes, and peeling glass out has to redraw the neighbours that were
         // merged with it - by which point this cell is no longer glazed. No walk either way.
-        if (world.BlockAccessor.GetBlock(pos) is not SidingWallBlock block || block.Variant["layout"] == "cornerout") return;
+        if (world.BlockAccessor.GetBlock(pos) is not SidingWallBlock block) return;
+        if (block.Variant["layout"] == "diagonal") MarkDiagonalRunDirty(world, pos, block.Variant["side"]);
+        if (ClaimsTwoFaces(block.Variant["layout"])) return;
         var (left, right) = RunNeighbours(block.Variant["side"]);
         world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos.AddCopy(left))?.MarkDirty(true);
         world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos.AddCopy(right))?.MarkDirty(true);
+    }
+
+    // A diagonal draws its end by whether the next cell carries the run on, and that cell is no face
+    // neighbour, so vanilla tells it nothing.
+    private static void MarkDiagonalRunDirty(IWorldAccessor world, BlockPos pos, string side)
+    {
+        var (left, right) = DiagonalRunNeighbours(side);
+        world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos.AddCopy(left))?.MarkDirty(true);
+        world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos.AddCopy(right))?.MarkDirty(true);
+    }
+
+    public override void OnBlockRemoved(IWorldAccessor world, BlockPos pos)
+    {
+        base.OnBlockRemoved(world, pos);
+        if (Variant["layout"] == "diagonal") MarkDiagonalRunDirty(world, pos, Variant["side"]);
     }
 
     // Cross-beams alternate up a stack, so a change low down shifts every cell above it.
@@ -738,11 +813,14 @@ public class SidingWallBlock : Block
         }
     }
 
-    // The faces this block's panels actually cover: the hugged side, plus a cornerout's second leg.
+    // A cornerout and a diagonal both claim the hugged side and the face counter-clockwise from it.
+    internal static bool ClaimsTwoFaces(string layout) => layout is "cornerout" or "diagonal";
+
+    // The faces this block's panels actually cover: the hugged side, plus a cornerout's or diagonal's second face.
     internal bool ClaimsFace(BlockFacing facing) => ClaimsFace(Variant["layout"], Variant["side"], facing.Code);
 
     internal static bool ClaimsFace(string layout, string side, string faceCode)
-        => faceCode == side || (layout == "cornerout" && faceCode == CorneroutSecondFace[side]);
+        => faceCode == side || (ClaimsTwoFaces(layout) && faceCode == CorneroutSecondFace[side]);
 
     public override int GetRetention(BlockPos pos, BlockFacing facing, EnumRetentionType type)
     {
@@ -873,17 +951,18 @@ public class SidingWallBlock : Block
     // Faces are named by the direction they point - the only vocabulary that covers a cornerout's
     // three finishable faces without inventing words for them. Both of its legs share one Back
     // layer, so two directions carry the same finish; grouping by first appearance is what puts
-    // them on one line even with a SecondFront direction between them.
+    // them on one line even with a SecondFront direction between them. A diagonal's two claimed
+    // faces are one front, so its four directions come out as two lines.
     private static IEnumerable<string> DescribeFaces(
         string layout, string side, string? front, string? secondFront, string? back, JsonObject finishes,
         System.Func<string, string?> translate)
     {
         string? builtFront = Installed(front, finishes), builtBack = Installed(back, finishes);
         var directions = new List<(string direction, string? finish)> { (side, builtFront), (Opposite(side), builtBack) };
-        if (layout == "cornerout")
+        if (ClaimsTwoFaces(layout))
         {
             string secondSide = CorneroutSecondFace[side];
-            directions.Add((secondSide, Installed(secondFront, finishes)));
+            directions.Add((secondSide, layout == "diagonal" ? builtFront : Installed(secondFront, finishes)));
             directions.Add((Opposite(secondSide), builtBack));
         }
 
@@ -962,10 +1041,11 @@ public class SidingWallBlock : Block
         => be is SidingWallEntity entity && ComputeLightAbsorption(entity.Framing, entity.Infill, Attributes["Framings"], Attributes["Infills"]) > 0;
 
     // The horizontal step from a wall cell to the cell its dead space opens onto: away from the panel, diagonally for a cornerout.
+    // A diagonal takes the same step, which is wrong for the triangle outside its panel (decision 0066).
     internal static (int dx, int dz) OpenSide(string layout, string side)
     {
         var open = BlockFacing.FromCode(side).Opposite.Normali;
-        if (layout != "cornerout") return (open.X, open.Z);
+        if (!ClaimsTwoFaces(layout)) return (open.X, open.Z);
         var second = BlockFacing.FromCode(CorneroutSecondFace[side]).Opposite.Normali;
         return (open.X + second.X, open.Z + second.Z);
     }
@@ -1376,11 +1456,12 @@ public class SidingWallBlock : Block
     // Which finish layer a build-flow click's clicked face targets - the hugged side is
     // "front", the opposite side is "back", an end/top/bottom face is neither. A cornerout's
     // second leg has its own hugged-side layer, "secondfront", but still shares "back" with
-    // the first leg.
+    // the first leg. A diagonal's second claimed face is the same "front": the panel has one outer face.
     internal static string? ResolveFinishFace(string layout, string side, BlockFacing clickedFace)
     {
         if (FinishFaceFor(side, clickedFace, "front") is string face) return face;
-        return layout == "cornerout" ? FinishFaceFor(CorneroutSecondFace[side], clickedFace, "secondfront") : null;
+        if (!ClaimsTwoFaces(layout)) return null;
+        return FinishFaceFor(CorneroutSecondFace[side], clickedFace, layout == "diagonal" ? "front" : "secondfront");
     }
 
     private static string? FinishFaceFor(string side, BlockFacing clickedFace, string frontLayer)
