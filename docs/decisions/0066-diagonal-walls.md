@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Created: 2026-10-08
-- Reflects: the playtest of decision 0060 on branch `feat/tent-walls`; branch `feat/diagonal-walls`; `SidingWallBlock.ClaimsTwoFaces`/`ClaimsFace`/`OpenSide`/`ResolveFinishFace`/`ResolveFramingUpgrade`/`UnrotatedFramingBoxes`/`ComputeCollisionBoxes`/`IsReplacableBy`/`TryHost`/`NeighbourJoins`/`DiagonalRunNeighbours`/`OnBlockRemoved`, `SidingWallEntity.SelectiveElements`, `SidingModePicker.Rows`/`Layout`, `PlaceWallFrame`, `SidingModSystem`'s ground-storage prefix, `RainFallFromOpenSidePrefix` and `SealedCellLightPostfix`, `VSSiding.Tests/WallShapeGen`, `blocktypes/wall.json`, `shapes/block/wall/diagonal.json`, `textures/icons/diagonal.svg`, `lang/en.json`; `WallShapeGenTests`' pin of the panel's ends and front, `VSSiding.E2E.Tests/DiagonalScenarios.cs`; decompiled `ShapeTesselator` and `CollisionTester`; decisions 0001, 0002, 0007, 0008, 0009, 0015, 0018, 0021, 0026, 0034, 0035, 0040, 0058, 0060, 0061; the review of PR #106; the author's play of the first build, 2026-10-08, which this decision's shape answers; unit tests (462) and e2e scenarios (34) pass; the second shape is NOT PLAYED
+- Reflects: the playtest of decision 0060 on branch `feat/tent-walls`; branch `feat/diagonal-walls`; `SidingWallBlock.ClaimsTwoFaces`/`ClaimsFace`/`OpenSide`/`ResolveFinishFace`/`ResolveFramingUpgrade`/`UnrotatedFramingBoxes`/`ComputeCollisionBoxes`/`IsReplacableBy`/`TryHost`/`NeighbourJoins`/`DiagonalRunNeighbours`/`OnBlockRemoved`, `SidingWallEntity.SelectiveElements`, `SidingModePicker.Rows`/`Layout`, `PlaceWallFrame`, `SidingModSystem`'s ground-storage prefix, `RainFallFromOpenSidePrefix` and `SealedCellLightPostfix`, `VSSiding.Tests/WallShapeGen`, `blocktypes/wall.json`, `shapes/block/wall/diagonal.json`, `textures/icons/diagonal.svg`, `lang/en.json`; `WallShapeGenTests`' pin of the panel's ends and front, `VSSiding.E2E.Tests/DiagonalScenarios.cs`; decompiled `ShapeTesselator` and `CollisionTester`; decisions 0001, 0002, 0007, 0008, 0009, 0015, 0018, 0021, 0026, 0034, 0035, 0040, 0058, 0060, 0061; the review of PR #106; the author's play of the first build and of the second, 2026-10-08, the second as an octagonal room under a Roofing roof; unit tests (462) and e2e scenarios (34) pass
 
 ## Summary
 A tent built from these walls is a box, since a wall runs along a cell's face and a corner turns ninety degrees.
@@ -120,8 +120,10 @@ The deck branch of `OnBlockInteractStart` returns an in-game error (`build-diago
 - **Auto-chamfer a corner from its neighbours.** `auto-corners` is parked for the same reason: the player places the piece.
 
 ## Consequences & open questions
-- **The second shape has not been played.**
-The first build was: the walls sealed, the lighting was odd as expected, and a player running along the one-voxel staircase grinds a little and comes free.
+- **Played, and accepted.**
+On the first build the walls sealed, the lighting was odd as expected, and a player running along the one-voxel staircase grinds a little and comes free.
+The second shape was played as an octagonal room of straight walls and diagonals under a Roofing roof, and the author accepted it.
+The points below marked unplayed were not reported on.
 - The staircase keeps a 4 voxel step at each corner of a run, so a player sliding along a run catches there.
 - A run's end pieces are drawn in the two cells beside the corner, lit by the diagonal's own cell.
 Where such a cell holds a full block they are inside it, and their top face lies in the plane of that block's top.
