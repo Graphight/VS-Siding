@@ -227,6 +227,45 @@ public class SidingWallTexSourceTests
             new[] { SidingWallTexSource.AnyVaries(finishes, "daub", "planks"), SidingWallTexSource.AnyVaries(finishes, "daub", null), SidingWallTexSource.AnyVaries(finishes) });
     }
 
+    [Fact]
+    public void AnyVariesForAFinishTakenFromABlock()
+    {
+        var finishes = Dict("""
+        { "stained": { "TextureBlock": "woodstain:stainedplanks-red-oak-ns" }, "daub": { "Texture": "game:block/clay/daub/browngolden/normal1" } }
+        """);
+
+        Assert.Equal(
+            new[] { true, false },
+            new[] { SidingWallTexSource.AnyVaries(finishes, "stained"), SidingWallTexSource.AnyVaries(finishes, "daub") });
+    }
+
+    [Fact]
+    public void TextureBlockResolvesThroughTheBlockLookup()
+    {
+        var finishes = Dict("""
+        { "stained": { "TextureBlock": "woodstain:stainedplanks-red-oak-ns", "Texture": "game:block/wood/planks/oak1" } }
+        """);
+        var blockTexture = new CompositeTexture(new AssetLocation("woodstain:block/wood/stain/red-oak"));
+        var asked = new List<AssetLocation>();
+
+        CompositeTexture? resolved = SidingWallTexSource.ResolveTexture(
+            "front", null, null, "stained", null, null, Framings, Infills, finishes,
+            blockTexture: code => { asked.Add(code); return blockTexture; });
+
+        Assert.Same(blockTexture, resolved);
+        Assert.Equal([new AssetLocation("woodstain:stainedplanks-red-oak-ns")], asked);
+    }
+
+    [Fact]
+    public void TextureBlockWithoutALookupResolvesToNull()
+    {
+        var finishes = Dict("""
+        { "stained": { "TextureBlock": "woodstain:stainedplanks-red-oak-ns" } }
+        """);
+
+        Assert.Null(SidingWallTexSource.ResolveTexture("front", null, null, "stained", null, null, Framings, Infills, finishes));
+    }
+
     // A cell's framing and plank finish share one alternate, so they must name the same variants.
     [Fact]
     public void PlankFramingDrawsTheSameTexturesAsItsFinish()
