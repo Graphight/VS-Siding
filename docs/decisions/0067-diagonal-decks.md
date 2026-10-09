@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Created: 2026-10-08
-- Reflects: the author's questions of 2026-10-08 while planning the diagonal wall; branch `feat/diagonal-decks`; `SidingWallBlock.UnrotatedDeckBoxes`/`BuildDeckBoxes`/`AddOpenPartBoxes`/`IsDeckHit`/`DeckOccupied`/`OnBlockInteractStart` and the framing upgrade's deck check, `SidingWallEntity.OnTesselation`, `PlaceWallFrame`, `lang/en.json`, `docs/moddb.html`, `shapes/block/wall/diagonal.json`, `VSSiding.Tests/WallShapeGen`'s `DeckGroups`, `CoveredLengths` and `DiagonalDeckStrips`, `SidingFloorBlock.DeckReaches` (read, not changed); decisions 0042, 0050, 0053, 0066; `WallShapeGenTests`' pins of the deck groups to the deck boxes, of the triangle's top, of the fillers' planes and of the pole groups, `SidingWallBlockCollisionTests`' pin of the west strips, `SidingFloorTests`' `DeckReaches` rows for `diagonal`, `VSSiding.E2E.Tests/DiagonalScenarios.cs` and `RoomScenarios.cs`; the review of PR #107; unit tests (467) and e2e scenarios (37) pass; not played
+- Reflects: the author's questions of 2026-10-08 while planning the diagonal wall; branch `feat/diagonal-decks`; `SidingWallBlock.UnrotatedDeckBoxes`/`BuildDeckBoxes`/`AddOpenPartBoxes`/`IsDeckHit`/`DeckOccupied`/`OnBlockInteractStart` and the framing upgrade's deck check, `SidingWallEntity.OnTesselation`, `PlaceWallFrame`, `lang/en.json`, `docs/moddb.html`, `shapes/block/wall/diagonal.json`, `VSSiding.Tests/WallShapeGen`'s `DeckGroups`, `CoveredLengths` and `DiagonalDeckStrips`, `SidingFloorBlock.DeckReaches` (read, not changed); decisions 0042, 0050, 0053, 0066; `WallShapeGenTests`' pins of the deck groups to the deck boxes, of the triangle's top, of the fillers' planes and of the pole groups, `SidingWallBlockCollisionTests`' pin of the west strips, `SidingFloorTests`' `DeckReaches` rows for `diagonal`, `VSSiding.E2E.Tests/DiagonalScenarios.cs` and `RoomScenarios.cs`; the review of PR #107; unit tests (467) and e2e scenarios (37) pass; the author's play of 2026-10-08, a glazed diagonal dug in one block with a deck at ground level
 
 ## Summary
 A diagonal wall (decision 0066) cuts its cell corner to corner, so the half of the cell inside the room has no floor of its own.
@@ -39,6 +39,7 @@ Decision 0042 gave a deck one box per layout; the table now holds a list per lay
 Each strip's cut end then lies between 0.71 voxels either side of the centre line.
 Starting on the line reaches 1.41 voxels past it, which was the proposal's version.
 The frame is 1 voxel either side of the centre line, so the top plate covers the stepped edge from above, and no tooth reaches a finish's slot.
+A diagonal standing on top drops that plate (decision 0008), so at a join between storeys nothing covers the edge from outside but the infill.
 The infill is half a voxel either side, which the plan for this build missed.
 On a filled wall with no outer finish each cut end stands 0.21 voxels proud of the infill's outer face, under the plate, from y 12 to 15.
 On the room side the same 0.21 is a notch between the deck and the infill's inner face, seen from below while that side is bare.
@@ -94,16 +95,20 @@ Its last consequence pointed floors and decks at the `diagonal-floors` proposal;
 - **A square deck on a diagonal.** It stands outside the wall as a triangular ear.
 - **Strips starting on the centre line.** The teeth reach 1.41 voxels past it, 0.41 beyond the plate's 1 voxel: into the outer finish's slot on a finished wall, and past the plate's edge on a bare frame.
 - **1-voxel strips, drawn or collided.** Offset by half a voxel their cut ends lie 0.35 either side of the centre line, inside the infill's 0.5, so nothing stands proud and nothing is notched. Sixteen boxes double the deck's elements, and as collision boxes they join a cell that already holds thirteen. Not built until play says the 0.21 shows; drawing each collision strip as two 1-voxel halves would keep the boxes at eight.
+- **A ledger: one turned beam along the panel at the deck's height, as thick as the frame.** It would cover the cut ends from every side, under glass, on a bare frame and at a join between storeys. Not built: the author saw the sawtooth in play and accepted it.
 - **A ledge copy, as the other layouts have.** A ledge fills the gap between a deck and the frame while the room side is bare, and the triangle leaves no gap: it already runs through that slot to the frame.
 - **Keeping the decked-frame refusal.** Its reason was the missing box, and that box exists now.
 - **A half-and-half block for the ground floor that replaces the block below and redraws its outer half.** The mod would stand in for arbitrary vanilla blocks, with their drops, collision and behaviours. It is the guest wall of decision 0035 in reverse and larger.
 - **The diagonal drawing its own triangular floor skin at its base.** The cells beside it still need a floor at the same height, which is what `face-finishes` is.
 
 ## Consequences & open questions
-**Nothing here has been played.**
-The unit tests pin the boxes, the shape and the answers; the e2e scenarios pin the stored state.
-Meshes, flicker and walking are invisible to both.
-Play has to settle:
+**Played in part, and accepted.**
+The author played a glazed diagonal dug in one block, with a deck at ground level and a diagonal standing on it, on 2026-10-08.
+The deck's stepped edge shows along the foot of the glass as a sawtooth: glass hides nothing, and the plate is dropped at the join.
+It goes once infill is laid, and the author accepted it as it is.
+The triangular pit outside the dug-in diagonal is there, as the proposal said of a ground floor.
+The unit tests pin the boxes, the shape and the answers, and the e2e scenarios pin the stored state; meshes, flicker and walking are invisible to both.
+The points below were not reported on:
 - The stepped edge seen from below through a bare frame.
 - A filled wall with no outer finish seen from outside, just under the top plate, for the cut ends standing 0.21 proud of the infill; a pelt tent is this case.
 - Flicker on a top storey seen from above, where the triangle's top lies 0.02 under the plate's.
@@ -131,6 +136,7 @@ A floor beside a leg lies at 16 and the triangle at 15.98.
 
 **A ground floor with no digging is open in `face-finishes`.**
 Half of the top face of the block below would be skinned; that needs a decor shape or texture nobody has checked, and it waits on the proposal.
+Play confirmed what digging in leaves instead: a triangular pit outside the wall.
 
 **A thin floor cut corner to corner stays unbuilt.**
 `SidingFloorBlock` has no orientation today, so a cut floor means new variants.
