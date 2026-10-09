@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Created: 2026-10-08
-- Reflects: mod page comment https://mods.vintagestory.at/vssiding#cmt-244452; branch `feat/stained-plank-finishes`; Dyed Wood 2.1.0's shipped assets and its shipped source (the zip carries `src/`); Wood Stain 1.3.2's and Vanilla Varnished Planks 1.0.6's shipped assets only; the game 1.22.7 decompile for `BlockDropItemStack.Resolve`, `CompositeTexture.Bake`, `TextureAtlasManager.GetOrInsertTexture` and `TreeAttribute.IsSubSetOf`; `MaterialFamilies.Expand`, `SidingWallTexSource.ResolveTexture`/`AtlasPosition`/`AnyVaries`, `SidingWallBlock.MatchConsumes`, `config/materials.json`; decisions 0001, 0007, 0010; unit tests for each; the review of PR #112; none of the three mods has been played with Siding
+- Reflects: mod page comment https://mods.vintagestory.at/vssiding#cmt-244452; branch `feat/stained-plank-finishes`; Dyed Wood 2.1.0's shipped assets and its shipped source (the zip carries `src/`); Wood Stain 1.3.2's and Vanilla Varnished Planks 1.0.6's shipped assets only; the game 1.22.7 decompile for `BlockDropItemStack.Resolve`, `CompositeTexture.Bake`, `TextureAtlasManager.GetOrInsertTexture` and `TreeAttribute.IsSubSetOf`; `MaterialFamilies.Expand`, `SidingWallTexSource.ResolveTexture`/`AtlasPosition`/`AnyVaries`, `SidingWallBlock.MatchConsumes`, `config/materials.json`; decisions 0001, 0007, 0010; unit tests for each; the review of PR #112; the author's play of 2026-10-08 with all three mods and Attribute Rendering Library 3.2.0 loaded, and the client log of a stained wall
 
 ## Summary
 A player asked for "compat with the dyed wood mod", and three mods could be meant, each storing a coloured plank differently.
@@ -37,7 +37,10 @@ A template whose mod is absent matches nothing and expands to nothing.
 
 **A material entry may carry `TextureBlock` instead of `Texture`.**
 `SidingWallTexSource.ResolveTexture` takes a trailing block-texture lookup; for an entry with `TextureBlock` and no matching `StyleTextures` entry it returns what the lookup gives for that block code, or null with no lookup.
-The production lookup is `capi.World.GetBlock(code)?.Textures.Values.FirstOrDefault()`, called from the `SidingWallTexSource` indexer and `SidingFloorEntity.TexSource`.
+The production lookup is `SidingWallTexSource.SideTexture` over the block's textures, called from the `SidingWallTexSource` indexer and `SidingFloorEntity.TexSource`: the `north` face's texture, or the first one for a block with no face keys.
+A side face, because on a client a Wood Stain plank block does not hold the one `all` texture its file declares.
+It holds `verticals`, `up` and `down` turned a quarter turn, then `north`, `east`, `south` and `west` unturned, then an `all` of `game:unknown`.
+The first build took the first texture, which is the turned one, and every stained finish drew its boards the wrong way.
 A Wood Stain block's texture already carries the overlay, its blend mode and the alternates, so Siding names the block and does not rebuild the composite.
 `AtlasPosition` now picks the per-cell alternate from a texture's explicit `Alternates` as well as from a wildcard base's; a wildcard base is still baked first.
 `AnyVaries` is true for an entry with `TextureBlock`, so the cell keeps its position hash.
@@ -71,15 +74,20 @@ The existing `planks-{wood}` template picks up its `plank-{wood}` items, as it d
 - **A path template limited by regex to the 12 vanilla woods.** It needs no texture code, since the base and overlay could be named from paths, but it leaves Wood Stain's aged woods and the Wildcraft Trees woods unsupported.
 - **Candidates taken from a block's creative inventory stacks.** It was the proposal's way to enumerate Dyed Wood's pairs, and it is not needed once `dyedwood:chiselmaterial-{color}-{wood}` was found.
 - **Vanilla's `IsSubSetOf` for the attribute match.** It was the first build, and the review of PR #112 showed what it does one level down: a held `types` with an extra key matched nothing, one with only a colour matched the first entry of that colour, an empty one matched the first dyed entry, and a string threw out of `OnBlockInteractStart`.
+- **The first texture a block lists, for `TextureBlock`.** It was the first build, and the author's play of 2026-10-08 showed stained boards a quarter turn off beside dyed ones that were right; a logged dump of the client's block gave the reason above.
 - **Stained framings.** The frame is mostly covered once a wall is finished; left until someone asks.
 
 ## Consequences & open questions
+**Seen in play, 2026-10-08.**
+- A varnished plank finishes a wall.
+- A held Dyed Wood stack matches its entry, so the `types` shape read from its files is the shape in play, and its boards draw the right way as vertical boards and as weatherboard.
+- A Wood Stain finish draws its block's texture, stain overlay included, so the atlas returns a block's already-packed texture by its baked name.
+
 **Not seen in play.**
-The unit tests pin the expanded entries, the texture resolution and the attribute match; none of the three mods was loaded beside Siding.
-- That the atlas returns a block's already-packed texture by its baked name, overlay and blend mode included.
-- The shape of the `types` attribute on a held Dyed Wood stack, which `Carries` must find the wanted tree inside.
+- A stained finish after the change to a side face; the play above is what found the turned one.
 - Whether a peeled stack merges with the stack it came from, for both mods.
-- How each mod's plank looks on a wall and a floor beside the mod's own block.
+- A red oak plank from each stain mod on one wall.
+- Any of the three on a floor or a deck.
 
 **The payload grows.**
 Every siding block carries its own copy of the expanded attributes.

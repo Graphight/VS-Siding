@@ -256,6 +256,31 @@ public class SidingWallTexSourceTests
         Assert.Equal([new AssetLocation("woodstain:stainedplanks-red-oak-ns")], asked);
     }
 
+    private static CompositeTexture Turned(string path, int rotation) => new(new AssetLocation(path)) { Rotation = rotation };
+
+    // What a client holds for woodstain:stainedplanks-red-aged-ns, read from its log.
+    [Fact]
+    public void SideTextureIsASideFaceNotTheFirstTexture()
+    {
+        var side = Turned("game:block/wood/planks/aged/aged1", 0);
+        var pillar = new Dictionary<string, CompositeTexture>
+        {
+            ["verticals"] = Turned("game:block/wood/planks/aged/aged1", 90),
+            ["up"] = Turned("game:block/wood/planks/aged/aged1", 90),
+            ["north"] = side,
+            ["all"] = Turned("game:unknown", 0),
+        };
+        var faceless = new Dictionary<string, CompositeTexture> { ["wood"] = side };
+
+        Assert.Equal(
+            new CompositeTexture?[] { side, side, null, null },
+            new[]
+            {
+                SidingWallTexSource.SideTexture(pillar), SidingWallTexSource.SideTexture(faceless),
+                SidingWallTexSource.SideTexture(new Dictionary<string, CompositeTexture>()), SidingWallTexSource.SideTexture(null),
+            });
+    }
+
     [Fact]
     public void AStyleTextureWinsOverTextureBlock()
     {

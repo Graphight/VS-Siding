@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json.Linq;
 using Vintagestory.API.Client;
@@ -53,9 +54,17 @@ public class SidingWallTexSource : ITexPositionSource
         => keys.Any(key => key != null
             && (dictionary[key]["Texture"].AsString(null!)?.EndsWith('*') == true || dictionary[key]["TextureBlock"].Exists));
 
-    // A block's own baked texture, the first it declares, for a material entry's TextureBlock.
+    // A block's own baked texture, for a material entry's TextureBlock.
     internal static System.Func<AssetLocation, CompositeTexture?> BlockTexture(ICoreClientAPI capi)
-        => code => capi.World.GetBlock(code)?.Textures.Values.FirstOrDefault();
+        => code => SideTexture(capi.World.GetBlock(code)?.Textures);
+
+    // The texture a wall would show: a side face's. A pillar block turns its top and bottom a
+    // quarter turn so the boards run its way, and lists them ahead of its sides (Wood Stain's
+    // planks on a client: verticals, up, down, then north), so the first texture is the turned one.
+    internal static CompositeTexture? SideTexture(IDictionary<string, CompositeTexture>? textures)
+        => textures == null ? null
+            : textures.TryGetValue(BlockFacing.NORTH.Code, out var side) ? side
+            : textures.Values.FirstOrDefault();
 
     // Variant 0 is the base, then the alternates, the order Bake lists them in.
     internal static CompositeTexture PickAlternate(CompositeTexture baked, int alternate)
