@@ -60,23 +60,9 @@ public class FinishElementGroupsTests
     {
         var assets = Path.Combine(MaterialTextureOpacityTests.GetAssemblyMetadata("RepoRoot"), "VSSiding", "assets", "vssiding");
         var wallJson = JObject.Parse(File.ReadAllText(Path.Combine(assets, "blocktypes", "wall.json")));
-        var entries = FinishEntries();
-        var finishes = new JsonObject(new JObject(entries.Select(e => new JProperty(e.Name, e.Value))));
-
-        var asked =
-            from entry in entries
-            from style in new string?[] { null }.Concat(entry.Value["Styles"]?.Select(t => (string)t!) ?? [])
-            from above in new[] { false, true }
-            from below in new[] { false, true }
-            from left in new[] { false, true }
-            from right in new[] { false, true }
-            from name in SidingWallEntity.SelectiveElements(
-                layout, "oak", "glass", entry.Name, layout == "cornerout" ? entry.Name : null, entry.Name, finishes, (above, below, left, right), glazed: true,
-                styles: (style, layout == "cornerout" ? style : null, style))
-            where name.Contains("-rim")
-            select name;
-        var rims = asked.Distinct().ToList();
-        Assert.NotEmpty(rims);
+        var rims = RimsEveryGlazedCellAsksFor((finishes, key, style, joins) => SidingWallEntity.SelectiveElements(
+            layout, "oak", "glass", key, layout == "cornerout" ? key : null, key, finishes, joins, glazed: true,
+            styles: (style, layout == "cornerout" ? style : null, style)));
 
         var names = WallShapeGen.Generate(layout)["elements"]!.Select(e => (string)e["name"]!).ToHashSet();
         var offenders = rims.Where(r => !names.Contains(r)).Select(r => $"the {layout} shape has no element '{r}'").ToList();
@@ -96,22 +82,8 @@ public class FinishElementGroupsTests
     {
         var assets = Path.Combine(MaterialTextureOpacityTests.GetAssemblyMetadata("RepoRoot"), "VSSiding", "assets", "vssiding");
         var floorJson = JObject.Parse(File.ReadAllText(Path.Combine(assets, "blocktypes", "floor.json")));
-        var entries = FinishEntries();
-        var finishes = new JsonObject(new JObject(entries.Select(e => new JProperty(e.Name, e.Value))));
-
-        var asked =
-            from entry in entries
-            from style in new string?[] { null }.Concat(entry.Value["Styles"]?.Select(t => (string)t!) ?? [])
-            from above in new[] { false, true }
-            from below in new[] { false, true }
-            from left in new[] { false, true }
-            from right in new[] { false, true }
-            from name in SidingFloorEntity.SelectiveElements(
-                "oak", "glass", entry.Name, entry.Name, finishes, (above, below, left, right), (style, style), glazed: true)
-            where name.Contains("-rim")
-            select name;
-        var rims = asked.Distinct().ToList();
-        Assert.NotEmpty(rims);
+        var rims = RimsEveryGlazedCellAsksFor((finishes, key, style, joins) => SidingFloorEntity.SelectiveElements(
+            "oak", "glass", key, key, finishes, joins, (style, style), glazed: true));
 
         var names = WallShapeGen.Generate("floor")["elements"]!.Select(e => (string)e["name"]!).ToHashSet();
         var selected = floorJson["shape"]!["selectiveElements"]!.Select(t => (string)t!).ToHashSet();
@@ -133,8 +105,6 @@ public class FinishElementGroupsTests
     {
         var assets = Path.Combine(MaterialTextureOpacityTests.GetAssemblyMetadata("RepoRoot"), "VSSiding", "assets", "vssiding");
         var wallJson = JObject.Parse(File.ReadAllText(Path.Combine(assets, "blocktypes", "wall.json")));
-        var entries = FinishEntries();
-        var finishes = new JsonObject(new JObject(entries.Select(e => new JProperty(e.Name, e.Value))));
         var shape = WallShapeGen.Generate(layout)["elements"]!.ToArray();
         var names = shape.Select(e => (string)e["name"]!).ToHashSet();
         var floorPieces = WallShapeGen.Generate("floor")["elements"]!.ToLookup(e => (string)e["name"]!);
@@ -154,18 +124,10 @@ public class FinishElementGroupsTests
             Math.Max((double)piece["from"]![a]!, box.Lo[a]) < Math.Min((double)piece["to"]![a]!, box.Hi[a])));
 
         var asked = (
-            from entry in entries
-            from style in new string?[] { null }.Concat(entry.Value["Styles"]?.Select(t => (string)t!) ?? [])
-            from above in new[] { false, true }
-            from below in new[] { false, true }
-            from left in new[] { false, true }
-            from right in new[] { false, true }
             from side in new[] { "west", "south", "east", "north" }
-            from name in SidingWallEntity.DeckElements(
-                side, "oak", "glass", entry.Name, entry.Name, finishes, (above, below, left, right), (style, style), glazed: true, ledge: layout != "diagonal")
-            where name.Contains("-rim")
-            select (Side: side, Name: name)).Distinct().ToList();
-        Assert.NotEmpty(asked);
+            from name in RimsEveryGlazedCellAsksFor((finishes, key, style, joins) => SidingWallEntity.DeckElements(
+                side, "oak", "glass", key, key, finishes, joins, (style, style), glazed: true, ledge: layout != "diagonal"))
+            select (Side: side, Name: name)).ToList();
 
         var offenders = new List<string>();
         foreach (var (side, name) in asked)
@@ -336,6 +298,27 @@ public class FinishElementGroupsTests
     }
 
     private static readonly string[] PlankFinishes = ["planks", "planks-aged", "planks-veryaged", "planks-{wood}", "stained-{stain}-{wood}", "dyed-{color}-{wood}"];
+
+    // The rim names glazed cells ask for, over every finish, each of its styles and none, and every set of joins.
+    private static List<string> RimsEveryGlazedCellAsksFor(
+        Func<JsonObject, string, string?, (bool above, bool below, bool left, bool right), IEnumerable<string>> selectiveElements)
+    {
+        var entries = FinishEntries();
+        var finishes = new JsonObject(new JObject(entries.Select(e => new JProperty(e.Name, e.Value))));
+        bool[] either = [false, true];
+        var rims = (
+            from entry in entries
+            from style in new string?[] { null }.Concat(entry.Value["Styles"]?.Select(t => (string)t!) ?? [])
+            from above in either
+            from below in either
+            from left in either
+            from right in either
+            from name in selectiveElements(finishes, entry.Name, style, (above, below, left, right))
+            where name.Contains("-rim")
+            select name).Distinct().ToList();
+        Assert.NotEmpty(rims);
+        return rims;
+    }
 
     private static List<JProperty> FinishEntries()
     {

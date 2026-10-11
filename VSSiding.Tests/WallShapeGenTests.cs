@@ -610,7 +610,7 @@ public class WallShapeGenTests
             new("front-limited", (0, 0, 0), (1, 16, 16), "front", UvRule.Flat, Faces: ["west", "up"]),
         ];
 
-        Assert.Equal(["west", "up", "north", "south", "down"], WallShapeGen.RimPieces(elements).Single().Faces);
+        Assert.Equal(["west", "up", "north", "south", "down"], WallShapeGen.RimPieces(elements).Single().Faces!);
     }
 
     // On a floor the face is the top, so the cuts are on x and z and the group keeps its own y.
@@ -624,8 +624,9 @@ public class WallShapeGenTests
         ];
 
         var rim = WallShapeGen.RimPieces(elements, 'x', 'z').Single();
-        Assert.Equal(("front-limited-rim-top-left", (0.0, 15.0, 0.0), (2.0, 16.0, 2.0)), (rim.Name, rim.From, rim.To));
-        Assert.Equal(["up", "east", "south"], rim.Faces!);
+        Assert.Equal(
+            ("front-limited-rim-top-left", (0.0, 15.0, 0.0), (2.0, 16.0, 2.0), "up,east,south"),
+            (rim.Name, rim.From, rim.To, string.Join(",", rim.Faces!)));
     }
 
     [Fact]

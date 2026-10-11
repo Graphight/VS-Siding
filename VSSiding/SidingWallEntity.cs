@@ -277,14 +277,11 @@ public class SidingWallEntity : BlockEntity
     }
 
     // The suffixes of the frame pieces a cell draws, which a glazed face's rims follow part for part.
-    // A cornerout's three posts are always drawn, glazed ones as the `glazing` group;
-    // a wall's two drop individually wherever glazing merges sideways.
-    // Glazing gets its own frame: stiles and the rails between them, which
-    // overlap nothing. Where a stile has merged away, its rail ends on a filler in that
-    // corner, so the frame still reaches the cell's edge. A plain wall's plates stop short
-    // at its posts, which is right while the posts are always there and leaves a notch at
-    // every cell edge once they aren't. A corner's posts never drop, so it has no fillers,
-    // and a diagonal keeps the plain frame.
+    // A wall's two posts drop one by one wherever glazing merges sideways; a cornerout's three are
+    // always drawn. A plain wall's plates stop short at its posts, which leaves a notch at the cell's
+    // edge once a post drops, so glazing gets its own frame: stiles and the rails between them,
+    // overlapping nothing, and a filler in the corner where a stile has merged away. A corner's posts
+    // never drop, so it has no fillers, and a diagonal keeps the plain frame.
     internal static List<string> FrameParts(string layout, (bool above, bool below, bool left, bool right) joins, bool glazed)
     {
         bool diagonal = layout == "diagonal";
