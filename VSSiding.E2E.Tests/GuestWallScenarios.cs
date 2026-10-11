@@ -80,7 +80,7 @@ public class GuestWallScenarios : AtlasScenarioBase
 
             player.Entity.LeftHandItemSlot.Itemstack = null;
             ItemSlot slot = player.Player.InventoryManager.ActiveHotbarSlot;
-            slot.Itemstack = LanternStack();
+            slot.Itemstack = WallBuilder.LanternStack(World);
             var selection = new BlockSelection { Position = cell.Copy(), Face = BlockFacing.EAST, HitPosition = new Vec3d(0.5, 0.5, 0.5) };
             Assert.True(World.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, selection));
 
@@ -109,7 +109,7 @@ public class GuestWallScenarios : AtlasScenarioBase
         {
             await WallBuilder.Raise(World, player, cell, cell.WestCopy(), "game:plank-oak", "game:clay-blue", "game:plank-oak");
 
-            ItemStack stack = LanternStack();
+            ItemStack stack = WallBuilder.LanternStack(World);
             var selection = new BlockSelection { Position = cell.Copy(), Face = BlockFacing.UP, HitPosition = new Vec3d(0.5, 0.5, 0.5) };
             string failureCode = "";
             Assert.True(stack.Block.TryPlaceBlock(player.Entity.World, player.Player, stack, selection, ref failureCode));
@@ -127,12 +127,32 @@ public class GuestWallScenarios : AtlasScenarioBase
         }
     }
 
-    private ItemStack LanternStack()
+    // A bare frame holds nothing up, so the lantern takes the next face that does: the floor of the wall's cell.
+    [AtlasScenario(FreshWorld = true)]
+    public async Task E_Lantern_Should_StandOnTheFloorOfTheCell_When_ClickedOntoABareFrame()
     {
-        var stack = new ItemStack(World.Api.World.GetBlock(new AssetLocation("game:lantern-large-up")));
-        stack.Attributes.SetString("material", "copper");
-        stack.Attributes.SetString("lining", "plain");
-        stack.Attributes.SetString("glass", "quartz");
-        return stack;
+        BlockPos cell = Cell;
+        World.SetBlock("game:planks-aged-ud", cell.DownCopy());
+
+        ITestPlayer player = await WallBuilder.JoinBuilder(World);
+        try
+        {
+            await WallBuilder.Raise(World, player, cell, cell.WestCopy(), "game:plank-oak", null);
+
+            player.Entity.LeftHandItemSlot.Itemstack = null;
+            ItemSlot slot = player.Player.InventoryManager.ActiveHotbarSlot;
+            slot.Itemstack = WallBuilder.LanternStack(World);
+            var selection = new BlockSelection { Position = cell.Copy(), Face = BlockFacing.EAST, HitPosition = new Vec3d(0.5, 0.5, 0.5) };
+            Assert.True(World.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, selection));
+
+            Assert.Equal("game:lantern-large-up", World.BlockAt(cell).Code.ToString());
+            Assert.Equal(("oak", null, null, null, null), WallBuilder.GuestLayers(World, cell));
+            Assert.True(slot.Empty);
+        }
+        finally
+        {
+            player.Player.Disconnect();
+            await World.Until(() => !player.IsConnected);
+        }
     }
 }
