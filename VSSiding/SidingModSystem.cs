@@ -304,6 +304,16 @@ public class SidingModSystem : ModSystem
 
         try
         {
+            harmony.Patch(AccessTools.Method(typeof(BlockBehaviorOmniAttachable), nameof(BlockBehaviorOmniAttachable.TryPlaceBlock)),
+                prefix: new HarmonyMethod(typeof(SidingModSystem), nameof(OmniAttachableIntoWallPrefix)));
+        }
+        catch (Exception e)
+        {
+            api.Logger.Error("vssiding: omni attachable patch skipped, a lantern can't be placed into a wall's cell: {0}", e);
+        }
+
+        try
+        {
             harmony.Patch(AccessTools.Method(typeof(BlockShapeMaterialFromAttributes), nameof(BlockShapeMaterialFromAttributes.DoPlaceBlock)),
                 postfix: new HarmonyMethod(typeof(SidingModSystem), nameof(PlacedAnglePostfix)));
             harmony.Patch(AccessTools.Method(typeof(BEBehaviorShapeMaterialFromAttributes), nameof(BEBehaviorShapeMaterialFromAttributes.FromTreeAttributes)),
@@ -890,6 +900,39 @@ public class SidingModSystem : ModSystem
 
         __result = false;
         failureCode = "notenoughspace";
+        return false;
+    }
+
+    internal static readonly AccessTools.FieldRef<BlockBehaviorOmniAttachable, Dictionary<string, Cuboidi>?> AttachmentAreasRef =
+        AccessTools.FieldRefAccess<BlockBehaviorOmniAttachable, Dictionary<string, Cuboidi>?>("attachmentAreas");
+
+    // Vanilla places an omni-attachable block (a lantern) only into a cell with Replaceable >= 6000, which a wall's never is (#91).
+    internal static bool OmniAttachableIntoWallPrefix(BlockBehaviorOmniAttachable __instance, IWorldAccessor world, IPlayer byPlayer,
+        ItemStack itemstack, BlockSelection blockSel, ref EnumHandling handling, ref string failureCode, ref bool __result)
+    {
+        if (world.BlockAccessor.GetBlock(blockSel.Position) is not SidingWallBlock wall) return true;
+
+        handling = EnumHandling.PreventDefault;
+        __result = false;
+        if (!__instance.block.CanPlaceBlock(world, byPlayer, blockSel, ref failureCode)) return false;
+
+        var areas = AttachmentAreasRef(__instance);
+        foreach (var face in new[] { blockSel.Face }.Concat(BlockFacing.ALLFACES))
+        {
+            var variant = world.BlockAccessor.GetBlock(__instance.block.CodeWithVariant(__instance.facingCode, face.Code));
+            if (!wall.IsReplacableBy(variant)) continue;
+
+            var attachPos = blockSel.Position.AddCopy(face.Opposite);
+            Cuboidi? area = null;
+            areas?.TryGetValue(face.Code, out area);
+            if (!world.BlockAccessor.GetBlock(attachPos).CanAttachBlockAt(world.BlockAccessor, __instance.block, attachPos, face, area)) continue;
+
+            variant.DoPlaceBlock(world, byPlayer, new BlockSelection { Position = blockSel.Position, HitPosition = blockSel.HitPosition, Face = face }, itemstack);
+            __result = true;
+            return false;
+        }
+
+        failureCode = "requireattachable";
         return false;
     }
 

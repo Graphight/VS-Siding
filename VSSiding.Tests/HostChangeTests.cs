@@ -63,6 +63,9 @@ public class HostChangeTests
         var tryPlaceBed = AccessTools.Method(typeof(BlockBed), nameof(BlockBed.TryPlaceBlock));
         Assert.Equal(new[] { "world", "byPlayer", "itemstack", "blockSel", "failureCode" },
             tryPlaceBed.GetParameters().Select(p => p.Name));
+        var tryPlaceOmni = AccessTools.Method(typeof(BlockBehaviorOmniAttachable), nameof(BlockBehaviorOmniAttachable.TryPlaceBlock));
+        Assert.Equal(new[] { "world", "byPlayer", "itemstack", "blockSel", "handling", "failureCode" },
+            tryPlaceOmni.GetParameters().Select(p => p.Name));
         var bedSeat = AccessTools.PropertyGetter(typeof(BlockEntityBed), nameof(BlockEntityBed.Position));
         Assert.NotNull(bedSeat);
         Assert.Equal(typeof(EntityPos), bedSeat.ReturnType);
