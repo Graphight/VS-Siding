@@ -117,6 +117,14 @@
 			BlockMaterial: "Stone",
 			Consumes: { type: "item", code: "game:stone-{rock}", quantity: 4 },
 			Drops: [ { type: "item", code: "game:stone-{rock}", quantity: { avg: 4, var: 0 } } ]
+		},
+		"rammed-{pattern}": {
+			Match: { type: "block", code: "game:rammed-light-*", variant: "pattern" },
+			DisplayName: "vssiding:infill-rammed-{pattern}",
+			Texture: "game:block/soil/rammed/light/{pattern}*",
+			BlockMaterial: "Soil",
+			Consumes: { type: "block", code: "game:rammed-light-{pattern}", quantity: 1 },
+			Drops: [ { type: "block", code: "game:rammed-light-{pattern}", quantity: { avg: 1, var: 0 } } ]
 		}
 	},
 	Finishes: {
@@ -226,6 +234,13 @@
 			BlockMaterial: "Stone",
 			Consumes: { type: "block", code: "game:plaster-stripes-ud", quantity: 1 },
 			Drops: [ { type: "block", code: "game:plaster-stripes-ud", quantity: { avg: 1, var: 0 } } ]
+		},
+		"packeddirt": {
+			DisplayName: "vssiding:finish-packeddirt",
+			Texture: "game:block/soil/flooring/packeddirt1*",
+			BlockMaterial: "Soil",
+			Consumes: { type: "block", code: "game:packeddirt", quantity: 1 },
+			Drops: [ { type: "block", code: "game:packeddirt", quantity: { avg: 1, var: 0 } } ]
 		}
 	},
 	FinishFamilies: {
