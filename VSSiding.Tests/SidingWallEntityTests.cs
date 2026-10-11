@@ -284,6 +284,26 @@ public class SidingWallEntityTests
     }
 
     [Fact]
+    public void ADeckDrawsNoLedgeOnceTheRoomSideIsFinishedOrTheFrameFillsIt()
+    {
+        Assert.Equal(
+            new Dictionary<string, bool>
+            {
+                ["bare back"] = true,
+                ["finished back"] = false,
+                ["glazed, bare back"] = false,
+                ["diagonal"] = false,
+            },
+            new Dictionary<string, bool>
+            {
+                ["bare back"] = SidingWallEntity.DeckDrawsLedge(null, "wall", false),
+                ["finished back"] = SidingWallEntity.DeckDrawsLedge("planks", "wall", false),
+                ["glazed, bare back"] = SidingWallEntity.DeckDrawsLedge(null, "wall", true),
+                ["diagonal"] = SidingWallEntity.DeckDrawsLedge(null, "diagonal", false),
+            });
+    }
+
+    [Fact]
     public void SelectiveElementsLeavesTheDeckToItsOwnGroups()
     {
         Assert.Equal(new[] { "framing-left", "framing-right", "framing-top", "framing-bottom" },
