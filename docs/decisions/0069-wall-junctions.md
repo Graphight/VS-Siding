@@ -117,6 +117,6 @@ A click on the deck's boxes is the deck's, so it still falls through to placing.
 - The same click does two things depending on whether the face is finished: it boards an unfinished face and upgrades a finished one. The guide states this in one sentence.
 - A wall hosting furniture cannot be upgraded. The cell's block is the furniture and the wall is a guest (decision 0035), so no wall click reaches it. The furniture comes out first.
 - A `cornerout` takes no step, so a stair cannot share the cell at a junction.
-- Atlas scenarios cover the carried layers and deck, per-face retention, the held press, the sneak press, the deck click and both refusals. The four rooms' seal has no `/sidingroom` check on record.
+- Atlas scenarios cover the carried layers and deck, per-face retention, the held press, the sneak press, the deck click and both refusals. A T-junction on a filled, finished outer wall was played in creative on 2026-10-11 with `/sidingroom` on both sides, before the fresh-press change. The crossing's four rooms have no `/sidingroom` check on record.
 - The crossing screenshot for the mod page is not yet taken.
 - What did not ship lives in the `inside-corner-post` proposal: the inside-corner post, and the shapes that wait on the players' answers.
