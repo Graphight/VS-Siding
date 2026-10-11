@@ -56,6 +56,17 @@ public class GuestWallScenarios : AtlasScenarioBase
         }
     }
 
+    [AtlasScenario(RestartWorld = true)]
+    public Task B_Wall_Should_StayAGuest_When_TheWorldRestarts()
+    {
+        BlockPos cell = Cell;
+
+        Assert.StartsWith("chest", World.BlockAt(cell).Code.Path);
+        Assert.Equal(Expected, WallBuilder.GuestLayers(World, cell));
+        Assert.Null(WallBuilder.GuestLayers(World, cell.NorthCopy()));
+        return Task.CompletedTask;
+    }
+
     [AtlasScenario(FreshWorld = true)]
     public async Task C_Wall_Should_BecomeAGuest_When_ALanternIsClickedOntoIt()
     {
@@ -123,16 +134,5 @@ public class GuestWallScenarios : AtlasScenarioBase
         stack.Attributes.SetString("lining", "plain");
         stack.Attributes.SetString("glass", "quartz");
         return stack;
-    }
-
-    [AtlasScenario(RestartWorld = true)]
-    public Task B_Wall_Should_StayAGuest_When_TheWorldRestarts()
-    {
-        BlockPos cell = Cell;
-
-        Assert.StartsWith("chest", World.BlockAt(cell).Code.Path);
-        Assert.Equal(Expected, WallBuilder.GuestLayers(World, cell));
-        Assert.Null(WallBuilder.GuestLayers(World, cell.NorthCopy()));
-        return Task.CompletedTask;
     }
 }
