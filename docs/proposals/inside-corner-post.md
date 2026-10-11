@@ -24,26 +24,7 @@ The screenshot also looks taken from inside, while decision 0002 puts the open s
 **Not yet answered.**
 The player who reported the "small corner" and the one who reported the strip that "won't fill" have not answered.
 
-## Design
-**Build first.**
-Build an inside corner with no glazing and look at it from both sides.
-If the notch shows as decision 0002 says, a slit that only appears next to glass is issue #98 and not a missing piece.
-
-**The post, if the build shows the notch.**
-A `cornerin` post is one more state on `layout`, four more blocks and a shape.
-It claims no face and seals nothing, since the walls on either side already close the cell's faces.
-What it is made of is open.
-It stands in a cell neither wall owns, and "a corner finish" asks for the walls' finish to carry round it, so the material may have to come from the walls' layers and not from the post's own block.
-
-## Alternatives considered
-- **A `cornerin` post before the build.** Held as a guess at what one sentence meant. A second player has since confirmed the sentence, but the one picture of it has a glazed cell in it, so the shape waits on an unglazed corner.
-- **Leave the inside corner as decision 0002 has it**, looks only. Two players have now raised it, one with a picture.
-
-## Consequences & open questions
-- The unglazed build has to come first, and nobody has made it.
-- What the post is made of, and whether it takes a finish.
-
-## Other shapes waiting on players' answers
+**Other shapes waiting on players' answers.**
 None of these is proposed yet.
 Each answers one reading of one comment, and the players were asked on 2026-10-05.
 
@@ -71,3 +52,22 @@ Round a stairwell the wall stops at the floor, so its top shows as a strip in th
 This may be the oak beside acacia in the stairwell player's screenshots, taken from above and from the stair below, with the comment: "the top is acacia, and the wall for the stairwell is oak, and a full block of either ruins the other".
 Still open: whether the decked wall's top is what reads wrong in the stairwell.
 A floor finish over that top, or a second wall per cell (`multiple-walls-per-cell`, parked), would each answer one reading of it.
+
+## Design
+**Build first.**
+Build an inside corner with no glazing and look at it from both sides.
+If the notch shows as decision 0002 says, a slit that only appears next to glass is issue #98 and not a missing piece.
+
+**The post, if the build shows the notch.**
+A `cornerin` post is one more state on `layout`, four more blocks and a shape.
+It claims no face and seals nothing, since the walls on either side already close the cell's faces.
+What it is made of is open.
+It stands in a cell neither wall owns, and "a corner finish" asks for the walls' finish to carry round it, so the material may have to come from the walls' layers and not from the post's own block.
+
+## Alternatives considered
+- **A `cornerin` post before the build.** Held as a guess at what one sentence meant. A second player has since confirmed the sentence, but the one picture of it has a glazed cell in it, so the shape waits on an unglazed corner.
+- **Leave the inside corner as decision 0002 has it**, looks only. Two players have now raised it, one with a picture.
+
+## Consequences & open questions
+- The unglazed build has to come first, and nobody has made it.
+- What the post is made of, and whether it takes a finish.

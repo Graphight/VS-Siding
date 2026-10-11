@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Created: 2026-10-10
-- Reflects: branch `wall-junctions`; `SidingWallBlock.TryUpgradeLayout`, `FrontMovesToSecondFace` and `OnBlockInteractStart`'s filled path; `VSSiding.E2E.Tests/JunctionScenarios.cs`; the "Corners and junctions" paragraph and the Framing bullet in `gamemechanicinfo-siding-text` in `lang/en.json`; a creative build of the crossing on 2026-10-04; mod page comments https://mods.vintagestory.at/vssiding#cmt-243545, #cmt-243968, #cmt-243661 with its second screenshot, #cmt-244456, #cmt-245074, #cmt-245199 with its first screenshot and #cmt-245197 with both screenshots; vanilla `player.json`; decisions 0002, 0026, 0042, 0058; the `wall-junctions` proposal; none of the players' own builds reproduced
+- Reflects: branch `wall-junctions`; `SidingWallBlock.TryUpgradeLayout` and `FrontMovesToSecondFace`; `PlaceWallFrame.OnHeldInteractStart`; the review of PR #113; `VSSiding.E2E.Tests/JunctionScenarios.cs`; the "Corners and junctions" paragraph and the Framing bullet in `gamemechanicinfo-siding-text` in `lang/en.json`; a creative build of the crossing on 2026-10-04; mod page comments https://mods.vintagestory.at/vssiding#cmt-243545, #cmt-243968, #cmt-243661 with its second screenshot, #cmt-244456, #cmt-245074, #cmt-245199 with its first screenshot and #cmt-245197 with both screenshots; vanilla `player.json`; decisions 0002, 0026, 0042, 0058; the `wall-junctions` proposal; none of the players' own builds reproduced
 
 ## Summary
 A `cornerout` in the shared cell already makes a T-junction and a crossing, and nothing in the game said so.
@@ -62,7 +62,7 @@ The paragraph is text only; the played crossing is meant as its picture on the m
 The Framing bullet's upgrade sentence gains a second case: a filled wall upgrades the same way when the face clicked is already finished, and on an unfinished face planks board it.
 
 **Upgrade a filled wall: `wall` to `cornerout` only.**
-`SidingWallBlock.TryUpgradeLayout` is the method decision 0026's bare-frame upgrade became, and the filled path of `OnBlockInteractStart` now calls it.
+`SidingWallBlock.TryUpgradeLayout` is the method decision 0026's bare-frame upgrade became, and `PlaceWallFrame.OnHeldInteractStart` calls it for a filled wall.
 A diagonal is not a target, and neither is any layout but `wall`.
 
 **Nothing is charged.**
@@ -94,6 +94,15 @@ A plain Corner-mode click with a framing material on the front or back face upgr
 Those are the three fall-throughs of the finish path: the held item is no finish (sticks, bones), the cell is glazed, or the face is already finished and the click is not a restyle.
 An unfinished face still takes planks as a finish, so the existing boarding gesture is untouched.
 
+**A fresh press only.**
+Vanilla's client sends a held right-click to the block again on a repeat delay (`SystemMouseInWorldInteractions.HandleMouseInteractionsBlockSelected`, read in the review of PR #113 and not observed in game), and `Block.OnBlockInteractStart` cannot tell a repeat from a press.
+The upgrade was first called from the wall's own finish path, where a repeat followed the press that boarded a face: it found the face finished and turned the wall into a corner.
+Sticks held on a bare frame did the same, filling it and then turning it.
+So the call sits in `PlaceWallFrame.OnHeldInteractStart`, which receives exactly the clicks the wall passes on and returns on `!firstEvent`.
+Two clicks reach that method without being fall-throughs of the finish path, and both are excluded.
+A sneak-click skips the wall's interaction, so it still frames the next cell (decision 0058).
+A click on the deck's boxes is the deck's, so it still falls through to placing.
+
 ## Alternatives considered
 - **Walls pick their own corners from their neighbours** (`auto-corners`, parked). Still parked for its own reason: it would fight a player placing pieces on purpose. The guide and the upgrade leave the player in charge.
 - **Several walls per cell** (`multiple-walls-per-cell`, parked). Its revival test was a real build that needs it. The stairwell was the first candidate, and at 8/16 it cannot be walked, so it stays parked.
@@ -108,6 +117,6 @@ An unfinished face still takes planks as a finish, so the existing boarding gest
 - The same click does two things depending on whether the face is finished: it boards an unfinished face and upgrades a finished one. The guide states this in one sentence.
 - A wall hosting furniture cannot be upgraded. The cell's block is the furniture and the wall is a guest (decision 0035), so no wall click reaches it. The furniture comes out first.
 - A `cornerout` takes no step, so a stair cannot share the cell at a junction.
-- The upgraded corner's look and the four rooms' seal have Atlas coverage for layers and per-face retention only. There has been no in-game playtest and no `/sidingroom` check yet.
+- Atlas scenarios cover the carried layers and deck, per-face retention, the held press, the sneak press, the deck click and both refusals. The four rooms' seal has no `/sidingroom` check on record.
 - The crossing screenshot for the mod page is not yet taken.
 - What did not ship lives in the `inside-corner-post` proposal: the inside-corner post, and the shapes that wait on the players' answers.
