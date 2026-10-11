@@ -295,33 +295,35 @@ public class SidingWallEntity : BlockEntity
         if (secondFront != null) names.Add("second" + FinishElement(finishes, secondFront, "front", styles.secondFront));
         if (framing != null)
         {
-            // A cornerout's three posts are structural and always drawn; a wall's two drop
-            // individually wherever glazing merges sideways.
+            // A cornerout's three posts are always drawn, glazed ones as the full-depth `glazing` group;
+            // a wall's two drop individually wherever glazing merges sideways.
             bool corner = SidingWallBlock.ClaimsTwoFaces(layout);
             // Glazing gets its own frame: full-depth stiles and the rails between them, which
             // overlap nothing. Where a stile has merged away, its rail ends on a filler in that
             // corner, so the frame still reaches the cell's edge. A plain wall's plates stop short
             // at its posts, which is right while the posts are always there and leaves a notch at
-            // every cell edge once they aren't.
-            bool glazing = glazed && !corner;
+            // every cell edge once they aren't. A corner's posts never drop, so it has no fillers,
+            // and a diagonal keeps the plain frame.
+            bool glazing = glazed && !diagonal;
+            bool fillers = glazing && !corner;
             string member = glazing ? "glazing" : frame;
             if (!corner)
             {
                 if (!joins.left) names.Add(member + "-left");
                 if (!joins.right) names.Add(member + "-right");
             }
-            else if (!diagonal) names.Add(frame);
+            else if (!diagonal) names.Add(member);
             if (!joins.above)
             {
                 names.Add(member + "-top");
-                if (glazing && joins.left) names.Add(member + "-top-left");
-                if (glazing && joins.right) names.Add(member + "-top-right");
+                if (fillers && joins.left) names.Add(member + "-top-left");
+                if (fillers && joins.right) names.Add(member + "-top-right");
             }
             if (!joins.below)
             {
                 names.Add(member + "-bottom");
-                if (glazing && joins.left) names.Add(member + "-bottom-left");
-                if (glazing && joins.right) names.Add(member + "-bottom-right");
+                if (fillers && joins.left) names.Add(member + "-bottom-left");
+                if (fillers && joins.right) names.Add(member + "-bottom-right");
             }
         }
         if (infill != null)

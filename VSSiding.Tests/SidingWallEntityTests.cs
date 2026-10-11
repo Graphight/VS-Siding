@@ -139,14 +139,27 @@ public class SidingWallEntityTests
                 "wall", "oak", "glass", null, null, null, NoElementFinishes, j, glazed: true)));
     }
 
-    // A cornerout's three posts are structural, so glazing never takes them - only its plates.
+    // A cornerout's three posts never drop, so glazing gives it full-depth ones of its own and a rail per
+    // leg between them whatever the sideways joins - and no fillers, which only a dropped stile needs.
     [Fact]
     public void GlazedCorneroutKeepsItsPosts()
     {
+        var joins = new (bool above, bool below, bool left, bool right)[]
+        {
+            (false, false, false, false),
+            (false, false, true, true),
+            (true, true, false, false),
+        };
+
         Assert.Equal(
-            ["framing", "infill-pane"],
-            SidingWallEntity.SelectiveElements(
-                "cornerout", "oak", "glass", null, null, null, NoElementFinishes, (true, true, false, false), glazed: true));
+            new Dictionary<(bool, bool, bool, bool), string[]>
+            {
+                [(false, false, false, false)] = ["glazing", "glazing-top", "glazing-bottom", "infill-pane"],
+                [(false, false, true, true)] = ["glazing", "glazing-top", "glazing-bottom", "infill-pane"],
+                [(true, true, false, false)] = ["glazing", "infill-pane"],
+            },
+            joins.ToDictionary(j => j, j => SidingWallEntity.SelectiveElements(
+                "cornerout", "oak", "glass", null, null, null, NoElementFinishes, j, glazed: true)));
     }
 
     // A diagonal takes a finish's own groups as a wall does, draws the plain frame for a rough one, and at

@@ -291,8 +291,8 @@ public class WallShapeGenTests
             ["cornerout daub both faces"] = 77,
             ["cornerout weatherboard both faces"] = 227,
             ["cornerout shakes both faces"] = 400,
-            ["cornerout glazed"] = 46,
-            ["cornerout glazed, merged left"] = 46,
+            ["cornerout glazed"] = 38,
+            ["cornerout glazed, merged left"] = 38,
             ["cornerout glazed, merged all round"] = 22,
             ["wall shakes front, daub elsewhere"] = 185,
             ["cornerout shakes front, daub elsewhere"] = 220,
@@ -766,20 +766,24 @@ public class WallShapeGenTests
     }
 
     // A glazed wall's or floor's frame is stiles and rails that meet edge to edge. Where a stile has merged away
-    // its rails end on fillers instead, so a filler is never drawn with the stile on its side.
+    // its rails end on fillers instead, so a filler is never drawn with the stile on its side. A glazed corner's
+    // posts never drop, so it has the one set.
     [Theory]
     [InlineData("wall")]
     [InlineData("floor")]
+    [InlineData("cornerout")]
     public void NoTwoFacesOfAGlazedCellsFramePiecesShareAPlaneAndOverlap(string layout)
     {
         string[] shared = ["glazing-top", "glazing-bottom", "infill-pane"];
-        string[][] drawnTogether =
-        [
-            [.. shared, "glazing-left", "glazing-right"],
-            [.. shared, "glazing-top-left", "glazing-bottom-left", "glazing-right"],
-            [.. shared, "glazing-top-right", "glazing-bottom-right", "glazing-left"],
-            [.. shared, "glazing-top-left", "glazing-bottom-left", "glazing-top-right", "glazing-bottom-right"],
-        ];
+        string[][] drawnTogether = layout == "cornerout"
+            ? [[.. shared, "glazing"]]
+            :
+            [
+                [.. shared, "glazing-left", "glazing-right"],
+                [.. shared, "glazing-top-left", "glazing-bottom-left", "glazing-right"],
+                [.. shared, "glazing-top-right", "glazing-bottom-right", "glazing-left"],
+                [.. shared, "glazing-top-left", "glazing-bottom-left", "glazing-top-right", "glazing-bottom-right"],
+            ];
 
         Assert.Equal([], drawnTogether.SelectMany(together => SharedPlaneOffenders(layout, together)).Distinct());
     }
