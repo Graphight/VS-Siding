@@ -511,32 +511,7 @@ public class SidingWallBlock : Block
             // found once a partition reaches it (decision 0026). Nothing is charged: a fresh
             // cornerout or diagonal frame costs the same as a fresh wall frame. Everything this
             // doesn't claim falls through to the infill match below, then to PlaceWallFrame.
-            string layout = Variant["layout"];
-            string picked = SidingModePicker.Layout(byPlayer);
-            string? upgrade = ResolveFramingUpgrade(layout, Variant["side"], picked, blockSel.HitPosition);
-            if (upgrade != null
-                && MatchFraming(heldCode, false, Attributes["Framings"], Attributes["Infills"]) != null
-                && ResolveFinishFace(layout, Variant["side"], blockSel.Face) != null)
-            {
-                if (entity.Step != null)
-                {
-                    (byPlayer as IServerPlayer)?.SendIngameError("vssiding:stepped", Lang.Get("vssiding:build-stepped"));
-                    return true;
-                }
-
-                var target = world.GetBlock(new AssetLocation("vssiding", upgrade));
-                if (target != null)
-                {
-                    // Keeps the block entity, and the engine repoints its Block at the new
-                    // type, so Framing survives and OnTesselation reads the new layout.
-                    world.BlockAccessor.ExchangeBlock(target.Id, blockSel.Position);
-                    entity.MarkDirty(true);
-                    // Plates key off the cells above and below sharing this one's layout
-                    // (decision 0008), which the swap just changed.
-                    MarkNeighboursDirty(world, blockSel.Position);
-                    return true;
-                }
-            }
+            if (TryUpgradeLayout(world, byPlayer, blockSel, entity, heldCode)) return true;
 
             string? infillKey = MatchConsumes(heldCode, Attributes["Infills"]);
             if (infillKey == null) return base.OnBlockInteractStart(world, byPlayer, blockSel);
@@ -610,6 +585,36 @@ public class SidingWallBlock : Block
 
         SetFinish(entity, face, finishKey, style);
         ConsumeHeld(slot, finishConsumes, isCreative);
+        return true;
+    }
+
+    // True when the click was claimed, by the upgrade or by the step refusal.
+    private bool TryUpgradeLayout(
+        IWorldAccessor world, IPlayer byPlayer, BlockSelection blockSel, SidingWallEntity entity, AssetLocation heldCode)
+    {
+        string layout = Variant["layout"];
+        string? upgrade = ResolveFramingUpgrade(layout, Variant["side"], SidingModePicker.Layout(byPlayer), blockSel.HitPosition);
+        if (upgrade == null
+            || MatchFraming(heldCode, false, Attributes["Framings"], Attributes["Infills"]) == null
+            || ResolveFinishFace(layout, Variant["side"], blockSel.Face) == null)
+            return false;
+
+        if (entity.Step != null)
+        {
+            (byPlayer as IServerPlayer)?.SendIngameError("vssiding:stepped", Lang.Get("vssiding:build-stepped"));
+            return true;
+        }
+
+        var target = world.GetBlock(new AssetLocation("vssiding", upgrade));
+        if (target == null) return false;
+
+        // Keeps the block entity, and the engine repoints its Block at the new
+        // type, so Framing survives and OnTesselation reads the new layout.
+        world.BlockAccessor.ExchangeBlock(target.Id, blockSel.Position);
+        entity.MarkDirty(true);
+        // Plates key off the cells above and below sharing this one's layout
+        // (decision 0008), which the swap just changed.
+        MarkNeighboursDirty(world, blockSel.Position);
         return true;
     }
 
