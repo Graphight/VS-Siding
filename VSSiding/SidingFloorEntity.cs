@@ -81,7 +81,7 @@ public class SidingFloorEntity : BlockEntity
         string cacheKey = CacheKey(Framing, Infill, Front, Back, (FrontStyle, BackStyle), joins, alternate);
         MeshData[] meshes = ObjectCacheUtil.GetOrCreate(capi, cacheKey, () =>
         {
-            Shape shape = Shape.TryGet(capi, new AssetLocation("vssiding", "shapes/block/floor/floor.json"));
+            Shape shape = SidingWallEntity.ParsedShape(capi, "floor/floor");
             var texSource = new TexSource(capi, this, alternate);
             if (!glazed) return new[] { Tesselate(tesselator, shape, texSource, selectiveElements) };
 

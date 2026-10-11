@@ -176,7 +176,7 @@ public class SidingWallEntity : BlockEntity
 
         MeshData[] meshes = ObjectCacheUtil.GetOrCreate(capi, cacheKey, () =>
         {
-            Shape shape = Shape.TryGet(capi, new AssetLocation("vssiding", $"shapes/block/wall/{layout}.json"));
+            Shape shape = ParsedShape(capi, $"wall/{layout}");
             var texSource = new SidingWallTexSource(
                 capi, this, Block.Attributes["Framings"], Block.Attributes["Infills"], Block.Attributes["Finishes"], alternate);
             var rotation = new Vec3f(0, RotationYDeg(side), 0);
@@ -188,6 +188,11 @@ public class SidingWallEntity : BlockEntity
         foreach (MeshData mesh in meshes) mesher.AddMeshData(mesh);
         return true;
     }
+
+    // Shape.TryGet parses the whole file on every call, and a mesh is built once per distinct cell, so
+    // each shape is parsed once and kept.
+    internal static Shape ParsedShape(ICoreClientAPI capi, string path)
+        => ObjectCacheUtil.GetOrCreate(capi, "vssiding-shape-" + path, () => Shape.TryGet(capi, new AssetLocation("vssiding", $"shapes/block/{path}.json")));
 
     // The position hash has three readers: the texture source picks each wildcard texture's variant by it,
     // FrameElements picks the rough frame's variant by its parity, and the mesh cache keys on it. So a
