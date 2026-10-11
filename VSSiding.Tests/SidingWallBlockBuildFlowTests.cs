@@ -247,6 +247,40 @@ public class SidingWallBlockBuildFlowTests
             hits.ToDictionary(hit => hit.Key, hit => SidingWallBlock.ResolveCornerUpgrade(hit.Key.side, hit.Value)));
     }
 
+    // Only the cornerout on the run's right end has the wall's old face as its second face, so only
+    // there does the old front finish change slot.
+    [Fact]
+    public void FilledWallUpgradeMovesTheFrontFinishOnlyWhenItsFaceBecomesTheSecond()
+    {
+        var hits = new Dictionary<(string side, string end), Vec3d>
+        {
+            [("west", "north")] = new(0, 0.5, 0.2),
+            [("west", "south")] = new(0, 0.5, 0.8),
+            [("east", "north")] = new(1, 0.5, 0.2),
+            [("east", "south")] = new(1, 0.5, 0.8),
+            [("north", "west")] = new(0.2, 0.5, 0),
+            [("north", "east")] = new(0.8, 0.5, 0),
+            [("south", "west")] = new(0.2, 0.5, 1),
+            [("south", "east")] = new(0.8, 0.5, 1),
+        };
+
+        Assert.Equal(
+            new Dictionary<(string, string), bool>
+            {
+                [("west", "north")] = false,
+                [("west", "south")] = true,
+                [("east", "north")] = true,
+                [("east", "south")] = false,
+                [("north", "west")] = true,
+                [("north", "east")] = false,
+                [("south", "west")] = false,
+                [("south", "east")] = true,
+            },
+            hits.ToDictionary(
+                hit => hit.Key,
+                hit => SidingWallBlock.FrontMovesToSecondFace(hit.Key.side, SidingWallBlock.ResolveCornerUpgrade(hit.Key.side, hit.Value))));
+    }
+
     // A wall takes either, a cornerout only a diagonal, on its own side; nothing turns back and a
     // pick that is not a corner or diagonal upgrades nothing.
     [Fact]
