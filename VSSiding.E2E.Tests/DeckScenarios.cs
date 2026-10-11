@@ -13,6 +13,14 @@ public class DeckScenarios : AtlasScenarioBase
 {
     [AtlasScenario(FreshWorld = true)]
     public async Task Deck_Should_TakeFloorboards_When_PlanksFinishItWithFloorPicked()
+        => Assert.Equal(("oak", "clay", "planks", null), await FloorboardedDeck("game:clay-blue", 4));
+
+    // A glass deck takes a finish like any other, drawn as a rim round the glass (decision 0071).
+    [AtlasScenario(FreshWorld = true)]
+    public async Task Deck_Should_TakeFloorboardsKeepingItsGlass_When_ItIsGlazed()
+        => Assert.Equal(("oak", "glass-plain", "planks", null), await FloorboardedDeck("game:glass-plain", 1));
+
+    private async Task<(string? Deck, string? Infill, string? Front, string? Back)> FloorboardedDeck(string infill, int infillCost)
     {
         BlockPos cell = World.Spawn.Offset(1, 2, 0);
         World.SetBlock("game:planks-aged-ud", cell.DownCopy());
@@ -31,7 +39,7 @@ public class DeckScenarios : AtlasScenarioBase
             Position = cell.Copy(), Face = BlockFacing.UP, HitPosition = new Vec3d(0.5, 1, 0.5),
             SelectionBoxIndex = World.BlockAt(cell).SelectionBoxes.Length,
         };
-        await player.GiveItem("game:clay-blue", 4);
+        await player.GiveItem(infill, infillCost);
         Assert.True(World.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, deckTopSel));
 
         player.Entity.WatchedAttributes.SetString("vssidingFraming", "floor");
@@ -39,7 +47,7 @@ public class DeckScenarios : AtlasScenarioBase
         Assert.True(World.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, deckTopSel));
 
         Assert.Null(slot.Itemstack);
-        Assert.Equal(("oak", "clay", "planks", null), DeckLayers(cell));
+        return DeckLayers(cell);
     }
 
     // A lantern places through its own behaviour, which reaches the decked cell check only by asking CanPlaceBlock.
