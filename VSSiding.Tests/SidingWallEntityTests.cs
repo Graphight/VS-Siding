@@ -88,8 +88,10 @@ public class SidingWallEntityTests
     [Fact]
     public void OnlyInfillElementsGoInTheTransparentHalf()
     {
-        string[] elements = SidingWallEntity.SelectiveElements(
-            "wall", "oak", "glass", null, null, null, NoElementFinishes, (false, false, false, false), glazed: true);
+        string[] elements = new[] { (false, false, false, false), (false, false, true, false), (false, false, false, true) }
+            .SelectMany(j => SidingWallEntity.SelectiveElements(
+                "wall", "oak", "glass", null, null, null, NoElementFinishes, j, glazed: true))
+            .Distinct().ToArray();
 
         Assert.Equal(
             new Dictionary<string, bool>
@@ -99,6 +101,10 @@ public class SidingWallEntityTests
                 ["glazing-top"] = false,
                 ["glazing-bottom"] = false,
                 ["infill-pane"] = true,
+                ["glazing-top-left"] = false,
+                ["glazing-bottom-left"] = false,
+                ["glazing-top-right"] = false,
+                ["glazing-bottom-right"] = false,
             },
             elements.ToDictionary(name => name, SidingWallEntity.IsInfillElement));
     }
@@ -112,6 +118,7 @@ public class SidingWallEntityTests
         {
             (false, false, false, false),
             (false, false, true, false),
+            (true, false, true, false),
             (true, false, false, true),
             (true, true, true, true),
         };
@@ -120,8 +127,11 @@ public class SidingWallEntityTests
             new Dictionary<(bool, bool, bool, bool), string[]>
             {
                 [(false, false, false, false)] = ["glazing-left", "glazing-right", "glazing-top", "glazing-bottom", "infill-pane"],
-                [(false, false, true, false)] = ["glazing-right", "glazing-top", "glazing-bottom", "infill-pane"],
-                [(true, false, false, true)] = ["glazing-left", "glazing-bottom", "infill-pane"],
+                // Left merged: its stile is gone, so each rail ends on a filler in that corner.
+                [(false, false, true, false)] = ["glazing-right", "glazing-top", "glazing-top-left", "glazing-bottom", "glazing-bottom-left", "infill-pane"],
+                // Left and above merged: the top rail is gone too, so only the bottom corner needs a filler.
+                [(true, false, true, false)] = ["glazing-right", "glazing-bottom", "glazing-bottom-left", "infill-pane"],
+                [(true, false, false, true)] = ["glazing-left", "glazing-bottom", "glazing-bottom-right", "infill-pane"],
                 // Surrounded by glazing: nothing but the pane, so the run reads as one sheet.
                 [(true, true, true, true)] = ["infill-pane"],
             },

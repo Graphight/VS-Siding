@@ -215,10 +215,14 @@ public class WallShapeGenTests
             "infill-bottom 0,13.5,15 16,14.5,16",
             "back 0,12,0 16,13,16",
             "infill-pane 0,14,0 16,14,16",
-            "glazing-left 0.25,13,0 2,15,16",
-            "glazing-right 14,13,0 15.75,15,16",
-            "glazing-top 0,13.25,0.25 16,14.75,2",
-            "glazing-bottom 0,13.25,14 16,14.75,15.75",
+            "glazing-left 0,12,0 2,16,16",
+            "glazing-right 14,12,0 16,16,16",
+            "glazing-top 2,12,0 14,16,2",
+            "glazing-bottom 2,12,14 14,16,16",
+            "glazing-top-left 0,12,0 2,16,2",
+            "glazing-top-right 14,12,0 16,16,2",
+            "glazing-bottom-left 0,12,14 2,16,16",
+            "glazing-bottom-right 14,12,14 16,16,16",
             "front-boards 0,15,0 16,16,16",
             "front-hboards 0,15,0 16,16,16",
             "back-boards 0,12,0 16,13,16",
@@ -276,7 +280,8 @@ public class WallShapeGenTests
             ["wall daub both faces"] = 42,
             ["wall weatherboard both faces"] = 117,
             ["wall shakes both faces"] = 205,
-            ["wall glazed"] = 26,
+            ["wall glazed"] = 22,
+            ["wall glazed, merged left"] = 26,
             ["wall glazed, merged all round"] = 2,
             ["cornerout bare frame"] = 42,
             ["cornerout pole frame"] = 158,
@@ -287,6 +292,7 @@ public class WallShapeGenTests
             ["cornerout weatherboard both faces"] = 227,
             ["cornerout shakes both faces"] = 400,
             ["cornerout glazed"] = 46,
+            ["cornerout glazed, merged left"] = 46,
             ["cornerout glazed, merged all round"] = 22,
             ["wall shakes front, daub elsewhere"] = 185,
             ["cornerout shakes front, daub elsewhere"] = 220,
@@ -324,6 +330,7 @@ public class WallShapeGenTests
             ("weatherboard both faces", "wattle", "planks", "planks", "planks", (false, false, false, false), false),
             ("shakes both faces", "wattle", "shakes", "shakes", "shakes", (false, false, false, false), false),
             ("glazed", "glass", null, null, null, (false, false, false, false), true),
+            ("glazed, merged left", "glass", null, null, null, (false, false, true, false), true),
             ("glazed, merged all round", "glass", null, null, null, (true, true, true, true), true),
             ("shakes front, daub elsewhere", "wattle", "shakes", "daub", "daub", (false, false, false, false), false),
             ("weatherboard front, shakes back", "wattle", "planks", "shakes", "shakes", (false, false, false, false), false),
@@ -755,6 +762,30 @@ public class WallShapeGenTests
     public void NoTwoEmittedFacesOfGroupsDrawnTogetherShareAPlaneAndOverlap(string layout, string prefix)
     {
         string[] together = [.. PolesOf(layout, prefix).Select(p => p.Pole), "infill", "infill-pane", "front", "secondfront", "back"];
+        Assert.Equal([], SharedPlaneOffenders(layout, together));
+    }
+
+    // A glazed wall's or floor's frame is stiles and rails that meet edge to edge. Where a stile has merged away
+    // its rails end on fillers instead, so a filler is never drawn with the stile on its side.
+    [Theory]
+    [InlineData("wall")]
+    [InlineData("floor")]
+    public void NoTwoFacesOfAGlazedCellsFramePiecesShareAPlaneAndOverlap(string layout)
+    {
+        string[] shared = ["glazing-top", "glazing-bottom", "infill-pane"];
+        string[][] drawnTogether =
+        [
+            [.. shared, "glazing-left", "glazing-right"],
+            [.. shared, "glazing-top-left", "glazing-bottom-left", "glazing-right"],
+            [.. shared, "glazing-top-right", "glazing-bottom-right", "glazing-left"],
+            [.. shared, "glazing-top-left", "glazing-bottom-left", "glazing-top-right", "glazing-bottom-right"],
+        ];
+
+        Assert.Equal([], drawnTogether.SelectMany(together => SharedPlaneOffenders(layout, together)).Distinct());
+    }
+
+    private static List<string> SharedPlaneOffenders(string layout, string[] together)
+    {
         string[] facings = ["west", "east", "down", "up", "north", "south"];
         var faces = new List<(string Name, string Face, int Axis, double Plane, double[] Lo, double[] Hi)>();
         foreach (var element in WallShapeGen.Generate(layout)["elements"]!.Where(e => together.Contains((string)e["name"]!)))
@@ -779,6 +810,6 @@ public class WallShapeGenTests
             }
         }
 
-        Assert.Equal([], offenders);
+        return offenders;
     }
 }

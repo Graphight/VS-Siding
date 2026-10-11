@@ -296,19 +296,31 @@ public class SidingWallEntity : BlockEntity
             // A cornerout's three posts are structural and always drawn; a wall's two drop
             // individually wherever glazing merges sideways.
             bool corner = SidingWallBlock.ClaimsTwoFaces(layout);
-            // Glazing gets its own frame: a bezel whose members each span the full cell edge, so
-            // the frame still reaches the pane where the member beside it has been dropped. A
-            // plain wall's plates stop short at its posts, which is right while the posts are
-            // always there and leaves a notch at every cell edge once they aren't.
-            string member = glazed && !corner ? "glazing" : frame;
+            // Glazing gets its own frame: full-depth stiles and the rails between them, which
+            // overlap nothing. Where a stile has merged away, its rail ends on a filler in that
+            // corner, so the frame still reaches the cell's edge. A plain wall's plates stop short
+            // at its posts, which is right while the posts are always there and leaves a notch at
+            // every cell edge once they aren't.
+            bool glazing = glazed && !corner;
+            string member = glazing ? "glazing" : frame;
             if (!corner)
             {
                 if (!joins.left) names.Add(member + "-left");
                 if (!joins.right) names.Add(member + "-right");
             }
             else if (!diagonal) names.Add(frame);
-            if (!joins.above) names.Add(member + "-top");
-            if (!joins.below) names.Add(member + "-bottom");
+            if (!joins.above)
+            {
+                names.Add(member + "-top");
+                if (glazing && joins.left) names.Add(member + "-top-left");
+                if (glazing && joins.right) names.Add(member + "-top-right");
+            }
+            if (!joins.below)
+            {
+                names.Add(member + "-bottom");
+                if (glazing && joins.left) names.Add(member + "-bottom-left");
+                if (glazing && joins.right) names.Add(member + "-bottom-right");
+            }
         }
         if (infill != null)
         {

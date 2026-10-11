@@ -89,10 +89,12 @@ public class SidingFloorTests
                 ["deck-west-framing-left", "deck-west-framing-right", "deck-west-framing-top", "deck-west-framing-bottom"],
                 ["deck-south-front-boards", "deck-south-framing-left", "deck-south-framing-right", "deck-south-framing-bottom", "deck-south-infill",
                     "deck-south-infill-top", "deck-south-back-hboards"],
-                ["deck-north-glazing-top", "deck-north-glazing-bottom", "deck-north-infill-pane"],
+                ["deck-north-glazing-top", "deck-north-glazing-top-left", "deck-north-glazing-top-right", "deck-north-glazing-bottom",
+                    "deck-north-glazing-bottom-left", "deck-north-glazing-bottom-right", "deck-north-infill-pane"],
                 [],
                 ["deck-west-poles2-left", "deck-west-poles2-right", "deck-west-poles2-top", "deck-west-poles2-bottom"],
-                ["deck-north-glazing-top", "deck-north-glazing-bottom", "deck-north-infill-pane"],
+                ["deck-north-glazing-top", "deck-north-glazing-top-left", "deck-north-glazing-top-right", "deck-north-glazing-bottom",
+                    "deck-north-glazing-bottom-left", "deck-north-glazing-bottom-right", "deck-north-infill-pane"],
             },
             new[]
             {
@@ -219,7 +221,7 @@ public class SidingFloorTests
             new string[][]
             {
                 ["glazing-left", "glazing-right", "glazing-top", "glazing-bottom", "infill-pane"],
-                ["glazing-right", "glazing-bottom", "infill-pane"],
+                ["glazing-right", "glazing-bottom", "glazing-bottom-left", "infill-pane"],
                 ["infill-pane"],
             },
             new[] { (false, false, false, false), (true, false, true, false), (true, true, true, true) }.Select(j =>

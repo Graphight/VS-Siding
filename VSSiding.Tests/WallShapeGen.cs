@@ -306,10 +306,14 @@ public static class WallShapeGen
         new("infill", (1.5, 1, 1), (2.5, 15, 15), "infill", UvRule.Positional),
         new("infill-bottom", (1.5, 0, 1), (2.5, 1, 15), "infill", UvRule.Positional),
         new("infill-pane", (2, 0, 0), (2, 16, 16), "infill", UvRule.Flat, Faces: ["west", "east"]),
-        new("glazing-left", (1, 0, 0.25), (3, 16, 2), "framing", UvRule.Flat),
-        new("glazing-right", (1, 0, 14), (3, 16, 15.75), "framing", UvRule.Flat),
-        new("glazing-top", (1.25, 14, 0), (2.75, 15.75, 16), "framing", UvRule.Flat),
-        new("glazing-bottom", (1.25, 0.25, 0), (2.75, 2, 16), "framing", UvRule.Flat),
+        new("glazing-left", (0, 0, 0), (4, 16, 2), "framing", UvRule.Flat),
+        new("glazing-right", (0, 0, 14), (4, 16, 16), "framing", UvRule.Flat),
+        new("glazing-top", (0, 14, 2), (4, 16, 14), "framing", UvRule.Flat, Faces: ["west", "east", "up", "down"]),
+        new("glazing-bottom", (0, 0, 2), (4, 2, 14), "framing", UvRule.Flat, Faces: ["west", "east", "up", "down"]),
+        new("glazing-top-left", (0, 14, 0), (4, 16, 2), "framing", UvRule.Flat, Faces: ["north", "west", "east", "up", "down"]),
+        new("glazing-top-right", (0, 14, 14), (4, 16, 16), "framing", UvRule.Flat, Faces: ["east", "south", "west", "up", "down"]),
+        new("glazing-bottom-left", (0, 0, 0), (4, 2, 2), "framing", UvRule.Flat, Faces: ["north", "west", "east", "up", "down"]),
+        new("glazing-bottom-right", (0, 0, 14), (4, 2, 16), "framing", UvRule.Flat, Faces: ["east", "south", "west", "up", "down"]),
         new("back", (3, 0, 0), (4, 16, 16), "back", UvRule.Flat),
         // A step draws two of these: a full-length half plus the opposite-height half on the side it rises toward.
         new("step-lower", (4, 0, 0), (16, 8, 16), "step", UvRule.Flat),
@@ -812,12 +816,18 @@ public static class WallShapeGen
         new("infill-bottom", (0, 13.5, 15), (16, 14.5, 16), "infill", UvRule.Flat, RunAxis: 'z'),
         new("back", (0, 12, 0), (16, 13, 16), "back", UvRule.Flat),
         new("infill-pane", (0, 14, 0), (16, 14, 16), "infill", UvRule.Flat, Faces: ["up", "down"]),
-        // The wall's glazing bezel laid flat, with no joists: stiles on the west and east edges,
-        // rails on the north (top) and south (bottom), each dropped where the next floor is glazed too.
-        new("glazing-left", (0.25, 13, 0), (2, 15, 16), "framing", UvRule.Flat),
-        new("glazing-right", (14, 13, 0), (15.75, 15, 16), "framing", UvRule.Flat),
-        new("glazing-top", (0, 13.25, 0.25), (16, 14.75, 2), "framing", UvRule.Flat),
-        new("glazing-bottom", (0, 13.25, 14), (16, 14.75, 15.75), "framing", UvRule.Flat),
+        // The wall's glazing frame laid flat, with no joists: stiles on the west and east edges, rails
+        // between them on the north (top) and south (bottom), each dropped where the next floor is glazed
+        // too, and a filler in each corner for a rail whose stile has gone. Every piece keeps all six
+        // faces, unlike the wall's: a deck cuts these boxes, and a cut end has nothing standing against it.
+        new("glazing-left", (0, 12, 0), (2, 16, 16), "framing", UvRule.Flat),
+        new("glazing-right", (14, 12, 0), (16, 16, 16), "framing", UvRule.Flat),
+        new("glazing-top", (2, 12, 0), (14, 16, 2), "framing", UvRule.Flat),
+        new("glazing-bottom", (2, 12, 14), (14, 16, 16), "framing", UvRule.Flat),
+        new("glazing-top-left", (0, 12, 0), (2, 16, 2), "framing", UvRule.Flat),
+        new("glazing-top-right", (14, 12, 0), (16, 16, 2), "framing", UvRule.Flat),
+        new("glazing-bottom-left", (0, 12, 14), (2, 16, 16), "framing", UvRule.Flat),
+        new("glazing-bottom-right", (14, 12, 14), (16, 16, 16), "framing", UvRule.Flat),
         new("front-boards", (0, 15, 0), (16, 16, 16), "front", UvRule.Flat, RotatedFaces: ["up"]),
         new("front-hboards", (0, 15, 0), (16, 16, 16), "front", UvRule.Flat),
         new("back-boards", (0, 12, 0), (16, 13, 16), "back", UvRule.Flat, RotatedFaces: ["down"]),
