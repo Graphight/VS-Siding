@@ -78,6 +78,13 @@ A `front` group belongs to leg 1, a `secondfront` group to leg 2, and a `back` b
 
 `RimPieces` runs on x and z for the floor, and `DeckGroups` cuts the deck and ledge groups from the floor's pieces including its rims, so a glazed deck takes rims like a glazed floor.
 
+**A deck against a rim.**
+A deck stops a voxel short of the frame, at the slot the wall's room-side finish takes, and draws a `ledge` copy into that slot while the side is bare (decision 0062).
+A full finish fills the slot, but a rim leaves it open across the glass, and the rim's top pieces lie inside the deck's height.
+So under a deck the room side's rim leaves out its top pieces, fillers included, and the deck draws ledge copies where they were, carried down to the deck's underside.
+`ledgetop` lies between the stiles, or along each leg's opening on a corner, and `ledgetopleft` and `ledgetopright` reach the cell's edge where that stile has merged away.
+`SidingWallEntity.Ledges` picks the copies and `WallShapeGen.RimLedges` cuts each to the footprint of the rim piece it replaces, so a ledge meets the rim's stiles edge to edge.
+
 **One list of parts.**
 `SidingWallEntity.FrameParts` returns the suffixes of the frame pieces a cell draws, from the joins.
 `SelectiveElements` uses that one list for the frame and, through `RimNames`, for every rim, and `SidingFloorEntity.SelectiveElements` does the same for a floor and a deck.
@@ -108,6 +115,7 @@ Glazed cells join on `Transparent` whatever the key (decision 0019), so a leaded
 - `EveryRimPieceDrawsAFaceOnEachPlaneItWasCutAt` and the two tests that add a cut's faces to a group limiting its faces (wall and floor) hold the cut ends.
 - `RimPiecesKeepTheUncutFinishesUv` and `FloorCutsItsFinishesToTheGlazingFramesFootprints` hold the texture and the floor's cut on x and z.
 - Name tables for `SelectiveElements` on a wall, a corner and a floor, and `EveryRimElementAGlazedCellCanAskForExistsAndIsLeftOutOfTheDefaultShape` and its floor and deck forms, hold that every rim name exists in the generated shape.
+- `ADeckedGlazedCellsRoomSideRimLeavesItsTopToTheLedge` and `ADecksLedgesFillWhatTheRoomSideFinishLeavesOpen` are the name tables for a deck against a rim, and `ADeckedGlazedCellsLedgeSharesNoPlaneWithItsRimOrFrame` checks the pieces those names draw.
 
 ## Alternatives considered
 - **A frame filling the full depth in the framing's wood.** Built, played on 2026-10-11 and dropped, as above. It closes the slit, but replaces the finish with the framing's wood at every window.
@@ -119,8 +127,8 @@ Glazed cells join on `Transparent` whatever the key (decision 0019), so a leaded
 
 ## Consequences & open questions
 - An unfinished glazed cell beside finished walls shows the same seam any unfinished wall does, which includes issue #98's slit at an inside corner. The answer is to finish it. Issue #98 closes with this PR only if the playtest agrees.
-- The shape files grew. Against `main`, `wall.json` went from 762 to 1522 elements, `cornerout.json` from 890 to 1652, `floor.json` from 137 to 245 and `diagonal.json` from 1630 to 2218, the last only through its decks. Rim pieces are 748, 750, 104 and 584 of them. The shapes load once and meshes are cached, and frame time has not been measured.
+- The shape files grew. Against `main`, `wall.json` went from 762 to 1808 elements, `cornerout.json` from 890 to 1804, `floor.json` from 137 to 245 and `diagonal.json` from 1630 to 2218, the last only through its decks. Rim pieces are 748, 750, 104 and 584 of them, and the ledges behind a rim are 286 and 152 more on the wall and the corner. `Shape.TryGet` parses the whole file on every call, and it was called for every mesh built, so `SidingWallEntity.ParsedShape` now keeps each shape once parsed; meshes were cached already. Frame time has not been measured.
 - The default shapes of the wall and the corner name every deck, ledge and step piece they drew on `main`. Whether they should is open.
 - A glazed deck on a diagonal takes rims, though the diagonal's own faces take none.
 - A rim costs what a full finish costs, since it is laid by the same click.
-- Nothing of the rims has been played. Still to look at: the rim beside brick, daub, weatherboard and shakes, merged and L-shaped windows, corners, floors and decks, leaded panes, and a world saved before this change.
+- Nothing of the rims has been played. Still to look at: the rim beside brick, daub, weatherboard and shakes, merged and L-shaped windows, corners, floors and decks, a deck against a finished window, leaded panes, and a world saved before this change.
