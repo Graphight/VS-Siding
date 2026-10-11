@@ -389,15 +389,17 @@ public static class WallShapeGen
     // glazing piece on the face and named for it, so the border round the glass is the finish's own pieces
     // and its laps and joints carry on from the cells beside it. The finish keeps its depth, ClippedFrom
     // keeps its texture, and a cut end looks onto the glass or the next piece, so it draws its face even
-    // where the group limits its faces.
-    internal static IEnumerable<Element> RimPieces(IEnumerable<Element> elements)
+    // where the group limits its faces. The two axes are the face's: z and y on a wall, x and z on a floor.
+    internal static IEnumerable<Element> RimPieces(IEnumerable<Element> elements, char firstAxis = 'z', char secondAxis = 'y')
     {
         Element[] all = [.. elements];
         return from part in all
                where part.Name.StartsWith("glazing-")
                from e in all
                where e.Name.StartsWith("front") || e.Name.StartsWith("back")
-               from rim in RimPiece(e, part.Name["glazing".Length..], 'z', (part.From.Z, part.To.Z), (part.From.Y, part.To.Y))
+               from rim in RimPiece(e, part.Name["glazing".Length..],
+                   (firstAxis, Axis(part.From, firstAxis), Axis(part.To, firstAxis)),
+                   (secondAxis, Axis(part.From, secondAxis), Axis(part.To, secondAxis)))
                select rim;
     }
 
@@ -428,31 +430,42 @@ public static class WallShapeGen
             bool InSlab(Element e) => "xyz".All(a => Axis(e.From, a) >= Axis(slab.From, a) && Axis(e.To, a) <= Axis(slab.To, a));
             foreach (var e in all.Where(e => e.Name.StartsWith(front) || (e.Name.StartsWith("back") && InSlab(e))))
             foreach (var (part, range, y) in parts)
-            foreach (var rim in RimPiece(e, part, run, range, y))
+            foreach (var rim in RimPiece(e, part, (run, range.Lo, range.Hi), ('y', y.Lo, y.Hi)))
                 yield return rim;
         }
     }
 
-    // The part of a finish box inside a range along its run and in y, named for the rim piece it is.
-    private static IEnumerable<Element> RimPiece(
-        Element e, string part, char runAxis, (double Lo, double Hi) run, (double Lo, double Hi) y)
+    // The part of a finish box inside a range on each of the face's two axes, named for the rim piece it is.
+    private static IEnumerable<Element> RimPiece(Element e, string part, params (char Axis, double Lo, double Hi)[] ranges)
     {
-        double sourceLo = Axis(e.From, runAxis), sourceHi = Axis(e.To, runAxis);
-        var lo = (Run: Math.Max(sourceLo, run.Lo), Y: Math.Max(e.From.Y, y.Lo));
-        var hi = (Run: Math.Min(sourceHi, run.Hi), Y: Math.Min(e.To.Y, y.Hi));
-        if (hi.Run <= lo.Run || hi.Y <= lo.Y) yield break;
+        var from = e.From;
+        var to = e.To;
+        var cutFaces = new List<string>();
+        foreach (var (axis, rangeLo, rangeHi) in ranges)
+        {
+            double sourceLo = Axis(e.From, axis), sourceHi = Axis(e.To, axis);
+            double lo = Math.Max(sourceLo, rangeLo), hi = Math.Min(sourceHi, rangeHi);
+            if (hi <= lo) yield break;
 
-        var (loFace, hiFace) = runAxis == 'z' ? ("north", "south") : ("west", "east");
-        var cuts = new[] { (Cut: lo.Run > sourceLo, Face: loFace), (Cut: hi.Run < sourceHi, Face: hiFace), (Cut: lo.Y > e.From.Y, Face: "down"), (Cut: hi.Y < e.To.Y, Face: "up") };
+            var (loFace, hiFace) = axis switch { 'x' => ("west", "east"), 'y' => ("down", "up"), _ => ("north", "south") };
+            if (lo > sourceLo) cutFaces.Add(loFace);
+            if (hi < sourceHi) cutFaces.Add(hiFace);
+            from = WithAxis(from, axis, lo);
+            to = WithAxis(to, axis, hi);
+        }
+
         yield return e with
         {
             Name = $"{e.Name}-rim{part}",
-            From = runAxis == 'z' ? (e.From.X, lo.Y, lo.Run) : (lo.Run, lo.Y, e.From.Z),
-            To = runAxis == 'z' ? (e.To.X, hi.Y, hi.Run) : (hi.Run, hi.Y, e.To.Z),
-            Faces = e.Faces?.Union(cuts.Where(c => c.Cut).Select(c => c.Face)).ToArray(),
+            From = from,
+            To = to,
+            Faces = e.Faces?.Union(cutFaces).ToArray(),
             ClippedFrom = e,
         };
     }
+
+    private static (double X, double Y, double Z) WithAxis((double X, double Y, double Z) corner, char axis, double value)
+        => axis == 'x' ? corner with { X = value } : axis == 'y' ? corner with { Y = value } : corner with { Z = value };
 
     // Wall's front-shakes, except each body course's first shake starts at z 0.5 rather than 0.
     private static readonly Element[] CornerFrontShakesLeg1 =
@@ -922,6 +935,9 @@ public static class WallShapeGen
         .. Enumerable.Range(0, 8).Select(i => new Element("back-lath-boards", (2 * i + 0.5, 12, 0), (2 * i + 1.5, 12.5, 16), "framing", UvRule.Flat, RunAxis: 'z')),
     ];
 
+    // The floor's elements and its glazed finishes' rims, which a deck cuts from like any other piece.
+    private static readonly Element[] FloorShape = [.. FloorElements, .. RimPieces(FloorElements, 'x', 'z')];
+
     private static IEnumerable<Element> Rim(string name, double z1, double z2) =>
         new[] { (0.0, 2.0), (3.0, 7.5), (8.5, 13.0), (14.0, 16.0) }
             .Select(x => new Element(name, (x.Item1, 13, z1), (x.Item2, 15, z2), "framing", UvRule.Flat, RunAxis: 'x'));
@@ -995,7 +1011,7 @@ public static class WallShapeGen
         {
             var regions = boxes.Select(box => DeckRegion(box.From, box.To, rotationYDeg)).ToArray();
             foreach (var region in regions)
-            foreach (var source in FloorElements)
+            foreach (var source in FloorShape)
             {
                 var lo = (X: Math.Max(source.From.X, region.X), Y: Math.Max(source.From.Y, region.Y), Z: Math.Max(source.From.Z, region.Z));
                 var hi = (X: Math.Min(source.To.X, region.X2), Y: Math.Min(source.To.Y, region.Y2), Z: Math.Min(source.To.Z, region.Z2));
@@ -1051,7 +1067,7 @@ public static class WallShapeGen
     public static JObject Generate(string layout) => layout switch
     {
         "wall" => Emit([.. WallElements, .. RimPieces(WallElements), .. DeckGroups("deck", ((4, 12, 0), (16, 16, 16))), .. DeckGroups("ledge", Ledge(WallElements))], WallTextures),
-        "floor" => Emit(FloorElements, FloorTextures),
+        "floor" => Emit(FloorShape, FloorTextures),
         "cornerout" => Emit(
             [.. CornerOutElements, .. CornerRimPieces(CornerOutElements), .. DeckGroups("deck", ((4, 12, 4), (16, 16, 16))), .. DeckGroups("ledge", Ledge(CornerOutElements))], CornerOutTextures),
         "diagonal" => Rounded(Emit([.. DiagonalElements, .. DeckGroups("deck", DiagonalDeckStrips())], DiagonalTextures)),

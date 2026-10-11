@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -86,6 +87,102 @@ public class FinishElementGroupsTests
         }
 
         Assert.Equal([], offenders);
+    }
+
+    // A glazed floor draws a finish group's rim parts in place of the group, for every finish, style and join.
+    // Each has to exist in the generated floor shape, and none may be named among what the block's default shape draws.
+    [Fact]
+    public void EveryRimElementAGlazedFloorCanAskForExistsAndIsLeftOutOfTheDefaultShape()
+    {
+        var assets = Path.Combine(MaterialTextureOpacityTests.GetAssemblyMetadata("RepoRoot"), "VSSiding", "assets", "vssiding");
+        var floorJson = JObject.Parse(File.ReadAllText(Path.Combine(assets, "blocktypes", "floor.json")));
+        var entries = FinishEntries();
+        var finishes = new JsonObject(new JObject(entries.Select(e => new JProperty(e.Name, e.Value))));
+
+        var asked =
+            from entry in entries
+            from style in new string?[] { null }.Concat(entry.Value["Styles"]?.Select(t => (string)t!) ?? [])
+            from above in new[] { false, true }
+            from below in new[] { false, true }
+            from left in new[] { false, true }
+            from right in new[] { false, true }
+            from name in SidingFloorEntity.SelectiveElements(
+                "oak", "glass", entry.Name, entry.Name, finishes, (above, below, left, right), (style, style), glazed: true)
+            where name.Contains("-rim")
+            select name;
+        var rims = asked.Distinct().ToList();
+        Assert.NotEmpty(rims);
+
+        var names = WallShapeGen.Generate("floor")["elements"]!.Select(e => (string)e["name"]!).ToHashSet();
+        var selected = floorJson["shape"]!["selectiveElements"]!.Select(t => (string)t!).ToHashSet();
+        var offenders = rims.Where(r => !names.Contains(r)).Select(r => $"the floor shape has no element '{r}'")
+            .Concat(rims.Where(selected.Contains).Select(r => $"floor draws '{r}'")).ToList();
+
+        Assert.Equal([], offenders);
+    }
+
+    // A glazed deck asks for the floor's rim parts under its side's prefix, for its deck and its ledge. Each has
+    // to exist in the generated wall shape, unless the box that copy is cut to misses every piece of that name
+    // on the floor: the clip then drops the whole name, and nothing of it is left to draw. None may be named
+    // among what the block's default shape draws.
+    [Theory]
+    [InlineData("wall")]
+    [InlineData("cornerout")]
+    [InlineData("diagonal")]
+    public void EveryRimElementAGlazedDeckCanAskForExistsOrIsCutAwayEntirelyAndIsLeftOutOfTheDefaultShape(string layout)
+    {
+        var assets = Path.Combine(MaterialTextureOpacityTests.GetAssemblyMetadata("RepoRoot"), "VSSiding", "assets", "vssiding");
+        var wallJson = JObject.Parse(File.ReadAllText(Path.Combine(assets, "blocktypes", "wall.json")));
+        var entries = FinishEntries();
+        var finishes = new JsonObject(new JObject(entries.Select(e => new JProperty(e.Name, e.Value))));
+        var shape = WallShapeGen.Generate(layout)["elements"]!.ToArray();
+        var names = shape.Select(e => (string)e["name"]!).ToHashSet();
+        var floorPieces = WallShapeGen.Generate("floor")["elements"]!.ToLookup(e => (string)e["name"]!);
+
+        // The boxes each copy is cut to, in the order of the sides' turns: the deck box, and the ledge, which
+        // is the room side's slot over the deck's height.
+        (double[] Lo, double[] Hi)[] Boxes(string copy, string side) => copy == "deck"
+            ? [.. WallShapeGenTests.DeckBoxesVoxels(layout, side).Select(b => (b[..3], b[3..]))]
+            : [.. shape.Where(e => (string)e["name"]! == "back").Select(e =>
+            {
+                var r = WallShapeGen.DeckRegion(((double)e["from"]![0]!, 12, (double)e["from"]![2]!), ((double)e["to"]![0]!, 16, (double)e["to"]![2]!),
+                    (int)SidingWallEntity.RotationYDeg(side));
+                return (new[] { r.X, r.Y, r.Z }, new[] { r.X2, r.Y2, r.Z2 });
+            })];
+
+        bool Reaches(JToken piece, (double[] Lo, double[] Hi)[] boxes) => boxes.Any(box => Enumerable.Range(0, 3).All(a =>
+            Math.Max((double)piece["from"]![a]!, box.Lo[a]) < Math.Min((double)piece["to"]![a]!, box.Hi[a])));
+
+        var asked = (
+            from entry in entries
+            from style in new string?[] { null }.Concat(entry.Value["Styles"]?.Select(t => (string)t!) ?? [])
+            from above in new[] { false, true }
+            from below in new[] { false, true }
+            from left in new[] { false, true }
+            from right in new[] { false, true }
+            from side in new[] { "west", "south", "east", "north" }
+            from name in SidingWallEntity.DeckElements(
+                side, "oak", "glass", entry.Name, entry.Name, finishes, (above, below, left, right), (style, style), glazed: true, ledge: layout != "diagonal")
+            where name.Contains("-rim")
+            select (Side: side, Name: name)).Distinct().ToList();
+        Assert.NotEmpty(asked);
+
+        var offenders = new List<string>();
+        foreach (var (side, name) in asked)
+        {
+            string[] parts = name.Split('-', 3);
+            var floorName = parts[2];
+            if (!names.Contains(name) && floorPieces[floorName].Any(piece => Reaches(piece, Boxes(parts[0], side))))
+                offenders.Add($"the {layout} shape has no element '{name}'");
+        }
+
+        foreach (var variant in ((JObject)wallJson["shapebytype"]!).Properties().Where(p => (string)p.Value["base"]! == $"block/wall/{layout}"))
+        {
+            var selected = variant.Value["selectiveElements"]!.Select(t => (string)t!).ToHashSet();
+            offenders.AddRange(asked.Select(a => a.Name).Distinct().Where(selected.Contains).Select(r => $"{variant.Name} draws '{r}'"));
+        }
+
+        Assert.Equal([], offenders.Distinct());
     }
 
     // A framing's Elements is a prefix that FrameElements turns into one name per variant. Read from

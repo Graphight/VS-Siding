@@ -95,6 +95,12 @@ public class SidingFloorTests
                 ["deck-west-poles2-left", "deck-west-poles2-right", "deck-west-poles2-top", "deck-west-poles2-bottom"],
                 ["deck-north-glazing-top", "deck-north-glazing-top-left", "deck-north-glazing-top-right", "deck-north-glazing-bottom",
                     "deck-north-glazing-bottom-left", "deck-north-glazing-bottom-right", "deck-north-infill-pane"],
+                ["deck-east-front-boards-rim-right", "deck-east-front-boards-rim-top", "deck-east-front-boards-rim-top-left",
+                    "deck-east-front-boards-rim-bottom", "deck-east-front-boards-rim-bottom-left",
+                    "deck-east-glazing-right", "deck-east-glazing-top", "deck-east-glazing-top-left", "deck-east-glazing-bottom", "deck-east-glazing-bottom-left",
+                    "deck-east-infill-pane",
+                    "deck-east-back-hboards-rim-right", "deck-east-back-hboards-rim-top", "deck-east-back-hboards-rim-top-left",
+                    "deck-east-back-hboards-rim-bottom", "deck-east-back-hboards-rim-bottom-left"],
             },
             new[]
             {
@@ -104,6 +110,7 @@ public class SidingFloorTests
                 SidingWallEntity.DeckElements("east", null, "wattle", "planks", "planks", Finishes, (false, false, false, false), default, false),
                 SidingWallEntity.DeckElements("west", "sticks", null, null, null, Finishes, (false, false, false, false), default, false, "poles2"),
                 SidingWallEntity.DeckElements("north", "sticks", "glass", null, null, Finishes, (false, false, true, true), default, true, "poles"),
+                SidingWallEntity.DeckElements("east", "oak", "glass", "planks", "planks", Finishes, (false, false, true, false), ("boards", null), true),
             });
     }
 
@@ -226,6 +233,26 @@ public class SidingFloorTests
             },
             new[] { (false, false, false, false), (true, false, true, false), (true, true, true, true) }.Select(j =>
                 SidingFloorEntity.SelectiveElements("oak", "glass", null, null, Finishes, j, glazed: true)));
+    }
+
+    // A glazed floor's finishes are rims round the glass, in place of the top's and the underside's group:
+    // a piece for each part the bezel draws, whatever group the style names.
+    [Fact]
+    public void AGlazedFloorDrawsEachFacesFinishAsARimOfTheBezelsParts()
+    {
+        Assert.Equal(
+            new string[][]
+            {
+                ["front-boards-rim-left", "front-boards-rim-right", "front-boards-rim-top", "front-boards-rim-bottom",
+                    "glazing-left", "glazing-right", "glazing-top", "glazing-bottom", "infill-pane",
+                    "back-hboards-rim-left", "back-hboards-rim-right", "back-hboards-rim-top", "back-hboards-rim-bottom"],
+                ["front-boards-rim-right", "front-boards-rim-top", "front-boards-rim-top-left", "front-boards-rim-bottom", "front-boards-rim-bottom-left",
+                    "glazing-right", "glazing-top", "glazing-top-left", "glazing-bottom", "glazing-bottom-left", "infill-pane",
+                    "back-hboards-rim-right", "back-hboards-rim-top", "back-hboards-rim-top-left", "back-hboards-rim-bottom", "back-hboards-rim-bottom-left"],
+                ["infill-pane"],
+            },
+            new[] { (false, false, false, false), (false, false, true, false), (true, true, true, true) }.Select(j =>
+                SidingFloorEntity.SelectiveElements("oak", "glass", "planks", "planks", Finishes, j, ("boards", null), glazed: true)));
     }
 
     private static readonly JsonObject Attributes = SidingWallEntityTests.Dict("""

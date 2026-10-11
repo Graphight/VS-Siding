@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Vintagestory.API.Client;
@@ -108,14 +109,22 @@ public class SidingFloorEntity : BlockEntity
     }
 
     // The wall's framing and infill names, with each face's element read from the finish's own
-    // FloorElements by its style, or the plain slab where it has none.
+    // FloorElements by its style, or the plain slab where it has none. A glazed floor's finish is a
+    // rim round the glass, as a glazed wall's is: the element cut to each part the frame draws.
     internal static string[] SelectiveElements(
         string? framing, string? infill, string? front, string? back, JsonObject finishes,
         (bool above, bool below, bool left, bool right) joins, (string? front, string? back) styles = default, bool glazed = false, string frame = "framing")
     {
         var names = SidingWallEntity.SelectiveElements("wall", framing, infill, null, null, null, finishes, joins, glazed, frame: frame).ToList();
-        if (front != null) names.Insert(0, FloorElement(finishes, front, "front", styles.front));
-        if (back != null) names.Add(FloorElement(finishes, back, "back", styles.back));
+        var parts = SidingWallEntity.FrameParts("wall", joins, glazed);
+        IEnumerable<string> Finish(string key, string face, string? style)
+        {
+            string group = FloorElement(finishes, key, face, style);
+            return glazed ? SidingWallEntity.RimNames(group, parts) : [group];
+        }
+
+        if (front != null) names.InsertRange(0, Finish(front, "front", styles.front));
+        if (back != null) names.AddRange(Finish(back, "back", styles.back));
         return names.ToArray();
     }
 

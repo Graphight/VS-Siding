@@ -276,31 +276,20 @@ public class SidingWallEntity : BlockEntity
         return copies.SelectMany(copy => names.Select(name => $"{copy}-{side}-{name}")).ToArray();
     }
 
-    // Unbuilt parts (null key) are left out so a frame-only wall shows just its frame.
-    // A finish can name its own element per face (decision 0007) instead of the plain slab.
-    // A join between stacked cells has no plates, so the infill extends across it (decision 0008).
-    internal static string[] SelectiveElements(
-        string layout, string? framing, string? infill, string? front, string? secondFront, string? back, JsonObject finishes,
-        (bool above, bool below, bool left, bool right) joins, bool glazed,
-        (string? front, string? secondFront, string? back) styles = default, string[]? step = null, string frame = "framing")
+    // The suffixes of the frame pieces a cell draws, which a glazed face's rims follow part for part.
+    // A cornerout's three posts are always drawn, glazed ones as the `glazing` group;
+    // a wall's two drop individually wherever glazing merges sideways.
+    // Glazing gets its own frame: stiles and the rails between them, which
+    // overlap nothing. Where a stile has merged away, its rail ends on a filler in that
+    // corner, so the frame still reaches the cell's edge. A plain wall's plates stop short
+    // at its posts, which is right while the posts are always there and leaves a notch at
+    // every cell edge once they aren't. A corner's posts never drop, so it has no fillers,
+    // and a diagonal keeps the plain frame.
+    internal static List<string> FrameParts(string layout, (bool above, bool below, bool left, bool right) joins, bool glazed)
     {
-        var names = new List<string>();
-        // A diagonal's shape has no rough frame groups, so it draws the plain ones whatever the
-        // framing's Elements say (decision 0066).
         bool diagonal = layout == "diagonal";
-        if (diagonal) frame = "framing";
-        // A cornerout's three posts are always drawn, glazed ones as the `glazing` group;
-        // a wall's two drop individually wherever glazing merges sideways.
         bool corner = SidingWallBlock.ClaimsTwoFaces(layout);
-        // Glazing gets its own frame: stiles and the rails between them, which
-        // overlap nothing. Where a stile has merged away, its rail ends on a filler in that
-        // corner, so the frame still reaches the cell's edge. A plain wall's plates stop short
-        // at its posts, which is right while the posts are always there and leaves a notch at
-        // every cell edge once they aren't. A corner's posts never drop, so it has no fillers,
-        // and a diagonal keeps the plain frame.
-        bool glazing = glazed && !diagonal;
-        bool fillers = glazing && !corner;
-        string member = glazing ? "glazing" : frame;
+        bool fillers = glazed && !diagonal && !corner;
         var parts = new List<string>();
         if (!corner)
         {
@@ -316,10 +305,32 @@ public class SidingWallEntity : BlockEntity
             if (fillers && joins.right) parts.Add(rail + "-right");
         }
 
+        return parts;
+    }
+
+    internal static IEnumerable<string> RimNames(string group, IEnumerable<string> parts) => parts.Select(part => $"{group}-rim{part}");
+
+    // Unbuilt parts (null key) are left out so a frame-only wall shows just its frame.
+    // A finish can name its own element per face (decision 0007) instead of the plain slab.
+    // A join between stacked cells has no plates, so the infill extends across it (decision 0008).
+    internal static string[] SelectiveElements(
+        string layout, string? framing, string? infill, string? front, string? secondFront, string? back, JsonObject finishes,
+        (bool above, bool below, bool left, bool right) joins, bool glazed,
+        (string? front, string? secondFront, string? back) styles = default, string[]? step = null, string frame = "framing")
+    {
+        var names = new List<string>();
+        // A diagonal's shape has no rough frame groups, so it draws the plain ones whatever the
+        // framing's Elements say (decision 0066).
+        bool diagonal = layout == "diagonal";
+        if (diagonal) frame = "framing";
+        bool glazing = glazed && !diagonal;
+        string member = glazing ? "glazing" : frame;
+        var parts = FrameParts(layout, joins, glazed);
+
         // A glazed wall's or corner's finish is a rim round the glass: its group cut to each part the frame draws.
         void AddFinish(string group)
         {
-            if (glazing) names.AddRange(parts.Select(part => $"{group}-rim{part}"));
+            if (glazing) names.AddRange(RimNames(group, parts));
             else names.Add(group);
         }
 

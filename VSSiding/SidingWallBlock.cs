@@ -685,12 +685,6 @@ public class SidingWallBlock : Block
         if (finishKey == null) return base.OnBlockInteractStart(world, byPlayer, blockSel);
 
         bool heldPlaces = slot.Itemstack!.Class == EnumItemClass.Block || MatchConsumes(heldCode, Attributes["Framings"]) != null;
-        if (IsTransparent(entity.DeckInfill, Attributes["Infills"]))
-        {
-            if (heldPlaces) return base.OnBlockInteractStart(world, byPlayer, blockSel);
-            (byPlayer as IServerPlayer)?.SendIngameError("vssiding:glazed", Lang.Get("vssiding:build-glazed"));
-            return true;
-        }
 
         string? face = SidingFloorBlock.FinishFace(blockSel.Face);
         if (face == null)
