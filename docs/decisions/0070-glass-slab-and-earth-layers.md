@@ -42,6 +42,7 @@ Floors and decks read the same dictionaries (decisions 0051, 0053), so none of t
 **An end-to-end check.**
 No unit test checks that a `Consumes.code` names a real block (decision 0059).
 `EarthScenarios` plays each new click on a headless server: rammed earth then packed dirt on a frame, and a glass slab on a frame.
+A slab entry that dropped a full block would double glass on every saw cut, so a unit sweep now holds every shipped entry's `Drops` to its `Consumes`, the stained plank's orientation excepted.
 
 ## Alternatives considered
 - **Replace the full glass block with the slab.** A wall already glazed holds a `glass-{color}` key, and a key no entry names counts as not built; Roofing keeps both as well.
