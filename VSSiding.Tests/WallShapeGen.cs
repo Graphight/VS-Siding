@@ -397,18 +397,61 @@ public static class WallShapeGen
                where part.Name.StartsWith("glazing-")
                from e in all
                where e.Name.StartsWith("front") || e.Name.StartsWith("back")
-               let lo = (Y: Math.Max(e.From.Y, part.From.Y), Z: Math.Max(e.From.Z, part.From.Z))
-               let hi = (Y: Math.Min(e.To.Y, part.To.Y), Z: Math.Min(e.To.Z, part.To.Z))
-               where hi.Y > lo.Y && hi.Z > lo.Z
-               let cuts = new[] { (Cut: lo.Z > e.From.Z, Face: "north"), (Cut: hi.Z < e.To.Z, Face: "south"), (Cut: lo.Y > e.From.Y, Face: "down"), (Cut: hi.Y < e.To.Y, Face: "up") }
-               select e with
-               {
-                   Name = $"{e.Name}-rim{part.Name["glazing".Length..]}",
-                   From = (e.From.X, lo.Y, lo.Z),
-                   To = (e.To.X, hi.Y, hi.Z),
-                   Faces = e.Faces?.Union(cuts.Where(c => c.Cut).Select(c => c.Face)).ToArray(),
-                   ClippedFrom = e,
-               };
+               from rim in RimPiece(e, part.Name["glazing".Length..], 'z', (part.From.Z, part.To.Z), (part.From.Y, part.To.Y))
+               select rim;
+    }
+
+    // A corner's rims, cut round each leg's opening, which is read off the leg's own rails: `G-rim` is
+    // everything beside it, full height, and `G-rim-top` and `G-rim-bottom` the parts over and under it.
+    // A front group belongs to leg 1, a second front group to leg 2, and a back box to the leg whose
+    // back slab holds it.
+    internal static IEnumerable<Element> CornerRimPieces(IEnumerable<Element> elements)
+    {
+        Element[] all = [.. elements];
+        double none = double.NegativeInfinity, any = double.PositiveInfinity;
+        foreach (char run in "zx")
+        {
+            char across = run == 'z' ? 'x' : 'z';
+            double Length(Element e, char axis) => Axis(e.To, axis) - Axis(e.From, axis);
+            Element OnLeg(string name) => all.Single(e => e.Name == name && Length(e, run) > Length(e, across));
+            Element top = OnLeg("glazing-top"), bottom = OnLeg("glazing-bottom"), slab = OnLeg("back");
+            var opening = (Lo: Axis(top.From, run), Hi: Axis(top.To, run));
+            (string Part, (double Lo, double Hi) Run, (double Lo, double Hi) Y)[] parts =
+            [
+                ("", (none, opening.Lo), (none, any)),
+                ("", (opening.Hi, any), (none, any)),
+                ("-top", opening, (top.From.Y, any)),
+                ("-bottom", opening, (none, bottom.To.Y)),
+            ];
+
+            string front = run == 'z' ? "front" : "secondfront";
+            bool InSlab(Element e) => "xyz".All(a => Axis(e.From, a) >= Axis(slab.From, a) && Axis(e.To, a) <= Axis(slab.To, a));
+            foreach (var e in all.Where(e => e.Name.StartsWith(front) || (e.Name.StartsWith("back") && InSlab(e))))
+            foreach (var (part, range, y) in parts)
+            foreach (var rim in RimPiece(e, part, run, range, y))
+                yield return rim;
+        }
+    }
+
+    // The part of a finish box inside a range along its run and in y, named for the rim piece it is.
+    private static IEnumerable<Element> RimPiece(
+        Element e, string part, char runAxis, (double Lo, double Hi) run, (double Lo, double Hi) y)
+    {
+        double sourceLo = Axis(e.From, runAxis), sourceHi = Axis(e.To, runAxis);
+        var lo = (Run: Math.Max(sourceLo, run.Lo), Y: Math.Max(e.From.Y, y.Lo));
+        var hi = (Run: Math.Min(sourceHi, run.Hi), Y: Math.Min(e.To.Y, y.Hi));
+        if (hi.Run <= lo.Run || hi.Y <= lo.Y) yield break;
+
+        var (loFace, hiFace) = runAxis == 'z' ? ("north", "south") : ("west", "east");
+        var cuts = new[] { (Cut: lo.Run > sourceLo, Face: loFace), (Cut: hi.Run < sourceHi, Face: hiFace), (Cut: lo.Y > e.From.Y, Face: "down"), (Cut: hi.Y < e.To.Y, Face: "up") };
+        yield return e with
+        {
+            Name = $"{e.Name}-rim{part}",
+            From = runAxis == 'z' ? (e.From.X, lo.Y, lo.Run) : (lo.Run, lo.Y, e.From.Z),
+            To = runAxis == 'z' ? (e.To.X, hi.Y, hi.Run) : (hi.Run, hi.Y, e.To.Z),
+            Faces = e.Faces?.Union(cuts.Where(c => c.Cut).Select(c => c.Face)).ToArray(),
+            ClippedFrom = e,
+        };
     }
 
     // Wall's front-shakes, except each body course's first shake starts at z 0.5 rather than 0.
@@ -1010,7 +1053,7 @@ public static class WallShapeGen
         "wall" => Emit([.. WallElements, .. RimPieces(WallElements), .. DeckGroups("deck", ((4, 12, 0), (16, 16, 16))), .. DeckGroups("ledge", Ledge(WallElements))], WallTextures),
         "floor" => Emit(FloorElements, FloorTextures),
         "cornerout" => Emit(
-            [.. CornerOutElements, .. DeckGroups("deck", ((4, 12, 4), (16, 16, 16))), .. DeckGroups("ledge", Ledge(CornerOutElements))], CornerOutTextures),
+            [.. CornerOutElements, .. CornerRimPieces(CornerOutElements), .. DeckGroups("deck", ((4, 12, 4), (16, 16, 16))), .. DeckGroups("ledge", Ledge(CornerOutElements))], CornerOutTextures),
         "diagonal" => Rounded(Emit([.. DiagonalElements, .. DeckGroups("deck", DiagonalDeckStrips())], DiagonalTextures)),
         _ => throw new KeyNotFoundException(layout),
     };

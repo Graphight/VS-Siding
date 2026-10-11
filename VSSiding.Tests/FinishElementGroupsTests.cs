@@ -50,10 +50,12 @@ public class FinishElementGroupsTests
         Assert.Equal([], offenders);
     }
 
-    // A glazed wall draws a finish group's rim parts in place of the group, for every finish, style and join.
+    // A glazed wall or corner draws a finish group's rim parts in place of the group, for every finish, style and join.
     // Each has to exist in the generated shape, and none may be named among what the block's default shape draws.
-    [Fact]
-    public void EveryRimElementAGlazedWallCanAskForExistsAndIsLeftOutOfTheDefaultShape()
+    [Theory]
+    [InlineData("wall")]
+    [InlineData("cornerout")]
+    public void EveryRimElementAGlazedCellCanAskForExistsAndIsLeftOutOfTheDefaultShape(string layout)
     {
         var assets = Path.Combine(MaterialTextureOpacityTests.GetAssemblyMetadata("RepoRoot"), "VSSiding", "assets", "vssiding");
         var wallJson = JObject.Parse(File.ReadAllText(Path.Combine(assets, "blocktypes", "wall.json")));
@@ -68,15 +70,16 @@ public class FinishElementGroupsTests
             from left in new[] { false, true }
             from right in new[] { false, true }
             from name in SidingWallEntity.SelectiveElements(
-                "wall", "oak", "glass", entry.Name, null, entry.Name, finishes, (above, below, left, right), glazed: true, styles: (style, null, style))
+                layout, "oak", "glass", entry.Name, layout == "cornerout" ? entry.Name : null, entry.Name, finishes, (above, below, left, right), glazed: true,
+                styles: (style, layout == "cornerout" ? style : null, style))
             where name.Contains("-rim")
             select name;
         var rims = asked.Distinct().ToList();
         Assert.NotEmpty(rims);
 
-        var names = WallShapeGen.Generate("wall")["elements"]!.Select(e => (string)e["name"]!).ToHashSet();
-        var offenders = rims.Where(r => !names.Contains(r)).Select(r => $"the wall shape has no element '{r}'").ToList();
-        foreach (var variant in ((JObject)wallJson["shapebytype"]!).Properties().Where(p => (string)p.Value["base"]! == "block/wall/wall"))
+        var names = WallShapeGen.Generate(layout)["elements"]!.Select(e => (string)e["name"]!).ToHashSet();
+        var offenders = rims.Where(r => !names.Contains(r)).Select(r => $"the {layout} shape has no element '{r}'").ToList();
+        foreach (var variant in ((JObject)wallJson["shapebytype"]!).Properties().Where(p => (string)p.Value["base"]! == $"block/wall/{layout}"))
         {
             var selected = variant.Value["selectiveElements"]!.Select(t => (string)t!).ToHashSet();
             offenders.AddRange(rims.Where(selected.Contains).Select(r => $"{variant.Name} draws '{r}'"));

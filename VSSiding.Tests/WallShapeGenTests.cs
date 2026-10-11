@@ -286,6 +286,7 @@ public class WallShapeGenTests
             // Unjoined, 22 + 2 faces * 4 parts * 6 = 70. Merged left, 26 + 2 * 5 * 6 = 86.
             ["wall glazed, daub both faces"] = 70,
             ["wall glazed, daub both faces, merged left"] = 86,
+            ["wall glazed, daub both faces, merged all round"] = 2,
             ["wall glazed, merged all round"] = 2,
             ["cornerout bare frame"] = 42,
             ["cornerout pole frame"] = 158,
@@ -297,9 +298,14 @@ public class WallShapeGenTests
             ["cornerout shakes both faces"] = 400,
             ["cornerout glazed"] = 43,
             ["cornerout glazed, merged left"] = 43,
-            // A corner draws its slabs whole until it has rims: 43 + 23, as the unglazed corner's daub adds 23.
-            ["cornerout glazed, daub both faces"] = 66,
-            ["cornerout glazed, daub both faces, merged left"] = 66,
+            // A corner's rims are cut round each leg's opening: front and second front each a rim of two
+            // end pieces, one over the opening and one under it, 4 boxes * 6 = 24 apiece. Back is three
+            // end pieces (leg 2's two and leg 1's far one) and two over and two under, 7 * 6 = 42.
+            // Unjoined, 43 + 24 + 24 + 42 = 133, whatever the sideways join. Merged above and below it keeps
+            // only the end pieces: 27 + 12 + 12 + 18 = 69.
+            ["cornerout glazed, daub both faces"] = 133,
+            ["cornerout glazed, daub both faces, merged left"] = 133,
+            ["cornerout glazed, daub both faces, merged all round"] = 69,
             ["cornerout glazed, merged all round"] = 27,
             ["wall shakes front, daub elsewhere"] = 185,
             ["cornerout shakes front, daub elsewhere"] = 220,
@@ -340,6 +346,7 @@ public class WallShapeGenTests
             ("glazed, merged left", "glass", null, null, null, (false, false, true, false), true),
             ("glazed, daub both faces", "glass", "daub", "daub", "daub", (false, false, false, false), true),
             ("glazed, daub both faces, merged left", "glass", "daub", "daub", "daub", (false, false, true, false), true),
+            ("glazed, daub both faces, merged all round", "glass", "daub", "daub", "daub", (true, true, true, true), true),
             ("glazed, merged all round", "glass", null, null, null, (true, true, true, true), true),
             ("shakes front, daub elsewhere", "wattle", "shakes", "daub", "daub", (false, false, false, false), false),
             ("weatherboard front, shakes back", "wattle", "planks", "shakes", "shakes", (false, false, false, false), false),
@@ -461,30 +468,42 @@ public class WallShapeGenTests
     }
 
     // A rim piece samples the texels the uncut finish has at the same spot, so a lap or a board carries on
-    // from the cell beside it. Written out by hand for a flat, a rotated and a positional group.
+    // from the cell beside it. Written out by hand for a flat, a rotated and a positional group, on the
+    // wall and on both of the corner's legs.
     [Fact]
     public void RimPiecesKeepTheUncutFinishesUv()
     {
-        var elements = WallShapeGen.Generate("wall")["elements"]!.Cast<JObject>().ToArray();
-        var cases = new (string Name, double FromY, string Face, double[] Uv)[]
+        var cases = new (string Layout, string Name, double[] From, string Face, double[] Uv)[]
         {
-            ("front-rim-top", 14, "west", [2, 0, 14, 2]),
-            ("front-rim-top", 14, "up", [0, 2, 1, 14]),
-            ("front-rim-bottom-right", 0, "west", [14, 14, 16, 16]),
-            ("front-boards-rim-bottom", 0, "west", [0, 2, 2, 14]),
-            ("front-weatherboard-rim-top-right", 15, "west", [14, 0, 16, 1]),
-            ("front-weatherboard-rim-top-right", 14, "west", [14, 1, 16, 2]),
-            ("back-rim-left", 0, "east", [14, 0, 16, 16]),
-            ("back-boards-rim-top", 14, "east", [14, 2, 16, 14]),
+            ("wall", "front-rim-top", [0, 14, 2], "west", [2, 0, 14, 2]),
+            ("wall", "front-rim-top", [0, 14, 2], "up", [0, 2, 1, 14]),
+            ("wall", "front-rim-bottom-right", [0, 0, 14], "west", [14, 14, 16, 16]),
+            ("wall", "front-boards-rim-bottom", [0, 0, 2], "west", [0, 2, 2, 14]),
+            ("wall", "front-weatherboard-rim-top-right", [0.75, 15, 14], "west", [14, 0, 16, 1]),
+            ("wall", "front-weatherboard-rim-top-right", [0.5, 14, 14], "west", [14, 1, 16, 2]),
+            ("wall", "back-rim-left", [3, 0, 0], "east", [14, 0, 16, 16]),
+            ("wall", "back-boards-rim-top", [3, 14, 2], "east", [14, 2, 16, 14]),
+            ("cornerout", "front-rim-top", [0, 14, 4], "west", [4, 0, 14, 2]),
+            ("cornerout", "front-rim-top", [0, 14, 4], "up", [0, 4, 1, 14]),
+            ("cornerout", "front-boards-rim-bottom", [0, 0, 4], "west", [0, 4, 2, 14]),
+            ("cornerout", "front-weatherboard-rim-top", [0.75, 15, 4], "west", [3.5, 0, 13.5, 1]),
+            ("cornerout", "front-weatherboard-rim-top", [0.5, 14, 4], "west", [3.5, 1, 13.5, 2]),
+            ("cornerout", "secondfront-rim-top", [4, 14, 0], "north", [2, 0, 12, 2]),
+            ("cornerout", "secondfront-rim", [14, 0, 0], "north", [0, 0, 2, 16]),
+            ("cornerout", "secondfront-boards-rim-bottom", [4, 0, 0], "north", [2, 14, 12, 16]),
+            ("cornerout", "back-rim", [3, 0, 14], "east", [0, 0, 2, 16]),
+            ("cornerout", "back-rim-top", [4, 14, 3], "south", [1, 0, 11, 2]),
         };
 
+        var shapes = cases.Select(c => c.Layout).Distinct()
+            .ToDictionary(layout => layout, layout => WallShapeGen.Generate(layout)["elements"]!.Cast<JObject>().ToArray());
         var expected = new Dictionary<string, string>();
         var actual = new Dictionary<string, string>();
-        foreach (var (name, fromY, face, uv) in cases)
+        foreach (var (layout, name, from, face, uv) in cases)
         {
-            string key = $"{name} {fromY} {face}";
+            string key = $"{layout} {name} {string.Join(",", from)} {face}";
             expected[key] = new JArray(uv).ToString();
-            actual[key] = elements.Single(e => (string)e["name"]! == name && (double)e["from"]![1]! == fromY)["faces"]![face]!["uv"]!.ToString();
+            actual[key] = shapes[layout].Single(e => (string)e["name"]! == name && Box(e).Lo.SequenceEqual(from))["faces"]![face]!["uv"]!.ToString();
         }
 
         Assert.Equal(expected, actual);
@@ -492,23 +511,25 @@ public class WallShapeGenTests
 
     // Every cut leaves an end that looks onto the glass or the next piece, so a rim piece draws a face at
     // each plane it was cut at, whatever its source group draws.
-    [Fact]
-    public void EveryRimPieceDrawsAFaceOnEachPlaneItWasCutAt()
+    [Theory]
+    [InlineData("wall")]
+    [InlineData("cornerout")]
+    public void EveryRimPieceDrawsAFaceOnEachPlaneItWasCutAt(string layout)
     {
-        var elements = WallShapeGen.Generate("wall")["elements"]!.Cast<JObject>().ToArray();
+        var elements = WallShapeGen.Generate(layout)["elements"]!.Cast<JObject>().ToArray();
         var rims = elements.Where(e => ((string)e["name"]!).Contains("-rim")).ToArray();
         Assert.NotEmpty(rims);
 
+        string[] lowFaces = ["west", "down", "north"], highFaces = ["east", "up", "south"];
         var offenders = new List<string>();
         foreach (var rim in rims)
         {
             string name = (string)rim["name"]!;
             var (lo, hi) = Box(rim);
             var source = elements.Single(e => (string)e["name"]! == name[..name.IndexOf("-rim")]
-                && Box(e) is var (sLo, sHi) && sLo[0] == lo[0] && sHi[0] == hi[0]
-                && sLo[1] <= lo[1] && sHi[1] >= hi[1] && sLo[2] <= lo[2] && sHi[2] >= hi[2]);
+                && Box(e) is var (sLo, sHi) && Enumerable.Range(0, 3).All(a => sLo[a] <= lo[a] && sHi[a] >= hi[a]));
             var (sourceLo, sourceHi) = Box(source);
-            var cuts = new[] { ("north", lo[2] > sourceLo[2]), ("south", hi[2] < sourceHi[2]), ("down", lo[1] > sourceLo[1]), ("up", hi[1] < sourceHi[1]) };
+            var cuts = Enumerable.Range(0, 3).SelectMany(a => new[] { (lowFaces[a], lo[a] > sourceLo[a]), (highFaces[a], hi[a] < sourceHi[a]) });
             offenders.AddRange(cuts.Where(c => c.Item2 && !((JObject)rim["faces"]!).ContainsKey(c.Item1)).Select(c => $"{name} at {string.Join(",", lo)} has no {c.Item1} face"));
         }
 
@@ -844,8 +865,8 @@ public class WallShapeGenTests
 
     // A glazed wall's or floor's frame is stiles and rails that meet edge to edge. Where a stile has merged away
     // its rails end on fillers instead, so a filler is never drawn with the stile on its side. A glazed corner's
-    // posts never drop, so it has the one set. A glazed wall's finish is drawn as a rim piece for each frame part,
-    // so those meet the same way.
+    // posts never drop, so it has the one set. A glazed wall's or corner's finish is drawn as a rim piece for each
+    // frame part, so those meet the same way.
     [Theory]
     [InlineData("wall")]
     [InlineData("floor")]
@@ -864,9 +885,10 @@ public class WallShapeGenTests
         Assert.Equal([], uprights.SelectMany(set =>
         {
             string[] frame = ["glazing-top", "glazing-bottom", .. set];
-            string[] rims = layout == "wall"
-                ? [.. frame.SelectMany(part => new[] { "front", "back" }.Select(group => group + "-rim" + part["glazing".Length..]))]
-                : [];
+            string[] groups = layout == "cornerout" ? ["front", "secondfront", "back"] : ["front", "back"];
+            string[] rims = layout == "floor"
+                ? []
+                : [.. frame.SelectMany(part => groups.Select(group => group + "-rim" + part["glazing".Length..]))];
             return SharedPlaneOffenders(layout, [.. frame, "infill-pane", .. rims]);
         }).Distinct());
     }

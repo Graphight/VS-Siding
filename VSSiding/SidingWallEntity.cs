@@ -316,15 +316,15 @@ public class SidingWallEntity : BlockEntity
             if (fillers && joins.right) parts.Add(rail + "-right");
         }
 
-        // A glazed wall's finish is a rim round the glass: its group cut to each part the frame draws.
+        // A glazed wall's or corner's finish is a rim round the glass: its group cut to each part the frame draws.
         void AddFinish(string group)
         {
-            if (glazed && layout == "wall") names.AddRange(parts.Select(part => $"{group}-rim{part}"));
+            if (glazing) names.AddRange(parts.Select(part => $"{group}-rim{part}"));
             else names.Add(group);
         }
 
         if (front != null) AddFinish(FinishElement(finishes, front, "front", styles.front));
-        if (secondFront != null) names.Add("second" + FinishElement(finishes, secondFront, "front", styles.secondFront));
+        if (secondFront != null) AddFinish("second" + FinishElement(finishes, secondFront, "front", styles.secondFront));
         if (framing != null) names.AddRange(parts.Select(part => member + part));
         if (infill != null)
         {

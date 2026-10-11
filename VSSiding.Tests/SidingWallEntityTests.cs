@@ -205,6 +205,50 @@ public class SidingWallEntityTests
                 "cornerout", "oak", "glass", null, null, null, NoElementFinishes, j, glazed: true)));
     }
 
+    // A glazed corner's finishes are rims too, on both legs: the post's piece always, and the pieces over and
+    // under the opening for as long as the rails are drawn. The second front goes the way the front does.
+    [Fact]
+    public void GlazedCorneroutDrawsEachFacesFinishAsARimOfTheFramesParts()
+    {
+        var finishes = Dict("""{ "daub": {}, "planks": { "Elements": { "front": "front-weatherboard", "back": "back-boards" } } }""");
+        var joins = new (bool above, bool below, bool left, bool right)[]
+        {
+            (false, false, false, false),
+            (false, false, true, true),
+            (true, false, false, false),
+            (true, true, false, false),
+        };
+
+        string[] unjoined =
+        [
+            "front-weatherboard-rim", "front-weatherboard-rim-top", "front-weatherboard-rim-bottom",
+            "secondfront-rim", "secondfront-rim-top", "secondfront-rim-bottom",
+            "glazing", "glazing-top", "glazing-bottom", "infill-pane",
+            "back-boards-rim", "back-boards-rim-top", "back-boards-rim-bottom",
+        ];
+
+        Assert.Equal(
+            new Dictionary<(bool, bool, bool, bool), string[]>
+            {
+                [(false, false, false, false)] = unjoined,
+                // Sideways joins are a wall's, not a corner's.
+                [(false, false, true, true)] = unjoined,
+                [(true, false, false, false)] =
+                [
+                    "front-weatherboard-rim", "front-weatherboard-rim-bottom",
+                    "secondfront-rim", "secondfront-rim-bottom",
+                    "glazing", "glazing-bottom", "infill-pane",
+                    "back-boards-rim", "back-boards-rim-bottom",
+                ],
+                [(true, true, false, false)] =
+                [
+                    "front-weatherboard-rim", "secondfront-rim", "glazing", "infill-pane", "back-boards-rim",
+                ],
+            },
+            joins.ToDictionary(j => j, j => SidingWallEntity.SelectiveElements(
+                "cornerout", "oak", "glass", "planks", "daub", "planks", finishes, j, glazed: true)));
+    }
+
     // A diagonal takes a finish's own groups as a wall does, draws the plain frame for a rough one, and at
     // each end either the corner filler or, where the next cell carries the run on, every group's piece
     // to the corner and half a post.
