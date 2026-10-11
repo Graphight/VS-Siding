@@ -774,18 +774,16 @@ public class WallShapeGenTests
     [InlineData("cornerout")]
     public void NoTwoFacesOfAGlazedCellsFramePiecesShareAPlaneAndOverlap(string layout)
     {
-        string[] shared = ["glazing-top", "glazing-bottom", "infill-pane"];
-        string[][] drawnTogether = layout == "cornerout"
-            ? [[.. shared, "glazing"]]
-            :
-            [
-                [.. shared, "glazing-left", "glazing-right"],
-                [.. shared, "glazing-top-left", "glazing-bottom-left", "glazing-right"],
-                [.. shared, "glazing-top-right", "glazing-bottom-right", "glazing-left"],
-                [.. shared, "glazing-top-left", "glazing-bottom-left", "glazing-top-right", "glazing-bottom-right"],
+        string[][] uprights = layout == "cornerout"
+            ? [["glazing"]]
+            : [
+                ["glazing-left", "glazing-right"],
+                ["glazing-top-left", "glazing-bottom-left", "glazing-right"],
+                ["glazing-top-right", "glazing-bottom-right", "glazing-left"],
+                ["glazing-top-left", "glazing-bottom-left", "glazing-top-right", "glazing-bottom-right"],
             ];
 
-        Assert.Equal([], drawnTogether.SelectMany(together => SharedPlaneOffenders(layout, together)).Distinct());
+        Assert.Equal([], uprights.SelectMany(set => SharedPlaneOffenders(layout, ["glazing-top", "glazing-bottom", "infill-pane", .. set])).Distinct());
     }
 
     private static List<string> SharedPlaneOffenders(string layout, string[] together)
