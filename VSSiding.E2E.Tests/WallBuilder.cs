@@ -20,6 +20,16 @@ internal static class WallBuilder
         return player;
     }
 
+    // A placed lantern's entity takes its material, lining and glass from the stack.
+    internal static ItemStack LanternStack(IWorldSession world)
+    {
+        var stack = new ItemStack(world.Api.World.GetBlock(new AssetLocation("game:lantern-large-up")));
+        stack.Attributes.SetString("material", "copper");
+        stack.Attributes.SetString("lining", "plain");
+        stack.Attributes.SetString("glass", "quartz");
+        return stack;
+    }
+
     // framing, infill, front, secondfront, back as the wall's entity saves them; the entity type is the mod's own, so it is read through its tree.
     internal static (string? Framing, string? Infill, string? Front, string? SecondFront, string? Back) Layers(IWorldSession world, BlockPos cell)
         => LayersOf(world.BlockEntityAt<BlockEntity>(cell)!);

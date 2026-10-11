@@ -304,6 +304,26 @@ public class SidingModSystem : ModSystem
 
         try
         {
+            harmony.Patch(AccessTools.Method(typeof(BlockBehaviorOmniAttachable), nameof(BlockBehaviorOmniAttachable.TryPlaceBlock)),
+                prefix: new HarmonyMethod(typeof(SidingModSystem), nameof(OmniAttachableIntoWallPrefix)));
+        }
+        catch (Exception e)
+        {
+            api.Logger.Error("vssiding: omni attachable patch skipped, a lantern can't be placed into a wall's cell: {0}", e);
+        }
+
+        try
+        {
+            harmony.Patch(AccessTools.Method(typeof(BlockBehaviorRightClickPickup), nameof(BlockBehaviorRightClickPickup.OnBlockInteractStart)),
+                postfix: new HarmonyMethod(typeof(SidingModSystem), nameof(PickedUpHostPostfix)));
+        }
+        catch (Exception e)
+        {
+            api.Logger.Error("vssiding: pickup restore patch skipped, a wall will blink out when a lantern or oil lamp is picked off it: {0}", e);
+        }
+
+        try
+        {
             harmony.Patch(AccessTools.Method(typeof(BlockShapeMaterialFromAttributes), nameof(BlockShapeMaterialFromAttributes.DoPlaceBlock)),
                 postfix: new HarmonyMethod(typeof(SidingModSystem), nameof(PlacedAnglePostfix)));
             harmony.Patch(AccessTools.Method(typeof(BEBehaviorShapeMaterialFromAttributes), nameof(BEBehaviorShapeMaterialFromAttributes.FromTreeAttributes)),
@@ -893,6 +913,37 @@ public class SidingModSystem : ModSystem
         return false;
     }
 
+    internal static readonly AccessTools.FieldRef<BlockBehaviorOmniAttachable, Dictionary<string, Cuboidi>?> AttachmentAreasRef =
+        AccessTools.FieldRefAccess<BlockBehaviorOmniAttachable, Dictionary<string, Cuboidi>?>("attachmentAreas");
+
+    // Vanilla places an omni-attachable block (a lantern) only into a cell with Replaceable >= 6000, which a wall's never is (#91).
+    internal static bool OmniAttachableIntoWallPrefix(BlockBehaviorOmniAttachable __instance, IWorldAccessor world, IPlayer byPlayer,
+        ItemStack itemstack, BlockSelection blockSel, ref EnumHandling handling, ref string failureCode, ref bool __result)
+    {
+        if (world.BlockAccessor.GetBlock(blockSel.Position) is not SidingWallBlock) return true;
+
+        handling = EnumHandling.PreventDefault;
+        __result = false;
+        if (!__instance.block.CanPlaceBlock(world, byPlayer, blockSel, ref failureCode)) return false;
+
+        var areas = AttachmentAreasRef(__instance);
+        foreach (var face in new[] { blockSel.Face }.Concat(BlockFacing.ALLFACES))
+        {
+            var attachPos = blockSel.Position.AddCopy(face.Opposite);
+            Cuboidi? area = null;
+            areas?.TryGetValue(face.Code, out area);
+            if (!world.BlockAccessor.GetBlock(attachPos).CanAttachBlockAt(world.BlockAccessor, __instance.block, attachPos, face, area)) continue;
+
+            var variant = world.BlockAccessor.GetBlock(__instance.block.CodeWithVariant(__instance.facingCode, face.Code));
+            variant.DoPlaceBlock(world, byPlayer, new BlockSelection { Position = blockSel.Position, HitPosition = blockSel.HitPosition, Face = face }, itemstack);
+            __result = true;
+            return false;
+        }
+
+        failureCode = "requireattachable";
+        return false;
+    }
+
     // Vanilla works out the bed's facing again from this selection, by the angle from the player's eye to
     // Position + HitPosition, so the hit point stays where it was or a player off to one side gets a
     // bed turned a quarter into cells the footprint check never saw.
@@ -1130,6 +1181,10 @@ public class SidingModSystem : ModSystem
     // (ClientMain.OnPlayerTryDestroyBlock), so it predicts the restore too instead of drawing an empty
     // cell until the server's wall arrives (#58).
     internal static void ClientNeighbourUpdatePrefix(ClientMain __instance, BlockPos pos) => RestoreGuestWall(__instance, pos);
+
+    // A lantern or oil lamp picked up by right-click leaves through RightClickPickup, which sets air
+    // and only queues the neighbour update, so clients would be sent the empty cell a tick before the wall.
+    internal static void PickedUpHostPostfix(IWorldAccessor world, BlockSelection blockSel) => RestoreGuestWall(world, blockSel.Position);
 
     // IsReplacableBy answers two questions for vanilla. CanPlaceBlock and the server's placement check
     // ask it of the cell a block is going into, and a wall says yes to anything hostable so it can

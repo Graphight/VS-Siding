@@ -42,7 +42,7 @@ public class LightScenarios : AtlasScenarioBase
         (BlockPos inside, _) = await WallBuilder.BuildRoom(World, "game:clay-blue", BlockFacing.HORIZONTALS);
         BlockPos cell = inside.EastCopy();
 
-        // A lantern only places through a click against something it can attach to, which the wall's open side is not.
+        // A standing lantern already in the cell, with no player to click it in.
         World.SetBlock("game:lantern-large-up", cell);
         Assert.Equal(Expected, WallBuilder.GuestLayers(World, cell));
 

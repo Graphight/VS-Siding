@@ -42,6 +42,29 @@ public class DeckScenarios : AtlasScenarioBase
         Assert.Equal(("oak", "clay", "planks", null), DeckLayers(cell));
     }
 
+    // A lantern places through its own behaviour, which reaches the decked cell check only by asking CanPlaceBlock.
+    [AtlasScenario(FreshWorld = true)]
+    public async Task Deck_Should_StayOnItsWall_When_ALanternIsPlacedIntoItsCell()
+    {
+        BlockPos cell = World.Spawn.Offset(1, 2, 0);
+        World.SetBlock("game:planks-aged-ud", cell.DownCopy());
+        ITestPlayer player = await WallBuilder.JoinBuilder(World);
+        await WallBuilder.Raise(World, player, cell, cell.WestCopy(), "game:plank-oak", "game:clay-blue");
+
+        player.Entity.WatchedAttributes.SetString("vssidingDeck", "deck");
+        await player.GiveItem("game:plank-oak", 2);
+        var sideSel = new BlockSelection { Position = cell.Copy(), Face = BlockFacing.EAST, HitPosition = new Vec3d(1, 0.5, 0.5) };
+        Assert.True(World.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, sideSel));
+
+        ItemStack stack = WallBuilder.LanternStack(World);
+        var floorSel = new BlockSelection { Position = cell.Copy(), Face = BlockFacing.UP, HitPosition = new Vec3d(0.5, 0.5, 0.5) };
+        string failureCode = "";
+        bool placed = stack.Block.TryPlaceBlock(player.Entity.World, player.Player, stack, floorSel, ref failureCode);
+
+        Assert.Equal((false, "notreplaceable"), (placed, failureCode));
+        Assert.Equal(("oak", null, null, null), DeckLayers(cell));
+    }
+
     private (string? Deck, string? Infill, string? Front, string? Back) DeckLayers(BlockPos cell)
     {
         var tree = new TreeAttribute();
