@@ -139,6 +139,49 @@ public class SidingWallEntityTests
                 "wall", "oak", "glass", null, null, null, NoElementFinishes, j, glazed: true)));
     }
 
+    // A glazed wall's finish is drawn as a rim in place of its group, one piece for each part the frame
+    // draws, so the border follows the frame wherever glazing merges.
+    [Fact]
+    public void GlazedWallDrawsEachFacesFinishAsARimOfTheFramesParts()
+    {
+        var finishes = Dict("""{ "daub": {}, "planks": { "Elements": { "front": "front-weatherboard", "back": "back-boards" } } }""");
+        var joins = new (bool above, bool below, bool left, bool right)[]
+        {
+            (false, false, false, false),
+            (false, false, true, false),
+            (true, false, true, false),
+            (true, true, true, true),
+        };
+
+        Assert.Equal(
+            new Dictionary<(bool, bool, bool, bool), string[]>
+            {
+                [(false, false, false, false)] =
+                [
+                    "front-weatherboard-rim-left", "front-weatherboard-rim-right", "front-weatherboard-rim-top", "front-weatherboard-rim-bottom",
+                    "glazing-left", "glazing-right", "glazing-top", "glazing-bottom", "infill-pane",
+                    "back-rim-left", "back-rim-right", "back-rim-top", "back-rim-bottom",
+                ],
+                [(false, false, true, false)] =
+                [
+                    "front-weatherboard-rim-right", "front-weatherboard-rim-top", "front-weatherboard-rim-top-left",
+                    "front-weatherboard-rim-bottom", "front-weatherboard-rim-bottom-left",
+                    "glazing-right", "glazing-top", "glazing-top-left", "glazing-bottom", "glazing-bottom-left", "infill-pane",
+                    "back-rim-right", "back-rim-top", "back-rim-top-left", "back-rim-bottom", "back-rim-bottom-left",
+                ],
+                [(true, false, true, false)] =
+                [
+                    "front-weatherboard-rim-right", "front-weatherboard-rim-bottom", "front-weatherboard-rim-bottom-left",
+                    "glazing-right", "glazing-bottom", "glazing-bottom-left", "infill-pane",
+                    "back-rim-right", "back-rim-bottom", "back-rim-bottom-left",
+                ],
+                // Surrounded by glazing: nothing but the pane, finish or not.
+                [(true, true, true, true)] = ["infill-pane"],
+            },
+            joins.ToDictionary(j => j, j => SidingWallEntity.SelectiveElements(
+                "wall", "oak", "glass", "planks", null, "daub", finishes, j, glazed: true)));
+    }
+
     // A cornerout's three posts never drop, so glazing gives it ones of its own and a rail per
     // leg between them whatever the sideways joins - and no fillers, which only a dropped stile needs.
     [Fact]

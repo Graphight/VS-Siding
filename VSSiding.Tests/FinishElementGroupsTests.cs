@@ -50,6 +50,41 @@ public class FinishElementGroupsTests
         Assert.Equal([], offenders);
     }
 
+    // A glazed wall draws a finish group's rim parts in place of the group, for every finish, style and join.
+    // Each has to exist in the generated shape, and none may be named among what the block's default shape draws.
+    [Fact]
+    public void EveryRimElementAGlazedWallCanAskForExistsAndIsLeftOutOfTheDefaultShape()
+    {
+        var assets = Path.Combine(MaterialTextureOpacityTests.GetAssemblyMetadata("RepoRoot"), "VSSiding", "assets", "vssiding");
+        var wallJson = JObject.Parse(File.ReadAllText(Path.Combine(assets, "blocktypes", "wall.json")));
+        var entries = FinishEntries();
+        var finishes = new JsonObject(new JObject(entries.Select(e => new JProperty(e.Name, e.Value))));
+
+        var asked =
+            from entry in entries
+            from style in new string?[] { null }.Concat(entry.Value["Styles"]?.Select(t => (string)t!) ?? [])
+            from above in new[] { false, true }
+            from below in new[] { false, true }
+            from left in new[] { false, true }
+            from right in new[] { false, true }
+            from name in SidingWallEntity.SelectiveElements(
+                "wall", "oak", "glass", entry.Name, null, entry.Name, finishes, (above, below, left, right), glazed: true, styles: (style, null, style))
+            where name.Contains("-rim")
+            select name;
+        var rims = asked.Distinct().ToList();
+        Assert.NotEmpty(rims);
+
+        var names = WallShapeGen.Generate("wall")["elements"]!.Select(e => (string)e["name"]!).ToHashSet();
+        var offenders = rims.Where(r => !names.Contains(r)).Select(r => $"the wall shape has no element '{r}'").ToList();
+        foreach (var variant in ((JObject)wallJson["shapebytype"]!).Properties().Where(p => (string)p.Value["base"]! == "block/wall/wall"))
+        {
+            var selected = variant.Value["selectiveElements"]!.Select(t => (string)t!).ToHashSet();
+            offenders.AddRange(rims.Where(selected.Contains).Select(r => $"{variant.Name} draws '{r}'"));
+        }
+
+        Assert.Equal([], offenders);
+    }
+
     // A framing's Elements is a prefix that FrameElements turns into one name per variant. Read from
     // the real entries, so a prefix the shapes lack, or one variant of it, is caught here and not in play.
     [Fact]

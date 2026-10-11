@@ -289,36 +289,43 @@ public class SidingWallEntity : BlockEntity
         // framing's Elements say (decision 0066).
         bool diagonal = layout == "diagonal";
         if (diagonal) frame = "framing";
-        if (front != null) names.Add(FinishElement(finishes, front, "front", styles.front));
-        if (secondFront != null) names.Add("second" + FinishElement(finishes, secondFront, "front", styles.secondFront));
-        if (framing != null)
+        // A cornerout's three posts are always drawn, glazed ones as the `glazing` group;
+        // a wall's two drop individually wherever glazing merges sideways.
+        bool corner = SidingWallBlock.ClaimsTwoFaces(layout);
+        // Glazing gets its own frame: stiles and the rails between them, which
+        // overlap nothing. Where a stile has merged away, its rail ends on a filler in that
+        // corner, so the frame still reaches the cell's edge. A plain wall's plates stop short
+        // at its posts, which is right while the posts are always there and leaves a notch at
+        // every cell edge once they aren't. A corner's posts never drop, so it has no fillers,
+        // and a diagonal keeps the plain frame.
+        bool glazing = glazed && !diagonal;
+        bool fillers = glazing && !corner;
+        string member = glazing ? "glazing" : frame;
+        var parts = new List<string>();
+        if (!corner)
         {
-            // A cornerout's three posts are always drawn, glazed ones as the `glazing` group;
-            // a wall's two drop individually wherever glazing merges sideways.
-            bool corner = SidingWallBlock.ClaimsTwoFaces(layout);
-            // Glazing gets its own frame: stiles and the rails between them, which
-            // overlap nothing. Where a stile has merged away, its rail ends on a filler in that
-            // corner, so the frame still reaches the cell's edge. A plain wall's plates stop short
-            // at its posts, which is right while the posts are always there and leaves a notch at
-            // every cell edge once they aren't. A corner's posts never drop, so it has no fillers,
-            // and a diagonal keeps the plain frame.
-            bool glazing = glazed && !diagonal;
-            bool fillers = glazing && !corner;
-            string member = glazing ? "glazing" : frame;
-            if (!corner)
-            {
-                if (!joins.left) names.Add(member + "-left");
-                if (!joins.right) names.Add(member + "-right");
-            }
-            else if (!diagonal) names.Add(member);
-            foreach (var (joined, rail) in new[] { (joins.above, "-top"), (joins.below, "-bottom") })
-            {
-                if (joined) continue;
-                names.Add(member + rail);
-                if (fillers && joins.left) names.Add(member + rail + "-left");
-                if (fillers && joins.right) names.Add(member + rail + "-right");
-            }
+            if (!joins.left) parts.Add("-left");
+            if (!joins.right) parts.Add("-right");
         }
+        else if (!diagonal) parts.Add("");
+        foreach (var (joined, rail) in new[] { (joins.above, "-top"), (joins.below, "-bottom") })
+        {
+            if (joined) continue;
+            parts.Add(rail);
+            if (fillers && joins.left) parts.Add(rail + "-left");
+            if (fillers && joins.right) parts.Add(rail + "-right");
+        }
+
+        // A glazed wall's finish is a rim round the glass: its group cut to each part the frame draws.
+        void AddFinish(string group)
+        {
+            if (glazed && layout == "wall") names.AddRange(parts.Select(part => $"{group}-rim{part}"));
+            else names.Add(group);
+        }
+
+        if (front != null) AddFinish(FinishElement(finishes, front, "front", styles.front));
+        if (secondFront != null) names.Add("second" + FinishElement(finishes, secondFront, "front", styles.secondFront));
+        if (framing != null) names.AddRange(parts.Select(part => member + part));
         if (infill != null)
         {
             // Glazing is one flat pane spanning the whole cell rather than a slab plus fillers.
@@ -333,7 +340,7 @@ public class SidingWallEntity : BlockEntity
                 if (joins.below) names.Add("infill-bottom");
             }
         }
-        if (back != null) names.Add(FinishElement(finishes, back, "back", styles.back));
+        if (back != null) AddFinish(FinishElement(finishes, back, "back", styles.back));
         // A diagonal's end is the filler in its corner, or, where the next cell carries the run on,
         // each group's own piece out to the corner and half a post there.
         if (diagonal)

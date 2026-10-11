@@ -282,6 +282,10 @@ public class WallShapeGenTests
             ["wall shakes both faces"] = 205,
             ["wall glazed"] = 22,
             ["wall glazed, merged left"] = 26,
+            // Glazed with daub, a rim in place of each slab: a piece per part the frame draws, six faces each.
+            // Unjoined, 22 + 2 faces * 4 parts * 6 = 70. Merged left, 26 + 2 * 5 * 6 = 86.
+            ["wall glazed, daub both faces"] = 70,
+            ["wall glazed, daub both faces, merged left"] = 86,
             ["wall glazed, merged all round"] = 2,
             ["cornerout bare frame"] = 42,
             ["cornerout pole frame"] = 158,
@@ -293,6 +297,9 @@ public class WallShapeGenTests
             ["cornerout shakes both faces"] = 400,
             ["cornerout glazed"] = 43,
             ["cornerout glazed, merged left"] = 43,
+            // A corner draws its slabs whole until it has rims: 43 + 23, as the unglazed corner's daub adds 23.
+            ["cornerout glazed, daub both faces"] = 66,
+            ["cornerout glazed, daub both faces, merged left"] = 66,
             ["cornerout glazed, merged all round"] = 27,
             ["wall shakes front, daub elsewhere"] = 185,
             ["cornerout shakes front, daub elsewhere"] = 220,
@@ -331,6 +338,8 @@ public class WallShapeGenTests
             ("shakes both faces", "wattle", "shakes", "shakes", "shakes", (false, false, false, false), false),
             ("glazed", "glass", null, null, null, (false, false, false, false), true),
             ("glazed, merged left", "glass", null, null, null, (false, false, true, false), true),
+            ("glazed, daub both faces", "glass", "daub", "daub", "daub", (false, false, false, false), true),
+            ("glazed, daub both faces, merged left", "glass", "daub", "daub", "daub", (false, false, true, false), true),
             ("glazed, merged all round", "glass", null, null, null, (true, true, true, true), true),
             ("shakes front, daub elsewhere", "wattle", "shakes", "daub", "daub", (false, false, false, false), false),
             ("weatherboard front, shakes back", "wattle", "planks", "shakes", "shakes", (false, false, false, false), false),
@@ -449,6 +458,74 @@ public class WallShapeGenTests
         }
 
         Assert.Equal(expected, actual);
+    }
+
+    // A rim piece samples the texels the uncut finish has at the same spot, so a lap or a board carries on
+    // from the cell beside it. Written out by hand for a flat, a rotated and a positional group.
+    [Fact]
+    public void RimPiecesKeepTheUncutFinishesUv()
+    {
+        var elements = WallShapeGen.Generate("wall")["elements"]!.Cast<JObject>().ToArray();
+        var cases = new (string Name, double FromY, string Face, double[] Uv)[]
+        {
+            ("front-rim-top", 14, "west", [2, 0, 14, 2]),
+            ("front-rim-top", 14, "up", [0, 2, 1, 14]),
+            ("front-rim-bottom-right", 0, "west", [14, 14, 16, 16]),
+            ("front-boards-rim-bottom", 0, "west", [0, 2, 2, 14]),
+            ("front-weatherboard-rim-top-right", 15, "west", [14, 0, 16, 1]),
+            ("front-weatherboard-rim-top-right", 14, "west", [14, 1, 16, 2]),
+            ("back-rim-left", 0, "east", [14, 0, 16, 16]),
+            ("back-boards-rim-top", 14, "east", [14, 2, 16, 14]),
+        };
+
+        var expected = new Dictionary<string, string>();
+        var actual = new Dictionary<string, string>();
+        foreach (var (name, fromY, face, uv) in cases)
+        {
+            string key = $"{name} {fromY} {face}";
+            expected[key] = new JArray(uv).ToString();
+            actual[key] = elements.Single(e => (string)e["name"]! == name && (double)e["from"]![1]! == fromY)["faces"]![face]!["uv"]!.ToString();
+        }
+
+        Assert.Equal(expected, actual);
+    }
+
+    // Every cut leaves an end that looks onto the glass or the next piece, so a rim piece draws a face at
+    // each plane it was cut at, whatever its source group draws.
+    [Fact]
+    public void EveryRimPieceDrawsAFaceOnEachPlaneItWasCutAt()
+    {
+        var elements = WallShapeGen.Generate("wall")["elements"]!.Cast<JObject>().ToArray();
+        var rims = elements.Where(e => ((string)e["name"]!).Contains("-rim")).ToArray();
+        Assert.NotEmpty(rims);
+
+        var offenders = new List<string>();
+        foreach (var rim in rims)
+        {
+            string name = (string)rim["name"]!;
+            var (lo, hi) = Box(rim);
+            var source = elements.Single(e => (string)e["name"]! == name[..name.IndexOf("-rim")]
+                && Box(e) is var (sLo, sHi) && sLo[0] == lo[0] && sHi[0] == hi[0]
+                && sLo[1] <= lo[1] && sHi[1] >= hi[1] && sLo[2] <= lo[2] && sHi[2] >= hi[2]);
+            var (sourceLo, sourceHi) = Box(source);
+            var cuts = new[] { ("north", lo[2] > sourceLo[2]), ("south", hi[2] < sourceHi[2]), ("down", lo[1] > sourceLo[1]), ("up", hi[1] < sourceHi[1]) };
+            offenders.AddRange(cuts.Where(c => c.Item2 && !((JObject)rim["faces"]!).ContainsKey(c.Item1)).Select(c => $"{name} at {string.Join(",", lo)} has no {c.Item1} face"));
+        }
+
+        Assert.Equal([], offenders);
+    }
+
+    // The faces a group limits itself to are the ones its neighbours leave showing, and a cut shows new ones.
+    [Fact]
+    public void ARimPieceAddsTheFacesItsCutsExposeToAGroupThatLimitsItsFaces()
+    {
+        Element[] elements =
+        [
+            new("glazing-top", (1, 14, 2), (3, 16, 14), "framing", UvRule.Flat),
+            new("front-limited", (0, 0, 0), (1, 16, 16), "front", UvRule.Flat, Faces: ["west", "up"]),
+        ];
+
+        Assert.Equal(["west", "up", "north", "south", "down"], WallShapeGen.RimPieces(elements).Single().Faces);
     }
 
     [Fact]
@@ -767,7 +844,8 @@ public class WallShapeGenTests
 
     // A glazed wall's or floor's frame is stiles and rails that meet edge to edge. Where a stile has merged away
     // its rails end on fillers instead, so a filler is never drawn with the stile on its side. A glazed corner's
-    // posts never drop, so it has the one set.
+    // posts never drop, so it has the one set. A glazed wall's finish is drawn as a rim piece for each frame part,
+    // so those meet the same way.
     [Theory]
     [InlineData("wall")]
     [InlineData("floor")]
@@ -783,7 +861,14 @@ public class WallShapeGenTests
                 ["glazing-top-left", "glazing-bottom-left", "glazing-top-right", "glazing-bottom-right"],
             ];
 
-        Assert.Equal([], uprights.SelectMany(set => SharedPlaneOffenders(layout, ["glazing-top", "glazing-bottom", "infill-pane", .. set])).Distinct());
+        Assert.Equal([], uprights.SelectMany(set =>
+        {
+            string[] frame = ["glazing-top", "glazing-bottom", .. set];
+            string[] rims = layout == "wall"
+                ? [.. frame.SelectMany(part => new[] { "front", "back" }.Select(group => group + "-rim" + part["glazing".Length..]))]
+                : [];
+            return SharedPlaneOffenders(layout, [.. frame, "infill-pane", .. rims]);
+        }).Distinct());
     }
 
     private static List<string> SharedPlaneOffenders(string layout, string[] together)

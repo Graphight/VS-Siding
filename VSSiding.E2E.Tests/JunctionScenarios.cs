@@ -48,14 +48,14 @@ public class JunctionScenarios : AtlasScenarioBase
     }
 
     [AtlasScenario(FreshWorld = true)]
-    public async Task GlazedWall_Should_BecomeACorner_When_PlanksArePressedOnItsFront()
+    public async Task GlazedWall_Should_TakePlanksAsItsFrontFinishKeepingItsGlass_When_PlanksArePressedOnItsFront()
     {
         (BlockPos cell, ITestPlayer player) = await RaiseWall(infill: null);
         await Press(player, cell, "game:glass-plain", BlockFacing.WEST, NorthEnd, quantity: 1);
 
         await Press(player, cell, "game:plank-oak", BlockFacing.WEST, NorthEnd);
 
-        Assert.Equal(("cornerout", "north,west", null, ("oak", "glass-plain", null, null, null)), Describe(cell));
+        Assert.Equal(("wall", "west", null, ("oak", "glass-plain", "planks", null, null)), Describe(cell));
     }
 
     // Vanilla repeats a held right-click, and the repeat of the press that boarded the face finds it finished.

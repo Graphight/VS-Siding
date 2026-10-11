@@ -385,6 +385,32 @@ public static class WallShapeGen
         .. RubbleGrid("back-rubble", "back", 'x', 4, 3, 0, 16),
     ];
 
+    // What a glazed cell shows of a finish: each front and back group again, cut to the footprint of each
+    // glazing piece on the face and named for it, so the border round the glass is the finish's own pieces
+    // and its laps and joints carry on from the cells beside it. The finish keeps its depth, ClippedFrom
+    // keeps its texture, and a cut end looks onto the glass or the next piece, so it draws its face even
+    // where the group limits its faces.
+    internal static IEnumerable<Element> RimPieces(IEnumerable<Element> elements)
+    {
+        Element[] all = [.. elements];
+        return from part in all
+               where part.Name.StartsWith("glazing-")
+               from e in all
+               where e.Name.StartsWith("front") || e.Name.StartsWith("back")
+               let lo = (Y: Math.Max(e.From.Y, part.From.Y), Z: Math.Max(e.From.Z, part.From.Z))
+               let hi = (Y: Math.Min(e.To.Y, part.To.Y), Z: Math.Min(e.To.Z, part.To.Z))
+               where hi.Y > lo.Y && hi.Z > lo.Z
+               let cuts = new[] { (Cut: lo.Z > e.From.Z, Face: "north"), (Cut: hi.Z < e.To.Z, Face: "south"), (Cut: lo.Y > e.From.Y, Face: "down"), (Cut: hi.Y < e.To.Y, Face: "up") }
+               select e with
+               {
+                   Name = $"{e.Name}-rim{part.Name["glazing".Length..]}",
+                   From = (e.From.X, lo.Y, lo.Z),
+                   To = (e.To.X, hi.Y, hi.Z),
+                   Faces = e.Faces?.Union(cuts.Where(c => c.Cut).Select(c => c.Face)).ToArray(),
+                   ClippedFrom = e,
+               };
+    }
+
     // Wall's front-shakes, except each body course's first shake starts at z 0.5 rather than 0.
     private static readonly Element[] CornerFrontShakesLeg1 =
     [
@@ -981,7 +1007,7 @@ public static class WallShapeGen
 
     public static JObject Generate(string layout) => layout switch
     {
-        "wall" => Emit([.. WallElements, .. DeckGroups("deck", ((4, 12, 0), (16, 16, 16))), .. DeckGroups("ledge", Ledge(WallElements))], WallTextures),
+        "wall" => Emit([.. WallElements, .. RimPieces(WallElements), .. DeckGroups("deck", ((4, 12, 0), (16, 16, 16))), .. DeckGroups("ledge", Ledge(WallElements))], WallTextures),
         "floor" => Emit(FloorElements, FloorTextures),
         "cornerout" => Emit(
             [.. CornerOutElements, .. DeckGroups("deck", ((4, 12, 4), (16, 16, 16))), .. DeckGroups("ledge", Ledge(CornerOutElements))], CornerOutTextures),
