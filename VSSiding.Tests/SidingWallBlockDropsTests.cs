@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Vintagestory.API.Common;
 using Vintagestory.API.Datastructures;
@@ -112,5 +113,32 @@ public class SidingWallBlockDropsTests
         SidingWallBlock.AddDrops(drops, "red-oak", finishes);
 
         Assert.Equal(JToken.Parse("""{ "types": { "color": "red", "wood": "oak" } }"""), Assert.Single(drops).Attributes?.Token);
+    }
+
+    // A layer gives back what it took, or peeling one is a recipe. A stained plank goes on in
+    // any orientation and comes back as its ns block.
+    [Fact]
+    public void EveryShippedMaterialDropsWhatItConsumes()
+    {
+        var attributes = MaterialTextureOpacityTests.BlockAttributes("wall.json");
+
+        var differing = new Dictionary<string, string>();
+        foreach (string dictName in new[] { "Framings", "FramingFamilies", "Infills", "InfillFamilies", "Finishes", "FinishFamilies" })
+        {
+            foreach (var entry in ((JObject)attributes[dictName]!).Properties())
+            {
+                var returned = (JObject)entry.Value["Consumes"]!.DeepClone();
+                returned["quantity"] = new JObject { ["avg"] = returned["quantity"], ["var"] = 0 };
+                var drops = entry.Value["Drops"]!;
+                if (!JToken.DeepEquals(new JArray(returned), drops)) differing[$"{dictName}.{entry.Name}"] = drops.ToString(Formatting.None);
+            }
+        }
+
+        Assert.Equal(
+            new Dictionary<string, string>
+            {
+                ["FinishFamilies.stained-{stain}-{wood}"] = """[{"type":"block","code":"woodstain:stainedplanks-{stain}-{wood}-ns","quantity":{"avg":1,"var":0}}]""",
+            },
+            differing);
     }
 }
