@@ -162,13 +162,13 @@ public class SidingWallEntity : BlockEntity
         int alternate = CellAlternate(Block.Attributes, SidingWallTexSource.Alternate(Pos), Framing, Deck,
             [Infill, DeckInfill], [Front, SecondFront, Back, DeckFront, DeckBack]);
         string[] selectiveElements = SelectiveElements(layout, Framing, Infill, Front, SecondFront, Back, Block.Attributes["Finishes"], joins, glazed, Styles, step,
-            FrameElements(Block.Attributes["Framings"], Framing, alternate));
+            FrameElements(Block.Attributes["Framings"], Framing, alternate), decked: Deck != null);
 
         // The deck is laid like a floor, in world directions, so its groups are tesselated unrotated.
         bool deckGlazed = SidingWallBlock.IsTransparent(DeckInfill, Block.Attributes["Infills"]);
         var deckJoins = SidingFloorBlock.Joins(Api.World.BlockAccessor, Pos, deckGlazed);
         string[] deckElements = DeckElements(side, Deck, DeckInfill, DeckFront, DeckBack, Block.Attributes["Finishes"], deckJoins, (DeckFrontStyle, DeckBackStyle), deckGlazed,
-            FrameElements(Block.Attributes["Framings"], Deck, alternate), ledge: Back == null && layout != "diagonal");
+            FrameElements(Block.Attributes["Framings"], Deck, alternate), Ledges(layout, Back == null, glazed, joins));
         if (selectiveElements.Length == 0 && deckElements.Length == 0) return false;
 
         string cacheKey = CacheKey(layout, side, Framing, Infill, Front, SecondFront, Back, joins, Styles, Deck, Step, StepOrientation,
@@ -243,7 +243,7 @@ public class SidingWallEntity : BlockEntity
 
     internal static bool IsInfillElement(string name)
     {
-        if (name.StartsWith("deck-") || name.StartsWith("ledge-")) name = name[(name.IndexOf('-', name.IndexOf('-') + 1) + 1)..];
+        if (name.StartsWith("deck-") || name.StartsWith("ledge")) name = name[(name.IndexOf('-', name.IndexOf('-') + 1) + 1)..];
         return name.StartsWith("infill");
     }
 
@@ -269,16 +269,32 @@ public class SidingWallEntity : BlockEntity
 
     // The floor's groups for the deck, which the wall shapes carry per side as deck-{side}-{name}. The
     // deck stops a voxel short of the frame, at the slot the wall's room-side finish takes, so the shapes
-    // carry the same groups again for that slot as ledge-{side}-{name}, drawn until the finish is laid.
+    // carry the same groups again for that slot, one copy for each name Ledges gives.
     internal static string[] DeckElements(
         string side, string? deck, string? infill, string? front, string? back, JsonObject finishes,
         (bool above, bool below, bool left, bool right) joins, (string? front, string? back) styles, bool glazed,
-        string frame = "framing", bool ledge = false)
+        string frame = "framing", string[]? ledges = null)
     {
         if (deck == null) return [];
         string[] names = SidingFloorEntity.SelectiveElements(deck, infill, front, back, finishes, joins, styles, glazed, frame: frame);
-        string[] copies = ledge ? ["deck", "ledge"] : ["deck"];
+        string[] copies = ["deck", .. ledges ?? []];
         return copies.SelectMany(copy => names.Select(name => $"{copy}-{side}-{name}")).ToArray();
+    }
+
+    // The copies of the deck that reach into the slot the wall's room-side finish takes. While that side
+    // is bare the whole slot is open, and the deck draws its ledge. A finish fills the slot, but a glazed
+    // wall's is only a rim, which leaves the slot open across the glass, so there the ledge carries on in
+    // the place of the rim's top: between the stiles, and out to the cell's edge where a stile has merged
+    // away. A diagonal's deck draws none (0067).
+    internal static string[] Ledges(string layout, bool roomSideBare, bool glazed, (bool above, bool below, bool left, bool right) joins)
+    {
+        if (layout == "diagonal") return [];
+        if (roomSideBare) return ["ledge"];
+        if (!glazed) return [];
+        var ledges = new List<string> { "ledgetop" };
+        if (joins.left) ledges.Add("ledgetopleft");
+        if (joins.right) ledges.Add("ledgetopright");
+        return ledges.ToArray();
     }
 
     // The suffixes of the frame pieces a cell draws, which a glazed face's rims follow part for part.
@@ -318,7 +334,7 @@ public class SidingWallEntity : BlockEntity
     internal static string[] SelectiveElements(
         string layout, string? framing, string? infill, string? front, string? secondFront, string? back, JsonObject finishes,
         (bool above, bool below, bool left, bool right) joins, bool glazed,
-        (string? front, string? secondFront, string? back) styles = default, string[]? step = null, string frame = "framing")
+        (string? front, string? secondFront, string? back) styles = default, string[]? step = null, string frame = "framing", bool decked = false)
     {
         var names = new List<string>();
         // A diagonal's shape has no rough frame groups, so it draws the plain ones whatever the
@@ -330,9 +346,9 @@ public class SidingWallEntity : BlockEntity
         var parts = FrameParts(layout, joins, glazed);
 
         // A glazed wall's or corner's finish is a rim round the glass: its group cut to each part the frame draws.
-        void AddFinish(string group)
+        void AddFinish(string group, IEnumerable<string>? rimParts = null)
         {
-            if (glazing) names.AddRange(RimNames(group, parts));
+            if (glazing) names.AddRange(RimNames(group, rimParts ?? parts));
             else names.Add(group);
         }
 
@@ -353,7 +369,8 @@ public class SidingWallEntity : BlockEntity
                 if (joins.below) names.Add("infill-bottom");
             }
         }
-        if (back != null) AddFinish(FinishElement(finishes, back, "back", styles.back));
+        // The top of the room side's rim lies in a deck's height, where the deck's ledge takes its place (Ledges).
+        if (back != null) AddFinish(FinishElement(finishes, back, "back", styles.back), decked ? parts.Where(part => !part.StartsWith("-top")) : parts);
         // A diagonal's end is the filler in its corner, or, where the next cell carries the run on,
         // each group's own piece out to the corner and half a post there.
         if (diagonal)

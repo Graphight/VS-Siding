@@ -868,7 +868,7 @@ public class WallShapeGenTests
 
     // The ledge is the deck's reach into the slot a wall's room-side finish takes. Every ledge box has to
     // lie where that side's back slab would, at the deck's height, or laying the finish leaves a piece of
-    // deck standing in it.
+    // deck standing in it. That holds for every copy of it, the ones behind a glazed cell's rim too.
     [Theory]
     [InlineData("wall")]
     [InlineData("cornerout")]
@@ -880,7 +880,7 @@ public class WallShapeGenTests
         foreach (string side in Sides)
         {
             var slots = backs.Select(b => WallShapeGen.DeckRegion((b.Lo[0], 12, b.Lo[2]), (b.Hi[0], 16, b.Hi[2]), (int)SidingWallEntity.RotationYDeg(side))).ToArray();
-            var ledge = elements.Where(e => ((string)e["name"]!).StartsWith($"ledge-{side}-")).ToArray();
+            var ledge = elements.Where(e => ((string)e["name"]!).Split('-') is [var copy, var of, ..] && copy.StartsWith("ledge") && of == side).ToArray();
             Assert.NotEmpty(ledge);
             foreach (var element in ledge)
             {
@@ -906,7 +906,7 @@ public class WallShapeGenTests
         var frame = Frame("floor");
         double mid = (frame.Lo + frame.Hi) / 2;
         var groups = WallShapeGen.Generate(layout)["elements"]!
-            .Where(e => layout == "floor" || ((string)e["name"]!).StartsWith("deck-") || ((string)e["name"]!).StartsWith("ledge-"))
+            .Where(e => layout == "floor" || ((string)e["name"]!).StartsWith("deck-") || ((string)e["name"]!).StartsWith("ledge"))
             .Where(e => ((string)e["name"]!).Contains("poles"))
             .GroupBy(e => (string)e["name"]!, Box);
         Assert.NotEmpty(groups);
@@ -971,7 +971,34 @@ public class WallShapeGenTests
         }).Distinct());
     }
 
-    private static List<string> SharedPlaneOffenders(string layout, string[] together)
+    // Behind a decked glazed cell's rim the deck's ledge stands where the rim's top would, between the stiles
+    // or out to the edge where one has merged away. Read off the names the wall itself asks for, on the side
+    // whose deck copy lies the way the unturned shape does. Only a deck piece against a piece of the wall
+    // counts: a floor's infill runs through its joists, so any cut of one has the two end on one plane.
+    [Theory]
+    [InlineData("wall", false, false)]
+    [InlineData("wall", true, false)]
+    [InlineData("wall", false, true)]
+    [InlineData("wall", true, true)]
+    [InlineData("cornerout", false, false)]
+    public void ADeckedGlazedCellsLedgeSharesNoPlaneWithItsRimOrFrame(string layout, bool left, bool right)
+    {
+        var finishes = new Vintagestory.API.Datastructures.JsonObject(JObject.Parse("""{ "daub": {} }"""));
+
+        Assert.Equal([], new[] { false, true }.SelectMany(above =>
+        {
+            var joins = (above, false, left, right);
+            string[] ledges = SidingWallEntity.Ledges(layout, roomSideBare: false, glazed: true, joins);
+            return SharedPlaneOffenders(layout,
+            [
+                .. SidingWallEntity.SelectiveElements(
+                    layout, "oak", "glass", "daub", layout == "cornerout" ? "daub" : null, "daub", finishes, joins, glazed: true, decked: true),
+                .. SidingWallEntity.DeckElements("west", "oak", "wattle", "daub", "daub", finishes, default, default, false, ledges: ledges),
+            ], between: (a, b) => a.Contains("-west-") != b.Contains("-west-"));
+        }).Distinct());
+    }
+
+    private static List<string> SharedPlaneOffenders(string layout, string[] together, Func<string, string, bool>? between = null)
     {
         string[] facings = ["west", "east", "down", "up", "north", "south"];
         var faces = new List<(string Name, string Face, int Axis, double Plane, double[] Lo, double[] Hi)>();
@@ -991,7 +1018,7 @@ public class WallShapeGenTests
             for (int j = i + 1; j < faces.Count; j++)
             {
                 var (a, b) = (faces[i], faces[j]);
-                if (a.Face != b.Face || a.Plane != b.Plane) continue;
+                if (a.Face != b.Face || a.Plane != b.Plane || between?.Invoke(a.Name, b.Name) == false) continue;
                 if (Enumerable.Range(0, 3).Where(k => k != a.Axis).All(k => Math.Max(a.Lo[k], b.Lo[k]) < Math.Min(a.Hi[k], b.Hi[k])))
                     offenders.Add($"{a.Name} and {b.Name} both draw {a.Face} at {a.Plane}");
             }

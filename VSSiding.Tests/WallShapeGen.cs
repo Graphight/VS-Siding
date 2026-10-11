@@ -1004,6 +1004,14 @@ public static class WallShapeGen
     private static ((double X, double Y, double Z) From, (double X, double Y, double Z) To)[] Ledge(Element[] elements)
         => elements.Where(e => e.Name == "back").Select(e => ((e.From.X, 12.0, e.From.Z), (e.To.X, 16.0, e.To.Z))).ToArray();
 
+    // A glazed wall's room-side finish is a rim, and the top of it lies in the deck's height. The ledge takes
+    // that part's place across the opening: a copy under each top piece of the rim, carried down to the
+    // deck's underside, so it meets the rim's stiles edge to edge and overlaps none of it.
+    private static IEnumerable<Element> RimLedges(Element[] elements)
+        => new[] { "top", "top-left", "top-right" }.SelectMany(part => DeckGroups(
+            "ledge" + part.Replace("-", ""),
+            [.. elements.Where(e => e.Name == "back-rim-" + part).Select(e => ((e.From.X, 12.0, e.From.Z), e.To))]));
+
     private static IEnumerable<Element> DeckGroups(
         string prefix, params ((double X, double Y, double Z) From, (double X, double Y, double Z) To)[] boxes)
     {
@@ -1064,12 +1072,15 @@ public static class WallShapeGen
         }
     }
 
+    // A wall's or corner's own pieces, then its deck's: the deck in its box, and each of its ledges.
+    private static Element[] WithDeck(Element[] elements, ((double X, double Y, double Z) From, (double X, double Y, double Z) To) deck)
+        => [.. elements, .. DeckGroups("deck", deck), .. DeckGroups("ledge", Ledge(elements)), .. RimLedges(elements)];
+
     public static JObject Generate(string layout) => layout switch
     {
-        "wall" => Emit([.. WallElements, .. RimPieces(WallElements), .. DeckGroups("deck", ((4, 12, 0), (16, 16, 16))), .. DeckGroups("ledge", Ledge(WallElements))], WallTextures),
+        "wall" => Emit(WithDeck([.. WallElements, .. RimPieces(WallElements)], ((4, 12, 0), (16, 16, 16))), WallTextures),
         "floor" => Emit(FloorShape, FloorTextures),
-        "cornerout" => Emit(
-            [.. CornerOutElements, .. CornerRimPieces(CornerOutElements), .. DeckGroups("deck", ((4, 12, 4), (16, 16, 16))), .. DeckGroups("ledge", Ledge(CornerOutElements))], CornerOutTextures),
+        "cornerout" => Emit(WithDeck([.. CornerOutElements, .. CornerRimPieces(CornerOutElements)], ((4, 12, 4), (16, 16, 16))), CornerOutTextures),
         "diagonal" => Rounded(Emit([.. DiagonalElements, .. DeckGroups("deck", DiagonalDeckStrips())], DiagonalTextures)),
         _ => throw new KeyNotFoundException(layout),
     };

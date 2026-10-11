@@ -128,9 +128,9 @@ public class SidingFloorTests
             },
             new[]
             {
-                SidingWallEntity.DeckElements("west", "oak", null, null, null, Finishes, (false, false, false, false), default, false, ledge: true),
-                SidingWallEntity.DeckElements("east", "sticks", "wattle", null, null, Finishes, (true, false, false, false), default, false, "poles", ledge: true),
-                SidingWallEntity.DeckElements("west", null, "wattle", null, null, Finishes, (false, false, false, false), default, false, ledge: true),
+                SidingWallEntity.DeckElements("west", "oak", null, null, null, Finishes, (false, false, false, false), default, false, ledges: ["ledge"]),
+                SidingWallEntity.DeckElements("east", "sticks", "wattle", null, null, Finishes, (true, false, false, false), default, false, "poles", ledges: ["ledge"]),
+                SidingWallEntity.DeckElements("west", null, "wattle", null, null, Finishes, (false, false, false, false), default, false, ledges: ["ledge"]),
             });
     }
 

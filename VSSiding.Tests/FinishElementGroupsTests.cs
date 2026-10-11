@@ -109,11 +109,11 @@ public class FinishElementGroupsTests
         var names = shape.Select(e => (string)e["name"]!).ToHashSet();
         var floorPieces = WallShapeGen.Generate("floor")["elements"]!.ToLookup(e => (string)e["name"]!);
 
-        // The boxes each copy is cut to, in the order of the sides' turns: the deck box, and the ledge, which
-        // is the room side's slot over the deck's height.
+        // The boxes each copy is cut to, in the order of the sides' turns: the deck box, and for a ledge the
+        // room side's slot over the deck's height, the whole of it or the part under a top piece of its rim.
         (double[] Lo, double[] Hi)[] Boxes(string copy, string side) => copy == "deck"
             ? [.. WallShapeGenTests.DeckBoxesVoxels(layout, side).Select(b => (b[..3], b[3..]))]
-            : [.. shape.Where(e => (string)e["name"]! == "back").Select(e =>
+            : [.. shape.Where(e => (string)e["name"]! == LedgeSlots[copy]).Select(e =>
             {
                 var r = WallShapeGen.DeckRegion(((double)e["from"]![0]!, 12, (double)e["from"]![2]!), ((double)e["to"]![0]!, 16, (double)e["to"]![2]!),
                     (int)SidingWallEntity.RotationYDeg(side));
@@ -126,7 +126,7 @@ public class FinishElementGroupsTests
         var asked = (
             from side in new[] { "west", "south", "east", "north" }
             from name in RimsEveryGlazedCellAsksFor((finishes, key, style, joins) => SidingWallEntity.DeckElements(
-                side, "oak", "glass", key, key, finishes, joins, (style, style), glazed: true, ledge: layout != "diagonal"))
+                side, "oak", "glass", key, key, finishes, joins, (style, style), glazed: true, ledges: layout == "diagonal" ? [] : Ledges))
             select (Side: side, Name: name)).ToList();
 
         var offenders = new List<string>();
@@ -206,7 +206,7 @@ public class FinishElementGroupsTests
             foreach (var side in new[] { "north", "east", "south", "west" })
             {
                 string[] Kept(string frame) => SidingWallEntity.DeckElements(
-                        side, "sticks", null, null, null, new JsonObject(new JObject()), (false, false, false, false), default, false, frame, ledge: true)
+                        side, "sticks", null, null, null, new JsonObject(new JObject()), (false, false, false, false), default, false, frame, ledges: Ledges)
                     .Where(names.Contains).Select(name => name.Replace(frame, "framing")).ToArray();
                 offenders.AddRange(frames.Where(frame => !Kept(frame).SequenceEqual(Kept("framing")))
                     .Select(frame => $"block/wall/{layout} keeps [{string.Join(", ", Kept(frame))}] of the {side} deck's {frame} groups, not [{string.Join(", ", Kept("framing"))}]"));
@@ -215,6 +215,17 @@ public class FinishElementGroupsTests
 
         Assert.Equal([], offenders);
     }
+
+    // Each ledge copy of a deck, and the wall piece whose footprint it is cut to.
+    private static readonly Dictionary<string, string> LedgeSlots = new()
+    {
+        ["ledge"] = "back",
+        ["ledgetop"] = "back-rim-top",
+        ["ledgetopleft"] = "back-rim-top-left",
+        ["ledgetopright"] = "back-rim-top-right",
+    };
+
+    private static readonly string[] Ledges = [.. LedgeSlots.Keys];
 
     // Every prefix a real framing entry can draw with, both variants of it.
     private static List<string> RoughFrames(JObject attributes)
