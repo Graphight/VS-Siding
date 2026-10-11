@@ -539,7 +539,7 @@ public class SidingWallBlock : Block
         }
 
         string? finishKey = MatchConsumes(heldCode, Attributes["Finishes"], slot.Itemstack!.Attributes);
-        if (finishKey == null) return TryUpgradeLayout(world, byPlayer, blockSel, entity, heldCode) || base.OnBlockInteractStart(world, byPlayer, blockSel);
+        if (finishKey == null) return base.OnBlockInteractStart(world, byPlayer, blockSel);
 
         // The picker's chosen style is used only if this finish lists it; otherwise the entry's
         // default applies.
@@ -553,7 +553,7 @@ public class SidingWallBlock : Block
         // a glazed cell and peels the glass out (decision 0013).
         if (IsTransparent(entity.Infill, Attributes["Infills"]))
         {
-            if (heldPlaces) return TryUpgradeLayout(world, byPlayer, blockSel, entity, heldCode) || base.OnBlockInteractStart(world, byPlayer, blockSel);
+            if (heldPlaces) return base.OnBlockInteractStart(world, byPlayer, blockSel);
             (byPlayer as IServerPlayer)?.SendIngameError("vssiding:glazed", Lang.Get("vssiding:build-glazed"));
             return true;
         }
@@ -579,7 +579,7 @@ public class SidingWallBlock : Block
                 return true;
             }
 
-            if (heldPlaces) return TryUpgradeLayout(world, byPlayer, blockSel, entity, heldCode) || base.OnBlockInteractStart(world, byPlayer, blockSel);
+            if (heldPlaces) return base.OnBlockInteractStart(world, byPlayer, blockSel);
             (byPlayer as IServerPlayer)?.SendIngameError("vssiding:alreadyfinished", Lang.Get("vssiding:build-already-finished"));
             return true;
         }
@@ -593,16 +593,16 @@ public class SidingWallBlock : Block
     }
 
     // True when the click was claimed, by the upgrade or by a refusal. A filled wall only turns into a
-    // cornerout, and only from a click that reaches here because it could not board the face.
-    private bool TryUpgradeLayout(
+    // cornerout, and only from PlaceWallFrame, which sees the clicks that could not board the face.
+    internal bool TryUpgradeLayout(
         IWorldAccessor world, IPlayer byPlayer, BlockSelection blockSel, SidingWallEntity entity, AssetLocation heldCode)
     {
         string layout = Variant["layout"];
         string picked = SidingModePicker.Layout(byPlayer);
         bool filled = entity.Infill != null;
-        string? upgrade = filled && (layout != "wall" || picked != "cornerout")
-            ? null
-            : ResolveFramingUpgrade(layout, Variant["side"], picked, blockSel.HitPosition);
+        if (filled && (layout, picked) != ("wall", "cornerout")) return false;
+
+        string? upgrade = ResolveFramingUpgrade(layout, Variant["side"], picked, blockSel.HitPosition);
         if (upgrade == null
             || MatchFraming(heldCode, filled, Attributes["Framings"], Attributes["Infills"]) == null
             || ResolveFinishFace(layout, Variant["side"], blockSel.Face) == null)
