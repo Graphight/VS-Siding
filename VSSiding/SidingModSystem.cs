@@ -910,7 +910,7 @@ public class SidingModSystem : ModSystem
     internal static bool OmniAttachableIntoWallPrefix(BlockBehaviorOmniAttachable __instance, IWorldAccessor world, IPlayer byPlayer,
         ItemStack itemstack, BlockSelection blockSel, ref EnumHandling handling, ref string failureCode, ref bool __result)
     {
-        if (world.BlockAccessor.GetBlock(blockSel.Position) is not SidingWallBlock wall) return true;
+        if (world.BlockAccessor.GetBlock(blockSel.Position) is not SidingWallBlock) return true;
 
         handling = EnumHandling.PreventDefault;
         __result = false;
@@ -919,14 +919,12 @@ public class SidingModSystem : ModSystem
         var areas = AttachmentAreasRef(__instance);
         foreach (var face in new[] { blockSel.Face }.Concat(BlockFacing.ALLFACES))
         {
-            var variant = world.BlockAccessor.GetBlock(__instance.block.CodeWithVariant(__instance.facingCode, face.Code));
-            if (!wall.IsReplacableBy(variant)) continue;
-
             var attachPos = blockSel.Position.AddCopy(face.Opposite);
             Cuboidi? area = null;
             areas?.TryGetValue(face.Code, out area);
             if (!world.BlockAccessor.GetBlock(attachPos).CanAttachBlockAt(world.BlockAccessor, __instance.block, attachPos, face, area)) continue;
 
+            var variant = world.BlockAccessor.GetBlock(__instance.block.CodeWithVariant(__instance.facingCode, face.Code));
             variant.DoPlaceBlock(world, byPlayer, new BlockSelection { Position = blockSel.Position, HitPosition = blockSel.HitPosition, Face = face }, itemstack);
             __result = true;
             return false;
