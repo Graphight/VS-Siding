@@ -18,7 +18,9 @@ One player wrote "corners that end up in other blocks are impossible to construc
 A second player, other than the one who reported it, answered on 2026-10-06: "Yes, the little air gap is on the inside of the corners, which is a different block, so maybe a corner finish might be nice".
 Their screenshot shows a slit one cell high where two walls meet, with the water outside visible through it, on a wall whose tooltip reads "Seals the room".
 The cell beside the slit is glazed.
-A glazed cell takes no finish, so the two walls stop touching there for a second reason (issue #98), and the screenshot does not settle what the notch looks like on its own.
+A glazed cell took no finish and its frame stopped short of the cell's edge, so the two walls stopped touching there for a second reason (issue #98).
+Decision 0071 settles that reason in the build: a glazed cell now takes a finish as a rim round the glass, and its frame reaches the cell's edge.
+An unfinished glazed cell still shows the seam any unfinished wall does, and none of it has been played, so the screenshot still does not settle what the notch looks like on its own.
 The screenshot also looks taken from inside, while decision 0002 puts the open square outside the room.
 
 **Not yet answered.**
@@ -55,8 +57,8 @@ A floor finish over that top, or a second wall per cell (`multiple-walls-per-cel
 
 ## Design
 **Build first.**
-Build an inside corner with no glazing and look at it from both sides.
-If the notch shows as decision 0002 says, a slit that only appears next to glass is issue #98 and not a missing piece.
+Build an inside corner with no glazing and look at it from both sides, then one beside a glazed cell that has been finished.
+If the notch shows as decision 0002 says, a slit that only appears next to glass is issue #98, which decision 0071 addresses, and not a missing piece.
 
 **The post, if the build shows the notch.**
 A `cornerin` post is one more state on `layout`, four more blocks and a shape.
@@ -70,4 +72,5 @@ It stands in a cell neither wall owns, and "a corner finish" asks for the walls'
 
 ## Consequences & open questions
 - The unglazed build has to come first, and nobody has made it.
+- Whether decision 0071 closes the slit beside a finished glazed cell is unplayed; if it does, only the unglazed notch is left for this proposal.
 - What the post is made of, and whether it takes a finish.
