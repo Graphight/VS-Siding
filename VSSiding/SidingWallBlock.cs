@@ -291,6 +291,10 @@ public class SidingWallBlock : Block
         return towardsLeft > 0 ? side : right.Code;
     }
 
+    // A cornerout on the run's right end has the wall's old face as its second face, so the finish
+    // on it moves to the second slot; one on the left end keeps that face as its front.
+    internal static bool FrontMovesToSecondFace(string wallSide, string corneroutSide) => corneroutSide != wallSide;
+
     // The block a bare frame becomes when the saw picks another layout (decision 0026): a wall turns
     // into a cornerout or a diagonal at the end clicked, a cornerout into a diagonal on the same
     // side, and nothing turns back. Null when the pick offers no upgrade.
@@ -511,32 +515,7 @@ public class SidingWallBlock : Block
             // found once a partition reaches it (decision 0026). Nothing is charged: a fresh
             // cornerout or diagonal frame costs the same as a fresh wall frame. Everything this
             // doesn't claim falls through to the infill match below, then to PlaceWallFrame.
-            string layout = Variant["layout"];
-            string picked = SidingModePicker.Layout(byPlayer);
-            string? upgrade = ResolveFramingUpgrade(layout, Variant["side"], picked, blockSel.HitPosition);
-            if (upgrade != null
-                && MatchFraming(heldCode, false, Attributes["Framings"], Attributes["Infills"]) != null
-                && ResolveFinishFace(layout, Variant["side"], blockSel.Face) != null)
-            {
-                if (entity.Step != null)
-                {
-                    (byPlayer as IServerPlayer)?.SendIngameError("vssiding:stepped", Lang.Get("vssiding:build-stepped"));
-                    return true;
-                }
-
-                var target = world.GetBlock(new AssetLocation("vssiding", upgrade));
-                if (target != null)
-                {
-                    // Keeps the block entity, and the engine repoints its Block at the new
-                    // type, so Framing survives and OnTesselation reads the new layout.
-                    world.BlockAccessor.ExchangeBlock(target.Id, blockSel.Position);
-                    entity.MarkDirty(true);
-                    // Plates key off the cells above and below sharing this one's layout
-                    // (decision 0008), which the swap just changed.
-                    MarkNeighboursDirty(world, blockSel.Position);
-                    return true;
-                }
-            }
+            if (TryUpgradeLayout(world, byPlayer, blockSel, entity, heldCode)) return true;
 
             string? infillKey = MatchConsumes(heldCode, Attributes["Infills"]);
             if (infillKey == null) return base.OnBlockInteractStart(world, byPlayer, blockSel);
@@ -560,7 +539,7 @@ public class SidingWallBlock : Block
         }
 
         string? finishKey = MatchConsumes(heldCode, Attributes["Finishes"], slot.Itemstack!.Attributes);
-        if (finishKey == null) return base.OnBlockInteractStart(world, byPlayer, blockSel);
+        if (finishKey == null) return TryUpgradeLayout(world, byPlayer, blockSel, entity, heldCode) || base.OnBlockInteractStart(world, byPlayer, blockSel);
 
         // The picker's chosen style is used only if this finish lists it; otherwise the entry's
         // default applies.
@@ -574,7 +553,7 @@ public class SidingWallBlock : Block
         // a glazed cell and peels the glass out (decision 0013).
         if (IsTransparent(entity.Infill, Attributes["Infills"]))
         {
-            if (heldPlaces) return base.OnBlockInteractStart(world, byPlayer, blockSel);
+            if (heldPlaces) return TryUpgradeLayout(world, byPlayer, blockSel, entity, heldCode) || base.OnBlockInteractStart(world, byPlayer, blockSel);
             (byPlayer as IServerPlayer)?.SendIngameError("vssiding:glazed", Lang.Get("vssiding:build-glazed"));
             return true;
         }
@@ -600,7 +579,7 @@ public class SidingWallBlock : Block
                 return true;
             }
 
-            if (heldPlaces) return base.OnBlockInteractStart(world, byPlayer, blockSel);
+            if (heldPlaces) return TryUpgradeLayout(world, byPlayer, blockSel, entity, heldCode) || base.OnBlockInteractStart(world, byPlayer, blockSel);
             (byPlayer as IServerPlayer)?.SendIngameError("vssiding:alreadyfinished", Lang.Get("vssiding:build-already-finished"));
             return true;
         }
@@ -610,6 +589,62 @@ public class SidingWallBlock : Block
 
         SetFinish(entity, face, finishKey, style);
         ConsumeHeld(slot, finishConsumes, isCreative);
+        return true;
+    }
+
+    // True when the click was claimed, by the upgrade or by a refusal. A filled wall only turns into a
+    // cornerout, and only from a click that reaches here because it could not board the face.
+    private bool TryUpgradeLayout(
+        IWorldAccessor world, IPlayer byPlayer, BlockSelection blockSel, SidingWallEntity entity, AssetLocation heldCode)
+    {
+        string layout = Variant["layout"];
+        string picked = SidingModePicker.Layout(byPlayer);
+        bool filled = entity.Infill != null;
+        string? upgrade = filled && (layout != "wall" || picked != "cornerout")
+            ? null
+            : ResolveFramingUpgrade(layout, Variant["side"], picked, blockSel.HitPosition);
+        if (upgrade == null
+            || MatchFraming(heldCode, filled, Attributes["Framings"], Attributes["Infills"]) == null
+            || ResolveFinishFace(layout, Variant["side"], blockSel.Face) == null)
+            return false;
+
+        if (entity.Step != null)
+        {
+            (byPlayer as IServerPlayer)?.SendIngameError("vssiding:stepped", Lang.Get("vssiding:build-stepped"));
+            return true;
+        }
+
+        if (world.GetBlock(new AssetLocation("vssiding", upgrade)) is not SidingWallBlock target) return false;
+
+        if (filled && world.GetIntersectingEntities(blockSel.Position, target.GetCollisionBoxes(world.BlockAccessor, blockSel.Position), e => e.IsInteractable) is { Length: > 0 })
+        {
+            (byPlayer as IServerPlayer)?.SendIngameError("vssiding:occupied", Lang.Get("vssiding:build-occupied"));
+            return true;
+        }
+
+        // Keeps the block entity, and the engine repoints its Block at the new
+        // type, so Framing survives and OnTesselation reads the new layout.
+        world.BlockAccessor.ExchangeBlock(target.Id, blockSel.Position);
+        if (filled)
+        {
+            if (FrontMovesToSecondFace(Variant["side"], target.Variant["side"]))
+            {
+                entity.SecondFront = entity.Front;
+                entity.SecondFrontStyle = entity.FrontStyle;
+                entity.Front = null;
+                entity.FrontStyle = null;
+            }
+
+            // The new leg changes retention, light and the liquid barrier. On the target, since
+            // OnInfillChanged exchanges the block for its own Id.
+            target.OnInfillChanged(world, entity, blockSel.Position, entity.Infill);
+            return true;
+        }
+
+        entity.MarkDirty(true);
+        // Plates key off the cells above and below sharing this one's layout
+        // (decision 0008), which the swap just changed.
+        MarkNeighboursDirty(world, blockSel.Position);
         return true;
     }
 
