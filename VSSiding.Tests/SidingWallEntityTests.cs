@@ -139,7 +139,7 @@ public class SidingWallEntityTests
                 "wall", "oak", "glass", null, null, null, NoElementFinishes, j, glazed: true)));
     }
 
-    // A cornerout's three posts never drop, so glazing gives it full-depth ones of its own and a rail per
+    // A cornerout's three posts never drop, so glazing gives it ones of its own and a rail per
     // leg between them whatever the sideways joins - and no fillers, which only a dropped stile needs.
     [Fact]
     public void GlazedCorneroutKeepsItsPosts()
@@ -294,26 +294,6 @@ public class SidingWallEntityTests
             SidingWallEntity.SelectiveElements("wall", "oak", "wattle", "daub", null, "daub", NoElementFinishes, (false, false, false, false), glazed: false));
         Assert.Equal(new[] { "framing-left", "framing-right", "framing-top", "framing-bottom" },
             SidingWallEntity.SelectiveElements("wall", "oak", null, null, null, null, NoElementFinishes, (false, false, false, false), glazed: false));
-    }
-
-    [Fact]
-    public void ADeckDrawsNoLedgeOnceTheRoomSideIsFinishedOrTheFrameFillsIt()
-    {
-        Assert.Equal(
-            new Dictionary<string, bool>
-            {
-                ["bare back"] = true,
-                ["finished back"] = false,
-                ["glazed, bare back"] = false,
-                ["diagonal"] = false,
-            },
-            new Dictionary<string, bool>
-            {
-                ["bare back"] = SidingWallEntity.DeckDrawsLedge(null, "wall", false),
-                ["finished back"] = SidingWallEntity.DeckDrawsLedge("planks", "wall", false),
-                ["glazed, bare back"] = SidingWallEntity.DeckDrawsLedge(null, "wall", true),
-                ["diagonal"] = SidingWallEntity.DeckDrawsLedge(null, "diagonal", false),
-            });
     }
 
     [Fact]

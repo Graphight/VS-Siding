@@ -168,7 +168,7 @@ public class SidingWallEntity : BlockEntity
         bool deckGlazed = SidingWallBlock.IsTransparent(DeckInfill, Block.Attributes["Infills"]);
         var deckJoins = SidingFloorBlock.Joins(Api.World.BlockAccessor, Pos, deckGlazed);
         string[] deckElements = DeckElements(side, Deck, DeckInfill, DeckFront, DeckBack, Block.Attributes["Finishes"], deckJoins, (DeckFrontStyle, DeckBackStyle), deckGlazed,
-            FrameElements(Block.Attributes["Framings"], Deck, alternate), ledge: DeckDrawsLedge(Back, layout, glazed));
+            FrameElements(Block.Attributes["Framings"], Deck, alternate), ledge: Back == null && layout != "diagonal");
         if (selectiveElements.Length == 0 && deckElements.Length == 0) return false;
 
         string cacheKey = CacheKey(layout, side, Framing, Infill, Front, SecondFront, Back, joins, Styles, Deck, Step, StepOrientation,
@@ -262,9 +262,6 @@ public class SidingWallEntity : BlockEntity
         => $"vssiding-wall-mesh-{layout}-{side}-{framing}-{infill}-{front}-{secondFront}-{back}-{joins.above}-{joins.below}-{joins.left}-{joins.right}-{styles.front}-{styles.secondFront}-{styles.back}-{deck}-{step}-{stepOrientation}"
             + $"-{deckInfill}-{deckFront}-{deckBack}-{deckStyles.front}-{deckStyles.back}-{deckJoins.above}-{deckJoins.below}-{deckJoins.left}-{deckJoins.right}-{alternate}";
 
-    // The ledge takes the slot of the room-side finish, which a glazed wall's frame fills (decision 0071).
-    internal static bool DeckDrawsLedge(string? back, string layout, bool glazed) => back == null && layout != "diagonal" && !glazed;
-
     // The floor's groups for the deck, which the wall shapes carry per side as deck-{side}-{name}. The
     // deck stops a voxel short of the frame, at the slot the wall's room-side finish takes, so the shapes
     // carry the same groups again for that slot as ledge-{side}-{name}, drawn until the finish is laid.
@@ -296,10 +293,10 @@ public class SidingWallEntity : BlockEntity
         if (secondFront != null) names.Add("second" + FinishElement(finishes, secondFront, "front", styles.secondFront));
         if (framing != null)
         {
-            // A cornerout's three posts are always drawn, glazed ones as the full-depth `glazing` group;
+            // A cornerout's three posts are always drawn, glazed ones as the `glazing` group;
             // a wall's two drop individually wherever glazing merges sideways.
             bool corner = SidingWallBlock.ClaimsTwoFaces(layout);
-            // Glazing gets its own frame: full-depth stiles and the rails between them, which
+            // Glazing gets its own frame: stiles and the rails between them, which
             // overlap nothing. Where a stile has merged away, its rail ends on a filler in that
             // corner, so the frame still reaches the cell's edge. A plain wall's plates stop short
             // at its posts, which is right while the posts are always there and leaves a notch at
