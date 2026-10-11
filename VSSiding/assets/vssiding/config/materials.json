@@ -85,6 +85,15 @@
 			Consumes: { type: "block", code: "game:glass-{color}", quantity: 1 },
 			Drops: [ { type: "block", code: "game:glass-{color}", quantity: { avg: 1, var: 0 } } ]
 		},
+		"glassslab-{type}": {
+			Match: { type: "block", code: "game:glassslab-*-down-free", variant: "type" },
+			DisplayName: "vssiding:infill-glass-{type}",
+			Texture: "game:block/glass/{type}",
+			BlockMaterial: "Glass",
+			Transparent: true,
+			Consumes: { type: "block", code: "game:glassslab-{type}-down-free", quantity: 1 },
+			Drops: [ { type: "block", code: "game:glassslab-{type}-down-free", quantity: { avg: 1, var: 0 } } ]
+		},
 		"pelt-{size}": {
 			Match: { type: "item", code: "game:hide-pelt-*", variant: "size" },
 			DisplayName: "vssiding:infill-pelt",
