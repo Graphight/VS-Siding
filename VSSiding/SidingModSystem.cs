@@ -314,6 +314,16 @@ public class SidingModSystem : ModSystem
 
         try
         {
+            harmony.Patch(AccessTools.Method(typeof(BlockBehaviorRightClickPickup), nameof(BlockBehaviorRightClickPickup.OnBlockInteractStart)),
+                postfix: new HarmonyMethod(typeof(SidingModSystem), nameof(PickedUpHostPostfix)));
+        }
+        catch (Exception e)
+        {
+            api.Logger.Error("vssiding: pickup restore patch skipped, a wall will blink out when a lantern or oil lamp is picked off it: {0}", e);
+        }
+
+        try
+        {
             harmony.Patch(AccessTools.Method(typeof(BlockShapeMaterialFromAttributes), nameof(BlockShapeMaterialFromAttributes.DoPlaceBlock)),
                 postfix: new HarmonyMethod(typeof(SidingModSystem), nameof(PlacedAnglePostfix)));
             harmony.Patch(AccessTools.Method(typeof(BEBehaviorShapeMaterialFromAttributes), nameof(BEBehaviorShapeMaterialFromAttributes.FromTreeAttributes)),
@@ -1171,6 +1181,10 @@ public class SidingModSystem : ModSystem
     // (ClientMain.OnPlayerTryDestroyBlock), so it predicts the restore too instead of drawing an empty
     // cell until the server's wall arrives (#58).
     internal static void ClientNeighbourUpdatePrefix(ClientMain __instance, BlockPos pos) => RestoreGuestWall(__instance, pos);
+
+    // A lantern or oil lamp picked up by right-click leaves through RightClickPickup, which sets air
+    // and only queues the neighbour update, so clients would be sent the empty cell a tick before the wall.
+    internal static void PickedUpHostPostfix(IWorldAccessor world, BlockSelection blockSel) => RestoreGuestWall(world, blockSel.Position);
 
     // IsReplacableBy answers two questions for vanilla. CanPlaceBlock and the server's placement check
     // ask it of the cell a block is going into, and a wall says yes to anything hostable so it can

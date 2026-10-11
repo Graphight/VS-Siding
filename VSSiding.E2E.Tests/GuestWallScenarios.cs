@@ -155,4 +155,35 @@ public class GuestWallScenarios : AtlasScenarioBase
             await World.Until(() => !player.IsConnected);
         }
     }
+
+    // Asserted with no tick between: a wall that came back a tick late was sent to clients as an empty cell first.
+    [AtlasScenario(FreshWorld = true)]
+    public async Task F_Wall_Should_ComeBackAtOnce_When_ItsLanternIsPickedUp()
+    {
+        BlockPos cell = Cell;
+        World.SetBlock("game:planks-aged-ud", cell.DownCopy());
+
+        ITestPlayer player = await WallBuilder.JoinBuilder(World);
+        try
+        {
+            await WallBuilder.Raise(World, player, cell, cell.WestCopy(), "game:plank-oak", "game:clay-blue", "game:plank-oak");
+
+            player.Entity.LeftHandItemSlot.Itemstack = null;
+            player.Player.InventoryManager.ActiveHotbarSlot.Itemstack = WallBuilder.LanternStack(World);
+            var selection = new BlockSelection { Position = cell.Copy(), Face = BlockFacing.EAST, HitPosition = new Vec3d(0.5, 0.5, 0.5) };
+            Assert.True(World.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, selection));
+            Assert.Equal("game:lantern-large-east", World.BlockAt(cell).Code.ToString());
+
+            Assert.True(World.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, selection));
+
+            Assert.Equal("vssiding:wall-wall-west", World.BlockAt(cell).Code.ToString());
+            Assert.Equal(Expected, WallBuilder.Layers(World, cell));
+            Assert.Null(WallBuilder.GuestLayers(World, cell));
+        }
+        finally
+        {
+            player.Player.Disconnect();
+            await World.Until(() => !player.IsConnected);
+        }
+    }
 }
