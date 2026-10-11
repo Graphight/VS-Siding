@@ -26,8 +26,23 @@ public class PlaceWallFrame : CollectibleBehavior
         var wallBlock = world.GetBlock(new AssetLocation("vssiding", "wall-wall-west")) as SidingWallBlock;
         if (wallBlock == null) return;
 
-        string? framingKey = SidingWallBlock.MatchConsumes(slot.Itemstack.Collectible.Code, wallBlock.Attributes["Framings"]);
+        AssetLocation heldCode = slot.Itemstack.Collectible.Code;
+        string? framingKey = SidingWallBlock.MatchConsumes(heldCode, wallBlock.Attributes["Framings"]);
         if (framingKey == null) return;
+
+        // A filled wall whose face this click could not board turns into a corner in place (decision 0069).
+        // Here and not in the wall's own interaction, which vanilla repeats while the button is held: the
+        // repeat of the press that boarded a face would find it finished. Sneaking still frames the next cell.
+        if (!byEntity.Controls.ShiftKey
+            && world.BlockAccessor.GetBlock(blockSel.Position) is SidingWallBlock hitWall
+            && world.BlockAccessor.GetBlockEntity<SidingWallEntity>(blockSel.Position) is { Infill: not null } hitEntity
+            && !hitWall.IsDeckHit(world.BlockAccessor, blockSel, hitEntity)
+            && hitWall.TryUpgradeLayout(world, byPlayer, blockSel, hitEntity, heldCode))
+        {
+            handling = EnumHandling.PreventSubsequent;
+            handHandling = EnumHandHandling.PreventDefault;
+            return;
+        }
 
         string layout = SidingModePicker.Layout(byPlayer);
         bool withDeck = layout != "floor" && SidingModePicker.Deck(byPlayer);
