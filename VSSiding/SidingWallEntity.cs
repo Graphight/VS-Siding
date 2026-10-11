@@ -262,6 +262,7 @@ public class SidingWallEntity : BlockEntity
         => $"vssiding-wall-mesh-{layout}-{side}-{framing}-{infill}-{front}-{secondFront}-{back}-{joins.above}-{joins.below}-{joins.left}-{joins.right}-{styles.front}-{styles.secondFront}-{styles.back}-{deck}-{step}-{stepOrientation}"
             + $"-{deckInfill}-{deckFront}-{deckBack}-{deckStyles.front}-{deckStyles.back}-{deckJoins.above}-{deckJoins.below}-{deckJoins.left}-{deckJoins.right}-{alternate}";
 
+    // The ledge takes the slot of the room-side finish, which a glazed wall's frame fills (decision 0071).
     internal static bool DeckDrawsLedge(string? back, string layout, bool glazed) => back == null && layout != "diagonal" && !glazed;
 
     // The floor's groups for the deck, which the wall shapes carry per side as deck-{side}-{name}. The
@@ -313,17 +314,12 @@ public class SidingWallEntity : BlockEntity
                 if (!joins.right) names.Add(member + "-right");
             }
             else if (!diagonal) names.Add(member);
-            if (!joins.above)
+            foreach (var (joined, rail) in new[] { (joins.above, "-top"), (joins.below, "-bottom") })
             {
-                names.Add(member + "-top");
-                if (fillers && joins.left) names.Add(member + "-top-left");
-                if (fillers && joins.right) names.Add(member + "-top-right");
-            }
-            if (!joins.below)
-            {
-                names.Add(member + "-bottom");
-                if (fillers && joins.left) names.Add(member + "-bottom-left");
-                if (fillers && joins.right) names.Add(member + "-bottom-right");
+                if (joined) continue;
+                names.Add(member + rail);
+                if (fillers && joins.left) names.Add(member + rail + "-left");
+                if (fillers && joins.right) names.Add(member + rail + "-right");
             }
         }
         if (infill != null)

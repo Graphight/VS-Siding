@@ -306,14 +306,17 @@ public static class WallShapeGen
         new("infill", (1.5, 1, 1), (2.5, 15, 15), "infill", UvRule.Positional),
         new("infill-bottom", (1.5, 0, 1), (2.5, 1, 15), "infill", UvRule.Positional),
         new("infill-pane", (2, 0, 0), (2, 16, 16), "infill", UvRule.Flat, Faces: ["west", "east"]),
+        // A glazed cell's frame: stiles, the rails between them, and a filler in each corner for a rail
+        // whose stile has merged away. A rail's ends and a filler's inner end always stand against
+        // another piece, so those faces are left out; a filler's outer end can face bare glass.
         new("glazing-left", (0, 0, 0), (4, 16, 2), "framing", UvRule.Flat),
         new("glazing-right", (0, 0, 14), (4, 16, 16), "framing", UvRule.Flat),
         new("glazing-top", (0, 14, 2), (4, 16, 14), "framing", UvRule.Flat, Faces: ["west", "east", "up", "down"]),
         new("glazing-bottom", (0, 0, 2), (4, 2, 14), "framing", UvRule.Flat, Faces: ["west", "east", "up", "down"]),
         new("glazing-top-left", (0, 14, 0), (4, 16, 2), "framing", UvRule.Flat, Faces: ["north", "west", "east", "up", "down"]),
-        new("glazing-top-right", (0, 14, 14), (4, 16, 16), "framing", UvRule.Flat, Faces: ["east", "south", "west", "up", "down"]),
+        new("glazing-top-right", (0, 14, 14), (4, 16, 16), "framing", UvRule.Flat, Faces: ["south", "west", "east", "up", "down"]),
         new("glazing-bottom-left", (0, 0, 0), (4, 2, 2), "framing", UvRule.Flat, Faces: ["north", "west", "east", "up", "down"]),
-        new("glazing-bottom-right", (0, 0, 14), (4, 2, 16), "framing", UvRule.Flat, Faces: ["east", "south", "west", "up", "down"]),
+        new("glazing-bottom-right", (0, 0, 14), (4, 2, 16), "framing", UvRule.Flat, Faces: ["south", "west", "east", "up", "down"]),
         new("back", (3, 0, 0), (4, 16, 16), "back", UvRule.Flat),
         // A step draws two of these: a full-length half plus the opposite-height half on the side it rises toward.
         new("step-lower", (4, 0, 0), (16, 8, 16), "step", UvRule.Flat),
