@@ -56,6 +56,75 @@ public class GuestWallScenarios : AtlasScenarioBase
         }
     }
 
+    [AtlasScenario(FreshWorld = true)]
+    public async Task C_Wall_Should_BecomeAGuest_When_ALanternIsClickedOntoIt()
+    {
+        BlockPos cell = Cell;
+        World.SetBlock("game:planks-aged-ud", cell.DownCopy());
+
+        ITestPlayer player = await WallBuilder.JoinBuilder(World);
+        try
+        {
+            await WallBuilder.Raise(World, player, cell, cell.WestCopy(), "game:plank-oak", "game:clay-blue", "game:plank-oak");
+
+            player.Entity.LeftHandItemSlot.Itemstack = null;
+            ItemSlot slot = player.Player.InventoryManager.ActiveHotbarSlot;
+            slot.Itemstack = LanternStack();
+            var selection = new BlockSelection { Position = cell.Copy(), Face = BlockFacing.EAST, HitPosition = new Vec3d(0.5, 0.5, 0.5) };
+            Assert.True(World.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, selection));
+
+            Assert.Equal("game:lantern-large-east", World.BlockAt(cell).Code.ToString());
+            Assert.Equal(Expected, WallBuilder.GuestLayers(World, cell));
+            Assert.True(slot.Empty);
+
+            await World.Ticks(10);
+            Assert.Equal("game:lantern-large-east", World.BlockAt(cell).Code.ToString());
+        }
+        finally
+        {
+            player.Player.Disconnect();
+            await World.Until(() => !player.IsConnected);
+        }
+    }
+
+    [AtlasScenario(FreshWorld = true)]
+    public async Task D_Wall_Should_BecomeAGuest_When_ALanternIsPlacedOnTheFloorOfItsCell()
+    {
+        BlockPos cell = Cell;
+        World.SetBlock("game:planks-aged-ud", cell.DownCopy());
+
+        ITestPlayer player = await WallBuilder.JoinBuilder(World);
+        try
+        {
+            await WallBuilder.Raise(World, player, cell, cell.WestCopy(), "game:plank-oak", "game:clay-blue", "game:plank-oak");
+
+            ItemStack stack = LanternStack();
+            var selection = new BlockSelection { Position = cell.Copy(), Face = BlockFacing.UP, HitPosition = new Vec3d(0.5, 0.5, 0.5) };
+            string failureCode = "";
+            Assert.True(stack.Block.TryPlaceBlock(player.Entity.World, player.Player, stack, selection, ref failureCode));
+
+            Assert.Equal("game:lantern-large-up", World.BlockAt(cell).Code.ToString());
+            Assert.Equal(Expected, WallBuilder.GuestLayers(World, cell));
+
+            await World.Ticks(10);
+            Assert.Equal("game:lantern-large-up", World.BlockAt(cell).Code.ToString());
+        }
+        finally
+        {
+            player.Player.Disconnect();
+            await World.Until(() => !player.IsConnected);
+        }
+    }
+
+    private ItemStack LanternStack()
+    {
+        var stack = new ItemStack(World.Api.World.GetBlock(new AssetLocation("game:lantern-large-up")));
+        stack.Attributes.SetString("material", "copper");
+        stack.Attributes.SetString("lining", "plain");
+        stack.Attributes.SetString("glass", "quartz");
+        return stack;
+    }
+
     [AtlasScenario(RestartWorld = true)]
     public Task B_Wall_Should_StayAGuest_When_TheWorldRestarts()
     {
