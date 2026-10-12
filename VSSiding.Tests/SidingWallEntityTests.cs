@@ -281,6 +281,68 @@ public class SidingWallEntityTests
             });
     }
 
+    // A cell merged on both sides of a corner frames that corner only where the cell diagonally across carries
+    // no glazing on: an L's inside corner is framed, and the middle of four merged cells is left clear.
+    [Fact]
+    public void AMergedCornerIsFramedOnlyWhereTheCellDiagonallyAcrossIsNoGlazing()
+    {
+        Assert.Equal(
+            new string[][]
+            {
+                [],
+                ["-top-left"],
+                [],
+                ["-top-left", "-top-right", "-bottom-left", "-bottom-right"],
+                ["-top-right", "-bottom-left", "-bottom-right"],
+            },
+            new[]
+            {
+                SidingWallBlock.InnerCorners((true, false, false, false), (_, _) => false),
+                SidingWallBlock.InnerCorners((true, false, true, false), (_, _) => false),
+                SidingWallBlock.InnerCorners((true, false, true, false), (_, _) => true),
+                SidingWallBlock.InnerCorners((true, true, true, true), (_, _) => false),
+                SidingWallBlock.InnerCorners((true, true, true, true), (rail, stile) => rail + stile == "-top-left"),
+            });
+    }
+
+    // An inside corner draws the frame's filler alone, and each finish's rim on it, on a wall, a floor and
+    // a deck; a corner and an opaque wall have no fillers to draw.
+    [Fact]
+    public void AnInsideCornerDrawsItsFillerAndEachFinishesRimOnIt()
+    {
+        var finishes = Dict("""{ "daub": {} }""");
+        var joins = (above: true, below: false, left: true, right: false);
+        string[] innerCorners = ["-top-left"];
+
+        Assert.Equal(
+            new string[][]
+            {
+                [
+                    "front-rim-right", "front-rim-bottom", "front-rim-bottom-left", "front-rim-top-left",
+                    "glazing-right", "glazing-bottom", "glazing-bottom-left", "glazing-top-left", "infill-pane",
+                    "back-rim-right", "back-rim-bottom", "back-rim-bottom-left", "back-rim-top-left",
+                ],
+                [
+                    "front-rim-right", "front-rim-bottom", "front-rim-bottom-left", "front-rim-top-left",
+                    "glazing-right", "glazing-bottom", "glazing-bottom-left", "glazing-top-left", "infill-pane",
+                ],
+                [
+                    "deck-west-glazing-right", "deck-west-glazing-bottom", "deck-west-glazing-bottom-left", "deck-west-glazing-top-left",
+                    "deck-west-infill-pane",
+                ],
+                ["glazing", "glazing-bottom", "infill-pane"],
+                ["framing-right", "framing-bottom", "infill", "infill-top"],
+            },
+            new[]
+            {
+                SidingWallEntity.SelectiveElements("wall", "oak", "glass", "daub", null, "daub", finishes, joins, glazed: true, innerCorners: innerCorners),
+                SidingFloorEntity.SelectiveElements("oak", "glass", "daub", null, finishes, joins, glazed: true, innerCorners: innerCorners),
+                SidingWallEntity.DeckElements("west", "oak", "glass", null, null, finishes, joins, default, glazed: true, innerCorners: innerCorners),
+                SidingWallEntity.SelectiveElements("cornerout", "oak", "glass", null, null, null, finishes, joins, glazed: true, innerCorners: innerCorners),
+                SidingWallEntity.SelectiveElements("wall", "oak", "wattle", null, null, null, finishes, joins, glazed: false, innerCorners: innerCorners),
+            });
+    }
+
     // What a deck draws in the slot of the room-side finish: its whole ledge while that side is bare, nothing
     // behind a finish that fills the slot, and behind a glazed cell's rim the ledge across the opening, out
     // to the cell's edge where a stile has merged away. A diagonal's deck draws none.
@@ -613,6 +675,9 @@ public class SidingWallEntityTests
             SidingWallEntity.CacheKey("wall", "west", "oak", "wattle", "daub", "planks", "brick", (false, false, false, false), default, "oak", null, null, null, null, null, default, (false, true, false, false)),
             SidingWallEntity.CacheKey("wall", "west", "oak", "wattle", "daub", "planks", "brick", (false, false, false, false), default, "oak", null, null, null, null, null, default, (false, false, true, false)),
             SidingWallEntity.CacheKey("wall", "west", "oak", "wattle", "daub", "planks", "brick", (false, false, false, false), default, "oak", null, null, null, null, null, default, (false, false, false, true)),
+            SidingWallEntity.CacheKey("wall", "west", "oak", "wattle", "daub", "planks", "brick", (false, false, false, false), innerCorners: ["-top-left"]),
+            SidingWallEntity.CacheKey("wall", "west", "oak", "wattle", "daub", "planks", "brick", (false, false, false, false), innerCorners: ["-top-right"]),
+            SidingWallEntity.CacheKey("wall", "west", "oak", "wattle", "daub", "planks", "brick", (false, false, false, false), deckInnerCorners: ["-top-left"]),
         ];
 
         Assert.Equal(keys, keys.Distinct());

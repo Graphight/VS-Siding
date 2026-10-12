@@ -213,6 +213,19 @@ public class SidingFloorTests
     }
 
     [Fact]
+    public void AnInsideCornerMeshesUnderItsOwnKey()
+    {
+        var joins = (true, false, true, false);
+        string[] keys =
+        [
+            SidingFloorEntity.CacheKey("oak", "glass", null, null, default, joins),
+            SidingFloorEntity.CacheKey("oak", "glass", null, null, default, joins, innerCorners: ["-top-left"]),
+        ];
+
+        Assert.Equal(keys, keys.Distinct());
+    }
+
+    [Fact]
     public void EachPlankAlternateMeshesUnderItsOwnKey()
     {
         Assert.NotEqual(
