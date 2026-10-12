@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Newtonsoft.Json.Linq;
+using Vintagestory.API.Client;
 using Vintagestory.API.MathTools;
 using Xunit;
 
@@ -542,11 +543,8 @@ public class WallShapeGenTests
             ("cornerout", "front-weatherboard-rim-top", [0.5, 14, 4], "west", [3.5, 1, 13.5, 2]),
             ("cornerout", "secondfront-rim-top", [4, 14, 0], "north", [2, 0, 12, 2]),
             ("cornerout", "secondfront-rim", [14, 0, 0], "north", [0, 0, 2, 16]),
-            ("cornerout", "secondfront-boards-rim-bottom", [4, 0, 0], "north", [0, 3, 2, 13]),
-            ("cornerout", "secondfront-boards-rim", [1, 0, 0], "north", [0, 13, 16, 16]),
             ("cornerout", "back-rim", [3, 0, 14], "east", [0, 0, 2, 16]),
             ("cornerout", "back-rim-top", [4, 14, 3], "south", [1, 0, 11, 2]),
-            ("cornerout", "back-boards-rim-top", [4, 14, 3], "south", [14, 1, 16, 11]),
             ("floor", "front-rim-left", [0, 15, 0], "up", [0, 0, 2, 16]),
             ("floor", "front-rim-top", [2, 15, 0], "up", [2, 0, 14, 2]),
             ("floor", "front-rim-bottom-right", [14, 15, 14], "up", [14, 14, 16, 16]),
@@ -574,6 +572,71 @@ public class WallShapeGenTests
         Assert.Equal(expected, actual);
     }
 
+    private static readonly string[] FaceOrder = ["north", "east", "south", "west", "up", "down"];
+
+    // The uv the game gives each corner of a face, from its own vertex tables, the way ShapeTesselator
+    // reads a face's rect and rotation: the rect's origin is (u0, v1), and a rotation steps the corners round.
+    private static (double[] Xyz, double[] Uv)[] FaceCorners(JObject element, string face)
+    {
+        var (lo, hi) = Box(element);
+        var uv = element["faces"]![face]!["uv"]!.Select(v => (double)v!).ToArray();
+        int rotation = (int)((double?)element["faces"]![face]!["rotation"] ?? 0) / 90;
+        int index = Array.IndexOf(FaceOrder, face);
+        return Enumerable.Range(0, 4).Select(corner =>
+        {
+            int at = index * 8 + 2 * ((rotation + corner) % 4);
+            var xyz = Enumerable.Range(0, 3).Select(a => CubeMeshUtil.CubeVertices[index * 12 + corner * 3 + a] > 0 ? hi[a] : lo[a]).ToArray();
+            return (xyz, new[] { uv[0] + (uv[2] - uv[0]) * CubeMeshUtil.CubeUvCoords[at], uv[3] + (uv[1] - uv[3]) * CubeMeshUtil.CubeUvCoords[at + 1] });
+        }).ToArray();
+    }
+
+    private static JObject UncutSource(JObject[] elements, JObject rim)
+    {
+        string name = (string)rim["name"]!;
+        var (lo, hi) = Box(rim);
+        return elements.Single(e => (string)e["name"]! == name[..name.IndexOf("-rim")]
+            && Box(e) is var (sLo, sHi) && Enumerable.Range(0, 3).All(a => sLo[a] <= lo[a] && sHi[a] >= hi[a]));
+    }
+
+    // A rim piece samples what the uncut finish samples at the same spot, at every corner of every face
+    // both draw, worked out from the game's tables and not from the generator's own reading of them.
+    [Theory]
+    [InlineData("wall")]
+    [InlineData("cornerout")]
+    [InlineData("floor")]
+    public void EveryRimPieceSamplesWhatTheUncutFinishSamplesThere(string layout)
+    {
+        var elements = WallShapeGen.Generate(layout)["elements"]!.Cast<JObject>().ToArray();
+        var rims = elements.Where(e => ((string)e["name"]!).Contains("-rim")).ToArray();
+        Assert.NotEmpty(rims);
+
+        var offenders = new List<string>();
+        foreach (var rim in rims)
+        {
+            var source = UncutSource(elements, rim);
+            foreach (string face in ((JObject)rim["faces"]!).Properties().Select(p => p.Name).Where(((JObject)source["faces"]!).ContainsKey))
+            {
+                var uncut = FaceCorners(source, face);
+                foreach (var (xyz, uv) in FaceCorners(rim, face))
+                {
+                    // An uncut face's uv is a plane over it, set by its first corner and that corner's two neighbours.
+                    double[] there = [.. uncut[0].Uv];
+                    foreach (var next in new[] { uncut[1], uncut[3] })
+                    {
+                        int axis = Enumerable.Range(0, 3).Single(a => next.Xyz[a] != uncut[0].Xyz[a]);
+                        double along = (xyz[axis] - uncut[0].Xyz[axis]) / (next.Xyz[axis] - uncut[0].Xyz[axis]);
+                        there = [there[0] + along * (next.Uv[0] - uncut[0].Uv[0]), there[1] + along * (next.Uv[1] - uncut[0].Uv[1])];
+                    }
+
+                    if (Math.Abs(uv[0] - there[0]) > 0.001 || Math.Abs(uv[1] - there[1]) > 0.001)
+                        offenders.Add($"{rim["name"]} {face} at {string.Join(",", xyz)}: {string.Join(",", uv)}, the uncut finish has {string.Join(",", there)}");
+                }
+            }
+        }
+
+        Assert.Equal([], offenders);
+    }
+
     // Every cut leaves an end that looks onto the glass or the next piece, so a rim piece draws a face at
     // each plane it was cut at, whatever its source group draws.
     [Theory]
@@ -592,9 +655,7 @@ public class WallShapeGenTests
         {
             string name = (string)rim["name"]!;
             var (lo, hi) = Box(rim);
-            var source = elements.Single(e => (string)e["name"]! == name[..name.IndexOf("-rim")]
-                && Box(e) is var (sLo, sHi) && Enumerable.Range(0, 3).All(a => sLo[a] <= lo[a] && sHi[a] >= hi[a]));
-            var (sourceLo, sourceHi) = Box(source);
+            var (sourceLo, sourceHi) = Box(UncutSource(elements, rim));
             var cuts = Enumerable.Range(0, 3).SelectMany(a => new[] { (lowFaces[a], lo[a] > sourceLo[a]), (highFaces[a], hi[a] < sourceHi[a]) });
             offenders.AddRange(cuts.Where(c => c.Item2 && !((JObject)rim["faces"]!).ContainsKey(c.Item1)).Select(c => $"{name} at {string.Join(",", lo)} has no {c.Item1} face"));
         }

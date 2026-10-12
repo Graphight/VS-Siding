@@ -1223,7 +1223,8 @@ public static class WallShapeGen
     };
 
     // The part of the source face's uv rect the clipped box covers, so the clip samples the texels the
-    // source would have drawn there.
+    // source would have drawn there. A turned face that is not square spreads its rect unevenly over
+    // the face, so the part is taken in proportion, not texel for voxel.
     private static (double, double, double, double) ClippedUv(Element source, Element clipped, string face)
     {
         var sourceUv = EmitFace(source, face)["uv"]!.Select(v => (double)v!).ToArray();
@@ -1231,8 +1232,9 @@ public static class WallShapeGen
 
         (double, double) Sub(double s0, double s1, char axis, int sign)
         {
-            double a = Axis(clipped.From, axis) - Axis(source.From, axis);
-            double b = Axis(clipped.To, axis) - Axis(source.From, axis);
+            double perVoxel = (s1 - s0) / (Axis(source.To, axis) - Axis(source.From, axis));
+            double a = (Axis(clipped.From, axis) - Axis(source.From, axis)) * perVoxel;
+            double b = (Axis(clipped.To, axis) - Axis(source.From, axis)) * perVoxel;
             return sign > 0 ? (s0 + a, s0 + b) : (s1 - b, s1 - a);
         }
 
