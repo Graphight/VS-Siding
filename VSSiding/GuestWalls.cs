@@ -78,7 +78,7 @@ public static class GuestWalls
     // A guest's own light absorption; 0 for no guest.
     internal static int Absorption(SidingWallEntity? guest)
         => guest?.Block is SidingWallBlock wall
-            ? SidingWallBlock.ComputeLightAbsorption(guest.Framing, guest.Infill, wall.Attributes["Framings"], wall.Attributes["Infills"])
+            ? wall.AbsorptionOf(guest)
             : 0;
 
     // Decoded once per stored blob, not once per lookup - the blob rarely changes and this runs on

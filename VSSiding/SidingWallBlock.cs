@@ -548,9 +548,9 @@ public class SidingWallBlock : Block
             var consumes = Attributes["Infills"][infillKey]["Consumes"];
             if (!TryAffordOrError(byPlayer, isCreative, slot.StackSize, consumes)) return true;
 
-            string? oldInfill = entity.Infill;
+            int oldAbsorption = AbsorptionOf(entity);
             entity.Infill = infillKey;
-            OnInfillChanged(world, entity, blockSel.Position, oldInfill);
+            OnInfillChanged(world, entity, blockSel.Position, oldAbsorption);
             ConsumeHeld(slot, consumes, isCreative);
             return true;
         }
@@ -654,7 +654,7 @@ public class SidingWallBlock : Block
 
             // The new leg changes retention, light and the liquid barrier. On the target, since
             // OnInfillChanged exchanges the block for its own Id.
-            target.OnInfillChanged(world, entity, blockSel.Position, entity.Infill);
+            target.OnInfillChanged(world, entity, blockSel.Position, target.AbsorptionOf(entity));
             return true;
         }
 
@@ -759,10 +759,10 @@ public class SidingWallBlock : Block
     internal static bool HasStyle(JsonObject finish, string style)
         => Array.IndexOf(finish["Styles"].AsArray<string>([]) ?? [], style) >= 0;
 
-    internal void OnInfillChanged(IWorldAccessor world, SidingWallEntity entity, BlockPos pos, string? oldInfill)
+    internal void OnInfillChanged(IWorldAccessor world, SidingWallEntity entity, BlockPos pos, int oldAbsorption)
     {
         entity.MarkDirty(true);
-        MarkAbsorptionChanged(world.BlockAccessor, pos, entity.Framing, oldInfill);
+        MarkAbsorptionChanged(world.BlockAccessor, pos, oldAbsorption);
         // Infill changes retention, but rooms only recompute on a chunk-dirty event; exchanging the block for itself fires one.
         world.BlockAccessor.ExchangeBlock(Id, pos);
         // It changes the liquid barrier too, and the block itself never changed, so the water
@@ -1054,8 +1054,11 @@ public class SidingWallBlock : Block
     public override int GetLightAbsorption(IWorldChunk chunk, BlockPos pos)
     {
         var entity = chunk?.GetLocalBlockEntityAtBlockPos(pos) as SidingWallEntity;
-        return ComputeLightAbsorption(entity?.Framing, entity?.Infill, Attributes["Framings"], Attributes["Infills"]);
+        return AbsorptionOf(entity);
     }
+
+    internal int AbsorptionOf(SidingWallEntity? entity)
+        => ComputeLightAbsorption(entity?.Framing, entity?.Infill, Attributes["Framings"], Attributes["Infills"]);
 
     // Sealing a room and blocking light are separate questions: glazing does the first and must
     // not do the second. An infill marked Transparent absorbs nothing, which also takes its cell
@@ -1078,14 +1081,12 @@ public class SidingWallBlock : Block
     public override bool DoEmitSideAoByFlag(IGeometryTester caller, Vec3iAndFacingFlags vec, int flags)
         => IsSealed(caller.GetCurrentBlockEntityOnSide(vec)) || base.DoEmitSideAoByFlag(caller, vec, flags);
 
-    // The relight skips when old and new absorption match, so opening a wall needs the old infill's real value (decision 0034).
-    internal void MarkAbsorptionChanged(IBlockAccessor accessor, BlockPos pos, string? framing, string? oldInfill)
-        => accessor.MarkAbsorptionChanged(
-            ComputeLightAbsorption(framing, oldInfill, Attributes["Framings"], Attributes["Infills"]),
-            GetLightAbsorption(accessor, pos), pos);
+    // The relight skips when old and new absorption match, so the caller reads the old value before it edits the wall (decision 0034).
+    internal void MarkAbsorptionChanged(IBlockAccessor accessor, BlockPos pos, int oldAbsorption)
+        => accessor.MarkAbsorptionChanged(oldAbsorption, GetLightAbsorption(accessor, pos), pos);
 
     internal bool IsSealed(BlockEntity? be)
-        => be is SidingWallEntity entity && ComputeLightAbsorption(entity.Framing, entity.Infill, Attributes["Framings"], Attributes["Infills"]) > 0;
+        => be is SidingWallEntity entity && AbsorptionOf(entity) > 0;
 
     // The horizontal step from a wall cell to the cell its dead space opens onto: away from the panel, diagonally for a cornerout.
     // A diagonal takes the same step, which is wrong for the triangle outside its panel (decision 0066).
@@ -1344,9 +1345,9 @@ public class SidingWallBlock : Block
             case "deck": SetDeck(world, entity, pos, null); return;
             case "step": entity.Step = null; entity.StepOrientation = null; entity.MarkDirty(true); return;
             default:
-                string? oldInfill = entity.Infill;
+                int oldAbsorption = AbsorptionOf(entity);
                 entity.Infill = null;
-                OnInfillChanged(world, entity, pos, oldInfill);
+                OnInfillChanged(world, entity, pos, oldAbsorption);
                 return;
         }
         entity.MarkDirty(true);

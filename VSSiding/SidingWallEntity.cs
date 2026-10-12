@@ -77,13 +77,16 @@ public class SidingWallEntity : BlockEntity
     {
         base.FromTreeAttributes(tree, worldAccessForResolve);
         string? oldInfill = Infill;
+        string? oldFraming = Framing;
         var oldMesh = MeshState;
         Framing = NullIfEmpty(tree.GetString("framing", null));
         Infill = NullIfEmpty(tree.GetString("infill", null));
         // Other clients learn of new infill only through this sync, so they relight here; Api is null on chunk load.
         if (Api?.Side == EnumAppSide.Client && Infill != oldInfill)
         {
-            ((SidingWallBlock)Block).MarkAbsorptionChanged(worldAccessForResolve.BlockAccessor, Pos, Framing, oldInfill);
+            var wall = (SidingWallBlock)Block;
+            int oldAbsorption = SidingWallBlock.ComputeLightAbsorption(oldFraming, oldInfill, wall.Attributes["Framings"], wall.Attributes["Infills"]);
+            wall.MarkAbsorptionChanged(worldAccessForResolve.BlockAccessor, Pos, oldAbsorption);
         }
         Front = NullIfEmpty(tree.GetString("front", null));
         SecondFront = NullIfEmpty(tree.GetString("secondfront", null));
