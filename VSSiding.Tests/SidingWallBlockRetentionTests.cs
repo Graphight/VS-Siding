@@ -77,6 +77,7 @@ public class SidingWallBlockRetentionTests
                 ("block", new AssetLocation("game:glass-plain"), new Dictionary<string, string> { ["color"] = "plain" }),
                 ("block", new AssetLocation("game:glass-smoky"), new Dictionary<string, string> { ["color"] = "smoky" }),
                 ("block", new AssetLocation("game:glassslab-plain-down-free"), new Dictionary<string, string> { ["type"] = "plain" }),
+                ("block", new AssetLocation("game:glasspane-leaded-oak-ew"), new Dictionary<string, string> { ["wood"] = "oak" }),
                 ("block", new AssetLocation("game:rammed-light-plain"), new Dictionary<string, string> { ["pattern"] = "plain" }),
             ]);
 
@@ -88,7 +89,7 @@ public class SidingWallBlockRetentionTests
             {
                 ["wattle"] = 1, ["straw"] = 1, ["clay"] = -1, ["packeddirt"] = -1, ["clay-red"] = -1, ["clay-fire"] = -1,
                 ["stone-granite"] = -1, ["glass-plain"] = 1, ["glass-smoky"] = 1, ["glassslab-plain"] = 1,
-                ["rammed-plain"] = -1,
+                ["glasspane-leaded-oak"] = 1, ["rammed-plain"] = -1,
             },
             actual);
     }

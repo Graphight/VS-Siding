@@ -243,6 +243,23 @@ public class SidingWallBlock : Block
         return (JoinsAbove(ContinuesFrame(blockAccessor, pos.UpCopy(), infill), cellsBelow), cellsBelow > 0, runsOn.left, runsOn.right);
     }
 
+    // The corners a cell merged on both sides still has to frame, as the fillers' suffixes. Where the
+    // cell diagonally across carries no glazing on, the sheet is an L and its frame turns an inside
+    // corner in this cell; four merged cells round a point leave it clear.
+    internal static string[] InnerCorners((bool above, bool below, bool left, bool right) joins, System.Func<string, string, bool> glazedAcross)
+        => (from rail in new[] { (Joined: joins.above, Part: "-top"), (Joined: joins.below, Part: "-bottom") }
+            from stile in new[] { (Joined: joins.left, Part: "-left"), (Joined: joins.right, Part: "-right") }
+            where rail.Joined && stile.Joined && !glazedAcross(rail.Part, stile.Part)
+            select rail.Part + stile.Part).ToArray();
+
+    internal string[] InnerCorners(IBlockAccessor blockAccessor, BlockPos pos, string? infill, (bool above, bool below, bool left, bool right) joins)
+    {
+        if (Variant["layout"] != "wall" || !IsTransparent(infill, Attributes["Infills"])) return [];
+        var (left, right) = RunNeighbours(Variant["side"]);
+        return InnerCorners(joins, (rail, stile) =>
+            ContinuesGlazing(blockAccessor, pos.AddCopy(stile == "-left" ? left : right).Add(0, rail == "-top" ? 1 : -1, 0), infill));
+    }
+
     // A diagonal on the same line, whichever way it faces.
     private bool ContinuesDiagonal(IBlockAccessor blockAccessor, BlockPos neighbourPos)
         => blockAccessor.GetBlock(neighbourPos) is SidingWallBlock other && other.Variant["layout"] == "diagonal"
@@ -548,10 +565,10 @@ public class SidingWallBlock : Block
         // Planks that can't finish this face still extend the wall via PlaceWallFrame, and held blocks still place.
         bool heldPlaces = slot.Itemstack!.Class == EnumItemClass.Block || MatchConsumes(heldCode, Attributes["Framings"]) != null;
 
-        // Glazing takes no finish: a slab over it would just hide the glass. Refusing here rather
-        // than in ResolveFinishFace keeps breaking unchanged - PeelLayer still finds no finish on
-        // a glazed cell and peels the glass out (decision 0013).
-        if (IsTransparent(entity.Infill, Attributes["Infills"]))
+        // A glazed wall or corner takes a finish as a rim round the glass. A diagonal draws no rim, and a
+        // slab over it would just hide the glass. Refusing here rather than in ResolveFinishFace keeps
+        // breaking unchanged (decision 0013).
+        if (IsTransparent(entity.Infill, Attributes["Infills"]) && Variant["layout"] == "diagonal")
         {
             if (heldPlaces) return base.OnBlockInteractStart(world, byPlayer, blockSel);
             (byPlayer as IServerPlayer)?.SendIngameError("vssiding:glazed", Lang.Get("vssiding:build-glazed"));
@@ -685,12 +702,6 @@ public class SidingWallBlock : Block
         if (finishKey == null) return base.OnBlockInteractStart(world, byPlayer, blockSel);
 
         bool heldPlaces = slot.Itemstack!.Class == EnumItemClass.Block || MatchConsumes(heldCode, Attributes["Framings"]) != null;
-        if (IsTransparent(entity.DeckInfill, Attributes["Infills"]))
-        {
-            if (heldPlaces) return base.OnBlockInteractStart(world, byPlayer, blockSel);
-            (byPlayer as IServerPlayer)?.SendIngameError("vssiding:glazed", Lang.Get("vssiding:build-glazed"));
-            return true;
-        }
 
         string? face = SidingFloorBlock.FinishFace(blockSel.Face);
         if (face == null)
@@ -791,7 +802,8 @@ public class SidingWallBlock : Block
         {
             // Only glazing merges sideways, and only along its own run, so those are the only
             // horizontal neighbours that can change what this cell draws - an opaque wall never
-            // joins one. Just this cell: merging is local, nothing propagates past the neighbour.
+            // joins one. Just this cell: merging is local, and the one thing drawn by a cell further
+            // off, an inside corner (InnerCorners), is redrawn where a layer changes (MarkNeighboursDirty).
             if (neibpos.Y != pos.Y || ClaimsTwoFaces(Variant["layout"])) return;
             var entity = world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos);
             if (entity == null || !IsTransparent(entity.Infill, Attributes["Infills"])) return;
@@ -811,13 +823,17 @@ public class SidingWallBlock : Block
 
         // Unconditional, unlike OnNeighbourBlockChange's check on this cell's own glazing: this
         // fires when infill changes, and peeling glass out has to redraw the neighbours that were
-        // merged with it - by which point this cell is no longer glazed. No walk either way.
+        // merged with it - by which point this cell is no longer glazed. No walk either way. The
+        // cells diagonally across are told too: each frames its inside corner by this one (InnerCorners).
         if (world.BlockAccessor.GetBlock(pos) is not SidingWallBlock block) return;
         if (block.Variant["layout"] == "diagonal") MarkDiagonalRunDirty(world, pos, block.Variant["side"]);
         if (ClaimsTwoFaces(block.Variant["layout"])) return;
         var (left, right) = RunNeighbours(block.Variant["side"]);
-        world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos.AddCopy(left))?.MarkDirty(true);
-        world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos.AddCopy(right))?.MarkDirty(true);
+        for (int dy = -1; dy <= 1; dy++)
+        {
+            world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos.AddCopy(left).Add(0, dy, 0))?.MarkDirty(true);
+            world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos.AddCopy(right).Add(0, dy, 0))?.MarkDirty(true);
+        }
     }
 
     // A diagonal draws its end by whether the next cell carries the run on, and that cell is no face

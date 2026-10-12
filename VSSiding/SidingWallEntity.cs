@@ -161,22 +161,24 @@ public class SidingWallEntity : BlockEntity
         string[]? step = Step != null && layout == "wall" ? StepElements(side, StepOrientation) : null;
         int alternate = CellAlternate(Block.Attributes, SidingWallTexSource.Alternate(Pos), Framing, Deck,
             [Infill, DeckInfill], [Front, SecondFront, Back, DeckFront, DeckBack]);
+        string[] innerCorners = ((SidingWallBlock)Block).InnerCorners(Api.World.BlockAccessor, Pos, Infill, joins);
         string[] selectiveElements = SelectiveElements(layout, Framing, Infill, Front, SecondFront, Back, Block.Attributes["Finishes"], joins, glazed, Styles, step,
-            FrameElements(Block.Attributes["Framings"], Framing, alternate));
+            FrameElements(Block.Attributes["Framings"], Framing, alternate), decked: Deck != null, innerCorners: innerCorners);
 
         // The deck is laid like a floor, in world directions, so its groups are tesselated unrotated.
         bool deckGlazed = SidingWallBlock.IsTransparent(DeckInfill, Block.Attributes["Infills"]);
         var deckJoins = SidingFloorBlock.Joins(Api.World.BlockAccessor, Pos, deckGlazed);
+        string[] deckInnerCorners = SidingFloorBlock.InnerCorners(Api.World.BlockAccessor, Pos, deckGlazed, deckJoins);
         string[] deckElements = DeckElements(side, Deck, DeckInfill, DeckFront, DeckBack, Block.Attributes["Finishes"], deckJoins, (DeckFrontStyle, DeckBackStyle), deckGlazed,
-            FrameElements(Block.Attributes["Framings"], Deck, alternate), ledge: Back == null && layout != "diagonal");
+            FrameElements(Block.Attributes["Framings"], Deck, alternate), Ledges(layout, Back == null, glazed, joins), deckInnerCorners);
         if (selectiveElements.Length == 0 && deckElements.Length == 0) return false;
 
         string cacheKey = CacheKey(layout, side, Framing, Infill, Front, SecondFront, Back, joins, Styles, Deck, Step, StepOrientation,
-            DeckInfill, DeckFront, DeckBack, (DeckFrontStyle, DeckBackStyle), deckJoins, alternate);
+            DeckInfill, DeckFront, DeckBack, (DeckFrontStyle, DeckBackStyle), deckJoins, alternate, innerCorners, deckInnerCorners);
 
         MeshData[] meshes = ObjectCacheUtil.GetOrCreate(capi, cacheKey, () =>
         {
-            Shape shape = Shape.TryGet(capi, new AssetLocation("vssiding", $"shapes/block/wall/{layout}.json"));
+            Shape shape = ParsedShape(capi, $"wall/{layout}");
             var texSource = new SidingWallTexSource(
                 capi, this, Block.Attributes["Framings"], Block.Attributes["Infills"], Block.Attributes["Finishes"], alternate);
             var rotation = new Vec3f(0, RotationYDeg(side), 0);
@@ -188,6 +190,11 @@ public class SidingWallEntity : BlockEntity
         foreach (MeshData mesh in meshes) mesher.AddMeshData(mesh);
         return true;
     }
+
+    // Shape.TryGet parses the whole file on every call, and a mesh is built once per distinct cell, so
+    // each shape is parsed once and kept.
+    internal static Shape ParsedShape(ICoreClientAPI capi, string path)
+        => ObjectCacheUtil.GetOrCreate(capi, "vssiding-shape-" + path, () => Shape.TryGet(capi, new AssetLocation("vssiding", $"shapes/block/{path}.json")));
 
     // The position hash has three readers: the texture source picks each wildcard texture's variant by it,
     // FrameElements picks the rough frame's variant by its parity, and the mesh cache keys on it. So a
@@ -238,7 +245,7 @@ public class SidingWallEntity : BlockEntity
 
     internal static bool IsInfillElement(string name)
     {
-        if (name.StartsWith("deck-") || name.StartsWith("ledge-")) name = name[(name.IndexOf('-', name.IndexOf('-') + 1) + 1)..];
+        if (name.StartsWith("deck-") || name.StartsWith("ledge")) name = name[(name.IndexOf('-', name.IndexOf('-') + 1) + 1)..];
         return name.StartsWith("infill");
     }
 
@@ -258,23 +265,75 @@ public class SidingWallEntity : BlockEntity
         (bool above, bool below, bool left, bool right) joins,
         (string? front, string? secondFront, string? back) styles = default, string? deck = null, string? step = null, string? stepOrientation = null,
         string? deckInfill = null, string? deckFront = null, string? deckBack = null, (string? front, string? back) deckStyles = default,
-        (bool above, bool below, bool left, bool right) deckJoins = default, int alternate = 0)
+        (bool above, bool below, bool left, bool right) deckJoins = default, int alternate = 0,
+        string[]? innerCorners = null, string[]? deckInnerCorners = null)
         => $"vssiding-wall-mesh-{layout}-{side}-{framing}-{infill}-{front}-{secondFront}-{back}-{joins.above}-{joins.below}-{joins.left}-{joins.right}-{styles.front}-{styles.secondFront}-{styles.back}-{deck}-{step}-{stepOrientation}"
-            + $"-{deckInfill}-{deckFront}-{deckBack}-{deckStyles.front}-{deckStyles.back}-{deckJoins.above}-{deckJoins.below}-{deckJoins.left}-{deckJoins.right}-{alternate}";
+            + $"-{deckInfill}-{deckFront}-{deckBack}-{deckStyles.front}-{deckStyles.back}-{deckJoins.above}-{deckJoins.below}-{deckJoins.left}-{deckJoins.right}-{alternate}"
+            + $"-{string.Concat(innerCorners ?? [])}-{string.Concat(deckInnerCorners ?? [])}";
 
     // The floor's groups for the deck, which the wall shapes carry per side as deck-{side}-{name}. The
     // deck stops a voxel short of the frame, at the slot the wall's room-side finish takes, so the shapes
-    // carry the same groups again for that slot as ledge-{side}-{name}, drawn until the finish is laid.
+    // carry the same groups again for that slot, one copy for each name Ledges gives.
     internal static string[] DeckElements(
         string side, string? deck, string? infill, string? front, string? back, JsonObject finishes,
         (bool above, bool below, bool left, bool right) joins, (string? front, string? back) styles, bool glazed,
-        string frame = "framing", bool ledge = false)
+        string frame = "framing", string[]? ledges = null, string[]? innerCorners = null)
     {
         if (deck == null) return [];
-        string[] names = SidingFloorEntity.SelectiveElements(deck, infill, front, back, finishes, joins, styles, glazed, frame: frame);
-        string[] copies = ledge ? ["deck", "ledge"] : ["deck"];
+        string[] names = SidingFloorEntity.SelectiveElements(deck, infill, front, back, finishes, joins, styles, glazed, frame, innerCorners);
+        string[] copies = ["deck", .. ledges ?? []];
         return copies.SelectMany(copy => names.Select(name => $"{copy}-{side}-{name}")).ToArray();
     }
+
+    // The copies of the deck that reach into the slot the wall's room-side finish takes. While that side
+    // is bare the whole slot is open, and the deck draws its ledge. A finish fills the slot, but a glazed
+    // wall's is only a rim, which leaves the slot open across the glass, so there the ledge carries on in
+    // the place of the rim's top: between the stiles, and out to the cell's edge where a stile has merged
+    // away. A diagonal's deck draws none (0067).
+    internal static string[] Ledges(string layout, bool roomSideBare, bool glazed, (bool above, bool below, bool left, bool right) joins)
+    {
+        if (layout == "diagonal") return [];
+        if (roomSideBare) return ["ledge"];
+        if (!glazed) return [];
+        var ledges = new List<string> { "ledgetop" };
+        if (joins.left) ledges.Add("ledgetopleft");
+        if (joins.right) ledges.Add("ledgetopright");
+        return ledges.ToArray();
+    }
+
+    // The suffixes of the frame pieces a cell draws, which a glazed face's rims follow part for part.
+    // A wall's two posts drop one by one wherever glazing merges sideways; a cornerout's three are
+    // always drawn. A plain wall's plates stop short at its posts, which leaves a notch at the cell's
+    // edge once a post drops, so glazing gets its own frame: stiles and the rails between them,
+    // overlapping nothing, and a filler in the corner where a stile has merged away. A corner's posts
+    // never drop, so it has no fillers, and a diagonal keeps the plain frame. A filler also stands
+    // alone in each of `innerCorners`, where rail and stile have both merged away and the sheet turns.
+    internal static List<string> FrameParts(
+        string layout, (bool above, bool below, bool left, bool right) joins, bool glazed, string[]? innerCorners = null)
+    {
+        bool diagonal = layout == "diagonal";
+        bool corner = SidingWallBlock.ClaimsTwoFaces(layout);
+        bool fillers = glazed && !diagonal && !corner;
+        var parts = new List<string>();
+        if (!corner)
+        {
+            if (!joins.left) parts.Add("-left");
+            if (!joins.right) parts.Add("-right");
+        }
+        else if (!diagonal) parts.Add("");
+        foreach (var (joined, rail) in new[] { (joins.above, "-top"), (joins.below, "-bottom") })
+        {
+            if (joined) continue;
+            parts.Add(rail);
+            if (fillers && joins.left) parts.Add(rail + "-left");
+            if (fillers && joins.right) parts.Add(rail + "-right");
+        }
+        if (fillers && innerCorners != null) parts.AddRange(innerCorners);
+
+        return parts;
+    }
+
+    internal static IEnumerable<string> RimNames(string group, IEnumerable<string> parts) => parts.Select(part => $"{group}-rim{part}");
 
     // Unbuilt parts (null key) are left out so a frame-only wall shows just its frame.
     // A finish can name its own element per face (decision 0007) instead of the plain slab.
@@ -282,34 +341,28 @@ public class SidingWallEntity : BlockEntity
     internal static string[] SelectiveElements(
         string layout, string? framing, string? infill, string? front, string? secondFront, string? back, JsonObject finishes,
         (bool above, bool below, bool left, bool right) joins, bool glazed,
-        (string? front, string? secondFront, string? back) styles = default, string[]? step = null, string frame = "framing")
+        (string? front, string? secondFront, string? back) styles = default, string[]? step = null, string frame = "framing", bool decked = false,
+        string[]? innerCorners = null)
     {
         var names = new List<string>();
         // A diagonal's shape has no rough frame groups, so it draws the plain ones whatever the
         // framing's Elements say (decision 0066).
         bool diagonal = layout == "diagonal";
         if (diagonal) frame = "framing";
-        if (front != null) names.Add(FinishElement(finishes, front, "front", styles.front));
-        if (secondFront != null) names.Add("second" + FinishElement(finishes, secondFront, "front", styles.secondFront));
-        if (framing != null)
+        bool glazing = glazed && !diagonal;
+        string member = glazing ? "glazing" : frame;
+        var parts = FrameParts(layout, joins, glazed, innerCorners);
+
+        // A glazed wall's or corner's finish is a rim round the glass: its group cut to each part the frame draws.
+        void AddFinish(string group, IEnumerable<string>? rimParts = null)
         {
-            // A cornerout's three posts are structural and always drawn; a wall's two drop
-            // individually wherever glazing merges sideways.
-            bool corner = SidingWallBlock.ClaimsTwoFaces(layout);
-            // Glazing gets its own frame: a bezel whose members each span the full cell edge, so
-            // the frame still reaches the pane where the member beside it has been dropped. A
-            // plain wall's plates stop short at its posts, which is right while the posts are
-            // always there and leaves a notch at every cell edge once they aren't.
-            string member = glazed && !corner ? "glazing" : frame;
-            if (!corner)
-            {
-                if (!joins.left) names.Add(member + "-left");
-                if (!joins.right) names.Add(member + "-right");
-            }
-            else if (!diagonal) names.Add(frame);
-            if (!joins.above) names.Add(member + "-top");
-            if (!joins.below) names.Add(member + "-bottom");
+            if (glazing) names.AddRange(RimNames(group, rimParts ?? parts));
+            else names.Add(group);
         }
+
+        if (front != null) AddFinish(FinishElement(finishes, front, "front", styles.front));
+        if (secondFront != null) AddFinish("second" + FinishElement(finishes, secondFront, "front", styles.secondFront));
+        if (framing != null) names.AddRange(parts.Select(part => member + part));
         if (infill != null)
         {
             // Glazing is one flat pane spanning the whole cell rather than a slab plus fillers.
@@ -324,7 +377,8 @@ public class SidingWallEntity : BlockEntity
                 if (joins.below) names.Add("infill-bottom");
             }
         }
-        if (back != null) names.Add(FinishElement(finishes, back, "back", styles.back));
+        // The top of the room side's rim lies in a deck's height, where the deck's ledge takes its place (Ledges).
+        if (back != null) AddFinish(FinishElement(finishes, back, "back", styles.back), decked ? parts.Where(part => !part.StartsWith("-top")) : parts);
         // A diagonal's end is the filler in its corner, or, where the next cell carries the run on,
         // each group's own piece out to the corner and half a post there.
         if (diagonal)

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -7,12 +8,12 @@ using Xunit;
 
 namespace VSSiding.Tests;
 
-// A finish's named element group has to exist in the shape it draws from, and has to be in every
-// ignoreElements list of that shape, or it renders on the block's default mesh with no error.
+// A finish's named element group has to exist in the shape it draws from, and has to be out of every
+// selectiveElements list of that shape, or it renders on the block's default mesh with no error.
 public class FinishElementGroupsTests
 {
     [Fact]
-    public void EveryFinishElementGroupExistsAndIsIgnoredByTheDefaultShape()
+    public void EveryFinishElementGroupExistsAndIsLeftOutOfTheDefaultShape()
     {
         var repoRoot = MaterialTextureOpacityTests.GetAssemblyMetadata("RepoRoot");
         var assets = Path.Combine(repoRoot, "VSSiding", "assets", "vssiding");
@@ -21,7 +22,7 @@ public class FinishElementGroupsTests
 
         var entries = ((JObject)attributes["Finishes"]!).Properties().Concat(((JObject)attributes["FinishFamilies"]!).Properties());
         // A Styles entry names {face}-{style} outright (decision 0027), so those groups have to
-        // exist and be ignored exactly like the Elements defaults do.
+        // exist and be left out exactly like the Elements defaults do.
         var styles = entries.SelectMany(e => e.Value["Styles"]?.Select(t => (string)t!) ?? []).Distinct().ToList();
         var fronts = entries.Select(e => (string?)e.Value["Elements"]?["front"]).OfType<string>()
             .Concat(styles.Select(style => "front-" + style)).Distinct().ToList();
@@ -42,18 +43,114 @@ public class FinishElementGroupsTests
 
             foreach (var variant in ((JObject)wallJson["shapebytype"]!).Properties().Where(p => (string)p.Value["base"]! == shape))
             {
-                var ignored = variant.Value["ignoreElements"]?.Select(t => (string)t!).ToHashSet() ?? [];
-                offenders.AddRange(groups.Where(g => !ignored.Contains(g)).Select(g => $"{variant.Name} doesn't ignore '{g}'"));
+                var selected = variant.Value["selectiveElements"]!.Select(t => (string)t!).ToHashSet();
+                offenders.AddRange(groups.Where(selected.Contains).Select(g => $"{variant.Name} draws '{g}'"));
             }
         }
 
         Assert.Equal([], offenders);
     }
 
+    // A glazed wall or corner draws a finish group's rim parts in place of the group, for every finish, style and join.
+    // Each has to exist in the generated shape, and none may be named among what the block's default shape draws.
+    [Theory]
+    [InlineData("wall")]
+    [InlineData("cornerout")]
+    public void EveryRimElementAGlazedCellCanAskForExistsAndIsLeftOutOfTheDefaultShape(string layout)
+    {
+        var assets = Path.Combine(MaterialTextureOpacityTests.GetAssemblyMetadata("RepoRoot"), "VSSiding", "assets", "vssiding");
+        var wallJson = JObject.Parse(File.ReadAllText(Path.Combine(assets, "blocktypes", "wall.json")));
+        var rims = RimsEveryGlazedCellAsksFor((finishes, key, style, joins) => SidingWallEntity.SelectiveElements(
+            layout, "oak", "glass", key, layout == "cornerout" ? key : null, key, finishes, joins, glazed: true,
+            styles: (style, layout == "cornerout" ? style : null, style)));
+
+        var names = WallShapeGen.Generate(layout)["elements"]!.Select(e => (string)e["name"]!).ToHashSet();
+        var offenders = rims.Where(r => !names.Contains(r)).Select(r => $"the {layout} shape has no element '{r}'").ToList();
+        foreach (var variant in ((JObject)wallJson["shapebytype"]!).Properties().Where(p => (string)p.Value["base"]! == $"block/wall/{layout}"))
+        {
+            var selected = variant.Value["selectiveElements"]!.Select(t => (string)t!).ToHashSet();
+            offenders.AddRange(rims.Where(selected.Contains).Select(r => $"{variant.Name} draws '{r}'"));
+        }
+
+        Assert.Equal([], offenders);
+    }
+
+    // A glazed floor draws a finish group's rim parts in place of the group, for every finish, style and join.
+    // Each has to exist in the generated floor shape, and none may be named among what the block's default shape draws.
+    [Fact]
+    public void EveryRimElementAGlazedFloorCanAskForExistsAndIsLeftOutOfTheDefaultShape()
+    {
+        var assets = Path.Combine(MaterialTextureOpacityTests.GetAssemblyMetadata("RepoRoot"), "VSSiding", "assets", "vssiding");
+        var floorJson = JObject.Parse(File.ReadAllText(Path.Combine(assets, "blocktypes", "floor.json")));
+        var rims = RimsEveryGlazedCellAsksFor((finishes, key, style, joins) => SidingFloorEntity.SelectiveElements(
+            "oak", "glass", key, key, finishes, joins, (style, style), glazed: true));
+
+        var names = WallShapeGen.Generate("floor")["elements"]!.Select(e => (string)e["name"]!).ToHashSet();
+        var selected = floorJson["shape"]!["selectiveElements"]!.Select(t => (string)t!).ToHashSet();
+        var offenders = rims.Where(r => !names.Contains(r)).Select(r => $"the floor shape has no element '{r}'")
+            .Concat(rims.Where(selected.Contains).Select(r => $"floor draws '{r}'")).ToList();
+
+        Assert.Equal([], offenders);
+    }
+
+    // A glazed deck asks for the floor's rim parts under its side's prefix, for its deck and its ledge. Each has
+    // to exist in the generated wall shape, unless the box that copy is cut to misses every piece of that name
+    // on the floor: the clip then drops the whole name, and nothing of it is left to draw. None may be named
+    // among what the block's default shape draws.
+    [Theory]
+    [InlineData("wall")]
+    [InlineData("cornerout")]
+    [InlineData("diagonal")]
+    public void EveryRimElementAGlazedDeckCanAskForExistsOrIsCutAwayEntirelyAndIsLeftOutOfTheDefaultShape(string layout)
+    {
+        var assets = Path.Combine(MaterialTextureOpacityTests.GetAssemblyMetadata("RepoRoot"), "VSSiding", "assets", "vssiding");
+        var wallJson = JObject.Parse(File.ReadAllText(Path.Combine(assets, "blocktypes", "wall.json")));
+        var shape = WallShapeGen.Generate(layout)["elements"]!.ToArray();
+        var names = shape.Select(e => (string)e["name"]!).ToHashSet();
+        var floorPieces = WallShapeGen.Generate("floor")["elements"]!.ToLookup(e => (string)e["name"]!);
+
+        // The boxes each copy is cut to, in the order of the sides' turns: the deck box, and for a ledge the
+        // room side's slot over the deck's height, the whole of it or the part under a top piece of its rim.
+        (double[] Lo, double[] Hi)[] Boxes(string copy, string side) => copy == "deck"
+            ? [.. WallShapeGenTests.DeckBoxesVoxels(layout, side).Select(b => (b[..3], b[3..]))]
+            : [.. shape.Where(e => (string)e["name"]! == LedgeSlots[copy]).Select(e =>
+            {
+                var r = WallShapeGen.DeckRegion(((double)e["from"]![0]!, 12, (double)e["from"]![2]!), ((double)e["to"]![0]!, 16, (double)e["to"]![2]!),
+                    (int)SidingWallEntity.RotationYDeg(side));
+                return (new[] { r.X, r.Y, r.Z }, new[] { r.X2, r.Y2, r.Z2 });
+            })];
+
+        bool Reaches(JToken piece, (double[] Lo, double[] Hi)[] boxes) => boxes.Any(box => Enumerable.Range(0, 3).All(a =>
+            Math.Max((double)piece["from"]![a]!, box.Lo[a]) < Math.Min((double)piece["to"]![a]!, box.Hi[a])));
+
+        var asked = (
+            from side in new[] { "west", "south", "east", "north" }
+            from name in RimsEveryGlazedCellAsksFor((finishes, key, style, joins) => SidingWallEntity.DeckElements(
+                side, "oak", "glass", key, key, finishes, joins, (style, style), glazed: true, ledges: layout == "diagonal" ? [] : Ledges))
+            select (Side: side, Name: name)).ToList();
+
+        var offenders = new List<string>();
+        foreach (var (side, name) in asked)
+        {
+            string[] parts = name.Split('-', 3);
+            var floorName = parts[2];
+            if (!names.Contains(name) && floorPieces[floorName].Any(piece => Reaches(piece, Boxes(parts[0], side))))
+                offenders.Add($"the {layout} shape has no element '{name}'");
+        }
+
+        foreach (var variant in ((JObject)wallJson["shapebytype"]!).Properties().Where(p => (string)p.Value["base"]! == $"block/wall/{layout}"))
+        {
+            var selected = variant.Value["selectiveElements"]!.Select(t => (string)t!).ToHashSet();
+            offenders.AddRange(asked.Select(a => a.Name).Distinct().Where(selected.Contains).Select(r => $"{variant.Name} draws '{r}'"));
+        }
+
+        Assert.Equal([], offenders.Distinct());
+    }
+
     // A framing's Elements is a prefix that FrameElements turns into one name per variant. Read from
     // the real entries, so a prefix the shapes lack, or one variant of it, is caught here and not in play.
     [Fact]
-    public void EveryFramingElementGroupExistsAndIsIgnoredByTheDefaultShape()
+    public void EveryFramingElementGroupExistsAndIsLeftOutOfTheDefaultShape()
     {
         var repoRoot = MaterialTextureOpacityTests.GetAssemblyMetadata("RepoRoot");
         var assets = Path.Combine(repoRoot, "VSSiding", "assets", "vssiding");
@@ -75,19 +172,19 @@ public class FinishElementGroupsTests
 
             foreach (var variant in ((JObject)wallJson["shapebytype"]!).Properties().Where(p => (string)p.Value["base"]! == shape))
             {
-                var ignored = variant.Value["ignoreElements"]?.Select(t => (string)t!).ToHashSet() ?? [];
-                offenders.AddRange(groups.Where(g => !ignored.Contains(g)).Select(g => $"{variant.Name} doesn't ignore '{g}'"));
+                var selected = variant.Value["selectiveElements"]!.Select(t => (string)t!).ToHashSet();
+                offenders.AddRange(groups.Where(selected.Contains).Select(g => $"{variant.Name} draws '{g}'"));
             }
         }
 
         var floorShape = JObject.Parse(File.ReadAllText(Path.Combine(assets, "shapes", "block", "floor", "floor.json")));
         var floorNames = floorShape["elements"]!.Select(e => (string)e["name"]!).ToHashSet();
         var floorJson = JObject.Parse(File.ReadAllText(Path.Combine(assets, "blocktypes", "floor.json")));
-        var floorIgnored = floorJson["shape"]!["ignoreElements"]?.Select(t => (string)t!).ToHashSet() ?? [];
+        var floorSelected = floorJson["shape"]!["selectiveElements"]!.Select(t => (string)t!).ToHashSet();
         var floorGroups = frames.SelectMany(frame => SidingFloorEntity.SelectiveElements(
             "sticks", null, null, null, new JsonObject(new JObject()), (false, false, false, false), frame: frame)).ToList();
         offenders.AddRange(floorGroups.Where(g => !floorNames.Contains(g)).Select(g => $"floor shape has no element '{g}'"));
-        offenders.AddRange(floorGroups.Where(g => !floorIgnored.Contains(g)).Select(g => $"floor doesn't ignore '{g}'"));
+        offenders.AddRange(floorGroups.Where(g => floorSelected.Contains(g)).Select(g => $"floor draws '{g}'"));
 
         Assert.Equal([], offenders);
     }
@@ -109,7 +206,7 @@ public class FinishElementGroupsTests
             foreach (var side in new[] { "north", "east", "south", "west" })
             {
                 string[] Kept(string frame) => SidingWallEntity.DeckElements(
-                        side, "sticks", null, null, null, new JsonObject(new JObject()), (false, false, false, false), default, false, frame, ledge: true)
+                        side, "sticks", null, null, null, new JsonObject(new JObject()), (false, false, false, false), default, false, frame, ledges: Ledges)
                     .Where(names.Contains).Select(name => name.Replace(frame, "framing")).ToArray();
                 offenders.AddRange(frames.Where(frame => !Kept(frame).SequenceEqual(Kept("framing")))
                     .Select(frame => $"block/wall/{layout} keeps [{string.Join(", ", Kept(frame))}] of the {side} deck's {frame} groups, not [{string.Join(", ", Kept("framing"))}]"));
@@ -119,6 +216,17 @@ public class FinishElementGroupsTests
         Assert.Equal([], offenders);
     }
 
+    // Each ledge copy of a deck, and the wall piece whose footprint it is cut to.
+    private static readonly Dictionary<string, string> LedgeSlots = new()
+    {
+        ["ledge"] = "back",
+        ["ledgetop"] = "back-rim-top",
+        ["ledgetopleft"] = "back-rim-top-left",
+        ["ledgetopright"] = "back-rim-top-right",
+    };
+
+    private static readonly string[] Ledges = [.. LedgeSlots.Keys];
+
     // Every prefix a real framing entry can draw with, both variants of it.
     private static List<string> RoughFrames(JObject attributes)
         => new[] { "Framings", "FramingFamilies" }.Select(name => attributes[name]).OfType<JObject>()
@@ -127,7 +235,7 @@ public class FinishElementGroupsTests
             .Where(frame => frame != "framing").Distinct().ToList();
 
     [Fact]
-    public void EveryFloorElementGroupExistsAndIsIgnoredByTheFloorBlock()
+    public void EveryFloorElementGroupExistsAndIsLeftOutOfTheFloorBlock()
     {
         var repoRoot = MaterialTextureOpacityTests.GetAssemblyMetadata("RepoRoot");
         var assets = Path.Combine(repoRoot, "VSSiding", "assets", "vssiding");
@@ -140,10 +248,10 @@ public class FinishElementGroupsTests
                 .SelectMany(face => e.Value["FloorElements"]?[face]?.Values().Select(t => (string)t!) ?? []))
             .Distinct().ToList();
         var names = shapeJson["elements"]!.Select(e => (string)e["name"]!).ToHashSet();
-        var ignored = floorJson["shape"]!["ignoreElements"]?.Select(t => (string)t!).ToHashSet() ?? [];
+        var selected = floorJson["shape"]!["selectiveElements"]!.Select(t => (string)t!).ToHashSet();
 
         var offenders = groups.Where(g => !names.Contains(g)).Select(g => $"floor shape has no element '{g}'")
-            .Concat(groups.Where(g => !ignored.Contains(g)).Select(g => $"floor doesn't ignore '{g}'"));
+            .Concat(groups.Where(selected.Contains).Select(g => $"floor draws '{g}'"));
 
         Assert.Equal([], offenders.ToArray());
     }
@@ -202,6 +310,27 @@ public class FinishElementGroupsTests
 
     private static readonly string[] PlankFinishes = ["planks", "planks-aged", "planks-veryaged", "planks-{wood}", "stained-{stain}-{wood}", "dyed-{color}-{wood}"];
 
+    // The rim names glazed cells ask for, over every finish, each of its styles and none, and every set of joins.
+    private static List<string> RimsEveryGlazedCellAsksFor(
+        Func<JsonObject, string, string?, (bool above, bool below, bool left, bool right), IEnumerable<string>> selectiveElements)
+    {
+        var entries = FinishEntries();
+        var finishes = new JsonObject(new JObject(entries.Select(e => new JProperty(e.Name, e.Value))));
+        bool[] either = [false, true];
+        var rims = (
+            from entry in entries
+            from style in new string?[] { null }.Concat(entry.Value["Styles"]?.Select(t => (string)t!) ?? [])
+            from above in either
+            from below in either
+            from left in either
+            from right in either
+            from name in selectiveElements(finishes, entry.Name, style, (above, below, left, right))
+            where name.Contains("-rim")
+            select name).Distinct().ToList();
+        Assert.NotEmpty(rims);
+        return rims;
+    }
+
     private static List<JProperty> FinishEntries()
     {
         var attributes = MaterialTextureOpacityTests.BlockAttributes("wall.json");
@@ -256,9 +385,9 @@ public class FinishElementGroupsTests
     }
 
     // Glazing's own elements - the pane and its bezel - exist only for a glazed cell, so none of
-    // them may ride along on the block's default JSON shape.
+    // them may be named among what the block's default JSON shape draws.
     [Fact]
-    public void EveryVariantIgnoresTheGlazingOnlyElements()
+    public void EveryVariantLeavesOutTheGlazingOnlyElements()
     {
         var repoRoot = MaterialTextureOpacityTests.GetAssemblyMetadata("RepoRoot");
         var assets = Path.Combine(repoRoot, "VSSiding", "assets", "vssiding");
@@ -271,18 +400,16 @@ public class FinishElementGroupsTests
                 Path.Combine(assets, "shapes", (string)variant.Value["base"]! + ".json")));
             var glazingOnly = shapeJson["elements"]!.Select(e => (string)e["name"]!)
                 .Where(n => n == "infill-pane" || n.StartsWith("glazing")).Distinct();
-            var ignored = variant.Value["ignoreElements"]?.Select(t => (string)t!).ToHashSet() ?? [];
-            // A diagonal names what it draws instead, its shape having two end pieces for every group.
-            var selected = variant.Value["selectiveElements"]?.Select(t => (string)t!).ToHashSet();
-            offenders.AddRange(glazingOnly.Where(n => !ignored.Contains(n) && selected?.Contains(n) != false).Select(n => $"{variant.Name} draws '{n}'"));
+            var selected = variant.Value["selectiveElements"]!.Select(t => (string)t!).ToHashSet();
+            offenders.AddRange(glazingOnly.Where(selected.Contains).Select(n => $"{variant.Name} draws '{n}'"));
         }
 
         var floorJson = JObject.Parse(File.ReadAllText(Path.Combine(assets, "blocktypes", "floor.json")));
-        var floorIgnored = floorJson["shape"]!["ignoreElements"]?.Select(t => (string)t!).ToHashSet() ?? [];
+        var floorSelected = floorJson["shape"]!["selectiveElements"]!.Select(t => (string)t!).ToHashSet();
         var floorShape = JObject.Parse(File.ReadAllText(Path.Combine(assets, "shapes", "block", "floor", "floor.json")));
         offenders.AddRange(floorShape["elements"]!.Select(e => (string)e["name"]!)
             .Where(n => n == "infill-pane" || n.StartsWith("glazing")).Distinct()
-            .Where(n => !floorIgnored.Contains(n)).Select(n => $"floor draws '{n}'"));
+            .Where(floorSelected.Contains).Select(n => $"floor draws '{n}'"));
 
         Assert.Equal([], offenders);
     }

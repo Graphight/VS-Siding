@@ -306,10 +306,17 @@ public static class WallShapeGen
         new("infill", (1.5, 1, 1), (2.5, 15, 15), "infill", UvRule.Positional),
         new("infill-bottom", (1.5, 0, 1), (2.5, 1, 15), "infill", UvRule.Positional),
         new("infill-pane", (2, 0, 0), (2, 16, 16), "infill", UvRule.Flat, Faces: ["west", "east"]),
-        new("glazing-left", (1, 0, 0.25), (3, 16, 2), "framing", UvRule.Flat),
-        new("glazing-right", (1, 0, 14), (3, 16, 15.75), "framing", UvRule.Flat),
-        new("glazing-top", (1.25, 14, 0), (2.75, 15.75, 16), "framing", UvRule.Flat),
-        new("glazing-bottom", (1.25, 0.25, 0), (2.75, 2, 16), "framing", UvRule.Flat),
+        // A glazed cell's frame: stiles, the rails between them, and a filler in each corner for a rail
+        // whose stile has merged away. A rail's ends always stand against another piece, so those
+        // faces are left out; a filler keeps all six, since at an L's inside corner it stands alone.
+        new("glazing-left", (1, 0, 0), (3, 16, 2), "framing", UvRule.Flat),
+        new("glazing-right", (1, 0, 14), (3, 16, 16), "framing", UvRule.Flat),
+        new("glazing-top", (1, 14, 2), (3, 16, 14), "framing", UvRule.Flat, Faces: ["west", "east", "up", "down"]),
+        new("glazing-bottom", (1, 0, 2), (3, 2, 14), "framing", UvRule.Flat, Faces: ["west", "east", "up", "down"]),
+        new("glazing-top-left", (1, 14, 0), (3, 16, 2), "framing", UvRule.Flat),
+        new("glazing-top-right", (1, 14, 14), (3, 16, 16), "framing", UvRule.Flat),
+        new("glazing-bottom-left", (1, 0, 0), (3, 2, 2), "framing", UvRule.Flat),
+        new("glazing-bottom-right", (1, 0, 14), (3, 2, 16), "framing", UvRule.Flat),
         new("back", (3, 0, 0), (4, 16, 16), "back", UvRule.Flat),
         // A step draws two of these: a full-length half plus the opposite-height half on the side it rises toward.
         new("step-lower", (4, 0, 0), (16, 8, 16), "step", UvRule.Flat),
@@ -377,6 +384,88 @@ public static class WallShapeGen
         .. RubbleGrid("front-rubble", "front", 'x', 0, 1, 0, 16),
         .. RubbleGrid("back-rubble", "back", 'x', 4, 3, 0, 16),
     ];
+
+    // What a glazed cell shows of a finish: each front and back group again, cut to the footprint of each
+    // glazing piece on the face and named for it, so the border round the glass is the finish's own pieces
+    // and its laps and joints carry on from the cells beside it. The finish keeps its depth, ClippedFrom
+    // keeps its texture, and a cut end looks onto the glass or the next piece, so it draws its face even
+    // where the group limits its faces. The two axes are the face's: z and y on a wall, x and z on a floor.
+    internal static IEnumerable<Element> RimPieces(IEnumerable<Element> elements, char firstAxis = 'z', char secondAxis = 'y')
+    {
+        Element[] all = [.. elements];
+        return from part in all
+               where part.Name.StartsWith("glazing-")
+               from e in all
+               where e.Name.StartsWith("front") || e.Name.StartsWith("back")
+               from rim in RimPiece(e, part.Name["glazing".Length..],
+                   (firstAxis, Axis(part.From, firstAxis), Axis(part.To, firstAxis)),
+                   (secondAxis, Axis(part.From, secondAxis), Axis(part.To, secondAxis)))
+               select rim;
+    }
+
+    // A corner's rims, cut round each leg's opening, which is read off the leg's own rails: `G-rim` is
+    // everything beside it, full height, and `G-rim-top` and `G-rim-bottom` the parts over and under it.
+    // A front group belongs to leg 1, a second front group to leg 2, and a back box to the leg whose
+    // back slab holds it.
+    internal static IEnumerable<Element> CornerRimPieces(IEnumerable<Element> elements)
+    {
+        Element[] all = [.. elements];
+        double none = double.NegativeInfinity, any = double.PositiveInfinity;
+        foreach (char run in "zx")
+        {
+            char across = run == 'z' ? 'x' : 'z';
+            double Length(Element e, char axis) => Axis(e.To, axis) - Axis(e.From, axis);
+            Element OnLeg(string name) => all.Single(e => e.Name == name && Length(e, run) > Length(e, across));
+            Element top = OnLeg("glazing-top"), bottom = OnLeg("glazing-bottom"), slab = OnLeg("back");
+            var opening = (Lo: Axis(top.From, run), Hi: Axis(top.To, run));
+            (string Part, (double Lo, double Hi) Run, (double Lo, double Hi) Y)[] parts =
+            [
+                ("", (none, opening.Lo), (none, any)),
+                ("", (opening.Hi, any), (none, any)),
+                ("-top", opening, (top.From.Y, any)),
+                ("-bottom", opening, (none, bottom.To.Y)),
+            ];
+
+            string front = run == 'z' ? "front" : "secondfront";
+            bool InSlab(Element e) => "xyz".All(a => Axis(e.From, a) >= Axis(slab.From, a) && Axis(e.To, a) <= Axis(slab.To, a));
+            foreach (var e in all.Where(e => e.Name.StartsWith(front) || (e.Name.StartsWith("back") && InSlab(e))))
+            foreach (var (part, range, y) in parts)
+            foreach (var rim in RimPiece(e, part, (run, range.Lo, range.Hi), ('y', y.Lo, y.Hi)))
+                yield return rim;
+        }
+    }
+
+    // The part of a finish box inside a range on each of the face's two axes, named for the rim piece it is.
+    private static IEnumerable<Element> RimPiece(Element e, string part, params (char Axis, double Lo, double Hi)[] ranges)
+    {
+        var from = e.From;
+        var to = e.To;
+        var cutFaces = new List<string>();
+        foreach (var (axis, rangeLo, rangeHi) in ranges)
+        {
+            double sourceLo = Axis(e.From, axis), sourceHi = Axis(e.To, axis);
+            double lo = Math.Max(sourceLo, rangeLo), hi = Math.Min(sourceHi, rangeHi);
+            if (hi <= lo) yield break;
+
+            var (loFace, hiFace) = axis switch { 'x' => ("west", "east"), 'y' => ("down", "up"), _ => ("north", "south") };
+            if (lo > sourceLo) cutFaces.Add(loFace);
+            if (hi < sourceHi) cutFaces.Add(hiFace);
+            from = WithAxis(from, axis, lo);
+            to = WithAxis(to, axis, hi);
+        }
+
+        yield return e with
+        {
+            Name = $"{e.Name}-rim{part}",
+            From = from,
+            To = to,
+            Faces = e.Faces?.Union(cutFaces).ToArray(),
+            ClippedFrom = e,
+        };
+    }
+
+    private static (double X, double Y, double Z) WithAxis((double X, double Y, double Z) corner, char axis, double value)
+        => axis == 'x' ? corner with { X = value } : axis == 'y' ? corner with { Y = value } : corner with { Z = value };
 
     // Wall's front-shakes, except each body course's first shake starts at z 0.5 rather than 0.
     private static readonly Element[] CornerFrontShakesLeg1 =
@@ -529,6 +618,16 @@ public static class WallShapeGen
         new("infill-pane", (2, 0, 3), (2, 16, 16), "infill", UvRule.Flat, Faces: ["west", "east"]),
         new("infill-pane", (3, 0, 2), (16, 16, 2), "infill", UvRule.Flat, Faces: ["north", "south"]),
         new("framing", (15, 0, 1), (16, 16, 3), "framing", UvRule.Flat),
+        // A glazed corner's frame: posts that never drop and a rail per leg between them,
+        // so a rail's two end faces always stand against a post. The corner post is two boxes.
+        new("glazing", (1, 0, 1), (3, 16, 4), "framing", UvRule.Flat),
+        new("glazing", (3, 0, 1), (4, 16, 3), "framing", UvRule.Flat),
+        new("glazing", (1, 0, 14), (3, 16, 16), "framing", UvRule.Flat),
+        new("glazing", (14, 0, 1), (16, 16, 3), "framing", UvRule.Flat),
+        new("glazing-top", (1, 14, 4), (3, 16, 14), "framing", UvRule.Flat, Faces: ["west", "east", "up", "down"]),
+        new("glazing-top", (4, 14, 1), (14, 16, 3), "framing", UvRule.Flat, Faces: ["north", "south", "up", "down"]),
+        new("glazing-bottom", (1, 0, 4), (3, 2, 14), "framing", UvRule.Flat, Faces: ["west", "east", "up", "down"]),
+        new("glazing-bottom", (4, 0, 1), (14, 2, 3), "framing", UvRule.Flat, Faces: ["north", "south", "up", "down"]),
         .. CornerPoleElements,
         .. CornerPole2Elements,
         new("back", (3, 0, 3), (16, 16, 4), "back", UvRule.Flat),
@@ -812,12 +911,18 @@ public static class WallShapeGen
         new("infill-bottom", (0, 13.5, 15), (16, 14.5, 16), "infill", UvRule.Flat, RunAxis: 'z'),
         new("back", (0, 12, 0), (16, 13, 16), "back", UvRule.Flat),
         new("infill-pane", (0, 14, 0), (16, 14, 16), "infill", UvRule.Flat, Faces: ["up", "down"]),
-        // The wall's glazing bezel laid flat, with no joists: stiles on the west and east edges,
-        // rails on the north (top) and south (bottom), each dropped where the next floor is glazed too.
-        new("glazing-left", (0.25, 13, 0), (2, 15, 16), "framing", UvRule.Flat),
-        new("glazing-right", (14, 13, 0), (15.75, 15, 16), "framing", UvRule.Flat),
-        new("glazing-top", (0, 13.25, 0.25), (16, 14.75, 2), "framing", UvRule.Flat),
-        new("glazing-bottom", (0, 13.25, 14), (16, 14.75, 15.75), "framing", UvRule.Flat),
+        // The wall's glazing frame laid flat, with no joists: stiles on the west and east edges, rails
+        // between them on the north (top) and south (bottom), each dropped where the next floor is glazed
+        // too, and a filler in each corner for a rail whose stile has gone. Every piece keeps all six
+        // faces, unlike the wall's: a deck cuts these boxes, and a cut end has nothing standing against it.
+        new("glazing-left", (0, 13, 0), (2, 15, 16), "framing", UvRule.Flat),
+        new("glazing-right", (14, 13, 0), (16, 15, 16), "framing", UvRule.Flat),
+        new("glazing-top", (2, 13, 0), (14, 15, 2), "framing", UvRule.Flat),
+        new("glazing-bottom", (2, 13, 14), (14, 15, 16), "framing", UvRule.Flat),
+        new("glazing-top-left", (0, 13, 0), (2, 15, 2), "framing", UvRule.Flat),
+        new("glazing-top-right", (14, 13, 0), (16, 15, 2), "framing", UvRule.Flat),
+        new("glazing-bottom-left", (0, 13, 14), (2, 15, 16), "framing", UvRule.Flat),
+        new("glazing-bottom-right", (14, 13, 14), (16, 15, 16), "framing", UvRule.Flat),
         new("front-boards", (0, 15, 0), (16, 16, 16), "front", UvRule.Flat, RotatedFaces: ["up"]),
         new("front-hboards", (0, 15, 0), (16, 16, 16), "front", UvRule.Flat),
         new("back-boards", (0, 12, 0), (16, 13, 16), "back", UvRule.Flat, RotatedFaces: ["down"]),
@@ -829,6 +934,9 @@ public static class WallShapeGen
         new("back-lath-boards", (0, 12.5, 0), (16, 13, 16), "back", UvRule.Flat),
         .. Enumerable.Range(0, 8).Select(i => new Element("back-lath-boards", (2 * i + 0.5, 12, 0), (2 * i + 1.5, 12.5, 16), "framing", UvRule.Flat, RunAxis: 'z')),
     ];
+
+    // The floor's elements and its glazed finishes' rims, which a deck cuts from like any other piece.
+    private static readonly Element[] FloorShape = [.. FloorElements, .. RimPieces(FloorElements, 'x', 'z')];
 
     private static IEnumerable<Element> Rim(string name, double z1, double z2) =>
         new[] { (0.0, 2.0), (3.0, 7.5), (8.5, 13.0), (14.0, 16.0) }
@@ -896,6 +1004,14 @@ public static class WallShapeGen
     private static ((double X, double Y, double Z) From, (double X, double Y, double Z) To)[] Ledge(Element[] elements)
         => elements.Where(e => e.Name == "back").Select(e => ((e.From.X, 12.0, e.From.Z), (e.To.X, 16.0, e.To.Z))).ToArray();
 
+    // A glazed wall's room-side finish is a rim, and the top of it lies in the deck's height. The ledge takes
+    // that part's place across the opening: a copy under each top piece of the rim, carried down to the
+    // deck's underside, so it meets the rim's stiles edge to edge and overlaps none of it.
+    private static IEnumerable<Element> RimLedges(Element[] elements)
+        => new[] { "top", "top-left", "top-right" }.SelectMany(part => DeckGroups(
+            "ledge" + part.Replace("-", ""),
+            [.. elements.Where(e => e.Name == "back-rim-" + part).Select(e => ((e.From.X, 12.0, e.From.Z), e.To))]));
+
     private static IEnumerable<Element> DeckGroups(
         string prefix, params ((double X, double Y, double Z) From, (double X, double Y, double Z) To)[] boxes)
     {
@@ -903,7 +1019,7 @@ public static class WallShapeGen
         {
             var regions = boxes.Select(box => DeckRegion(box.From, box.To, rotationYDeg)).ToArray();
             foreach (var region in regions)
-            foreach (var source in FloorElements)
+            foreach (var source in FloorShape)
             {
                 var lo = (X: Math.Max(source.From.X, region.X), Y: Math.Max(source.From.Y, region.Y), Z: Math.Max(source.From.Z, region.Z));
                 var hi = (X: Math.Min(source.To.X, region.X2), Y: Math.Min(source.To.Y, region.Y2), Z: Math.Min(source.To.Z, region.Z2));
@@ -956,12 +1072,15 @@ public static class WallShapeGen
         }
     }
 
+    // A wall's or corner's own pieces, then its deck's: the deck in its box, and each of its ledges.
+    private static Element[] WithDeck(Element[] elements, ((double X, double Y, double Z) From, (double X, double Y, double Z) To) deck)
+        => [.. elements, .. DeckGroups("deck", deck), .. DeckGroups("ledge", Ledge(elements)), .. RimLedges(elements)];
+
     public static JObject Generate(string layout) => layout switch
     {
-        "wall" => Emit([.. WallElements, .. DeckGroups("deck", ((4, 12, 0), (16, 16, 16))), .. DeckGroups("ledge", Ledge(WallElements))], WallTextures),
-        "floor" => Emit(FloorElements, FloorTextures),
-        "cornerout" => Emit(
-            [.. CornerOutElements, .. DeckGroups("deck", ((4, 12, 4), (16, 16, 16))), .. DeckGroups("ledge", Ledge(CornerOutElements))], CornerOutTextures),
+        "wall" => Emit(WithDeck([.. WallElements, .. RimPieces(WallElements)], ((4, 12, 0), (16, 16, 16))), WallTextures),
+        "floor" => Emit(FloorShape, FloorTextures),
+        "cornerout" => Emit(WithDeck([.. CornerOutElements, .. CornerRimPieces(CornerOutElements)], ((4, 12, 4), (16, 16, 16))), CornerOutTextures),
         "diagonal" => Rounded(Emit([.. DiagonalElements, .. DeckGroups("deck", DiagonalDeckStrips())], DiagonalTextures)),
         _ => throw new KeyNotFoundException(layout),
     };
@@ -1090,6 +1209,8 @@ public static class WallShapeGen
     {
         ("east", true) => ('y', 1, 'z', -1),
         ("west", true) => ('y', 1, 'z', 1),
+        ("north", true) => ('y', 1, 'x', -1),
+        ("south", true) => ('y', 1, 'x', 1),
         ("north", _) => ('x', -1, 'y', -1),
         ("east", _) => ('z', -1, 'y', -1),
         ("south", _) => ('x', 1, 'y', -1),
@@ -1102,7 +1223,8 @@ public static class WallShapeGen
     };
 
     // The part of the source face's uv rect the clipped box covers, so the clip samples the texels the
-    // source would have drawn there.
+    // source would have drawn there. A turned face that is not square spreads its rect unevenly over
+    // the face, so the part is taken in proportion, not texel for voxel.
     private static (double, double, double, double) ClippedUv(Element source, Element clipped, string face)
     {
         var sourceUv = EmitFace(source, face)["uv"]!.Select(v => (double)v!).ToArray();
@@ -1110,8 +1232,9 @@ public static class WallShapeGen
 
         (double, double) Sub(double s0, double s1, char axis, int sign)
         {
-            double a = Axis(clipped.From, axis) - Axis(source.From, axis);
-            double b = Axis(clipped.To, axis) - Axis(source.From, axis);
+            double perVoxel = (s1 - s0) / (Axis(source.To, axis) - Axis(source.From, axis));
+            double a = (Axis(clipped.From, axis) - Axis(source.From, axis)) * perVoxel;
+            double b = (Axis(clipped.To, axis) - Axis(source.From, axis)) * perVoxel;
             return sign > 0 ? (s0 + a, s0 + b) : (s1 - b, s1 - a);
         }
 

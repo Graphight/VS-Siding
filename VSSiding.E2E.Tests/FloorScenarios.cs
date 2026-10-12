@@ -11,6 +11,28 @@ namespace VSSiding.E2E.Tests;
 [AtlasWorld(StrictBootDiagnostics = true)]
 public class FloorScenarios : AtlasScenarioBase
 {
+    // A glass floor takes a finish on its top like any other, drawn as a rim round the glass.
+    [AtlasScenario(FreshWorld = true)]
+    public async Task Floor_Should_TakeFloorboardsOnItsTopKeepingItsGlass_When_ItIsGlazed()
+    {
+        BlockPos cell = World.Spawn.Offset(1, 2, 0);
+        World.SetBlock("game:planks-aged-ud", cell.DownCopy());
+        ITestPlayer player = await WallBuilder.JoinBuilder(World);
+        player.Entity.WatchedAttributes.SetString("vssidingFraming", "floor");
+        await WallBuilder.Raise(World, player, cell, cell.WestCopy(), "game:plank-oak", null);
+        ItemSlot slot = player.Player.InventoryManager.ActiveHotbarSlot;
+        var topSel = new BlockSelection { Position = cell.Copy(), Face = BlockFacing.UP, HitPosition = new Vec3d(0.5, 1, 0.5) };
+
+        foreach (var (item, quantity) in new[] { ("game:glass-plain", 1), ("game:plank-oak", 2) })
+        {
+            await player.GiveItem(item, quantity);
+            Assert.True(World.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, topSel));
+            Assert.Null(slot.Itemstack);
+        }
+
+        Assert.Equal(("oak", "glass-plain", "planks", null, null), WallBuilder.Layers(World, cell));
+    }
+
     // A log finish has no floor shapes of its own, so a picked style reaches a floor only as the stored
     // style its texture is read by.
     [AtlasScenario(FreshWorld = true)]

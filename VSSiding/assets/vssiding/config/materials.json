@@ -94,6 +94,15 @@
 			Consumes: { type: "block", code: "game:glassslab-{type}-down-free", quantity: 1 },
 			Drops: [ { type: "block", code: "game:glassslab-{type}-down-free", quantity: { avg: 1, var: 0 } } ]
 		},
+		"glasspane-leaded-{wood}": {
+			Match: { type: "block", code: "game:glasspane-leaded-*-ew", variant: "wood" },
+			DisplayName: "vssiding:infill-glass-leaded",
+			Texture: "game:block/glass/leaded",
+			BlockMaterial: "Glass",
+			Transparent: true,
+			Consumes: { type: "block", code: "game:glasspane-leaded-{wood}-ew", quantity: 1 },
+			Drops: [ { type: "block", code: "game:glasspane-leaded-{wood}-ew", quantity: { avg: 1, var: 0 } } ]
+		},
 		"pelt-{size}": {
 			Match: { type: "item", code: "game:hide-pelt-*", variant: "size" },
 			DisplayName: "vssiding:infill-pelt",

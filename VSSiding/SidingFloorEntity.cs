@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Vintagestory.API.Client;
@@ -73,14 +74,15 @@ public class SidingFloorEntity : BlockEntity
         bool glazed = SidingWallBlock.IsTransparent(Infill, Block.Attributes["Infills"]);
         var joins = SidingFloorBlock.Joins(Api.World.BlockAccessor, Pos, glazed);
         int alternate = SidingWallEntity.CellAlternate(Block.Attributes, SidingWallTexSource.Alternate(Pos), Framing, null, [Infill], [Front, Back]);
+        string[] innerCorners = SidingFloorBlock.InnerCorners(Api.World.BlockAccessor, Pos, glazed, joins);
         string[] selectiveElements = SelectiveElements(Framing, Infill, Front, Back, Block.Attributes["Finishes"], joins, (FrontStyle, BackStyle), glazed,
-            SidingWallEntity.FrameElements(Block.Attributes["Framings"], Framing, alternate));
+            SidingWallEntity.FrameElements(Block.Attributes["Framings"], Framing, alternate), innerCorners);
         if (selectiveElements.Length == 0) return false;
 
-        string cacheKey = CacheKey(Framing, Infill, Front, Back, (FrontStyle, BackStyle), joins, alternate);
+        string cacheKey = CacheKey(Framing, Infill, Front, Back, (FrontStyle, BackStyle), joins, alternate, innerCorners);
         MeshData[] meshes = ObjectCacheUtil.GetOrCreate(capi, cacheKey, () =>
         {
-            Shape shape = Shape.TryGet(capi, new AssetLocation("vssiding", "shapes/block/floor/floor.json"));
+            Shape shape = SidingWallEntity.ParsedShape(capi, "floor/floor");
             var texSource = new TexSource(capi, this, alternate);
             if (!glazed) return new[] { Tesselate(tesselator, shape, texSource, selectiveElements) };
 
@@ -97,8 +99,8 @@ public class SidingFloorEntity : BlockEntity
 
     internal static string CacheKey(
         string? framing, string? infill, string? front, string? back, (string? front, string? back) styles,
-        (bool above, bool below, bool left, bool right) joins, int alternate = 0)
-        => $"vssiding-floor-mesh-{framing}-{infill}-{front}-{back}-{styles.front}-{styles.back}-{joins.above}-{joins.below}-{joins.left}-{joins.right}-{alternate}";
+        (bool above, bool below, bool left, bool right) joins, int alternate = 0, string[]? innerCorners = null)
+        => $"vssiding-floor-mesh-{framing}-{infill}-{front}-{back}-{styles.front}-{styles.back}-{joins.above}-{joins.below}-{joins.left}-{joins.right}-{alternate}-{string.Concat(innerCorners ?? [])}";
 
     private static MeshData Tesselate(ITesselatorAPI tesselator, Shape shape, ITexPositionSource texSource, string[] selectiveElements)
     {
@@ -108,14 +110,23 @@ public class SidingFloorEntity : BlockEntity
     }
 
     // The wall's framing and infill names, with each face's element read from the finish's own
-    // FloorElements by its style, or the plain slab where it has none.
+    // FloorElements by its style, or the plain slab where it has none. A glazed floor's finish is a
+    // rim round the glass, as a glazed wall's is: the element cut to each part the frame draws.
     internal static string[] SelectiveElements(
         string? framing, string? infill, string? front, string? back, JsonObject finishes,
-        (bool above, bool below, bool left, bool right) joins, (string? front, string? back) styles = default, bool glazed = false, string frame = "framing")
+        (bool above, bool below, bool left, bool right) joins, (string? front, string? back) styles = default, bool glazed = false, string frame = "framing",
+        string[]? innerCorners = null)
     {
-        var names = SidingWallEntity.SelectiveElements("wall", framing, infill, null, null, null, finishes, joins, glazed, frame: frame).ToList();
-        if (front != null) names.Insert(0, FloorElement(finishes, front, "front", styles.front));
-        if (back != null) names.Add(FloorElement(finishes, back, "back", styles.back));
+        var names = SidingWallEntity.SelectiveElements("wall", framing, infill, null, null, null, finishes, joins, glazed, frame: frame, innerCorners: innerCorners).ToList();
+        var parts = SidingWallEntity.FrameParts("wall", joins, glazed, innerCorners);
+        IEnumerable<string> Finish(string key, string face, string? style)
+        {
+            string group = FloorElement(finishes, key, face, style);
+            return glazed ? SidingWallEntity.RimNames(group, parts) : [group];
+        }
+
+        if (front != null) names.InsertRange(0, Finish(front, "front", styles.front));
+        if (back != null) names.AddRange(Finish(back, "back", styles.back));
         return names.ToArray();
     }
 

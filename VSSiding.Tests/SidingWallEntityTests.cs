@@ -88,8 +88,10 @@ public class SidingWallEntityTests
     [Fact]
     public void OnlyInfillElementsGoInTheTransparentHalf()
     {
-        string[] elements = SidingWallEntity.SelectiveElements(
-            "wall", "oak", "glass", null, null, null, NoElementFinishes, (false, false, false, false), glazed: true);
+        string[] elements = new[] { (false, false, false, false), (false, false, true, false), (false, false, false, true) }
+            .SelectMany(j => SidingWallEntity.SelectiveElements(
+                "wall", "oak", "glass", null, null, null, NoElementFinishes, j, glazed: true))
+            .Distinct().ToArray();
 
         Assert.Equal(
             new Dictionary<string, bool>
@@ -99,6 +101,10 @@ public class SidingWallEntityTests
                 ["glazing-top"] = false,
                 ["glazing-bottom"] = false,
                 ["infill-pane"] = true,
+                ["glazing-top-left"] = false,
+                ["glazing-bottom-left"] = false,
+                ["glazing-top-right"] = false,
+                ["glazing-bottom-right"] = false,
             },
             elements.ToDictionary(name => name, SidingWallEntity.IsInfillElement));
     }
@@ -112,6 +118,7 @@ public class SidingWallEntityTests
         {
             (false, false, false, false),
             (false, false, true, false),
+            (true, false, true, false),
             (true, false, false, true),
             (true, true, true, true),
         };
@@ -120,8 +127,11 @@ public class SidingWallEntityTests
             new Dictionary<(bool, bool, bool, bool), string[]>
             {
                 [(false, false, false, false)] = ["glazing-left", "glazing-right", "glazing-top", "glazing-bottom", "infill-pane"],
-                [(false, false, true, false)] = ["glazing-right", "glazing-top", "glazing-bottom", "infill-pane"],
-                [(true, false, false, true)] = ["glazing-left", "glazing-bottom", "infill-pane"],
+                // Left merged: its stile is gone, so each rail ends on a filler in that corner.
+                [(false, false, true, false)] = ["glazing-right", "glazing-top", "glazing-top-left", "glazing-bottom", "glazing-bottom-left", "infill-pane"],
+                // Left and above merged: the top rail is gone too, so only the bottom corner needs a filler.
+                [(true, false, true, false)] = ["glazing-right", "glazing-bottom", "glazing-bottom-left", "infill-pane"],
+                [(true, false, false, true)] = ["glazing-left", "glazing-bottom", "glazing-bottom-right", "infill-pane"],
                 // Surrounded by glazing: nothing but the pane, so the run reads as one sheet.
                 [(true, true, true, true)] = ["infill-pane"],
             },
@@ -129,14 +139,238 @@ public class SidingWallEntityTests
                 "wall", "oak", "glass", null, null, null, NoElementFinishes, j, glazed: true)));
     }
 
-    // A cornerout's three posts are structural, so glazing never takes them - only its plates.
+    // A glazed wall's finish is drawn as a rim in place of its group, one piece for each part the frame
+    // draws, so the border follows the frame wherever glazing merges.
+    [Fact]
+    public void GlazedWallDrawsEachFacesFinishAsARimOfTheFramesParts()
+    {
+        var finishes = Dict("""{ "daub": {}, "planks": { "Elements": { "front": "front-weatherboard", "back": "back-boards" } } }""");
+        var joins = new (bool above, bool below, bool left, bool right)[]
+        {
+            (false, false, false, false),
+            (false, false, true, false),
+            (true, false, true, false),
+            (true, true, true, true),
+        };
+
+        Assert.Equal(
+            new Dictionary<(bool, bool, bool, bool), string[]>
+            {
+                [(false, false, false, false)] =
+                [
+                    "front-weatherboard-rim-left", "front-weatherboard-rim-right", "front-weatherboard-rim-top", "front-weatherboard-rim-bottom",
+                    "glazing-left", "glazing-right", "glazing-top", "glazing-bottom", "infill-pane",
+                    "back-rim-left", "back-rim-right", "back-rim-top", "back-rim-bottom",
+                ],
+                [(false, false, true, false)] =
+                [
+                    "front-weatherboard-rim-right", "front-weatherboard-rim-top", "front-weatherboard-rim-top-left",
+                    "front-weatherboard-rim-bottom", "front-weatherboard-rim-bottom-left",
+                    "glazing-right", "glazing-top", "glazing-top-left", "glazing-bottom", "glazing-bottom-left", "infill-pane",
+                    "back-rim-right", "back-rim-top", "back-rim-top-left", "back-rim-bottom", "back-rim-bottom-left",
+                ],
+                [(true, false, true, false)] =
+                [
+                    "front-weatherboard-rim-right", "front-weatherboard-rim-bottom", "front-weatherboard-rim-bottom-left",
+                    "glazing-right", "glazing-bottom", "glazing-bottom-left", "infill-pane",
+                    "back-rim-right", "back-rim-bottom", "back-rim-bottom-left",
+                ],
+                // Surrounded by glazing: nothing but the pane, finish or not.
+                [(true, true, true, true)] = ["infill-pane"],
+            },
+            joins.ToDictionary(j => j, j => SidingWallEntity.SelectiveElements(
+                "wall", "oak", "glass", "planks", null, "daub", finishes, j, glazed: true)));
+    }
+
+    // A cornerout's three posts never drop, so glazing gives it ones of its own and a rail per
+    // leg between them whatever the sideways joins - and no fillers, which only a dropped stile needs.
     [Fact]
     public void GlazedCorneroutKeepsItsPosts()
     {
+        var joins = new (bool above, bool below, bool left, bool right)[]
+        {
+            (false, false, false, false),
+            (false, false, true, true),
+            (true, true, false, false),
+        };
+
         Assert.Equal(
-            ["framing", "infill-pane"],
-            SidingWallEntity.SelectiveElements(
-                "cornerout", "oak", "glass", null, null, null, NoElementFinishes, (true, true, false, false), glazed: true));
+            new Dictionary<(bool, bool, bool, bool), string[]>
+            {
+                [(false, false, false, false)] = ["glazing", "glazing-top", "glazing-bottom", "infill-pane"],
+                [(false, false, true, true)] = ["glazing", "glazing-top", "glazing-bottom", "infill-pane"],
+                [(true, true, false, false)] = ["glazing", "infill-pane"],
+            },
+            joins.ToDictionary(j => j, j => SidingWallEntity.SelectiveElements(
+                "cornerout", "oak", "glass", null, null, null, NoElementFinishes, j, glazed: true)));
+    }
+
+    // A glazed corner's finishes are rims too, on both legs: the post's piece always, and the pieces over and
+    // under the opening for as long as the rails are drawn. The second front goes the way the front does.
+    [Fact]
+    public void GlazedCorneroutDrawsEachFacesFinishAsARimOfTheFramesParts()
+    {
+        var finishes = Dict("""{ "daub": {}, "planks": { "Elements": { "front": "front-weatherboard", "back": "back-boards" } } }""");
+        var joins = new (bool above, bool below, bool left, bool right)[]
+        {
+            (false, false, false, false),
+            (false, false, true, true),
+            (true, false, false, false),
+            (true, true, false, false),
+        };
+
+        string[] unjoined =
+        [
+            "front-weatherboard-rim", "front-weatherboard-rim-top", "front-weatherboard-rim-bottom",
+            "secondfront-rim", "secondfront-rim-top", "secondfront-rim-bottom",
+            "glazing", "glazing-top", "glazing-bottom", "infill-pane",
+            "back-boards-rim", "back-boards-rim-top", "back-boards-rim-bottom",
+        ];
+
+        Assert.Equal(
+            new Dictionary<(bool, bool, bool, bool), string[]>
+            {
+                [(false, false, false, false)] = unjoined,
+                // Sideways joins are a wall's, not a corner's.
+                [(false, false, true, true)] = unjoined,
+                [(true, false, false, false)] =
+                [
+                    "front-weatherboard-rim", "front-weatherboard-rim-bottom",
+                    "secondfront-rim", "secondfront-rim-bottom",
+                    "glazing", "glazing-bottom", "infill-pane",
+                    "back-boards-rim", "back-boards-rim-bottom",
+                ],
+                [(true, true, false, false)] =
+                [
+                    "front-weatherboard-rim", "secondfront-rim", "glazing", "infill-pane", "back-boards-rim",
+                ],
+            },
+            joins.ToDictionary(j => j, j => SidingWallEntity.SelectiveElements(
+                "cornerout", "oak", "glass", "planks", "daub", "planks", finishes, j, glazed: true)));
+    }
+
+    // The top of the room side's rim lies in a deck's height. Under a deck it is left out, fillers and all,
+    // and the deck's ledge is drawn there instead; the front's rim and the frame are untouched.
+    [Fact]
+    public void ADeckedGlazedCellsRoomSideRimLeavesItsTopToTheLedge()
+    {
+        var finishes = Dict("""{ "daub": {} }""");
+
+        Assert.Equal(
+            new string[][]
+            {
+                [
+                    "front-rim-left", "front-rim-right", "front-rim-top", "front-rim-bottom",
+                    "glazing-left", "glazing-right", "glazing-top", "glazing-bottom", "infill-pane",
+                    "back-rim-left", "back-rim-right", "back-rim-bottom",
+                ],
+                [
+                    "front-rim-right", "front-rim-top", "front-rim-top-left", "front-rim-bottom", "front-rim-bottom-left",
+                    "glazing-right", "glazing-top", "glazing-top-left", "glazing-bottom", "glazing-bottom-left", "infill-pane",
+                    "back-rim-right", "back-rim-bottom", "back-rim-bottom-left",
+                ],
+                ["front-rim", "front-rim-top", "front-rim-bottom", "glazing", "glazing-top", "glazing-bottom", "infill-pane", "back-rim", "back-rim-bottom"],
+                ["framing-left", "framing-right", "framing-top", "framing-bottom", "infill", "back"],
+            },
+            new[]
+            {
+                SidingWallEntity.SelectiveElements("wall", "oak", "glass", "daub", null, "daub", finishes, (false, false, false, false), glazed: true, decked: true),
+                SidingWallEntity.SelectiveElements("wall", "oak", "glass", "daub", null, "daub", finishes, (false, false, true, false), glazed: true, decked: true),
+                SidingWallEntity.SelectiveElements("cornerout", "oak", "glass", "daub", null, "daub", finishes, (false, false, false, false), glazed: true, decked: true),
+                SidingWallEntity.SelectiveElements("wall", "oak", "wattle", null, null, "daub", finishes, (false, false, false, false), glazed: false, decked: true),
+            });
+    }
+
+    // A cell merged on both sides of a corner frames that corner only where the cell diagonally across carries
+    // no glazing on: an L's inside corner is framed, and the middle of four merged cells is left clear.
+    [Fact]
+    public void AMergedCornerIsFramedOnlyWhereTheCellDiagonallyAcrossIsNoGlazing()
+    {
+        Assert.Equal(
+            new string[][]
+            {
+                [],
+                ["-top-left"],
+                [],
+                ["-top-left", "-top-right", "-bottom-left", "-bottom-right"],
+                ["-top-right", "-bottom-left", "-bottom-right"],
+            },
+            new[]
+            {
+                SidingWallBlock.InnerCorners((true, false, false, false), (_, _) => false),
+                SidingWallBlock.InnerCorners((true, false, true, false), (_, _) => false),
+                SidingWallBlock.InnerCorners((true, false, true, false), (_, _) => true),
+                SidingWallBlock.InnerCorners((true, true, true, true), (_, _) => false),
+                SidingWallBlock.InnerCorners((true, true, true, true), (rail, stile) => rail + stile == "-top-left"),
+            });
+    }
+
+    // An inside corner draws the frame's filler alone, and each finish's rim on it, on a wall, a floor and
+    // a deck; a corner and an opaque wall have no fillers to draw.
+    [Fact]
+    public void AnInsideCornerDrawsItsFillerAndEachFinishesRimOnIt()
+    {
+        var finishes = Dict("""{ "daub": {} }""");
+        var joins = (above: true, below: false, left: true, right: false);
+        string[] innerCorners = ["-top-left"];
+
+        Assert.Equal(
+            new string[][]
+            {
+                [
+                    "front-rim-right", "front-rim-bottom", "front-rim-bottom-left", "front-rim-top-left",
+                    "glazing-right", "glazing-bottom", "glazing-bottom-left", "glazing-top-left", "infill-pane",
+                    "back-rim-right", "back-rim-bottom", "back-rim-bottom-left", "back-rim-top-left",
+                ],
+                [
+                    "front-rim-right", "front-rim-bottom", "front-rim-bottom-left", "front-rim-top-left",
+                    "glazing-right", "glazing-bottom", "glazing-bottom-left", "glazing-top-left", "infill-pane",
+                ],
+                [
+                    "deck-west-glazing-right", "deck-west-glazing-bottom", "deck-west-glazing-bottom-left", "deck-west-glazing-top-left",
+                    "deck-west-infill-pane",
+                ],
+                ["glazing", "glazing-bottom", "infill-pane"],
+                ["framing-right", "framing-bottom", "infill", "infill-top"],
+            },
+            new[]
+            {
+                SidingWallEntity.SelectiveElements("wall", "oak", "glass", "daub", null, "daub", finishes, joins, glazed: true, innerCorners: innerCorners),
+                SidingFloorEntity.SelectiveElements("oak", "glass", "daub", null, finishes, joins, glazed: true, innerCorners: innerCorners),
+                SidingWallEntity.DeckElements("west", "oak", "glass", null, null, finishes, joins, default, glazed: true, innerCorners: innerCorners),
+                SidingWallEntity.SelectiveElements("cornerout", "oak", "glass", null, null, null, finishes, joins, glazed: true, innerCorners: innerCorners),
+                SidingWallEntity.SelectiveElements("wall", "oak", "wattle", null, null, null, finishes, joins, glazed: false, innerCorners: innerCorners),
+            });
+    }
+
+    // What a deck draws in the slot of the room-side finish: its whole ledge while that side is bare, nothing
+    // behind a finish that fills the slot, and behind a glazed cell's rim the ledge across the opening, out
+    // to the cell's edge where a stile has merged away. A diagonal's deck draws none.
+    [Fact]
+    public void ADecksLedgesFillWhatTheRoomSideFinishLeavesOpen()
+    {
+        var unjoined = (false, false, false, false);
+
+        Assert.Equal(
+            new string[][]
+            {
+                ["ledge"], ["ledge"], [],
+                ["ledgetop"], ["ledgetop", "ledgetopleft"], ["ledgetop", "ledgetopright"], ["ledgetop", "ledgetopleft", "ledgetopright"],
+                ["ledgetop"], [], [],
+            },
+            new[]
+            {
+                SidingWallEntity.Ledges("wall", roomSideBare: true, glazed: false, unjoined),
+                SidingWallEntity.Ledges("wall", roomSideBare: true, glazed: true, (true, false, true, true)),
+                SidingWallEntity.Ledges("wall", roomSideBare: false, glazed: false, unjoined),
+                SidingWallEntity.Ledges("wall", roomSideBare: false, glazed: true, unjoined),
+                SidingWallEntity.Ledges("wall", roomSideBare: false, glazed: true, (false, false, true, false)),
+                SidingWallEntity.Ledges("wall", roomSideBare: false, glazed: true, (true, false, false, true)),
+                SidingWallEntity.Ledges("wall", roomSideBare: false, glazed: true, (true, true, true, true)),
+                SidingWallEntity.Ledges("cornerout", roomSideBare: false, glazed: true, (true, false, false, false)),
+                SidingWallEntity.Ledges("diagonal", roomSideBare: true, glazed: false, unjoined),
+                SidingWallEntity.Ledges("diagonal", roomSideBare: true, glazed: true, unjoined),
+            });
     }
 
     // A diagonal takes a finish's own groups as a wall does, draws the plain frame for a rough one, and at
@@ -441,6 +675,9 @@ public class SidingWallEntityTests
             SidingWallEntity.CacheKey("wall", "west", "oak", "wattle", "daub", "planks", "brick", (false, false, false, false), default, "oak", null, null, null, null, null, default, (false, true, false, false)),
             SidingWallEntity.CacheKey("wall", "west", "oak", "wattle", "daub", "planks", "brick", (false, false, false, false), default, "oak", null, null, null, null, null, default, (false, false, true, false)),
             SidingWallEntity.CacheKey("wall", "west", "oak", "wattle", "daub", "planks", "brick", (false, false, false, false), default, "oak", null, null, null, null, null, default, (false, false, false, true)),
+            SidingWallEntity.CacheKey("wall", "west", "oak", "wattle", "daub", "planks", "brick", (false, false, false, false), innerCorners: ["-top-left"]),
+            SidingWallEntity.CacheKey("wall", "west", "oak", "wattle", "daub", "planks", "brick", (false, false, false, false), innerCorners: ["-top-right"]),
+            SidingWallEntity.CacheKey("wall", "west", "oak", "wattle", "daub", "planks", "brick", (false, false, false, false), deckInnerCorners: ["-top-left"]),
         ];
 
         Assert.Equal(keys, keys.Distinct());
@@ -450,11 +687,11 @@ public class SidingWallEntityTests
     public void GlassGroupsOfTheWallAndItsDeckAreInfillElements()
     {
         Assert.Equal(
-            [true, true, true, false, false, false, true, false],
+            [true, true, true, false, false, false, true, false, true, false],
             new[]
             {
                 "infill-pane", "infill-top", "deck-west-infill-pane", "deck-west-glazing-top", "framing-left", "deck-north-front-hboards",
-                "ledge-west-infill-pane", "ledge-west-glazing-top",
+                "ledge-west-infill-pane", "ledge-west-glazing-top", "ledgetopleft-south-infill-pane", "ledgetop-south-glazing-top",
             }
                 .Select(SidingWallEntity.IsInfillElement));
     }

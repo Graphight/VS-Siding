@@ -69,4 +69,21 @@ public class EarthScenarios : AtlasScenarioBase
 
         Assert.Equal(("oak", "glassslab-plain", null, null, null), WallBuilder.Layers(World, cell));
     }
+
+    [AtlasScenario(FreshWorld = true)]
+    public async Task Wall_Should_TakeLeadedGlassPaneAsInfill_When_ThePaneClicksTheFrame()
+    {
+        BlockPos cell = World.Spawn.Offset(1, 2, 0);
+        World.SetBlock("game:planks-aged-ud", cell.DownCopy());
+        ITestPlayer player = await WallBuilder.JoinBuilder(World);
+        await WallBuilder.Raise(World, player, cell, cell.WestCopy(), "game:plank-oak", null);
+        ItemSlot slot = player.Player.InventoryManager.ActiveHotbarSlot;
+        var outwardSel = new BlockSelection { Position = cell.Copy(), Face = BlockFacing.EAST, HitPosition = new Vec3d(0.5, 0.5, 0.5) };
+
+        await player.GiveItem("game:glasspane-leaded-aged-ew", 1);
+        Assert.True(World.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, outwardSel));
+        Assert.Null(slot.Itemstack);
+
+        Assert.Equal(("oak", "glasspane-leaded-aged", null, null, null), WallBuilder.Layers(World, cell));
+    }
 }

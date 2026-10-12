@@ -58,12 +58,6 @@ public class SidingFloorBlock : Block
         if (finishKey == null) return base.OnBlockInteractStart(world, byPlayer, blockSel);
 
         bool heldPlaces = slot.Itemstack!.Class == EnumItemClass.Block || SidingWallBlock.MatchConsumes(heldCode, Attributes["Framings"]) != null;
-        if (SidingWallBlock.IsTransparent(entity.Infill, Attributes["Infills"]))
-        {
-            if (heldPlaces) return base.OnBlockInteractStart(world, byPlayer, blockSel);
-            (byPlayer as IServerPlayer)?.SendIngameError("vssiding:glazed", Lang.Get("vssiding:build-glazed"));
-            return true;
-        }
 
         string? face = FinishFace(blockSel.Face);
         if (face == null)
@@ -240,6 +234,15 @@ public class SidingFloorBlock : Block
             && Continues(glazing, wall.Deck, wall.DeckInfill, wall.Block.Attributes["Infills"]);
     }
 
+    // As a wall's (SidingWallBlock.InnerCorners). The cell diagonally across is asked from both of the
+    // cells between, since a deck there has to reach both of the edges that meet at the corner.
+    internal static string[] InnerCorners(IBlockAccessor accessor, BlockPos pos, bool glazed, (bool above, bool below, bool left, bool right) joins)
+        => !glazed ? [] : SidingWallBlock.InnerCorners(joins, (rail, stile) =>
+        {
+            BlockFacing along = rail == "-top" ? BlockFacing.NORTH : BlockFacing.SOUTH, across = stile == "-left" ? BlockFacing.WEST : BlockFacing.EAST;
+            return Continues(accessor, pos.AddCopy(along), across, true) && Continues(accessor, pos.AddCopy(across), along, true);
+        });
+
     internal static bool Continues(bool glazing, string? framing, string? infill, JsonObject infills)
         => framing != null && (!glazing || SidingWallBlock.IsTransparent(infill, infills));
 
@@ -270,13 +273,16 @@ public class SidingFloorBlock : Block
             ? (view.X > 0 ? BlockFacing.EAST : BlockFacing.WEST)
             : (view.Z > 0 ? BlockFacing.SOUTH : BlockFacing.NORTH);
 
-    // Setting Framing or Infill isn't a block change, so the floors and wall decks whose rims or bezel it drops have to be told.
+    // Setting Framing or Infill isn't a block change, so the floors and wall decks whose rims or bezel it drops have to be
+    // told: the four beside it, and the four diagonally across, each of which frames its inside corner by this one.
     internal static void MarkNeighboursDirty(IWorldAccessor world, BlockPos pos)
     {
-        foreach (BlockFacing side in BlockFacing.HORIZONTALS)
+        for (int dx = -1; dx <= 1; dx++)
+        for (int dz = -1; dz <= 1; dz++)
         {
-            world.BlockAccessor.GetBlockEntity<SidingFloorEntity>(pos.AddCopy(side))?.MarkDirty(true);
-            world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos.AddCopy(side))?.MarkDirty(true);
+            if (dx == 0 && dz == 0) continue;
+            world.BlockAccessor.GetBlockEntity<SidingFloorEntity>(pos.AddCopy(dx, 0, dz))?.MarkDirty(true);
+            world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos.AddCopy(dx, 0, dz))?.MarkDirty(true);
         }
     }
 
