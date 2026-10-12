@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Created: 2026-10-11
-- Reflects: branch `window-frame-depth`, PR #116; issue #98 and mod page comment https://mods.vintagestory.at/vssiding#cmt-245199 with both screenshots; `VSSiding.Tests/WallShapeGen` (`RimPieces`, `CornerRimPieces`, `RimPiece`, and the frame pieces in `WallElements`, `FloorElements` and `CornerOutElements`); `SidingWallEntity.FrameParts`, `RimNames` and `SelectiveElements`; `SidingFloorEntity.SelectiveElements`; the `selectiveElements` of `blocktypes/wall.json` and `floor.json`; `config/materials.json`'s leaded pane entry; decisions 0019, 0062, 0066, 0069, 0070; the playtest of the full-depth frame on 2026-10-11; the rims themselves have not been played
+- Reflects: branch `window-frame-depth`, PR #116; issue #98 and mod page comment https://mods.vintagestory.at/vssiding#cmt-245199 with both screenshots; `VSSiding.Tests/WallShapeGen` (`RimPieces`, `CornerRimPieces`, `RimPiece`, and the frame pieces in `WallElements`, `FloorElements` and `CornerOutElements`); `SidingWallEntity.FrameParts`, `RimNames` and `SelectiveElements`; `SidingFloorEntity.SelectiveElements`; the `selectiveElements` of `blocktypes/wall.json` and `floor.json`; `config/materials.json`'s leaded pane entry; decisions 0019, 0062, 0066, 0069, 0070; the playtest of the full-depth frame on 2026-10-11, and a first playtest of the rims the same day, on vertical boards only
 
 ## Summary
 A glazed cell takes a finish on each face like any other wall, drawn as a rim round the glass and cut from the finish's own pieces.
@@ -114,6 +114,7 @@ Glazed cells join on `Transparent` whatever the key (decision 0019), so a leaded
 - `NoTwoFacesOfAGlazedCellsFramePiecesShareAPlaneAndOverlap` checks, for the wall, the floor and the corner and every set of merged sides, that no two faces of the frame, pane and rim pieces drawn together lie in one plane, look the same way and overlap.
 - `EveryRimPieceDrawsAFaceOnEachPlaneItWasCutAt` and the two tests that add a cut's faces to a group limiting its faces (wall and floor) hold the cut ends.
 - `RimPiecesKeepTheUncutFinishesUv` and `FloorCutsItsFinishesToTheGlazingFramesFootprints` hold the texture and the floor's cut on x and z.
+- `EveryRimPieceSamplesWhatTheUncutFinishSamplesThere` compares every rim piece's texture coordinates with the uncut finish's at each corner of each face both draw, worked out from vanilla's `CubeMeshUtil` tables the way `ShapeTesselator` reads a face's rect and rotation. It was added after the playtest below, because the hand-written rows of the test above had passed a wrong value.
 - Name tables for `SelectiveElements` on a wall, a corner and a floor, and `EveryRimElementAGlazedCellCanAskForExistsAndIsLeftOutOfTheDefaultShape` and its floor and deck forms, hold that every rim name exists in the generated shape.
 - `ADeckedGlazedCellsRoomSideRimLeavesItsTopToTheLedge` and `ADecksLedgesFillWhatTheRoomSideFinishLeavesOpen` are the name tables for a deck against a rim, and `ADeckedGlazedCellsLedgeSharesNoPlaneWithItsRimOrFrame` checks the pieces those names draw.
 
@@ -131,4 +132,6 @@ Glazed cells join on `Transparent` whatever the key (decision 0019), so a leaded
 - The default shapes of the wall and the corner name every deck, ledge and step piece they drew on `main`. Whether they should is open.
 - A glazed deck on a diagonal takes rims, though the diagonal's own faces take none.
 - A rim costs what a full finish costs, since it is laid by the same click.
-- Nothing of the rims has been played. Still to look at: the rim beside brick, daub, weatherboard and shakes, merged and L-shaped windows, corners, floors and decks, a deck against a finished window, leaded panes, and a world saved before this change.
+- The rims were first played on 2026-10-11, on walls and a corner finished in vertical boards. That found two faults in the board rim of a corner's second leg, both in how a cut reads a turned face's texture: it was cut along the wrong axes, and then out of step with the uncut finish by up to a texel, since that leg is 15 long. Both are fixed in `WallShapeGen.UvLayout` and `ClippedUv`.
+- Still to look at: the rim beside brick, daub, weatherboard and shakes, merged and L-shaped windows, floors and decks, a deck against a finished window, leaded panes, and a world saved before this change.
+- A glazed corner still merges only up and down (decision 0019), so a glazed wall beside it keeps its stile against the corner's end post. The `glazed-corner-merge` proposal covers that.
