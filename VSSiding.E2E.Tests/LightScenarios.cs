@@ -37,6 +37,27 @@ public class LightScenarios : AtlasScenarioBase
     }
 
     [AtlasScenario(FreshWorld = true)]
+    public async Task RoomLight_Should_StopAtAFrameOnceItIsFilled_And_PassAgainOnceItIsEmptied()
+    {
+        (BlockPos inside, ITestPlayer player) = await WallBuilder.BuildRoom(World, "game:clay-blue", [BlockFacing.NORTH, BlockFacing.SOUTH, BlockFacing.WEST]);
+        BlockPos cell = inside.EastCopy();
+        BlockPos outside = cell.EastCopy();
+
+        World.SetBlock("game:lantern-large-up", inside);
+        await World.Until(() => BlockLight(outside) > 0, 100);
+
+        await player.GiveItem("game:clay-blue", 4);
+        var selection = new BlockSelection { Position = cell.Copy(), Face = BlockFacing.EAST, HitPosition = new Vec3d(0.5, 0.5, 0.5) };
+        Assert.True(World.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, selection));
+        Assert.Equal(Expected, WallBuilder.Layers(World, cell));
+        await World.Until(() => BlockLight(outside) == 0, 100);
+
+        World.Api.World.BlockAccessor.BreakBlock(cell, player.Player);
+        Assert.Equal(("oak", null, null, null, null), WallBuilder.Layers(World, cell));
+        await World.Until(() => BlockLight(outside) > 0, 100);
+    }
+
+    [AtlasScenario(FreshWorld = true)]
     public async Task HostedLantern_Should_LightASealedRoomButLetNoSunlightIn()
     {
         (BlockPos inside, ITestPlayer player) = await WallBuilder.BuildRoom(World, "game:clay-blue", BlockFacing.HORIZONTALS);

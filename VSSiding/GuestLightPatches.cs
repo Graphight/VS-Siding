@@ -2,6 +2,7 @@ using System;
 using HarmonyLib;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
+using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Vintagestory.Client.NoObf;
 using Vintagestory.Common;
@@ -49,6 +50,31 @@ internal static class GuestLightPatches
         {
             api.Logger.Error("vssiding: hosted light source patch skipped, a light hosted in a sealed wall will not light the room: {0}", e);
         }
+
+        try
+        {
+            harmony.Patch(AccessTools.Method(typeof(ChunkIlluminator), nameof(ChunkIlluminator.UpdateSunLight)),
+                postfix: new HarmonyMethod(typeof(GuestLightPatches), nameof(SunLightPostfix)));
+        }
+        catch (Exception e)
+        {
+            api.Logger.Error("vssiding: block light relight patch skipped, torch light through a wall will be stale after its layers change: {0}", e);
+        }
+    }
+
+    // A wall's layers change its absorption without changing its block, which reaches vanilla as an
+    // absorption-changed task, and both relight systems redo only sunlight for one. UpdateSunLight is
+    // the call they share for it, and each marks every chunk it returns. A block change that vanilla
+    // already relit runs the block light update a second time here, to the same result.
+    private static void SunLightPostfix(ChunkIlluminator __instance, int posX, int posY, int posZ, int oldAbsorb, int newAbsorb,
+        FastSetOfLongs __result, IBlockAccessor ___readBlockAccess)
+    {
+        if (oldAbsorb == newAbsorb) return;
+
+        var pos = new BlockPos(posX, posY, posZ);
+        if (___readBlockAccess.GetBlock(pos) is not SidingFloorBlock && SidingWallBlock.WallAt(___readBlockAccess, pos) == null) return;
+
+        foreach (long chunk in __instance.UpdateBlockLight(oldAbsorb, newAbsorb, posX, posY, posZ)) __result.Add(chunk);
     }
 
     // RemoveBlockLight walks every other nearby source, so each walk puts back the one it replaced.

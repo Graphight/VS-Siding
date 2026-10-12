@@ -55,6 +55,14 @@ public class RoomSkylightPatchTests
     }
 
     [Fact]
+    public void AbsorptionRelightMethodsStillTakeTheSameArguments()
+    {
+        var actual = new[] { nameof(ChunkIlluminator.UpdateSunLight), nameof(ChunkIlluminator.UpdateBlockLight) }
+            .Select(method => string.Join(",", AccessTools.Method(typeof(ChunkIlluminator), method).GetParameters().Select(p => p.Name))).ToArray();
+        Assert.Equal(new[] { "posX,posY,posZ,oldAbsorb,newAbsorb", "oldLightAbsorb,newLightAbsorb,posX,posY,posZ" }, actual);
+    }
+
+    [Fact]
     public void NeighbourSlotsAreTheFourSidesAroundTheGridCentre()
     {
         var actual = BlockFacing.HORIZONTALS.Select(f => GuestLightPatches.NeighbourSlot(f.Normali.X, f.Normali.Y, f.Normali.Z)).ToArray();
