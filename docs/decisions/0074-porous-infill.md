@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Created: 2026-10-12
-- Reflects: branch `hosted-light-and-wattle`; mod page comment https://mods.vintagestory.at/vssiding#cmt-243541; `SidingWallBlock.ComputeLightAbsorption`/`IsPorous`/`IsFinished`/`AbsorptionOf`, `SidingWallEntity.FromTreeAttributes`, the wattle entry of `config/materials.json`; `SidingWallBlockRetentionTests.AnUnfinishedPorousWallPassesLightAndNothingElseChanges` and `AWallIsFinishedOnceItsBackOrItsOuterFacesAreCovered`; `LightScenarios.BareWattle_Should_PassRoomLightUntilAFaceIsFinished` and `HostedTorch_Should_LightBothSides_When_TheWallIsBareWattle`; decisions 0015, 0018, 0019, 0034, 0072, 0073; vanilla 1.22 `ChunkIlluminator`, `ServerSystemRelight`, `ClientSystemRelight`, `WorldChunk` (decompiled); not yet played
+- Reflects: branch `hosted-light-and-wattle`; mod page comment https://mods.vintagestory.at/vssiding#cmt-243541; `SidingWallBlock.ComputeLightAbsorption`/`IsPorous`/`IsFinished`/`AbsorptionOf`, `SidingWallEntity.FromTreeAttributes`, the wattle entry of `config/materials.json`; `SidingWallBlockRetentionTests.AnUnfinishedPorousWallPassesLightAndNothingElseChanges` and `AWallIsFinishedOnceItsBackOrItsOuterFacesAreCovered`; `LightScenarios.BareWattle_Should_PassRoomLightUntilAFaceIsFinished` and `HostedTorch_Should_LightBothSides_When_TheWallIsBareWattle`; decisions 0015, 0018, 0019, 0034, 0072, 0073; vanilla 1.22 `ChunkIlluminator`, `ServerSystemRelight`, `ClientSystemRelight`, `WorldChunk` (decompiled); played on 2026-10-12
 
 ## Summary
 Wattle infill passes light until a face is finished, and a finished wall stays dark.
@@ -50,4 +50,4 @@ Stored light is not recomputed on load, so a standing bare wattle wall passes li
 ## Consequences & open questions
 - A torch hosted on bare wattle lights both sides, since decision 0072 marks only a wall with absorption above zero.
 - Daub on a face puts the light out, and peeling the daub brings it back.
-- Not yet played.
+- Played, with a torch behind bare wattle as the test: the report was that the wattle let the light through and a finish on a face blocked it. Peeling the finish was not played; the scenario covers it.

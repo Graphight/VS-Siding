@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Created: 2026-10-12
-- Reflects: branch `hosted-light-and-wattle`; issue #93 and mod page comment https://mods.vintagestory.at/vssiding#cmt-243541; `GuestLightPatches.CollectPrefix`/`NeighbourSlot`, `SidingWallBlock.ClaimsFace`, `GuestWalls.Absorption`; `RoomSkylightPatchTests.LightSourceWalkKeepsTheFieldsTheHostedLightMarkWrites` and `NeighbourSlotsAreTheFourSidesAroundTheGridCentre`; `LightScenarios.HostLitTorch`; decisions 0035, 0057; vanilla 1.22 `ChunkIlluminator`, `ServerSystemRelight`, `ClientSystemRelight`, `WorldChunk` (decompiled); not yet played
+- Reflects: branch `hosted-light-and-wattle`; issue #93 and mod page comment https://mods.vintagestory.at/vssiding#cmt-243541; `GuestLightPatches.CollectPrefix`/`NeighbourSlot`, `SidingWallBlock.ClaimsFace`, `GuestWalls.Absorption`; `RoomSkylightPatchTests.LightPatchParametersStillNameVanillaFieldsAndArguments` and `NeighbourSlotsAreTheFourSidesAroundTheCentreOfVanillasGrid`; `LightScenarios.HostLitTorch`; decisions 0035, 0057; vanilla 1.22 `ChunkIlluminator`, `ServerSystemRelight`, `ClientSystemRelight`, `WorldChunk` (decompiled); played on 2026-10-12
 
 ## Summary
 A torch or lantern hosted in a sealed wall's cell lights the cell on its open side and no longer lights the cell beyond the wall's panel.
@@ -31,7 +31,7 @@ The walk then skips that neighbour: it is neither lit nor enqueued.
 
 A guest wall with absorption 0 is not marked, so a light hosted in an open frame, glazing or bare wattle (decision 0074) reaches both sides.
 
-`RoomSkylightPatchTests` pins the three private fields the prefix reads and the slot arithmetic.
+`RoomSkylightPatchTests` reads the prefix's own parameters and checks each against the vanilla field or argument it names, and checks the slot arithmetic against vanilla's `VISITED_WIDTH`.
 Decision 0020's sweep on a game update should cover them.
 
 **The fixture was turned round.**
@@ -46,6 +46,9 @@ The wall is now raised towards the outdoor cell and the torch is clicked into th
 - **Marking in `RemoveBlockLight` too.** The darkness pass has to clear the cell behind the wall, so it is left unmarked.
 
 ## Consequences & open questions
-- The mark lasts the whole walk. The one cell directly behind a hosted light gets none of that light, even where it could wrap round a free-standing wall's end. Exact behaviour needs the transpiler above, which is not built.
+- The mark lasts the whole walk. The one cell directly behind a hosted light gets none of that light wherever the light has a second route to it: round a free-standing wall's end, or through a door, a window or a bare wattle wall into the room behind. Exact behaviour needs the transpiler above, which is not built.
 - A light hosted in a wall with absorption above zero no longer lights the ground outside it, so the known issue on the mod page is removed.
-- Not yet played.
+- Existing saves: stored light is not recomputed on load, so a light hosted before this change keeps its pool outside until it is picked up and placed again. The mod page's known issues say so.
+- Played, with the light levels of both sides dumped from a debug build: a torch hosted in a clay wall between two rooms left 13 on its open side and 1 in the cell behind the panel, and the client's and the server's levels matched in every cell.
+- The same play had a door between the two rooms, the second route above. The torch's light reached the room behind through the door, and the marked cell read 1 where an unmarked walk would leave 5, beside neighbours at 6, 4 and 2. The panel behind the torch did not stand out.
+- A vanilla door has light absorption 0 open or shut, so a room with a door takes daylight and torch light through it. That is vanilla's, and it was first read as light through the walls and the floor.

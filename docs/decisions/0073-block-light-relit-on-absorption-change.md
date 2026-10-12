@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Created: 2026-10-12
-- Reflects: branch `hosted-light-and-wattle`; issue #93; `GuestLightPatches.SunLightPostfix`, `SidingWallBlock.MarkAbsorptionChanged`; `LightScenarios.RoomLight_Should_StopAtAFrameOnceItIsFilled_And_PassAgainOnceItIsEmptied`; `RoomSkylightPatchTests.AbsorptionRelightMethodsStillTakeTheSameArguments`; decisions 0034, 0072, 0074; vanilla 1.22 `ChunkIlluminator`, `ServerSystemRelight`, `ClientSystemRelight`, `WorldChunk` (decompiled); not yet played
+- Reflects: branch `hosted-light-and-wattle`; issue #93; `GuestLightPatches.SunLightPostfix`, `SidingWallBlock.MarkAbsorptionChanged`; `LightScenarios.RoomLight_Should_StopAtAFrameOnceItIsFilled_And_PassAgainOnceItIsEmptied`; `RoomSkylightPatchTests.LightPatchParametersStillNameVanillaFieldsAndArguments` and `BlockLightUpdateStillTakesItsArgumentsInTheSameOrder`; decisions 0034, 0072, 0074; vanilla 1.22 `ChunkIlluminator`, `ServerSystemRelight`, `ClientSystemRelight`, `WorldChunk` (decompiled); played on 2026-10-12
 
 ## Summary
 A wall's layers change its light absorption without changing its block, and vanilla relights only sunlight for that.
@@ -25,7 +25,7 @@ It relit sunlight only.
 When the old and new absorption differ and the cell holds a siding wall, a siding floor or a guest wall, it runs `UpdateBlockLight` with the same old and new absorption and adds the chunks that returns to the set.
 A cell holding any other block is left alone, so another mod's `MarkAbsorptionChanged` is untouched.
 
-`AbsorptionRelightMethodsStillTakeTheSameArguments` fails `just test` if either method drops the argument names the postfix relies on.
+`LightPatchParametersStillNameVanillaFieldsAndArguments` fails `just test` if `UpdateSunLight` drops an argument or the illuminator a field the postfix names, and `BlockLightUpdateStillTakesItsArgumentsInTheSameOrder` if `UpdateBlockLight` reorders the five ints the postfix passes by position.
 
 ## Alternatives considered
 - **A fake block-change task with a stand-in block id.** The block-change path runs `UpdateBlockLight`, but it needs two blocks whose absorption differs, and a stand-in id would reach everything else that reads the task.
@@ -36,4 +36,4 @@ A cell holding any other block is left alone, so another mod's `MarkAbsorptionCh
 - A block change that vanilla already relit runs the block light update twice at a siding cell, to the same result.
 - Floors are included by the same check.
 - Finish edits, layout upgrades and client syncs now mark an absorption change when a finish moves it (decision 0074), and this postfix is what turns that into a block light relight.
-- Not yet played.
+- Played through a finish edit only, with a torch behind bare wattle as the test: the report was that the wattle let the light through and a finish on a face blocked it. Filling and emptying a frame beside a torch was not played; the scenario covers it.
