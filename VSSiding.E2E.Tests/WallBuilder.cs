@@ -80,6 +80,29 @@ internal static class WallBuilder
         Assert.Null(slot.Itemstack);
     }
 
+    // A right-click as vanilla sends it: the wall answers first unless the player sneaks, and the held item only
+    // when the wall passes the click on. A held button sends the click again with firstEvent false.
+    // The deck's boxes follow the wall's own.
+    internal static async Task Press(
+        IWorldSession world, ITestPlayer player, BlockPos cell, string item, BlockFacing face, Vec3d hit, int quantity = 4, bool held = false, bool onDeck = false)
+    {
+        ItemSlot slot = player.Player.InventoryManager.ActiveHotbarSlot;
+        slot.Itemstack = null;
+        await player.GiveItem(item, quantity);
+        var sel = new BlockSelection
+        {
+            Position = cell.Copy(), Face = face, HitPosition = hit,
+            SelectionBoxIndex = onDeck ? world.BlockAt(cell).SelectionBoxes.Length : 0,
+        };
+
+        foreach (bool firstEvent in held ? new[] { true, false } : new[] { true })
+        {
+            if (!player.Entity.Controls.ShiftKey && world.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, sel)) continue;
+            var handling = EnumHandHandling.NotHandled;
+            slot.Itemstack?.Collectible.OnHeldInteractStart(slot, player.Entity, sel, null, firstEvent, ref handling);
+        }
+    }
+
     // A one-cell room on a plank floor under a plank roof, walled with the framing on every side and the infill on the filled ones.
     internal static async Task<(BlockPos Inside, ITestPlayer Player)> BuildRoom(
         IWorldSession world, string infill, BlockFacing[] filled, string framing = "game:plank-oak", int framingCost = 2, string offhand = "game:saw-copper")
