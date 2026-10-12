@@ -592,7 +592,7 @@ public class SidingWallBlock : Block
             // to charge for and nothing to drop.
             if (style != null && currentKey == finishKey && currentStyle != style)
             {
-                SetFinish(entity, face, finishKey, style);
+                SetFinish(world, entity, blockSel.Position, face, finishKey, style);
                 return true;
             }
 
@@ -604,7 +604,7 @@ public class SidingWallBlock : Block
         var finishConsumes = Attributes["Finishes"][finishKey]["Consumes"];
         if (!TryAffordOrError(byPlayer, isCreative, slot.StackSize, finishConsumes)) return true;
 
-        SetFinish(entity, face, finishKey, style);
+        SetFinish(world, entity, blockSel.Position, face, finishKey, style);
         ConsumeHeld(slot, finishConsumes, isCreative);
         return true;
     }
@@ -639,6 +639,8 @@ public class SidingWallBlock : Block
             return true;
         }
 
+        int oldAbsorption = AbsorptionOf(entity);
+
         // Keeps the block entity, and the engine repoints its Block at the new
         // type, so Framing survives and OnTesselation reads the new layout.
         world.BlockAccessor.ExchangeBlock(target.Id, blockSel.Position);
@@ -654,7 +656,7 @@ public class SidingWallBlock : Block
 
             // The new leg changes retention, light and the liquid barrier. On the target, since
             // OnInfillChanged exchanges the block for its own Id.
-            target.OnInfillChanged(world, entity, blockSel.Position, target.AbsorptionOf(entity));
+            target.OnInfillChanged(world, entity, blockSel.Position, oldAbsorption);
             return true;
         }
 
@@ -743,15 +745,16 @@ public class SidingWallBlock : Block
         entity.MarkDirty(true);
     }
 
-    private static void SetFinish(SidingWallEntity entity, string face, string finishKey, string? style)
+    private void SetFinish(IWorldAccessor world, SidingWallEntity entity, BlockPos pos, string face, string finishKey, string? style)
     {
+        int oldAbsorption = AbsorptionOf(entity);
         switch (face)
         {
             case "front": entity.Front = finishKey; entity.FrontStyle = style; break;
             case "secondfront": entity.SecondFront = finishKey; entity.SecondFrontStyle = style; break;
             default: entity.Back = finishKey; entity.BackStyle = style; break;
         }
-        entity.MarkDirty(true);
+        OnFinishChanged(world, entity, pos, oldAbsorption);
     }
 
     // Only a finish that lists a style can be asked for it, so a picked board style on daub or
@@ -769,6 +772,15 @@ public class SidingWallBlock : Block
         // beside it has no idea. Without this a wall only starts damming once something else
         // nearby happens to make the neighbours recalculate - and only stops damming then too.
         world.BlockAccessor.TriggerNeighbourBlockUpdate(pos);
+        MarkNeighboursDirty(world, pos);
+    }
+
+    // A finish changes neither retention nor the liquid barrier, only the light the wall absorbs.
+    private void OnFinishChanged(IWorldAccessor world, SidingWallEntity entity, BlockPos pos, int oldAbsorption)
+    {
+        entity.MarkDirty(true);
+        if (AbsorptionOf(entity) == oldAbsorption) return;
+        MarkAbsorptionChanged(world.BlockAccessor, pos, oldAbsorption);
         MarkNeighboursDirty(world, pos);
     }
 
@@ -1326,6 +1338,7 @@ public class SidingWallBlock : Block
 
     internal void RemoveLayer(IWorldAccessor world, SidingWallEntity entity, BlockPos pos, string layer)
     {
+        int oldAbsorption = AbsorptionOf(entity);
         switch (layer)
         {
             case "front": entity.Front = null; entity.FrontStyle = null; break;
@@ -1345,12 +1358,11 @@ public class SidingWallBlock : Block
             case "deck": SetDeck(world, entity, pos, null); return;
             case "step": entity.Step = null; entity.StepOrientation = null; entity.MarkDirty(true); return;
             default:
-                int oldAbsorption = AbsorptionOf(entity);
                 entity.Infill = null;
                 OnInfillChanged(world, entity, pos, oldAbsorption);
                 return;
         }
-        entity.MarkDirty(true);
+        OnFinishChanged(world, entity, pos, oldAbsorption);
     }
 
     public override ItemStack[] GetDrops(IWorldAccessor world, BlockPos pos, IPlayer byPlayer, float dropQuantityMultiplier)
