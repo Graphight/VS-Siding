@@ -1209,6 +1209,8 @@ public static class WallShapeGen
     {
         ("east", true) => ('y', 1, 'z', -1),
         ("west", true) => ('y', 1, 'z', 1),
+        ("north", true) => ('y', 1, 'x', -1),
+        ("south", true) => ('y', 1, 'x', 1),
         ("north", _) => ('x', -1, 'y', -1),
         ("east", _) => ('z', -1, 'y', -1),
         ("south", _) => ('x', 1, 'y', -1),
