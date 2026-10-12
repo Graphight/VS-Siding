@@ -1070,15 +1070,25 @@ public class SidingWallBlock : Block
     }
 
     internal int AbsorptionOf(SidingWallEntity? entity)
-        => ComputeLightAbsorption(entity?.Framing, entity?.Infill, Attributes["Framings"], Attributes["Infills"]);
+        => ComputeLightAbsorption(entity?.Framing, entity?.Infill, Attributes["Framings"], Attributes["Infills"],
+            IsFinished(Variant["layout"], entity?.Front, entity?.SecondFront, entity?.Back));
+
+    // Back covers the whole inner side; a cornerout's two outer faces are separate layers.
+    internal static bool IsFinished(string layout, string? front, string? secondFront, string? back)
+        => back != null || (front != null && (layout != "cornerout" || secondFront != null));
 
     // Sealing a room and blocking light are separate questions: glazing does the first and must
     // not do the second. An infill marked Transparent absorbs nothing, which also takes its cell
     // out of the room skylight patch (decision 0015), side AO (0016) and both 0018 patches, since
-    // all of them ask this.
-    internal static int ComputeLightAbsorption(string? framingKey, string? infillKey, JsonObject framings, JsonObject infills)
+    // all of them ask this. An infill marked Porous passes light until a face is finished; the
+    // default finished = true is what RoomSunlight and the thin floor rely on to keep their answers.
+    internal static int ComputeLightAbsorption(string? framingKey, string? infillKey, JsonObject framings, JsonObject infills, bool finished = true)
         => ComputeRetention(true, framingKey, infillKey, framings, infills) != 0
-            && !IsTransparent(infillKey, infills) ? 99 : 0;
+            && !IsTransparent(infillKey, infills)
+            && (finished || !IsPorous(infillKey, infills)) ? 99 : 0;
+
+    internal static bool IsPorous(string? infillKey, JsonObject infills)
+        => infillKey != null && infills[infillKey]["Porous"].AsBool(false);
 
     // Whether an infill is see-through: it decides both that absorption and which render pass
     // the infill's mesh goes in (SidingWallEntity.OnTesselation).

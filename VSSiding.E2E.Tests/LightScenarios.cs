@@ -75,8 +75,35 @@ public class LightScenarios : AtlasScenarioBase
         Assert.Equal(0, World.Api.World.BlockAccessor.GetLightLevel(inside, EnumLightLevelType.OnlySunLight));
     }
 
-    // A sealed oak and clay wall, its panel on the outdoor face, with a lit torch hosted on its open side and lighting the room-side cell next to it.
-    private async Task<(BlockPos Cell, BlockPos Inside)> HostLitTorch()
+    [AtlasScenario(FreshWorld = true)]
+    public async Task HostedTorch_Should_LightBothSides_When_TheWallIsBareWattle()
+        => await HostLitTorch("game:stick", "wattle", passesLight: true);
+
+    [AtlasScenario(FreshWorld = true)]
+    public async Task BareWattle_Should_PassRoomLightUntilAFaceIsFinished()
+    {
+        (BlockPos inside, ITestPlayer player) = await WallBuilder.BuildRoom(World, "game:clay-blue", [BlockFacing.NORTH, BlockFacing.SOUTH, BlockFacing.WEST]);
+        BlockPos cell = inside.EastCopy();
+        BlockPos outside = cell.EastCopy();
+
+        World.SetBlock("game:air", cell);
+        await WallBuilder.Raise(World, player, cell, inside, "game:plank-oak", "game:stick");
+        World.SetBlock("game:lantern-large-up", inside);
+
+        await World.Until(() => BlockLight(outside) > 0, 100);
+
+        var selection = new BlockSelection { Position = cell.Copy(), Face = BlockFacing.EAST, HitPosition = new Vec3d(0.5, 0.5, 0.5) };
+        await player.GiveItem("game:daubraw-browngolden", 2);
+        Assert.True(World.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, selection));
+        await World.Until(() => BlockLight(outside) == 0, 100);
+
+        World.Api.World.BlockAccessor.BreakBlock(cell, player.Player);
+        await World.Until(() => BlockLight(outside) > 0, 100);
+        Assert.Equal(("oak", "wattle", null, null, null), WallBuilder.Layers(World, cell));
+    }
+
+    // A sealed oak wall, its panel on the outdoor face, with a lit torch hosted on its open side and lighting the room-side cell next to it.
+    private async Task<(BlockPos Cell, BlockPos Inside)> HostLitTorch(string infillItem = "game:clay-blue", string infillKey = "clay", bool passesLight = false)
     {
         BlockPos cell = World.Spawn.Offset(1, 2, 0);
         BlockPos inside = cell.WestCopy();
@@ -85,7 +112,7 @@ public class LightScenarios : AtlasScenarioBase
 
         // Raised from the room, as a builder standing in it does: the wall claims the face away from the room.
         ITestPlayer player = await WallBuilder.JoinBuilder(World);
-        await WallBuilder.Raise(World, player, cell, outside, "game:plank-oak", "game:clay-blue");
+        await WallBuilder.Raise(World, player, cell, outside, "game:plank-oak", infillItem);
         Assert.Equal(0, BlockLight(inside));
 
         // A saw in the off hand layers the wall instead of hosting (SidingWallBlock.OnBlockInteractStart).
@@ -95,11 +122,11 @@ public class LightScenarios : AtlasScenarioBase
         Assert.True(World.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, selection));
 
         Assert.StartsWith("torch-basic-lit-", World.BlockAt(cell).Code.Path);
-        Assert.Equal(Expected, WallBuilder.GuestLayers(World, cell));
+        Assert.Equal(("oak", infillKey, null, null, null), WallBuilder.GuestLayers(World, cell));
 
         await World.Until(() => BlockLight(inside) > 0, 100);
-        // The light stays on the open side of the panel (decision 0072).
-        Assert.Equal(0, BlockLight(outside));
+        // The light stays on the open side of an opaque wall's panel (decision 0072); bare wattle passes it.
+        Assert.Equal(passesLight, BlockLight(outside) > 0);
         return (cell, inside);
     }
 
