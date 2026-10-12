@@ -19,6 +19,9 @@ Decision 0071 now finishes a glazed cell and brings its frame to the cell's edge
 The proposal builds an unglazed inside corner first, then adds a `cornerin` post if the notch shows; the other junction shapes players described wait on their answers.
 - `glazed-corner-merge`: a glazed wall beside a glazed corner keeps its stile against the corner's end post, a member 4 wide between two panes, seen in the playtest of decision 0071.
 The proposal drops the wall's stile there first, with no shape change, and the corner's end post second if one member still reads as a break.
+- `tile-finishes`: a player asked for ceramic tiles as a finish.
+The proposal lays vanilla's fired tiles one at a time, four slots to a face cut on the cell's grid, any colour in each, on walls, corners, floors and decks.
+It is built after issue #108, which changes which face a finish click lands on.
 - `real-smoke-flues`: a player vents a kitchen through trellises, which costs the room its heat, and asks for a flue or a hearth in a wall.
 Real Smoke stops smoke at a face that dams liquid, which a filled wall already reports, so the proposal plays what reading cannot settle and adds a vented wall on that mod's chimney behaviour only if no vanilla block already serves.
 - `walls-under-roofing`: a flat-topped wall leaves a stepped triangle under a Roofing gable.
