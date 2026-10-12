@@ -307,8 +307,8 @@ public static class WallShapeGen
         new("infill-bottom", (1.5, 0, 1), (2.5, 1, 15), "infill", UvRule.Positional),
         new("infill-pane", (2, 0, 0), (2, 16, 16), "infill", UvRule.Flat, Faces: ["west", "east"]),
         // A glazed cell's frame: stiles, the rails between them, and a filler in each corner for a rail
-        // whose stile has merged away. A rail's ends and a filler's inner end always stand against
-        // another piece, so those faces are left out; a filler's outer end can face bare glass.
+        // whose stile has merged away. A rail's ends always stand against another piece, so those
+        // faces are left out; a filler keeps all six, since at an L's inside corner it stands alone.
         new("glazing-left", (1, 0, 0), (3, 16, 2), "framing", UvRule.Flat),
         new("glazing-right", (1, 0, 14), (3, 16, 16), "framing", UvRule.Flat),
         new("glazing-top", (1, 14, 2), (3, 16, 14), "framing", UvRule.Flat, Faces: ["west", "east", "up", "down"]),

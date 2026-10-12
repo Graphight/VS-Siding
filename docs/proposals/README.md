@@ -15,7 +15,7 @@ A second player wants machinery flush to walls; Vintage Engineering's 21 machine
 The proposal puts a plank finish on one face of any solid block as a vanilla decor block, flat, picked as a fourth option in the saw picker's first row.
 The player agreed that the mod should add no full block, and has not yet said the face mode is what they meant.
 - `inside-corner-post`: a player asked for the gap at an inside corner to be closed, but the one screenshot has a glazed cell beside the slit, so it may be issue #98 and not a missing piece.
-Decision 0071 now finishes a glazed cell and brings its frame to the cell's edge, which has not been played; the unglazed notch is what stays open.
+Decision 0071 now finishes a glazed cell and brings its frame to the cell's edge, and the slit has not been looked at in play since; the unglazed notch is what stays open.
 The proposal builds an unglazed inside corner first, then adds a `cornerin` post if the notch shows; the other junction shapes players described wait on their answers.
 - `glazed-corner-merge`: a glazed wall beside a glazed corner keeps its stile against the corner's end post, a member 4 wide between two panes, seen in the playtest of decision 0071.
 The proposal drops the wall's stile there first, with no shape change, and the corner's end post second if one member still reads as a break.

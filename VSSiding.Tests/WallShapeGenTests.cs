@@ -314,7 +314,7 @@ public class WallShapeGenTests
             ["wall glazed"] = 22,
             ["wall glazed, merged left"] = 28,
             // Glazed with daub, a rim in place of each slab: a piece per part the frame draws, six faces each.
-            // Unjoined, 22 + 2 faces * 4 parts * 6 = 70. Merged left, 26 + 2 * 5 * 6 = 86.
+            // Unjoined, 22 + 2 faces * 4 parts * 6 = 70. Merged left, 28 + 2 * 5 * 6 = 88.
             ["wall glazed, daub both faces"] = 70,
             ["wall glazed, daub both faces, merged left"] = 88,
             ["wall glazed, daub both faces, merged all round"] = 2,

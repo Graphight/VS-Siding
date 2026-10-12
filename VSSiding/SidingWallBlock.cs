@@ -802,7 +802,8 @@ public class SidingWallBlock : Block
         {
             // Only glazing merges sideways, and only along its own run, so those are the only
             // horizontal neighbours that can change what this cell draws - an opaque wall never
-            // joins one. Just this cell: merging is local, nothing propagates past the neighbour.
+            // joins one. Just this cell: merging is local, and the one thing drawn by a cell further
+            // off, an inside corner (InnerCorners), is redrawn where a layer changes (MarkNeighboursDirty).
             if (neibpos.Y != pos.Y || ClaimsTwoFaces(Variant["layout"])) return;
             var entity = world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos);
             if (entity == null || !IsTransparent(entity.Infill, Attributes["Infills"])) return;

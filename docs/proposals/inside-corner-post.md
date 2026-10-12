@@ -20,7 +20,7 @@ Their screenshot shows a slit one cell high where two walls meet, with the water
 The cell beside the slit is glazed.
 A glazed cell took no finish and its frame stopped short of the cell's edge, so the two walls stopped touching there for a second reason (issue #98).
 Decision 0071 settles that reason in the build: a glazed cell now takes a finish as a rim round the glass, and its frame reaches the cell's edge.
-An unfinished glazed cell still shows the seam any unfinished wall does, and none of it has been played, so the screenshot still does not settle what the notch looks like on its own.
+An unfinished glazed cell still shows the seam any unfinished wall does, and the slit has not been looked at in play since, so the screenshot still does not settle what the notch looks like on its own.
 The screenshot also looks taken from inside, while decision 0002 puts the open square outside the room.
 
 **Not yet answered.**
