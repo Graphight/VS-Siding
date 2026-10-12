@@ -46,26 +46,39 @@ public class RoomSkylightPatchTests
         Assert.Equal(new[] { "posX", "posY", "posZ" }, actual);
     }
 
-    [Fact]
-    public void LightSourceWalkKeepsTheFieldsTheHostedLightMarkWrites()
+    // Harmony binds a patch's parameters to vanilla's by name: ___field to a private field, a plain
+    // name to an argument. The names are read off the patch itself, so a new one is pinned too.
+    [Theory]
+    [InlineData("CollectPrefix", "CollectLightValuesForLightSource")]
+    [InlineData("SunLightPostfix", nameof(ChunkIlluminator.UpdateSunLight))]
+    public void LightPatchParametersStillNameVanillaFieldsAndArguments(string patch, string target)
     {
-        var actual = new[] { "currentVisited", "iteration", "readBlockAccess" }
-            .Select(name => AccessTools.Field(typeof(ChunkIlluminator), name)?.FieldType).ToArray();
-        Assert.Equal(new[] { typeof(int[]), typeof(int), typeof(IBlockAccessor) }, actual);
+        var bound = AccessTools.Method(typeof(GuestLightPatches), patch).GetParameters()
+            .Where(p => p.Name!.StartsWith("___") || !p.Name.StartsWith("__")).ToArray();
+        var vanilla = AccessTools.Method(typeof(ChunkIlluminator), target).GetParameters();
+
+        var actual = bound.Select(p => p.Name!.StartsWith("___")
+            ? AccessTools.Field(typeof(ChunkIlluminator), p.Name[3..])?.FieldType
+            : vanilla.FirstOrDefault(v => v.Name == p.Name)?.ParameterType).ToArray();
+        Assert.Equal(bound.Select(p => p.ParameterType).ToArray(), actual);
+    }
+
+    // SunLightPostfix passes five ints by position, so a reorder would compile.
+    [Fact]
+    public void BlockLightUpdateStillTakesItsArgumentsInTheSameOrder()
+    {
+        var actual = AccessTools.Method(typeof(ChunkIlluminator), nameof(ChunkIlluminator.UpdateBlockLight))
+            .GetParameters().Select(p => p.Name).ToArray();
+        Assert.Equal(new[] { "oldLightAbsorb", "newLightAbsorb", "posX", "posY", "posZ" }, actual);
     }
 
     [Fact]
-    public void AbsorptionRelightMethodsStillTakeTheSameArguments()
+    public void NeighbourSlotsAreTheFourSidesAroundTheCentreOfVanillasGrid()
     {
-        var actual = new[] { nameof(ChunkIlluminator.UpdateSunLight), nameof(ChunkIlluminator.UpdateBlockLight) }
-            .Select(method => string.Join(",", AccessTools.Method(typeof(ChunkIlluminator), method).GetParameters().Select(p => p.Name))).ToArray();
-        Assert.Equal(new[] { "posX,posY,posZ,oldAbsorb,newAbsorb", "oldLightAbsorb,newLightAbsorb,posX,posY,posZ" }, actual);
-    }
+        int width = (int)AccessTools.Field(typeof(ChunkIlluminator), "VISITED_WIDTH").GetRawConstantValue()!;
+        int centre = width / 2 * (1 + width + width * width);
 
-    [Fact]
-    public void NeighbourSlotsAreTheFourSidesAroundTheGridCentre()
-    {
         var actual = BlockFacing.HORIZONTALS.Select(f => GuestLightPatches.NeighbourSlot(f.Normali.X, f.Normali.Y, f.Normali.Z)).ToArray();
-        Assert.Equal(new[] { 124960, 125024, 125086, 125022 }, actual);
+        Assert.Equal(new[] { centre - width, centre + 1, centre + width, centre - 1 }, actual);
     }
 }
