@@ -47,8 +47,17 @@ The wall's eight pieces (x depth, y up, z along the run, in voxels, unrotated), 
 | `glazing-bottom-left` | (1, 0, 0) | (3, 2, 2) | below does not join and left joins |
 | `glazing-bottom-right` | (1, 0, 14) | (3, 2, 16) | below does not join and right joins |
 
-A wall's rails leave out their two end faces, and a filler leaves out its inner end face, because each always stands against another piece.
-A filler keeps its outer end face, because the neighbouring pane's own rail may have merged away.
+A wall's rails leave out their two end faces, because each always stands against another piece.
+A filler keeps all six: its outer end face because the neighbouring pane's own rail may have merged away, and its inner one because at an inside corner it stands alone.
+
+**An L's inside corner.**
+A sheet of three cells in an L turns its frame in the middle cell, which has merged on both of the sides that meet there and so draws neither rail nor stile.
+The stile of one arm and the rail of the other then touch only along an edge, and the 2 by 2 corner between them is open. Decision 0019's members each spanned their own cell's edge, which by its text leaves the same corner open, though that was not built to check; the playtest of 2026-10-11 picked it out on a glass floor.
+So a cell that joins on both sides of a corner also draws that corner's filler, and each finish's rim on it, when the cell diagonally across carries no glazing on (`InnerCorners` on the wall's and the floor's block, passed to `FrameParts`).
+Four merged cells round a point leave it clear.
+The pieces are the fillers above, so no shape gains an element.
+A floor asks the cell diagonally across from both of the cells between, because a deck there has to reach both of the edges that meet at the corner.
+A glazed corner merges only up and down, so it has no inside corner.
 
 A floor lays the same eight pieces flat at y 13 to 15, the framing's depth between the underside finish and the top finish.
 The stiles (`glazing-left`, `glazing-right`) run along z at x 0 to 2 and 14 to 16, the rails (`glazing-top`, `glazing-bottom`) along x at z 0 to 2 and 14 to 16 between them, and a filler takes each 2 by 2 corner.
@@ -116,6 +125,7 @@ Glazed cells join on `Transparent` whatever the key (decision 0019), so a leaded
 - `RimPiecesKeepTheUncutFinishesUv` and `FloorCutsItsFinishesToTheGlazingFramesFootprints` hold the texture and the floor's cut on x and z.
 - `EveryRimPieceSamplesWhatTheUncutFinishSamplesThere` compares every rim piece's texture coordinates with the uncut finish's at each corner of each face both draw, worked out from vanilla's `CubeMeshUtil` tables the way `ShapeTesselator` reads a face's rect and rotation. It was added after the playtest below, because the hand-written rows of the test above had passed a wrong value.
 - Name tables for `SelectiveElements` on a wall, a corner and a floor, and `EveryRimElementAGlazedCellCanAskForExistsAndIsLeftOutOfTheDefaultShape` and its floor and deck forms, hold that every rim name exists in the generated shape.
+- `AMergedCornerIsFramedOnlyWhereTheCellDiagonallyAcrossIsNoGlazing` and `AnInsideCornerDrawsItsFillerAndEachFinishesRimOnIt` hold an inside corner's rule and the names it draws on a wall, a floor and a deck, and the shared-plane test above runs the four fillers alone. Which cell counts as diagonally across is read from the world and has no test.
 - `ADeckedGlazedCellsRoomSideRimLeavesItsTopToTheLedge` and `ADecksLedgesFillWhatTheRoomSideFinishLeavesOpen` are the name tables for a deck against a rim, and `ADeckedGlazedCellsLedgeSharesNoPlaneWithItsRimOrFrame` checks the pieces those names draw.
 
 ## Alternatives considered
@@ -133,5 +143,6 @@ Glazed cells join on `Transparent` whatever the key (decision 0019), so a leaded
 - A glazed deck on a diagonal takes rims, though the diagonal's own faces take none.
 - A rim costs what a full finish costs, since it is laid by the same click.
 - The rims were first played on 2026-10-11, on walls and a corner finished in vertical boards. That found two faults in the board rim of a corner's second leg, both in how a cut reads a turned face's texture: it was cut along the wrong axes, and then out of step with the uncut finish by up to a texel, since that leg is 15 long. Both are fixed in `WallShapeGen.UvLayout` and `ClippedUv`.
-- Still to look at: the rim beside brick, daub, weatherboard and shakes, merged and L-shaped windows, floors and decks, a deck against a finished window, leaded panes, and a world saved before this change.
+- An inside corner is drawn by a cell that shares no face with the cell deciding it, and vanilla tells only face neighbours of a change. A layer going on or coming off redraws the cells diagonally across (`MarkNeighboursDirty`); a whole glazed block removed at once redraws them only when they share its chunk.
+- Still to look at: an inside corner on a wall, a floor and a deck, the rim beside brick, daub, weatherboard and shakes, merged and L-shaped windows, floors and decks, a deck against a finished window, leaded panes, and a world saved before this change.
 - A glazed corner still merges only up and down (decision 0019), so a glazed wall beside it keeps its stile against the corner's end post. The `glazed-corner-merge` proposal covers that.
