@@ -45,4 +45,19 @@ public class RoomSkylightPatchTests
             .GetParameters().Select(p => p.Name).Where(name => name is "posX" or "posY" or "posZ").ToArray();
         Assert.Equal(new[] { "posX", "posY", "posZ" }, actual);
     }
+
+    [Fact]
+    public void LightSourceWalkKeepsTheFieldsTheHostedLightMarkWrites()
+    {
+        var actual = new[] { "currentVisited", "iteration", "readBlockAccess" }
+            .Select(name => AccessTools.Field(typeof(ChunkIlluminator), name)?.FieldType).ToArray();
+        Assert.Equal(new[] { typeof(int[]), typeof(int), typeof(IBlockAccessor) }, actual);
+    }
+
+    [Fact]
+    public void NeighbourSlotsAreTheFourSidesAroundTheGridCentre()
+    {
+        var actual = BlockFacing.HORIZONTALS.Select(f => GuestLightPatches.NeighbourSlot(f.Normali.X, f.Normali.Y, f.Normali.Z)).ToArray();
+        Assert.Equal(new[] { 124960, 125024, 125086, 125022 }, actual);
+    }
 }
