@@ -26,9 +26,10 @@ public class RoomScenarios : AtlasScenarioBase
             World, "game:stick", BlockFacing.HORIZONTALS, framing: "game:stick", framingCost: 4, offhand: "game:stone-granite");
 
         var stone = World.Api.World.GetItem(new AssetLocation("game:stone-granite"));
+        var saw = World.Api.World.GetItem(new AssetLocation("game:saw-copper"));
         Assert.Equal(
-            ((0, 6, 0), ("sticks", "wattle", null, null, null), EnumItemStorageFlags.General | EnumItemStorageFlags.Metallurgy | EnumItemStorageFlags.Offhand),
-            (Measure(inside), WallBuilder.Layers(World, inside.NorthCopy()), stone.StorageFlags));
+            ((0, 6, 0), ("sticks", "wattle", null, null, null), EnumItemStorageFlags.General | EnumItemStorageFlags.Metallurgy | EnumItemStorageFlags.Offhand, EnumItemStorageFlags.General | EnumItemStorageFlags.Offhand),
+            (Measure(inside), WallBuilder.Layers(World, inside.NorthCopy()), stone.StorageFlags, saw.StorageFlags));
     }
 
     [AtlasScenario(FreshWorld = true)]

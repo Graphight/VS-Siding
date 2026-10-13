@@ -1,8 +1,0 @@
-[
-	{
-		"op": "add",
-		"file": "game:itemtypes/tool/saw.json",
-		"path": "/storageFlags",
-		"value": 257
-	}
-]
