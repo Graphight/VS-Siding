@@ -1463,6 +1463,10 @@ public class SidingModSystem : ModSystem
         // Server side only from here: the client receives the expanded block attributes with the block list (decision 0010).
         if (api.Side != EnumAppSide.Server) return;
 
+        // Set here, not by a JSON patch on storageFlags, which fails once another mod has moved or dropped the key (#123).
+        foreach (var item in api.World.Items.Where(i => SidingWallBlock.IsBuildSignal(i?.Code)))
+            item.StorageFlags |= EnumItemStorageFlags.Offhand;
+
         var candidates = api.World.Items.Where(i => i?.Code != null)
             .Select(i => ("item", i.Code, (IDictionary<string, string>)i.Variant))
             .Concat(api.World.Blocks.Where(b => b?.Code != null)
