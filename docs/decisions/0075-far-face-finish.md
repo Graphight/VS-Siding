@@ -33,10 +33,12 @@ A glazed diagonal still takes no finish.
 `SidingFloorBlock.OnBlockInteractStart` and `SidingWallBlock.LayerDeck` send the finish through `SidingFloorBlock.FinishFace(blockSel.Face.Opposite)`.
 The style is picked again for the far face, since a finish lists the styles a floor takes per face (`SidingFloorEntity.HasFloorStyle`).
 A framing material keeps placing on a floor or a deck: planks on a boarded top still extend the run (decision 0050), or raise a wall on the floor with Wall picked.
-The one exception is a floor's top with Floor picked whose run cannot extend, where `SidingFloorBlock.RunEndFor` finds no cell: `PlaceWallFrame` does nothing with that click, so there the planks take the underside.
+One exception is a floor's top with Floor picked whose run cannot extend, where `SidingFloorBlock.RunEndFor` finds no cell: `PlaceWallFrame` does nothing with that click, so there the planks take the underside.
 That is the cellar floor, laid wall to wall, and it changes no click that did something before.
 The run walks the way the player looks and stops at `RunReach`, so planks also take the underside of a floor with four or more floor cells ahead of it.
-A deck has no such exception: planks on its top place a floor in the cell above.
+A deck's top with Floor picked is the other exception: planks there take the underside, where before they framed a floor in the cell above, 12/16 over the deck.
+Unlike the floor's exception, this replaces a click that did something; sneaking still frames that floor.
+With Wall picked, planks on a boarded deck's top still raise the next wall.
 
 **Restyle wins.**
 The same material with another style picked restyles the near face, free, as in decision 0027.
@@ -60,7 +62,7 @@ Decision 0069 records the same repeat as "A fresh press only".
 `SidingWallBlock.Describe` and `DescribeFaces` take an optional `buried` predicate.
 `SidingWallEntity.GetBlockInfo` passes one that reads `SideOpaque` on the touching side of the cell a front or a second front faces.
 An unfinished buried front is left out, and a finished one is still listed.
-A diagonal's line goes only when both of its claimed sides are buried.
+A diagonal's two claimed directions drop one by one, so its unfinished front goes from the tooltip only when both are buried.
 A back is never treated as buried, because it looks into its own cell.
 A floor's and a deck's faces are not checked: an underside hangs 12/16 above the cell below, and a top lies against a solid block only where one stands on the floor.
 A guest wall's tooltip follows the same rule, since `GuestWalls.Decode` sets the entity's `Api` and `Pos`.
@@ -81,5 +83,5 @@ A guest wall's tooltip follows the same rule, since `GuestWalls.Decode` sets the
 - The held-press guard is untested in game. The playtest to run is to hold right-click for two seconds with planks on a filled wall's bare face and check that only that face boards.
 - Planks or a held block clicked on a finished wall face no longer place while the far face is bare. Sneaking places them.
 - Two styles of one material, one per side, take three clicks from one side: restyle the near face, finish the far face, restyle the near face back.
-- Atlas scenarios in `FarFaceScenarios.cs` cover a non-placing finish and planks on a finished back, a corner's two backs, a held press on a bare face, and the floor and deck cases. `TooltipScenarios.cs` and `SidingWallTooltipTests.cs` cover the buried front.
+- Atlas scenarios in `FarFaceScenarios.cs` cover a non-placing finish and planks on a finished back, a corner's two backs, a diagonal's back, a restyle winning over the far face, a held press on a wall and on a floor, and the floor and deck cases with planks under each picker choice. `JunctionScenarios.cs` covers a held press the wall passes on. `TooltipScenarios.cs` and `SidingWallTooltipTests.cs` cover the buried front.
 - A wall hosting furniture cannot take the far face.
