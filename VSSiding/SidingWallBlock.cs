@@ -421,7 +421,7 @@ public class SidingWallBlock : Block
         return true;
     }
 
-    // True keeps a held click one interaction, so vanilla's repeat does not press the next layer on.
+    // True keeps a held click one interaction, so vanilla's repeat does not press the next layer on (decision 0075).
     public override bool OnBlockInteractStep(float secondsUsed, IWorldAccessor world, IPlayer byPlayer, BlockSelection blockSel) => true;
 
     // A saw in the off hand layers infill onto a framed wall, then finishes onto a filled
@@ -599,25 +599,19 @@ public class SidingWallBlock : Block
                 return true;
             }
 
-            // A finished face sends the finish to the face behind it while that one is bare, except a
-            // framing material that would turn this wall into a corner.
+            // A finish clicked on a finished face goes on the face behind it while that one is bare (decision 0075),
+            // except a framing material that would turn this wall into a corner (PlaceWallFrame).
             bool turnsToCorner = Variant["layout"] == "wall" && SidingModePicker.Layout(byPlayer) == "cornerout"
                 && MatchFraming(heldCode, true, Attributes["Framings"], Attributes["Infills"]) != null;
             string? farFace = turnsToCorner ? null : ResolveFinishFace(Variant["layout"], side, blockSel.Face.Opposite);
-            string? farKey = farFace switch { "front" => entity.Front, "secondfront" => entity.SecondFront, "back" => entity.Back, _ => "" };
-            if (farKey == null && farFace != face)
+            if (farFace == null || (farFace switch { "front" => entity.Front, "secondfront" => entity.SecondFront, _ => entity.Back }) != null)
             {
-                var farConsumes = Attributes["Finishes"][finishKey]["Consumes"];
-                if (!TryAffordOrError(byPlayer, isCreative, slot.StackSize, farConsumes)) return true;
-
-                SetFinish(world, entity, blockSel.Position, farFace!, finishKey, style);
-                ConsumeHeld(slot, farConsumes, isCreative);
+                if (heldPlaces) return base.OnBlockInteractStart(world, byPlayer, blockSel);
+                (byPlayer as IServerPlayer)?.SendIngameError("vssiding:alreadyfinished", Lang.Get("vssiding:build-already-finished"));
                 return true;
             }
 
-            if (heldPlaces) return base.OnBlockInteractStart(world, byPlayer, blockSel);
-            (byPlayer as IServerPlayer)?.SendIngameError("vssiding:alreadyfinished", Lang.Get("vssiding:build-already-finished"));
-            return true;
+            face = farFace;
         }
 
         var finishConsumes = Attributes["Finishes"][finishKey]["Consumes"];
@@ -732,7 +726,8 @@ public class SidingWallBlock : Block
             return true;
         }
 
-        string? style = SidingModePicker.FinishChoices(byPlayer).FirstOrDefault(s => SidingFloorEntity.HasFloorStyle(Attributes["Finishes"][finishKey], face, s));
+        string? StyleFor(string on) => SidingModePicker.FinishChoices(byPlayer).FirstOrDefault(s => SidingFloorEntity.HasFloorStyle(Attributes["Finishes"][finishKey], on, s));
+        string? style = StyleFor(face);
 
         string? currentKey = face == "front" ? entity.DeckFront : entity.DeckBack;
         string? currentStyle = face == "front" ? entity.DeckFrontStyle : entity.DeckBackStyle;
@@ -744,21 +739,17 @@ public class SidingWallBlock : Block
                 return true;
             }
 
+            // The far face takes the finish as a floor's does (decision 0075); a framing material keeps placing.
             string? farFace = MatchConsumes(heldCode, Attributes["Framings"]) == null ? SidingFloorBlock.FinishFace(blockSel.Face.Opposite) : null;
-            if (farFace != null && (farFace == "front" ? entity.DeckFront : entity.DeckBack) == null)
+            if (farFace == null || (farFace == "front" ? entity.DeckFront : entity.DeckBack) != null)
             {
-                string? farStyle = SidingModePicker.FinishChoices(byPlayer).FirstOrDefault(s => SidingFloorEntity.HasFloorStyle(Attributes["Finishes"][finishKey], farFace, s));
-                var farConsumes = Attributes["Finishes"][finishKey]["Consumes"];
-                if (!TryAffordOrError(byPlayer, isCreative, slot.StackSize, farConsumes)) return true;
-
-                SetDeckFinish(entity, farFace, finishKey, farStyle);
-                ConsumeHeld(slot, farConsumes, isCreative);
+                if (heldPlaces) return base.OnBlockInteractStart(world, byPlayer, blockSel);
+                (byPlayer as IServerPlayer)?.SendIngameError("vssiding:alreadyfinished", Lang.Get("vssiding:build-already-finished"));
                 return true;
             }
 
-            if (heldPlaces) return base.OnBlockInteractStart(world, byPlayer, blockSel);
-            (byPlayer as IServerPlayer)?.SendIngameError("vssiding:alreadyfinished", Lang.Get("vssiding:build-already-finished"));
-            return true;
+            face = farFace;
+            style = StyleFor(face);
         }
 
         var finishConsumes = Attributes["Finishes"][finishKey]["Consumes"];
@@ -1044,7 +1035,7 @@ public class SidingWallBlock : Block
     // layer, so two directions carry the same finish; grouping by first appearance is what puts
     // them on one line even with a SecondFront direction between them. A diagonal's two claimed
     // faces are one front, so its four directions come out as two lines. An unfinished front
-    // flush against a solid block (buried) cannot be reached, so it is left out.
+    // flush against a solid block (buried) cannot be seen, so it is left out (decision 0075).
     private static IEnumerable<string> DescribeFaces(
         string layout, string side, string? front, string? secondFront, string? back, JsonObject finishes,
         System.Func<string, string?> translate, System.Func<string, bool>? buried = null)

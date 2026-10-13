@@ -27,7 +27,7 @@ public class SidingFloorBlock : Block
         layerResistance = SidingWallBlock.LayerTable(Attributes["LayerResistance"], entry => entry.AsFloat(1f));
     }
 
-    // True keeps a held click one interaction, so vanilla's repeat does not press the next layer on.
+    // True keeps a held click one interaction, as on a wall (decision 0075).
     public override bool OnBlockInteractStep(float secondsUsed, IWorldAccessor world, IPlayer byPlayer, BlockSelection blockSel) => true;
 
     // The wall's build flow laid flat: infill on any face of a framed floor, then a finish on the
@@ -72,7 +72,8 @@ public class SidingFloorBlock : Block
 
         // A face takes the picked style only if its FloorElements lists it, or it has none and the
         // finish lists the style, so weatherboard, or boards on a daub top, falls back to the face's default.
-        string? style = SidingModePicker.FinishChoices(byPlayer).FirstOrDefault(s => SidingFloorEntity.HasFloorStyle(Attributes["Finishes"][finishKey], face, s));
+        string? StyleFor(string on) => SidingModePicker.FinishChoices(byPlayer).FirstOrDefault(s => SidingFloorEntity.HasFloorStyle(Attributes["Finishes"][finishKey], on, s));
+        string? style = StyleFor(face);
 
         string? currentKey = face == "front" ? entity.Front : entity.Back;
         string? currentStyle = face == "front" ? entity.FrontStyle : entity.BackStyle;
@@ -85,22 +86,18 @@ public class SidingFloorBlock : Block
                 return true;
             }
 
-            // A finished face sends the finish to the face behind it while that one is bare; planks keep placing.
+            // A finish clicked on a finished face goes on the face behind it while that one is bare (decision 0075).
+            // A framing material keeps placing: planks on a boarded top extend the run or raise a wall.
             string? farFace = SidingWallBlock.MatchConsumes(heldCode, Attributes["Framings"]) == null ? FinishFace(blockSel.Face.Opposite) : null;
-            if (farFace != null && (farFace == "front" ? entity.Front : entity.Back) == null)
+            if (farFace == null || (farFace == "front" ? entity.Front : entity.Back) != null)
             {
-                string? farStyle = SidingModePicker.FinishChoices(byPlayer).FirstOrDefault(s => SidingFloorEntity.HasFloorStyle(Attributes["Finishes"][finishKey], farFace, s));
-                var farConsumes = Attributes["Finishes"][finishKey]["Consumes"];
-                if (!SidingWallBlock.TryAffordOrError(byPlayer, isCreative, slot.StackSize, farConsumes)) return true;
-
-                SetFinish(entity, farFace, finishKey, farStyle);
-                SidingWallBlock.ConsumeHeld(slot, farConsumes, isCreative);
+                if (heldPlaces) return base.OnBlockInteractStart(world, byPlayer, blockSel);
+                (byPlayer as IServerPlayer)?.SendIngameError("vssiding:alreadyfinished", Lang.Get("vssiding:build-already-finished"));
                 return true;
             }
 
-            if (heldPlaces) return base.OnBlockInteractStart(world, byPlayer, blockSel);
-            (byPlayer as IServerPlayer)?.SendIngameError("vssiding:alreadyfinished", Lang.Get("vssiding:build-already-finished"));
-            return true;
+            face = farFace;
+            style = StyleFor(face);
         }
 
         var finishConsumes = Attributes["Finishes"][finishKey]["Consumes"];

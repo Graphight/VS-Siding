@@ -16,6 +16,7 @@ public class FarFaceScenarios : AtlasScenarioBase
 {
     private static readonly Vec3d Middle = new(0.5, 0.5, 0.5);
     private static readonly Vec3d TopHit = new(0.5, 1, 0.5);
+    private static readonly Vec3d NorthEnd = new(0, 0.5, 0.2);
 
     [AtlasScenario(FreshWorld = true)]
     public async Task Wall_Should_TakeDaubOnItsFront_When_DaubIsPressedOnItsFinishedBack()
@@ -43,7 +44,7 @@ public class FarFaceScenarios : AtlasScenarioBase
     {
         (BlockPos cell, ITestPlayer player) = await RaiseWall();
         player.Entity.WatchedAttributes.SetString("vssidingFraming", "corner");
-        await WallBuilder.Press(World, player, cell, "game:stick", BlockFacing.WEST, new Vec3d(0, 0.5, 0.2));
+        await WallBuilder.Press(World, player, cell, "game:stick", BlockFacing.WEST, NorthEnd);
 
         await WallBuilder.Press(World, player, cell, "game:daubraw-browngolden", BlockFacing.EAST, Middle);
         await WallBuilder.Press(World, player, cell, "game:daubraw-browngolden", BlockFacing.SOUTH, Middle);
@@ -78,23 +79,19 @@ public class FarFaceScenarios : AtlasScenarioBase
 
         await WallBuilder.Press(World, player, cell, "game:plank-oak", BlockFacing.UP, TopHit);
 
-        int extensions = BlockFacing.HORIZONTALS
-            .Count(face => World.BlockAt(cell.AddCopy(face)).Code.Path == "floor");
-        Assert.Equal((("oak", "clay", "planks", null, (string?)null), 1), (WallBuilder.Layers(World, cell), extensions));
+        int floorsBeside = BlockFacing.HORIZONTALS.Count(face => World.BlockAt(cell.AddCopy(face)).Code.Path == "floor");
+        Assert.Equal((("oak", "clay", "planks", null, (string?)null), 1), (WallBuilder.Layers(World, cell), floorsBeside));
     }
 
     [AtlasScenario(FreshWorld = true)]
     public async Task Deck_Should_TakeDaubOnItsUnderside_When_DaubIsPressedOnItsBoardedTop()
     {
-        BlockPos cell = World.Spawn.Offset(1, 2, 0);
-        World.SetBlock("game:planks-aged-ud", cell.DownCopy());
-        ITestPlayer player = await WallBuilder.JoinBuilder(World);
-        await WallBuilder.Raise(World, player, cell, cell.WestCopy(), "game:plank-oak", "game:clay-blue");
+        (BlockPos cell, ITestPlayer player) = await RaiseWall(back: null);
         player.Entity.WatchedAttributes.SetString("vssidingDeck", "deck");
-        await WallBuilder.Press(World, player, cell, "game:plank-oak", BlockFacing.EAST, new Vec3d(1, 0.5, 0.5), 2);
+        await WallBuilder.Press(World, player, cell, "game:plank-oak", BlockFacing.EAST, Middle, quantity: 2);
         await WallBuilder.Press(World, player, cell, "game:clay-blue", BlockFacing.UP, TopHit, onDeck: true);
         player.Entity.WatchedAttributes.SetString("vssidingFraming", "floor");
-        await WallBuilder.Press(World, player, cell, "game:plank-oak", BlockFacing.UP, TopHit, 2, onDeck: true);
+        await WallBuilder.Press(World, player, cell, "game:plank-oak", BlockFacing.UP, TopHit, quantity: 2, onDeck: true);
 
         await WallBuilder.Press(World, player, cell, "game:daubraw-browngolden", BlockFacing.UP, TopHit, onDeck: true);
 
@@ -110,7 +107,7 @@ public class FarFaceScenarios : AtlasScenarioBase
         ITestPlayer player = await WallBuilder.JoinBuilder(World);
         player.Entity.WatchedAttributes.SetString("vssidingFraming", "floor");
         await WallBuilder.Raise(World, player, cell, cell.WestCopy(), "game:plank-oak", "game:clay-blue");
-        await WallBuilder.Press(World, player, cell, "game:plank-oak", BlockFacing.UP, TopHit, 2);
+        await WallBuilder.Press(World, player, cell, "game:plank-oak", BlockFacing.UP, TopHit, quantity: 2);
         return (cell, player);
     }
 

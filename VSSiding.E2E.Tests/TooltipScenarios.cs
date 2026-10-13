@@ -50,8 +50,8 @@ public class TooltipScenarios : AtlasScenarioBase
         ITestPlayer player = await WallBuilder.JoinBuilder(World);
         await WallBuilder.Raise(World, player, cell, cell.WestCopy(), "game:plank-oak", "game:stick");
         Block block = World.BlockAt(cell);
-        BlockFacing back = BlockFacing.FromCode(block.Variant["side"]).Opposite;
-        World.SetBlock("game:planks-aged-ud", cell.AddCopy(BlockFacing.FromCode(block.Variant["side"])));
+        BlockFacing front = BlockFacing.FromCode(block.Variant["side"]);
+        World.SetBlock("game:planks-aged-ud", cell.AddCopy(front));
 
         string tooltip = block.GetPlacedBlockInfo(player.Entity.World, cell, player.Player);
 
@@ -60,7 +60,7 @@ public class TooltipScenarios : AtlasScenarioBase
                 "",
                 "  " + Lang.Get("vssiding:framing-oak"),
                 "  " + Lang.Get("vssiding:infill-wattle"),
-                $"  {Lang.Get("game:facing-" + back.Code)}: {Lang.Get("vssiding:tooltip-unfinished")}",
+                $"  {Lang.Get("game:facing-" + front.Opposite.Code)}: {Lang.Get("vssiding:tooltip-unfinished")}",
                 "  " + Lang.Get("vssiding:tooltip-sealed")) + Lang.GetMatching("vssiding:blockdesc-" + block.Code.Path),
             tooltip);
     }
