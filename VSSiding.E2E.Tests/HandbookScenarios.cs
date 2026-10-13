@@ -10,28 +10,16 @@ using Xunit;
 
 namespace VSSiding.E2E.Tests;
 
-// An unknown itemstack code draws block 0 with no warning, so the codes are resolved here instead.
+// An unknown itemstack code draws block 0 with no warning, so every code in the mod's lang strings is resolved here instead.
 [AtlasWorld(StrictBootDiagnostics = true)]
 public class HandbookScenarios : AtlasScenarioBase
 {
-    private static readonly string[] PageKeys =
-    {
-        "gamemechanicinfo-siding-text",
-        "gamemechanicinfo-siding-walls-text",
-        "gamemechanicinfo-siding-floors-text",
-        "gamemechanicinfo-siding-modes-text",
-        "gamemechanicinfo-siding-corners-text",
-        "gamemechanicinfo-siding-rooms-text",
-        "gamemechanicinfo-siding-furniture-text",
-        "gamemechanicinfo-siding-stoneage-text"
-    };
-
     [AtlasScenario(FreshWorld = true)]
     public Task ItemstackTags_Should_NameRealItemsAndBlocks()
     {
-        List<(string Type, string Code)> codes = PageKeys
-            .Where(key => Lang.HasTranslation("vssiding:" + key))
-            .Select(key => Lang.Get("vssiding:" + key))
+        List<(string Type, string Code)> codes = Lang.GetAllEntries()
+            .Where(entry => entry.Key.StartsWith("vssiding:"))
+            .Select(entry => entry.Value)
             .SelectMany(text => Regex.Matches(text, "<itemstack([^>]*)>([^<]*)</itemstack>").Select(m => (Attributes: m.Groups[1].Value, Codes: m.Groups[2].Value)))
             .SelectMany(tag => tag.Codes.Split('|').Select(code => (tag.Attributes.Contains("type=\"item\"") ? "item" : "block", code)))
             .ToList();
