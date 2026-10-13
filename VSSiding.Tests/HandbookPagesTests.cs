@@ -77,8 +77,8 @@ public class HandbookPagesTests
     {
         var (pages, _) = Load();
         var missing = pages
-            .SelectMany(p => Regex.Matches(p.Text, "<icon path=\"vssiding:([^\"]+)\"").Select(m => (p.PageCode, Path: m.Groups[1].Value)))
-            .Where(i => !File.Exists(Path.Combine(AssetsRoot, "textures", i.Path)))
+            .SelectMany(p => Regex.Matches(p.Text, "<icon path=\"([^\"]+)\"").Select(m => (p.PageCode, Path: m.Groups[1].Value)))
+            .Where(i => !i.Path.StartsWith("vssiding:") || !File.Exists(Path.Combine(AssetsRoot, "textures", i.Path["vssiding:".Length..])))
             .Select(i => $"{i.PageCode}: {i.Path}")
             .ToArray();
 
