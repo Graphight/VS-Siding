@@ -27,6 +27,9 @@ public class SidingFloorBlock : Block
         layerResistance = SidingWallBlock.LayerTable(Attributes["LayerResistance"], entry => entry.AsFloat(1f));
     }
 
+    // True keeps a held click one interaction, as on a wall (decision 0075).
+    public override bool OnBlockInteractStep(float secondsUsed, IWorldAccessor world, IPlayer byPlayer, BlockSelection blockSel) => true;
+
     // The wall's build flow laid flat: infill on any face of a framed floor, then a finish on the
     // top or the underside. Anything unclaimed falls through, so planks still extend the run (PlaceWallFrame).
     public override bool OnBlockInteractStart(IWorldAccessor world, IPlayer byPlayer, BlockSelection blockSel)
@@ -69,7 +72,8 @@ public class SidingFloorBlock : Block
 
         // A face takes the picked style only if its FloorElements lists it, or it has none and the
         // finish lists the style, so weatherboard, or boards on a daub top, falls back to the face's default.
-        string? style = SidingModePicker.FinishChoices(byPlayer).FirstOrDefault(s => SidingFloorEntity.HasFloorStyle(Attributes["Finishes"][finishKey], face, s));
+        string? StyleFor(string on) => SidingModePicker.FinishChoices(byPlayer).FirstOrDefault(s => SidingFloorEntity.HasFloorStyle(Attributes["Finishes"][finishKey], on, s));
+        string? style = StyleFor(face);
 
         string? currentKey = face == "front" ? entity.Front : entity.Back;
         string? currentStyle = face == "front" ? entity.FrontStyle : entity.BackStyle;
@@ -82,9 +86,21 @@ public class SidingFloorBlock : Block
                 return true;
             }
 
-            if (heldPlaces) return base.OnBlockInteractStart(world, byPlayer, blockSel);
-            (byPlayer as IServerPlayer)?.SendIngameError("vssiding:alreadyfinished", Lang.Get("vssiding:build-already-finished"));
-            return true;
+            // A finish clicked on a finished face goes on the face behind it while that one is bare (decision 0075).
+            // A framing material keeps placing: planks on a boarded top extend the run or raise a wall. Where the
+            // run cannot extend, that click would do nothing, so there the planks take the underside too.
+            bool placesFrame = SidingWallBlock.MatchConsumes(heldCode, Attributes["Framings"]) != null
+                && !(SidingModePicker.Layout(byPlayer) == "floor" && blockSel.Face == BlockFacing.UP && RunEndFor(world, byPlayer, blockSel.Position, this) == null);
+            string? farFace = placesFrame ? null : FinishFace(blockSel.Face.Opposite);
+            if (farFace == null || (farFace == "front" ? entity.Front : entity.Back) != null)
+            {
+                if (heldPlaces) return base.OnBlockInteractStart(world, byPlayer, blockSel);
+                (byPlayer as IServerPlayer)?.SendIngameError("vssiding:alreadyfinished", Lang.Get("vssiding:build-already-finished"));
+                return true;
+            }
+
+            face = farFace;
+            style = StyleFor(face);
         }
 
         var finishConsumes = Attributes["Finishes"][finishKey]["Consumes"];
@@ -265,6 +281,15 @@ public class SidingFloorBlock : Block
             return replaceable(pos) ? pos : null;
         }
         return null;
+    }
+
+    // RunEnd for a player's click on the floor at `start`, walking the way the player looks.
+    internal static BlockPos? RunEndFor(IWorldAccessor world, IPlayer byPlayer, BlockPos start, Block placeholder)
+    {
+        var accessor = world.BlockAccessor;
+        return RunEnd(
+            pos => accessor.GetBlock(pos) is SidingFloorBlock, pos => accessor.GetBlock(pos).IsReplacableBy(placeholder),
+            start, Ahead(byPlayer.Entity.SidedPos.GetViewVector()));
     }
 
     // The horizontal face the player is looking toward, whatever the pitch.

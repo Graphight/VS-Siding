@@ -421,6 +421,9 @@ public class SidingWallBlock : Block
         return true;
     }
 
+    // True keeps a held click one interaction, so vanilla's repeat does not press the next layer on (decision 0075).
+    public override bool OnBlockInteractStep(float secondsUsed, IWorldAccessor world, IPlayer byPlayer, BlockSelection blockSel) => true;
+
     // A saw in the off hand layers infill onto a framed wall, then finishes onto a filled
     // one - which face was clicked picks Front vs Back. Returns true for every handled
     // branch (including the wrong-face error) so vanilla's "place block against" fallthrough
@@ -596,9 +599,19 @@ public class SidingWallBlock : Block
                 return true;
             }
 
-            if (heldPlaces) return base.OnBlockInteractStart(world, byPlayer, blockSel);
-            (byPlayer as IServerPlayer)?.SendIngameError("vssiding:alreadyfinished", Lang.Get("vssiding:build-already-finished"));
-            return true;
+            // A finish clicked on a finished face goes on the face behind it while that one is bare (decision 0075),
+            // except a framing material that would turn this wall into a corner (PlaceWallFrame).
+            bool turnsToCorner = Variant["layout"] == "wall" && SidingModePicker.Layout(byPlayer) == "cornerout"
+                && MatchFraming(heldCode, true, Attributes["Framings"], Attributes["Infills"]) != null;
+            string? farFace = turnsToCorner ? null : ResolveFinishFace(Variant["layout"], side, blockSel.Face.Opposite);
+            if (farFace == null || (farFace switch { "front" => entity.Front, "secondfront" => entity.SecondFront, _ => entity.Back }) != null)
+            {
+                if (heldPlaces) return base.OnBlockInteractStart(world, byPlayer, blockSel);
+                (byPlayer as IServerPlayer)?.SendIngameError("vssiding:alreadyfinished", Lang.Get("vssiding:build-already-finished"));
+                return true;
+            }
+
+            face = farFace;
         }
 
         var finishConsumes = Attributes["Finishes"][finishKey]["Consumes"];
@@ -713,7 +726,8 @@ public class SidingWallBlock : Block
             return true;
         }
 
-        string? style = SidingModePicker.FinishChoices(byPlayer).FirstOrDefault(s => SidingFloorEntity.HasFloorStyle(Attributes["Finishes"][finishKey], face, s));
+        string? StyleFor(string on) => SidingModePicker.FinishChoices(byPlayer).FirstOrDefault(s => SidingFloorEntity.HasFloorStyle(Attributes["Finishes"][finishKey], on, s));
+        string? style = StyleFor(face);
 
         string? currentKey = face == "front" ? entity.DeckFront : entity.DeckBack;
         string? currentStyle = face == "front" ? entity.DeckFrontStyle : entity.DeckBackStyle;
@@ -725,9 +739,18 @@ public class SidingWallBlock : Block
                 return true;
             }
 
-            if (heldPlaces) return base.OnBlockInteractStart(world, byPlayer, blockSel);
-            (byPlayer as IServerPlayer)?.SendIngameError("vssiding:alreadyfinished", Lang.Get("vssiding:build-already-finished"));
-            return true;
+            // The far face takes the finish as a floor's does (decision 0075). A click on the deck is the deck's, so
+            // planks take it too, whatever is picked; the wall's own top still stacks the next course.
+            string? farFace = SidingFloorBlock.FinishFace(blockSel.Face.Opposite);
+            if (farFace == null || (farFace == "front" ? entity.DeckFront : entity.DeckBack) != null)
+            {
+                if (heldPlaces) return base.OnBlockInteractStart(world, byPlayer, blockSel);
+                (byPlayer as IServerPlayer)?.SendIngameError("vssiding:alreadyfinished", Lang.Get("vssiding:build-already-finished"));
+                return true;
+            }
+
+            face = farFace;
+            style = StyleFor(face);
         }
 
         var finishConsumes = Attributes["Finishes"][finishKey]["Consumes"];
@@ -960,13 +983,14 @@ public class SidingWallBlock : Block
 
     // Looking at a built wall names its layers - otherwise a boarded infill is unreadable
     // short of breaking it, and the infill is what decides cellar vs warm room (decision 0015).
-    // Takes a translate delegate (the entity passes Lang.GetIfExists) so this needs no loaded Lang.
+    // Takes a translate delegate (the entities pass LangEntry) so this needs no loaded Lang.
     // System.Func is spelled out throughout: Vintagestory.API.Common declares a Func of its own.
     internal static string Describe(
         string? framing, string? infill, string? deck, JsonObject framings, JsonObject infills,
         string layout, string side, string? front, string? secondFront, string? back, JsonObject finishes,
         System.Func<string, string?> translate, string? stepName = null,
-        string? deckInfill = null, string? deckFront = null, string? deckBack = null, bool full = true)
+        string? deckInfill = null, string? deckFront = null, string? deckBack = null, bool full = true,
+        System.Func<string, bool>? buried = null)
     {
         string? builtFraming = Installed(framing, framings);
         string? builtInfill = Installed(infill, infills);
@@ -991,7 +1015,7 @@ public class SidingWallBlock : Block
         }
         if (stepName != null)
             sb.AppendLine("  " + string.Format(Translate("vssiding:tooltip-step", translate), stepName));
-        foreach (string line in DescribeFaces(layout, side, front, secondFront, back, finishes, translate))
+        foreach (string line in DescribeFaces(layout, side, front, secondFront, back, finishes, translate, buried))
             sb.AppendLine("  " + line);
         sb.AppendLine("  " + Translate(SealKey(builtFraming, builtInfill, framings, infills), translate));
         return sb.ToString();
@@ -1011,19 +1035,25 @@ public class SidingWallBlock : Block
     // three finishable faces without inventing words for them. Both of its legs share one Back
     // layer, so two directions carry the same finish; grouping by first appearance is what puts
     // them on one line even with a SecondFront direction between them. A diagonal's two claimed
-    // faces are one front, so its four directions come out as two lines.
+    // faces are one front, so its four directions come out as two lines. An unfinished front
+    // flush against a solid block (buried) cannot be seen, so it is left out (decision 0075).
     private static IEnumerable<string> DescribeFaces(
         string layout, string side, string? front, string? secondFront, string? back, JsonObject finishes,
-        System.Func<string, string?> translate)
+        System.Func<string, string?> translate, System.Func<string, bool>? buried = null)
     {
         string? builtFront = Installed(front, finishes), builtBack = Installed(back, finishes);
         var directions = new List<(string direction, string? finish)> { (side, builtFront), (Opposite(side), builtBack) };
+        var fronts = new List<string> { side };
         if (ClaimsTwoFaces(layout))
         {
             string secondSide = CorneroutSecondFace[side];
             directions.Add((secondSide, layout == "diagonal" ? builtFront : Installed(secondFront, finishes)));
             directions.Add((Opposite(secondSide), builtBack));
+            fronts.Add(secondSide);
         }
+
+        if (buried != null)
+            directions.RemoveAll(d => d.finish == null && fronts.Contains(d.direction) && buried(d.direction));
 
         foreach (var group in directions.GroupBy(d => d.finish))
         {
@@ -1054,6 +1084,11 @@ public class SidingWallBlock : Block
     // raw key rather than dressing it up. A material's DisplayName is the case worth dressing up,
     // since a game update can add a wood the lang file has never heard of.
     internal static string Translate(string langKey, System.Func<string, string?> translate) => translate(langKey) ?? langKey;
+
+    // The entities' translate delegate: the entry as written, or null where lang has none. Not Lang.GetIfExists,
+    // which formats the entry with no arguments and logs an exception for every line that carries a {0}.
+    internal static string? LangEntry(string key)
+        => Lang.HasTranslation(key, findWildcarded: false, logErrors: false) ? Lang.GetUnformatted(key) : null;
 
     private static string TitleCase(string key)
         => string.Join(' ', key.Split('-').Select(word => word.Length == 0 ? word : char.ToUpperInvariant(word[0]) + word[1..]));

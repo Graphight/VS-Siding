@@ -59,10 +59,11 @@ public class SidingWallTooltipTests
     private static string Describe(
         string? framing = "oak", string? infill = "wattle", string? deck = null, string layout = "wall",
         string? front = null, string? secondFront = null, string? back = null, string? stepName = null,
-        string? deckInfill = null, string? deckFront = null, string? deckBack = null, bool full = true)
+        string? deckInfill = null, string? deckFront = null, string? deckBack = null, bool full = true,
+        System.Func<string, bool>? buried = null)
         => SidingWallBlock.Describe(
             framing, infill, deck, Framings, Infills, layout, "west", front, secondFront, back, Finishes,
-            key => Lang.GetValueOrDefault(key), stepName, deckInfill, deckFront, deckBack, full);
+            key => Lang.GetValueOrDefault(key), stepName, deckInfill, deckFront, deckBack, full, buried);
 
     [Fact]
     public void BuiltFramingAndInfillNameTheirMaterials()
@@ -148,6 +149,31 @@ public class SidingWallTooltipTests
         Assert.Equal(
             "\n  Oak Framing\n  Wattle Infill\n  West: Daub Finish\n  East: unfinished\n  Seals the room\n",
             Describe(front: "daub"));
+    }
+
+    // Every direction answers buried here, so the back staying listed is the front-only rule.
+    [Fact]
+    public void BuriedFrontIsLeftOutUnlessItIsFinished()
+    {
+        Assert.Equal(
+            (
+                "\n  Oak Framing\n  Wattle Infill\n  East: unfinished\n  Seals the room\n",
+                "\n  Oak Framing\n  Wattle Infill\n  West: Daub Finish\n  East: unfinished\n  Seals the room\n"),
+            (
+                Describe(buried: _ => true),
+                Describe(front: "daub", buried: _ => true)));
+    }
+
+    [Fact]
+    public void DiagonalsBuriedSidesDropOneByOne()
+    {
+        Assert.Equal(
+            (
+                "\n  Oak Framing\n  Wattle Infill\n  East, South: Daub Finish\n  North: unfinished\n  Seals the room\n",
+                "\n  Oak Framing\n  Wattle Infill\n  East, South: Daub Finish\n  Seals the room\n"),
+            (
+                Describe(layout: "diagonal", back: "daub", buried: direction => direction == "west"),
+                Describe(layout: "diagonal", back: "daub", buried: _ => true)));
     }
 
     [Fact]
