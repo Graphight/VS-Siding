@@ -85,6 +85,19 @@ public class SidingFloorBlock : Block
                 return true;
             }
 
+            // A finished face sends the finish to the face behind it while that one is bare; planks keep placing.
+            string? farFace = SidingWallBlock.MatchConsumes(heldCode, Attributes["Framings"]) == null ? FinishFace(blockSel.Face.Opposite) : null;
+            if (farFace != null && (farFace == "front" ? entity.Front : entity.Back) == null)
+            {
+                string? farStyle = SidingModePicker.FinishChoices(byPlayer).FirstOrDefault(s => SidingFloorEntity.HasFloorStyle(Attributes["Finishes"][finishKey], farFace, s));
+                var farConsumes = Attributes["Finishes"][finishKey]["Consumes"];
+                if (!SidingWallBlock.TryAffordOrError(byPlayer, isCreative, slot.StackSize, farConsumes)) return true;
+
+                SetFinish(entity, farFace, finishKey, farStyle);
+                SidingWallBlock.ConsumeHeld(slot, farConsumes, isCreative);
+                return true;
+            }
+
             if (heldPlaces) return base.OnBlockInteractStart(world, byPlayer, blockSel);
             (byPlayer as IServerPlayer)?.SendIngameError("vssiding:alreadyfinished", Lang.Get("vssiding:build-already-finished"));
             return true;

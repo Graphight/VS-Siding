@@ -744,6 +744,18 @@ public class SidingWallBlock : Block
                 return true;
             }
 
+            string? farFace = MatchConsumes(heldCode, Attributes["Framings"]) == null ? SidingFloorBlock.FinishFace(blockSel.Face.Opposite) : null;
+            if (farFace != null && (farFace == "front" ? entity.DeckFront : entity.DeckBack) == null)
+            {
+                string? farStyle = SidingModePicker.FinishChoices(byPlayer).FirstOrDefault(s => SidingFloorEntity.HasFloorStyle(Attributes["Finishes"][finishKey], farFace, s));
+                var farConsumes = Attributes["Finishes"][finishKey]["Consumes"];
+                if (!TryAffordOrError(byPlayer, isCreative, slot.StackSize, farConsumes)) return true;
+
+                SetDeckFinish(entity, farFace, finishKey, farStyle);
+                ConsumeHeld(slot, farConsumes, isCreative);
+                return true;
+            }
+
             if (heldPlaces) return base.OnBlockInteractStart(world, byPlayer, blockSel);
             (byPlayer as IServerPlayer)?.SendIngameError("vssiding:alreadyfinished", Lang.Get("vssiding:build-already-finished"));
             return true;
