@@ -16,7 +16,7 @@ Sticks are also the wattle infill, so sneak to stack or extend a bare stick fram
 Bones build a frame too, two to a frame, and a pelt or a cloth fills one.
 
 The saw or stone carries a tool mode picker, and the mode decides what you build: a flat **wall**, an outside **corner**, a **diagonal** across the block or a thin **floor**, and whether plank and log finishes go on as weatherboard, boards, shakes, logs or bark.
-The in-game handbook page *VS Siding Mod: Guide* has the whole thing.
+The in-game handbook has the whole thing: start at *VS Siding Mod: Guide*, which links to a page for each topic.
 
 ## What a wall is made of
 

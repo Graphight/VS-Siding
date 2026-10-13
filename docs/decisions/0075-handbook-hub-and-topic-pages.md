@@ -70,5 +70,3 @@ Decision 0029 recorded that the picker icons could not be inlined.
 - Not yet played. Nothing here has been seen drawn in game: the heading scale (120%), the picker icon scale (150%), the key drawing, the item icon sizes, and where eight pages sort in the Guides list are all unverified.
   Each is a one-line change in `en.json`.
 - The pages hard-code material and mode lists, so a new mode or material still means editing prose, now on a named page.
-- Another open branch (`far-face-finish`, issue #108) may edit the same guide strings; if it does, whichever merges second resolves a conflict in `en.json`.
-- `MaterialTextureOpacityTests.NoMaterialTextureHasPartialAlpha` failed intermittently during this work with a null bitmap and passed on rerun. It is unrelated to these pages and is not fixed here.
