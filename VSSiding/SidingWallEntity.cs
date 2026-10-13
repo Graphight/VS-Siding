@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
-using Vintagestory.API.Config;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Util;
@@ -125,8 +124,14 @@ public class SidingWallEntity : BlockEntity
         dsc.Append(SidingWallBlock.Describe(
             Framing, Infill, Deck, Block.Attributes["Framings"], Block.Attributes["Infills"],
             Block.Variant["layout"], Block.Variant["side"], Front, SecondFront, Back, Block.Attributes["Finishes"],
-            key => Lang.GetIfExists(key), stepName, DeckInfill, DeckFront, DeckBack,
-            SidingWallBlock.HasBuildSignal(forPlayer)));
+            SidingWallBlock.LangEntry, stepName, DeckInfill, DeckFront, DeckBack,
+            SidingWallBlock.HasBuildSignal(forPlayer), Api != null && Pos != null ? Buried : null));
+    }
+
+    private bool Buried(string direction)
+    {
+        BlockFacing facing = BlockFacing.FromCode(direction);
+        return Api.World.BlockAccessor.GetBlock(Pos.AddCopy(facing)).SideOpaque[facing.Opposite.Index];
     }
 
     // Everything OnTesselation reads off this entity, which is exactly what CacheKey covers.

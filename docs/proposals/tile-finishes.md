@@ -100,7 +100,7 @@ The in-place corner upgrade (decision 0069) moves a face's list with its key, an
 - A hosted wall's record is its entity's tree (`GuestWalls`), so it should keep its tiles with no change there. Not tried.
 - A deck draws its ledge only while the wall's room side is bare. With the top row of that side untiled, the slot beside the deck is open for 4 voxels of height and nothing fills it. Left as it falls unless play shows it.
 - A diagonal's deck is eight strips. `DeckGroups` may cut the tiles to them as it cuts the floor's other groups; if it does, the deck takes tiles while its panel does not, and whether that reads as wrong is open.
-- Issue #108 changes which face a finish click lands on. It is a gate for 1.4.0 and this is not, so this is built after it, and a tile clicked on a finished face then follows the rule #108 lands.
+- Decision 0075 (issue #108) changes which face a finish click lands on. A tile clicked on a finished face follows its rule: the finish goes on the face behind it while that face is bare.
 - One PR, in the order shapes and their tests, then state, mesh and texture, then click, break and drops with an Atlas scenario, then corners and the upgrade, then the mod page and guide text. It goes into 1.4.0 if it is merged before the gates clear, and the release does not wait for it.
 - Four clicks tile a face, and there is no fill shortcut.
 - The texture's variants (`red1` to `red4`) have not been compared at their quarters; if a variant moves the grout, a cell's four tiles still share one variant, and neighbours may not meet.
