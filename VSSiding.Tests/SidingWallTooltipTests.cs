@@ -151,6 +151,7 @@ public class SidingWallTooltipTests
             Describe(front: "daub"));
     }
 
+    // Every direction answers buried here, so the back staying listed is the front-only rule.
     [Fact]
     public void BuriedFrontIsLeftOutUnlessItIsFinished()
     {
@@ -159,8 +160,20 @@ public class SidingWallTooltipTests
                 "\n  Oak Framing\n  Wattle Infill\n  East: unfinished\n  Seals the room\n",
                 "\n  Oak Framing\n  Wattle Infill\n  West: Daub Finish\n  East: unfinished\n  Seals the room\n"),
             (
-                Describe(buried: direction => direction == "west"),
-                Describe(front: "daub", buried: direction => direction == "west")));
+                Describe(buried: _ => true),
+                Describe(front: "daub", buried: _ => true)));
+    }
+
+    [Fact]
+    public void DiagonalsBuriedSidesDropOneByOne()
+    {
+        Assert.Equal(
+            (
+                "\n  Oak Framing\n  Wattle Infill\n  East, South: Daub Finish\n  North: unfinished\n  Seals the room\n",
+                "\n  Oak Framing\n  Wattle Infill\n  East, South: Daub Finish\n  Seals the room\n"),
+            (
+                Describe(layout: "diagonal", back: "daub", buried: direction => direction == "west"),
+                Describe(layout: "diagonal", back: "daub", buried: _ => true)));
     }
 
     [Fact]

@@ -37,6 +37,17 @@ public class JunctionScenarios : AtlasScenarioBase
         Assert.Equal(("cornerout", "north,west", "oak", ("oak", "clay", "planks-birch", null, "planks-birch")), Describe(cell));
     }
 
+    // The wall passes this press on, so vanilla repeats it through the held planks, which frame nothing on a repeat.
+    [AtlasScenario(FreshWorld = true)]
+    public async Task FilledWall_Should_BecomeACornerAndFrameNothingBeside_When_ThePressOnItsFinishedFrontIsHeld()
+    {
+        (BlockPos cell, ITestPlayer player) = await RaiseFinishedDeckedWall();
+
+        await WallBuilder.Press(World, player, cell, "game:plank-oak", BlockFacing.WEST, NorthEnd, held: true);
+
+        Assert.Equal(("cornerout", "air"), (World.BlockAt(cell).Variant["layout"], World.BlockAt(cell.WestCopy()).Code.Path));
+    }
+
     [AtlasScenario(FreshWorld = true)]
     public async Task FilledWall_Should_BecomeACorner_When_SticksArePressedOnItsUnfinishedFront()
     {
