@@ -17,7 +17,7 @@ The request is issue #108, asked on the mod page.
 
 ## Design
 **The rule.**
-In the wall's finish path, a clicked face that is finished and that the click does not restyle sends the finish to the face behind it, when that face is bare.
+In the wall's finish path, a finish clicked on a finished face, where the click is no restyle, goes on the face behind it when that face is bare.
 The check that the player can afford the item, the charge and the style are the same as for the clicked face.
 Where both faces are finished, the click does what it did before: a framing material or a block passes on and places, and anything else shows the message.
 Sneak still places, since vanilla skips the block's interaction.
@@ -30,21 +30,25 @@ A diagonal's claimed faces reach `back` and its backs reach `front`.
 A glazed diagonal still takes no finish.
 
 **Floors and decks.**
-`SidingFloorBlock.OnBlockInteractStart` and `SidingWallBlock.LayerDeck` send the finish through `SidingFloorBlock.FinishFace(blockSel.Face.Opposite)`.
+`SidingFloorBlock.OnBlockInteractStart` and `SidingWallBlock.LayerDeck` resolve the far face with `SidingFloorBlock.FinishFace(blockSel.Face.Opposite)`.
 The style is picked again for the far face, since a finish lists the styles a floor takes per face (`SidingFloorEntity.HasFloorStyle`).
-A framing material keeps placing on a floor or a deck: planks on a boarded top still extend the run (decision 0050), or raise a wall on the floor with Wall picked.
-One exception is a floor's top with Floor picked whose run cannot extend, where `SidingFloorBlock.RunEndFor` finds no cell: `PlaceWallFrame` does nothing with that click, so there the planks take the underside.
+
+**Planks on a floor.**
+A framing material keeps placing on a floor: planks on a boarded top still extend the run (decision 0050), or raise a wall on the floor with Wall picked.
+The exception is a top with Floor picked whose run cannot extend, where `SidingFloorBlock.RunEndFor` finds no cell: `PlaceWallFrame` does nothing with that click, so there the planks take the underside.
 That is the cellar floor, laid wall to wall, and it changes no click that did something before.
 The run walks the way the player looks and stops at `RunReach`, so planks also take the underside of a floor with four or more floor cells ahead of it.
-A deck is the other exception: a click on the deck's boxes is the deck's (decision 0053), so planks take its far face whatever is picked.
+
+**Planks on a deck.**
+A click on the deck's boxes is the deck's (decision 0053), so planks take its far face whatever is picked.
 Before, planks on a boarded deck's top framed a wall or a floor in the cell above.
-A first version of this rule asked for Floor picked, and in the playtest a player working on walls, with Wall or Corner picked, found that clicks on a boarded deck did nothing.
+A first version asked for Floor picked, and in the playtest clicks on a boarded deck did nothing; a scenario with Wall picked showed the click framing a wall above.
 The wall's own top still stacks the next course, sneaking still places, and once both of the deck's faces are finished its top passes planks on as before.
 
 **Restyle wins.**
 The same material with another style picked restyles the near face, free, as in decision 0027.
 
-**Corner is picked.**
+**Corner picked.**
 A framing material on a `wall` layout with Corner picked falls through to the corner upgrade, as in decision 0069.
 Planks and held blocks otherwise take the far face on a wall like any other finish.
 
@@ -76,13 +80,12 @@ A guest wall's tooltip follows the same rule, since `GuestWalls.Decode` sets the
 - **Planks take the far face on every floor.** With Wall picked, every wall raised on a boarded upper floor would first lay a ceiling below it. A plank ceiling laid by mistake can be taken off from above, since a top hit peels the floorboards and then the ceiling, but it is a detour.
 - **Planks keep their placing on walls.** Planks are the commonest finish, so the rule would skip the most common case and leave the far face reachable only with other materials.
 - **Leave the tooltip alone.** A finish is appearance only, so a face against dirt would read unfinished until the player paid to finish a face nobody can see.
-- **A guest wall's panel.** It takes no click (decision 0035), so its far face cannot be finished this way.
 - **Folding the three finish paths into one.** The wall, the floor and the deck still each carry their own copy of the branch. A shared helper is a refactor this change does not need.
 
 ## Consequences & open questions
 - A held press layers one layer per press where it could layer two. An item that is both an infill and a finish no longer fills and then finishes in one hold.
 - The held-press guard is untested in game. The playtest to run is to hold right-click for two seconds with planks on a filled wall's bare face and check that only that face boards.
-- Planks or a held block clicked on a finished wall face no longer place while the far face is bare. Sneaking places them.
+- Planks or a held block clicked on a finished wall face no longer place while the far face is bare, and neither do planks on a boarded deck. Sneaking places them.
 - Two styles of one material, one per side, take three clicks from one side: restyle the near face, finish the far face, restyle the near face back.
-- Atlas scenarios in `FarFaceScenarios.cs` cover a non-placing finish and planks on a finished back, a corner's two backs, a diagonal's back, a restyle winning over the far face, a held press on a wall and on a floor, and the floor and deck cases with planks under each picker choice. `JunctionScenarios.cs` covers a held press the wall passes on. `TooltipScenarios.cs` and `SidingWallTooltipTests.cs` cover the buried front.
-- A wall hosting furniture cannot take the far face.
+- The scenarios are in `FarFaceScenarios.cs`; `JunctionScenarios.cs` has the held press a wall passes on, and `TooltipScenarios.cs` and `SidingWallTooltipTests.cs` the buried front.
+- A wall hosting furniture cannot take the far face: its panel takes no click (decision 0035).
