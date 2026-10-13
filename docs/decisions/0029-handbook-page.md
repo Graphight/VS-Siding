@@ -1,6 +1,6 @@
 # 0029 — Handbook page
 
-- Status: Accepted; `<hk>` dropped and picker icons not inlinable superseded by 0075
+- Status: Accepted; `<hk>` dropped and picker icons not inlinable superseded by 0076
 - Created: 2026-09-20
 - Reflects: branch `handbook-page`, after decision 0028
 

@@ -1,4 +1,4 @@
-# 0075 — Handbook hub and topic pages
+# 0076 — Handbook hub and topic pages
 
 - Status: Accepted
 - Created: 2026-10-12
