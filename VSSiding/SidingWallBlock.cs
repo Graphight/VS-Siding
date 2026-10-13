@@ -739,11 +739,9 @@ public class SidingWallBlock : Block
                 return true;
             }
 
-            // The far face takes the finish as a floor's does (decision 0075). A framing material keeps placing, except
-            // planks on a boarded top with floor picked, which would only frame a floor in the cell above.
-            bool placesFrame = MatchConsumes(heldCode, Attributes["Framings"]) != null
-                && !(SidingModePicker.Layout(byPlayer) == "floor" && blockSel.Face == BlockFacing.UP);
-            string? farFace = placesFrame ? null : SidingFloorBlock.FinishFace(blockSel.Face.Opposite);
+            // The far face takes the finish as a floor's does (decision 0075). A click on the deck is the deck's, so
+            // planks take it too, whatever is picked; the wall's own top still stacks the next course.
+            string? farFace = SidingFloorBlock.FinishFace(blockSel.Face.Opposite);
             if (farFace == null || (farFace == "front" ? entity.DeckFront : entity.DeckBack) != null)
             {
                 if (heldPlaces) return base.OnBlockInteractStart(world, byPlayer, blockSel);

@@ -146,8 +146,9 @@ public class FarFaceScenarios : AtlasScenarioBase
         Assert.Equal(("planks", "planks"), (Read(cell, "deckfront"), Read(cell, "deckback")));
     }
 
+    // A player working on walls has Wall or Corner picked, not Floor.
     [AtlasScenario(FreshWorld = true)]
-    public async Task Deck_Should_CarryAWallAboveAndKeepItsUndersideBare_When_PlanksArePressedOnItsBoardedTopWithWallPicked()
+    public async Task Deck_Should_TakePlanksOnItsUnderside_When_PlanksArePressedOnItsBoardedTopWithWallPicked()
     {
         (BlockPos cell, ITestPlayer player) = await RaiseBoardedDeck();
         player.Entity.WatchedAttributes.SetString("vssidingFraming", "wall");
@@ -155,7 +156,21 @@ public class FarFaceScenarios : AtlasScenarioBase
         await WallBuilder.Press(World, player, cell, "game:plank-oak", BlockFacing.UP, TopHit, onDeck: true);
 
         Assert.Equal(
-            ("planks", (string?)null, "wall"),
+            ("planks", "planks", "air"),
+            (Read(cell, "deckfront"), Read(cell, "deckback"), World.BlockAt(cell.UpCopy()).Code.Path));
+    }
+
+    [AtlasScenario(FreshWorld = true)]
+    public async Task Deck_Should_CarryAWallAbove_When_PlanksArePressedOnItsTopWithBothFacesBoarded()
+    {
+        (BlockPos cell, ITestPlayer player) = await RaiseBoardedDeck();
+        player.Entity.WatchedAttributes.SetString("vssidingFraming", "wall");
+        await WallBuilder.Press(World, player, cell, "game:plank-oak", BlockFacing.UP, TopHit, quantity: 2, onDeck: true);
+
+        await WallBuilder.Press(World, player, cell, "game:plank-oak", BlockFacing.UP, TopHit, onDeck: true);
+
+        Assert.Equal(
+            ("planks", "planks", "wall"),
             (Read(cell, "deckfront"), Read(cell, "deckback"), World.BlockAt(cell.UpCopy()).Variant["layout"]));
     }
 

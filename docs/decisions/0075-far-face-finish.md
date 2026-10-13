@@ -36,9 +36,10 @@ A framing material keeps placing on a floor or a deck: planks on a boarded top s
 One exception is a floor's top with Floor picked whose run cannot extend, where `SidingFloorBlock.RunEndFor` finds no cell: `PlaceWallFrame` does nothing with that click, so there the planks take the underside.
 That is the cellar floor, laid wall to wall, and it changes no click that did something before.
 The run walks the way the player looks and stops at `RunReach`, so planks also take the underside of a floor with four or more floor cells ahead of it.
-A deck's top with Floor picked is the other exception: planks there take the underside, where before they framed a floor in the cell above, 12/16 over the deck.
-Unlike the floor's exception, this replaces a click that did something; sneaking still frames that floor.
-With Wall picked, planks on a boarded deck's top still raise the next wall.
+A deck is the other exception: a click on the deck's boxes is the deck's (decision 0053), so planks take its far face whatever is picked.
+Before, planks on a boarded deck's top framed a wall or a floor in the cell above.
+A first version of this rule asked for Floor picked, and in the playtest a player working on walls, with Wall or Corner picked, found that clicks on a boarded deck did nothing.
+The wall's own top still stacks the next course, sneaking still places, and once both of the deck's faces are finished its top passes planks on as before.
 
 **Restyle wins.**
 The same material with another style picked restyles the near face, free, as in decision 0027.
