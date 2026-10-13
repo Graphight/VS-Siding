@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Created: 2026-10-12
-- Reflects: branch `far-face-finish`; issue #108 and the mod page comment https://mods.vintagestory.at/vssiding#cmt-245654; `SidingWallBlock.OnBlockInteractStart`, `OnBlockInteractStep`, `LayerDeck`, `Describe` and `DescribeFaces`; `SidingFloorBlock.OnBlockInteractStart`, `OnBlockInteractStep` and `FinishFace`; `SidingWallEntity.GetBlockInfo`; `build-already-finished` in `lang/en.json`; `VSSiding.E2E.Tests/FarFaceScenarios.cs`, `WallBuilder.Press`, `TooltipScenarios.cs`; `VSSiding.Tests/SidingWallTooltipTests.cs`; decisions 0027, 0035, 0050, 0053, 0065, 0069; vanilla 1.21 `SystemMouseInWorldInteractions`, `ServerSystemBlockSimulation` and `Block` (decompiled)
+- Reflects: branch `far-face-finish`; issue #108 and the mod page comment https://mods.vintagestory.at/vssiding#cmt-245654; `SidingWallBlock.OnBlockInteractStart`, `OnBlockInteractStep`, `LayerDeck`, `Describe` and `DescribeFaces`; `SidingFloorBlock.OnBlockInteractStart`, `OnBlockInteractStep`, `FinishFace` and `RunEndFor`; `PlaceWallFrame`; `SidingWallEntity.GetBlockInfo`; `build-already-finished` in `lang/en.json`; `VSSiding.E2E.Tests/FarFaceScenarios.cs`, `WallBuilder.Press`, `TooltipScenarios.cs`; `VSSiding.Tests/SidingWallTooltipTests.cs`; decisions 0027, 0035, 0050, 0053, 0065, 0069; vanilla 1.21 `SystemMouseInWorldInteractions`, `ServerSystemBlockSimulation` and `Block` (decompiled)
 
 ## Summary
 A finish clicked on a finished wall face goes on the face behind it while that face is bare.
@@ -32,9 +32,11 @@ A glazed diagonal still takes no finish.
 **Floors and decks.**
 `SidingFloorBlock.OnBlockInteractStart` and `SidingWallBlock.LayerDeck` send the finish through `SidingFloorBlock.FinishFace(blockSel.Face.Opposite)`.
 The style is picked again for the far face, since a finish lists the styles a floor takes per face (`SidingFloorEntity.HasFloorStyle`).
-A framing material never takes the far face on a floor or a deck, whatever the picker says.
-Planks on a boarded top still extend the run, or raise a wall on the floor (decision 0050).
-A plank ceiling put on from above over water could not be reached to take off again.
+A framing material keeps placing on a floor or a deck: planks on a boarded top still extend the run (decision 0050), or raise a wall on the floor with Wall picked.
+The one exception is a floor's top with Floor picked whose run cannot extend, where `SidingFloorBlock.RunEndFor` finds no cell: `PlaceWallFrame` does nothing with that click, so there the planks take the underside.
+That is the cellar floor, laid wall to wall, and it changes no click that did something before.
+The run walks the way the player looks and stops at `RunReach`, so planks also take the underside of a floor with four or more floor cells ahead of it.
+A deck has no such exception: planks on its top place a floor in the cell above.
 
 **Restyle wins.**
 The same material with another style picked restyles the near face, free, as in decision 0027.
@@ -68,6 +70,7 @@ A guest wall's tooltip follows the same rule, since `GuestWalls.Decode` sets the
 
 ## Alternatives considered
 - **The far side wins over a restyle.** A player correcting a style on the face in front of them would have the far face finished instead, with a charge.
+- **Planks take the far face on every floor.** With Wall picked, every wall raised on a boarded upper floor would first lay a ceiling below it. A plank ceiling laid by mistake can be taken off from above, since a top hit peels the floorboards and then the ceiling, but it is a detour.
 - **Planks keep their placing on walls.** Planks are the commonest finish, so the rule would skip the most common case and leave the far face reachable only with other materials.
 - **Leave the tooltip alone.** A finish is appearance only, so a face against dirt would read unfinished until the player paid to finish a face nobody can see.
 - **A guest wall's panel.** It takes no click (decision 0035), so its far face cannot be finished this way.
