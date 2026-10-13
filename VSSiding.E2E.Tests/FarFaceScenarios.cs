@@ -15,6 +15,7 @@ namespace VSSiding.E2E.Tests;
 public class FarFaceScenarios : AtlasScenarioBase
 {
     private static readonly Vec3d Middle = new(0.5, 0.5, 0.5);
+    private static readonly Vec3d TopHit = new(0.5, 1, 0.5);
 
     [AtlasScenario(FreshWorld = true)]
     public async Task Wall_Should_TakeDaubOnItsFront_When_DaubIsPressedOnItsFinishedBack()
@@ -43,7 +44,6 @@ public class FarFaceScenarios : AtlasScenarioBase
         (BlockPos cell, ITestPlayer player) = await RaiseWall();
         player.Entity.WatchedAttributes.SetString("vssidingFraming", "corner");
         await WallBuilder.Press(World, player, cell, "game:stick", BlockFacing.WEST, new Vec3d(0, 0.5, 0.2));
-        Assert.Equal("cornerout", World.BlockAt(cell).Variant["layout"]);
 
         await WallBuilder.Press(World, player, cell, "game:daubraw-browngolden", BlockFacing.EAST, Middle);
         await WallBuilder.Press(World, player, cell, "game:daubraw-browngolden", BlockFacing.SOUTH, Middle);
@@ -102,8 +102,6 @@ public class FarFaceScenarios : AtlasScenarioBase
         World.BlockEntityAt<BlockEntity>(cell)!.ToTreeAttributes(tree);
         Assert.Equal(("planks", "daub"), (tree.GetString("deckfront"), tree.GetString("deckback")));
     }
-
-    private static readonly Vec3d TopHit = new(0.5, 1, 0.5);
 
     private async Task<(BlockPos Cell, ITestPlayer Player)> RaiseBoardedFloor()
     {

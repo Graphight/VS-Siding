@@ -43,7 +43,7 @@ public class TooltipScenarios : AtlasScenarioBase
     }
 
     [AtlasScenario(FreshWorld = true)]
-    public async Task Wall_Should_LeaveOutAnUnfinishedFront_AgainstASolidBlock()
+    public async Task Wall_Should_LeaveOutItsUnfinishedFront_When_ItLiesAgainstASolidBlock()
     {
         BlockPos cell = World.Spawn.Offset(1, 2, 0);
         World.SetBlock("game:planks-aged-ud", cell.DownCopy());
