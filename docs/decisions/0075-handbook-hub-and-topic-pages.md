@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Created: 2026-10-12
-- Reflects: branch `handbook-hub-pages`; `VSSiding/assets/vssiding/config/handbook/*.json`, the `gamemechanicinfo-siding-*` keys of `lang/en.json`; `HandbookPagesTests`, `HandbookScenarios`; decisions 0029, 0040, 0058; decompiled 1.22 `VtmlUtil.Richtextify`, `VtmlParser`, `IconComponent`; not yet played
+- Reflects: branch `handbook-hub-pages`; `VSSiding/assets/vssiding/config/handbook/*.json`, the `gamemechanicinfo-siding-*` keys of `lang/en.json`; `HandbookPagesTests`, `HandbookScenarios`; decisions 0029, 0040, 0058; decompiled 1.22 `VtmlUtil.Richtextify`, `VtmlParser`, `IconComponent`; played on 2026-10-12
 
 ## Summary
 The handbook is eight pages: the Guide as a hub, and seven topic pages it links to.
@@ -67,6 +67,7 @@ Decision 0029 recorded that the picker icons could not be inlined.
 - **A code-registered page.** Decision 0029 already rejected it.
 
 ## Consequences & open questions
-- Not yet played. Nothing here has been seen drawn in game: the heading scale (120%), the picker icon scale (150%), the key drawing, the item icon sizes, and where eight pages sort in the Guides list are all unverified.
-  Each is a one-line change in `en.json`.
+- Played on 2026-10-12, as the PR's checklist records: all eight pages read at the default GUI scale and one larger, the heading size, the picker icon size beside text, the tool mode key drawing, every item icon and link, and where the pages sort in the Guides list.
+  The build played was the one before the last copy sweep, which changed sentences and no tags.
+  Each size is a one-line change in `en.json`.
 - The pages hard-code material and mode lists, so a new mode or material still means editing prose, now on a named page.
