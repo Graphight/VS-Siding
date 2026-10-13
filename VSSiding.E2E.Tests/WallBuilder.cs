@@ -81,7 +81,8 @@ internal static class WallBuilder
     }
 
     // A right-click as vanilla sends it: the wall answers first unless the player sneaks, and the held item only
-    // when the wall passes the click on. A held button sends the click again with firstEvent false.
+    // when the wall passes the click on. A held button sends the click again with firstEvent false, unless
+    // the wall claimed the press and its OnBlockInteractStep keeps the interaction going.
     // The deck's boxes follow the wall's own.
     internal static async Task Press(
         IWorldSession world, ITestPlayer player, BlockPos cell, string item, BlockFacing face, Vec3d hit, int quantity = 4, bool held = false, bool onDeck = false)
@@ -97,7 +98,12 @@ internal static class WallBuilder
 
         foreach (bool firstEvent in held ? new[] { true, false } : new[] { true })
         {
-            if (!player.Entity.Controls.ShiftKey && world.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, sel)) continue;
+            Block block = world.BlockAt(cell);
+            if (!player.Entity.Controls.ShiftKey && block.OnBlockInteractStart(player.Entity.World, player.Player, sel))
+            {
+                if (block.OnBlockInteractStep(0, player.Entity.World, player.Player, sel)) break;
+                continue;
+            }
             var handling = EnumHandHandling.NotHandled;
             slot.Itemstack?.Collectible.OnHeldInteractStart(slot, player.Entity, sel, null, firstEvent, ref handling);
         }

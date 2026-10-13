@@ -421,6 +421,9 @@ public class SidingWallBlock : Block
         return true;
     }
 
+    // True keeps a held click one interaction, so vanilla's repeat does not press the next layer on.
+    public override bool OnBlockInteractStep(float secondsUsed, IWorldAccessor world, IPlayer byPlayer, BlockSelection blockSel) => true;
+
     // A saw in the off hand layers infill onto a framed wall, then finishes onto a filled
     // one - which face was clicked picks Front vs Back. Returns true for every handled
     // branch (including the wrong-face error) so vanilla's "place block against" fallthrough

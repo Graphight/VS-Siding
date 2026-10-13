@@ -27,6 +27,9 @@ public class SidingFloorBlock : Block
         layerResistance = SidingWallBlock.LayerTable(Attributes["LayerResistance"], entry => entry.AsFloat(1f));
     }
 
+    // True keeps a held click one interaction, so vanilla's repeat does not press the next layer on.
+    public override bool OnBlockInteractStep(float secondsUsed, IWorldAccessor world, IPlayer byPlayer, BlockSelection blockSel) => true;
+
     // The wall's build flow laid flat: infill on any face of a framed floor, then a finish on the
     // top or the underside. Anything unclaimed falls through, so planks still extend the run (PlaceWallFrame).
     public override bool OnBlockInteractStart(IWorldAccessor world, IPlayer byPlayer, BlockSelection blockSel)
