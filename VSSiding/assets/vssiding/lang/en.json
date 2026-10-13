@@ -256,7 +256,7 @@
 	"build-wrong-face": "Click the wall's face",
 	"build-floor-wrong-face": "Click the top or the underside",
 	"build-glazed": "A glazed diagonal takes no finish",
-	"build-already-finished": "That side is already finished",
+	"build-already-finished": "Both sides are already finished",
 	"build-occupied": "Something is in the way",
 	"build-decked": "Remove the deck first",
 	"build-stepped": "Remove the step first",

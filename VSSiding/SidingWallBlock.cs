@@ -599,6 +599,22 @@ public class SidingWallBlock : Block
                 return true;
             }
 
+            // A finished face sends the finish to the face behind it while that one is bare, except a
+            // framing material that would turn this wall into a corner.
+            bool turnsToCorner = Variant["layout"] == "wall" && SidingModePicker.Layout(byPlayer) == "cornerout"
+                && MatchFraming(heldCode, true, Attributes["Framings"], Attributes["Infills"]) != null;
+            string? farFace = turnsToCorner ? null : ResolveFinishFace(Variant["layout"], side, blockSel.Face.Opposite);
+            string? farKey = farFace switch { "front" => entity.Front, "secondfront" => entity.SecondFront, "back" => entity.Back, _ => "" };
+            if (farKey == null && farFace != face)
+            {
+                var farConsumes = Attributes["Finishes"][finishKey]["Consumes"];
+                if (!TryAffordOrError(byPlayer, isCreative, slot.StackSize, farConsumes)) return true;
+
+                SetFinish(world, entity, blockSel.Position, farFace!, finishKey, style);
+                ConsumeHeld(slot, farConsumes, isCreative);
+                return true;
+            }
+
             if (heldPlaces) return base.OnBlockInteractStart(world, byPlayer, blockSel);
             (byPlayer as IServerPlayer)?.SendIngameError("vssiding:alreadyfinished", Lang.Get("vssiding:build-already-finished"));
             return true;
