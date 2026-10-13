@@ -997,7 +997,8 @@ public class SidingWallBlock : Block
         string? framing, string? infill, string? deck, JsonObject framings, JsonObject infills,
         string layout, string side, string? front, string? secondFront, string? back, JsonObject finishes,
         System.Func<string, string?> translate, string? stepName = null,
-        string? deckInfill = null, string? deckFront = null, string? deckBack = null, bool full = true)
+        string? deckInfill = null, string? deckFront = null, string? deckBack = null, bool full = true,
+        System.Func<string, bool>? buried = null)
     {
         string? builtFraming = Installed(framing, framings);
         string? builtInfill = Installed(infill, infills);
@@ -1022,7 +1023,7 @@ public class SidingWallBlock : Block
         }
         if (stepName != null)
             sb.AppendLine("  " + string.Format(Translate("vssiding:tooltip-step", translate), stepName));
-        foreach (string line in DescribeFaces(layout, side, front, secondFront, back, finishes, translate))
+        foreach (string line in DescribeFaces(layout, side, front, secondFront, back, finishes, translate, buried))
             sb.AppendLine("  " + line);
         sb.AppendLine("  " + Translate(SealKey(builtFraming, builtInfill, framings, infills), translate));
         return sb.ToString();
@@ -1042,19 +1043,25 @@ public class SidingWallBlock : Block
     // three finishable faces without inventing words for them. Both of its legs share one Back
     // layer, so two directions carry the same finish; grouping by first appearance is what puts
     // them on one line even with a SecondFront direction between them. A diagonal's two claimed
-    // faces are one front, so its four directions come out as two lines.
+    // faces are one front, so its four directions come out as two lines. An unfinished front
+    // flush against a solid block (buried) cannot be reached, so it is left out.
     private static IEnumerable<string> DescribeFaces(
         string layout, string side, string? front, string? secondFront, string? back, JsonObject finishes,
-        System.Func<string, string?> translate)
+        System.Func<string, string?> translate, System.Func<string, bool>? buried = null)
     {
         string? builtFront = Installed(front, finishes), builtBack = Installed(back, finishes);
         var directions = new List<(string direction, string? finish)> { (side, builtFront), (Opposite(side), builtBack) };
+        var fronts = new List<string> { side };
         if (ClaimsTwoFaces(layout))
         {
             string secondSide = CorneroutSecondFace[side];
             directions.Add((secondSide, layout == "diagonal" ? builtFront : Installed(secondFront, finishes)));
             directions.Add((Opposite(secondSide), builtBack));
+            fronts.Add(secondSide);
         }
+
+        if (buried != null)
+            directions.RemoveAll(d => d.finish == null && fronts.Contains(d.direction) && buried(d.direction));
 
         foreach (var group in directions.GroupBy(d => d.finish))
         {

@@ -42,6 +42,29 @@ public class TooltipScenarios : AtlasScenarioBase
             (withSaw, withoutSaw));
     }
 
+    [AtlasScenario(FreshWorld = true)]
+    public async Task Wall_Should_LeaveOutAnUnfinishedFront_AgainstASolidBlock()
+    {
+        BlockPos cell = World.Spawn.Offset(1, 2, 0);
+        World.SetBlock("game:planks-aged-ud", cell.DownCopy());
+        ITestPlayer player = await WallBuilder.JoinBuilder(World);
+        await WallBuilder.Raise(World, player, cell, cell.WestCopy(), "game:plank-oak", "game:stick");
+        Block block = World.BlockAt(cell);
+        BlockFacing back = BlockFacing.FromCode(block.Variant["side"]).Opposite;
+        World.SetBlock("game:planks-aged-ud", cell.AddCopy(BlockFacing.FromCode(block.Variant["side"])));
+
+        string tooltip = block.GetPlacedBlockInfo(player.Entity.World, cell, player.Player);
+
+        Assert.Equal(
+            Lines(
+                "",
+                "  " + Lang.Get("vssiding:framing-oak"),
+                "  " + Lang.Get("vssiding:infill-wattle"),
+                $"  {Lang.Get("game:facing-" + back.Code)}: {Lang.Get("vssiding:tooltip-unfinished")}",
+                "  " + Lang.Get("vssiding:tooltip-sealed")) + Lang.GetMatching("vssiding:blockdesc-" + block.Code.Path),
+            tooltip);
+    }
+
     // The floor's code has no variant, so lang's blockdesc-floor-* never matches it and base appends no sentence.
     [AtlasScenario(FreshWorld = true)]
     public async Task Floor_Should_ShowLayers_OnlyWithTheSaw()

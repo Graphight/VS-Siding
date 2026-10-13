@@ -126,7 +126,13 @@ public class SidingWallEntity : BlockEntity
             Framing, Infill, Deck, Block.Attributes["Framings"], Block.Attributes["Infills"],
             Block.Variant["layout"], Block.Variant["side"], Front, SecondFront, Back, Block.Attributes["Finishes"],
             key => Lang.GetIfExists(key), stepName, DeckInfill, DeckFront, DeckBack,
-            SidingWallBlock.HasBuildSignal(forPlayer)));
+            SidingWallBlock.HasBuildSignal(forPlayer), Api != null && Pos != null ? Buried : null));
+    }
+
+    private bool Buried(string direction)
+    {
+        BlockFacing facing = BlockFacing.FromCode(direction);
+        return Api.World.BlockAccessor.GetBlock(Pos.AddCopy(facing)).SideOpaque[facing.Opposite.Index];
     }
 
     // Everything OnTesselation reads off this entity, which is exactly what CacheKey covers.
