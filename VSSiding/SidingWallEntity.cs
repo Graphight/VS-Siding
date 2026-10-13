@@ -76,18 +76,16 @@ public class SidingWallEntity : BlockEntity
     public override void FromTreeAttributes(ITreeAttribute tree, IWorldAccessor worldAccessForResolve)
     {
         base.FromTreeAttributes(tree, worldAccessForResolve);
-        string? oldInfill = Infill;
+        // Other clients learn of new layers only through this sync, so they relight here; Api is null on chunk load.
+        int? oldAbsorption = Api?.Side == EnumAppSide.Client ? (Block as SidingWallBlock)?.AbsorptionOf(this) : null;
         var oldMesh = MeshState;
         Framing = NullIfEmpty(tree.GetString("framing", null));
         Infill = NullIfEmpty(tree.GetString("infill", null));
-        // Other clients learn of new infill only through this sync, so they relight here; Api is null on chunk load.
-        if (Api?.Side == EnumAppSide.Client && Infill != oldInfill)
-        {
-            ((SidingWallBlock)Block).MarkAbsorptionChanged(worldAccessForResolve.BlockAccessor, Pos, Framing, oldInfill);
-        }
         Front = NullIfEmpty(tree.GetString("front", null));
         SecondFront = NullIfEmpty(tree.GetString("secondfront", null));
         Back = NullIfEmpty(tree.GetString("back", null));
+        if (oldAbsorption is int old && Block is SidingWallBlock wall && wall.AbsorptionOf(this) != old)
+            wall.MarkAbsorptionChanged(worldAccessForResolve.BlockAccessor, Pos, old);
         FrontStyle = NullIfEmpty(tree.GetString("frontstyle", null));
         SecondFrontStyle = NullIfEmpty(tree.GetString("secondfrontstyle", null));
         BackStyle = NullIfEmpty(tree.GetString("backstyle", null));

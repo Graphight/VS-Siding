@@ -1275,7 +1275,7 @@ public class SidingModSystem : ModSystem
             var tree = new TreeAttribute();
             guest.ToTreeAttributes(tree);
             entity.FromTreeAttributes(tree, world);
-            wallBlock.OnInfillChanged(world, entity, pos, null);
+            wallBlock.OnInfillChanged(world, entity, pos, 0);
         }
     }
 

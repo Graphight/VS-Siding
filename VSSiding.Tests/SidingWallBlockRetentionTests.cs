@@ -16,7 +16,7 @@ public class SidingWallBlockRetentionTests
 
     private static readonly JsonObject Infills = Dict("""
     {
-        "wattle": { "BlockMaterial": "Wood" },
+        "wattle": { "BlockMaterial": "Wood", "Porous": true },
         "clay": { "BlockMaterial": "Soil" },
         "glass": { "BlockMaterial": "Glass", "Transparent": true }
     }
@@ -130,6 +130,38 @@ public class SidingWallBlockRetentionTests
             .Select(w => SidingWallBlock.ComputeLightAbsorption(w.Item1, w.Item2, Framings, Infills));
 
         Assert.Equal(new[] { 0, 0, 99, 99, 0, 0 }, actual);
+    }
+
+    // A porous infill passes light until a face is finished; nothing else reads the finish.
+    [Fact]
+    public void AnUnfinishedPorousWallPassesLightAndNothingElseChanges()
+    {
+        var actual = new[] { (null, null), ("oak", null), ("oak", "wattle"), ("oak", "clay"), ("oak", "glass"), ("oak", "uninstalled") }
+            .Select(w => SidingWallBlock.ComputeLightAbsorption(w.Item1, w.Item2, Framings, Infills, finished: false));
+
+        Assert.Equal(new[] { 0, 0, 0, 99, 0, 0 }, actual);
+    }
+
+    // Back covers the whole inner side; a cornerout's two outer faces are separate layers.
+    [Fact]
+    public void AWallIsFinishedOnceItsBackOrItsOuterFacesAreCovered()
+    {
+        var faces = new (string? Front, string? SecondFront, string? Back)[]
+        {
+            (null, null, null), ("daub", null, null), (null, "daub", null), ("daub", "daub", null), (null, null, "daub"),
+        };
+
+        var actual = new[] { "wall", "cornerout", "diagonal" }
+            .SelectMany(layout => faces.Select(f => SidingWallBlock.IsFinished(layout, f.Front, f.SecondFront, f.Back)));
+
+        Assert.Equal(
+            new[]
+            {
+                false, true, false, true, true,
+                false, false, false, true, true,
+                false, true, false, true, true,
+            },
+            actual);
     }
 
     // A new deck seals like a floor's top: framing and infill both, so a cooling infill cools.

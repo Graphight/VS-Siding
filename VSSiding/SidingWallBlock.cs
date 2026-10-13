@@ -548,9 +548,9 @@ public class SidingWallBlock : Block
             var consumes = Attributes["Infills"][infillKey]["Consumes"];
             if (!TryAffordOrError(byPlayer, isCreative, slot.StackSize, consumes)) return true;
 
-            string? oldInfill = entity.Infill;
+            int oldAbsorption = AbsorptionOf(entity);
             entity.Infill = infillKey;
-            OnInfillChanged(world, entity, blockSel.Position, oldInfill);
+            OnInfillChanged(world, entity, blockSel.Position, oldAbsorption);
             ConsumeHeld(slot, consumes, isCreative);
             return true;
         }
@@ -592,7 +592,7 @@ public class SidingWallBlock : Block
             // to charge for and nothing to drop.
             if (style != null && currentKey == finishKey && currentStyle != style)
             {
-                SetFinish(entity, face, finishKey, style);
+                SetFinish(world, entity, blockSel.Position, face, finishKey, style);
                 return true;
             }
 
@@ -604,7 +604,7 @@ public class SidingWallBlock : Block
         var finishConsumes = Attributes["Finishes"][finishKey]["Consumes"];
         if (!TryAffordOrError(byPlayer, isCreative, slot.StackSize, finishConsumes)) return true;
 
-        SetFinish(entity, face, finishKey, style);
+        SetFinish(world, entity, blockSel.Position, face, finishKey, style);
         ConsumeHeld(slot, finishConsumes, isCreative);
         return true;
     }
@@ -639,6 +639,8 @@ public class SidingWallBlock : Block
             return true;
         }
 
+        int oldAbsorption = AbsorptionOf(entity);
+
         // Keeps the block entity, and the engine repoints its Block at the new
         // type, so Framing survives and OnTesselation reads the new layout.
         world.BlockAccessor.ExchangeBlock(target.Id, blockSel.Position);
@@ -654,7 +656,7 @@ public class SidingWallBlock : Block
 
             // The new leg changes retention, light and the liquid barrier. On the target, since
             // OnInfillChanged exchanges the block for its own Id.
-            target.OnInfillChanged(world, entity, blockSel.Position, entity.Infill);
+            target.OnInfillChanged(world, entity, blockSel.Position, oldAbsorption);
             return true;
         }
 
@@ -743,15 +745,16 @@ public class SidingWallBlock : Block
         entity.MarkDirty(true);
     }
 
-    private static void SetFinish(SidingWallEntity entity, string face, string finishKey, string? style)
+    private void SetFinish(IWorldAccessor world, SidingWallEntity entity, BlockPos pos, string face, string finishKey, string? style)
     {
+        int oldAbsorption = AbsorptionOf(entity);
         switch (face)
         {
             case "front": entity.Front = finishKey; entity.FrontStyle = style; break;
             case "secondfront": entity.SecondFront = finishKey; entity.SecondFrontStyle = style; break;
             default: entity.Back = finishKey; entity.BackStyle = style; break;
         }
-        entity.MarkDirty(true);
+        OnFinishChanged(world, entity, pos, oldAbsorption);
     }
 
     // Only a finish that lists a style can be asked for it, so a picked board style on daub or
@@ -759,16 +762,25 @@ public class SidingWallBlock : Block
     internal static bool HasStyle(JsonObject finish, string style)
         => Array.IndexOf(finish["Styles"].AsArray<string>([]) ?? [], style) >= 0;
 
-    internal void OnInfillChanged(IWorldAccessor world, SidingWallEntity entity, BlockPos pos, string? oldInfill)
+    internal void OnInfillChanged(IWorldAccessor world, SidingWallEntity entity, BlockPos pos, int oldAbsorption)
     {
         entity.MarkDirty(true);
-        MarkAbsorptionChanged(world.BlockAccessor, pos, entity.Framing, oldInfill);
+        MarkAbsorptionChanged(world.BlockAccessor, pos, oldAbsorption);
         // Infill changes retention, but rooms only recompute on a chunk-dirty event; exchanging the block for itself fires one.
         world.BlockAccessor.ExchangeBlock(Id, pos);
         // It changes the liquid barrier too, and the block itself never changed, so the water
         // beside it has no idea. Without this a wall only starts damming once something else
         // nearby happens to make the neighbours recalculate - and only stops damming then too.
         world.BlockAccessor.TriggerNeighbourBlockUpdate(pos);
+        MarkNeighboursDirty(world, pos);
+    }
+
+    // A finish changes neither retention nor the liquid barrier, only the light the wall absorbs.
+    private void OnFinishChanged(IWorldAccessor world, SidingWallEntity entity, BlockPos pos, int oldAbsorption)
+    {
+        entity.MarkDirty(true);
+        if (AbsorptionOf(entity) == oldAbsorption) return;
+        MarkAbsorptionChanged(world.BlockAccessor, pos, oldAbsorption);
         MarkNeighboursDirty(world, pos);
     }
 
@@ -1054,16 +1066,29 @@ public class SidingWallBlock : Block
     public override int GetLightAbsorption(IWorldChunk chunk, BlockPos pos)
     {
         var entity = chunk?.GetLocalBlockEntityAtBlockPos(pos) as SidingWallEntity;
-        return ComputeLightAbsorption(entity?.Framing, entity?.Infill, Attributes["Framings"], Attributes["Infills"]);
+        return AbsorptionOf(entity);
     }
+
+    internal int AbsorptionOf(SidingWallEntity? entity)
+        => ComputeLightAbsorption(entity?.Framing, entity?.Infill, Attributes["Framings"], Attributes["Infills"],
+            IsFinished(Variant["layout"], entity?.Front, entity?.SecondFront, entity?.Back));
+
+    // Back covers the whole inner side; a cornerout's two outer faces are separate layers.
+    internal static bool IsFinished(string layout, string? front, string? secondFront, string? back)
+        => back != null || (front != null && (layout != "cornerout" || secondFront != null));
 
     // Sealing a room and blocking light are separate questions: glazing does the first and must
     // not do the second. An infill marked Transparent absorbs nothing, which also takes its cell
     // out of the room skylight patch (decision 0015), side AO (0016) and both 0018 patches, since
-    // all of them ask this.
-    internal static int ComputeLightAbsorption(string? framingKey, string? infillKey, JsonObject framings, JsonObject infills)
+    // all of them ask this. An infill marked Porous passes light until a face is finished; the
+    // default finished = true is what RoomSunlight and the thin floor rely on to keep their answers.
+    internal static int ComputeLightAbsorption(string? framingKey, string? infillKey, JsonObject framings, JsonObject infills, bool finished = true)
         => ComputeRetention(true, framingKey, infillKey, framings, infills) != 0
-            && !IsTransparent(infillKey, infills) ? 99 : 0;
+            && !IsTransparent(infillKey, infills)
+            && (finished || !IsPorous(infillKey, infills)) ? 99 : 0;
+
+    internal static bool IsPorous(string? infillKey, JsonObject infills)
+        => infillKey != null && infills[infillKey]["Porous"].AsBool(false);
 
     // Whether an infill is see-through: it decides both that absorption and which render pass
     // the infill's mesh goes in (SidingWallEntity.OnTesselation).
@@ -1078,14 +1103,12 @@ public class SidingWallBlock : Block
     public override bool DoEmitSideAoByFlag(IGeometryTester caller, Vec3iAndFacingFlags vec, int flags)
         => IsSealed(caller.GetCurrentBlockEntityOnSide(vec)) || base.DoEmitSideAoByFlag(caller, vec, flags);
 
-    // The relight skips when old and new absorption match, so opening a wall needs the old infill's real value (decision 0034).
-    internal void MarkAbsorptionChanged(IBlockAccessor accessor, BlockPos pos, string? framing, string? oldInfill)
-        => accessor.MarkAbsorptionChanged(
-            ComputeLightAbsorption(framing, oldInfill, Attributes["Framings"], Attributes["Infills"]),
-            GetLightAbsorption(accessor, pos), pos);
+    // The relight skips when old and new absorption match, so the caller reads the old value before it edits the wall (decision 0034).
+    internal void MarkAbsorptionChanged(IBlockAccessor accessor, BlockPos pos, int oldAbsorption)
+        => accessor.MarkAbsorptionChanged(oldAbsorption, GetLightAbsorption(accessor, pos), pos);
 
     internal bool IsSealed(BlockEntity? be)
-        => be is SidingWallEntity entity && ComputeLightAbsorption(entity.Framing, entity.Infill, Attributes["Framings"], Attributes["Infills"]) > 0;
+        => be is SidingWallEntity entity && AbsorptionOf(entity) > 0;
 
     // The horizontal step from a wall cell to the cell its dead space opens onto: away from the panel, diagonally for a cornerout.
     // A diagonal takes the same step, which is wrong for the triangle outside its panel (decision 0066).
@@ -1325,6 +1348,7 @@ public class SidingWallBlock : Block
 
     internal void RemoveLayer(IWorldAccessor world, SidingWallEntity entity, BlockPos pos, string layer)
     {
+        int oldAbsorption = AbsorptionOf(entity);
         switch (layer)
         {
             case "front": entity.Front = null; entity.FrontStyle = null; break;
@@ -1344,12 +1368,11 @@ public class SidingWallBlock : Block
             case "deck": SetDeck(world, entity, pos, null); return;
             case "step": entity.Step = null; entity.StepOrientation = null; entity.MarkDirty(true); return;
             default:
-                string? oldInfill = entity.Infill;
                 entity.Infill = null;
-                OnInfillChanged(world, entity, pos, oldInfill);
+                OnInfillChanged(world, entity, pos, oldAbsorption);
                 return;
         }
-        entity.MarkDirty(true);
+        OnFinishChanged(world, entity, pos, oldAbsorption);
     }
 
     public override ItemStack[] GetDrops(IWorldAccessor world, BlockPos pos, IPlayer byPlayer, float dropQuantityMultiplier)

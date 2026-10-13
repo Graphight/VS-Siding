@@ -2,6 +2,7 @@ using System;
 using HarmonyLib;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
+using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Vintagestory.Client.NoObf;
 using Vintagestory.Common;
@@ -41,13 +42,39 @@ internal static class GuestLightPatches
         {
             var prefix = new HarmonyMethod(typeof(GuestLightPatches), nameof(SourcePrefix));
             var finalizer = new HarmonyMethod(typeof(GuestLightPatches), nameof(SourceFinalizer));
-            harmony.Patch(AccessTools.Method(typeof(ChunkIlluminator), "CollectLightValuesForLightSource"), prefix, finalizer: finalizer);
+            var collectPrefix = new HarmonyMethod(typeof(GuestLightPatches), nameof(CollectPrefix));
+            harmony.Patch(AccessTools.Method(typeof(ChunkIlluminator), "CollectLightValuesForLightSource"), collectPrefix, finalizer: finalizer);
             harmony.Patch(AccessTools.Method(typeof(ChunkIlluminator), nameof(ChunkIlluminator.RemoveBlockLight)), prefix, finalizer: finalizer);
         }
         catch (Exception e)
         {
             api.Logger.Error("vssiding: hosted light source patch skipped, a light hosted in a sealed wall will not light the room: {0}", e);
         }
+
+        try
+        {
+            harmony.Patch(AccessTools.Method(typeof(ChunkIlluminator), nameof(ChunkIlluminator.UpdateSunLight)),
+                postfix: new HarmonyMethod(typeof(GuestLightPatches), nameof(SunLightPostfix)));
+        }
+        catch (Exception e)
+        {
+            api.Logger.Error("vssiding: block light relight patch skipped, torch light through a wall will be stale after its layers change: {0}", e);
+        }
+    }
+
+    // A wall's layers change its absorption without changing its block, which reaches vanilla as an
+    // absorption-changed task, and both relight systems redo only sunlight for one. UpdateSunLight is
+    // the call they share for it, and each marks every chunk it returns. A block change that vanilla
+    // already relit runs the block light update a second time here, to the same result.
+    private static void SunLightPostfix(ChunkIlluminator __instance, int posX, int posY, int posZ, int oldAbsorb, int newAbsorb,
+        FastSetOfLongs __result, IBlockAccessor ___readBlockAccess)
+    {
+        if (oldAbsorb == newAbsorb) return;
+
+        var pos = new BlockPos(posX, posY, posZ);
+        if (___readBlockAccess.GetBlock(pos) is not SidingFloorBlock && SidingWallBlock.WallAt(___readBlockAccess, pos) == null) return;
+
+        foreach (long chunk in __instance.UpdateBlockLight(oldAbsorb, newAbsorb, posX, posY, posZ)) __result.Add(chunk);
     }
 
     // RemoveBlockLight walks every other nearby source, so each walk puts back the one it replaced.
@@ -56,6 +83,35 @@ internal static class GuestLightPatches
         __state = source;
         source = (posX, posY, posZ);
     }
+
+    // A hosted light sits on the open side of a sealed wall's panel, so the cell beyond each face the
+    // panel claims gets none of it. The walk skips a neighbour whose slot already holds its walk
+    // number, so the slot is written before the walk starts. The mark lasts the whole walk: that cell
+    // stays dark even where the light could wrap round a free-standing wall's end (decision 0072).
+    private static void CollectPrefix(int posX, int posY, int posZ, out (int X, int Y, int Z)? __state,
+        int[]? ___currentVisited, int ___iteration, IBlockAccessor ___readBlockAccess)
+    {
+        SourcePrefix(posX, posY, posZ, out __state);
+        if (___currentVisited == null) return;
+
+        var pos = new BlockPos(posX, posY, posZ);
+        Block block = ___readBlockAccess.GetBlock(pos);
+        if (!SidingModSystem.IsHostableId(block.BlockId) || SidingModSystem.ApiRef(block) is not { } api) return;
+
+        SidingWallEntity? guest = GuestWalls.GuestAt(api, pos);
+        if (guest?.Block is not SidingWallBlock wall || GuestWalls.Absorption(guest) <= 0) return;
+
+        foreach (BlockFacing facing in BlockFacing.HORIZONTALS)
+        {
+            if (!wall.ClaimsFace(facing)) continue;
+
+            Vec3i behind = facing.Normali;
+            ___currentVisited[NeighbourSlot(behind.X, behind.Y, behind.Z)] = ___iteration + 1;
+        }
+    }
+
+    // ChunkIlluminator keeps the cells around a walk's source in a 63-wide grid, the source at its centre.
+    internal static int NeighbourSlot(int dx, int dy, int dz) => 125023 + dx + dz * 63 + dy * 3969;
 
     private static void SourceFinalizer((int X, int Y, int Z)? __state) => source = __state;
 

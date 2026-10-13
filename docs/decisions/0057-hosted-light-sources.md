@@ -1,6 +1,6 @@
 # 0057 — Hosted light sources
 
-- Status: Accepted
+- Status: Accepted; the pool of light outside the wall superseded by 0072
 - Created: 2026-09-25
 - Reflects: branch `hosted-light-sources`; `GuestLightPatches.SourcePrefix`/`SourceFinalizer`/`AbsorptionChunkPostfix`, `GuestWalls.Absorption`; `LightScenarios`; decisions 0016, 0018, 0020, 0034, 0035; a self-review; vanilla 1.22 `ChunkIlluminator`, `ServerSystemRelight`, `WorldChunk` (decompiled); played on 2026-10-01
 
