@@ -51,6 +51,11 @@ The finishes:
 ![finishes-3D-texture](docs/screenshots/Finishings3DTexture.jpg)
 ![finishes-corner](docs/screenshots/FinishingsCorner.jpg)
 
+Stick and bone frames, and a bone and pelt tent:
+
+![primitive-siding](docs/screenshots/PrimitiveSiding.jpg)
+![primitive-tent](docs/screenshots/PrimitiveTent.jpg)
+
 Floors, from above and below:
 
 ![floors-above](docs/screenshots/FloorsAbove.jpg)
