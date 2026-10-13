@@ -84,6 +84,17 @@ public class FarFaceScenarios : AtlasScenarioBase
     }
 
     [AtlasScenario(FreshWorld = true)]
+    public async Task Floor_Should_TakePlanksOnItsUnderside_When_PlanksArePressedOnItsBoardedTopAndItsRunCannotExtend()
+    {
+        (BlockPos cell, ITestPlayer player) = await RaiseBoardedFloor();
+        foreach (BlockFacing face in BlockFacing.HORIZONTALS) World.SetBlock("game:planks-aged-ud", cell.AddCopy(face));
+
+        await WallBuilder.Press(World, player, cell, "game:plank-oak", BlockFacing.UP, TopHit);
+
+        Assert.Equal(("oak", "clay", "planks", null, "planks"), WallBuilder.Layers(World, cell));
+    }
+
+    [AtlasScenario(FreshWorld = true)]
     public async Task Deck_Should_TakeDaubOnItsUnderside_When_DaubIsPressedOnItsBoardedTop()
     {
         (BlockPos cell, ITestPlayer player) = await RaiseWall(back: null);

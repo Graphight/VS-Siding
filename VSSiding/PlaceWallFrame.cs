@@ -61,10 +61,7 @@ public class PlaceWallFrame : CollectibleBehavior
             // Stacking a floor 12/16 above another is never wanted, so a click on a floor's top
             // extends its run instead, the way a rope ladder extends down: over water, a floor's
             // edge is only reachable by crouching out past it and looking back.
-            var accessor = world.BlockAccessor;
-            BlockPos? end = SidingFloorBlock.RunEnd(
-                pos => accessor.GetBlock(pos) is SidingFloorBlock, pos => accessor.GetBlock(pos).IsReplacableBy(placeholder),
-                targetPos, SidingFloorBlock.Ahead(byPlayer.Entity.SidedPos.GetViewVector()));
+            BlockPos? end = SidingFloorBlock.RunEndFor(world, byPlayer, targetPos, placeholder);
             if (end == null) return;
             targetPos = end;
             didOffset = true;

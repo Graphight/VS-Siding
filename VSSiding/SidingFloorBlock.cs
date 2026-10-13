@@ -87,8 +87,11 @@ public class SidingFloorBlock : Block
             }
 
             // A finish clicked on a finished face goes on the face behind it while that one is bare (decision 0075).
-            // A framing material keeps placing: planks on a boarded top extend the run or raise a wall.
-            string? farFace = SidingWallBlock.MatchConsumes(heldCode, Attributes["Framings"]) == null ? FinishFace(blockSel.Face.Opposite) : null;
+            // A framing material keeps placing: planks on a boarded top extend the run or raise a wall. Where the
+            // run cannot extend, that click would do nothing, so there the planks take the underside too.
+            bool placesFrame = SidingWallBlock.MatchConsumes(heldCode, Attributes["Framings"]) != null
+                && !(SidingModePicker.Layout(byPlayer) == "floor" && blockSel.Face == BlockFacing.UP && RunEndFor(world, byPlayer, blockSel.Position, this) == null);
+            string? farFace = placesFrame ? null : FinishFace(blockSel.Face.Opposite);
             if (farFace == null || (farFace == "front" ? entity.Front : entity.Back) != null)
             {
                 if (heldPlaces) return base.OnBlockInteractStart(world, byPlayer, blockSel);
@@ -278,6 +281,15 @@ public class SidingFloorBlock : Block
             return replaceable(pos) ? pos : null;
         }
         return null;
+    }
+
+    // RunEnd for a player's click on the floor at `start`, walking the way the player looks.
+    internal static BlockPos? RunEndFor(IWorldAccessor world, IPlayer byPlayer, BlockPos start, Block placeholder)
+    {
+        var accessor = world.BlockAccessor;
+        return RunEnd(
+            pos => accessor.GetBlock(pos) is SidingFloorBlock, pos => accessor.GetBlock(pos).IsReplacableBy(placeholder),
+            start, Ahead(byPlayer.Entity.SidedPos.GetViewVector()));
     }
 
     // The horizontal face the player is looking toward, whatever the pitch.
