@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
-using Vintagestory.API.Config;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Util;
@@ -61,7 +60,7 @@ public class SidingFloorEntity : BlockEntity
     public override void GetBlockInfo(IPlayer forPlayer, StringBuilder dsc)
     {
         base.GetBlockInfo(forPlayer, dsc);
-        dsc.Append(SidingFloorBlock.Describe(Framing, Infill, Front, Back, Block.Attributes, key => Lang.GetIfExists(key),
+        dsc.Append(SidingFloorBlock.Describe(Framing, Infill, Front, Back, Block.Attributes, SidingWallBlock.LangEntry,
             SidingWallBlock.HasBuildSignal(forPlayer)));
     }
 

@@ -983,7 +983,7 @@ public class SidingWallBlock : Block
 
     // Looking at a built wall names its layers - otherwise a boarded infill is unreadable
     // short of breaking it, and the infill is what decides cellar vs warm room (decision 0015).
-    // Takes a translate delegate (the entity passes Lang.GetIfExists) so this needs no loaded Lang.
+    // Takes a translate delegate (the entities pass LangEntry) so this needs no loaded Lang.
     // System.Func is spelled out throughout: Vintagestory.API.Common declares a Func of its own.
     internal static string Describe(
         string? framing, string? infill, string? deck, JsonObject framings, JsonObject infills,
@@ -1084,6 +1084,11 @@ public class SidingWallBlock : Block
     // raw key rather than dressing it up. A material's DisplayName is the case worth dressing up,
     // since a game update can add a wood the lang file has never heard of.
     internal static string Translate(string langKey, System.Func<string, string?> translate) => translate(langKey) ?? langKey;
+
+    // The entities' translate delegate: the entry as written, or null where lang has none. Not Lang.GetIfExists,
+    // which formats the entry with no arguments and logs an exception for every line that carries a {0}.
+    internal static string? LangEntry(string key)
+        => Lang.HasTranslation(key, findWildcarded: false, logErrors: false) ? Lang.GetUnformatted(key) : null;
 
     private static string TitleCase(string key)
         => string.Join(' ', key.Split('-').Select(word => word.Length == 0 ? word : char.ToUpperInvariant(word[0]) + word[1..]));

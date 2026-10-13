@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Atlas.Api;
 using Atlas.XUnit;
@@ -69,11 +70,7 @@ public class TooltipScenarios : AtlasScenarioBase
     [AtlasScenario(FreshWorld = true)]
     public async Task Floor_Should_ShowLayers_OnlyWithTheSaw()
     {
-        BlockPos cell = World.Spawn.Offset(1, 2, 0);
-        World.SetBlock("game:planks-aged-ud", cell.DownCopy());
-        ITestPlayer player = await WallBuilder.JoinBuilder(World);
-        player.Entity.WatchedAttributes.SetString("vssidingFraming", "floor");
-        await WallBuilder.Raise(World, player, cell, cell.WestCopy(), "game:plank-oak", "game:clay-blue");
+        (BlockPos cell, ITestPlayer player) = await RaiseFilledFloor();
         Block block = World.BlockAt(cell);
         string unfinished = Lang.Get("vssiding:tooltip-unfinished");
 
@@ -92,5 +89,34 @@ public class TooltipScenarios : AtlasScenarioBase
                     "  " + Lang.Get("vssiding:tooltip-sealed-cool")).TrimEnd(),
                 Lang.Get("vssiding:tooltip-sealed-cool")),
             (withSaw, withoutSaw));
+    }
+
+    // The Top and Underside lines carry a {0} the mod fills itself. Read through Lang's own formatting with
+    // no arguments, each one logged a format exception on every draw of the tooltip.
+    [AtlasScenario(FreshWorld = true)]
+    public async Task Floor_Should_LogNothing_When_ItsLayersAreRead()
+    {
+        (BlockPos cell, ITestPlayer player) = await RaiseFilledFloor();
+        var logged = new List<string>();
+        void Collect(EnumLogType type, string message, object[] args)
+        {
+            if (type is EnumLogType.Error or EnumLogType.Warning) logged.Add(message);
+        }
+
+        World.Api.Logger.EntryAdded += Collect;
+        World.BlockAt(cell).GetPlacedBlockInfo(player.Entity.World, cell, player.Player);
+        World.Api.Logger.EntryAdded -= Collect;
+
+        Assert.Empty(logged);
+    }
+
+    private async Task<(BlockPos Cell, ITestPlayer Player)> RaiseFilledFloor()
+    {
+        BlockPos cell = World.Spawn.Offset(1, 2, 0);
+        World.SetBlock("game:planks-aged-ud", cell.DownCopy());
+        ITestPlayer player = await WallBuilder.JoinBuilder(World);
+        player.Entity.WatchedAttributes.SetString("vssidingFraming", "floor");
+        await WallBuilder.Raise(World, player, cell, cell.WestCopy(), "game:plank-oak", "game:clay-blue");
+        return (cell, player);
     }
 }
