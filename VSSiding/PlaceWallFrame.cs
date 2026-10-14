@@ -1,5 +1,7 @@
+using System;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
+using Vintagestory.GameContent;
 
 namespace VSSiding;
 
@@ -30,6 +32,17 @@ public class PlaceWallFrame : CollectibleBehavior
         string? framingKey = SidingWallBlock.MatchConsumes(heldCode, wallBlock.Attributes["Framings"]);
         if (framingKey == null) return;
 
+        string layout = SidingModePicker.Layout(byPlayer);
+        if (layout == "face")
+        {
+            if (TrySkinFace(slot, byPlayer, blockSel, heldCode, wallBlock))
+            {
+                handling = EnumHandling.PreventSubsequent;
+                handHandling = EnumHandHandling.PreventDefault;
+            }
+            return;
+        }
+
         // A filled wall whose face this click could not board turns into a corner in place (decision 0069).
         // Here and not in the wall's own interaction, which vanilla repeats while the button is held: the
         // repeat of the press that boarded a face would find it finished. Sneaking still frames the next cell.
@@ -44,7 +57,6 @@ public class PlaceWallFrame : CollectibleBehavior
             return;
         }
 
-        string layout = SidingModePicker.Layout(byPlayer);
         bool withDeck = layout != "floor" && SidingModePicker.Deck(byPlayer);
 
         var consumes = wallBlock.Attributes["Framings"][framingKey]["Consumes"];
@@ -108,5 +120,40 @@ public class PlaceWallFrame : CollectibleBehavior
 
         handling = EnumHandling.PreventSubsequent;
         handHandling = EnumHandHandling.PreventDefault;
+    }
+
+    // Face mode puts a plank's vanilla decor block on the clicked face of any solid block (decision 0077).
+    // Siding's own blocks, chiselled hosts and a face already carrying a decor are left alone.
+    private static bool TrySkinFace(ItemSlot slot, IPlayer byPlayer, BlockSelection blockSel, AssetLocation heldCode, SidingWallBlock wallBlock)
+    {
+        IWorldAccessor world = byPlayer.Entity.World;
+        IBlockAccessor accessor = world.BlockAccessor;
+        BlockPos pos = blockSel.Position;
+        Block host = accessor.GetBlock(pos);
+        if (host is SidingWallBlock or SidingFloorBlock || host.GetInterface<IAcceptsDecor>(world, pos) != null) return false;
+
+        EnumBlockMaterial material = host.GetBlockMaterial(accessor, pos);
+        if (material is EnumBlockMaterial.Snow or EnumBlockMaterial.Ice) return false;
+
+        string? wood = slot.Itemstack.Collectible.Variant["wood"];
+        if (wood == null) return false;
+        Block? decor = world.GetBlock(new AssetLocation("vssiding", $"facefinish-{wood}"));
+        if (decor == null || !host.CanAttachBlockAt(accessor, decor, pos, blockSel.Face)) return false;
+
+        var bits = new DecorBits(blockSel.Face);
+        if (accessor.GetDecor(pos, bits) != null) return false;
+
+        string? finishKey = SidingWallBlock.MatchConsumes(heldCode, wallBlock.Attributes["Finishes"]);
+        if (finishKey == null) return false;
+        var consumes = wallBlock.Attributes["Finishes"][finishKey]["Consumes"];
+        bool isCreative = byPlayer.WorldData.CurrentGameMode == EnumGameMode.Creative;
+        if (!SidingWallBlock.TryAffordOrError(byPlayer, isCreative, slot.Itemstack.StackSize, consumes)) return false;
+
+        bool boards = SidingModePicker.ChoiceOf(byPlayer, Array.FindIndex(SidingModePicker.Rows, row => row.Key == "vssidingBoards")) == "boards";
+        bits.Rotation = boards ? 1 : 0;
+        accessor.SetDecor(decor, pos, bits);
+
+        SidingWallBlock.ConsumeHeld(slot, consumes, isCreative);
+        return true;
     }
 }
