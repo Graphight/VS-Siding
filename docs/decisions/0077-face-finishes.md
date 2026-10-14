@@ -1,13 +1,13 @@
 # Face finishes
 
-- Status: Draft
+- Status: Accepted
 - Created: 2026-10-06
-- Reflects: mod page comments https://mods.vintagestory.at/vssiding#cmt-243659, #cmt-243661 with its first screenshot, #cmt-245197, the reply offering a face mode (#cmt-245413) and the player's answer (#cmt-245601); decompiled 1.22.7 `BlockBehaviorDecor`, `WorldChunk.SetDecor`/`BreakDecor`/`AdjustSelectionBoxForDecor`, `ChunkTesselator.BuildDecorPolygons`, `SurfaceLayerTesselator`, `DecorFlags`, `ServerChunk`'s decor serialisation, `SystemMouseInWorldInteractions.ContinueBreakSurvival`; vanilla `cloth/wallpaper.json`, `overlay/plaster.json`, `cloth/rug.json`, `cloth/mediumcarpet.json`; `SidingModePicker.Rows`, `PlaceWallFrame`, `config/materials.json`'s `planks-{wood}`; decisions 0001, 0010, 0027, 0031, 0035, 0040, 0051, 0058; issue #81; not built, not played
+- Reflects: mod page comments https://mods.vintagestory.at/vssiding#cmt-243659, #cmt-243661 with its first screenshot, #cmt-245197, the reply offering a face mode (#cmt-245413) and the player's answer (#cmt-245601); decompiled 1.22.7 `BlockBehaviorDecor`, `WorldChunk.SetDecor`/`BreakDecor`/`AdjustSelectionBoxForDecor`, `ChunkTesselator.BuildDecorPolygons`, `SurfaceLayerTesselator`, `DecorFlags`, `ServerChunk`'s decor serialisation, `SystemMouseInWorldInteractions.ContinueBreakSurvival`; vanilla `cloth/wallpaper.json`, `overlay/plaster.json`, `cloth/rug.json`, `cloth/mediumcarpet.json`; `SidingModePicker.Rows`, `PlaceWallFrame`, `config/materials.json`'s `planks-{wood}`; decisions 0001, 0010, 0027, 0031, 0035, 0040, 0051, 0058; issue #81; branch `face-finishes`; `blocktypes/facefinish.json`, `PlaceWallFrame.TrySkinFace`, `SidingModePicker.Rows` and `Layout`, `icons/face.svg`, `toolmode-face` and the handbook modes page in `lang/en.json`; `VSSiding.E2E.Tests/FaceFinishScenarios.cs`; built and covered by Atlas scenarios, not played yet, since the author playtests before merge
 
 ## Summary
 A player frames a house in full log blocks and wants a Siding finish on one face of a log: floorboards over a beam, siding on the room side of a post.
 They asked for it as a "fill block", a thin wall or floor with the rest of its cell filled solid.
-The proposal goes the other way round: the log stays vanilla's, and a finish goes onto one of its faces as a vanilla decor block, picked as a fourth option in the saw picker's first row.
+This decision goes the other way round: the log stays vanilla's, and a finish goes onto one of its faces as a vanilla decor block, picked as a fifth option in the saw picker's first row.
 
 ## Context
 **The request.**
@@ -16,7 +16,7 @@ And again: "to be able to place logs and other solid blocks, going down like my 
 The first screenshot shows a house on log stilts with log beams under the floor's edge.
 
 **The player's answer.**
-Offered "a saw mode that replaces the current face on an existing block with a particular finish", which is this proposal, the player answered "definitely no full blocks. I was just saying I COULD solve it with a plank block", and went on to describe what Roofing's fill does under a roof frame.
+Offered "a saw mode that replaces the current face on an existing block with a particular finish", which is this decision, the player answered "definitely no full blocks. I was just saying I COULD solve it with a plank block", and went on to describe what Roofing's fill does under a roof frame.
 That description is recorded in `walls-under-roofing`.
 The player agrees that the mod should add no full block, and said neither yes nor no to the face mode.
 The four screenshots on the two requests show log stilts and beams under a floor and a one-wide stairwell from above and below, and none shows a roof, so the request is still read here as floors and posts.
@@ -26,7 +26,7 @@ A cell holds one block.
 Where a log beam sits, a thin floor cannot, so the floor shows the beam's top; where a wall sits, the log post cannot.
 The first report of it: "I like to frame my houses with logs, but I can't frame, and use your wall mod in the same block".
 Decision 0063 answers the wall half from the other side, a thin wall that looks like a log.
-This proposal answers the floor half, and the wall half for players who keep the real log.
+This decision answers the floor half, and the wall half for players who keep the real log.
 
 **Vanilla already has a skin on one face of a block.**
 A chunk keeps a dictionary of decors, one block id per position and face, with a sub-position and a rotation packed into the key (`WorldChunk.Decors`, `DecorBits`).
@@ -55,7 +55,8 @@ The cost is that `FinishFamilies` (decision 0010) expands at `AssetsFinalize`, a
 
 ## Design
 **One decor block, planks first.**
-`vssiding:facefinish-{wood}`: a `Decor` behaviour on all six sides, `surfacelayer`, thickness 0, textured with the plank texture the `planks-{wood}` finish names, and dropping the planks it cost.
+`vssiding:facefinish-{wood}`: a `Decor` behaviour on all six sides, `surfacelayer`, thickness 0, textured with the plank texture the `planks-{wood}` finish names, and dropping two planks, what it cost.
+It has no `creativeinventory` entry, so a player places it only by this click.
 Its `wood` states load from the `block/wood` world property, as vanilla's plank blocks do, so a mod that adds its wood there gets a face finish and one that does not goes without.
 Planks are the whole of both requests.
 Stone, daub, shakes and plates wait until asked for.
@@ -67,15 +68,24 @@ A `json` decor with a board's 1/16 would stand proud of that floor as a lip.
 So `boards` and `hboards` carry over, as the key's rotation, and `weatherboard` does not.
 
 **Placed by the plank already in hand.**
-`PlaceWallFrame` is on every plank (decision 0058) and reads the first row's choice of wall, corner or floor from `SidingModePicker.Layout`.
-A fourth option, `face`, joins `("vssidingFraming", { "wall", "corner", "floor" })` in `SidingModePicker.Rows`, with an icon drawn like the others (decision 0031).
+`PlaceWallFrame` is on every plank (decision 0058) and reads the first row's choice of wall, corner, diagonal or floor from `SidingModePicker.Layout`.
+A fifth option, `face`, follows `floor` in the framing row of `SidingModePicker.Rows` (the diagonal landed before it), with an icon drawn like the others (decision 0031) and `toolmode-face` for its name.
+`Layout` maps it to `"face"`, which `SidingWallBlock` and `SidingFloorBlock` only compare against `floor` and `cornerout`, so it falls through there.
 In that mode a plank click on a block's face, with the build signal in the off hand, calls `SetDecor` with the wood's face finish and takes two planks, the cost of a plank finish on a wall.
-The check is vanilla's own: the host's `CanAttachBlockAt` for that face, and not snow or ice.
-A Siding wall or floor is not a host, since its faces take finishes as layers.
-No other item needs a behaviour while planks are the only face finish.
+`PlaceWallFrame.TrySkinFace` does the click, before the corner upgrade, and consumes nothing when it refuses.
+It refuses:
+- a Siding wall or floor, since its faces take finishes as layers;
+- a host with an `IAcceptsDecor` interface, a chiselled block, which has its own decor storage;
+- a host of Snow or Ice material;
+- a face the host's `CanAttachBlockAt` refuses, vanilla's own check;
+- a face that already has a decor, whatever decor it is.
+
+A stick or bone in face mode does nothing, since only planks name a finish.
+The face finish for the held plank's `wood` is looked up as `vssiding:facefinish-{wood}`, and a plank with no such block does nothing.
 
 **Board direction.**
-The boards row picks it, `boards` or `hboards`, as it does on a wall (decision 0027), and the rotation goes into the decor key.
+The boards row picks it, `boards` or `hboards`, as it does on a wall (decision 0027), and the choice goes into the decor key as its rotation.
+`boards` is rotation 1 and anything else is rotation 0, since vanilla's plank texture draws horizontal boards at rotation 0.
 On a top or bottom face the same two options are the two directions a floor's boards run (decision 0051).
 
 ## Alternatives considered
@@ -87,13 +97,18 @@ On a top or bottom face the same two options are the two directions a floor's bo
 - **Chiselling.** Vanilla's chisel has an add-material mode (`ItemChisel`'s `addmat`), so a player can put a plank layer on a log today. `chiselling-walls` is about turning a wall into a microblock, which is a different job.
 
 ## Consequences & open questions
-- The player has not said the face mode is what they meant. Ask with a screenshot of a skinned beam before building past the first block.
-- Whether a plank texture on a flat quad lines up with a Siding floor's boards beside it. Issue #81 lined vertical boards up with vanilla plank blocks, which suggests it will; not looked at.
-- Chiselled hosts. `BlockEntityMicroBlock` takes decor through `IAcceptsDecor`, with its own storage, so a chiselled log needs that path or is left out at first.
+**Answered by the build.**
+- Chiselled hosts are left out: `BlockEntityMicroBlock` takes decor through `IAcceptsDecor`, with its own storage, and the click refuses it.
+- The face finish is out of the creative inventory, so the only way to place one is the plank click that spends the planks.
+- A stick or bone click in face mode does nothing. A bark skin to match decision 0063's bark styles waits until asked for.
+- A face that already has a decor is refused, so a second plank click does not stack or replace.
+- Breaking in creative removes block and decor together and drops nothing, as for any decor. In survival the decor comes off first and drops two planks.
+
+**Still open.**
+- The player has not said the face mode is what they meant. Ask with a screenshot of a skinned beam.
+- Not played yet. The author playtests before merge.
+- Whether `boards` as rotation 1 is the vertical direction on a side face, and whether a plank texture on a flat quad lines up with a Siding floor's boards beside it. Issue #81 lined vertical boards up with vanilla plank blocks, which suggests it will; not looked at.
 - A decor is drawn only where its host's face is drawn, so a face against an opaque neighbour shows nothing. What a face shows against the open part of a Siding wall's cell is to be played.
-- The creative inventory would list a face finish per wood unless hidden, and a player holding one could place it by vanilla's own decor click, with no planks spent.
-- Breaking in creative removes block and decor together and drops nothing, as for any decor.
-- A stick has `PlaceWallFrame` too. Whether a stick click in face mode does nothing or puts up a bark skin to match decision 0063's bark styles is open.
 - The tooltip. A decor adds no line to its host's block info, so nothing says which finish is on a face.
 - A ground floor under a diagonal wall with no digging (decision 0067 built the deck for an upper storey only).
 The block below stays as it was and half of its top face is skinned, the triangle on the room side.

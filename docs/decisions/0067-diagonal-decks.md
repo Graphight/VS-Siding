@@ -89,7 +89,7 @@ The framing upgrade returned `build-decked` for a decked frame clicked with `Dia
 Decision 0066's status line now says its no-deck rule is superseded here; its text is as it was.
 Its "No deck, no step, nothing hosted" paragraph no longer holds as far as the deck goes; no step and nothing hosted still hold.
 In "Picked on the saw, placed and upgraded", "with no deck" and "a frame that carries a deck is not turned" no longer hold.
-Its last consequence pointed floors and decks at the `diagonal-floors` proposal; that proposal is this decision, and the ground floor moved into `face-finishes`.
+Its last consequence pointed floors and decks at the `diagonal-floors` proposal; that proposal is this decision, and the ground floor moved into `face-finishes`, now decision 0077.
 
 ## Alternatives considered
 - **A square deck on a diagonal.** It stands outside the wall as a triangular ear.
@@ -99,7 +99,7 @@ Its last consequence pointed floors and decks at the `diagonal-floors` proposal;
 - **A ledge copy, as the other layouts have.** A ledge fills the gap between a deck and the frame while the room side is bare, and the triangle leaves no gap: it already runs through that slot to the frame.
 - **Keeping the decked-frame refusal.** Its reason was the missing box, and that box exists now.
 - **A half-and-half block for the ground floor that replaces the block below and redraws its outer half.** The mod would stand in for arbitrary vanilla blocks, with their drops, collision and behaviours. It is the guest wall of decision 0035 in reverse and larger.
-- **The diagonal drawing its own triangular floor skin at its base.** The cells beside it still need a floor at the same height, which is what `face-finishes` is.
+- **The diagonal drawing its own triangular floor skin at its base.** The cells beside it still need a floor at the same height, which is what `face-finishes` is (decision 0077).
 
 ## Consequences & open questions
 **Played in part, and accepted.**
