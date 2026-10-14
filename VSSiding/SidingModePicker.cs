@@ -17,7 +17,7 @@ namespace VSSiding;
 // the main-hand item has no picker of its own (a chisel keeps its own). Vanilla only opens a picker
 // the held item supplies and hands the click to the held item on the server, so both are ours here:
 // a prefix on GuiDialogToolMode's hotkey and compose, and a channel that carries the click. Rows are
-// framing (wall, corner, diagonal, floor), boards (weatherboard, boards, hboards) and logs (shakes,
+// framing (wall, corner, diagonal, floor, face), boards (weatherboard, boards, hboards) and logs (shakes,
 // logs, bark, hbark). The choice lives on the player, in Entity.WatchedAttributes, so it reads the
 // same whatever is in hand.
 public static class SidingModePicker
@@ -27,7 +27,7 @@ public static class SidingModePicker
     // means "use the entry's Elements default" back in SidingWallBlock.
     internal static readonly (string Key, string[] Options, bool AllowNone)[] Rows =
     {
-        ("vssidingFraming", new[] { "wall", "corner", "diagonal", "floor" }, false),
+        ("vssidingFraming", new[] { "wall", "corner", "diagonal", "floor", "face" }, false),
         ("vssidingDeck", new[] { "deck" }, true),
         ("vssidingBoards", new[] { "weatherboard", "boards", "hboards" }, true),
         ("vssidingLogs", new[] { "shakes", "logs", "bark", "hbark" }, true),
@@ -202,13 +202,14 @@ public static class SidingModePicker
     }
 
     // The framing row never comes back null - "corner" upgrades to cornerout, "diagonal" to a
-    // diagonal, "floor" frames a floor, anything else a plain wall - so a build-flow click always
-    // has somewhere to place.
+    // diagonal, "floor" frames a floor, "face" skins a vanilla block's face, anything else a plain
+    // wall - so a build-flow click always has somewhere to place.
     internal static string Layout(IPlayer player) => ChoiceOf(player, 0) switch
     {
         "corner" => "cornerout",
         "diagonal" => "diagonal",
         "floor" => "floor",
+        "face" => "face",
         _ => "wall",
     };
 

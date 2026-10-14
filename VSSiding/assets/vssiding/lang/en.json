@@ -246,6 +246,7 @@
 	"toolmode-corner": "Corner",
 	"toolmode-diagonal": "Diagonal",
 	"toolmode-floor": "Floor",
+	"toolmode-face": "Face",
 	"toolmode-deck": "Deck",
 	"toolmode-weatherboard": "Weatherboard",
 	"toolmode-boards": "Vertical boards",
