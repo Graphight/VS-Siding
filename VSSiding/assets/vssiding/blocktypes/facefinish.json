@@ -1,0 +1,38 @@
+{
+	code: "facefinish",
+	behaviors: [ {name: "Decor", properties: {sides: ["north", "east", "south", "west", "up", "down"], thickness: 0.0 }} ],
+	variantgroups: [
+		{ code: "wood", states: ["aged"], loadFromProperties: "block/wood" }
+	],
+	attributes: {
+		ignoreSounds: true
+	},
+	drawtype: "surfacelayer",
+	shapeInventory: {
+		base: "block/basic/layers/0voxel-up", rotateX: 90
+	},
+	sidesolid: { all: false },
+	sideopaque: { all: false },
+	blockmaterial: "Wood",
+	replaceable: 5500,
+	resistance: 0,
+	lightAbsorption: 0,
+	textures: {
+		all: {
+			base: "game:block/wood/planks/{wood}*"
+		}
+	},
+	vertexflags: {
+		zOffset: 1
+	},
+	drops: [
+		{ type: "item", code: "game:plank-{wood}", quantity: { avg: 2 } }
+	],
+	sounds: {
+		place: "game:block/planks",
+		break: "game:block/planks",
+		hit: "game:block/planks",
+		walk: "game:walk/wood"
+	},
+	materialDensity: 600
+}
