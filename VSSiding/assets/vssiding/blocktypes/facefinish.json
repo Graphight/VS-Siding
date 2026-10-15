@@ -4,9 +4,6 @@
 	variantgroups: [
 		{ code: "wood", states: ["aged"], loadFromProperties: "block/wood" }
 	],
-	attributes: {
-		ignoreSounds: true
-	},
 	drawtype: "surfacelayer",
 	shapeInventory: {
 		base: "block/basic/layers/0voxel-up", rotateX: 90
