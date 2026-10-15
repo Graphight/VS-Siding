@@ -1,4 +1,3 @@
-using System;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
 using Vintagestory.GameContent;
@@ -149,8 +148,7 @@ public class PlaceWallFrame : CollectibleBehavior
         bool isCreative = byPlayer.WorldData.CurrentGameMode == EnumGameMode.Creative;
         if (!SidingWallBlock.TryAffordOrError(byPlayer, isCreative, slot.Itemstack.StackSize, consumes)) return false;
 
-        bool boards = SidingModePicker.ChoiceOf(byPlayer, Array.FindIndex(SidingModePicker.Rows, row => row.Key == "vssidingBoards")) == "boards";
-        bits.Rotation = boards ? 1 : 0;
+        bits.Rotation = SidingModePicker.Boards(byPlayer) == "boards" ? 1 : 0;
         accessor.SetDecor(decor, pos, bits);
 
         SidingWallBlock.ConsumeHeld(slot, consumes, isCreative);

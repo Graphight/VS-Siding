@@ -98,15 +98,12 @@ On a top or bottom face the same two options are the two directions a floor's bo
 
 ## Consequences & open questions
 **Answered by the build.**
-- Chiselled hosts are left out: `BlockEntityMicroBlock` takes decor through `IAcceptsDecor`, with its own storage, and the click refuses it.
-- The face finish is out of the creative inventory, so the only way to place one is the plank click that spends the planks.
-- A stick or bone click in face mode does nothing. A bark skin to match decision 0063's bark styles waits until asked for.
-- A face that already has a decor is refused, so a second plank click does not stack or replace.
-- Breaking in creative removes block and decor together and drops nothing, as for any decor. In survival the decor comes off first and drops two planks.
+Chiselled hosts, the creative inventory, sticks and a face that already has a decor are settled under Design.
+A bark skin to match decision 0063's bark styles waits until asked for.
+Breaking in creative removes block and decor together and drops nothing, as for any decor; in survival the decor comes off first and drops two planks.
 
 **Still open.**
 - The player has not said the face mode is what they meant. Ask with a screenshot of a skinned beam.
-- Not played yet. The author playtests before merge.
 - Whether `boards` as rotation 1 is the vertical direction on a side face, and whether a plank texture on a flat quad lines up with a Siding floor's boards beside it. Issue #81 lined vertical boards up with vanilla plank blocks, which suggests it will; not looked at.
 - A decor is drawn only where its host's face is drawn, so a face against an opaque neighbour shows nothing. What a face shows against the open part of a Siding wall's cell is to be played.
 - The tooltip. A decor adds no line to its host's block info, so nothing says which finish is on a face.
