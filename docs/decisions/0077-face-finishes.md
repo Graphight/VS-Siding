@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Created: 2026-10-06
-- Reflects: mod page comments https://mods.vintagestory.at/vssiding#cmt-243659, #cmt-243661 with its first screenshot, #cmt-245197, the reply offering a face mode (#cmt-245413) and the player's answer (#cmt-245601); decompiled 1.22.7 `BlockBehaviorDecor`, `WorldChunk.SetDecor`/`BreakDecor`/`AdjustSelectionBoxForDecor`, `ChunkTesselator.BuildDecorPolygons`, `SurfaceLayerTesselator`, `DecorFlags`, `ServerChunk`'s decor serialisation, `SystemMouseInWorldInteractions.ContinueBreakSurvival`; vanilla `cloth/wallpaper.json`, `overlay/plaster.json`, `cloth/rug.json`, `cloth/mediumcarpet.json`; `SidingModePicker.Rows`, `PlaceWallFrame`, `config/materials.json`'s `planks-{wood}`; decisions 0001, 0010, 0027, 0031, 0035, 0040, 0051, 0058; issue #81; branch `face-finishes`; `blocktypes/facefinish.json`, `PlaceWallFrame.TrySkinFace`, `SidingModePicker.Rows` and `Layout`, `icons/face.svg`, `toolmode-face` and the handbook modes page in `lang/en.json`; `VSSiding.E2E.Tests/FaceFinishScenarios.cs`; built and covered by Atlas scenarios, not played yet, since the author playtests before merge
+- Reflects: mod page comments https://mods.vintagestory.at/vssiding#cmt-243659, #cmt-243661 with its first screenshot, #cmt-245197, the reply offering a face mode (#cmt-245413) and the player's answer (#cmt-245601); decompiled 1.22.7 `BlockBehaviorDecor`, `WorldChunk.SetDecor`/`BreakDecor`/`AdjustSelectionBoxForDecor`, `ChunkTesselator.BuildDecorPolygons`, `SurfaceLayerTesselator`, `DecorFlags`, `ServerChunk`'s decor serialisation, `SystemMouseInWorldInteractions.ContinueBreakSurvival`; vanilla `cloth/wallpaper.json`, `overlay/plaster.json`, `cloth/rug.json`, `cloth/mediumcarpet.json`; `SidingModePicker.Rows`, `PlaceWallFrame`, `config/materials.json`'s `planks-{wood}`; decisions 0001, 0010, 0027, 0031, 0035, 0040, 0051, 0058; issue #81; branch `face-finishes`; `blocktypes/facefinish.json`, `PlaceWallFrame.TrySkinFace`, `SidingModePicker.Rows` and `Layout`, `icons/face.svg`, `toolmode-face` and the handbook modes page in `lang/en.json`; `VSSiding.E2E.Tests/FaceFinishScenarios.cs`; played: a beam's top skinned beside a thin floor, vertical and horizontal boards on a top and a side face, a skin broken in survival for two planks, and the refusals; the swap is covered by Atlas scenarios and not yet played
 
 ## Summary
 A player frames a house in full log blocks and wants a Siding finish on one face of a log: floorboards over a beam, siding on the room side of a post.
@@ -78,7 +78,17 @@ It refuses:
 - a host with an `IAcceptsDecor` interface, a chiselled block, which has its own decor storage;
 - a host of Snow or Ice material;
 - a face the host's `CanAttachBlockAt` refuses, vanilla's own check;
-- a face that already has a decor, whatever decor it is.
+- a face that already has a decor other than a face finish, such as wallpaper.
+
+**Swapping a face finish.**
+A plank click on a face finish swaps it, so a change of mind costs no break.
+The same wood with another board style turns the finish for free, and drops nothing.
+The same wood and style does nothing.
+Another wood takes two of the new planks and drops the old finish's two, in survival.
+The chunk keys a decor by its rotation as well as its face, so `SetDecor` at a new rotation would add a second decor beside the old one.
+`TrySkinFace` finds the old one in `GetSubDecors` and removes it by its own key first.
+A same-wood turn does not call `OnBrokenAsDecor`, which drops the planks whatever the game mode.
+Played on the branch before this was added, the only way to turn a finish was to break it and place it again.
 
 A stick or bone in face mode does nothing, since only planks name a finish.
 The face finish for the held plank's `wood` is looked up as `vssiding:facefinish-{wood}`, and a plank with no such block does nothing.
@@ -98,7 +108,7 @@ On a top or bottom face the same two options are the two directions a floor's bo
 
 ## Consequences & open questions
 **Answered by the build.**
-Chiselled hosts, the creative inventory, sticks and a face that already has a decor are settled under Design.
+Chiselled hosts, the creative inventory, sticks and a face that already has a decor are settled under Design, the last by swapping a face finish and leaving any other decor alone.
 A bark skin to match decision 0063's bark styles waits until asked for.
 Breaking in creative removes block and decor together and drops nothing, as for any decor; in survival the decor comes off first and drops two planks.
 

@@ -1,4 +1,6 @@
+using System.Linq;
 using Vintagestory.API.Common;
+using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Vintagestory.GameContent;
 
@@ -122,7 +124,8 @@ public class PlaceWallFrame : CollectibleBehavior
     }
 
     // Face mode puts a plank's vanilla decor block on the clicked face of any solid block (decision 0077).
-    // Siding's own blocks, chiselled hosts and a face already carrying a decor are left alone.
+    // A face finish already there is swapped: the same wood only turns to the picked boards, for free, and
+    // another wood drops the old planks. Siding's own blocks, chiselled hosts and any other decor are left alone.
     private static bool TrySkinFace(ItemSlot slot, IPlayer byPlayer, BlockSelection blockSel, AssetLocation heldCode, SidingWallBlock wallBlock)
     {
         IWorldAccessor world = byPlayer.Entity.World;
@@ -139,19 +142,31 @@ public class PlaceWallFrame : CollectibleBehavior
         Block? decor = world.GetBlock(new AssetLocation("vssiding", $"facefinish-{wood}"));
         if (decor == null || !host.CanAttachBlockAt(accessor, decor, pos, blockSel.Face)) return false;
 
-        var bits = new DecorBits(blockSel.Face);
-        if (accessor.GetDecor(pos, bits) != null) return false;
+        var bits = new DecorBits(blockSel.Face) { Rotation = SidingModePicker.Boards(byPlayer) == "boards" ? 1 : 0 };
+        // The chunk keys a decor by its rotation too, so the old one is found and removed by its own key.
+        var old = accessor.GetSubDecors(pos)?.FirstOrDefault(entry => new DecorBits(entry.Key).Face == blockSel.Face.Index) ?? default;
+        if (old.Value != null && (old.Value.Code.Domain != "vssiding" || old.Value.FirstCodePart() != "facefinish")) return false;
+        bool sameWood = old.Value?.Id == decor.Id;
+        if (sameWood && new DecorBits(old.Key).Rotation == bits.Rotation) return false;
 
-        string? finishKey = SidingWallBlock.MatchConsumes(heldCode, wallBlock.Attributes["Finishes"]);
-        if (finishKey == null) return false;
-        var consumes = wallBlock.Attributes["Finishes"][finishKey]["Consumes"];
         bool isCreative = byPlayer.WorldData.CurrentGameMode == EnumGameMode.Creative;
-        if (!SidingWallBlock.TryAffordOrError(byPlayer, isCreative, slot.Itemstack.StackSize, consumes)) return false;
+        JsonObject? consumes = null;
+        if (!sameWood)
+        {
+            string? finishKey = SidingWallBlock.MatchConsumes(heldCode, wallBlock.Attributes["Finishes"]);
+            if (finishKey == null) return false;
+            consumes = wallBlock.Attributes["Finishes"][finishKey]["Consumes"];
+            if (!SidingWallBlock.TryAffordOrError(byPlayer, isCreative, slot.Itemstack.StackSize, consumes)) return false;
+        }
 
-        bits.Rotation = SidingModePicker.Boards(byPlayer) == "boards" ? 1 : 0;
+        if (old.Value != null)
+        {
+            accessor.SetDecor(world.GetBlock(0), pos, old.Key);
+            if (!sameWood && !isCreative) old.Value.OnBrokenAsDecor(world, pos, blockSel.Face);
+        }
         accessor.SetDecor(decor, pos, bits);
 
-        SidingWallBlock.ConsumeHeld(slot, consumes, isCreative);
+        if (consumes != null) SidingWallBlock.ConsumeHeld(slot, consumes, isCreative);
         return true;
     }
 }
