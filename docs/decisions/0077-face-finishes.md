@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Created: 2026-10-06
-- Reflects: mod page comments https://mods.vintagestory.at/vssiding#cmt-243659, #cmt-243661 with its first screenshot, #cmt-245197, the reply offering a face mode (#cmt-245413) and the player's answer (#cmt-245601); decompiled 1.22.7 `BlockBehaviorDecor`, `WorldChunk.SetDecor`/`BreakDecor`/`AdjustSelectionBoxForDecor`, `ChunkTesselator.BuildDecorPolygons`, `SurfaceLayerTesselator`, `DecorFlags`, `ServerChunk`'s decor serialisation, `SystemMouseInWorldInteractions.ContinueBreakSurvival`; vanilla `cloth/wallpaper.json`, `overlay/plaster.json`, `cloth/rug.json`, `cloth/mediumcarpet.json`; `SidingModePicker.Rows`, `PlaceWallFrame`, `config/materials.json`'s `planks-{wood}`; decisions 0001, 0010, 0027, 0031, 0035, 0040, 0051, 0058; issue #81; branch `face-finishes`; `blocktypes/facefinish.json`, `PlaceWallFrame.TrySkinFace`, `SidingModePicker.Rows` and `Layout`, `icons/face.svg`, `toolmode-face` and the handbook modes page in `lang/en.json`; `VSSiding.E2E.Tests/FaceFinishScenarios.cs`; played: a beam's top skinned beside a thin floor, vertical and horizontal boards on a top and a side face, a skin broken in survival for two planks, and the refusals; the swap is covered by Atlas scenarios and not yet played
+- Reflects: mod page comments https://mods.vintagestory.at/vssiding#cmt-243659, #cmt-243661 with its first screenshot, #cmt-245197, the reply offering a face mode (#cmt-245413) and the player's answer (#cmt-245601); decompiled 1.22.7 `BlockBehaviorDecor`, `WorldChunk.SetDecor`/`BreakDecor`/`AdjustSelectionBoxForDecor`, `ChunkTesselator.BuildDecorPolygons`, `SurfaceLayerTesselator`, `DecorFlags`, `ServerChunk`'s decor serialisation, `SystemMouseInWorldInteractions.ContinueBreakSurvival`; vanilla `cloth/wallpaper.json`, `overlay/plaster.json`, `cloth/rug.json`, `cloth/mediumcarpet.json`; `SidingModePicker.Rows`, `PlaceWallFrame`, `config/materials.json`'s `planks-{wood}`; decisions 0001, 0010, 0027, 0031, 0035, 0040, 0051, 0058; issue #81; branch `face-finishes`; `blocktypes/facefinish.json`, `PlaceWallFrame.TrySkinFace`, `SidingModePicker.Rows` and `Layout`, `icons/face.svg`, `toolmode-face` and the handbook modes page in `lang/en.json`; `VSSiding.E2E.Tests/FaceFinishScenarios.cs`; played: a beam's top skinned beside a thin floor, vertical and horizontal boards on a top and a side face, a skin broken in survival for two planks, the refusals, and a swap to another board style and to another wood; very aged planks are covered by an Atlas scenario and not played
 
 ## Summary
 A player frames a house in full log blocks and wants a Siding finish on one face of a log: floorboards over a beam, siding on the room side of a post.
@@ -55,9 +55,11 @@ The cost is that `FinishFamilies` (decision 0010) expands at `AssetsFinalize`, a
 
 ## Design
 **One decor block, planks first.**
-`vssiding:facefinish-{wood}`: a `Decor` behaviour on all six sides, `surfacelayer`, thickness 0, textured with the plank texture the `planks-{wood}` finish names, and dropping two planks, what it cost.
+`vssiding:facefinish-planks-{wood}`: a `Decor` behaviour on all six sides, `surfacelayer`, thickness 0, textured with the plank texture the `planks-{wood}` finish names, and dropping two planks, what it cost.
 It has no `creativeinventory` entry, so a player places it only by this click.
 Its `wood` states load from the `block/wood` world property, as vanilla's plank blocks do, so a mod that adds its wood there gets a face finish and one that does not goes without.
+`aged` and `veryaged` are listed by hand as on vanilla's plank item, `veryaged` with its own texture from `planks/aged/`.
+The `planks` part of the code leaves room for another material's face finish, named for its finish entry (`facefinish-polished-{rock}` from the `block/rock` world property), without renaming the blocks that saved chunks already hold.
 Planks are the whole of both requests.
 Stone, daub, shakes and plates wait until asked for.
 
@@ -88,10 +90,10 @@ Another wood takes two of the new planks and drops the old finish's two, in surv
 The chunk keys a decor by its rotation as well as its face, so `SetDecor` at a new rotation would add a second decor beside the old one.
 `TrySkinFace` finds the old one in `GetSubDecors` and removes it by its own key first.
 A same-wood turn does not call `OnBrokenAsDecor`, which drops the planks whatever the game mode.
-Played on the branch before this was added, the only way to turn a finish was to break it and place it again.
+Before the swap, the only way to turn a finish was to break it and place it again, which was the first playtest's one complaint.
 
 A stick or bone in face mode does nothing, since only planks name a finish.
-The face finish for the held plank's `wood` is looked up as `vssiding:facefinish-{wood}`, and a plank with no such block does nothing.
+The face finish for the held plank's `wood` is looked up as `vssiding:facefinish-planks-{wood}`, and a plank with no such block does nothing.
 
 **Board direction.**
 The boards row picks it, `boards` or `hboards`, as it does on a wall (decision 0027), and the choice goes into the decor key as its rotation.

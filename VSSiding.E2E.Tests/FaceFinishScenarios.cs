@@ -23,7 +23,7 @@ public class FaceFinishScenarios : AtlasScenarioBase
 
         await Press(player, cell, "game:plank-oak", 4);
 
-        Assert.Equal(("vssiding:facefinish-oak@0", 2), (Decors(cell), HeldPlanks(player)));
+        Assert.Equal(("vssiding:facefinish-planks-oak@0", 2), (Decors(cell), HeldPlanks(player)));
     }
 
     // A wall finished on both faces passes a plank press on to PlaceWallFrame, which leaves the wall alone.
@@ -51,7 +51,7 @@ public class FaceFinishScenarios : AtlasScenarioBase
         await Press(player, cell, "game:plank-birch", 4);
         await World.Ticks(2);
 
-        Assert.Equal(("vssiding:facefinish-birch@0", 2, 2), (Decors(cell), HeldPlanks(player), GroundPlanks(cell, "game:plank-oak")));
+        Assert.Equal(("vssiding:facefinish-planks-birch@0", 2, 2), (Decors(cell), HeldPlanks(player), GroundPlanks(cell, "game:plank-oak")));
     }
 
     [AtlasScenario(FreshWorld = true)]
@@ -64,7 +64,7 @@ public class FaceFinishScenarios : AtlasScenarioBase
         await Press(player, cell, "game:plank-oak", 4);
         await World.Ticks(2);
 
-        Assert.Equal(("vssiding:facefinish-oak@1", 4, 0), (Decors(cell), HeldPlanks(player), GroundPlanks(cell, "game:plank-oak")));
+        Assert.Equal(("vssiding:facefinish-planks-oak@1", 4, 0), (Decors(cell), HeldPlanks(player), GroundPlanks(cell, "game:plank-oak")));
     }
 
     [AtlasScenario(FreshWorld = true)]
@@ -75,7 +75,7 @@ public class FaceFinishScenarios : AtlasScenarioBase
 
         await Press(player, cell, "game:plank-oak", 4);
 
-        Assert.Equal(("vssiding:facefinish-oak@0", 4), (Decors(cell), HeldPlanks(player)));
+        Assert.Equal(("vssiding:facefinish-planks-oak@0", 4), (Decors(cell), HeldPlanks(player)));
     }
 
     [AtlasScenario(FreshWorld = true)]
@@ -87,6 +87,17 @@ public class FaceFinishScenarios : AtlasScenarioBase
         await Press(player, cell, "game:plank-oak", 4);
 
         Assert.Equal(("game:wallpaper-brown@0", 4), (Decors(cell), HeldPlanks(player)));
+    }
+
+    // Very aged is a state of the plank item only, not a wood in the world property.
+    [AtlasScenario(FreshWorld = true)]
+    public async Task Log_Should_TakeAVeryAgedFaceFinish_When_VeryAgedPlanksArePressedWithFacePicked()
+    {
+        (BlockPos cell, ITestPlayer player) = await RaiseLog();
+
+        await Press(player, cell, "game:plank-veryaged", 4);
+
+        Assert.Equal(("vssiding:facefinish-planks-veryaged@0", 2), (Decors(cell), HeldPlanks(player)));
     }
 
     [AtlasScenario(FreshWorld = true)]

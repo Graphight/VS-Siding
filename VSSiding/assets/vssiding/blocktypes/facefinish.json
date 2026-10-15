@@ -2,7 +2,8 @@
 	code: "facefinish",
 	behaviors: [ {name: "Decor", properties: {sides: ["north", "east", "south", "west", "up", "down"], thickness: 0.0 }} ],
 	variantgroups: [
-		{ code: "wood", states: ["aged"], loadFromProperties: "block/wood" }
+		{ code: "type", states: ["planks"] },
+		{ code: "wood", states: ["aged", "veryaged"], loadFromProperties: "block/wood" }
 	],
 	drawtype: "surfacelayer",
 	shapeInventory: {
@@ -14,10 +15,10 @@
 	replaceable: 5500,
 	resistance: 0,
 	lightAbsorption: 0,
-	textures: {
-		all: {
-			base: "game:block/wood/planks/{wood}*"
-		}
+	texturesByType: {
+		"*-aged": { all: { base: "game:block/wood/planks/aged/aged*" } },
+		"*-veryaged": { all: { base: "game:block/wood/planks/aged/veryaged*" } },
+		"*": { all: { base: "game:block/wood/planks/{wood}*" } }
 	},
 	vertexflags: {
 		zOffset: 1

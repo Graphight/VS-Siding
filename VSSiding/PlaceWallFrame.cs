@@ -139,7 +139,7 @@ public class PlaceWallFrame : CollectibleBehavior
 
         string? wood = slot.Itemstack.Collectible.Variant["wood"];
         if (wood == null) return false;
-        Block? decor = world.GetBlock(new AssetLocation("vssiding", $"facefinish-{wood}"));
+        Block? decor = world.GetBlock(new AssetLocation("vssiding", $"facefinish-planks-{wood}"));
         if (decor == null || !host.CanAttachBlockAt(accessor, decor, pos, blockSel.Face)) return false;
 
         var bits = new DecorBits(blockSel.Face) { Rotation = SidingModePicker.Boards(byPlayer) == "boards" ? 1 : 0 };
