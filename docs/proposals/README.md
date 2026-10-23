@@ -8,9 +8,6 @@ An idea that's been thought through but not acted on. Mutable: edit freely, argu
 
 ## Open
 
-- `modded-furniture-hosting`: Kevins Furniture's two cabinets declare every side solid, so the hosting rule refuses them as cubes.
-The proposal adds an attribute a block can set to say whether it may be hosted, and ships it for those cabinets.
-A second player wants machinery flush to walls; Vintage Engineering's 21 machines are refused for a solid bottom, and 18 of them fill their cell, which is left open.
 - `inside-corner-post`: a player asked for the gap at an inside corner to be closed, but the one screenshot has a glazed cell beside the slit, so it may be issue #98 and not a missing piece.
 Decision 0071 now finishes a glazed cell and brings its frame to the cell's edge, and the slit has not been looked at in play since; the unglazed notch is what stays open.
 The proposal builds an unglazed inside corner first, then adds a `cornerin` post if the notch shows; the other junction shapes players described wait on their answers.
