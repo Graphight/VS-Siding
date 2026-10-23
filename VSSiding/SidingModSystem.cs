@@ -825,23 +825,30 @@ public class SidingModSystem : ModSystem
         return (dx, dz);
     }
 
-    internal static bool IsHostable(Block block)
+    internal static bool IsHostable(Block block) => HostRefusal(block) == null;
+
+    // The name of the rule keeping a block out of a wall's cell, or null when it hosts. A block's own
+    // vssidingHostable attribute lifts the solid-side and Multiblock rules only, never a safety rule.
+    internal static string? HostRefusal(Block block)
     {
+        var declared = block.Attributes?["vssidingHostable"];
+        bool? optIn = declared is { Exists: true } ? declared.AsBool() : null;
+        if (optIn == false) return "vssidingHostable false";
         // A floor passes the cabinet rule below (solid top, block entity), and the wall's
         // IsReplacableBy would then let PlaceWallFrame put a floor inside the wall's own cell.
-        if (block is SidingWallBlock or SidingFloorBlock) return false;
-        if (block.Replaceable >= 6000) return false;
-        if (block.HasBehavior<BlockBehaviorUnplaceable>()) return false;
-        if (block.BlockMaterial is EnumBlockMaterial.Plant or EnumBlockMaterial.Leaves) return false;
-        if (block.SideSolid.Any && !(block.SideSolid.Value() == BlockFacing.UP.Flag && block.EntityClass != null)) return false;
-        if (block.ForFluidsLayer) return false;
-        if (block.DrawType is not (EnumDrawType.JSON or EnumDrawType.JSONAndSnowLayer or EnumDrawType.JSONAndWater)) return false;
-        if (block is BlockMicroBlock) return false;
-        if (block.Variant.ContainsKey("part") && block is not BlockBed) return false;
-        if (block is BlockBaseDoor || block.BlockEntityBehaviors.Any(b => b.Name == "Door")) return false;
-        if (block is not (BlockMultiblock or BlockGenericTypedContainerTrunk) && block.HasBehavior<BlockBehaviorMultiblock>()) return false;
-        if (block is BlockMPBase) return false;
-        return true;
+        if (block is SidingWallBlock or SidingFloorBlock) return "siding wall or floor";
+        if (block.Replaceable >= 6000) return "replaceable";
+        if (block.HasBehavior<BlockBehaviorUnplaceable>()) return "unplaceable";
+        if (block.BlockMaterial is EnumBlockMaterial.Plant or EnumBlockMaterial.Leaves) return "plant";
+        if (optIn != true && block.SideSolid.Any && !(block.SideSolid.Value() == BlockFacing.UP.Flag && block.EntityClass != null)) return "solid side";
+        if (block.ForFluidsLayer) return "fluid";
+        if (block.DrawType is not (EnumDrawType.JSON or EnumDrawType.JSONAndSnowLayer or EnumDrawType.JSONAndWater)) return "draw type";
+        if (block is BlockMicroBlock) return "microblock";
+        if (block.Variant.ContainsKey("part") && block is not BlockBed) return "part block";
+        if (block is BlockBaseDoor || block.BlockEntityBehaviors.Any(b => b.Name == "Door")) return "door";
+        if (optIn != true && block is not (BlockMultiblock or BlockGenericTypedContainerTrunk) && block.HasBehavior<BlockBehaviorMultiblock>()) return "multiblock";
+        if (block is BlockMPBase) return "mechanical power";
+        return null;
     }
 
     // A north or south trunk spans two cells along x, as a wall claiming the north or south face does.

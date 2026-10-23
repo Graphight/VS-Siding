@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Newtonsoft.Json.Linq;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Datastructures;
@@ -95,5 +96,49 @@ public class IsHostableTests
         foreach (var (name, block) in blocks) actual[name] = SidingModSystem.IsHostable(block);
 
         Assert.Equal(expected, actual);
+    }
+
+    private static T Declared<T>(T block, bool hostable) where T : Block
+    {
+        block.Attributes = new JsonObject(new JObject { ["vssidingHostable"] = hostable });
+        return block;
+    }
+
+    [Fact]
+    public void ABlockCanDeclareItselfHostable()
+    {
+        var blocks = new Dictionary<string, Block>
+        {
+            ["trunk"] = Declared(Open(new BlockGenericTypedContainerTrunk()), true),
+            ["solid cube"] = Declared(new Block(), true),
+            ["non-trunk multiblock"] = Declared(PaintingLike(), true),
+            ["door"] = Declared(Open(new Block { BlockEntityBehaviors = new[] { new BlockEntityBehaviorType { Name = "Door" } } }), true),
+            ["fluid"] = Declared(Open(new FluidBlock()), true),
+            ["furniture"] = Declared(Open(new Block()), false),
+            ["undeclared solid cube"] = new Block(),
+        };
+
+        var expected = new Dictionary<string, string?>
+        {
+            ["trunk"] = null,
+            ["solid cube"] = null,
+            ["non-trunk multiblock"] = null,
+            ["door"] = "door",
+            ["fluid"] = "fluid",
+            ["furniture"] = "vssidingHostable false",
+            ["undeclared solid cube"] = "solid side",
+        };
+
+        var actual = new Dictionary<string, string?>();
+        foreach (var (name, block) in blocks) actual[name] = SidingModSystem.HostRefusal(block);
+
+        Assert.Equal(expected, actual);
+    }
+
+    private static Block PaintingLike()
+    {
+        var painting = Open(new Block());
+        painting.BlockBehaviors = new BlockBehavior[] { new BlockBehaviorMultiblock(painting) };
+        return painting;
     }
 }
