@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Net.Http;
 using Cake.Common;
 using Cake.Common.IO;
@@ -144,6 +145,11 @@ public sealed class FetchProbeTask : FrostingTask<BuildContext>
             context.Log.Information("{0} {1}", modid, release["modversion"]);
 
             using var archive = new ZipArchive(new MemoryStream(zip));
+            if (seen.Count == 1)
+                File.WriteAllLines($"{modsDir}/domains.txt", archive.Entries
+                    .Select(entry => entry.FullName.Split('/'))
+                    .Where(parts => parts.Length > 2 && parts[0] == "assets")
+                    .Select(parts => parts[1]).Except(Provided).Distinct());
             using var reader = new StreamReader(archive.GetEntry("modinfo.json")!.Open());
             if (JObject.Parse(reader.ReadToEnd())["dependencies"] is not JObject dependencies) continue;
             foreach (var dependency in dependencies.Properties())

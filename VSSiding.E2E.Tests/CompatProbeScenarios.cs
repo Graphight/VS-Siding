@@ -27,8 +27,9 @@ public class CompatProbeScenarios : AtlasScenarioBase
 
         MethodInfo hostRefusal = World.Api.ModLoader.GetModSystem("VSSiding.SidingModSystem").GetType()
             .GetMethod("HostRefusal", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static)!;
+        var domains = File.ReadAllLines(Path.GetFullPath("../../../../compat/mods/domains.txt", Path.GetDirectoryName(typeof(CompatProbeScenarios).Assembly.Location)!));
         var blocks = World.Api.World.Blocks
-            .Where(block => block.Code?.Domain == modid && block.Id != 0)
+            .Where(block => block.Code != null && domains.Contains(block.Code.Domain) && block.Id != 0)
             .GroupBy(block => block.Code.FirstCodePart())
             .Select(group => group.FirstOrDefault(block => block.Code.Path.Contains("east")) ?? group.First())
             .OrderBy(block => block.Code.FirstCodePart(), StringComparer.Ordinal)
@@ -85,6 +86,7 @@ public class CompatProbeScenarios : AtlasScenarioBase
         player.Entity.LeftHandItemSlot.Itemstack = new ItemStack(World.Api.World.GetItem(new AssetLocation("game:saw-copper")));
         World.SetBlock("game:planks-aged-ud", cell.DownCopy());
         await WallBuilder.Raise(World, player, cell, cell.WestCopy(), "game:plank-oak", "game:clay-blue", "game:plank-oak");
+        await WallBuilder.Raise(World, player, cell.UpCopy(), cell.WestCopy().Up(), "game:plank-oak", "game:clay-blue", "game:plank-oak");
 
         player.Entity.LeftHandItemSlot.Itemstack = null;
         player.Player.InventoryManager.ActiveHotbarSlot.Itemstack = new ItemStack(block);
