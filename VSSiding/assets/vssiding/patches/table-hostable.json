@@ -1,0 +1,8 @@
+[
+	{
+		"op": "addmerge",
+		"file": "game:blocktypes/wood/table.json",
+		"path": "/attributes",
+		"value": { "vssidingHostable": true }
+	}
+]
