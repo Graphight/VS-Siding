@@ -6,6 +6,7 @@ Two stages, split by directory so a doc's status is obvious from where it lives:
 
 - **`proposals/`**: an idea, not yet acted on. Mutable. Edit freely, argue in the doc, change your mind.
 - **`decisions/`**: numbered, what actually shipped (or was deliberately rejected). Accepted decisions are immutable.
+- **`compat/`**: one generated report per other mod, listing which of its blocks a siding wall hosts and the rule that refuses the rest. `just probe <modid>` rewrites it; do not edit it by hand.
 
 A proposal **graduates** into a decision when we act on it: give it the next `NNNN`, move it to `decisions/`, set its status to `Accepted`, delete the proposal file.
 
