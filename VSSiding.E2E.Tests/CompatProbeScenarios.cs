@@ -47,7 +47,7 @@ public class CompatProbeScenarios : AtlasScenarioBase
                 {
                     verdict = (string?)hostRefusal.Invoke(null, new object[] { block }) is { } rule
                         ? $"refused: {rule}"
-                        : await Host(player, World.Spawn.Offset(1 + 3 * (i % 10), 2, 3 * (i / 10)), block);
+                        : await Host(player, World.Spawn.Offset(1 + 3 * (i % 10), 2, 5 * (i / 10)), block);
                 }
                 catch (Exception e)
                 {
@@ -84,9 +84,12 @@ public class CompatProbeScenarios : AtlasScenarioBase
     {
         player.Player.InventoryManager.ActiveHotbarSlot.Itemstack = null;
         player.Entity.LeftHandItemSlot.Itemstack = new ItemStack(World.Api.World.GetItem(new AssetLocation("game:saw-copper")));
-        World.SetBlock("game:planks-aged-ud", cell.DownCopy());
-        await WallBuilder.Raise(World, player, cell, cell.WestCopy(), "game:plank-oak", "game:clay-blue", "game:plank-oak");
-        await WallBuilder.Raise(World, player, cell.UpCopy(), cell.WestCopy().Up(), "game:plank-oak", "game:clay-blue", "game:plank-oak");
+        foreach (BlockPos column in new[] { cell, cell.NorthCopy() })
+        {
+            World.SetBlock("game:planks-aged-ud", column.DownCopy());
+            await WallBuilder.Raise(World, player, column, column.WestCopy(), "game:plank-oak", "game:clay-blue", "game:plank-oak");
+            await WallBuilder.Raise(World, player, column.UpCopy(), column.WestCopy().Up(), "game:plank-oak", "game:clay-blue", "game:plank-oak");
+        }
 
         player.Entity.LeftHandItemSlot.Itemstack = null;
         player.Player.InventoryManager.ActiveHotbarSlot.Itemstack = new ItemStack(block);
