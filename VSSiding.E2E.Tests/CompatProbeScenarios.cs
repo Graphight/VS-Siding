@@ -69,7 +69,7 @@ public class CompatProbeScenarios : AtlasScenarioBase
             "",
             $"Mod version {mod.Info.Version}, game version {GameVersion.ShortGameVersion}, probed {DateTime.Now:yyyy-MM-dd}.",
             "Each row is one block type of the mod, tried in the cell of a wall built for it.",
-            "`hosts` means the wall became the block's guest.",
+            "`hosts` means every wall the block took became its guest and came back when the block broke; a block taking more than one wall gives the count.",
             "`refused` names the rule that keeps the block out of a wall's cell.",
             "",
             "| Block | Verdict |",
@@ -84,6 +84,7 @@ public class CompatProbeScenarios : AtlasScenarioBase
     {
         player.Player.InventoryManager.ActiveHotbarSlot.Itemstack = null;
         player.Entity.LeftHandItemSlot.Itemstack = new ItemStack(World.Api.World.GetItem(new AssetLocation("game:saw-copper")));
+        var walls = new[] { cell, cell.UpCopy(), cell.NorthCopy(), cell.NorthCopy().Up() };
         foreach (BlockPos column in new[] { cell, cell.NorthCopy() })
         {
             World.SetBlock("game:planks-aged-ud", column.DownCopy());
@@ -96,8 +97,22 @@ public class CompatProbeScenarios : AtlasScenarioBase
         var selection = new BlockSelection { Position = cell.Copy(), Face = BlockFacing.EAST, HitPosition = new Vec3d(0.5, 0.5, 0.5) };
         World.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, selection);
 
-        return World.BlockAt(cell).Code.FirstCodePart() == block.Code.FirstCodePart() && WallBuilder.GuestLayers(World, cell) != null
-            ? "hosts"
-            : "placement failed";
+        if (World.BlockAt(cell).Code.FirstCodePart() != block.Code.FirstCodePart()) return "placement failed";
+        // A multiblock takes more than one wall's cell, and each must keep its own guest.
+        var taken = walls.Where(wall => !IsWall(wall)).ToList();
+        if (taken.Any(wall => WallBuilder.GuestLayers(World, wall) == null)) return "placement failed: a wall in its footprint kept no guest";
+
+        World.Api.World.BlockAccessor.BreakBlock(cell, player.Player);
+        try
+        {
+            await World.Until(() => walls.All(IsWall), 100);
+        }
+        catch (ScenarioTimeoutException)
+        {
+            return "hosts, but a wall does not come back when the block breaks";
+        }
+        return taken.Count > 1 ? $"hosts ({taken.Count} cells)" : "hosts";
     }
+
+    private bool IsWall(BlockPos pos) => World.BlockAt(pos).Code is { Domain: "vssiding" } code && code.Path.StartsWith("wall");
 }
