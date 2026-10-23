@@ -1,0 +1,30 @@
+[
+	{
+		"op": "addmerge",
+		"file": "kevinsfurniture:blocktypes/containers/cabinet.json",
+		"path": "/attributes",
+		"value": { "vssidingHostable": true },
+		"dependsOn": [{ "modid": "kevinsfurniture" }]
+	},
+	{
+		"op": "addmerge",
+		"file": "kevinsfurniture:blocktypes/containers/doorlesscabinet.json",
+		"path": "/attributes",
+		"value": { "vssidingHostable": true },
+		"dependsOn": [{ "modid": "kevinsfurniture" }]
+	},
+	{
+		"op": "addmerge",
+		"file": "kevinsfurniture:blocktypes/containers/nightstand-fancy.json",
+		"path": "/attributes",
+		"value": { "vssidingHostable": true },
+		"dependsOn": [{ "modid": "kevinsfurniture" }]
+	},
+	{
+		"op": "addmerge",
+		"file": "kevinsfurniture:blocktypes/tables/coffeetable.json",
+		"path": "/attributes",
+		"value": { "vssidingHostable": true },
+		"dependsOn": [{ "modid": "kevinsfurniture" }]
+	}
+]
