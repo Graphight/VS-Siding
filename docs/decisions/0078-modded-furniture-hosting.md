@@ -7,7 +7,7 @@
 ## Summary
 Players asked for Kevins Furniture cabinets, Vintage Engineering machines, and More Inventorys and Containers Bundle storage to sit in a siding wall's cell.
 Decision 0035's hosting rule read their blocks as full cubes and refused them.
-A block can now carry a `vssidingHostable` attribute that settles the question for itself, and Siding ships that attribute as JSON patches for vanilla tables and for four mods' furniture.
+A block can now carry a `vssidingHostable` attribute that settles the question for itself, and Siding ships that attribute as JSON patches for vanilla tables and for three mods' furniture.
 A probe that builds a wall against another mod's blocks found which blocks still refuse and why.
 
 ## Context
@@ -16,7 +16,7 @@ Two of its rules read other mods' furniture wrongly.
 A block with a solid side is refused as a cube, with one exception: a solid top alone on a block with a block entity.
 A block with the `Multiblock` behavior is refused unless it is a trunk (decision 0036).
 
-Kevins Furniture's `nightstandfancy` sets its solid sides with the keys `top` and `bottom`, which are not facing codes, and the rule read it as solid on every side.
+Kevins Furniture's `nightstandfancy` sets its solid sides with the keys `top` and `bottom`, which are not facing codes, so its bottom keeps the default, solid, and the rule refused it.
 Vintage Engineering's machines set a solid bottom, which the cabinet exception does not cover.
 Containers Bundle's cupboards and crates run a trunk class that derives from `BlockGenericTypedContainer` and not from vanilla's trunk, so the Multiblock rule refused them.
 Decision 0036 left vanilla tables out, since a table's top is solid and it has no block entity.
@@ -27,6 +27,7 @@ Decision 0036 left vanilla tables out, since a table's top is solid and it has n
 The `vssidingHostable` attribute is read first.
 `false` refuses the block.
 `true` lifts the solid-side rule and the Multiblock rule only.
+A multiblock that declares `true` must still carry a `side` variant, since the footprint rule of decision 0036 takes its long axis from it; one without is refused as `multiblock without side`.
 The safety rules stay in force whatever a block says: a siding wall or floor, a replaceable block, an unplaceable one, a plant, a fluid, a draw type that is not JSON, a microblock, a part block, a door and a mechanical power block.
 A block without the attribute goes through the rules as before.
 
@@ -43,7 +44,7 @@ With the attribute, the trunk footprint rule of decision 0036 admits them agains
 **A probe finds what hosts.**
 `just probe <modid>` downloads the mod's latest release and its dependencies into the gitignored `compat/mods/`, then boots Atlas with them.
 Atlas treats a folder as one mod and fails on a missing path, so the download fills six fixed zip slots, padded with empty content mods, and writes `domains.txt` from the probed mod's own assets folders.
-`CompatProbeScenarios` (trait `Category=Probe`, left out of `just e2e`) builds a wall run two cells high and two long for each block type, hosts one representative block through the wall's `OnBlockInteractStart`, which is the player's right-click path, and writes `docs/compat/<modid>.md` with a verdict per block type: `hosts`, `refused` with the rule from `HostRefusal`, or `placement failed`.
+`CompatProbeScenarios` (trait `Category=Probe`, left out of `just e2e`) builds a wall run two cells high and two long for each block type, hosts one representative block through the wall's `OnBlockInteractStart`, which is the player's right-click path, and writes `docs/compat/<modid>.md` with a verdict per block type: `refused` with the rule from `HostRefusal`, `placement failed`, or `hosts` once every wall the block took holds a guest and comes back when the block is broken, with the count of walls for a multiblock.
 A run one cell big gave false negatives for a vertical block (the Vintage Engineering fridge) and a two-wide block (crates).
 
 The collision of a hosted block that overhangs its cell is a separate fix, decision 0079.
@@ -60,6 +61,13 @@ The collision of a hosted block that overhangs its cell is a separate fix, decis
 Hosting them needs a Harmony patch into that mod's code.
 Its shelves, cabinets, crates, basket and stands already host and carry no patch.
 - Vintage Engineering's creosote oven is left out for its footprint.
+- A hosted block solid on its room side answers retention for that face itself, so a cellar wall behind a Kevins Furniture cabinet, doorless cabinet or coffee table counts as one non-cooling face.
+The guest wall answers only the faces it claims (`GuestSealingPatches`), and vanilla's `RoomRegistry` reads the neighbouring block's face toward the room, which is the hosted block's.
+The same block standing loose in a stone cellar counts the same way, since vanilla `GetRetention` gives a solid wooden face 1.
+Vanilla tables, the fancy nightstand, the Vintage Engineering machines and Containers Bundle's blocks are not solid on that face, so the wall's infill answers for them.
+- Kevins Furniture's `tallshelftop`, the upper half its tall shelf places, reads `hosts, but a wall does not come back when the block breaks` when placed and broken alone.
+The tall shelf broken from below brings both walls back.
+Breaking a hosted tall shelf by its upper half is not checked.
 - The Celtic bed, the canopy and the leather flap stay refused as multiblocks.
 - Kevins Furniture's windows are refused for solid sides.
 They are openings, which belong to `chiselling-walls` or a window layout and not to hosting.

@@ -1,6 +1,6 @@
 # 0036 — Trunks against thin walls
 
-- Status: Accepted
+- Status: Accepted; tables staying out, and every other multiblock staying excluded, superseded by 0078 for a block that declares `vssidingHostable`
 - Created: 2026-09-24
 - Reflects: branch `trunks-against-thin-walls` (commits `b9953a0`, `a85d185`, `a3b653a`, `3e06e7d`); vanilla 1.22 decompiled source
 
