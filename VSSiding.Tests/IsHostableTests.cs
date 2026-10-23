@@ -111,7 +111,8 @@ public class IsHostableTests
         {
             ["trunk"] = Declared(Open(new BlockGenericTypedContainerTrunk()), true),
             ["solid cube"] = Declared(new Block(), true),
-            ["non-trunk multiblock"] = Declared(PaintingLike(), true),
+            ["non-trunk multiblock"] = Declared(Sided(PaintingLike()), true),
+            ["sideless multiblock"] = Declared(PaintingLike(), true),
             ["door"] = Declared(Open(new Block { BlockEntityBehaviors = new[] { new BlockEntityBehaviorType { Name = "Door" } } }), true),
             ["fluid"] = Declared(Open(new FluidBlock()), true),
             ["furniture"] = Declared(Open(new Block()), false),
@@ -123,6 +124,7 @@ public class IsHostableTests
             ["trunk"] = null,
             ["solid cube"] = null,
             ["non-trunk multiblock"] = null,
+            ["sideless multiblock"] = "multiblock without side",
             ["door"] = "door",
             ["fluid"] = "fluid",
             ["furniture"] = "vssidingHostable false",
@@ -140,5 +142,11 @@ public class IsHostableTests
         var painting = Open(new Block());
         painting.BlockBehaviors = new BlockBehavior[] { new BlockBehaviorMultiblock(painting) };
         return painting;
+    }
+
+    private static Block Sided(Block block)
+    {
+        block.VariantStrict["side"] = "east";
+        return block;
     }
 }

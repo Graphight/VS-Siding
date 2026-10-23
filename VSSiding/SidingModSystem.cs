@@ -753,8 +753,9 @@ public class SidingModSystem : ModSystem
     // a solid top on a block with a block entity (a cabinet you set things on); fluid-layer blocks;
     // anything not a plain JSON shape; any "part" block but a bed; doors (1.22's are BlockGeneric
     // with a "Door" BE behaviour); and mechanical power blocks, which network by position. Multiblocks
-    // other than a trunk and its filler stay out (paintings, banners, mannequins, machines): the
-    // footprint rule in the CanPlaceBlock postfix is what makes a trunk's filler safe to host.
+    // other than a trunk and its filler stay out (paintings, banners, mannequins, machines) unless they
+    // declare vssidingHostable and carry a side variant: the footprint rule in the CanPlaceBlock
+    // postfix is what makes a filler safe to host.
     private static void BuildHostableTable(ICoreAPI api)
     {
         int maxId = api.World.Blocks.Where(b => b != null).Max(b => b.BlockId);
@@ -846,7 +847,12 @@ public class SidingModSystem : ModSystem
         if (block is BlockMicroBlock) return "microblock";
         if (block.Variant.ContainsKey("part") && block is not BlockBed) return "part block";
         if (block is BlockBaseDoor || block.BlockEntityBehaviors.Any(b => b.Name == "Door")) return "door";
-        if (optIn != true && block is not (BlockMultiblock or BlockGenericTypedContainerTrunk) && block.HasBehavior<BlockBehaviorMultiblock>()) return "multiblock";
+        if (block is not (BlockMultiblock or BlockGenericTypedContainerTrunk) && block.HasBehavior<BlockBehaviorMultiblock>())
+        {
+            if (optIn != true) return "multiblock";
+            // The footprint rule takes the long axis from the side variant.
+            if (!block.Variant.ContainsKey("side")) return "multiblock without side";
+        }
         if (block is BlockMPBase) return "mechanical power";
         return null;
     }
@@ -963,7 +969,8 @@ public class SidingModSystem : ModSystem
     }
 
     // IsReplacableBy has no position, so each wall answers alone; only here is the whole footprint
-    // in view. IsHostable admits no Multiblock block but a trunk, so ordinary multiblocks pass untouched.
+    // in view. IsHostable admits no Multiblock block but a trunk or one declaring vssidingHostable with a
+    // side variant, so ordinary multiblocks pass untouched.
     // IsReplacableBy lets any hostable block take a wall's cell but has no position to see a deck
     // or step, so the placement check refuses it here. Positional arguments, since overrides rename them.
     internal static void DeckedCellPostfix(IWorldAccessor __0, BlockSelection __2, ref string __3, ref bool __result)
