@@ -1,0 +1,142 @@
+[
+	{
+		"op": "addmerge",
+		"file": "vinteng:blocktypes/lv/lvgenerator.json",
+		"path": "/attributes",
+		"value": { "vssidingHostable": true },
+		"dependsOn": [{ "modid": "vintageengineering" }]
+	},
+	{
+		"op": "addmerge",
+		"file": "vinteng:blocktypes/lv/veblastfurnace.json",
+		"path": "/attributes",
+		"value": { "vssidingHostable": true },
+		"dependsOn": [{ "modid": "vintageengineering" }]
+	},
+	{
+		"op": "addmerge",
+		"file": "vinteng:blocktypes/lv/veblower.json",
+		"path": "/attributes",
+		"value": { "vssidingHostable": true },
+		"dependsOn": [{ "modid": "vintageengineering" }]
+	},
+	{
+		"op": "addmerge",
+		"file": "vinteng:blocktypes/lv/vecnc.json",
+		"path": "/attributes",
+		"value": { "vssidingHostable": true },
+		"dependsOn": [{ "modid": "vintageengineering" }]
+	},
+	{
+		"op": "addmerge",
+		"file": "vinteng:blocktypes/lv/vecrusher.json",
+		"path": "/attributes",
+		"value": { "vssidingHostable": true },
+		"dependsOn": [{ "modid": "vintageengineering" }]
+	},
+	{
+		"op": "addmerge",
+		"file": "vinteng:blocktypes/lv/veextruder.json",
+		"path": "/attributes",
+		"value": { "vssidingHostable": true },
+		"dependsOn": [{ "modid": "vintageengineering" }]
+	},
+	{
+		"op": "addmerge",
+		"file": "vinteng:blocktypes/lv/vefluidtank.json",
+		"path": "/attributes",
+		"value": { "vssidingHostable": true },
+		"dependsOn": [{ "modid": "vintageengineering" }]
+	},
+	{
+		"op": "addmerge",
+		"file": "vinteng:blocktypes/lv/veforge.json",
+		"path": "/attributes",
+		"value": { "vssidingHostable": true },
+		"dependsOn": [{ "modid": "vintageengineering" }]
+	},
+	{
+		"op": "addmerge",
+		"file": "vinteng:blocktypes/lv/vekiln.json",
+		"path": "/attributes",
+		"value": { "vssidingHostable": true },
+		"dependsOn": [{ "modid": "vintageengineering" }]
+	},
+	{
+		"op": "addmerge",
+		"file": "vinteng:blocktypes/lv/velogsplitter.json",
+		"path": "/attributes",
+		"value": { "vssidingHostable": true },
+		"dependsOn": [{ "modid": "vintageengineering" }]
+	},
+	{
+		"op": "addmerge",
+		"file": "vinteng:blocktypes/lv/velvbattery.json",
+		"path": "/attributes",
+		"value": { "vssidingHostable": true },
+		"dependsOn": [{ "modid": "vintageengineering" }]
+	},
+	{
+		"op": "addmerge",
+		"file": "vinteng:blocktypes/lv/velvcharger.json",
+		"path": "/attributes",
+		"value": { "vssidingHostable": true },
+		"dependsOn": [{ "modid": "vintageengineering" }]
+	},
+	{
+		"op": "addmerge",
+		"file": "vinteng:blocktypes/lv/velvfridge.json",
+		"path": "/attributes",
+		"value": { "vssidingHostable": true },
+		"dependsOn": [{ "modid": "vintageengineering" }]
+	},
+	{
+		"op": "addmerge",
+		"file": "vinteng:blocktypes/lv/velvkinetic.json",
+		"path": "/attributes",
+		"value": { "vssidingHostable": true },
+		"dependsOn": [{ "modid": "vintageengineering" }]
+	},
+	{
+		"op": "addmerge",
+		"file": "vinteng:blocktypes/lv/vemetalpress.json",
+		"path": "/attributes",
+		"value": { "vssidingHostable": true },
+		"dependsOn": [{ "modid": "vintageengineering" }]
+	},
+	{
+		"op": "addmerge",
+		"file": "vinteng:blocktypes/lv/vemixer.json",
+		"path": "/attributes",
+		"value": { "vssidingHostable": true },
+		"dependsOn": [{ "modid": "vintageengineering" }]
+	},
+	{
+		"op": "addmerge",
+		"file": "vinteng:blocktypes/lv/vepump.json",
+		"path": "/attributes",
+		"value": { "vssidingHostable": true },
+		"dependsOn": [{ "modid": "vintageengineering" }]
+	},
+	{
+		"op": "addmerge",
+		"file": "vinteng:blocktypes/lv/vesawmill.json",
+		"path": "/attributes",
+		"value": { "vssidingHostable": true },
+		"dependsOn": [{ "modid": "vintageengineering" }]
+	},
+	{
+		"op": "addmerge",
+		"file": "vinteng:blocktypes/mv/vemvbattery.json",
+		"path": "/attributes",
+		"value": { "vssidingHostable": true },
+		"dependsOn": [{ "modid": "vintageengineering" }]
+	},
+	{
+		"op": "addmerge",
+		"file": "vinteng:blocktypes/mv/vemvtransformer.json",
+		"path": "/attributes",
+		"value": { "vssidingHostable": true },
+		"dependsOn": [{ "modid": "vintageengineering" }]
+	}
+]
