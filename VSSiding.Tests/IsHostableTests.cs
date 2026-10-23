@@ -39,8 +39,6 @@ public class IsHostableTests
         bedHead.VariantStrict["part"] = "head";
         var bedFeet = Open(new BlockBed());
         bedFeet.VariantStrict["part"] = "feet";
-        var painting = Open(new Block());
-        painting.BlockBehaviors = new BlockBehavior[] { new BlockBehaviorMultiblock(painting) };
         var trunk = Open(new BlockGenericTypedContainerTrunk());
         trunk.BlockBehaviors = new BlockBehavior[] { new BlockBehaviorMultiblock(trunk) };
         var pot = Open(new Block());
@@ -63,7 +61,7 @@ public class IsHostableTests
             ["door"] = Open(new Block { BlockEntityBehaviors = new[] { new BlockEntityBehaviorType { Name = "Door" } } }),
             ["multiblock filler"] = Open(new BlockMultiblock()),
             ["trunk"] = trunk,
-            ["painting"] = painting,
+            ["painting"] = PaintingLike(),
             ["mechanical power"] = Open(new PowerBlock()),
             ["siding wall"] = Open(new SidingWallBlock()),
             ["siding floor"] = new SidingFloorBlock { SideSolid = new SmallBoolArray(BlockFacing.UP.Flag), EntityClass = "SidingFloorEntity" },

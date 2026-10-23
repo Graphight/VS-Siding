@@ -60,7 +60,6 @@ The collision of a hosted block that overhangs its cell is a separate fix, decis
 - More Inventorys' 17 racks (16 rack types and the clothing rack) override `TryPlaceBlock` to require air in the cells above and beside before they place filler blocks, so no rule and no JSON patch can host them.
 Hosting them needs a Harmony patch into that mod's code.
 Its shelves, cabinets, crates, basket and stands already host and carry no patch.
-- Vintage Engineering's creosote oven is left out for its footprint.
 - A hosted block solid on its room side answers retention for that face itself, so a cellar wall behind a Kevins Furniture cabinet, doorless cabinet or coffee table counts as one non-cooling face.
 The guest wall answers only the faces it claims (`GuestSealingPatches`), and vanilla's `RoomRegistry` reads the neighbouring block's face toward the room, which is the hosted block's.
 The same block standing loose in a stone cellar counts the same way, since vanilla `GetRetention` gives a solid wooden face 1.

@@ -135,12 +135,12 @@ public sealed class FetchProbeTask : FrostingTask<BuildContext>
         {
             string modid = queue.Dequeue();
             if (!seen.Add(modid)) continue;
+            if (seen.Count > Slots) throw new Exception($"More than {Slots} mods to fetch for the probe; raise the slots here and in CompatProbeScenarios");
 
             var release = JObject.Parse(http.GetStringAsync($"https://mods.vintagestory.at/api/mod/{modid}").Result)["mod"]?["releases"]?[0];
             if (release == null) throw new Exception($"The mod DB has no release for '{modid}'");
 
             byte[] zip = http.GetByteArrayAsync((string)release["mainfile"]!).Result;
-            if (seen.Count > Slots) throw new Exception($"More than {Slots} mods to fetch for the probe; raise the slots here and in CompatProbeScenarios");
             File.WriteAllBytes($"{modsDir}/slot{seen.Count - 1}.zip", zip);
             context.Log.Information("{0} {1}", modid, release["modversion"]);
 
@@ -153,7 +153,7 @@ public sealed class FetchProbeTask : FrostingTask<BuildContext>
             using var reader = new StreamReader(archive.GetEntry("modinfo.json")!.Open());
             if (JObject.Parse(reader.ReadToEnd())["dependencies"] is not JObject dependencies) continue;
             foreach (var dependency in dependencies.Properties())
-                if (Array.IndexOf(Provided, dependency.Name) < 0) queue.Enqueue(dependency.Name);
+                if (!Provided.Contains(dependency.Name)) queue.Enqueue(dependency.Name);
         }
 
         for (int slot = seen.Count; slot < Slots; slot++)
