@@ -40,5 +40,3 @@ A one-wide stairwell was the first candidate (decision 0069), but each slab is 0
 This works in theory, but players building something unusual would spend their time fighting the auto-correct over the pieces they placed on purpose.
 Placing corners by hand, plus decision 0026's in-place upgrade for ones found late, keeps the player in charge.
 Revive only if hand-placed corners turn out to be the main complaint in play.
-- `guest-furniture-collision`: a hosted chest or trunk lets a player walk in through its front, because its shifted box sticks into a cell vanilla's collision tester never asks.
-The proposal is written; revive when the walk-through bothers players enough to be worth a playtest.
