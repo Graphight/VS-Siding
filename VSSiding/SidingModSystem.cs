@@ -366,6 +366,15 @@ public class SidingModSystem : ModSystem
 
         try
         {
+            PatchRunCellChecks(harmony, api);
+        }
+        catch (Exception e)
+        {
+            api.Logger.Error("vssiding: More Inventorys patch skipped, its racks, clothing rack, double crate and large cabinet will not go into a wall run: {0}", e);
+        }
+
+        try
+        {
             SidingModePicker.PatchDialog(harmony);
         }
         catch (Exception e)
@@ -762,6 +771,7 @@ public class SidingModSystem : ModSystem
         var hostable = new bool[maxId + 1];
         var faceShift = new double[maxId + 1][];
         var hangers = new bool[maxId + 1];
+        var mainPos = new PropertyInfo?[maxId + 1];
 
         foreach (var block in api.World.Blocks)
         {
@@ -771,12 +781,19 @@ public class SidingModSystem : ModSystem
             if (!hostable[block.BlockId]) continue;
 
             faceShift[block.BlockId] = FaceShifts(block);
+            if (block.EntityClass != null)
+                mainPos[block.BlockId] = api.ClassRegistry.GetBlockEntity(block.EntityClass)?.GetProperty("MainBlockPos", typeof(BlockPos));
         }
 
         Hostable = hostable;
         Hangers = hangers;
         FaceShiftByBlock = faceShift;
+        MainPosByBlock = mainPos;
     }
+
+    // Indexed by BlockId: a filler's block entity property naming its main block's position, as More
+    // Inventorys' fillers carry; null for every other block.
+    internal static PropertyInfo?[]? MainPosByBlock;
 
     // A RotateablePlaceable block (a cabinet) turns its boxes by its block entity's angle, so its
     // default boxes don't say which face meets the wall; it takes its largest shift on every face,
@@ -873,6 +890,16 @@ public class SidingModSystem : ModSystem
 
         return AlongX(trunkSide) == AlongX(sides[0]);
     }
+
+    // A cell a More Inventorys block needs beside or above its main cell, when the main cell is a
+    // wall: free only as a straight wall of the same run, on the same side and in the same plane, with
+    // no deck or step, so the block fits the run or not at all, as a trunk does.
+    internal static bool RunCellFree(Block main, BlockPos mainPos, Block cell, BlockPos pos, bool openPartFilled)
+        => main is SidingWallBlock mainWall && mainWall.Variant["layout"] == "wall"
+            && cell is SidingWallBlock wall && wall.Variant["layout"] == "wall"
+            && wall.Variant["side"] == mainWall.Variant["side"]
+            && (AlongX(mainWall.Variant["side"]) ? pos.Z == mainPos.Z : pos.X == mainPos.X)
+            && !openPartFilled;
 
     // A bed's side points from its head back toward its feet, so its headboard faces the opposite way.
     // Side-on is a trunk's footprint turned a quarter, since a bed runs along its side axis and a trunk
@@ -996,6 +1023,51 @@ public class SidingModSystem : ModSystem
         __result = false;
         handling = EnumHandling.PreventDefault;
         failureCode = "notenoughspace";
+    }
+
+    // More Inventorys' multi-cell blocks (racks, the clothing rack, the double crate, the large cabinet)
+    // test each extra cell for air with GetBlockId in their own TryPlaceBlock, then set a filler there.
+    private static void PatchRunCellChecks(Harmony harmony, ICoreAPI api)
+    {
+        if (api.ModLoader.GetMod("moreinventorys")?.Systems.FirstOrDefault()?.GetType().Assembly is not { } assembly) return;
+
+        var transpiler = new HarmonyMethod(typeof(SidingModSystem), nameof(RunCellTranspiler));
+        var parameterTypes = new[] { typeof(IWorldAccessor), typeof(IPlayer), typeof(ItemStack), typeof(BlockSelection), typeof(string).MakeByRefType() };
+        foreach (var type in AccessTools.GetTypesFromAssembly(assembly).Where(t => t.IsSubclassOf(typeof(Block))))
+        {
+            var method = type.GetMethod(nameof(Block.TryPlaceBlock), BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly, null, parameterTypes, null);
+            if (method != null) harmony.Patch(method, transpiler: transpiler);
+        }
+    }
+
+    // Each GetBlockId(pos) gets the selection too, from TryPlaceBlock's fourth argument.
+    internal static IEnumerable<CodeInstruction> RunCellTranspiler(IEnumerable<CodeInstruction> instructions)
+    {
+        var getBlockId = AccessTools.Method(typeof(IBlockAccessor), nameof(IBlockAccessor.GetBlockId), new[] { typeof(BlockPos) });
+        var cellId = AccessTools.Method(typeof(SidingModSystem), nameof(RunCellId));
+
+        foreach (var instruction in instructions)
+        {
+            if (!instruction.Calls(getBlockId))
+            {
+                yield return instruction;
+                continue;
+            }
+            yield return CodeInstruction.LoadArgument(4).MoveLabelsFrom(instruction);
+            yield return new CodeInstruction(OpCodes.Call, cellId);
+        }
+    }
+
+    // The block places only where every extra cell reads 0, so a free cell of the run reads 0 and
+    // every other cell beside a wall, open air too, reads taken.
+    internal static int RunCellId(IBlockAccessor accessor, BlockPos pos, BlockSelection blockSel)
+    {
+        int id = accessor.GetBlockId(pos);
+        Block main = accessor.GetBlock(blockSel.Position);
+        if (main is not SidingWallBlock) return id;
+
+        bool openPartFilled = accessor.GetBlockEntity<SidingWallEntity>(pos)?.OpenPartFilled == true;
+        return RunCellFree(main, blockSel.Position, accessor.GetBlock(pos), pos, openPartFilled) ? 0 : Math.Max(id, 1);
     }
 
     // ChunkTesselator.vars isn't public; ShiftTowardWall is called from transpiled IL, so it can't
@@ -1299,9 +1371,17 @@ public class SidingModSystem : ModSystem
         AccessTools.FieldRefAccess<CollectibleObject, ICoreAPI>("api");
 
     // A trunk's filler draws nothing and takes the trunk's boxes, mirrored, so it shifts by the
-    // trunk's inset rather than by its own default cube's.
+    // trunk's inset rather than by its own default cube's. A More Inventorys filler does the same
+    // through its block entity, which names its main block only a tick after it is set.
     internal static Block ShiftSource(IBlockAccessor accessor, BlockPos pos, Block block)
-        => block is BlockMultiblock filler ? accessor.GetBlock(pos.AddCopy(filler.OffsetInv)) : block;
+    {
+        if (block is BlockMultiblock filler) return accessor.GetBlock(pos.AddCopy(filler.OffsetInv));
+        if (MainPosByBlock is not { } readers || block.BlockId >= readers.Length || readers[block.BlockId] is not { } reader) return block;
+        if (accessor.GetBlockEntity(pos) is not { } entity || reader.GetValue(entity) is not BlockPos mainPos) return block;
+
+        var main = accessor.GetBlock(mainPos);
+        return IsHostableId(main.BlockId) ? main : block;
+    }
 
     // The getter rebuilds the position from Pos on every call, so shifting it in place is safe.
     internal static void BedSeatPostfix(BlockEntityBed __instance, EntityPos __result)

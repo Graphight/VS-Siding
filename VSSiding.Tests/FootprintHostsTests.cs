@@ -67,6 +67,42 @@ public class FootprintHostsTests
     }
 
     [Fact]
+    public void ARunCellIsFreeOnlyAsAStraightWallOfTheMainCellsOwnRun()
+    {
+        var main = new BlockPos(10, 5, 10);
+        var cases = new Dictionary<string, (Block main, Block cell, BlockPos pos, bool openPartFilled)>
+        {
+            ["wall above"] = (Wall("wall", "north"), Wall("wall", "north"), main.UpCopy(), false),
+            ["wall along a north run"] = (Wall("wall", "north"), Wall("wall", "north"), main.EastCopy(), false),
+            ["wall along an east run"] = (Wall("wall", "east"), Wall("wall", "east"), main.NorthCopy(), false),
+            ["wall on the opposite side"] = (Wall("wall", "north"), Wall("wall", "south"), main.EastCopy(), false),
+            ["parallel wall behind"] = (Wall("wall", "north"), Wall("wall", "north"), main.NorthCopy(), false),
+            ["cornerout"] = (Wall("wall", "north"), Wall("cornerout", "north"), main.EastCopy(), false),
+            ["decked or stepped wall"] = (Wall("wall", "north"), Wall("wall", "north"), main.UpCopy(), true),
+            ["air"] = (Wall("wall", "north"), new Block(), main.EastCopy(), false),
+            ["main cell a cornerout"] = (Wall("cornerout", "north"), Wall("wall", "north"), main.EastCopy(), false),
+        };
+
+        var expected = new Dictionary<string, bool>
+        {
+            ["wall above"] = true,
+            ["wall along a north run"] = true,
+            ["wall along an east run"] = true,
+            ["wall on the opposite side"] = false,
+            ["parallel wall behind"] = false,
+            ["cornerout"] = false,
+            ["decked or stepped wall"] = false,
+            ["air"] = false,
+            ["main cell a cornerout"] = false,
+        };
+
+        var actual = new Dictionary<string, bool>();
+        foreach (var (name, c) in cases) actual[name] = SidingModSystem.RunCellFree(c.main, main, c.cell, c.pos, c.openPartFilled);
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
     public void ATwoWallBedHostsOnlyAcrossItsLongAxis()
     {
         var hosts = new HashSet<(string bed, string wall)>

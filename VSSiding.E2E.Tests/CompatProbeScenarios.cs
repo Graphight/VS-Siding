@@ -84,16 +84,19 @@ public class CompatProbeScenarios : AtlasScenarioBase
     {
         player.Player.InventoryManager.ActiveHotbarSlot.Itemstack = null;
         player.Entity.LeftHandItemSlot.Itemstack = new ItemStack(World.Api.World.GetItem(new AssetLocation("game:saw-copper")));
-        var walls = new[] { cell, cell.UpCopy(), cell.NorthCopy(), cell.NorthCopy().Up() };
+        // Three high and two long: More Inventorys' largest racks are two wide and three high.
+        var walls = new[] { cell, cell.NorthCopy() }.SelectMany(column => new[] { column, column.UpCopy(), column.UpCopy(2) }).ToArray();
         foreach (BlockPos column in new[] { cell, cell.NorthCopy() })
         {
             World.SetBlock("game:planks-aged-ud", column.DownCopy());
-            await WallBuilder.Raise(World, player, column, column.WestCopy(), "game:plank-oak", "game:clay-blue", "game:plank-oak");
-            await WallBuilder.Raise(World, player, column.UpCopy(), column.WestCopy().Up(), "game:plank-oak", "game:clay-blue", "game:plank-oak");
+            for (int up = 0; up < 3; up++)
+                await WallBuilder.Raise(World, player, column.UpCopy(up), column.WestCopy().Up(up), "game:plank-oak", "game:clay-blue", "game:plank-oak");
         }
 
         player.Entity.LeftHandItemSlot.Itemstack = null;
         player.Player.InventoryManager.ActiveHotbarSlot.Itemstack = new ItemStack(block);
+        // Facing the panel, west, so a block that places its second column to the player's right (More Inventorys reads the yaw) puts it north, along the run.
+        player.Entity.Pos.Yaw = 3 * GameMath.PIHALF;
         var selection = new BlockSelection { Position = cell.Copy(), Face = BlockFacing.EAST, HitPosition = new Vec3d(0.5, 0.5, 0.5) };
         World.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, selection);
 

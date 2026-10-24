@@ -1,0 +1,30 @@
+[
+	{
+		"op": "add",
+		"file": "moreinventorys:blocktypes/dummyforrackhorizontal.json",
+		"path": "/drawtype",
+		"value": "json",
+		"dependsOn": [{ "modid": "moreinventorys" }]
+	},
+	{
+		"op": "add",
+		"file": "moreinventorys:blocktypes/dummyforrackhorizontal.json",
+		"path": "/shape",
+		"value": { "base": "game:block/basic/nothing" },
+		"dependsOn": [{ "modid": "moreinventorys" }]
+	},
+	{
+		"op": "add",
+		"file": "moreinventorys:blocktypes/dummydrawer.json",
+		"path": "/drawtype",
+		"value": "json",
+		"dependsOn": [{ "modid": "moreinventorys" }]
+	},
+	{
+		"op": "add",
+		"file": "moreinventorys:blocktypes/dummydrawer.json",
+		"path": "/shape",
+		"value": { "base": "game:block/basic/nothing" },
+		"dependsOn": [{ "modid": "moreinventorys" }]
+	}
+]

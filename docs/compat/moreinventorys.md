@@ -7,33 +7,33 @@ Each row is one block type of the mod, tried in the cell of a wall built for it.
 
 | Block | Verdict |
 | --- | --- |
-| clothingrack | placement failed |
+| clothingrack | hosts (2 cells) |
 | drawertopped | hosts |
-| dummydrawer | refused: draw type |
-| dummyrh | refused: draw type |
+| dummydrawer | hosts |
+| dummyrh | hosts |
 | dummyrv | refused: solid side |
 | firstshelf | hosts |
-| largeopenshelfdoorcabinet | hosts |
+| largeopenshelfdoorcabinet | hosts (2 cells) |
 | mibasketclosed | hosts |
 | micrateclosed | hosts |
-| micratecloseddouble | hosts |
+| micratecloseddouble | hosts (2 cells) |
 | openshelfdoorcabinet | hosts |
-| rackhorizontal | placement failed |
-| rackhorizontal2x2 | placement failed |
-| rackhorizontalframecorner | placement failed |
-| rackhorizontalframecorner2x2 | placement failed |
-| rackhorizontalframeline | placement failed |
-| rackhorizontalframeline2x2 | placement failed |
-| rackhorizontalwood2x2 | placement failed |
-| rackhorizontalwood2x3 | placement failed |
-| rackstick | placement failed |
-| rackstick1x2 | placement failed |
-| rackvertical | placement failed |
-| rackvertical1x2 | placement failed |
-| rackverticalframecorner | placement failed |
-| rackverticalframecorner1x2 | placement failed |
-| rackverticalframeline | placement failed |
-| rackverticalframeline1x2 | placement failed |
+| rackhorizontal | hosts (6 cells) |
+| rackhorizontal2x2 | hosts (4 cells) |
+| rackhorizontalframecorner | hosts (6 cells) |
+| rackhorizontalframecorner2x2 | hosts (4 cells) |
+| rackhorizontalframeline | hosts (6 cells) |
+| rackhorizontalframeline2x2 | hosts (4 cells) |
+| rackhorizontalwood2x2 | hosts (4 cells) |
+| rackhorizontalwood2x3 | hosts (6 cells) |
+| rackstick | hosts (4 cells) |
+| rackstick1x2 | hosts (2 cells) |
+| rackvertical | hosts (3 cells) |
+| rackvertical1x2 | hosts (2 cells) |
+| rackverticalframecorner | hosts (3 cells) |
+| rackverticalframecorner1x2 | hosts (2 cells) |
+| rackverticalframeline | hosts (3 cells) |
+| rackverticalframeline1x2 | hosts (2 cells) |
 | shieldstand | hosts |
 | smallhorizontleswordstand | hosts |
 | smallverticalweaponstand | hosts |
