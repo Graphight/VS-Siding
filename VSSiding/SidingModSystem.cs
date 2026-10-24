@@ -1300,8 +1300,10 @@ public class SidingModSystem : ModSystem
                 // Not here: the old host's OnBlockRemoved (a chest dropping its contents) runs right
                 // after this prefix returns, and would otherwise fire against the wall. A player's
                 // break restores in NeighbourUpdatePrefix, before any neighbour is told; this
-                // callback covers every other way a host goes (explosions, other mods).
-                world.RegisterCallback(_ => RestoreGuestWall(world, pos), 0);
+                // callback covers every other way a host goes (explosions, other mods). It keeps its own
+                // copy of pos: vanilla's Multiblock removal passes one BlockPos it moves on to each cell.
+                var restorePos = pos.Copy();
+                world.RegisterCallback(_ => RestoreGuestWall(world, restorePos), 0);
                 break;
             case HostChange.Drop:
                 if (guest.Block is SidingWallBlock guestWall)
