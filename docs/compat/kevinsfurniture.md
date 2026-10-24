@@ -11,7 +11,7 @@ Each row is one block type of the mod, tried in the cell of a wall built for it.
 | angledwindowr | refused: solid side |
 | cabinet | hosts |
 | canopy | refused: multiblock |
-| celticbed | refused: multiblock |
+| celticbed | hosts (2 cells) |
 | coffeetable | hosts |
 | doorlesscabinet | hosts |
 | floor_cushion | hosts |

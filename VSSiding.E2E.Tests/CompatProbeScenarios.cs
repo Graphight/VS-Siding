@@ -95,7 +95,10 @@ public class CompatProbeScenarios : AtlasScenarioBase
 
         player.Entity.LeftHandItemSlot.Itemstack = null;
         player.Player.InventoryManager.ActiveHotbarSlot.Itemstack = new ItemStack(block);
-        // Facing the panel, west, so a block that places its second column to the player's right (More Inventorys reads the yaw) puts it north, along the run.
+        // Two cells out in front, facing the panel to the west: a bed takes its facing from where the player stands and must
+        // not land its feet on them, and a block that places its second column to the player's right (More Inventorys
+        // reads the yaw) puts it north, along the run.
+        player.Entity.Pos.SetPos(cell.X + 2.5, cell.Y, cell.Z + 0.5);
         player.Entity.Pos.Yaw = 3 * GameMath.PIHALF;
         var selection = new BlockSelection { Position = cell.Copy(), Face = BlockFacing.EAST, HitPosition = new Vec3d(0.5, 0.5, 0.5) };
         World.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, selection);

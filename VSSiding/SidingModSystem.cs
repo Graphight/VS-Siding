@@ -913,6 +913,57 @@ public class SidingModSystem : ModSystem
             && wall.Variant["side"] == facing.Opposite.Code && feet is not SidingWallBlock;
     }
 
+    // A double bed (Kevins Furniture's Celtic bed) has a filler beside each of its two cells, on one side.
+    // Its headboard goes against a run, the head and the filler beside it in the wall and the feet row on
+    // open floor; or a long side does, either row in the wall and the other open, the panel on the face
+    // away from the open row.
+    internal static bool DoubleBedFootprintHosts(string bedSide, string fillerSide, Block head, Block feet, Block headFiller, Block feetFiller)
+    {
+        if (!new[] { head, feet, headFiller, feetFiller }.Any(cell => cell is SidingWallBlock)) return true;
+
+        string headboard = BlockFacing.FromCode(bedSide).Opposite.Code;
+        string awayFromFillers = BlockFacing.FromCode(fillerSide).Opposite.Code;
+        return (StraightRun(headboard, head, headFiller) && NoWall(feet, feetFiller))
+            || (StraightRun(awayFromFillers, head, feet) && NoWall(headFiller, feetFiller))
+            || (StraightRun(fillerSide, headFiller, feetFiller) && NoWall(head, feet));
+    }
+
+    private static bool StraightRun(string side, params Block[] cells)
+        => cells.All(cell => cell is SidingWallBlock wall && wall.Variant["layout"] == "wall" && wall.Variant["side"] == side);
+
+    private static bool NoWall(params Block[] cells) => cells.All(cell => cell is not SidingWallBlock);
+
+    // The cells a Multiblock places around its controller, the controller's own left out.
+    internal static List<BlockPos> MultiblockCells(Block block, BlockPos controllerPos)
+    {
+        var cells = new List<BlockPos>();
+        (block.GetBehavior(typeof(BlockBehaviorMultiblock), false) as BlockBehaviorMultiblock)?.IterateOverEach(controllerPos, cell =>
+        {
+            if (cell != controllerPos) cells.Add(cell.Copy());
+            return true;
+        });
+        return cells;
+    }
+
+    // The side a double bed's fillers stand on, one beside the head and one beside the feet; null for any other shape.
+    internal static BlockFacing? FillerSide(BlockPos headPos, BlockPos feetPos, IReadOnlyList<BlockPos> fillers)
+        => fillers.Count != 2 ? null
+            : BlockFacing.HORIZONTALS.FirstOrDefault(side => fillers.Contains(headPos.AddCopy(side)) && fillers.Contains(feetPos.AddCopy(side)));
+
+    // Every cell of the bed a block at pos is part of, head first; empty for anything not part of a bed.
+    internal static IEnumerable<BlockPos> BedCells(IBlockAccessor accessor, BlockPos pos, Block block)
+    {
+        BlockPos? headPos = block switch
+        {
+            BlockMultiblock filler => pos.AddCopy(filler.OffsetInv),
+            BlockBed => BedHeadPos(block, pos) ?? pos,
+            _ => null,
+        };
+        if (headPos == null || accessor.GetBlock(headPos) is not BlockBed head || head.Variant["part"] != "head") return Array.Empty<BlockPos>();
+
+        return new[] { headPos, headPos.AddCopy(BlockFacing.FromCode(head.Variant["side"])) }.Concat(MultiblockCells(head, headPos));
+    }
+
     // A click on a wall's panel names the wall's own cell; stepping the feet back puts the head there.
     internal static BlockPos BedFeetPos(Block clicked, BlockFacing facing, BlockPos pos) =>
         clicked is SidingWallBlock && clicked.Variant["layout"] == "wall" && clicked.Variant["side"] == facing.Code
@@ -936,17 +987,25 @@ public class SidingModSystem : ModSystem
 
     // BlockBed is not a Multiblock, so each cell's CanPlaceBlock has no view of the other; the two
     // cells are worked out here the way vanilla's TryPlaceBlock does. Both panel-click paths arrive
-    // with the wall's own cell as the feet, so the retarget sits here too.
-    internal static bool BedFootprintPrefix(IWorldAccessor world, IPlayer byPlayer, ref BlockSelection blockSel,
+    // with the wall's own cell as the feet, so the retarget sits here too. A double bed's fillers come
+    // from the head it will place, which vanilla never checks.
+    internal static bool BedFootprintPrefix(BlockBed __instance, IWorldAccessor world, IPlayer byPlayer, ref BlockSelection blockSel,
         ref bool __result, ref string failureCode)
     {
         var facing = Block.SuggestedHVOrientation(byPlayer, blockSel)[0];
         var feetPos = BedFeetPos(world.BlockAccessor.GetBlock(blockSel.Position), facing, blockSel.Position);
         if (feetPos != blockSel.Position) blockSel = Retargeted(blockSel, feetPos);
 
-        var feet = world.BlockAccessor.GetBlock(blockSel.Position);
-        var head = world.BlockAccessor.GetBlock(blockSel.Position.AddCopy(facing));
-        if (BedFootprintHosts(facing.Opposite.Code, head, feet)) return true;
+        var accessor = world.BlockAccessor;
+        var headPos = blockSel.Position.AddCopy(facing);
+        var (head, feet) = (accessor.GetBlock(headPos), accessor.GetBlock(blockSel.Position));
+        string bedSide = facing.Opposite.Code;
+        var fillers = MultiblockCells(world.GetBlock(__instance.CodeWithParts("head", bedSide)), headPos);
+        bool hosts = fillers.Count == 0 ? BedFootprintHosts(bedSide, head, feet)
+            : FillerSide(headPos, blockSel.Position, fillers) is { } fillerSide
+                ? DoubleBedFootprintHosts(bedSide, fillerSide.Code, head, feet, accessor.GetBlock(headPos.AddCopy(fillerSide)), accessor.GetBlock(blockSel.Position.AddCopy(fillerSide)))
+                : !fillers.Select(cell => accessor.GetBlock(cell)).Append(head).Append(feet).Any(cell => cell is SidingWallBlock);
+        if (hosts) return true;
 
         __result = false;
         failureCode = "notenoughspace";
@@ -1010,7 +1069,8 @@ public class SidingModSystem : ModSystem
     internal static void MultiblockFootprintPostfix(BlockBehaviorMultiblock __instance, IWorldAccessor world,
         BlockSelection blockSel, ref bool __result, ref EnumHandling handling, ref string failureCode)
     {
-        if (!__result || !IsHostableId(__instance.block.BlockId)) return;
+        // A bed's footprint is BedFootprintPrefix's: vanilla asks this with the held head's offsets, whichever way the bed faces.
+        if (!__result || __instance.block is BlockBed || !IsHostableId(__instance.block.BlockId)) return;
 
         var cells = new List<Block>();
         __instance.IterateOverEach(blockSel.Position, mpos =>
@@ -1464,10 +1524,10 @@ public class SidingModSystem : ModSystem
         ICoreAPI? api = ApiRef(block);
         if (api == null) return (0, 0);
 
-        // Head-on, the feet stand on open floor with no guest of their own, but must shift with the
-        // head or the bed splits at the seam.
-        var guest = GuestWalls.GuestAt(api, pos);
-        if (guest == null && BedHeadPos(block, pos) is { } headPos) guest = GuestWalls.GuestAt(api, headPos);
+        // A bed shifts as one by whichever of its cells holds a guest, or it splits at the seam: head-on
+        // the feet stand on open floor, and a double bed's head can stand in the room with only its fillers in the wall.
+        var guest = GuestWalls.GuestAt(api, pos)
+            ?? BedCells(api.World.BlockAccessor, pos, block).Select(cell => GuestWalls.GuestAt(api, cell)).FirstOrDefault(found => found != null);
         if (guest?.Block is not SidingWallBlock wall) return (0, 0);
 
         if (FaceShiftByBlock![ShiftSource(api.World.BlockAccessor, pos, block).BlockId] is not { } shifts) return (0, 0);
