@@ -594,11 +594,15 @@ public class WallShapeGenTests
         }).ToArray();
     }
 
-    private static JObject UncutSource(JObject[] elements, JObject rim)
+    // A diagonal's finish rim cuts a piece that reaches on to the corner, so its source keeps that piece's
+    // trailing -left or -right, which a wall's or corner's rim part is its own.
+    private static JObject UncutSource(JObject[] elements, JObject rim, string layout)
     {
         string name = (string)rim["name"]!;
         var (lo, hi) = Box(rim);
-        return elements.Single(e => (string)e["name"]! == name[..name.IndexOf("-rim")]
+        string source = name[..name.IndexOf("-rim")];
+        if (layout == "diagonal" && System.Text.RegularExpressions.Regex.Match(name, "^(front|back).*-(left|right)$") is { Success: true } end) source += "-" + end.Groups[2].Value;
+        return elements.Single(e => (string)e["name"]! == source
             && Box(e) is var (sLo, sHi) && Enumerable.Range(0, 3).All(a => sLo[a] <= lo[a] && sHi[a] >= hi[a]));
     }
 
@@ -608,6 +612,7 @@ public class WallShapeGenTests
     [InlineData("wall")]
     [InlineData("cornerout")]
     [InlineData("floor")]
+    [InlineData("diagonal")]
     public void EveryRimPieceSamplesWhatTheUncutFinishSamplesThere(string layout)
     {
         var elements = WallShapeGen.Generate(layout)["elements"]!.Cast<JObject>().ToArray();
@@ -617,7 +622,7 @@ public class WallShapeGenTests
         var offenders = new List<string>();
         foreach (var rim in rims)
         {
-            var source = UncutSource(elements, rim);
+            var source = UncutSource(elements, rim, layout);
             foreach (string face in ((JObject)rim["faces"]!).Properties().Select(p => p.Name).Where(((JObject)source["faces"]!).ContainsKey))
             {
                 var uncut = FaceCorners(source, face);
@@ -647,6 +652,7 @@ public class WallShapeGenTests
     [InlineData("wall")]
     [InlineData("cornerout")]
     [InlineData("floor")]
+    [InlineData("diagonal")]
     public void EveryRimPieceDrawsAFaceOnEachPlaneItWasCutAt(string layout)
     {
         var elements = WallShapeGen.Generate(layout)["elements"]!.Cast<JObject>().ToArray();
@@ -659,7 +665,7 @@ public class WallShapeGenTests
         {
             string name = (string)rim["name"]!;
             var (lo, hi) = Box(rim);
-            var (sourceLo, sourceHi) = Box(UncutSource(elements, rim));
+            var (sourceLo, sourceHi) = Box(UncutSource(elements, rim, layout));
             var cuts = Enumerable.Range(0, 3).SelectMany(a => new[] { (lowFaces[a], lo[a] > sourceLo[a]), (highFaces[a], hi[a] < sourceHi[a]) });
             offenders.AddRange(cuts.Where(c => c.Item2 && !((JObject)rim["faces"]!).ContainsKey(c.Item1)).Select(c => $"{name} at {string.Join(",", lo)} has no {c.Item1} face"));
         }

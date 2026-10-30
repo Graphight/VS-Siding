@@ -782,8 +782,19 @@ public static class WallShapeGen
     private const double DiagonalEnd = 9.3137;
     private const double DiagonalFiller = 2.8284;
 
+    // A glazed diagonal has no stiles of its own, since its corner fillers are its stiles, so its glazing
+    // rails run end to end between them. Where two glazed diagonals meet, the pieces named for a join fill
+    // the half post's place beyond the rails' -left and -right pieces.
     private static readonly string[] DiagonalFrame =
-        ["framing-top", "framing-bottom", "infill-top", "infill", "infill-bottom", "infill-pane"];
+        ["framing-top", "framing-bottom", "infill-top", "infill", "infill-bottom", "infill-pane", "glazing-top", "glazing-bottom"];
+
+    private static readonly string[] DiagonalJoined = ["glazing-top", "glazing-bottom", "infill-pane"];
+
+    // A finish on a glazed diagonal is a border on the rails, cut to their heights.
+    private static readonly (string Part, double Lo, double Hi)[] DiagonalRails =
+    [
+        .. new[] { "top", "bottom" }.Select(rail => WallElements.Single(e => e.Name == "glazing-" + rail)).Select(e => (e.Name["glazing".Length..], (double)e.From.Y, (double)e.To.Y)),
+    ];
 
     private static Element OnDiagonal(Element e, string suffix = "", double shift = 0)
         => e with { Name = e.Name + suffix, Offset = (6, 0, shift), RotationY = -45 };
@@ -799,6 +810,15 @@ public static class WallShapeGen
            let hi = Math.Min(e.To.Z, 8 + runHi - shift)
            where hi > lo
            select OnDiagonal(e with { From = (e.From.X, e.From.Y, lo), To = (e.To.X, e.To.Y, hi), ClippedFrom = e }, suffix, shift);
+
+    // Where the half post stays, the finish covers its front between the rails: `G-rim-join-left` and `-right`.
+    private static IEnumerable<Element> DiagonalRims(double runLo, double runHi, string suffix = "", bool post = false)
+        => from shift in new[] { -16, 0, 16 }
+           from e in WallElements
+           where e.Name.StartsWith("front") || e.Name.StartsWith("back")
+           from rail in post ? [("-join", DiagonalRails.Single(r => r.Part == "-bottom").Hi, DiagonalRails.Single(r => r.Part == "-top").Lo)] : DiagonalRails
+           from rim in RimPiece(e, rail.Part, ('z', 8 + runLo - shift, 8 + runHi - shift), ('y', rail.Lo, rail.Hi))
+           select OnDiagonal(rim, suffix, shift);
 
     private static readonly Element[] DiagonalElements =
     [
@@ -817,6 +837,18 @@ public static class WallShapeGen
         .. DiagonalFinish(-DiagonalEnd, DiagonalEnd),
         .. DiagonalFinish(-DiagonalCorner, -DiagonalEnd, "-left"),
         .. DiagonalFinish(DiagonalEnd, DiagonalCorner, "-right"),
+        .. WallElements.Where(e => DiagonalJoined.Contains(e.Name)).SelectMany(e => new[]
+        {
+            DiagonalRun(e, -DiagonalCorner, 1 - DiagonalCorner, "-join-left"),
+            DiagonalRun(e, DiagonalCorner - 1, DiagonalCorner, "-join-right"),
+        }),
+        .. DiagonalRims(-DiagonalEnd, DiagonalEnd),
+        .. DiagonalRims(1 - DiagonalCorner, -DiagonalEnd, "-left"),
+        .. DiagonalRims(DiagonalEnd, DiagonalCorner - 1, "-right"),
+        .. DiagonalRims(-DiagonalCorner, 1 - DiagonalCorner, "-join-left"),
+        .. DiagonalRims(DiagonalCorner - 1, DiagonalCorner, "-join-right"),
+        .. DiagonalRims(-DiagonalCorner, 1 - DiagonalCorner, "-left", post: true),
+        .. DiagonalRims(DiagonalCorner - 1, DiagonalCorner, "-right", post: true),
     ];
 
     private static readonly (string Slot, string Texture)[] DiagonalTextures =
