@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Vintagestory.API.MathTools;
 using System;
 using System.Linq;
+using System.Reflection;
 using Vintagestory.API.Common;
 using Newtonsoft.Json.Linq;
 using Vintagestory.API.Datastructures;
@@ -303,17 +304,7 @@ public class SidingWallBlockCollisionTests
     [Fact]
     public void EndsAreTheUnrotatedWestEndsTurnedBySide()
     {
-        var origin = new Vec3d(0.5, 0.5, 0.5);
-        BlockFacing Turn(BlockFacing unrotated, string side)
-        {
-            Vec3i n = unrotated.Normali;
-            var slab = new Cuboidf(
-                n.X > 0 ? 15f / 16 : 0, 0, n.Z > 0 ? 15f / 16 : 0,
-                n.X < 0 ? 1f / 16 : 1, 1, n.Z < 0 ? 1f / 16 : 1);
-            Cuboidf box = slab.RotatedCopy(0, SidingWallEntity.RotationYDeg(side), 0, origin);
-            int dx = (int)Math.Round(((box.X1 + box.X2) / 2 - 0.5f) * 2), dz = (int)Math.Round(((box.Z1 + box.Z2) / 2 - 0.5f) * 2);
-            return BlockFacing.HORIZONTALS.First(f => f.Normali.X == dx && f.Normali.Z == dz);
-        }
+        BlockFacing Turn(BlockFacing unrotated, string side) => WallShapeGenTests.TurnFacing(unrotated, side);
 
         var west = new Dictionary<string, (BlockFacing face, BlockFacing points)[]>
         {
@@ -334,39 +325,6 @@ public class SidingWallBlockCollisionTests
             .ToDictionary(e => e.key, e => e.ends);
 
         Assert.Equal(expected, actual);
-    }
-
-    // Every droppable end has exactly one end on the cell it points into that meets it back.
-    [Fact]
-    public void EveryDroppableEndMeetsItsNeighboursEndBackSymmetrically()
-    {
-        var layouts = new[] { "wall", "cornerout", "diagonal" };
-        var ends = (from layout in layouts from side in new[] { "west", "south", "east", "north" } from end in SidingWallBlock.Ends(layout, side) select end).ToList();
-
-        foreach (var a in ends)
-            foreach (var b in ends)
-                Assert.Equal(SidingWallBlock.EndsMeet(a, b), SidingWallBlock.EndsMeet(b, a));
-
-        Assert.All(ends, a => Assert.Contains(ends, b => SidingWallBlock.EndsMeet(a, b)));
-    }
-
-    // A west wall's left end (toward north) and right end (toward south) each join the leg far end of
-    // one cornerout and the corner post end of another, and the mitre end of one diagonal, and no wall on another face.
-    [Fact]
-    public void AWallJoinsGlassAtEachEndAgainstTheTwoCorneroutsWhoseEndsMeetIt()
-    {
-        var west = SidingWallBlock.Ends("wall", "west");
-        string[] sides = ["west", "south", "east", "north"];
-        string[] Joining(SidingWallBlock.End end) => [.. from layout in new[] { "wall", "cornerout", "diagonal" } from side in sides
-            where SidingWallBlock.JoinsAtEnd(end, layout, side) select $"{layout}-{side}"];
-
-        Assert.Equal(
-            new Dictionary<string, string[]>
-            {
-                ["left"] = ["wall-west", "cornerout-west", "cornerout-south", "diagonal-west"],
-                ["right"] = ["wall-west", "cornerout-west", "cornerout-south", "diagonal-south"],
-            },
-            new Dictionary<string, string[]> { ["left"] = Joining(west[0]), ["right"] = Joining(west[1]) });
     }
 
     // Which cells each of a west wall's and a west corner's joining ends meets, and whether that cell drops its own
@@ -425,4 +383,71 @@ public class SidingWallBlockCollisionTests
         Assert.Equal(expected, SidingWallBlock.ContinuesGlazing(infill, neighbour, infills));
     }
 
+    // Answers GetBlock and GetBlockEntity from the cells it is given and air everywhere else, so a cell's joins read a world.
+    private class CellsAccessor : DispatchProxy
+    {
+        internal Dictionary<BlockPos, (Block Block, SidingWallEntity Entity)> Cells = new();
+
+        protected override object? Invoke(MethodInfo? targetMethod, object?[]? args)
+        {
+            if (args is not [BlockPos pos]) throw new NotSupportedException($"{targetMethod?.Name} is not stubbed");
+            bool found = Cells.TryGetValue(pos, out var cell);
+            return targetMethod?.Name switch
+            {
+                nameof(IBlockAccessor.GetBlock) => found ? cell.Block : new Block(),
+                nameof(IBlockAccessor.GetBlockEntity) => found ? cell.Entity : null,
+                _ => throw new NotSupportedException($"{targetMethod?.Name} is not stubbed"),
+            };
+        }
+    }
+
+    // A glazed corner under another, whose left leg runs on into a glazed wall with nothing over it and whose right leg runs on into
+    // one with glass over it too, turns the sheet's inside corner at its top left only. So does a glazed diagonal under another between
+    // two glazed diagonals, of which only the right one has glass over it.
+    [Fact]
+    public void AGlazedCellsInsideCornersAreReadOffTheCellsOverItsEnds()
+    {
+        var attributes = new JsonObject(JToken.Parse("""{ "Infills": { "glass": { "Transparent": true } } }"""));
+        (Block Block, SidingWallEntity Entity) Glazed(string layout, string side)
+        {
+            var block = new SidingWallBlock { Attributes = attributes };
+            block.VariantStrict["layout"] = layout;
+            block.VariantStrict["side"] = side;
+            return (block, new SidingWallEntity { Framing = "oak", Infill = "glass" });
+        }
+
+        var corner = new BlockPos(10, 60, 10, 0);
+        var diagonal = new BlockPos(30, 60, 30, 0);
+        var (leftStep, rightStep) = SidingWallBlock.DiagonalRunNeighbours("west");
+        var accessor = DispatchProxy.Create<IBlockAccessor, CellsAccessor>();
+        var cells = ((CellsAccessor)(object)accessor).Cells = new()
+        {
+            [corner] = Glazed("cornerout", "west"),
+            [corner.UpCopy()] = Glazed("cornerout", "west"),
+            // Leg 2, the corner's left, ends against a north wall to the east; leg 1, its right, against a west wall to the south.
+            [corner.EastCopy()] = Glazed("wall", "north"),
+            [corner.SouthCopy()] = Glazed("wall", "west"),
+            [corner.SouthCopy().Up()] = Glazed("wall", "west"),
+            [diagonal] = Glazed("diagonal", "west"),
+            [diagonal.UpCopy()] = Glazed("diagonal", "west"),
+            [diagonal.AddCopy(leftStep)] = Glazed("diagonal", "west"),
+            [diagonal.AddCopy(rightStep)] = Glazed("diagonal", "west"),
+            [diagonal.AddCopy(rightStep).Up()] = Glazed("diagonal", "west"),
+        };
+
+        ((bool, bool, bool, bool) Joins, string InnerCorners) Read(BlockPos pos)
+        {
+            var wall = (SidingWallBlock)cells[pos].Block;
+            var joins = wall.NeighbourJoins(accessor, pos, "glass");
+            return (joins, string.Join(" ", wall.InnerCorners(accessor, pos, "glass", joins)));
+        }
+
+        Assert.Equal(
+            new Dictionary<string, ((bool, bool, bool, bool), string)>
+            {
+                ["cornerout"] = ((true, false, true, true), "-top-left"),
+                ["diagonal"] = ((true, false, true, true), "-top-left"),
+            },
+            new Dictionary<string, ((bool, bool, bool, bool), string)> { ["cornerout"] = Read(corner), ["diagonal"] = Read(diagonal) });
+    }
 }

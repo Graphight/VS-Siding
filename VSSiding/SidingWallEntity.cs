@@ -372,7 +372,8 @@ public class SidingWallEntity : BlockEntity
         // A corner's front finish rims leg 1, whose far end is its right, and its second front leg 2, whose is its left.
         bool cornerout = layout == "cornerout";
         if (front != null) AddFinish(FinishElement(finishes, front, "front", styles.front), cornerout ? part => !part.EndsWith("-left") : null);
-        if (secondFront != null) AddFinish("second" + FinishElement(finishes, secondFront, "front", styles.secondFront), cornerout ? part => !part.EndsWith("-right") : null);
+        if (secondFront != null)
+            AddFinish("second" + FinishElement(finishes, secondFront, "front", styles.secondFront), cornerout ? part => !part.EndsWith("-right") : null);
         if (framing != null) names.AddRange(parts.Select(part => member + part));
         if (infill != null)
         {

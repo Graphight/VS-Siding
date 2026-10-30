@@ -442,7 +442,8 @@ public class SidingWallEntityTests
             ],
             [
                 "front-rim-top", "front-rim-bottom", "glazing-top", "glazing-bottom", "infill-pane", "back-rim-top", "back-rim-bottom",
-                "front-rim-top-left", "front-rim-bottom-left", "glazing-top-left", "glazing-bottom-left", "infill-pane-left", "back-rim-top-left", "back-rim-bottom-left",
+                "front-rim-top-left", "front-rim-bottom-left", "glazing-top-left", "glazing-bottom-left", "infill-pane-left",
+                "back-rim-top-left", "back-rim-bottom-left",
                 "front-rim-join-left", "back-rim-join-left", "framing-join-left", "framing-right",
             ],
             [
@@ -458,25 +459,31 @@ public class SidingWallEntityTests
 
         Assert.Equal(
             expected,
-            [Elements((false, false, false, false)), Elements((false, false, true, false)), Elements((true, false, false, true)), Elements((false, false, false, false), decked: true)]);
+            [
+                Elements((false, false, false, false)),
+                Elements((false, false, true, false)),
+                Elements((true, false, false, true)),
+                Elements((false, false, false, false), decked: true),
+            ]);
     }
 
     // Where the glass of one glazed diagonal carries on into the next, the end draws no post: the rails and the pane
-    // reach through it and the rims follow the rails. Against a kept post the end draws the half post as before. Where
-    // the next cell's stack stops short of this one's, the rail this cell has merged away still crosses the post's place,
-    // framing the inside corner the sheet turns there.
+    // reach through it and the rims follow the rails. Where the next cell's stack stops short of this one's, the rail
+    // this cell has merged away still crosses the post's place, framing the inside corner the sheet turns there.
     [Fact]
     public void AGlazedDiagonalWhoseGlassRunsOnDrawsRailsAndPaneInPlaceOfThePost()
     {
         var finishes = Dict("""{ "daub": {} }""");
-        string[] Elements((bool, bool, bool, bool) joins, (bool, bool) glassRunsOn, string[]? innerCorners = null) => SidingWallEntity.SelectiveElements(
-            "diagonal", "oak", "glass", "daub", null, "daub", finishes, joins, glazed: true, innerCorners: innerCorners, glassRunsOn: glassRunsOn);
+        string[] Elements((bool, bool, bool, bool) joins, (bool, bool) glassRunsOn, string[]? innerCorners = null)
+            => SidingWallEntity.SelectiveElements(
+                "diagonal", "oak", "glass", "daub", null, "daub", finishes, joins, glazed: true, innerCorners: innerCorners, glassRunsOn: glassRunsOn);
 
         string[][] expected =
         [
             [
                 "front-rim-top", "front-rim-bottom", "glazing-top", "glazing-bottom", "infill-pane", "back-rim-top", "back-rim-bottom",
-                "front-rim-top-left", "front-rim-bottom-left", "glazing-top-left", "glazing-bottom-left", "infill-pane-left", "back-rim-top-left", "back-rim-bottom-left",
+                "front-rim-top-left", "front-rim-bottom-left", "glazing-top-left", "glazing-bottom-left", "infill-pane-left",
+                "back-rim-top-left", "back-rim-bottom-left",
                 "front-rim-top-join-left", "front-rim-bottom-join-left", "back-rim-top-join-left", "back-rim-bottom-join-left",
                 "glazing-top-join-left", "glazing-bottom-join-left", "infill-pane-join-left",
                 "framing-right",
@@ -489,17 +496,14 @@ public class SidingWallEntityTests
             ],
             [
                 "front-rim-top", "front-rim-bottom", "glazing-top", "glazing-bottom", "infill-pane", "back-rim-top", "back-rim-bottom",
-                "front-rim-top-left", "front-rim-bottom-left", "glazing-top-left", "glazing-bottom-left", "infill-pane-left", "back-rim-top-left", "back-rim-bottom-left",
+                "front-rim-top-left", "front-rim-bottom-left", "glazing-top-left", "glazing-bottom-left", "infill-pane-left",
+                "back-rim-top-left", "back-rim-bottom-left",
                 "front-rim-top-join-left", "front-rim-bottom-join-left", "back-rim-top-join-left", "back-rim-bottom-join-left",
                 "glazing-top-join-left", "glazing-bottom-join-left", "infill-pane-join-left",
-                "front-rim-top-right", "front-rim-bottom-right", "glazing-top-right", "glazing-bottom-right", "infill-pane-right", "back-rim-top-right", "back-rim-bottom-right",
+                "front-rim-top-right", "front-rim-bottom-right", "glazing-top-right", "glazing-bottom-right", "infill-pane-right",
+                "back-rim-top-right", "back-rim-bottom-right",
                 "front-rim-top-join-right", "front-rim-bottom-join-right", "back-rim-top-join-right", "back-rim-bottom-join-right",
                 "glazing-top-join-right", "glazing-bottom-join-right", "infill-pane-join-right",
-            ],
-            [
-                "front-rim-top", "front-rim-bottom", "glazing-top", "glazing-bottom", "infill-pane", "back-rim-top", "back-rim-bottom",
-                "front-rim-top-left", "front-rim-bottom-left", "glazing-top-left", "glazing-bottom-left", "infill-pane-left", "back-rim-top-left", "back-rim-bottom-left",
-                "front-rim-join-left", "back-rim-join-left", "framing-join-left", "framing-right",
             ],
             [
                 "front-rim-bottom", "glazing-bottom", "infill-pane", "back-rim-bottom",
@@ -516,7 +520,6 @@ public class SidingWallEntityTests
                 Elements((false, false, true, false), (true, false)),
                 Elements((true, false, false, true), (false, true)),
                 Elements((false, false, true, true), (true, true)),
-                Elements((false, false, true, false), (false, false)),
                 Elements((true, false, true, false), (true, false), ["-top-left"]),
             ]);
     }

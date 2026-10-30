@@ -243,7 +243,8 @@ public class SidingWallBlock : Block
 
     // Which ends of a diagonal the glass carries on through: the run goes on there and the diagonal it
     // goes on into is glazed in the same stack, so no post stands between them.
-    internal (bool left, bool right) GlassRunsOn(IBlockAccessor blockAccessor, BlockPos pos, string? infill, (bool above, bool below, bool left, bool right) joins)
+    internal (bool left, bool right) GlassRunsOn(
+        IBlockAccessor blockAccessor, BlockPos pos, string? infill, (bool above, bool below, bool left, bool right) joins)
     {
         if (Variant["layout"] != "diagonal" || !IsTransparent(infill, Attributes["Infills"])) return default;
         var (leftStep, rightStep) = DiagonalRunNeighbours(Variant["side"]);

@@ -282,8 +282,9 @@ public class FinishElementGroupsTests
     }
 
     // Every element name SelectiveElements can produce has to exist in the shape it draws from,
-    // for every layout and every join state. A name the shape lacks draws nothing and says
-    // nothing - which is how glazing silently kept its seam-prone filler stack.
+    // for every layout, join state, finish or none, inside corner, and end a glazed diagonal's glass
+    // runs on through. A name the shape lacks draws nothing and says nothing - which is how glazing
+    // silently kept its seam-prone filler stack.
     [Theory]
     [InlineData("wall")]
     [InlineData("cornerout")]
@@ -294,40 +295,27 @@ public class FinishElementGroupsTests
         var shapeJson = JObject.Parse(File.ReadAllText(
             Path.Combine(repoRoot, "VSSiding", "assets", "vssiding", "shapes", "block", "wall", layout + ".json")));
         var names = shapeJson["elements"]!.Select(e => (string)e["name"]!).ToHashSet();
-
-        var asked =
-            from above in new[] { false, true }
-            from below in new[] { false, true }
-            from left in new[] { false, true }
-            from right in new[] { false, true }
-            from transparent in new[] { false, true }
-            from name in SidingWallEntity.SelectiveElements(
-                layout, "oak", "glass", null, null, null, new JsonObject(new JObject()),
-                (above, below, left, right), glazed: transparent)
-            select name;
-
-        Assert.Equal([], asked.Distinct().Where(name => !names.Contains(name)).ToArray());
-    }
-
-    // A glazed diagonal whose glass runs on draws rail and pane pieces through the post and no post-front rim, and its
-    // merged-away rails there at an inside corner; each must exist in the shape.
-    [Fact]
-    public void EveryElementAGlazedDiagonalWhoseGlassRunsOnAsksForExists()
-    {
         var finishes = new JsonObject(JObject.Parse("""{ "daub": {} }"""));
         bool[] either = [false, true];
         string[][] innerCorners = [[], ["-top-left", "-top-right", "-bottom-left", "-bottom-right"]];
-        var names = WallShapeGen.Generate("diagonal")["elements"]!.Select(e => (string)e["name"]!).ToHashSet();
-        var asked = (
-            from above in either from below in either from left in either from right in either
-            from glassLeft in either.Where(glass => !glass || left) from glassRight in either.Where(glass => !glass || right)
+
+        var asked =
+            from above in either
+            from below in either
+            from left in either
+            from right in either
+            from transparent in either
+            from finish in new[] { null, "daub" }
+            // Glass runs on only on a glazed cell, through an end the run carries on from.
+            from glassLeft in either.Where(glass => !glass || (transparent && left))
+            from glassRight in either.Where(glass => !glass || (transparent && right))
             from corners in innerCorners
             from name in SidingWallEntity.SelectiveElements(
-                "diagonal", "oak", "glass", "daub", null, "daub", finishes, (above, below, left, right), glazed: true,
-                innerCorners: corners, glassRunsOn: (glassLeft, glassRight))
-            select name).Distinct();
+                layout, "oak", "glass", finish, layout == "cornerout" ? finish : null, finish, finishes,
+                (above, below, left, right), glazed: transparent, innerCorners: corners, glassRunsOn: (glassLeft, glassRight))
+            select name;
 
-        Assert.Equal([], asked.Where(name => !names.Contains(name)).ToArray());
+        Assert.Equal([], asked.Distinct().Where(name => !names.Contains(name)).ToArray());
     }
 
     private static readonly string[] PlankFinishes = ["planks", "planks-aged", "planks-veryaged", "planks-{wood}", "stained-{stain}-{wood}", "dyed-{color}-{wood}"];

@@ -601,7 +601,7 @@ public class WallShapeGenTests
         string name = (string)rim["name"]!;
         var (lo, hi) = Box(rim);
         string source = name[..name.IndexOf("-rim")];
-        if (layout == "diagonal" && System.Text.RegularExpressions.Regex.Match(name, "^(front|back).*-(left|right)$") is { Success: true } end) source += "-" + end.Groups[2].Value;
+        if (layout == "diagonal" && name.Split('-') is ["front" or "back", .., var end and ("left" or "right")]) source += "-" + end;
         return elements.Single(e => (string)e["name"]! == source
             && Box(e) is var (sLo, sHi) && Enumerable.Range(0, 3).All(a => sLo[a] <= lo[a] && sHi[a] >= hi[a]));
     }
@@ -1046,17 +1046,22 @@ public class WallShapeGenTests
         }).Distinct());
     }
 
-    // A glazed diagonal's rails, pane and rims are turned together and meet as a wall's do, in every set of joins.
-    // Its corner fillers are the unturned pieces, which a box read without the turn cannot be compared with.
+    // A glazed diagonal's rails, pane and rims are turned together and meet as a wall's do, in every set of joins, with the glass
+    // running on through each end the run carries on from or not, and with an inside corner there or not. Its corner fillers are
+    // the unturned pieces, which a box read without the turn cannot be compared with.
     [Fact]
     public void NoTwoFacesOfAGlazedDiagonalsTurnedPiecesShareAPlaneAndOverlap()
     {
         static bool Filler(string name) => name is "framing-left" or "framing-right";
         bool[] either = [false, true];
+        string[][] innerCorners = [[], ["-top-left", "-top-right", "-bottom-left", "-bottom-right"]];
         Assert.Equal([], (
             from above in either from below in either from left in either from right in either
+            from glassLeft in either.Where(glass => !glass || left) from glassRight in either.Where(glass => !glass || right)
+            from corners in innerCorners
             from finished in either
-            select SharedPlaneOffenders("diagonal", Built("diagonal", finished, (above, below, left, right)), between: (a, b) => Filler(a) == Filler(b))
+            let names = Built("diagonal", finished, (above, below, left, right), corners, (glassLeft, glassRight))
+            select SharedPlaneOffenders("diagonal", names, between: (a, b) => Filler(a) == Filler(b))
         ).SelectMany(offenders => offenders).Distinct().ToList());
     }
 
@@ -1094,7 +1099,7 @@ public class WallShapeGenTests
     {
         string[] facings = ["west", "east", "down", "up", "north", "south"];
         var faces = new List<(string Name, string Face, int Axis, double Plane, double[] Lo, double[] Hi)>();
-        foreach (var element in WallShapeGen.Generate(layout)["elements"]!.Where(e => together.Contains((string)e["name"]!)))
+        foreach (var element in Generated.GetOrAdd(layout, WallShapeGen.Generate)["elements"]!.Where(e => together.Contains((string)e["name"]!)))
         {
             var (lo, hi) = Box(element);
             foreach (var face in ((JObject)element["faces"]!).Properties())
@@ -1122,7 +1127,8 @@ public class WallShapeGenTests
     // A face a built cell draws, turned and moved to world voxels (16 to a block) with its cell's offset.
     private record WorldFace(int Cell, string Name, BlockFacing Facing, double Plane, double[] Lo, double[] Hi);
 
-    private static BlockFacing TurnFacing(BlockFacing unrotated, string side)
+    // Where an unrotated horizontal facing points once a cell's shape is turned for `side`.
+    internal static BlockFacing TurnFacing(BlockFacing unrotated, string side)
     {
         Vec3i n = unrotated.Normali;
         var slab = new Cuboidf(0.5f + n.X * 0.4f - 0.05f, 0, 0.5f + n.Z * 0.4f - 0.05f, 0.5f + n.X * 0.4f + 0.05f, 1, 0.5f + n.Z * 0.4f + 0.05f);
@@ -1134,7 +1140,8 @@ public class WallShapeGenTests
     // Every meeting reads the same few shapes, and the diagonal's takes seconds to generate.
     private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, JObject> Generated = new();
 
-    private static List<WorldFace> WorldFaces(int cell, string layout, string side, string[] names, BlockFacing? offset)
+    // `zShift` moves the cell along z by any amount, as the next diagonal along a run lies in the shape's own frame.
+    private static List<WorldFace> WorldFaces(int cell, string layout, string side, string[] names, BlockFacing? offset, double zShift = 0)
     {
         var faces = new List<WorldFace>();
         foreach (var element in Generated.GetOrAdd(layout, WallShapeGen.Generate)["elements"]!.Where(e => names.Contains((string)e["name"]!)))
@@ -1142,15 +1149,15 @@ public class WallShapeGenTests
             var (lo, hi) = Box(element);
             var turned = new Cuboidf((float)lo[0] / 16, (float)lo[1] / 16, (float)lo[2] / 16, (float)hi[0] / 16, (float)hi[1] / 16, (float)hi[2] / 16)
                 .RotatedCopy(0, SidingWallEntity.RotationYDeg(side), 0, new Vec3d(0.5, 0.5, 0.5));
-            var (dx, dz) = offset == null ? (0, 0) : (offset.Normali.X * 16, offset.Normali.Z * 16);
+            double dx = (offset?.Normali.X ?? 0) * 16, dz = (offset?.Normali.Z ?? 0) * 16 + zShift;
             double[] wlo = [Math.Round(turned.X1 * 16 + dx, 3), Math.Round(turned.Y1 * 16, 3), Math.Round(turned.Z1 * 16 + dz, 3)];
             double[] whi = [Math.Round(turned.X2 * 16 + dx, 3), Math.Round(turned.Y2 * 16, 3), Math.Round(turned.Z2 * 16 + dz, 3)];
             foreach (var face in ((JObject)element["faces"]!).Properties())
             {
                 var facing = BlockFacing.FromCode(face.Name);
                 if (facing.IsHorizontal) facing = TurnFacing(facing, side);
-                int axis = AxisIndex(facing);
-                faces.Add(new(cell, (string)element["name"]!, facing, (facing == BlockFacing.EAST || facing == BlockFacing.SOUTH || facing == BlockFacing.UP ? whi : wlo)[axis], wlo, whi));
+                double[] at = facing == BlockFacing.EAST || facing == BlockFacing.SOUTH || facing == BlockFacing.UP ? whi : wlo;
+                faces.Add(new(cell, (string)element["name"]!, facing, at[AxisIndex(facing)], wlo, whi));
             }
         }
 
@@ -1159,129 +1166,40 @@ public class WallShapeGenTests
 
     private static int AxisIndex(BlockFacing facing) => facing.Axis == EnumAxis.X ? 0 : facing.Axis == EnumAxis.Y ? 1 : 2;
 
-    private static string[] Built(string layout, bool finished, (bool above, bool below, bool left, bool right) joins)
+    private static string[] Built(string layout, bool finished, (bool above, bool below, bool left, bool right) joins,
+        string[]? innerCorners = null, (bool left, bool right) glassRunsOn = default)
     {
         var finishes = new Vintagestory.API.Datastructures.JsonObject(JObject.Parse("""{ "daub": {} }"""));
         string? daub = finished ? "daub" : null;
-        return SidingWallEntity.SelectiveElements(layout, "oak", "glass", daub, layout == "cornerout" ? daub : null, daub, finishes, joins, glazed: true);
+        return SidingWallEntity.SelectiveElements(layout, "oak", "glass", daub, layout == "cornerout" ? daub : null, daub, finishes, joins, glazed: true,
+            innerCorners: innerCorners, glassRunsOn: glassRunsOn);
     }
 
-    // The cells of a glazed wall (west, offset 0) and a glazed corner one block off along `towards`, as world faces.
-    // The wall has dropped its stile on that side, as its sideways join now does against such a corner.
-    private static (List<WorldFace> Wall, List<WorldFace> Corner) WallBesideCorner(string corneroutSide, BlockFacing towards, bool finished)
+    // Each pair of faces, one from each cell, that point the same way on the same plane and overlap there.
+    private static IEnumerable<string> CrossCellOverlaps(List<WorldFace> a, List<WorldFace> b)
+        => from p in a
+           from q in b
+           where p.Facing == q.Facing && p.Plane == q.Plane
+               && Enumerable.Range(0, 3).Where(k => k != AxisIndex(p.Facing)).All(k => Math.Max(p.Lo[k], q.Lo[k]) < Math.Min(p.Hi[k], q.Hi[k]))
+           select $"{p.Name} and {q.Name} both draw {p.Facing.Code} at {p.Plane}";
+
+    // The names of `own`'s faces toward `toward` on `plane` with a point, sampled at half voxels, that no face of `covering` meets pointing back.
+    private static List<string> Uncovered(IEnumerable<WorldFace> own, IEnumerable<WorldFace> covering, BlockFacing toward, double plane)
     {
-        bool left = towards == BlockFacing.NORTH;
-        var wall = WorldFaces(0, "wall", "west", Built("wall", finished, (false, false, left, !left)), null);
-        var corner = WorldFaces(1, "cornerout", corneroutSide, Built("cornerout", finished, JoinsToward("cornerout", corneroutSide, towards.Opposite, "wall", "west")), towards);
-        return (wall, corner);
+        int[] axes = [.. Enumerable.Range(0, 3).Where(k => k != AxisIndex(toward))];
+        bool Covers(WorldFace q, double u, double v) => q.Facing == toward.Opposite && q.Plane == plane
+            && q.Lo[axes[0]] <= u && u <= q.Hi[axes[0]] && q.Lo[axes[1]] <= v && v <= q.Hi[axes[1]];
+
+        return (from p in own
+                where p.Facing == toward && p.Plane == plane
+                from u in Samples(p.Lo[axes[0]], p.Hi[axes[0]])
+                from v in Samples(p.Lo[axes[1]], p.Hi[axes[1]])
+                where !covering.Any(q => Covers(q, u, v))
+                select p.Name).Distinct().OrderBy(name => name).ToList();
     }
 
-    // The wall's stile is dropped where a corner's leg ends against it, and where its own line carries on past the
-    // corner post: west beside cornerout-west at its left and cornerout-south at its right, and the two the other way.
-    public static IEnumerable<object[]> WallCornerMeetings()
-    {
-        foreach (bool finished in new[] { false, true })
-        {
-            yield return [finished, "west", "north", Array.Empty<string>()];
-            yield return [finished, "south", "north", finished ? [] : new[] { "glazing-bottom-left", "glazing-top-left" }];
-            yield return [finished, "south", "south", Array.Empty<string>()];
-            yield return [finished, "west", "south", finished ? [] : new[] { "glazing-bottom-right", "glazing-top-right" }];
-        }
-    }
-
-    [Theory]
-    [MemberData(nameof(WallCornerMeetings))]
-    public void AWallAndTheGlazedCornerItJoinsDrawNoFaceOnTheSamePlaneAndOverlap(bool finished, string corneroutSide, string towards, string[] _)
-    {
-        var (wall, corner) = WallBesideCorner(corneroutSide, BlockFacing.FromCode(towards), finished);
-
-        Assert.Equal([], (from a in wall from b in corner
-                          where a.Facing == b.Facing && a.Plane == b.Plane && a.Facing.IsHorizontal
-                              && Enumerable.Range(0, 3).Where(k => k != AxisIndex(a.Facing)).All(k => Math.Max(a.Lo[k], b.Lo[k]) < Math.Min(a.Hi[k], b.Hi[k]))
-                          select $"{a.Name} and {b.Name} both draw {a.Facing.Code} at {a.Plane}").Distinct().ToList());
-    }
-
-    // Every face the wall draws on the boundary, pointing into the corner's cell, is covered by one of the
-    // corner's pointing back, so no gap shows where the stile has gone. Sampled at half voxels. A corner post
-    // starts a voxel in, so at a T-junction with no finish on the corner's outer face the wall's rail filler
-    // there faces the one-voxel slot beside it, as the stile it replaces does; those fillers are listed.
-    [Theory]
-    [MemberData(nameof(WallCornerMeetings))]
-    public void EveryFaceAWallDrawsOnItsBoundaryWithAGlazedCornerIsCoveredByTheCorner(bool finished, string corneroutSide, string towards, string[] uncoveredFillers)
-    {
-        var toward = BlockFacing.FromCode(towards);
-        var (wall, corner) = WallBesideCorner(corneroutSide, toward, finished);
-        int plane = toward == BlockFacing.NORTH ? 0 : 16;
-        int across = AxisIndex(toward) == 0 ? 2 : 0;
-
-        var uncovered = from a in wall
-                        where a.Facing == toward && a.Plane == plane
-                        from y in Samples(a.Lo[1], a.Hi[1])
-                        from other in Samples(a.Lo[across], a.Hi[across])
-                        where !corner.Any(b => b.Facing == toward.Opposite && b.Plane == plane
-                            && b.Lo[1] <= y && y <= b.Hi[1] && b.Lo[across] <= other && other <= b.Hi[across])
-                        select a.Name;
-
-        Assert.Equal(uncoveredFillers, uncovered.Distinct().OrderBy(name => name).ToList());
-    }
-
-    // The cells of a glazed diagonal-west (offset 0) and a glazed wall one block off along `towards` that has dropped
-    // the stile on that side, as world faces. Only the diagonal's two fillers are axis-aligned, so they stand for it:
-    // its other parts are turned 45 degrees and meet the wall only through them.
-    private static (List<WorldFace> Wall, List<WorldFace> Diagonal) WallBesideDiagonal(string wallSide, BlockFacing towards, bool finished)
-    {
-        bool left = towards == BlockFacing.SOUTH;
-        var wall = WorldFaces(1, "wall", wallSide, Built("wall", finished, (false, false, left, !left)), towards);
-        var diagonal = WorldFaces(0, "diagonal", "west", Built("diagonal", false, default).Where(name => name is "framing-left" or "framing-right").ToArray(), null);
-        return (wall, diagonal);
-    }
-
-    // wall-west at the diagonal's right end (south) and wall-north at its left end (east). What the wall draws
-    // on the boundary that the filler does not face is the room side's mitre ledge (0066), where the wall runs
-    // past the filler's 2.8284 width, and the 0.01 the filler stops short of the cell's top and bottom.
-    public static IEnumerable<object[]> WallDiagonalMeetings()
-    {
-        foreach (bool finished in new[] { false, true })
-        {
-            yield return [finished, "west", "south", finished ? new[] { "back-rim-bottom-left", "back-rim-top-left" } : []];
-            yield return [finished, "north", "east", finished ? new[] { "back-rim-bottom-right", "back-rim-top-right" } : []];
-        }
-    }
-
-    [Theory]
-    [MemberData(nameof(WallDiagonalMeetings))]
-    public void AWallAndTheGlazedDiagonalItJoinsDrawNoFaceOnTheSamePlaneAndOverlap(bool finished, string wallSide, string towards, string[] _)
-    {
-        var (wall, diagonal) = WallBesideDiagonal(wallSide, BlockFacing.FromCode(towards), finished);
-
-        Assert.Equal([], (from a in wall from b in diagonal
-                          where a.Facing == b.Facing && a.Plane == b.Plane && a.Facing.IsHorizontal
-                              && Enumerable.Range(0, 3).Where(k => k != AxisIndex(a.Facing)).All(k => Math.Max(a.Lo[k], b.Lo[k]) < Math.Min(a.Hi[k], b.Hi[k]))
-                          select $"{a.Name} and {b.Name} both draw {a.Facing.Code} at {a.Plane}").Distinct().ToList());
-    }
-
-    // Every face the wall draws on the boundary, pointing into the diagonal's cell, is covered by a filler's
-    // pointing back, bar the ledge and hairs listed with the meetings. Sampled at half voxels.
-    [Theory]
-    [MemberData(nameof(WallDiagonalMeetings))]
-    public void EveryFaceAWallDrawsOnItsBoundaryWithAGlazedDiagonalIsCoveredByTheFillerBarTheMitreLedgeAndHairs(bool finished, string wallSide, string towards, string[] uncovered)
-    {
-        var toward = BlockFacing.FromCode(towards).Opposite;
-        var (wall, diagonal) = WallBesideDiagonal(wallSide, BlockFacing.FromCode(towards), finished);
-        int across = AxisIndex(toward) == 0 ? 2 : 0;
-
-        var actual = from a in wall
-                     where a.Facing == toward && a.Plane == 16
-                     from y in Samples(a.Lo[1], a.Hi[1])
-                     from other in Samples(a.Lo[across], a.Hi[across])
-                     where !diagonal.Any(b => b.Facing == toward.Opposite && b.Plane == 16
-                         && b.Lo[1] <= y && y <= b.Hi[1] && b.Lo[across] <= other && other <= b.Hi[across])
-                     select a.Name;
-
-        Assert.Equal(uncovered, actual.Distinct().OrderBy(name => name).ToList());
-    }
-
-    private static (bool above, bool below, bool left, bool right) JoinsToward(string layout, string side, BlockFacing towards, string otherLayout, string otherSide)
+    private static (bool above, bool below, bool left, bool right) JoinsToward(
+        string layout, string side, BlockFacing towards, string otherLayout, string otherSide)
     {
         if (layout == "diagonal") return default;
         var (left, right) = SidingWallBlock.LeftRightEnds(layout, side);
@@ -1289,8 +1207,9 @@ public class WallShapeGenTests
         return (false, false, Meets(left), Meets(right));
     }
 
-    // A at the origin and B one block off along `towards`, each dropping its end post where the other's end meets it. A diagonal
-    // is stood for by its two axis-aligned fillers, as in WallBesideDiagonal.
+    // A at the origin and B one block off along `towards`, each dropping its end post where the other's end meets it. Only a
+    // diagonal's two fillers are axis-aligned, so they stand for it: its other parts are turned 45 degrees and meet the other
+    // cell only through them.
     private static (List<WorldFace> A, List<WorldFace> B) Meeting(
         (string Layout, string Side) a, (string Layout, string Side) b, BlockFacing towards, bool finished)
     {
@@ -1306,61 +1225,41 @@ public class WallShapeGenTests
         return (Faces(0, a, b, towards, null), Faces(1, b, a, towards.Opposite, towards));
     }
 
-    // A glazed diagonal-west and the glazed one on its left, each with its glass running on to the other, as the faces of their turned
-    // pieces in the shape's own frame: a cell along the run is the same frame moved 2 x 8 root 2 along z, the left's at the negative end.
-    // The unturned corner fillers are left out, as are the deck's strips. Each cell is merged up and down as given, and frames the inside
-    // corner its sheet turns where it is merged and the other is not.
-    private static (List<WorldFace> A, List<WorldFace> B) GlassRunningOn((bool Above, bool Below) cellA, (bool Above, bool Below) cellB, bool finished)
+    // A glazed diagonal-west and the glazed diagonal on its left, each with its glass running on to the other, as the faces of their
+    // turned pieces in the shape's own frame: a cell along the run is the same frame moved 2 x 8 root 2 along z, the left's at the
+    // negative end. The left cell is a diagonal-west, which carries the run on from its right end, or a diagonal-east, turned end for
+    // end, which carries it on from its left. The unturned corner fillers are left out, as are the deck's strips. Each cell is merged
+    // up and down as given, and frames the inside corner its sheet turns where it is merged and the other is not.
+    private static (List<WorldFace> A, List<WorldFace> B) GlassRunningOn(
+        (bool Above, bool Below) cellA, string sideB, (bool Above, bool Below) cellB, bool finished)
     {
-        const double cellRun = 2 * 11.3137;
-        List<WorldFace> Faces(int cell, string[] names, double dz)
-        {
-            var faces = new List<WorldFace>();
-            foreach (var element in Generated.GetOrAdd("diagonal", WallShapeGen.Generate)["elements"]!.Where(e => e["rotationY"] != null && names.Contains((string)e["name"]!)))
-            {
-                var (lo, hi) = Box(element);
-                double[] wlo = [Math.Round(lo[0], 3), Math.Round(lo[1], 3), Math.Round(lo[2] + dz, 3)];
-                double[] whi = [Math.Round(hi[0], 3), Math.Round(hi[1], 3), Math.Round(hi[2] + dz, 3)];
-                foreach (var face in ((JObject)element["faces"]!).Properties())
-                {
-                    var facing = BlockFacing.FromCode(face.Name);
-                    faces.Add(new(cell, (string)element["name"]!, facing, (facing == BlockFacing.EAST || facing == BlockFacing.SOUTH || facing == BlockFacing.UP ? whi : wlo)[AxisIndex(facing)], wlo, whi));
-                }
-            }
-
-            return faces;
-        }
-
-        var finishes = new Vintagestory.API.Datastructures.JsonObject(JObject.Parse("""{ "daub": {} }"""));
-        string? daub = finished ? "daub" : null;
         string[] Names((bool Above, bool Below) own, (bool Above, bool Below) other, bool left)
         {
             var joins = (own.Above, own.Below, left, !left);
             string[] corners = SidingWallBlock.InnerCorners(joins, (rail, _) => rail == "-top" ? other.Above : other.Below);
-            return SidingWallEntity.SelectiveElements(
-                "diagonal", "oak", "glass", daub, null, daub, finishes, joins, glazed: true, innerCorners: corners, glassRunsOn: (left, !left));
+            return [.. Built("diagonal", finished, joins, corners, (left, !left)).Where(name => name is not ("framing-left" or "framing-right"))];
         }
 
-        return (Faces(0, Names(cellA, cellB, true), 0), Faces(1, Names(cellB, cellA, false), -cellRun));
+        return (WorldFaces(0, "diagonal", "west", Names(cellA, cellB, left: true), null),
+            WorldFaces(1, "diagonal", sideB, Names(cellB, cellA, left: sideB == "east"), null, -2 * WallShapeGen.DiagonalCorner));
     }
 
     public static IEnumerable<object[]> StackedAndFinished()
     {
         bool[] either = [false, true];
-        return from aAbove in either from aBelow in either from bAbove in either from bBelow in either from finished in either
-               select new object[] { aAbove, aBelow, bAbove, bBelow, finished };
+        return from sideB in new[] { "west", "east" }
+               from aAbove in either from aBelow in either from bAbove in either from bBelow in either from finished in either
+               select new object[] { aAbove, aBelow, sideB, bAbove, bBelow, finished };
     }
 
     [Theory]
     [MemberData(nameof(StackedAndFinished))]
-    public void TwoGlazedDiagonalsWhoseGlassRunsOnDrawNoFaceOnTheSamePlaneAndOverlap(bool aAbove, bool aBelow, bool bAbove, bool bBelow, bool finished)
+    public void TwoGlazedDiagonalsWhoseGlassRunsOnDrawNoFaceOnTheSamePlaneAndOverlap(
+        bool aAbove, bool aBelow, string sideB, bool bAbove, bool bBelow, bool finished)
     {
-        var (a, b) = GlassRunningOn((aAbove, aBelow), (bAbove, bBelow), finished);
+        var (a, b) = GlassRunningOn((aAbove, aBelow), sideB, (bAbove, bBelow), finished);
 
-        Assert.Equal([], (from p in a from q in b
-                          where p.Facing == q.Facing && p.Plane == q.Plane
-                              && Enumerable.Range(0, 3).Where(k => k != AxisIndex(p.Facing)).All(k => Math.Max(p.Lo[k], q.Lo[k]) < Math.Min(p.Hi[k], q.Hi[k]))
-                          select $"{p.Name} and {q.Name} both draw {p.Facing.Code} at {p.Plane}").Distinct().ToList());
+        Assert.Equal([], CrossCellOverlaps(a, b).Distinct().ToList());
     }
 
     // Where the two cells meet, each face one draws on the boundary is met by the other's facing back, so no gap shows where the post has gone.
@@ -1368,18 +1267,11 @@ public class WallShapeGenTests
     // to be carried on by another piece of either cell: a stack that stops short of the other's leaves no rail end open at the inside corner.
     [Theory]
     [MemberData(nameof(StackedAndFinished))]
-    public void TwoGlazedDiagonalsWhoseGlassRunsOnMeetFlushAcrossTheirBoundary(bool aAbove, bool aBelow, bool bAbove, bool bBelow, bool finished)
+    public void TwoGlazedDiagonalsWhoseGlassRunsOnMeetFlushAcrossTheirBoundary(
+        bool aAbove, bool aBelow, string sideB, bool bAbove, bool bBelow, bool finished)
     {
-        var (a, b) = GlassRunningOn((aAbove, aBelow), (bAbove, bBelow), finished);
-        const double plane = -3.314;
-
-        List<string> Uncovered(List<WorldFace> own, List<WorldFace> other, BlockFacing toward)
-            => (from p in own
-                where p.Facing == toward && p.Plane == plane
-                from y in Samples(p.Lo[1], p.Hi[1])
-                from x in Samples(p.Lo[0], p.Hi[0])
-                where !other.Any(q => q.Facing == toward.Opposite && q.Plane == plane && q.Lo[1] <= y && y <= q.Hi[1] && q.Lo[0] <= x && x <= q.Hi[0])
-                select p.Name).Distinct().ToList();
+        var (a, b) = GlassRunningOn((aAbove, aBelow), sideB, (bAbove, bBelow), finished);
+        double plane = Math.Round(8 - WallShapeGen.DiagonalCorner, 3);
 
         // A piece's faces share the one box array, so they group by it.
         var pieces = a.Concat(b).GroupBy(face => (face.Cell, face.Lo)).ToList();
@@ -1396,7 +1288,7 @@ public class WallShapeGenTests
                        && q.Lo[1] <= y && y <= q.Hi[1] && q.Lo[0] <= x && x <= q.Hi[0])
                    select $"{box.Name} {facing.Code} at {at}";
 
-        Assert.Equal([], Uncovered(a, b, BlockFacing.NORTH).Concat(Uncovered(b, a, BlockFacing.SOUTH)).Concat(open.Distinct()).ToList());
+        Assert.Equal([], Uncovered(a, b, BlockFacing.NORTH, plane).Concat(Uncovered(b, a, BlockFacing.SOUTH, plane)).Concat(open.Distinct()).ToList());
         if (finished && !(aAbove && aBelow && bAbove && bBelow)) Assert.Contains(a, face => face.Facing == BlockFacing.NORTH && face.Plane == plane);
     }
 
@@ -1418,46 +1310,37 @@ public class WallShapeGenTests
         Assert.Equal([], actual.ToList());
     }
 
-    // The names of `own`'s faces toward `toward` on `plane` with a point, sampled at half voxels, that no face of `covering` meets pointing back.
-    private static List<string> Uncovered(IEnumerable<WorldFace> own, IEnumerable<WorldFace> covering, BlockFacing toward, double plane)
+    // Every ordered pair of cells bar two diagonals, the second one block off along the first's end, whose ends meet there,
+    // where at least one of the two drops its end post.
+    public static IEnumerable<object[]> Meetings()
     {
-        int[] axes = [.. Enumerable.Range(0, 3).Where(k => k != AxisIndex(toward))];
-        bool Covers(WorldFace q, double u, double v) => q.Facing == toward.Opposite && q.Plane == plane
-            && q.Lo[axes[0]] <= u && u <= q.Hi[axes[0]] && q.Lo[axes[1]] <= v && v <= q.Hi[axes[1]];
-
-        return (from p in own
-                where p.Facing == toward && p.Plane == plane
-                from u in Samples(p.Lo[axes[0]], p.Hi[axes[0]])
-                from v in Samples(p.Lo[axes[1]], p.Hi[axes[1]])
-                where !covering.Any(q => Covers(q, u, v))
-                select p.Name).Distinct().OrderBy(name => name).ToList();
-    }
-
-    // Every ordered pair of cells bar two diagonals, the second one block off along the first's end, whose ends meet there.
-    public static IEnumerable<object[]> Meetings(string[] layouts)
-    {
+        string[] layouts = ["wall", "cornerout", "diagonal"];
         string[] sides = ["west", "south", "east", "north"];
-        foreach (var layoutA in layouts) foreach (var sideA in sides) foreach (var layoutB in layouts.Where(l => layoutA != "diagonal" || l != "diagonal")) foreach (var sideB in sides)
+        static bool Drops(string layout, string side, BlockFacing towards, string otherLayout, string otherSide)
         {
-            foreach (var end in SidingWallBlock.Ends(layoutA, sideA))
-            {
-                if (SidingWallBlock.Ends(layoutB, sideB).Any(other => SidingWallBlock.EndsMeet(end, other)))
-                    yield return [layoutA, sideA, layoutB, sideB, end.Points.Code];
-            }
+            var joins = JoinsToward(layout, side, towards, otherLayout, otherSide);
+            return joins.left || joins.right;
         }
+
+        return from layoutA in layouts
+               from sideA in sides
+               from layoutB in layouts
+               where layoutA != "diagonal" || layoutB != "diagonal"
+               from sideB in sides
+               from end in SidingWallBlock.Ends(layoutA, sideA)
+               where SidingWallBlock.JoinsAtEnd(end, layoutB, sideB)
+                   && (Drops(layoutA, sideA, end.Points, layoutB, sideB) || Drops(layoutB, sideB, end.Points.Opposite, layoutA, sideA))
+               select new object[] { layoutA, sideA, layoutB, sideB, end.Points.Code };
     }
 
     [Theory]
-    [MemberData(nameof(Meetings), new object[] { new[] { "wall", "cornerout", "diagonal" } })]
+    [MemberData(nameof(Meetings))]
     public void TwoGlazedCellsWhoseEndsMeetDrawNoFaceOnTheSamePlaneAndOverlap(string layoutA, string sideA, string layoutB, string sideB, string towards)
     {
         Assert.Equal([], new[] { false, true }.SelectMany(finished =>
         {
             var (a, b) = Meeting((layoutA, sideA), (layoutB, sideB), BlockFacing.FromCode(towards), finished);
-            return from p in a from q in b
-                   where p.Facing == q.Facing && p.Plane == q.Plane && p.Facing.IsHorizontal
-                       && Enumerable.Range(0, 3).Where(k => k != AxisIndex(p.Facing)).All(k => Math.Max(p.Lo[k], q.Lo[k]) < Math.Min(p.Hi[k], q.Hi[k]))
-                   select $"{layoutA}-{sideA} {p.Name} and {layoutB}-{sideB} {q.Name} both draw {p.Facing.Code} at {p.Plane} (finished {finished})";
+            return CrossCellOverlaps(a, b).Select(overlap => $"{overlap} (finished {finished})");
         }).Distinct().ToList());
     }
 
@@ -1467,25 +1350,18 @@ public class WallShapeGenTests
     // diagonal the room side's finish rims the 1.17 mitre ledge and the 0.01 hairs at the filler's top and bottom (0066).
     // A neighbour that keeps its own post or filler is the jamb, which the dropped end's cell need not be covered by in turn.
     [Theory]
-    [MemberData(nameof(Meetings), new object[] { new[] { "wall", "cornerout", "diagonal" } })]
-    public void EveryFaceACellDrawsOnItsDroppedEndIsCoveredByTheCellBeyondBarTheListedSlotsLedgesAndHairs(string layoutA, string sideA, string layoutB, string sideB, string towards)
+    [MemberData(nameof(Meetings))]
+    public void EveryFaceACellDrawsOnItsDroppedEndIsCoveredByTheCellBeyondBarTheListedSlotsLedgesAndHairs(
+        string layoutA, string sideA, string layoutB, string sideB, string towards)
     {
         var toward = BlockFacing.FromCode(towards);
         int plane = toward == BlockFacing.NORTH || toward == BlockFacing.WEST ? 0 : 16;
-        int across = AxisIndex(toward) == 0 ? 2 : 0;
 
-        IEnumerable<string> Uncovered(List<WorldFace> cell, List<WorldFace> covering, BlockFacing facing) =>
-            from a in cell
-            where a.Facing == facing && a.Plane == plane
-            from y in Samples(a.Lo[1], a.Hi[1])
-            from other in Samples(a.Lo[across], a.Hi[across])
-            where !covering.Any(b => b.Facing == facing.Opposite && b.Plane == plane
-                && b.Lo[1] <= y && y <= b.Hi[1] && b.Lo[across] <= other && other <= b.Hi[across])
-            select a.Name;
-
-        string[] Expected(bool finished, string dropped, string otherLayout, bool otherPost) =>
-            otherLayout == "diagonal" ? finished ? [$"back-rim-bottom-{dropped}", $"back-rim-top-{dropped}"] : []
-            : otherPost && !finished ? [$"glazing-bottom-{dropped}", $"glazing-top-{dropped}"] : [];
+        string[] Expected(bool finished, string dropped, string otherLayout, bool otherPost)
+        {
+            if (otherLayout == "diagonal") return finished ? [$"back-rim-bottom-{dropped}", $"back-rim-top-{dropped}"] : [];
+            return otherPost && !finished ? [$"glazing-bottom-{dropped}", $"glazing-top-{dropped}"] : [];
+        }
 
         var actual = new List<string>();
         var expected = new List<string>();
@@ -1494,18 +1370,19 @@ public class WallShapeGenTests
             var (a, b) = Meeting((layoutA, sideA), (layoutB, sideB), toward, finished);
             foreach (var (own, other, faces, beyond, facing) in new[]
             {
-                ((layoutA, sideA), (layoutB, sideB), a, b, toward),
-                ((layoutB, sideB), (layoutA, sideA), b, a, toward.Opposite),
+                ((Layout: layoutA, Side: sideA), (Layout: layoutB, Side: sideB), a, b, toward),
+                ((Layout: layoutB, Side: sideB), (Layout: layoutA, Side: sideA), b, a, toward.Opposite),
             })
             {
-                var joins = JoinsToward(own.Item1, own.Item2, facing, other.Item1, other.Item2);
+                var joins = JoinsToward(own.Layout, own.Side, facing, other.Layout, other.Side);
                 if (!joins.left && !joins.right) continue;
-                var end = joins.left ? SidingWallBlock.LeftRightEnds(own.Item1, own.Item2).left : SidingWallBlock.LeftRightEnds(own.Item1, own.Item2).right;
-                var (otherLeft, otherRight) = SidingWallBlock.LeftRightEnds(other.Item1, other.Item2);
-                bool otherPost = other.Item1 == "cornerout" && !SidingWallBlock.EndsMeet(end, otherLeft) && !SidingWallBlock.EndsMeet(end, otherRight);
-                actual.AddRange(Uncovered(faces, beyond, facing).Distinct().OrderBy(name => name).Select(name => $"{own.Item1}-{own.Item2} {finished} {name}"));
-                expected.AddRange(Expected(finished, joins.left ? "left" : "right", other.Item1, otherPost)
-                    .Select(name => $"{own.Item1}-{own.Item2} {finished} {name}"));
+                var (left, right) = SidingWallBlock.LeftRightEnds(own.Layout, own.Side);
+                var end = joins.left ? left : right;
+                var (otherLeft, otherRight) = SidingWallBlock.LeftRightEnds(other.Layout, other.Side);
+                bool otherPost = other.Layout == "cornerout" && !SidingWallBlock.EndsMeet(end, otherLeft) && !SidingWallBlock.EndsMeet(end, otherRight);
+                string cell = $"{own.Layout}-{own.Side} {finished}";
+                actual.AddRange(Uncovered(faces, beyond, facing, plane).Select(name => $"{cell} {name}"));
+                expected.AddRange(Expected(finished, joins.left ? "left" : "right", other.Layout, otherPost).Select(name => $"{cell} {name}"));
             }
         }
 

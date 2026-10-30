@@ -778,7 +778,7 @@ public static class WallShapeGen
     // straight wall. Where the next cell carries the run on, the -left and -right groups take every
     // piece to the corner instead, and half a post stands there; their square ends reach into the two
     // cells beside the corner, and with the next cell's they make one band.
-    private const double DiagonalCorner = 11.3137;
+    internal const double DiagonalCorner = 11.3137;
     private const double DiagonalEnd = 9.3137;
     private const double DiagonalFiller = 2.8284;
 
@@ -793,7 +793,8 @@ public static class WallShapeGen
     // A finish on a glazed diagonal is a border on the rails, cut to their heights.
     private static readonly (string Part, double Lo, double Hi)[] DiagonalRails =
     [
-        .. new[] { "top", "bottom" }.Select(rail => WallElements.Single(e => e.Name == "glazing-" + rail)).Select(e => (e.Name["glazing".Length..], (double)e.From.Y, (double)e.To.Y)),
+        .. new[] { "top", "bottom" }.Select(rail => WallElements.Single(e => e.Name == "glazing-" + rail))
+            .Select(e => (e.Name["glazing".Length..], (double)e.From.Y, (double)e.To.Y)),
     ];
 
     private static Element OnDiagonal(Element e, string suffix = "", double shift = 0)
