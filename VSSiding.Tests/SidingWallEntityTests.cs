@@ -182,10 +182,11 @@ public class SidingWallEntityTests
                 "wall", "oak", "glass", "planks", null, "daub", finishes, j, glazed: true)));
     }
 
-    // A cornerout's three posts never drop, so glazing gives it ones of its own and a rail per
-    // leg between them whatever the sideways joins - and no fillers, which only a dropped stile needs.
+    // A glazed cornerout's corner post never drops and each leg's end post is named like a wall's stile, with a
+    // rail per leg between them, and the leg's filler in each rail's corner in place of an end post that has dropped.
+    // An opaque cornerout has no end posts, so it draws only its corner post and rails.
     [Fact]
-    public void GlazedCorneroutKeepsItsPosts()
+    public void GlazedCorneroutKeepsItsCornerPostAndNamesItsEndPosts()
     {
         var joins = new (bool above, bool below, bool left, bool right)[]
         {
@@ -197,16 +198,26 @@ public class SidingWallEntityTests
         Assert.Equal(
             new Dictionary<(bool, bool, bool, bool), string[]>
             {
-                [(false, false, false, false)] = ["glazing", "glazing-top", "glazing-bottom", "infill-pane"],
-                [(false, false, true, true)] = ["glazing", "glazing-top", "glazing-bottom", "infill-pane"],
-                [(true, true, false, false)] = ["glazing", "infill-pane"],
+                [(false, false, false, false)] = ["glazing", "glazing-left", "glazing-right", "glazing-top", "glazing-bottom", "infill-pane"],
+                [(false, false, true, true)] =
+                [
+                    "glazing", "glazing-top", "glazing-top-left", "glazing-top-right",
+                    "glazing-bottom", "glazing-bottom-left", "glazing-bottom-right", "infill-pane",
+                ],
+                [(true, true, false, false)] = ["glazing", "glazing-left", "glazing-right", "infill-pane"],
             },
             joins.ToDictionary(j => j, j => SidingWallEntity.SelectiveElements(
                 "cornerout", "oak", "glass", null, null, null, NoElementFinishes, j, glazed: true)));
+        Assert.Equal(
+            ["framing", "framing-top", "framing-bottom", "infill"],
+            SidingWallEntity.SelectiveElements(
+                "cornerout", "oak", "wattle", null, null, null, NoElementFinishes, (false, false, false, false), glazed: false));
     }
 
-    // A glazed corner's finishes are rims too, on both legs: the post's piece always, and the pieces over and
-    // under the opening for as long as the rails are drawn. The second front goes the way the front does.
+    // A glazed corner's finishes are rims too, on both legs: the corner post's piece always, the end post's piece
+    // (or the fillers' once it drops), and the pieces over and under the opening for as long as the rails are
+    // drawn. The front rims leg 1, whose end post is its right; the second front leg 2, whose is its left; the
+    // back both.
     [Fact]
     public void GlazedCorneroutDrawsEachFacesFinishAsARimOfTheFramesParts()
     {
@@ -219,30 +230,39 @@ public class SidingWallEntityTests
             (true, true, false, false),
         };
 
-        string[] unjoined =
-        [
-            "front-weatherboard-rim", "front-weatherboard-rim-top", "front-weatherboard-rim-bottom",
-            "secondfront-rim", "secondfront-rim-top", "secondfront-rim-bottom",
-            "glazing", "glazing-top", "glazing-bottom", "infill-pane",
-            "back-boards-rim", "back-boards-rim-top", "back-boards-rim-bottom",
-        ];
-
         Assert.Equal(
             new Dictionary<(bool, bool, bool, bool), string[]>
             {
-                [(false, false, false, false)] = unjoined,
-                // Sideways joins are a wall's, not a corner's.
-                [(false, false, true, true)] = unjoined,
+                [(false, false, false, false)] =
+                [
+                    "front-weatherboard-rim", "front-weatherboard-rim-right", "front-weatherboard-rim-top", "front-weatherboard-rim-bottom",
+                    "secondfront-rim", "secondfront-rim-left", "secondfront-rim-top", "secondfront-rim-bottom",
+                    "glazing", "glazing-left", "glazing-right", "glazing-top", "glazing-bottom", "infill-pane",
+                    "back-boards-rim", "back-boards-rim-left", "back-boards-rim-right", "back-boards-rim-top", "back-boards-rim-bottom",
+                ],
+                [(false, false, true, true)] =
+                [
+                    "front-weatherboard-rim", "front-weatherboard-rim-top", "front-weatherboard-rim-top-right",
+                    "front-weatherboard-rim-bottom", "front-weatherboard-rim-bottom-right",
+                    "secondfront-rim", "secondfront-rim-top", "secondfront-rim-top-left",
+                    "secondfront-rim-bottom", "secondfront-rim-bottom-left",
+                    "glazing", "glazing-top", "glazing-top-left", "glazing-top-right",
+                    "glazing-bottom", "glazing-bottom-left", "glazing-bottom-right", "infill-pane",
+                    "back-boards-rim", "back-boards-rim-top", "back-boards-rim-top-left", "back-boards-rim-top-right",
+                    "back-boards-rim-bottom", "back-boards-rim-bottom-left", "back-boards-rim-bottom-right",
+                ],
                 [(true, false, false, false)] =
                 [
-                    "front-weatherboard-rim", "front-weatherboard-rim-bottom",
-                    "secondfront-rim", "secondfront-rim-bottom",
-                    "glazing", "glazing-bottom", "infill-pane",
-                    "back-boards-rim", "back-boards-rim-bottom",
+                    "front-weatherboard-rim", "front-weatherboard-rim-right", "front-weatherboard-rim-bottom",
+                    "secondfront-rim", "secondfront-rim-left", "secondfront-rim-bottom",
+                    "glazing", "glazing-left", "glazing-right", "glazing-bottom", "infill-pane",
+                    "back-boards-rim", "back-boards-rim-left", "back-boards-rim-right", "back-boards-rim-bottom",
                 ],
                 [(true, true, false, false)] =
                 [
-                    "front-weatherboard-rim", "secondfront-rim", "glazing", "infill-pane", "back-boards-rim",
+                    "front-weatherboard-rim", "front-weatherboard-rim-right", "secondfront-rim", "secondfront-rim-left",
+                    "glazing", "glazing-left", "glazing-right", "infill-pane",
+                    "back-boards-rim", "back-boards-rim-left", "back-boards-rim-right",
                 ],
             },
             joins.ToDictionary(j => j, j => SidingWallEntity.SelectiveElements(
@@ -269,7 +289,11 @@ public class SidingWallEntityTests
                     "glazing-right", "glazing-top", "glazing-top-left", "glazing-bottom", "glazing-bottom-left", "infill-pane",
                     "back-rim-right", "back-rim-bottom", "back-rim-bottom-left",
                 ],
-                ["front-rim", "front-rim-top", "front-rim-bottom", "glazing", "glazing-top", "glazing-bottom", "infill-pane", "back-rim", "back-rim-bottom"],
+                [
+                    "front-rim", "front-rim-right", "front-rim-top", "front-rim-bottom",
+                    "glazing", "glazing-left", "glazing-right", "glazing-top", "glazing-bottom", "infill-pane",
+                    "back-rim", "back-rim-left", "back-rim-right", "back-rim-bottom",
+                ],
                 ["framing-left", "framing-right", "framing-top", "framing-bottom", "infill", "back"],
             },
             new[]
@@ -330,7 +354,7 @@ public class SidingWallEntityTests
                     "deck-west-glazing-right", "deck-west-glazing-bottom", "deck-west-glazing-bottom-left", "deck-west-glazing-top-left",
                     "deck-west-infill-pane",
                 ],
-                ["glazing", "glazing-bottom", "infill-pane"],
+                ["glazing", "glazing-right", "glazing-bottom", "glazing-bottom-left", "infill-pane"],
                 ["framing-right", "framing-bottom", "infill", "infill-top"],
             },
             new[]

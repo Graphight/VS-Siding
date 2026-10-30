@@ -418,12 +418,16 @@ public static class WallShapeGen
             Element OnLeg(string name) => all.Single(e => e.Name == name && Length(e, run) > Length(e, across));
             Element top = OnLeg("glazing-top"), bottom = OnLeg("glazing-bottom"), slab = OnLeg("back");
             var opening = (Lo: Axis(top.From, run), Hi: Axis(top.To, run));
+            string end = run == 'z' ? "-right" : "-left";
+            var beyond = (opening.Hi, any);
             (string Part, (double Lo, double Hi) Run, (double Lo, double Hi) Y)[] parts =
             [
                 ("", (none, opening.Lo), (none, any)),
-                ("", (opening.Hi, any), (none, any)),
+                (end, beyond, (none, any)),
                 ("-top", opening, (top.From.Y, any)),
                 ("-bottom", opening, (none, bottom.To.Y)),
+                ("-top" + end, beyond, (top.From.Y, any)),
+                ("-bottom" + end, beyond, (none, bottom.To.Y)),
             ];
 
             string front = run == 'z' ? "front" : "secondfront";
@@ -618,12 +622,17 @@ public static class WallShapeGen
         new("infill-pane", (2, 0, 3), (2, 16, 16), "infill", UvRule.Flat, Faces: ["west", "east"]),
         new("infill-pane", (3, 0, 2), (16, 16, 2), "infill", UvRule.Flat, Faces: ["north", "south"]),
         new("framing", (15, 0, 1), (16, 16, 3), "framing", UvRule.Flat),
-        // A glazed corner's frame: posts that never drop and a rail per leg between them,
-        // so a rail's two end faces always stand against a post. The corner post is two boxes.
+        // A glazed corner's frame: a corner post that never drops, an end post per leg named for the side of
+        // a wall it lies on (leg 1's far end is its right, leg 2's its left), a rail per leg between them,
+        // and a filler per leg in the rail's corner where the end post has merged away. The corner post is two boxes.
         new("glazing", (1, 0, 1), (3, 16, 4), "framing", UvRule.Flat),
         new("glazing", (3, 0, 1), (4, 16, 3), "framing", UvRule.Flat),
-        new("glazing", (1, 0, 14), (3, 16, 16), "framing", UvRule.Flat),
-        new("glazing", (14, 0, 1), (16, 16, 3), "framing", UvRule.Flat),
+        new("glazing-right", (1, 0, 14), (3, 16, 16), "framing", UvRule.Flat),
+        new("glazing-left", (14, 0, 1), (16, 16, 3), "framing", UvRule.Flat),
+        new("glazing-top-right", (1, 14, 14), (3, 16, 16), "framing", UvRule.Flat),
+        new("glazing-bottom-right", (1, 0, 14), (3, 2, 16), "framing", UvRule.Flat),
+        new("glazing-top-left", (14, 14, 1), (16, 16, 3), "framing", UvRule.Flat),
+        new("glazing-bottom-left", (14, 0, 1), (16, 2, 3), "framing", UvRule.Flat),
         new("glazing-top", (1, 14, 4), (3, 16, 14), "framing", UvRule.Flat, Faces: ["west", "east", "up", "down"]),
         new("glazing-top", (4, 14, 1), (14, 16, 3), "framing", UvRule.Flat, Faces: ["north", "south", "up", "down"]),
         new("glazing-bottom", (1, 0, 4), (3, 2, 14), "framing", UvRule.Flat, Faces: ["west", "east", "up", "down"]),

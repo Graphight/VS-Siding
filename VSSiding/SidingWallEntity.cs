@@ -305,25 +305,26 @@ public class SidingWallEntity : BlockEntity
     }
 
     // The suffixes of the frame pieces a cell draws, which a glazed face's rims follow part for part.
-    // A wall's two posts drop one by one wherever glazing merges sideways; a cornerout's three are
-    // always drawn. A plain wall's plates stop short at its posts, which leaves a notch at the cell's
-    // edge once a post drops, so glazing gets its own frame: stiles and the rails between them,
-    // overlapping nothing, and a filler in the corner where a stile has merged away. A corner's posts
-    // never drop, so it has no fillers, and a diagonal keeps the plain frame. A filler also stands
-    // alone in each of `innerCorners`, where rail and stile have both merged away and the sheet turns.
+    // A wall's two posts drop one by one wherever glazing merges sideways; a glazed cornerout's corner
+    // post is always drawn and its two end posts are named like a wall's stiles. A plain wall's plates
+    // stop short at its posts, which leaves a notch at the cell's edge once a post drops, so glazing
+    // gets its own frame: stiles and the rails between them, overlapping nothing, and a filler in the
+    // corner where a stile has merged away. An opaque cornerout has no end posts of its own, and a
+    // diagonal keeps the plain frame. A filler also stands alone in each of `innerCorners`, where rail
+    // and stile have both merged away and the sheet turns.
     internal static List<string> FrameParts(
         string layout, (bool above, bool below, bool left, bool right) joins, bool glazed, string[]? innerCorners = null)
     {
         bool diagonal = layout == "diagonal";
         bool corner = SidingWallBlock.ClaimsTwoFaces(layout);
-        bool fillers = glazed && !diagonal && !corner;
+        bool fillers = glazed && !diagonal;
         var parts = new List<string>();
-        if (!corner)
+        if (corner && !diagonal) parts.Add("");
+        if (!corner || fillers)
         {
             if (!joins.left) parts.Add("-left");
             if (!joins.right) parts.Add("-right");
         }
-        else if (!diagonal) parts.Add("");
         foreach (var (joined, rail) in new[] { (joins.above, "-top"), (joins.below, "-bottom") })
         {
             if (joined) continue;
@@ -331,7 +332,7 @@ public class SidingWallEntity : BlockEntity
             if (fillers && joins.left) parts.Add(rail + "-left");
             if (fillers && joins.right) parts.Add(rail + "-right");
         }
-        if (fillers && innerCorners != null) parts.AddRange(innerCorners);
+        if (fillers && !corner && innerCorners != null) parts.AddRange(innerCorners);
 
         return parts;
     }
@@ -363,8 +364,10 @@ public class SidingWallEntity : BlockEntity
             else names.Add(group);
         }
 
-        if (front != null) AddFinish(FinishElement(finishes, front, "front", styles.front));
-        if (secondFront != null) AddFinish("second" + FinishElement(finishes, secondFront, "front", styles.secondFront));
+        // A corner's front finish rims leg 1, whose far end is its right, and its second front leg 2, whose is its left.
+        bool cornerout = glazing && layout == "cornerout";
+        if (front != null) AddFinish(FinishElement(finishes, front, "front", styles.front), cornerout ? parts.Where(part => !part.EndsWith("-left")) : parts);
+        if (secondFront != null) AddFinish("second" + FinishElement(finishes, secondFront, "front", styles.secondFront), cornerout ? parts.Where(part => !part.EndsWith("-right")) : parts);
         if (framing != null) names.AddRange(parts.Select(part => member + part));
         if (infill != null)
         {

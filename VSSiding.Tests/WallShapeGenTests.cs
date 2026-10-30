@@ -336,16 +336,18 @@ public class WallShapeGenTests
             ["cornerout weatherboard both faces"] = 227,
             ["cornerout shakes both faces"] = 400,
             ["cornerout glazed"] = 43,
-            ["cornerout glazed, merged left"] = 43,
-            // A corner's rims are cut round each leg's opening: front and second front each a rim of two
-            // end pieces, one over the opening and one under it, 4 boxes * 6 = 24 apiece. Back is three
-            // end pieces (leg 2's two and leg 1's far one) and two over and two under, 7 * 6 = 42.
-            // Unjoined, 43 + 24 + 24 + 42 = 133, whatever the sideways join. Merged above and below it keeps
-            // only the end pieces: 27 + 12 + 12 + 18 = 69.
+            // A corner's left end post gives way to two fillers: 43 - 6 + 2 * 6 = 49.
+            ["cornerout glazed, merged left"] = 49,
+            // A corner's rims are cut round each leg's opening: the front rims leg 1 and the second front leg 2,
+            // each as the corner post's piece, its end post's, and one over the opening and one under it,
+            // 4 boxes * 6 = 24 apiece. Back rims both legs: the post's piece, both end posts' and two over
+            // and two under, 7 * 6 = 42. Unjoined, 43 + 24 + 24 + 42 = 133. Merged left, the left end post's
+            // piece becomes two fillers' on the second front and the back: 49 + 24 + 30 + 48 = 151.
+            // Merged all round only the corner post's pieces are left: 15 + 6 + 6 + 6 = 33.
             ["cornerout glazed, daub both faces"] = 133,
-            ["cornerout glazed, daub both faces, merged left"] = 133,
-            ["cornerout glazed, daub both faces, merged all round"] = 69,
-            ["cornerout glazed, merged all round"] = 27,
+            ["cornerout glazed, daub both faces, merged left"] = 151,
+            ["cornerout glazed, daub both faces, merged all round"] = 33,
+            ["cornerout glazed, merged all round"] = 15,
             ["wall shakes front, daub elsewhere"] = 185,
             ["cornerout shakes front, daub elsewhere"] = 220,
             ["wall weatherboard front, shakes back"] = 137,
@@ -542,8 +544,10 @@ public class WallShapeGenTests
             ("cornerout", "front-weatherboard-rim-top", [0.75, 15, 4], "west", [3.5, 0, 13.5, 1]),
             ("cornerout", "front-weatherboard-rim-top", [0.5, 14, 4], "west", [3.5, 1, 13.5, 2]),
             ("cornerout", "secondfront-rim-top", [4, 14, 0], "north", [2, 0, 12, 2]),
-            ("cornerout", "secondfront-rim", [14, 0, 0], "north", [0, 0, 2, 16]),
-            ("cornerout", "back-rim", [3, 0, 14], "east", [0, 0, 2, 16]),
+            ("cornerout", "secondfront-rim-left", [14, 0, 0], "north", [0, 0, 2, 16]),
+            ("cornerout", "back-rim-right", [3, 0, 14], "east", [0, 0, 2, 16]),
+            ("cornerout", "front-rim-top-right", [0, 14, 14], "west", [14, 0, 16, 2]),
+            ("cornerout", "secondfront-rim-bottom-left", [14, 0, 0], "north", [0, 14, 2, 16]),
             ("cornerout", "back-rim-top", [4, 14, 3], "south", [1, 0, 11, 2]),
             ("floor", "front-rim-left", [0, 15, 0], "up", [0, 0, 2, 16]),
             ("floor", "front-rim-top", [2, 15, 0], "up", [2, 0, 14, 2]),
@@ -1008,7 +1012,7 @@ public class WallShapeGenTests
 
     // A glazed wall's or floor's frame is stiles and rails that meet edge to edge. Where a stile has merged away
     // its rails end on fillers instead, so a filler is never drawn with the stile on its side. A glazed corner's
-    // posts never drop, so it has the one set. A cell merged all round draws only the fillers of its inside
+    // end posts and fillers are a wall's, and its corner post is drawn with every set. A cell merged all round draws only the fillers of its inside
     // corners. A glazed cell's finish is drawn as a rim piece for each frame part, so those meet the same way.
     [Theory]
     [InlineData("wall")]
@@ -1016,17 +1020,17 @@ public class WallShapeGenTests
     [InlineData("cornerout")]
     public void NoTwoFacesOfAGlazedCellsFramePiecesShareAPlaneAndOverlap(string layout)
     {
-        string[][] uprights = layout == "cornerout"
-            ? [["glazing"]]
-            : [
-                ["glazing-left", "glazing-right"],
-                ["glazing-bottom-left", "glazing-top-left", "glazing-right"],
-                ["glazing-bottom-right", "glazing-top-right", "glazing-left"],
-                ["glazing-bottom-left", "glazing-top-left", "glazing-bottom-right", "glazing-top-right"],
-            ];
+        string[][] uprights =
+        [
+            ["glazing-left", "glazing-right"],
+            ["glazing-bottom-left", "glazing-top-left", "glazing-right"],
+            ["glazing-bottom-right", "glazing-top-right", "glazing-left"],
+            ["glazing-bottom-left", "glazing-top-left", "glazing-bottom-right", "glazing-top-right"],
+        ];
+        if (layout == "cornerout") uprights = [.. uprights.Select(set => (string[])["glazing", .. set])];
 
         string[][] frames = [.. uprights.Select(set => (string[])["glazing-top", "glazing-bottom", .. set])];
-        if (layout != "cornerout") frames = [.. frames, uprights[^1]];
+        frames = [.. frames, uprights[^1]];
 
         Assert.Equal([], frames.SelectMany(frame =>
         {
@@ -1046,6 +1050,9 @@ public class WallShapeGenTests
     [InlineData("wall", false, true)]
     [InlineData("wall", true, true)]
     [InlineData("cornerout", false, false)]
+    [InlineData("cornerout", true, false)]
+    [InlineData("cornerout", false, true)]
+    [InlineData("cornerout", true, true)]
     public void ADeckedGlazedCellsLedgeSharesNoPlaneWithItsRimOrFrame(string layout, bool left, bool right)
     {
         var finishes = new Vintagestory.API.Datastructures.JsonObject(JObject.Parse("""{ "daub": {} }"""));
