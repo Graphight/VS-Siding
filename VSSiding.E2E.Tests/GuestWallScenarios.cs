@@ -186,4 +186,32 @@ public class GuestWallScenarios : AtlasScenarioBase
             await World.Until(() => !player.IsConnected);
         }
     }
+
+    [AtlasScenario(FreshWorld = true)]
+    public async Task G_Wall_Should_BecomeAGuest_When_ATableIsPlacedInItsCell()
+    {
+        BlockPos cell = Cell;
+        World.SetBlock("game:planks-aged-ud", cell.DownCopy());
+
+        ITestPlayer player = await WallBuilder.JoinBuilder(World);
+        try
+        {
+            await WallBuilder.Raise(World, player, cell, cell.WestCopy(), "game:plank-oak", "game:clay-blue", "game:plank-oak");
+
+            player.Entity.LeftHandItemSlot.Itemstack = null;
+            ItemSlot slot = player.Player.InventoryManager.ActiveHotbarSlot;
+            slot.Itemstack = new ItemStack(World.Api.World.GetBlock(new AssetLocation("game:table-normal")));
+            var selection = new BlockSelection { Position = cell.Copy(), Face = BlockFacing.EAST, HitPosition = new Vec3d(0.5, 0.5, 0.5) };
+            Assert.True(World.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, selection));
+
+            Assert.Equal("game:table-normal", World.BlockAt(cell).Code.ToString());
+            Assert.Equal(Expected, WallBuilder.GuestLayers(World, cell));
+            Assert.True(slot.Empty);
+        }
+        finally
+        {
+            player.Player.Disconnect();
+            await World.Until(() => !player.IsConnected);
+        }
+    }
 }

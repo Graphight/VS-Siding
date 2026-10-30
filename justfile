@@ -13,7 +13,19 @@ test:
 
 # Build, then boot the mod headless under Atlas and run the end-to-end tests
 e2e: build
-    dotnet test VSSiding.E2E.Tests
+    dotnet test VSSiding.E2E.Tests --filter Category!=Probe
+
+# Build, download the mod and its dependencies, then probe its blocks against a siding wall
+[unix]
+probe modid: build
+    dotnet run --project CakeBuild/CakeBuild.csproj --target=FetchProbe --probe={{modid}}
+    SIDING_PROBE={{modid}} dotnet test VSSiding.E2E.Tests --filter Category=Probe
+
+# Build, download the mod and its dependencies, then probe its blocks against a siding wall
+[windows]
+probe modid: build
+    dotnet run --project CakeBuild/CakeBuild.csproj --target=FetchProbe --probe={{modid}}
+    $env:SIDING_PROBE="{{modid}}"; dotnet test VSSiding.E2E.Tests --filter Category=Probe
 
 # Rewrite the committed shape files from WallShapeGen's element table
 [unix]

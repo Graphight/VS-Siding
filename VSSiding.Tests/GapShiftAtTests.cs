@@ -88,4 +88,56 @@ public class GapShiftAtTests
             ["plain"] = null,
         }, actual);
     }
+
+    private class MapAccessor : DispatchProxy
+    {
+        internal Dictionary<BlockPos, Block> Blocks = new();
+
+        protected override object? Invoke(MethodInfo? targetMethod, object?[]? args)
+        {
+            if (targetMethod?.Name != nameof(IBlockAccessor.GetBlock) || args?.Length != 1)
+                throw new System.NotSupportedException($"{targetMethod?.Name} is not stubbed");
+            return Blocks.TryGetValue((BlockPos)args[0]!, out var block) ? block : new Block();
+        }
+    }
+
+    [Fact]
+    public void EveryCellOfABedNamesTheWholeBed()
+    {
+        // An east Celtic bed: feet east of the head, fillers to the north. A vanilla bed and a trunk beside it.
+        var head = new BlockPos(10, 60, 10, 0);
+        var vanillaHead = new BlockPos(20, 60, 10, 0);
+        var trunk = new BlockPos(30, 60, 10, 0);
+        var cells = new Dictionary<string, (BlockPos pos, Block block)>
+        {
+            ["head"] = (head, FootprintHostsTests.DoubleBedHead("east", FootprintHostsTests.CelticBedMultiblock["east"])),
+            ["feet"] = (head.EastCopy(), Bed("feet", "east")),
+            ["filler beside the head"] = (head.NorthCopy(), new BlockMultiblock { OffsetInv = new Vec3i(0, 0, 1) }),
+            ["filler beside the feet"] = (head.NorthCopy().East(), new BlockMultiblock { OffsetInv = new Vec3i(-1, 0, 1) }),
+            ["vanilla feet"] = (vanillaHead.EastCopy(), Bed("feet", "east")),
+            ["vanilla head"] = (vanillaHead, Bed("head", "east")),
+            ["trunk filler"] = (trunk.EastCopy(), new BlockMultiblock { OffsetInv = new Vec3i(-1, 0, 0) }),
+            ["trunk"] = (trunk, new Block()),
+        };
+        var accessor = DispatchProxy.Create<IBlockAccessor, MapAccessor>();
+        ((MapAccessor)(object)accessor).Blocks = cells.Values.ToDictionary(cell => cell.pos, cell => cell.block);
+
+        var doubleBed = new[] { head, head.EastCopy(), head.NorthCopy(), head.NorthCopy().East() };
+        var vanillaBed = new[] { vanillaHead, vanillaHead.EastCopy() };
+        var expected = new Dictionary<string, BlockPos[]>
+        {
+            ["head"] = doubleBed,
+            ["feet"] = doubleBed,
+            ["filler beside the head"] = doubleBed,
+            ["filler beside the feet"] = doubleBed,
+            ["vanilla feet"] = vanillaBed,
+            ["vanilla head"] = vanillaBed,
+            ["trunk filler"] = System.Array.Empty<BlockPos>(),
+            ["trunk"] = System.Array.Empty<BlockPos>(),
+        };
+
+        var actual = cells.ToDictionary(kv => kv.Key, kv => SidingModSystem.BedCells(accessor, kv.Value.pos, kv.Value.block).ToArray());
+
+        Assert.Equal(expected, actual);
+    }
 }

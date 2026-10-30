@@ -366,6 +366,15 @@ public class SidingModSystem : ModSystem
 
         try
         {
+            PatchRunCellChecks(harmony, api);
+        }
+        catch (Exception e)
+        {
+            api.Logger.Error("vssiding: More Inventorys patch skipped, its racks, clothing rack, double crate and large cabinet will not go into a wall run: {0}", e);
+        }
+
+        try
+        {
             SidingModePicker.PatchDialog(harmony);
         }
         catch (Exception e)
@@ -753,14 +762,16 @@ public class SidingModSystem : ModSystem
     // a solid top on a block with a block entity (a cabinet you set things on); fluid-layer blocks;
     // anything not a plain JSON shape; any "part" block but a bed; doors (1.22's are BlockGeneric
     // with a "Door" BE behaviour); and mechanical power blocks, which network by position. Multiblocks
-    // other than a trunk and its filler stay out (paintings, banners, mannequins, machines): the
-    // footprint rule in the CanPlaceBlock postfix is what makes a trunk's filler safe to host.
+    // other than a trunk and its filler stay out (paintings, banners, mannequins, machines) unless they
+    // declare vssidingHostable and carry a side variant: the footprint rule in the CanPlaceBlock
+    // postfix is what makes a filler safe to host.
     private static void BuildHostableTable(ICoreAPI api)
     {
         int maxId = api.World.Blocks.Where(b => b != null).Max(b => b.BlockId);
         var hostable = new bool[maxId + 1];
         var faceShift = new double[maxId + 1][];
         var hangers = new bool[maxId + 1];
+        var mainPos = new PropertyInfo?[maxId + 1];
 
         foreach (var block in api.World.Blocks)
         {
@@ -770,12 +781,19 @@ public class SidingModSystem : ModSystem
             if (!hostable[block.BlockId]) continue;
 
             faceShift[block.BlockId] = FaceShifts(block);
+            if (block.EntityClass != null)
+                mainPos[block.BlockId] = api.ClassRegistry.GetBlockEntity(block.EntityClass)?.GetProperty("MainBlockPos", typeof(BlockPos));
         }
 
         Hostable = hostable;
         Hangers = hangers;
         FaceShiftByBlock = faceShift;
+        MainPosByBlock = mainPos;
     }
+
+    // Indexed by BlockId: a filler's block entity property naming its main block's position, as More
+    // Inventorys' fillers carry; null for every other block.
+    internal static PropertyInfo?[]? MainPosByBlock;
 
     // A RotateablePlaceable block (a cabinet) turns its boxes by its block entity's angle, so its
     // default boxes don't say which face meets the wall; it takes its largest shift on every face,
@@ -825,23 +843,35 @@ public class SidingModSystem : ModSystem
         return (dx, dz);
     }
 
-    internal static bool IsHostable(Block block)
+    internal static bool IsHostable(Block block) => HostRefusal(block) == null;
+
+    // The name of the rule keeping a block out of a wall's cell, or null when it hosts. A block's own
+    // vssidingHostable attribute lifts the solid-side and Multiblock rules only, never a safety rule.
+    internal static string? HostRefusal(Block block)
     {
+        var declared = block.Attributes?["vssidingHostable"];
+        bool? optIn = declared is { Exists: true } ? declared.AsBool() : null;
+        if (optIn == false) return "vssidingHostable false";
         // A floor passes the cabinet rule below (solid top, block entity), and the wall's
         // IsReplacableBy would then let PlaceWallFrame put a floor inside the wall's own cell.
-        if (block is SidingWallBlock or SidingFloorBlock) return false;
-        if (block.Replaceable >= 6000) return false;
-        if (block.HasBehavior<BlockBehaviorUnplaceable>()) return false;
-        if (block.BlockMaterial is EnumBlockMaterial.Plant or EnumBlockMaterial.Leaves) return false;
-        if (block.SideSolid.Any && !(block.SideSolid.Value() == BlockFacing.UP.Flag && block.EntityClass != null)) return false;
-        if (block.ForFluidsLayer) return false;
-        if (block.DrawType is not (EnumDrawType.JSON or EnumDrawType.JSONAndSnowLayer or EnumDrawType.JSONAndWater)) return false;
-        if (block is BlockMicroBlock) return false;
-        if (block.Variant.ContainsKey("part") && block is not BlockBed) return false;
-        if (block is BlockBaseDoor || block.BlockEntityBehaviors.Any(b => b.Name == "Door")) return false;
-        if (block is not (BlockMultiblock or BlockGenericTypedContainerTrunk) && block.HasBehavior<BlockBehaviorMultiblock>()) return false;
-        if (block is BlockMPBase) return false;
-        return true;
+        if (block is SidingWallBlock or SidingFloorBlock) return "siding wall or floor";
+        if (block.Replaceable >= 6000) return "replaceable";
+        if (block.HasBehavior<BlockBehaviorUnplaceable>()) return "unplaceable";
+        if (block.BlockMaterial is EnumBlockMaterial.Plant or EnumBlockMaterial.Leaves) return "plant";
+        if (optIn != true && block.SideSolid.Any && !(block.SideSolid.Value() == BlockFacing.UP.Flag && block.EntityClass != null)) return "solid side";
+        if (block.ForFluidsLayer) return "fluid";
+        if (block.DrawType is not (EnumDrawType.JSON or EnumDrawType.JSONAndSnowLayer or EnumDrawType.JSONAndWater)) return "draw type";
+        if (block is BlockMicroBlock) return "microblock";
+        if (block.Variant.ContainsKey("part") && block is not BlockBed) return "part block";
+        if (block is BlockBaseDoor || block.BlockEntityBehaviors.Any(b => b.Name == "Door")) return "door";
+        if (block is not (BlockMultiblock or BlockGenericTypedContainerTrunk) && block.HasBehavior<BlockBehaviorMultiblock>())
+        {
+            if (optIn != true) return "multiblock";
+            // The footprint rule takes the long axis from the side variant.
+            if (!block.Variant.ContainsKey("side")) return "multiblock without side";
+        }
+        if (block is BlockMPBase) return "mechanical power";
+        return null;
     }
 
     // A north or south trunk spans two cells along x, as a wall claiming the north or south face does.
@@ -861,6 +891,16 @@ public class SidingModSystem : ModSystem
         return AlongX(trunkSide) == AlongX(sides[0]);
     }
 
+    // A cell a More Inventorys block needs beside or above its main cell, when the main cell is a
+    // wall: free only as a straight wall of the same run, on the same side and in the same plane, with
+    // no deck or step, so the block fits the run or not at all, as a trunk does.
+    internal static bool RunCellFree(Block main, BlockPos mainPos, Block cell, BlockPos pos, bool openPartFilled)
+        => main is SidingWallBlock mainWall && mainWall.Variant["layout"] == "wall"
+            && cell is SidingWallBlock wall && wall.Variant["layout"] == "wall"
+            && wall.Variant["side"] == mainWall.Variant["side"]
+            && (AlongX(mainWall.Variant["side"]) ? pos.Z == mainPos.Z : pos.X == mainPos.X)
+            && !openPartFilled;
+
     // A bed's side points from its head back toward its feet, so its headboard faces the opposite way.
     // Side-on is a trunk's footprint turned a quarter, since a bed runs along its side axis and a trunk
     // across it. Head-on is the head in a straight wall claiming the headboard face, feet on open floor.
@@ -871,6 +911,57 @@ public class SidingModSystem : ModSystem
 
         return head is SidingWallBlock wall && wall.Variant["layout"] == "wall"
             && wall.Variant["side"] == facing.Opposite.Code && feet is not SidingWallBlock;
+    }
+
+    // A double bed (Kevins Furniture's Celtic bed) has a filler beside each of its two cells, on one side.
+    // Its headboard goes against a run, the head and the filler beside it in the wall and the feet row on
+    // open floor; or a long side does, either row in the wall and the other open, the panel on the face
+    // away from the open row.
+    internal static bool DoubleBedFootprintHosts(string bedSide, string fillerSide, Block head, Block feet, Block headFiller, Block feetFiller)
+    {
+        if (!new[] { head, feet, headFiller, feetFiller }.Any(cell => cell is SidingWallBlock)) return true;
+
+        string headboard = BlockFacing.FromCode(bedSide).Opposite.Code;
+        string awayFromFillers = BlockFacing.FromCode(fillerSide).Opposite.Code;
+        return (StraightRun(headboard, head, headFiller) && NoWall(feet, feetFiller))
+            || (StraightRun(awayFromFillers, head, feet) && NoWall(headFiller, feetFiller))
+            || (StraightRun(fillerSide, headFiller, feetFiller) && NoWall(head, feet));
+    }
+
+    private static bool StraightRun(string side, params Block[] cells)
+        => cells.All(cell => cell is SidingWallBlock wall && wall.Variant["layout"] == "wall" && wall.Variant["side"] == side);
+
+    private static bool NoWall(params Block[] cells) => cells.All(cell => cell is not SidingWallBlock);
+
+    // The cells a Multiblock places around its controller, the controller's own left out.
+    internal static List<BlockPos> MultiblockCells(Block block, BlockPos controllerPos)
+    {
+        var cells = new List<BlockPos>();
+        (block.GetBehavior(typeof(BlockBehaviorMultiblock), false) as BlockBehaviorMultiblock)?.IterateOverEach(controllerPos, cell =>
+        {
+            if (cell != controllerPos) cells.Add(cell.Copy());
+            return true;
+        });
+        return cells;
+    }
+
+    // The side a double bed's fillers stand on, one beside the head and one beside the feet; null for any other shape.
+    internal static BlockFacing? FillerSide(BlockPos headPos, BlockPos feetPos, IReadOnlyList<BlockPos> fillers)
+        => fillers.Count != 2 ? null
+            : BlockFacing.HORIZONTALS.FirstOrDefault(side => fillers.Contains(headPos.AddCopy(side)) && fillers.Contains(feetPos.AddCopy(side)));
+
+    // Every cell of the bed a block at pos is part of, head first; empty for anything not part of a bed.
+    internal static IEnumerable<BlockPos> BedCells(IBlockAccessor accessor, BlockPos pos, Block block)
+    {
+        BlockPos? headPos = block switch
+        {
+            BlockMultiblock filler => pos.AddCopy(filler.OffsetInv),
+            BlockBed => BedHeadPos(block, pos) ?? pos,
+            _ => null,
+        };
+        if (headPos == null || accessor.GetBlock(headPos) is not BlockBed head || head.Variant["part"] != "head") return Array.Empty<BlockPos>();
+
+        return new[] { headPos, headPos.AddCopy(BlockFacing.FromCode(head.Variant["side"])) }.Concat(MultiblockCells(head, headPos));
     }
 
     // A click on a wall's panel names the wall's own cell; stepping the feet back puts the head there.
@@ -896,17 +987,25 @@ public class SidingModSystem : ModSystem
 
     // BlockBed is not a Multiblock, so each cell's CanPlaceBlock has no view of the other; the two
     // cells are worked out here the way vanilla's TryPlaceBlock does. Both panel-click paths arrive
-    // with the wall's own cell as the feet, so the retarget sits here too.
-    internal static bool BedFootprintPrefix(IWorldAccessor world, IPlayer byPlayer, ref BlockSelection blockSel,
+    // with the wall's own cell as the feet, so the retarget sits here too. A double bed's fillers come
+    // from the head it will place, which vanilla never checks.
+    internal static bool BedFootprintPrefix(BlockBed __instance, IWorldAccessor world, IPlayer byPlayer, ref BlockSelection blockSel,
         ref bool __result, ref string failureCode)
     {
         var facing = Block.SuggestedHVOrientation(byPlayer, blockSel)[0];
         var feetPos = BedFeetPos(world.BlockAccessor.GetBlock(blockSel.Position), facing, blockSel.Position);
         if (feetPos != blockSel.Position) blockSel = Retargeted(blockSel, feetPos);
 
-        var feet = world.BlockAccessor.GetBlock(blockSel.Position);
-        var head = world.BlockAccessor.GetBlock(blockSel.Position.AddCopy(facing));
-        if (BedFootprintHosts(facing.Opposite.Code, head, feet)) return true;
+        var accessor = world.BlockAccessor;
+        var headPos = blockSel.Position.AddCopy(facing);
+        var (head, feet) = (accessor.GetBlock(headPos), accessor.GetBlock(blockSel.Position));
+        string bedSide = facing.Opposite.Code;
+        var fillers = MultiblockCells(world.GetBlock(__instance.CodeWithParts("head", bedSide)), headPos);
+        bool hosts = fillers.Count == 0 ? BedFootprintHosts(bedSide, head, feet)
+            : FillerSide(headPos, blockSel.Position, fillers) is { } fillerSide
+                ? DoubleBedFootprintHosts(bedSide, fillerSide.Code, head, feet, accessor.GetBlock(headPos.AddCopy(fillerSide)), accessor.GetBlock(blockSel.Position.AddCopy(fillerSide)))
+                : !fillers.Select(cell => accessor.GetBlock(cell)).Append(head).Append(feet).Any(cell => cell is SidingWallBlock);
+        if (hosts) return true;
 
         __result = false;
         failureCode = "notenoughspace";
@@ -956,7 +1055,8 @@ public class SidingModSystem : ModSystem
     }
 
     // IsReplacableBy has no position, so each wall answers alone; only here is the whole footprint
-    // in view. IsHostable admits no Multiblock block but a trunk, so ordinary multiblocks pass untouched.
+    // in view. IsHostable admits no Multiblock block but a trunk or one declaring vssidingHostable with a
+    // side variant, so ordinary multiblocks pass untouched.
     // IsReplacableBy lets any hostable block take a wall's cell but has no position to see a deck
     // or step, so the placement check refuses it here. Positional arguments, since overrides rename them.
     internal static void DeckedCellPostfix(IWorldAccessor __0, BlockSelection __2, ref string __3, ref bool __result)
@@ -969,7 +1069,8 @@ public class SidingModSystem : ModSystem
     internal static void MultiblockFootprintPostfix(BlockBehaviorMultiblock __instance, IWorldAccessor world,
         BlockSelection blockSel, ref bool __result, ref EnumHandling handling, ref string failureCode)
     {
-        if (!__result || !IsHostableId(__instance.block.BlockId)) return;
+        // A bed's footprint is BedFootprintPrefix's: vanilla asks this with the held head's offsets, whichever way the bed faces.
+        if (!__result || __instance.block is BlockBed || !IsHostableId(__instance.block.BlockId)) return;
 
         var cells = new List<Block>();
         __instance.IterateOverEach(blockSel.Position, mpos =>
@@ -982,6 +1083,51 @@ public class SidingModSystem : ModSystem
         __result = false;
         handling = EnumHandling.PreventDefault;
         failureCode = "notenoughspace";
+    }
+
+    // More Inventorys' multi-cell blocks (racks, the clothing rack, the double crate, the large cabinet)
+    // test each extra cell for air with GetBlockId in their own TryPlaceBlock, then set a filler there.
+    private static void PatchRunCellChecks(Harmony harmony, ICoreAPI api)
+    {
+        if (api.ModLoader.GetMod("moreinventorys")?.Systems.FirstOrDefault()?.GetType().Assembly is not { } assembly) return;
+
+        var transpiler = new HarmonyMethod(typeof(SidingModSystem), nameof(RunCellTranspiler));
+        var parameterTypes = new[] { typeof(IWorldAccessor), typeof(IPlayer), typeof(ItemStack), typeof(BlockSelection), typeof(string).MakeByRefType() };
+        foreach (var type in AccessTools.GetTypesFromAssembly(assembly).Where(t => t.IsSubclassOf(typeof(Block))))
+        {
+            var method = type.GetMethod(nameof(Block.TryPlaceBlock), BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly, null, parameterTypes, null);
+            if (method != null) harmony.Patch(method, transpiler: transpiler);
+        }
+    }
+
+    // Each GetBlockId(pos) gets the selection too, from TryPlaceBlock's fourth argument.
+    internal static IEnumerable<CodeInstruction> RunCellTranspiler(IEnumerable<CodeInstruction> instructions)
+    {
+        var getBlockId = AccessTools.Method(typeof(IBlockAccessor), nameof(IBlockAccessor.GetBlockId), new[] { typeof(BlockPos) });
+        var cellId = AccessTools.Method(typeof(SidingModSystem), nameof(RunCellId));
+
+        foreach (var instruction in instructions)
+        {
+            if (!instruction.Calls(getBlockId))
+            {
+                yield return instruction;
+                continue;
+            }
+            yield return CodeInstruction.LoadArgument(4).MoveLabelsFrom(instruction);
+            yield return new CodeInstruction(OpCodes.Call, cellId);
+        }
+    }
+
+    // The block places only where every extra cell reads 0, so a free cell of the run reads 0 and
+    // every other cell beside a wall, open air too, reads taken.
+    internal static int RunCellId(IBlockAccessor accessor, BlockPos pos, BlockSelection blockSel)
+    {
+        int id = accessor.GetBlockId(pos);
+        Block main = accessor.GetBlock(blockSel.Position);
+        if (main is not SidingWallBlock) return id;
+
+        bool openPartFilled = accessor.GetBlockEntity<SidingWallEntity>(pos)?.OpenPartFilled == true;
+        return RunCellFree(main, blockSel.Position, accessor.GetBlock(pos), pos, openPartFilled) ? 0 : Math.Max(id, 1);
     }
 
     // ChunkTesselator.vars isn't public; ShiftTowardWall is called from transpiled IL, so it can't
@@ -1154,8 +1300,10 @@ public class SidingModSystem : ModSystem
                 // Not here: the old host's OnBlockRemoved (a chest dropping its contents) runs right
                 // after this prefix returns, and would otherwise fire against the wall. A player's
                 // break restores in NeighbourUpdatePrefix, before any neighbour is told; this
-                // callback covers every other way a host goes (explosions, other mods).
-                world.RegisterCallback(_ => RestoreGuestWall(world, pos), 0);
+                // callback covers every other way a host goes (explosions, other mods). It keeps its own
+                // copy of pos: vanilla's Multiblock removal passes one BlockPos it moves on to each cell.
+                var restorePos = pos.Copy();
+                world.RegisterCallback(_ => RestoreGuestWall(world, restorePos), 0);
                 break;
             case HostChange.Drop:
                 if (guest.Block is SidingWallBlock guestWall)
@@ -1285,9 +1433,17 @@ public class SidingModSystem : ModSystem
         AccessTools.FieldRefAccess<CollectibleObject, ICoreAPI>("api");
 
     // A trunk's filler draws nothing and takes the trunk's boxes, mirrored, so it shifts by the
-    // trunk's inset rather than by its own default cube's.
+    // trunk's inset rather than by its own default cube's. A More Inventorys filler does the same
+    // through its block entity, which names its main block only a tick after it is set.
     internal static Block ShiftSource(IBlockAccessor accessor, BlockPos pos, Block block)
-        => block is BlockMultiblock filler ? accessor.GetBlock(pos.AddCopy(filler.OffsetInv)) : block;
+    {
+        if (block is BlockMultiblock filler) return accessor.GetBlock(pos.AddCopy(filler.OffsetInv));
+        if (MainPosByBlock is not { } readers || block.BlockId >= readers.Length || readers[block.BlockId] is not { } reader) return block;
+        if (accessor.GetBlockEntity(pos) is not { } entity || reader.GetValue(entity) is not BlockPos mainPos) return block;
+
+        var main = accessor.GetBlock(mainPos);
+        return IsHostableId(main.BlockId) ? main : block;
+    }
 
     // The getter rebuilds the position from Pos on every call, so shifting it in place is safe.
     internal static void BedSeatPostfix(BlockEntityBed __instance, EntityPos __result)
@@ -1370,10 +1526,10 @@ public class SidingModSystem : ModSystem
         ICoreAPI? api = ApiRef(block);
         if (api == null) return (0, 0);
 
-        // Head-on, the feet stand on open floor with no guest of their own, but must shift with the
-        // head or the bed splits at the seam.
-        var guest = GuestWalls.GuestAt(api, pos);
-        if (guest == null && BedHeadPos(block, pos) is { } headPos) guest = GuestWalls.GuestAt(api, headPos);
+        // A bed shifts as one by whichever of its cells holds a guest, or it splits at the seam: head-on
+        // the feet stand on open floor, and a double bed's head can stand in the room with only its fillers in the wall.
+        var guest = GuestWalls.GuestAt(api, pos)
+            ?? BedCells(api.World.BlockAccessor, pos, block).Select(cell => GuestWalls.GuestAt(api, cell)).FirstOrDefault(found => found != null);
         if (guest?.Block is not SidingWallBlock wall) return (0, 0);
 
         if (FaceShiftByBlock![ShiftSource(api.World.BlockAccessor, pos, block).BlockId] is not { } shifts) return (0, 0);

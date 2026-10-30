@@ -1,6 +1,9 @@
 using System.Collections.Generic;
+using Newtonsoft.Json.Linq;
 using Vintagestory.API.Common;
+using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
+using Vintagestory.GameContent;
 using Xunit;
 
 namespace VSSiding.Tests;
@@ -62,6 +65,42 @@ public class FootprintHostsTests
 
         var actual = new Dictionary<string, bool>();
         foreach (var (name, cells) in footprints) actual[name] = SidingModSystem.FootprintHosts("north", cells);
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void ARunCellIsFreeOnlyAsAStraightWallOfTheMainCellsOwnRun()
+    {
+        var main = new BlockPos(10, 5, 10);
+        var cases = new Dictionary<string, (Block main, Block cell, BlockPos pos, bool openPartFilled)>
+        {
+            ["wall above"] = (Wall("wall", "north"), Wall("wall", "north"), main.UpCopy(), false),
+            ["wall along a north run"] = (Wall("wall", "north"), Wall("wall", "north"), main.EastCopy(), false),
+            ["wall along an east run"] = (Wall("wall", "east"), Wall("wall", "east"), main.NorthCopy(), false),
+            ["wall on the opposite side"] = (Wall("wall", "north"), Wall("wall", "south"), main.EastCopy(), false),
+            ["parallel wall behind"] = (Wall("wall", "north"), Wall("wall", "north"), main.NorthCopy(), false),
+            ["cornerout"] = (Wall("wall", "north"), Wall("cornerout", "north"), main.EastCopy(), false),
+            ["decked or stepped wall"] = (Wall("wall", "north"), Wall("wall", "north"), main.UpCopy(), true),
+            ["air"] = (Wall("wall", "north"), new Block(), main.EastCopy(), false),
+            ["main cell a cornerout"] = (Wall("cornerout", "north"), Wall("wall", "north"), main.EastCopy(), false),
+        };
+
+        var expected = new Dictionary<string, bool>
+        {
+            ["wall above"] = true,
+            ["wall along a north run"] = true,
+            ["wall along an east run"] = true,
+            ["wall on the opposite side"] = false,
+            ["parallel wall behind"] = false,
+            ["cornerout"] = false,
+            ["decked or stepped wall"] = false,
+            ["air"] = false,
+            ["main cell a cornerout"] = false,
+        };
+
+        var actual = new Dictionary<string, bool>();
+        foreach (var (name, c) in cases) actual[name] = SidingModSystem.RunCellFree(c.main, main, c.cell, c.pos, c.openPartFilled);
 
         Assert.Equal(expected, actual);
     }
@@ -130,6 +169,83 @@ public class FootprintHostsTests
 
         var actual = new Dictionary<string, bool>();
         foreach (var (name, (head, feet)) in footprints) actual[name] = SidingModSystem.BedFootprintHosts("north", head, feet);
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void ADoubleBedHostsHeadboardOnOrEitherLongSideWithThePanelAwayFromTheOpenRow()
+    {
+        // An east bed, feet east of the head, fillers to the north: the headboard faces west.
+        var air = new Block();
+        var footprints = new Dictionary<string, (Block head, Block feet, Block headFiller, Block feetFiller)>
+        {
+            ["headboard"] = (Wall("wall", "west"), air, Wall("wall", "west"), air),
+            ["bed row in the wall"] = (Wall("wall", "south"), Wall("wall", "south"), air, air),
+            ["filler row in the wall"] = (air, air, Wall("wall", "north"), Wall("wall", "north")),
+            ["bed row with the panel toward the fillers"] = (Wall("wall", "north"), Wall("wall", "north"), air, air),
+            ["filler row with the panel toward the bed"] = (air, air, Wall("wall", "south"), Wall("wall", "south")),
+            ["headboard on the wrong face"] = (Wall("wall", "east"), air, Wall("wall", "east"), air),
+            ["head alone in the wall"] = (Wall("wall", "west"), air, air, air),
+            ["headboard with the feet row in a wall too"] = (Wall("wall", "west"), Wall("wall", "west"), Wall("wall", "west"), Wall("wall", "west")),
+            ["bed row with a cornerout"] = (Wall("wall", "south"), Wall("cornerout", "south"), air, air),
+            ["no walls"] = (air, air, air, air),
+        };
+
+        var expected = new Dictionary<string, bool>
+        {
+            ["headboard"] = true,
+            ["bed row in the wall"] = true,
+            ["filler row in the wall"] = true,
+            ["bed row with the panel toward the fillers"] = false,
+            ["filler row with the panel toward the bed"] = false,
+            ["headboard on the wrong face"] = false,
+            ["head alone in the wall"] = false,
+            ["headboard with the feet row in a wall too"] = false,
+            ["bed row with a cornerout"] = false,
+            ["no walls"] = true,
+        };
+
+        var actual = new Dictionary<string, bool>();
+        foreach (var (name, (head, feet, headFiller, feetFiller)) in footprints)
+            actual[name] = SidingModSystem.DoubleBedFootprintHosts("east", "north", head, feet, headFiller, feetFiller);
+
+        Assert.Equal(expected, actual);
+    }
+
+    internal static BlockBed DoubleBedHead(string side, string multiblock)
+    {
+        var head = new BlockBed();
+        head.VariantStrict["part"] = "head";
+        head.VariantStrict["side"] = side;
+        var behavior = new BlockBehaviorMultiblock(head);
+        behavior.Initialize(new JsonObject(JObject.Parse(multiblock)));
+        head.BlockBehaviors = new BlockBehavior[] { behavior };
+        return head;
+    }
+
+    // Kevins Furniture 1.9.0's celticbed.json Multiblock properties per head, copied, so this pins how
+    // vanilla's Multiblock reads them, not the mod's file.
+    internal static readonly Dictionary<string, string> CelticBedMultiblock = new()
+    {
+        ["east"] = "{ sizex: 2, sizey: 1, sizez: 1, cposition: { x: 0, y: 0, z: 1 } }",
+        ["west"] = "{ sizex: 2, sizey: 1, sizez: 1, cposition: { x: 1, y: 0, z: 1 } }",
+        ["south"] = "{ sizex: 1, sizey: 1, sizez: 2, cposition: { x: 1, y: 0, z: 0 } }",
+        ["north"] = "{ sizex: 1, sizey: 1, sizez: 2, cposition: { x: 1, y: 0, z: 1 } }",
+    };
+
+    [Fact]
+    public void TheCelticBedsFillersStandNorthOfAnEastWestBedAndWestOfANorthSouthOne()
+    {
+        var headPos = new BlockPos(10, 5, 10);
+        var expected = new Dictionary<string, string?> { ["east"] = "north", ["west"] = "north", ["south"] = "west", ["north"] = "west" };
+
+        var actual = new Dictionary<string, string?>();
+        foreach (var (side, multiblock) in CelticBedMultiblock)
+        {
+            var fillers = SidingModSystem.MultiblockCells(DoubleBedHead(side, multiblock), headPos);
+            actual[side] = SidingModSystem.FillerSide(headPos, headPos.AddCopy(BlockFacing.FromCode(side)), fillers)?.Code;
+        }
 
         Assert.Equal(expected, actual);
     }

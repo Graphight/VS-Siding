@@ -24,6 +24,9 @@ internal static class GapShiftCollisionPatches
     // Per (host array, panel array) pair, one concatenated copy: this runs every physics tick.
     private static readonly ConditionalWeakTable<Cuboidf[], ConcurrentDictionary<Cuboidf[], Cuboidf[]>> CombineCache = new();
 
+    // Per shifted array, one copy clipped to its cell.
+    private static readonly ConditionalWeakTable<Cuboidf[], Cuboidf[]> ClampCache = new();
+
     // Per panel array, one PanelSelectionBox copy.
     private static readonly ConditionalWeakTable<Cuboidf[], Cuboidf[]> PanelSelectionCache = new();
 
@@ -49,14 +52,14 @@ internal static class GapShiftCollisionPatches
     // A hung block under a thin floor reaches head height in a low room, so it collides with nothing,
     // as vanilla's oil lamp has no collision box; it still selects (decision 0054).
     private static void PostfixCollision(Block __instance, ref Cuboidf[] __result, object[] __args)
-        => __result = ShiftAndAppendPanel(__instance, IsHung(__instance, __args) ? null! : __result, __args, wall => wall.CollisionBoxes);
+        => __result = ShiftAndAppendPanel(__instance, IsHung(__instance, __args) ? null! : __result, __args, wall => wall.CollisionBoxes, clampToCell: true);
 
     // Outermost only, so an override reading base's boxes never sees null.
     private static bool IsHung(Block instance, object[] args)
         => depth == 1 && args[1] is BlockPos pos && SidingModSystem.HangShiftAt(pos, instance) != 0;
 
     private static void PostfixParticleCollision(Block __instance, ref Cuboidf[] __result, object[] __args)
-        => __result = ShiftAndAppendPanel(__instance, __result, __args, wall => wall.ParticleCollisionBoxes ?? wall.CollisionBoxes);
+        => __result = ShiftAndAppendPanel(__instance, __result, __args, wall => wall.ParticleCollisionBoxes ?? wall.CollisionBoxes, clampToCell: true);
 
     // The panel's boxes go after the host's, so the host's own indices (which shelves and ground
     // storage use to pick a slot) are unchanged.
@@ -64,9 +67,11 @@ internal static class GapShiftCollisionPatches
         => __result = ShiftAndAppendPanel(__instance, __result, __args, wall => wall.SelectionBoxes, MarkedForPanel);
 
     private static Cuboidf[] ShiftAndAppendPanel(Block instance, Cuboidf[] result, object[] args,
-        System.Func<SidingWallBlock, Cuboidf[]> fullBoxesOf, System.Func<Cuboidf[], Cuboidf[]>? markPanel = null)
+        System.Func<SidingWallBlock, Cuboidf[]> fullBoxesOf, System.Func<Cuboidf[], Cuboidf[]>? markPanel = null, bool clampToCell = false)
     {
         Shift(instance, result, args, out var shifted);
+        // Vanilla only asks the cells an entity's box already overlaps, so a box past its own cell is never met.
+        if (clampToCell && !ReferenceEquals(shifted, result)) shifted = Clamped(shifted);
         // Hostable first: this runs on every collision query in the world. It also keeps a real
         // wall, reaching here through its own base call, from appending a copy of its own panel.
         if (!SidingModSystem.IsHostableId(instance.BlockId) || depth != 1
@@ -101,6 +106,18 @@ internal static class GapShiftCollisionPatches
     {
         return ShiftCache.GetValue(original, _ => new ConcurrentDictionary<(double, double, double), Cuboidf[]>())
             .GetOrAdd((dx, dy, dz), _ => original.Select(box => ShiftedBox(box, dx, dy, dz)).ToArray());
+    }
+
+    internal static Cuboidf[] Clamped(Cuboidf[] boxes)
+        => ClampCache.GetValue(boxes, _ => boxes.Select(ClampedBox).ToArray());
+
+    private static Cuboidf ClampedBox(Cuboidf box)
+    {
+        float x1 = Math.Clamp(box.X1, 0, 1), x2 = Math.Clamp(box.X2, 0, 1);
+        float z1 = Math.Clamp(box.Z1, 0, 1), z2 = Math.Clamp(box.Z2, 0, 1);
+        return box is CuboidfWithId withId
+            ? new CuboidfWithId(x1, box.Y1, z1, x2, box.Y2, z2) { Id = withId.Id }
+            : new Cuboidf(x1, box.Y1, z1, x2, box.Y2, z2);
     }
 
     // The raytrace reports a CuboidfWithId's Id as the selection's SelectionBoxId, and a cabinet's

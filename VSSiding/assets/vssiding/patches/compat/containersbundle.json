@@ -1,0 +1,51 @@
+[
+	{
+		"op": "addmerge",
+		"file": "containersbundle:blocktypes/wood/cupboardnolabel.json",
+		"path": "/attributes",
+		"value": { "vssidingHostable": true },
+		"dependsOn": [{ "modid": "containersbundle" }]
+	},
+	{
+		"op": "addmerge",
+		"file": "containersbundle:blocktypes/wood/cupboardwithlabel.json",
+		"path": "/attributes",
+		"value": { "vssidingHostable": true },
+		"dependsOn": [{ "modid": "containersbundle" }]
+	},
+	{
+		"op": "addmerge",
+		"file": "containersbundle:blocktypes/wood/foodcupboard.json",
+		"path": "/attributes",
+		"value": { "vssidingHostable": true },
+		"dependsOn": [{ "modid": "containersbundle" }]
+	},
+	{
+		"op": "addmerge",
+		"file": "containersbundle:blocktypes/wood/foodcupboardwall.json",
+		"path": "/attributes",
+		"value": { "vssidingHostable": true },
+		"dependsOn": [{ "modid": "containersbundle" }]
+	},
+	{
+		"op": "addmerge",
+		"file": "containersbundle:blocktypes/wood/linencrate.json",
+		"path": "/attributes",
+		"value": { "vssidingHostable": true },
+		"dependsOn": [{ "modid": "containersbundle" }]
+	},
+	{
+		"op": "addmerge",
+		"file": "containersbundle:blocktypes/wood/longcrate.json",
+		"path": "/attributes",
+		"value": { "vssidingHostable": true },
+		"dependsOn": [{ "modid": "containersbundle" }]
+	},
+	{
+		"op": "addmerge",
+		"file": "containersbundle:blocktypes/metal/metalcabinet.json",
+		"path": "/attributes",
+		"value": { "vssidingHostable": true },
+		"dependsOn": [{ "modid": "containersbundle" }]
+	}
+]

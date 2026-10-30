@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Newtonsoft.Json.Linq;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Datastructures;
@@ -38,8 +39,6 @@ public class IsHostableTests
         bedHead.VariantStrict["part"] = "head";
         var bedFeet = Open(new BlockBed());
         bedFeet.VariantStrict["part"] = "feet";
-        var painting = Open(new Block());
-        painting.BlockBehaviors = new BlockBehavior[] { new BlockBehaviorMultiblock(painting) };
         var trunk = Open(new BlockGenericTypedContainerTrunk());
         trunk.BlockBehaviors = new BlockBehavior[] { new BlockBehaviorMultiblock(trunk) };
         var pot = Open(new Block());
@@ -62,7 +61,7 @@ public class IsHostableTests
             ["door"] = Open(new Block { BlockEntityBehaviors = new[] { new BlockEntityBehaviorType { Name = "Door" } } }),
             ["multiblock filler"] = Open(new BlockMultiblock()),
             ["trunk"] = trunk,
-            ["painting"] = painting,
+            ["painting"] = PaintingLike(),
             ["mechanical power"] = Open(new PowerBlock()),
             ["siding wall"] = Open(new SidingWallBlock()),
             ["siding floor"] = new SidingFloorBlock { SideSolid = new SmallBoolArray(BlockFacing.UP.Flag), EntityClass = "SidingFloorEntity" },
@@ -95,5 +94,57 @@ public class IsHostableTests
         foreach (var (name, block) in blocks) actual[name] = SidingModSystem.IsHostable(block);
 
         Assert.Equal(expected, actual);
+    }
+
+    private static T Declared<T>(T block, bool hostable) where T : Block
+    {
+        block.Attributes = new JsonObject(new JObject { ["vssidingHostable"] = hostable });
+        return block;
+    }
+
+    [Fact]
+    public void ABlockCanDeclareItselfHostable()
+    {
+        var blocks = new Dictionary<string, Block>
+        {
+            ["trunk"] = Declared(Open(new BlockGenericTypedContainerTrunk()), true),
+            ["solid cube"] = Declared(new Block(), true),
+            ["non-trunk multiblock"] = Declared(Sided(PaintingLike()), true),
+            ["sideless multiblock"] = Declared(PaintingLike(), true),
+            ["door"] = Declared(Open(new Block { BlockEntityBehaviors = new[] { new BlockEntityBehaviorType { Name = "Door" } } }), true),
+            ["fluid"] = Declared(Open(new FluidBlock()), true),
+            ["furniture"] = Declared(Open(new Block()), false),
+            ["undeclared solid cube"] = new Block(),
+        };
+
+        var expected = new Dictionary<string, string?>
+        {
+            ["trunk"] = null,
+            ["solid cube"] = null,
+            ["non-trunk multiblock"] = null,
+            ["sideless multiblock"] = "multiblock without side",
+            ["door"] = "door",
+            ["fluid"] = "fluid",
+            ["furniture"] = "vssidingHostable false",
+            ["undeclared solid cube"] = "solid side",
+        };
+
+        var actual = new Dictionary<string, string?>();
+        foreach (var (name, block) in blocks) actual[name] = SidingModSystem.HostRefusal(block);
+
+        Assert.Equal(expected, actual);
+    }
+
+    private static Block PaintingLike()
+    {
+        var painting = Open(new Block());
+        painting.BlockBehaviors = new BlockBehavior[] { new BlockBehaviorMultiblock(painting) };
+        return painting;
+    }
+
+    private static Block Sided(Block block)
+    {
+        block.VariantStrict["side"] = "east";
+        return block;
     }
 }
