@@ -64,6 +64,7 @@ public class FinishElementGroupsTests
         var rims = RimsEveryGlazedCellAsksFor((finishes, key, style, joins) => SidingWallEntity.SelectiveElements(
             layout, "oak", "glass", key, layout == "cornerout" ? key : null, key, finishes, joins, glazed: true,
             styles: (style, layout == "cornerout" ? style : null, style)));
+
         var names = WallShapeGen.Generate(layout)["elements"]!.Select(e => (string)e["name"]!).ToHashSet();
         var offenders = rims.Where(r => !names.Contains(r)).Select(r => $"the {layout} shape has no element '{r}'").ToList();
         foreach (var variant in ((JObject)wallJson["shapebytype"]!).Properties().Where(p => (string)p.Value["base"]! == $"block/wall/{layout}"))

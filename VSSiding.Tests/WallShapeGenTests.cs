@@ -1191,7 +1191,7 @@ public class WallShapeGenTests
 
     [Theory]
     [MemberData(nameof(WallCornerMeetings))]
-    public void AWallAndTheGlazedCornerItJoinsDrawNoFaceOnTheSamePlaneAndOverlap(bool finished, string corneroutSide, string towards, string[] uncoveredFillers)
+    public void AWallAndTheGlazedCornerItJoinsDrawNoFaceOnTheSamePlaneAndOverlap(bool finished, string corneroutSide, string towards, string[] _)
     {
         var (wall, corner) = WallBesideCorner(corneroutSide, BlockFacing.FromCode(towards), finished);
 
@@ -1250,7 +1250,7 @@ public class WallShapeGenTests
 
     [Theory]
     [MemberData(nameof(WallDiagonalMeetings))]
-    public void AWallAndTheGlazedDiagonalItJoinsDrawNoFaceOnTheSamePlaneAndOverlap(bool finished, string wallSide, string towards, string[] uncovered)
+    public void AWallAndTheGlazedDiagonalItJoinsDrawNoFaceOnTheSamePlaneAndOverlap(bool finished, string wallSide, string towards, string[] _)
     {
         var (wall, diagonal) = WallBesideDiagonal(wallSide, BlockFacing.FromCode(towards), finished);
 
@@ -1370,7 +1370,7 @@ public class WallShapeGenTests
                 select p.Name).Distinct().ToList();
 
         Assert.Equal([], Uncovered(a, b, BlockFacing.NORTH).Concat(Uncovered(b, a, BlockFacing.SOUTH)).ToList());
-        if (finished && !(above && below)) Assert.NotEmpty(a.Where(face => face.Facing == BlockFacing.NORTH && face.Plane == plane));
+        if (finished && !(above && below)) Assert.Contains(a, face => face.Facing == BlockFacing.NORTH && face.Plane == plane);
     }
 
     // Every ordered pair of cells bar two diagonals, the second one block off along the first's end, whose ends meet there.
