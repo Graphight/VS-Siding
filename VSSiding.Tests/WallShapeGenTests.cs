@@ -1195,6 +1195,62 @@ public class WallShapeGenTests
         Assert.Equal(uncoveredFillers, uncovered.Distinct().OrderBy(name => name).ToList());
     }
 
+    // The cells of a glazed diagonal-west (offset 0) and a glazed wall one block off along `towards` that has dropped
+    // the stile on that side, as world faces. Only the diagonal's two fillers are axis-aligned, so they stand for it:
+    // its other parts are turned 45 degrees and meet the wall only through them.
+    private static (List<WorldFace> Wall, List<WorldFace> Diagonal) WallBesideDiagonal(string wallSide, BlockFacing towards, bool finished)
+    {
+        bool left = towards == BlockFacing.SOUTH;
+        var wall = WorldFaces(1, "wall", wallSide, Built("wall", finished, (false, false, left, !left)), towards);
+        var diagonal = WorldFaces(0, "diagonal", "west", Built("diagonal", false, default).Where(name => name is "framing-left" or "framing-right").ToArray(), null);
+        return (wall, diagonal);
+    }
+
+    // wall-west at the diagonal's right end (south) and wall-north at its left end (east). What the wall draws
+    // on the boundary that the filler does not face is the room side's mitre ledge (0066), where the wall runs
+    // past the filler's 2.8284 width, and the 0.01 the filler stops short of the cell's top and bottom.
+    public static IEnumerable<object[]> WallDiagonalMeetings()
+    {
+        foreach (bool finished in new[] { false, true })
+        {
+            yield return [finished, "west", "south", finished ? new[] { "back-rim-bottom-left", "back-rim-top-left" } : []];
+            yield return [finished, "north", "east", finished ? new[] { "back-rim-bottom-right", "back-rim-top-right" } : []];
+        }
+    }
+
+    [Theory]
+    [MemberData(nameof(WallDiagonalMeetings))]
+    public void AWallAndTheGlazedDiagonalItJoinsDrawNoFaceOnTheSamePlaneAndOverlap(bool finished, string wallSide, string towards, string[] uncovered)
+    {
+        var (wall, diagonal) = WallBesideDiagonal(wallSide, BlockFacing.FromCode(towards), finished);
+
+        Assert.Equal([], (from a in wall from b in diagonal
+                          where a.Facing == b.Facing && a.Plane == b.Plane && a.Facing.IsHorizontal
+                              && Enumerable.Range(0, 3).Where(k => k != AxisIndex(a.Facing)).All(k => Math.Max(a.Lo[k], b.Lo[k]) < Math.Min(a.Hi[k], b.Hi[k]))
+                          select $"{a.Name} and {b.Name} both draw {a.Facing.Code} at {a.Plane}").Distinct().ToList());
+    }
+
+    // Every face the wall draws on the boundary, pointing into the diagonal's cell, is covered by a filler's
+    // pointing back, bar the ledge and hairs listed with the meetings. Sampled at half voxels.
+    [Theory]
+    [MemberData(nameof(WallDiagonalMeetings))]
+    public void EveryFaceAWallDrawsOnItsBoundaryWithAGlazedDiagonalIsCoveredByTheFillerBarTheMitreLedgeAndHairs(bool finished, string wallSide, string towards, string[] uncovered)
+    {
+        var toward = BlockFacing.FromCode(towards).Opposite;
+        var (wall, diagonal) = WallBesideDiagonal(wallSide, BlockFacing.FromCode(towards), finished);
+        int across = AxisIndex(toward) == 0 ? 2 : 0;
+
+        var actual = from a in wall
+                     where a.Facing == toward && a.Plane == 16
+                     from y in Samples(a.Lo[1], a.Hi[1])
+                     from other in Samples(a.Lo[across], a.Hi[across])
+                     where !diagonal.Any(b => b.Facing == toward.Opposite && b.Plane == 16
+                         && b.Lo[1] <= y && y <= b.Hi[1] && b.Lo[across] <= other && other <= b.Hi[across])
+                     select a.Name;
+
+        Assert.Equal(uncovered, actual.Distinct().OrderBy(name => name).ToList());
+    }
+
     private static IEnumerable<double> Samples(double lo, double hi)
     {
         for (double v = lo + 0.25; v < hi; v += 0.5) yield return v;

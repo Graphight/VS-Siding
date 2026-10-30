@@ -290,9 +290,11 @@ public class SidingWallBlock : Block
     }
 
     // Which neighbours a wall's end joins glass with: another wall on its line, or a corner whose leg
-    // ends or corner post ends against it (decision 0080).
+    // ends or corner post ends against it, or a diagonal whose end meets it (decision 0080).
+    // shortcut: a straight wall standing where a diagonal run passes its corner is a clashing build and
+    // is ignored here, so its stile may drop against a diagonal that does not truly carry on; upgrade if players build it.
     internal static bool JoinsAtEnd(End end, string layout, string side)
-        => layout is "wall" or "cornerout" && Ends(layout, side).Any(other => EndsMeet(end, other));
+        => layout is "wall" or "cornerout" or "diagonal" && Ends(layout, side).Any(other => EndsMeet(end, other));
 
     // A diagonal on the same line, whichever way it faces.
     private bool ContinuesDiagonal(IBlockAccessor blockAccessor, BlockPos neighbourPos)
@@ -896,9 +898,9 @@ public class SidingWallBlock : Block
         // cells diagonally across are told too: each frames its inside corner by this one (InnerCorners).
         if (world.BlockAccessor.GetBlock(pos) is not SidingWallBlock block) return;
         if (block.Variant["layout"] == "diagonal") MarkDiagonalRunDirty(world, pos, block.Variant["side"]);
-        if (block.Variant["layout"] == "diagonal") return;
-        var (left, right) = RunNeighbours(block.Variant["side"]);
-        BlockFacing[] sideways = block.Variant["layout"] == "cornerout" ? BlockFacing.HORIZONTALS : [left, right];
+        BlockFacing[] sideways = block.Variant["layout"] == "cornerout"
+            ? BlockFacing.HORIZONTALS
+            : [.. Ends(block.Variant["layout"], block.Variant["side"]).Select(end => end.Points)];
         for (int dy = -1; dy <= 1; dy++)
         {
             foreach (var facing in sideways) world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos.AddCopy(facing).Add(0, dy, 0))?.MarkDirty(true);

@@ -351,7 +351,7 @@ public class SidingWallBlockCollisionTests
     }
 
     // A west wall's left end (toward north) and right end (toward south) each join the leg far end of
-    // one cornerout and the corner post end of another, and no wall or diagonal on another face.
+    // one cornerout and the corner post end of another, and the mitre end of one diagonal, and no wall on another face.
     [Fact]
     public void AWallJoinsGlassAtEachEndAgainstTheTwoCorneroutsWhoseEndsMeetIt()
     {
@@ -363,8 +363,8 @@ public class SidingWallBlockCollisionTests
         Assert.Equal(
             new Dictionary<string, string[]>
             {
-                ["left"] = ["wall-west", "cornerout-west", "cornerout-south"],
-                ["right"] = ["wall-west", "cornerout-west", "cornerout-south"],
+                ["left"] = ["wall-west", "cornerout-west", "cornerout-south", "diagonal-west"],
+                ["right"] = ["wall-west", "cornerout-west", "cornerout-south", "diagonal-south"],
             },
             new Dictionary<string, string[]> { ["left"] = Joining(west[0]), ["right"] = Joining(west[1]) });
     }
