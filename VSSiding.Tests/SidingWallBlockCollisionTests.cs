@@ -362,8 +362,9 @@ public class SidingWallBlockCollisionTests
     }
 
     // The rule that stops a glass sheet swallowing the post where it meets a solid wall. Only the
-    // block-level half of ContinuesGlazing (same layout, same side) needs a world; this is the
-    // half that decides, given two cells that are already on the same run.
+    // block-level half of ContinuesGlazing (ends that meet sideways, the same layout and side up and
+    // down) needs a world, which the test below gives it; this is the half that decides, given two
+    // cells already joined.
     [Theory]
     [InlineData("glass", "oak", "glass", true)]      // glazing into glazing: the post goes
     [InlineData("glass", "oak", "wattle", false)]    // glazing into opaque fill: the post stays

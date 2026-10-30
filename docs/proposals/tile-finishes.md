@@ -75,8 +75,7 @@ One table of side, face and hit position to slot, pinned by a test for every rot
 **Where tiles do not go.**
 A diagonal's panel is a staircase of boxes and takes no tile.
 A glazed cell's finish is a rim round the glass (decision 0071) and takes no tile.
-A tile on a glazed cell gives `build-glazed`, as any finish on a glazed diagonal does today.
-A plain diagonal takes every other finish, so a tile there needs a message of its own.
+A glazed cell and a plain diagonal take every other finish, so a tile on either needs a message of its own.
 
 **Floors and decks are in the first cut.**
 A floor's top and underside take tiles as a wall's faces do (decision 0051), and floors are where vanilla's own tiles go.

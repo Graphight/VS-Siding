@@ -355,8 +355,8 @@ public class SidingWallEntity : BlockEntity
         string member = glazed ? "glazing" : frame;
         var parts = FrameParts(layout, joins, glazed, innerCorners);
 
-        // A glazed wall's or corner's finish is a rim round the glass: its group cut to each part the frame draws
-        // that the group keeps.
+        // A glazed cell's finish is a rim round the glass: its group cut to each part the frame draws that the
+        // group keeps.
         var rims = new List<(string group, System.Func<string, bool> keeps)>();
         void AddFinish(string group, System.Func<string, bool>? keeps = null)
         {

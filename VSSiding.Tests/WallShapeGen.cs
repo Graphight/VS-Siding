@@ -403,10 +403,11 @@ public static class WallShapeGen
                select rim;
     }
 
-    // A corner's rims, cut round each leg's opening, which is read off the leg's own rails: `G-rim` is
-    // everything beside it, full height, and `G-rim-top` and `G-rim-bottom` the parts over and under it.
-    // A front group belongs to leg 1, a second front group to leg 2, and a back box to the leg whose
-    // back slab holds it.
+    // A corner's rims, cut round each leg's opening, which is read off the leg's own rails: `G-rim` is the
+    // corner post's side of it and `G-rim-right` (leg 1) or `G-rim-left` (leg 2) the end post's, both full
+    // height, `G-rim-top` and `G-rim-bottom` the parts over and under it, and `G-rim-top-right` and the like
+    // the parts over and under the end post, which its fillers take once it drops. A front group belongs to
+    // leg 1, a second front group to leg 2, and a back box to the leg whose back slab holds it.
     internal static IEnumerable<Element> CornerRimPieces(IEnumerable<Element> elements)
     {
         Element[] all = [.. elements];
@@ -783,11 +784,12 @@ public static class WallShapeGen
     private const double DiagonalFiller = 2.8284;
 
     // A glazed diagonal has no stiles of its own, since its corner fillers are its stiles, so its glazing
-    // rails run end to end between them. Where two glazed diagonals meet, the pieces named for a join fill
-    // the half post's place beyond the rails' -left and -right pieces.
+    // rails run end to end between them.
     private static readonly string[] DiagonalFrame =
         ["framing-top", "framing-bottom", "infill-top", "infill", "infill-bottom", "infill-pane", "glazing-top", "glazing-bottom"];
 
+    // Where two glazed diagonals' glass runs on, the pieces named for a join fill the half post's place
+    // beyond the rails' and the pane's -left and -right pieces.
     private static readonly string[] DiagonalJoined = ["glazing-top", "glazing-bottom", "infill-pane"];
 
     // A finish on a glazed diagonal is a border on the rails, cut to their heights.

@@ -225,8 +225,8 @@ public class SidingWallBlock : Block
         // Glazing merges with the glazing around it in every direction, with no member between,
         // so a run of it reads as one sheet however large. Opaque fill keeps decision 0008's
         // alternating cross-beam. That is why this asks the infill and not the layout: merging
-        // belongs to glass, not to a shape. A cornerout's three posts stay put either way -
-        // corners are structural and a corner has nothing to merge along.
+        // belongs to glass, not to a shape. A cornerout merges at its two leg ends and its corner
+        // post stays either way (decision 0080).
         if (IsTransparent(infill, Attributes["Infills"]))
         {
             bool above = ContinuesGlazing(blockAccessor, pos.UpCopy(), infill);
@@ -317,10 +317,12 @@ public class SidingWallBlock : Block
             && ContinuesGlazing(infill, neighbour, Attributes["Infills"]);
     }
 
-    // Which neighbours a wall's end joins glass with: another wall on its line, or a corner whose leg
-    // ends or corner post ends against it, or a diagonal whose end meets it (decision 0080).
-    // shortcut: a straight wall standing where a diagonal run passes its corner is a clashing build and
-    // is ignored here, so its stile may drop against a diagonal that does not truly carry on; upgrade if players build it.
+    // Whether a cell of `layout` and `side` has an end meeting `end`: another wall on its line, a corner
+    // whose leg end or corner post end lies against it, or a diagonal whose end meets it (decision 0080).
+    // Whether glass runs on through the join is EndContinuesGlazing's question, not this one's.
+    // shortcut: this compares the two ends alone, so a straight wall standing where a diagonal run passes its
+    // corner, a clashing build, may drop its stile against a diagonal whose run goes on into the next diagonal
+    // there instead; upgrade if players build it.
     internal static bool JoinsAtEnd(End end, string layout, string side)
         => Ends(layout, side).Any(other => EndsMeet(end, other));
 
@@ -924,7 +926,8 @@ public class SidingWallBlock : Block
     }
 
     // A diagonal draws its end by whether the next cell carries the run on, and its inside corner there by
-    // the cells above and below that one (InnerCorners). None of them is a face neighbour, so vanilla tells them nothing.
+    // the cells above and below that one (InnerCorners). None of them is a face neighbour, so vanilla's
+    // neighbour update reaches none of them.
     private static void MarkDiagonalRunDirty(IWorldAccessor world, BlockPos pos, string side)
     {
         var (left, right) = DiagonalRunNeighbours(side);

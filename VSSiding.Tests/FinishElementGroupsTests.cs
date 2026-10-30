@@ -51,7 +51,7 @@ public class FinishElementGroupsTests
         Assert.Equal([], offenders);
     }
 
-    // A glazed wall or corner draws a finish group's rim parts in place of the group, for every finish, style and join.
+    // A glazed wall, corner or diagonal draws a finish group's rim parts in place of the group, for every finish, style and join.
     // Each has to exist in the generated shape, and none may be named among what the block's default shape draws.
     [Theory]
     [InlineData("wall")]
