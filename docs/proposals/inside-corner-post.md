@@ -2,7 +2,7 @@
 
 - Status: Draft
 - Created: 2026-10-10
-- Reflects: decision 0069 and the `wall-junctions` proposal it graduated from; mod page comments https://mods.vintagestory.at/vssiding#cmt-243545, #cmt-243968, #cmt-243661 with its second screenshot, #cmt-244456, the questions put to those players on 2026-10-05 (#cmt-244724, #cmt-244732) and the answers of 2026-10-06 (#cmt-245074, #cmt-245199 with its first screenshot, #cmt-245197 with both screenshots); issue #98; decisions 0002, 0042, 0053; none of the players' own builds reproduced
+- Reflects: decision 0069 and the `wall-junctions` proposal it graduated from; mod page comments https://mods.vintagestory.at/vssiding#cmt-243545, #cmt-243968, #cmt-243661 with its second screenshot, #cmt-244456, the questions put to those players on 2026-10-05 (#cmt-244724, #cmt-244732) and the answers of 2026-10-06 (#cmt-245074, #cmt-245199 with its first screenshot, #cmt-245197 with both screenshots), and #cmt-249019 of 2026-10-15; issues #98 and #132; decisions 0002, 0042, 0053; none of the players' own builds reproduced
 
 ## Summary
 Two walls meeting at an inside corner leave a 4/16 square open in a third cell, and one player has asked for it to be closed.
@@ -22,6 +22,12 @@ A glazed cell took no finish and its frame stopped short of the cell's edge, so 
 Decision 0071 settles that reason in the build: a glazed cell now takes a finish as a rim round the glass, and its frame reaches the cell's edge.
 An unfinished glazed cell still shows the seam any unfinished wall does, and the slit has not been looked at in play since, so the screenshot still does not settle what the notch looks like on its own.
 The screenshot also looks taken from inside, while decision 0002 puts the open square outside the room.
+
+**An L-shaped house.**
+A third player asked on 2026-10-15 (#cmt-249019): "being able to make a outside corner, like you can make the house a rectangle really easily but being able to do like an L shape would be awesome, (i think a good fix might be being able to add a corner post that just needs siding and no infill would be a good way to do it)".
+A rectangle needs only `cornerout` pieces, and an L adds one reflex corner, where two walls meet at a point and leave this proposal's notch on the outside.
+The post they describe, siding and no infill, is the one under Design.
+Issue #132 is separate: a slit beside a corner in one orientation only, a line and not a 4/16 square.
 
 **Not yet answered.**
 The player who reported the "small corner" and the one who reported the strip that "won't fill" have not answered.

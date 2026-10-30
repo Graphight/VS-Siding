@@ -2,7 +2,7 @@
 
 - Status: Draft
 - Created: 2026-09-27
-- Reflects: mod page request https://mods.vintagestory.at/vssiding#cmt-240611 and the Roofing author's reply (#cmt-241451), and a second player's description of Roofing's fill (#cmt-245601); `vsroofing-1.5.5.zip`'s assets (no DLL decompiled, as decision 0001); decisions 0001, 0021, 0035, 0066, 0067; `SidingModSystem.IsHostable`; not yet played
+- Reflects: mod page request https://mods.vintagestory.at/vssiding#cmt-240611 and the Roofing author's reply (#cmt-241451), and a second player's description of Roofing's fill (#cmt-245601), and a third player's question (#cmt-250864); `vsroofing-1.5.5.zip`'s assets (no DLL decompiled, as decision 0001); decisions 0001, 0021, 0035, 0066, 0067; `SidingModSystem.IsHostable`; not yet played
 
 ## Summary
 A player wants siding walls to fill up to the underside of a Roofing mod roof.
@@ -21,6 +21,7 @@ At a gable end the roof slopes along the wall's plane, so each wall cell up the 
 
 **Sharing the roof's cell.**
 The player also asked for fill inside the roof block's own cell, below its slope.
+A third player asked the same on 2026-10-19: "How do you combine the siding walls with the VS Roof in the same square?"
 `roof.json` sets no `sidesolid`, so the block gets vanilla's default of all sides solid unless `RoofBlock` overrides it, and `IsHostable` refuses any block with a solid side.
 
 **What Roofing's author says.**
