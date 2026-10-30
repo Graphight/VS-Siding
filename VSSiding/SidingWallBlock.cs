@@ -232,10 +232,8 @@ public class SidingWallBlock : Block
             bool above = ContinuesGlazing(blockAccessor, pos.UpCopy(), infill);
             bool below = ContinuesGlazing(blockAccessor, pos.DownCopy(), infill);
             if (ClaimsTwoFaces(Variant["layout"])) return (above, below, runsOn.left, runsOn.right);
-            var (left, right) = RunNeighbours(Variant["side"]);
-            return (above, below,
-                ContinuesGlazing(blockAccessor, pos.AddCopy(left), infill),
-                ContinuesGlazing(blockAccessor, pos.AddCopy(right), infill));
+            var ends = Ends(Variant["layout"], Variant["side"]);
+            return (above, below, EndContinuesGlazing(blockAccessor, pos, ends[0], infill), EndContinuesGlazing(blockAccessor, pos, ends[1], infill));
         }
 
         int cellsBelow = 0;
@@ -255,9 +253,41 @@ public class SidingWallBlock : Block
     internal string[] InnerCorners(IBlockAccessor blockAccessor, BlockPos pos, string? infill, (bool above, bool below, bool left, bool right) joins)
     {
         if (Variant["layout"] != "wall" || !IsTransparent(infill, Attributes["Infills"])) return [];
-        var (left, right) = RunNeighbours(Variant["side"]);
+        var ends = Ends(Variant["layout"], Variant["side"]);
         return InnerCorners(joins, (rail, stile) =>
-            ContinuesGlazing(blockAccessor, pos.AddCopy(stile == "-left" ? left : right).Add(0, rail == "-top" ? 1 : -1, 0), infill));
+            ContinuesGlazing(blockAccessor, pos.AddCopy((stile == "-left" ? ends[0] : ends[1]).Points).Add(0, rail == "-top" ? 1 : -1, 0), infill));
+    }
+
+    // Where a cell's frame stops along a run: the face the end lies on, the way the run carries on
+    // from it, and whether the end's upright can be dropped when the glass runs on (a corner post or
+    // a diagonal's mitre filler never can).
+    internal readonly record struct End(BlockFacing Face, BlockFacing Points, bool Droppable);
+
+    // A wall's, left then right. A cornerout and a diagonal end right on `side` and left on the second
+    // face, the cornerout adding the two ends of its corner post (decision 0066).
+    internal static End[] Ends(string layout, string side)
+    {
+        BlockFacing face = BlockFacing.FromCode(side);
+        var (left, right) = RunNeighbours(side);
+        return layout switch
+        {
+            "wall" => [new(face, left, true), new(face, right, true)],
+            "cornerout" => [new(face, right, true), new(left, face.Opposite, true), new(face, left, false), new(left, face, false)],
+            "diagonal" => [new(face, right, false), new(left, face.Opposite, false)],
+            _ => [],
+        };
+    }
+
+    // Two ends on the same face pointing at each other are the one join seen from both cells.
+    internal static bool EndsMeet(End a, End b) => a.Face == b.Face && a.Points == b.Points.Opposite;
+
+    private bool EndContinuesGlazing(IBlockAccessor blockAccessor, BlockPos pos, End end, string? infill)
+    {
+        BlockPos neighbourPos = pos.AddCopy(end.Points);
+        if (SameRunNeighbour(blockAccessor, neighbourPos) is not { } neighbour) return false;
+        var (wall, _) = WallAt(blockAccessor, neighbourPos)!.Value;
+        return Ends(wall.Variant["layout"], wall.Variant["side"]).Any(other => EndsMeet(end, other))
+            && ContinuesGlazing(infill, neighbour, Attributes["Infills"]);
     }
 
     // A diagonal on the same line, whichever way it faces.

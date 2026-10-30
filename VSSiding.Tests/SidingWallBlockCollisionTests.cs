@@ -297,6 +297,59 @@ public class SidingWallBlockCollisionTests
             rotated,
             new[] { "west", "south", "east", "north" }.ToDictionary(side => side, side => SidingWallBlock.RunNeighbours(side).left.Code));
     }
+
+    // The unrotated ("west") ends of each layout, written as the slabs they lie on and point to, then
+    // turned by the entity's rotation, so Ends is pinned to the geometry and not to its own tables.
+    [Fact]
+    public void EndsAreTheUnrotatedWestEndsTurnedBySide()
+    {
+        var origin = new Vec3d(0.5, 0.5, 0.5);
+        BlockFacing Turn(BlockFacing unrotated, string side)
+        {
+            Vec3i n = unrotated.Normali;
+            var slab = new Cuboidf(
+                n.X > 0 ? 15f / 16 : 0, 0, n.Z > 0 ? 15f / 16 : 0,
+                n.X < 0 ? 1f / 16 : 1, 1, n.Z < 0 ? 1f / 16 : 1);
+            Cuboidf box = slab.RotatedCopy(0, SidingWallEntity.RotationYDeg(side), 0, origin);
+            int dx = (int)Math.Round(((box.X1 + box.X2) / 2 - 0.5f) * 2), dz = (int)Math.Round(((box.Z1 + box.Z2) / 2 - 0.5f) * 2);
+            return BlockFacing.HORIZONTALS.First(f => f.Normali.X == dx && f.Normali.Z == dz);
+        }
+
+        var west = new Dictionary<string, (BlockFacing face, BlockFacing points, bool droppable)[]>
+        {
+            ["wall"] = [(BlockFacing.WEST, BlockFacing.NORTH, true), (BlockFacing.WEST, BlockFacing.SOUTH, true)],
+            ["cornerout"] =
+            [
+                (BlockFacing.WEST, BlockFacing.SOUTH, true), (BlockFacing.NORTH, BlockFacing.EAST, true),
+                (BlockFacing.WEST, BlockFacing.NORTH, false), (BlockFacing.NORTH, BlockFacing.WEST, false),
+            ],
+            ["diagonal"] = [(BlockFacing.WEST, BlockFacing.SOUTH, false), (BlockFacing.NORTH, BlockFacing.EAST, false)],
+        };
+
+        var expected = new[] { "west", "south", "east", "north" }.SelectMany(side => west.Select(layout =>
+            (key: $"{layout.Key}-{side}", ends: layout.Value.Select(e => new SidingWallBlock.End(Turn(e.face, side), Turn(e.points, side), e.droppable)).ToArray())))
+            .ToDictionary(e => e.key, e => e.ends);
+        var actual = new[] { "west", "south", "east", "north" }.SelectMany(side => west.Keys.Select(layout =>
+            (key: $"{layout}-{side}", ends: SidingWallBlock.Ends(layout, side))))
+            .ToDictionary(e => e.key, e => e.ends);
+
+        Assert.Equal(expected, actual);
+    }
+
+    // Every droppable end has exactly one end on the cell it points into that meets it back.
+    [Fact]
+    public void EveryDroppableEndMeetsItsNeighboursEndBackSymmetrically()
+    {
+        var layouts = new[] { "wall", "cornerout", "diagonal" };
+        var ends = (from layout in layouts from side in new[] { "west", "south", "east", "north" } from end in SidingWallBlock.Ends(layout, side) select end).ToList();
+
+        foreach (var a in ends)
+            foreach (var b in ends)
+                Assert.Equal(SidingWallBlock.EndsMeet(a, b), SidingWallBlock.EndsMeet(b, a));
+
+        Assert.All(ends, a => Assert.Contains(ends, b => SidingWallBlock.EndsMeet(a, b)));
+    }
+
     // The rule that stops a glass sheet swallowing the post where it meets a solid wall. Only the
     // block-level half of ContinuesGlazing (same layout, same side) needs a world; this is the
     // half that decides, given two cells that are already on the same run.
