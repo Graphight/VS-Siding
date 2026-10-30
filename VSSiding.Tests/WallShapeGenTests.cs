@@ -1111,10 +1111,13 @@ public class WallShapeGenTests
         return BlockFacing.HORIZONTALS.First(f => f.Normali.X == dx && f.Normali.Z == dz);
     }
 
+    // Every meeting reads the same few shapes, and the diagonal's takes seconds to generate.
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, JObject> Generated = new();
+
     private static List<WorldFace> WorldFaces(int cell, string layout, string side, string[] names, BlockFacing? offset)
     {
         var faces = new List<WorldFace>();
-        foreach (var element in WallShapeGen.Generate(layout)["elements"]!.Where(e => names.Contains((string)e["name"]!)))
+        foreach (var element in Generated.GetOrAdd(layout, WallShapeGen.Generate)["elements"]!.Where(e => names.Contains((string)e["name"]!)))
         {
             var (lo, hi) = Box(element);
             var turned = new Cuboidf((float)lo[0] / 16, (float)lo[1] / 16, (float)lo[2] / 16, (float)hi[0] / 16, (float)hi[1] / 16, (float)hi[2] / 16)
@@ -1149,7 +1152,7 @@ public class WallShapeGenTests
     {
         bool left = towards == BlockFacing.NORTH;
         var wall = WorldFaces(0, "wall", "west", Built("wall", finished, (false, false, left, !left)), null);
-        var corner = WorldFaces(1, "cornerout", corneroutSide, Built("cornerout", finished, default), towards);
+        var corner = WorldFaces(1, "cornerout", corneroutSide, Built("cornerout", finished, JoinsToward("cornerout", corneroutSide, towards.Opposite, "wall", "west")), towards);
         return (wall, corner);
     }
 
@@ -1256,6 +1259,109 @@ public class WallShapeGenTests
                      select a.Name;
 
         Assert.Equal(uncovered, actual.Distinct().OrderBy(name => name).ToList());
+    }
+
+    private static (bool above, bool below, bool left, bool right) JoinsToward(string layout, string side, BlockFacing towards, string otherLayout, string otherSide)
+    {
+        if (layout == "diagonal") return default;
+        var (left, right) = SidingWallBlock.LeftRightEnds(layout, side);
+        bool Meets(SidingWallBlock.End end) => end.Points == towards && SidingWallBlock.JoinsAtEnd(end, otherLayout, otherSide);
+        return (false, false, Meets(left), Meets(right));
+    }
+
+    // A at the origin and B one block off along `towards`, each dropping its end post where the other's end meets it. A diagonal
+    // is stood for by its two axis-aligned fillers, as in WallBesideDiagonal.
+    private static (List<WorldFace> A, List<WorldFace> B) Meeting(
+        (string Layout, string Side) a, (string Layout, string Side) b, BlockFacing towards, bool finished)
+    {
+        List<WorldFace> Faces(int cell, (string Layout, string Side) own, (string Layout, string Side) other, BlockFacing facing, BlockFacing? offset)
+        {
+            var joins = JoinsToward(own.Layout, own.Side, facing, other.Layout, other.Side);
+            string[] names = own.Layout == "diagonal"
+                ? Built("diagonal", false, default).Where(name => name is "framing-left" or "framing-right").ToArray()
+                : Built(own.Layout, finished, joins);
+            return WorldFaces(cell, own.Layout, own.Side, names, offset);
+        }
+
+        return (Faces(0, a, b, towards, null), Faces(1, b, a, towards.Opposite, towards));
+    }
+
+    // Every ordered pair of cells bar two diagonals, the second one block off along the first's end, whose ends meet there.
+    public static IEnumerable<object[]> Meetings(string[] layouts)
+    {
+        string[] sides = ["west", "south", "east", "north"];
+        foreach (var layoutA in layouts) foreach (var sideA in sides) foreach (var layoutB in layouts.Where(l => layoutA != "diagonal" || l != "diagonal")) foreach (var sideB in sides)
+        {
+            foreach (var end in SidingWallBlock.Ends(layoutA, sideA))
+            {
+                if (SidingWallBlock.Ends(layoutB, sideB).Any(other => SidingWallBlock.EndsMeet(end, other)))
+                    yield return [layoutA, sideA, layoutB, sideB, end.Points.Code];
+            }
+        }
+    }
+
+    [Theory]
+    [MemberData(nameof(Meetings), new object[] { new[] { "wall", "cornerout", "diagonal" } })]
+    public void TwoGlazedCellsWhoseEndsMeetDrawNoFaceOnTheSamePlaneAndOverlap(string layoutA, string sideA, string layoutB, string sideB, string towards)
+    {
+        Assert.Equal([], new[] { false, true }.SelectMany(finished =>
+        {
+            var (a, b) = Meeting((layoutA, sideA), (layoutB, sideB), BlockFacing.FromCode(towards), finished);
+            return from p in a from q in b
+                   where p.Facing == q.Facing && p.Plane == q.Plane && p.Facing.IsHorizontal
+                       && Enumerable.Range(0, 3).Where(k => k != AxisIndex(p.Facing)).All(k => Math.Max(p.Lo[k], q.Lo[k]) < Math.Min(p.Hi[k], q.Hi[k]))
+                   select $"{layoutA}-{sideA} {p.Name} and {layoutB}-{sideB} {q.Name} both draw {p.Facing.Code} at {p.Plane} (finished {finished})";
+        }).Distinct().ToList());
+    }
+
+    // The faces a cell that has dropped its end post draws on the boundary, pointing into its neighbour, are all covered by
+    // the neighbour's pointing back, so no gap shows where the post has gone. Sampled at half voxels. A neighbour's corner post
+    // starts a voxel in, so the rail fillers of a bare cell beside it face the slot as the post they replace does; against a
+    // diagonal the room side's finish rims the 1.17 mitre ledge and the 0.01 hairs at the filler's top and bottom (0066).
+    // A neighbour that keeps its own post or filler is the jamb, which the dropped end's cell need not be covered by in turn.
+    [Theory]
+    [MemberData(nameof(Meetings), new object[] { new[] { "wall", "cornerout", "diagonal" } })]
+    public void EveryFaceACellDrawsOnItsDroppedEndIsCoveredByTheCellBeyondBarTheListedSlotsLedgesAndHairs(string layoutA, string sideA, string layoutB, string sideB, string towards)
+    {
+        var toward = BlockFacing.FromCode(towards);
+        int plane = toward == BlockFacing.NORTH || toward == BlockFacing.WEST ? 0 : 16;
+        int across = AxisIndex(toward) == 0 ? 2 : 0;
+
+        IEnumerable<string> Uncovered(List<WorldFace> cell, List<WorldFace> covering, BlockFacing facing) =>
+            from a in cell
+            where a.Facing == facing && a.Plane == plane
+            from y in Samples(a.Lo[1], a.Hi[1])
+            from other in Samples(a.Lo[across], a.Hi[across])
+            where !covering.Any(b => b.Facing == facing.Opposite && b.Plane == plane
+                && b.Lo[1] <= y && y <= b.Hi[1] && b.Lo[across] <= other && other <= b.Hi[across])
+            select a.Name;
+
+        string[] Expected(bool finished, string dropped, string otherLayout, bool otherPost) =>
+            otherLayout == "diagonal" ? finished ? [$"back-rim-bottom-{dropped}", $"back-rim-top-{dropped}"] : []
+            : otherPost && !finished ? [$"glazing-bottom-{dropped}", $"glazing-top-{dropped}"] : [];
+
+        var actual = new List<string>();
+        var expected = new List<string>();
+        foreach (bool finished in new[] { false, true })
+        {
+            var (a, b) = Meeting((layoutA, sideA), (layoutB, sideB), toward, finished);
+            foreach (var (own, other, faces, beyond, facing) in new[]
+            {
+                ((layoutA, sideA), (layoutB, sideB), a, b, toward),
+                ((layoutB, sideB), (layoutA, sideA), b, a, toward.Opposite),
+            })
+            {
+                var joins = JoinsToward(own.Item1, own.Item2, facing, other.Item1, other.Item2);
+                if (!joins.left && !joins.right) continue;
+                var end = joins.left ? SidingWallBlock.LeftRightEnds(own.Item1, own.Item2).left : SidingWallBlock.LeftRightEnds(own.Item1, own.Item2).right;
+                var met = SidingWallBlock.Ends(other.Item1, other.Item2).Select((e, i) => (e, i)).First(pair => SidingWallBlock.EndsMeet(end, pair.e));
+                actual.AddRange(Uncovered(faces, beyond, facing).Distinct().OrderBy(name => name).Select(name => $"{own.Item1}-{own.Item2} {finished} {name}"));
+                expected.AddRange(Expected(finished, joins.left ? "left" : "right", other.Item1, other.Item1 == "cornerout" && met.i >= 2)
+                    .Select(name => $"{own.Item1}-{own.Item2} {finished} {name}"));
+            }
+        }
+
+        Assert.Equal(expected, actual);
     }
 
     private static IEnumerable<double> Samples(double lo, double hi)

@@ -231,9 +231,9 @@ public class SidingWallBlock : Block
         {
             bool above = ContinuesGlazing(blockAccessor, pos.UpCopy(), infill);
             bool below = ContinuesGlazing(blockAccessor, pos.DownCopy(), infill);
-            if (ClaimsTwoFaces(Variant["layout"])) return (above, below, runsOn.left, runsOn.right);
-            var ends = Ends(Variant["layout"], Variant["side"]);
-            return (above, below, EndContinuesGlazing(blockAccessor, pos, ends[0], infill), EndContinuesGlazing(blockAccessor, pos, ends[1], infill));
+            if (Variant["layout"] == "diagonal") return (above, below, runsOn.left, runsOn.right);
+            var (leftEnd, rightEnd) = LeftRightEnds(Variant["layout"], Variant["side"]);
+            return (above, below, EndContinuesGlazing(blockAccessor, pos, leftEnd, infill), EndContinuesGlazing(blockAccessor, pos, rightEnd, infill));
         }
 
         int cellsBelow = 0;
@@ -252,10 +252,10 @@ public class SidingWallBlock : Block
 
     internal string[] InnerCorners(IBlockAccessor blockAccessor, BlockPos pos, string? infill, (bool above, bool below, bool left, bool right) joins)
     {
-        if (Variant["layout"] != "wall" || !IsTransparent(infill, Attributes["Infills"])) return [];
-        var ends = Ends(Variant["layout"], Variant["side"]);
+        if (Variant["layout"] is not ("wall" or "cornerout") || !IsTransparent(infill, Attributes["Infills"])) return [];
+        var (leftEnd, rightEnd) = LeftRightEnds(Variant["layout"], Variant["side"]);
         return InnerCorners(joins, (rail, stile) =>
-            EndContinuesGlazing(blockAccessor, pos.AddCopy(0, rail == "-top" ? 1 : -1, 0), stile == "-left" ? ends[0] : ends[1], infill));
+            EndContinuesGlazing(blockAccessor, pos.AddCopy(0, rail == "-top" ? 1 : -1, 0), stile == "-left" ? leftEnd : rightEnd, infill));
     }
 
     // Where a cell's frame stops along a run: the face the end lies on, the way the run carries on
@@ -276,6 +276,13 @@ public class SidingWallBlock : Block
             "diagonal" => [new(face, right, false), new(left, face.Opposite, false)],
             _ => [],
         };
+    }
+
+    // The ends a wall or corner's left and right joins answer for: a corner's leg 2 is its left and leg 1 its right.
+    internal static (End left, End right) LeftRightEnds(string layout, string side)
+    {
+        var ends = Ends(layout, side);
+        return layout == "cornerout" ? (ends[1], ends[0]) : (ends[0], ends[1]);
     }
 
     // Two ends on the same face pointing at each other are the one join seen from both cells.
@@ -871,15 +878,15 @@ public class SidingWallBlock : Block
         base.OnNeighbourBlockChange(world, pos, neibpos);
         if (neibpos.X != pos.X || neibpos.Z != pos.Z)
         {
-            // Only glazing merges sideways, and only along its own run, so those are the only
+            // Only glazing merges sideways, and only at its ends, so those are the only
             // horizontal neighbours that can change what this cell draws - an opaque wall never
             // joins one. Just this cell: merging is local, and the one thing drawn by a cell further
             // off, an inside corner (InnerCorners), is redrawn where a layer changes (MarkNeighboursDirty).
-            if (neibpos.Y != pos.Y || ClaimsTwoFaces(Variant["layout"])) return;
+            if (neibpos.Y != pos.Y || Variant["layout"] == "diagonal") return;
             var entity = world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos);
             if (entity == null || !IsTransparent(entity.Infill, Attributes["Infills"])) return;
-            var (left, right) = RunNeighbours(Variant["side"]);
-            if (neibpos.Equals(pos.AddCopy(left)) || neibpos.Equals(pos.AddCopy(right))) entity.MarkDirty(true);
+            var (leftEnd, rightEnd) = LeftRightEnds(Variant["layout"], Variant["side"]);
+            if (neibpos.Equals(pos.AddCopy(leftEnd.Points)) || neibpos.Equals(pos.AddCopy(rightEnd.Points))) entity.MarkDirty(true);
             return;
         }
         if (neibpos.Y == pos.Y + 1) world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos)?.MarkDirty(true);

@@ -332,7 +332,7 @@ public class SidingWallEntity : BlockEntity
             if (fillers && joins.left) parts.Add(rail + "-left");
             if (fillers && joins.right) parts.Add(rail + "-right");
         }
-        if (fillers && !corner && innerCorners != null) parts.AddRange(innerCorners);
+        if (fillers && innerCorners != null) parts.AddRange(innerCorners);
 
         return parts;
     }

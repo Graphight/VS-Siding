@@ -214,6 +214,33 @@ public class SidingWallEntityTests
                 "cornerout", "oak", "wattle", null, null, null, NoElementFinishes, (false, false, false, false), glazed: false));
     }
 
+    // Each end post drops on its own join: left is leg 2's, right is leg 1's, and the finish rims follow the legs.
+    [Fact]
+    public void AGlazedCorneroutDropsEachEndPostOnItsOwnJoin()
+    {
+        var finishes = Dict("""{ "daub": {} }""");
+
+        Assert.Equal(
+            new string[][]
+            {
+                [
+                    "front-rim", "front-rim-right", "front-rim-top", "front-rim-bottom",
+                    "secondfront-rim", "secondfront-rim-top", "secondfront-rim-top-left", "secondfront-rim-bottom", "secondfront-rim-bottom-left",
+                    "glazing", "glazing-right", "glazing-top", "glazing-top-left", "glazing-bottom", "glazing-bottom-left", "infill-pane",
+                ],
+                [
+                    "front-rim", "front-rim-top", "front-rim-top-right", "front-rim-bottom", "front-rim-bottom-right",
+                    "secondfront-rim", "secondfront-rim-left", "secondfront-rim-top", "secondfront-rim-bottom",
+                    "glazing", "glazing-left", "glazing-top", "glazing-top-right", "glazing-bottom", "glazing-bottom-right", "infill-pane",
+                ],
+            },
+            new[]
+            {
+                SidingWallEntity.SelectiveElements("cornerout", "oak", "glass", "daub", "daub", null, finishes, (false, false, true, false), glazed: true),
+                SidingWallEntity.SelectiveElements("cornerout", "oak", "glass", "daub", "daub", null, finishes, (false, false, false, true), glazed: true),
+            });
+    }
+
     // A glazed corner's finishes are rims too, on both legs: the corner post's piece always, the end post's piece
     // (or the fillers' once it drops), and the pieces over and under the opening for as long as the rails are
     // drawn. The front rims leg 1, whose end post is its right; the second front leg 2, whose is its left; the
@@ -330,7 +357,7 @@ public class SidingWallEntityTests
     }
 
     // An inside corner draws the frame's filler alone, and each finish's rim on it, on a wall, a floor and
-    // a deck; a corner and an opaque wall have no fillers to draw.
+    // a deck; an opaque wall has no fillers to draw.
     [Fact]
     public void AnInsideCornerDrawsItsFillerAndEachFinishesRimOnIt()
     {
@@ -354,7 +381,7 @@ public class SidingWallEntityTests
                     "deck-west-glazing-right", "deck-west-glazing-bottom", "deck-west-glazing-bottom-left", "deck-west-glazing-top-left",
                     "deck-west-infill-pane",
                 ],
-                ["glazing", "glazing-right", "glazing-bottom", "glazing-bottom-left", "infill-pane"],
+                ["glazing", "glazing-right", "glazing-bottom", "glazing-bottom-left", "glazing-top-left", "infill-pane"],
                 ["framing-right", "framing-bottom", "infill", "infill-top"],
             },
             new[]

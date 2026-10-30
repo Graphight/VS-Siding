@@ -369,6 +369,40 @@ public class SidingWallBlockCollisionTests
             new Dictionary<string, string[]> { ["left"] = Joining(west[0]), ["right"] = Joining(west[1]) });
     }
 
+    // Which cells each of a west wall's and a west corner's joining ends meets, and whether that cell drops its own
+    // end post in turn: a wall's stile or a corner's leg end post does, a corner post and a diagonal's mitre filler never
+    // do. So a wall and a corner leg, or two corner legs, agree, a post is met by a dropped stile or end post alone,
+    // and a diagonal is met by a dropped post alone.
+    [Fact]
+    public void AGlazedCellsEndAndTheCellItMeetsAgreeOnWhichDropsItsPost()
+    {
+        string[] sides = ["west", "south", "east", "north"];
+        string[] Meets(SidingWallBlock.End end) => [.. from layout in new[] { "wall", "cornerout", "diagonal" } from side in sides
+            where SidingWallBlock.JoinsAtEnd(end, layout, side)
+            let joining = SidingWallBlock.LeftRightEnds(layout, side)
+            select $"{layout}-{side}" + (layout != "diagonal" && (SidingWallBlock.EndsMeet(end, joining.left) || SidingWallBlock.EndsMeet(end, joining.right))
+                ? " drops" : " keeps")];
+
+        var (wallLeft, wallRight) = SidingWallBlock.LeftRightEnds("wall", "west");
+        var (cornerLeft, cornerRight) = SidingWallBlock.LeftRightEnds("cornerout", "west");
+
+        Assert.Equal(
+            new Dictionary<string, string[]>
+            {
+                ["wall-west left"] = ["wall-west drops", "cornerout-west drops", "cornerout-south keeps", "diagonal-west keeps"],
+                ["wall-west right"] = ["wall-west drops", "cornerout-west keeps", "cornerout-south drops", "diagonal-south keeps"],
+                ["cornerout-west left"] = ["wall-north drops", "cornerout-west keeps", "cornerout-north drops", "diagonal-north keeps"],
+                ["cornerout-west right"] = ["wall-west drops", "cornerout-west keeps", "cornerout-south drops", "diagonal-south keeps"],
+            },
+            new Dictionary<string, string[]>
+            {
+                ["wall-west left"] = Meets(wallLeft),
+                ["wall-west right"] = Meets(wallRight),
+                ["cornerout-west left"] = Meets(cornerLeft),
+                ["cornerout-west right"] = Meets(cornerRight),
+            });
+    }
+
     // The rule that stops a glass sheet swallowing the post where it meets a solid wall. Only the
     // block-level half of ContinuesGlazing (same layout, same side) needs a world; this is the
     // half that decides, given two cells that are already on the same run.
