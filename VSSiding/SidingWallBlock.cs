@@ -247,9 +247,12 @@ public class SidingWallBlock : Block
     {
         if (Variant["layout"] != "diagonal" || !IsTransparent(infill, Attributes["Infills"])) return default;
         var (leftStep, rightStep) = DiagonalRunNeighbours(Variant["side"]);
-        bool GlazedAt(BlockPos at) => ContinuesGlazing(infill, WallAt(blockAccessor, at)?.entity, Attributes["Infills"]);
-        return (joins.left && GlazedAt(pos.AddCopy(leftStep)), joins.right && GlazedAt(pos.AddCopy(rightStep)));
+        return (joins.left && GlazedDiagonalAt(blockAccessor, pos.AddCopy(leftStep), infill),
+            joins.right && GlazedDiagonalAt(blockAccessor, pos.AddCopy(rightStep), infill));
     }
+
+    private bool GlazedDiagonalAt(IBlockAccessor blockAccessor, BlockPos at, string? infill)
+        => ContinuesDiagonal(blockAccessor, at) && ContinuesGlazing(infill, WallAt(blockAccessor, at)?.entity, Attributes["Infills"]);
 
     // The corners a cell merged on both sides still has to frame, as the fillers' suffixes. Where the
     // cell diagonally across carries no glazing on, the sheet is an L and its frame turns an inside
@@ -260,9 +263,18 @@ public class SidingWallBlock : Block
             where rail.Joined && stile.Joined && !glazedAcross(rail.Part, stile.Part)
             select rail.Part + stile.Part).ToArray();
 
+    // A diagonal's sheet turns an inside corner at an end its glass runs on through, where the next cell's stack stops short of its own.
     internal string[] InnerCorners(IBlockAccessor blockAccessor, BlockPos pos, string? infill, (bool above, bool below, bool left, bool right) joins)
     {
-        if (Variant["layout"] is not ("wall" or "cornerout") || !IsTransparent(infill, Attributes["Infills"])) return [];
+        if (!IsTransparent(infill, Attributes["Infills"])) return [];
+        if (Variant["layout"] == "diagonal")
+        {
+            var (leftStep, rightStep) = DiagonalRunNeighbours(Variant["side"]);
+            var glassOn = GlassRunsOn(blockAccessor, pos, infill, joins);
+            return InnerCorners((joins.above, joins.below, glassOn.left, glassOn.right), (rail, stile) =>
+                GlazedDiagonalAt(blockAccessor, pos.AddCopy(stile == "-left" ? leftStep : rightStep).Add(0, rail == "-top" ? 1 : -1, 0), infill));
+        }
+        if (Variant["layout"] is not ("wall" or "cornerout")) return [];
         var (leftEnd, rightEnd) = LeftRightEnds(Variant["layout"], Variant["side"]);
         return InnerCorners(joins, (rail, stile) =>
             EndContinuesGlazing(blockAccessor, pos.AddCopy(0, rail == "-top" ? 1 : -1, 0), stile == "-left" ? leftEnd : rightEnd, infill));
@@ -914,13 +926,16 @@ public class SidingWallBlock : Block
         }
     }
 
-    // A diagonal draws its end by whether the next cell carries the run on, and that cell is no face
-    // neighbour, so vanilla tells it nothing.
+    // A diagonal draws its end by whether the next cell carries the run on, and its inside corner there by
+    // the cells above and below that one (InnerCorners). None of them is a face neighbour, so vanilla tells them nothing.
     private static void MarkDiagonalRunDirty(IWorldAccessor world, BlockPos pos, string side)
     {
         var (left, right) = DiagonalRunNeighbours(side);
-        world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos.AddCopy(left))?.MarkDirty(true);
-        world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos.AddCopy(right))?.MarkDirty(true);
+        for (int dy = -1; dy <= 1; dy++)
+        {
+            world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos.AddCopy(left).Add(0, dy, 0))?.MarkDirty(true);
+            world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos.AddCopy(right).Add(0, dy, 0))?.MarkDirty(true);
+        }
     }
 
     public override void OnBlockRemoved(IWorldAccessor world, BlockPos pos)

@@ -77,6 +77,6 @@ The cross-cell tests generate each shape once per run and reuse it, since regene
 - No migration: nothing is stored, so a build that stands changes its look on load.
 - A straight wall standing where a diagonal run passes its corner is a clashing build, which `JoinsAtEnd` ignores (a `shortcut:` comment marks it), so its stile may drop against a diagonal that does not truly carry on.
 - A hosted cell's wall is read through `WallAt`, so a guest joins glass as any wall does, but `MarkNeighboursDirty` reaches block entities only, so a guest's panel is not redrawn when its neighbour's glass changes (decision 0035).
-- Stacks of differing height across a glazed diagonal run are merged and the flush tests do not cover them.
+- Stacks of differing height across a glazed diagonal run frame the inside corner where one stops short of the other, and the flush tests cover every pair of stack heights.
 - Decisions 0019, 0066 and 0071 are amended in part and say so in their status lines.
 - Not played yet; the Atlas scenario asserts only that a finish goes on a glazed diagonal. To check: a bay of two glazed corners, a glazed wall running into a corner's post end at a T, and an octagon of glazed diagonals, each with and without finishes, from both sides.

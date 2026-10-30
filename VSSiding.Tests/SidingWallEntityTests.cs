@@ -465,13 +465,15 @@ public class SidingWallEntityTests
     }
 
     // Where the glass of one glazed diagonal carries on into the next, the end draws no post: the rails and the pane
-    // reach through it and the rims follow the rails. Against a kept post the end draws the half post as before.
+    // reach through it and the rims follow the rails. Against a kept post the end draws the half post as before. Where
+    // the next cell's stack stops short of this one's, the rail this cell has merged away still crosses the post's place,
+    // framing the inside corner the sheet turns there.
     [Fact]
     public void AGlazedDiagonalWhoseGlassRunsOnDrawsRailsAndPaneInPlaceOfThePost()
     {
         var finishes = Dict("""{ "daub": {} }""");
-        string[] Elements((bool, bool, bool, bool) joins, (bool, bool) glassRunsOn) => SidingWallEntity.SelectiveElements(
-            "diagonal", "oak", "glass", "daub", null, "daub", finishes, joins, glazed: true, glassRunsOn: glassRunsOn);
+        string[] Elements((bool, bool, bool, bool) joins, (bool, bool) glassRunsOn, string[]? innerCorners = null) => SidingWallEntity.SelectiveElements(
+            "diagonal", "oak", "glass", "daub", null, "daub", finishes, joins, glazed: true, innerCorners: innerCorners, glassRunsOn: glassRunsOn);
 
         string[][] expected =
         [
@@ -504,6 +506,13 @@ public class SidingWallEntityTests
                 "back-rim-join-left", "back-rim-top-join-left", "back-rim-bottom-join-left",
                 "framing-join-left", "framing-right",
             ],
+            [
+                "front-rim-bottom", "glazing-bottom", "infill-pane", "back-rim-bottom",
+                "front-rim-bottom-left", "glazing-bottom-left", "infill-pane-left", "back-rim-bottom-left",
+                "front-rim-top-join-left", "front-rim-bottom-join-left", "back-rim-top-join-left", "back-rim-bottom-join-left",
+                "glazing-top-join-left", "glazing-bottom-join-left", "infill-pane-join-left",
+                "framing-right",
+            ],
         ];
 
         Assert.Equal(
@@ -513,6 +522,7 @@ public class SidingWallEntityTests
                 Elements((true, false, false, true), (false, true)),
                 Elements((false, false, true, true), (true, true)),
                 Elements((false, false, true, false), (false, false)),
+                Elements((true, false, true, false), (true, false), ["-top-left"]),
             ]);
     }
 

@@ -802,6 +802,10 @@ public static class WallShapeGen
     private static Element DiagonalRun(Element e, double lo, double hi, string suffix = "")
         => OnDiagonal(e with { From = (e.From.X, e.From.Y, 8 + lo), To = (e.To.X, e.To.Y, 8 + hi) }, suffix);
 
+    // A join's rail piece draws its end toward the cell, where it frames an inside corner with no rail beside it.
+    // The pane is a plane and has no end to draw.
+    private static Element InnerEnd(Element e, string face) => e.Name == "infill-pane" ? e : e with { Faces = [.. e.Faces!, face] };
+
     private static IEnumerable<Element> DiagonalFinish(double runLo, double runHi, string suffix = "")
         => from shift in new[] { -16, 0, 16 }
            from e in WallElements
@@ -839,8 +843,8 @@ public static class WallShapeGen
         .. DiagonalFinish(DiagonalEnd, DiagonalCorner, "-right"),
         .. WallElements.Where(e => DiagonalJoined.Contains(e.Name)).SelectMany(e => new[]
         {
-            DiagonalRun(e, -DiagonalCorner, 1 - DiagonalCorner, "-join-left"),
-            DiagonalRun(e, DiagonalCorner - 1, DiagonalCorner, "-join-right"),
+            DiagonalRun(InnerEnd(e, "south"), -DiagonalCorner, 1 - DiagonalCorner, "-join-left"),
+            DiagonalRun(InnerEnd(e, "north"), DiagonalCorner - 1, DiagonalCorner, "-join-right"),
         }),
         .. DiagonalRims(-DiagonalEnd, DiagonalEnd),
         .. DiagonalRims(1 - DiagonalCorner, -DiagonalEnd, "-left"),

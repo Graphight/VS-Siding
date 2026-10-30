@@ -358,23 +358,24 @@ public class SidingWallEntity : BlockEntity
         string member = glazing ? "glazing" : frame;
         var parts = FrameParts(layout, joins, glazed, innerCorners);
 
-        // A glazed wall's or corner's finish is a rim round the glass: its group cut to each part the frame draws.
-        var rims = new List<(string group, string[] parts)>();
-        void AddFinish(string group, IEnumerable<string>? rimParts = null)
+        // A glazed wall's or corner's finish is a rim round the glass: its group cut to each part the frame draws
+        // that the group keeps.
+        var rims = new List<(string group, System.Func<string, bool> keeps)>();
+        void AddFinish(string group, System.Func<string, bool>? keeps = null)
         {
+            keeps ??= _ => true;
             if (glazing)
             {
-                string[] cut = (rimParts ?? parts).ToArray();
-                rims.Add((group, cut));
-                names.AddRange(RimNames(group, cut));
+                rims.Add((group, keeps));
+                names.AddRange(RimNames(group, parts.Where(keeps)));
             }
             else names.Add(group);
         }
 
         // A corner's front finish rims leg 1, whose far end is its right, and its second front leg 2, whose is its left.
         bool cornerout = glazing && layout == "cornerout";
-        if (front != null) AddFinish(FinishElement(finishes, front, "front", styles.front), cornerout ? parts.Where(part => !part.EndsWith("-left")) : parts);
-        if (secondFront != null) AddFinish("second" + FinishElement(finishes, secondFront, "front", styles.secondFront), cornerout ? parts.Where(part => !part.EndsWith("-right")) : parts);
+        if (front != null) AddFinish(FinishElement(finishes, front, "front", styles.front), cornerout ? part => !part.EndsWith("-left") : null);
+        if (secondFront != null) AddFinish("second" + FinishElement(finishes, secondFront, "front", styles.secondFront), cornerout ? part => !part.EndsWith("-right") : null);
         if (framing != null) names.AddRange(parts.Select(part => member + part));
         if (infill != null)
         {
@@ -391,7 +392,7 @@ public class SidingWallEntity : BlockEntity
             }
         }
         // The top of the room side's rim lies in a deck's height, where the deck's ledge takes its place (Ledges).
-        if (back != null) AddFinish(FinishElement(finishes, back, "back", styles.back), decked ? parts.Where(part => !part.StartsWith("-top")) : parts);
+        if (back != null) AddFinish(FinishElement(finishes, back, "back", styles.back), decked ? part => !part.StartsWith("-top") : null);
         // A diagonal's end is the filler in its corner, or, where the next cell carries the run on,
         // each group's own piece out to the corner and half a post there.
         if (diagonal)
@@ -400,25 +401,24 @@ public class SidingWallEntity : BlockEntity
             foreach (var (runsOn, glassOn, end) in new[] { (joins.left, glassRunsOn.left, "left"), (joins.right, glassRunsOn.right, "right") })
             {
                 if (runsOn) names.AddRange(panel.Select(name => $"{name}-{end}"));
-                // A glazed diagonal's rims also cover the half post's front, between the rails and across them.
-                // Where the glass runs on the post is gone: the rails and the pane carry on through it and the
-                // rims follow the rails only.
-                if (runsOn && glazing)
-                    foreach (var (group, cut) in rims)
-                    {
-                        if (!glassOn) names.Add($"{group}-rim-join-{end}");
-                        names.AddRange(cut.Select(part => $"{group}-rim{part}-join-{end}"));
-                    }
                 if (glassOn)
                 {
-                    if (framing != null)
-                    {
-                        if (!joins.above) names.Add($"glazing-top-join-{end}");
-                        if (!joins.below) names.Add($"glazing-bottom-join-{end}");
-                    }
+                    // Where the glass runs on the post is gone: the rails and the pane carry on through it and the
+                    // rims follow the rails only. A rail merged away still crosses it at an inside corner, as a wall's filler does.
+                    string[] rails = [.. new[] { "-top", "-bottom" }.Where(rail => parts.Contains(rail) || (innerCorners ?? []).Contains($"{rail}-{end}"))];
+                    foreach (var (group, keeps) in rims) names.AddRange(rails.Where(keeps).Select(rail => $"{group}-rim{rail}-join-{end}"));
+                    if (framing != null) names.AddRange(rails.Select(rail => $"glazing{rail}-join-{end}"));
                     if (infill != null) names.Add($"infill-pane-join-{end}");
+                    continue;
                 }
-                else if (framing != null) names.Add(runsOn ? $"framing-join-{end}" : $"framing-{end}");
+                // A glazed diagonal's rims also cover the half post's front, between the rails and across them.
+                if (runsOn)
+                    foreach (var (group, keeps) in rims)
+                    {
+                        names.Add($"{group}-rim-join-{end}");
+                        names.AddRange(parts.Where(keeps).Select(part => $"{group}-rim{part}-join-{end}"));
+                    }
+                if (framing != null) names.Add(runsOn ? $"framing-join-{end}" : $"framing-{end}");
             }
         }
         if (step != null) names.AddRange(step);
