@@ -411,13 +411,8 @@ public class SidingWallEntity : BlockEntity
                     if (infill != null) names.Add($"infill-pane-join-{end}");
                     continue;
                 }
-                // A glazed diagonal's rims also cover the half post's front, between the rails and across them.
-                if (runsOn)
-                    foreach (var (group, keeps) in rims)
-                    {
-                        names.Add($"{group}-rim-join-{end}");
-                        names.AddRange(parts.Where(keeps).Select(part => $"{group}-rim{part}-join-{end}"));
-                    }
+                // A glazed diagonal's rims also cover the half post's front, full height as a wall's stile rim does.
+                if (runsOn) names.AddRange(rims.Select(rim => $"{rim.group}-rim-join-{end}"));
                 if (framing != null) names.Add(runsOn ? $"framing-join-{end}" : $"framing-{end}");
             }
         }

@@ -815,12 +815,13 @@ public static class WallShapeGen
            where hi > lo
            select OnDiagonal(e with { From = (e.From.X, e.From.Y, lo), To = (e.To.X, e.To.Y, hi), ClippedFrom = e }, suffix, shift);
 
-    // Where the half post stays, the finish covers its front between the rails: `G-rim-join-left` and `-right`.
+    // A finish's pieces over a run cut to each rail's height, or with `post`, where the half post stays, one piece over the
+    // post's whole height: `G-rim-join-left` and `-right`.
     private static IEnumerable<Element> DiagonalRims(double runLo, double runHi, string suffix = "", bool post = false)
         => from shift in new[] { -16, 0, 16 }
            from e in WallElements
            where e.Name.StartsWith("front") || e.Name.StartsWith("back")
-           from rail in post ? [("-join", DiagonalRails.Single(r => r.Part == "-bottom").Hi, DiagonalRails.Single(r => r.Part == "-top").Lo)] : DiagonalRails
+           from rail in post ? [("-join", double.NegativeInfinity, double.PositiveInfinity)] : DiagonalRails
            from rim in RimPiece(e, rail.Part, ('z', 8 + runLo - shift, 8 + runHi - shift), ('y', rail.Lo, rail.Hi))
            select OnDiagonal(rim, suffix, shift);
 

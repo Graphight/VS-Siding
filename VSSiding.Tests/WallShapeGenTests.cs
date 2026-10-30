@@ -1400,6 +1400,39 @@ public class WallShapeGenTests
         if (finished && !(aAbove && aBelow && bAbove && bBelow)) Assert.Contains(a, face => face.Facing == BlockFacing.NORTH && face.Plane == plane);
     }
 
+    // Where a glazed diagonal's run carries on but its half post stays, the finish covers the post's front and back from the cell's bottom
+    // to its top however the cell is stacked, as a wall's stile rim does, so no bare framing shows at the seam with the cell above or below.
+    [Fact]
+    public void AKeptDiagonalJoinPostIsRimmedOverItsWholeFrontAndBack()
+    {
+        bool[] either = [false, true];
+        var actual = from above in either
+                     from below in either
+                     let names = Built("diagonal", true, (above, below, true, false)).Where(name => name is not ("framing-left" or "framing-right"))
+                     let faces = WorldFaces(0, "diagonal", "west", [.. names], null)
+                     let post = faces.Where(face => face.Name == "framing-join-left").ToList()
+                     from toward in new[] { BlockFacing.WEST, BlockFacing.EAST }
+                     from name in Uncovered(post, faces, toward, post.Single(face => face.Facing == toward).Plane)
+                     select $"{name} {toward.Code} (above {above}, below {below})";
+
+        Assert.Equal([], actual.ToList());
+    }
+
+    // The names of `own`'s faces toward `toward` on `plane` with a point, sampled at half voxels, that no face of `covering` meets pointing back.
+    private static List<string> Uncovered(IEnumerable<WorldFace> own, IEnumerable<WorldFace> covering, BlockFacing toward, double plane)
+    {
+        int[] axes = [.. Enumerable.Range(0, 3).Where(k => k != AxisIndex(toward))];
+        bool Covers(WorldFace q, double u, double v) => q.Facing == toward.Opposite && q.Plane == plane
+            && q.Lo[axes[0]] <= u && u <= q.Hi[axes[0]] && q.Lo[axes[1]] <= v && v <= q.Hi[axes[1]];
+
+        return (from p in own
+                where p.Facing == toward && p.Plane == plane
+                from u in Samples(p.Lo[axes[0]], p.Hi[axes[0]])
+                from v in Samples(p.Lo[axes[1]], p.Hi[axes[1]])
+                where !covering.Any(q => Covers(q, u, v))
+                select p.Name).Distinct().OrderBy(name => name).ToList();
+    }
+
     // Every ordered pair of cells bar two diagonals, the second one block off along the first's end, whose ends meet there.
     public static IEnumerable<object[]> Meetings(string[] layouts)
     {
