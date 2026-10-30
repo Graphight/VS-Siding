@@ -255,7 +255,7 @@ public class SidingWallBlock : Block
         if (Variant["layout"] != "wall" || !IsTransparent(infill, Attributes["Infills"])) return [];
         var ends = Ends(Variant["layout"], Variant["side"]);
         return InnerCorners(joins, (rail, stile) =>
-            ContinuesGlazing(blockAccessor, pos.AddCopy((stile == "-left" ? ends[0] : ends[1]).Points).Add(0, rail == "-top" ? 1 : -1, 0), infill));
+            EndContinuesGlazing(blockAccessor, pos.AddCopy(0, rail == "-top" ? 1 : -1, 0), stile == "-left" ? ends[0] : ends[1], infill));
     }
 
     // Where a cell's frame stops along a run: the face the end lies on, the way the run carries on
@@ -284,11 +284,15 @@ public class SidingWallBlock : Block
     private bool EndContinuesGlazing(IBlockAccessor blockAccessor, BlockPos pos, End end, string? infill)
     {
         BlockPos neighbourPos = pos.AddCopy(end.Points);
-        if (SameRunNeighbour(blockAccessor, neighbourPos) is not { } neighbour) return false;
-        var (wall, _) = WallAt(blockAccessor, neighbourPos)!.Value;
-        return Ends(wall.Variant["layout"], wall.Variant["side"]).Any(other => EndsMeet(end, other))
+        if (WallAt(blockAccessor, neighbourPos) is not var (wall, neighbour)) return false;
+        return JoinsAtEnd(end, wall.Variant["layout"], wall.Variant["side"])
             && ContinuesGlazing(infill, neighbour, Attributes["Infills"]);
     }
+
+    // Which neighbours a wall's end joins glass with: another wall on its line, or a corner whose leg
+    // ends or corner post ends against it (decision 0080).
+    internal static bool JoinsAtEnd(End end, string layout, string side)
+        => layout is "wall" or "cornerout" && Ends(layout, side).Any(other => EndsMeet(end, other));
 
     // A diagonal on the same line, whichever way it faces.
     private bool ContinuesDiagonal(IBlockAccessor blockAccessor, BlockPos neighbourPos)
@@ -892,12 +896,12 @@ public class SidingWallBlock : Block
         // cells diagonally across are told too: each frames its inside corner by this one (InnerCorners).
         if (world.BlockAccessor.GetBlock(pos) is not SidingWallBlock block) return;
         if (block.Variant["layout"] == "diagonal") MarkDiagonalRunDirty(world, pos, block.Variant["side"]);
-        if (ClaimsTwoFaces(block.Variant["layout"])) return;
+        if (block.Variant["layout"] == "diagonal") return;
         var (left, right) = RunNeighbours(block.Variant["side"]);
+        BlockFacing[] sideways = block.Variant["layout"] == "cornerout" ? BlockFacing.HORIZONTALS : [left, right];
         for (int dy = -1; dy <= 1; dy++)
         {
-            world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos.AddCopy(left).Add(0, dy, 0))?.MarkDirty(true);
-            world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos.AddCopy(right).Add(0, dy, 0))?.MarkDirty(true);
+            foreach (var facing in sideways) world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos.AddCopy(facing).Add(0, dy, 0))?.MarkDirty(true);
         }
     }
 

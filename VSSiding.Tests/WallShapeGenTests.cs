@@ -1020,9 +1020,9 @@ public class WallShapeGenTests
             ? [["glazing"]]
             : [
                 ["glazing-left", "glazing-right"],
-                ["glazing-top-left", "glazing-bottom-left", "glazing-right"],
-                ["glazing-top-right", "glazing-bottom-right", "glazing-left"],
-                ["glazing-top-left", "glazing-bottom-left", "glazing-top-right", "glazing-bottom-right"],
+                ["glazing-bottom-left", "glazing-top-left", "glazing-right"],
+                ["glazing-bottom-right", "glazing-top-right", "glazing-left"],
+                ["glazing-bottom-left", "glazing-top-left", "glazing-bottom-right", "glazing-top-right"],
             ];
 
         string[][] frames = [.. uprights.Select(set => (string[])["glazing-top", "glazing-bottom", .. set])];
@@ -1090,5 +1090,113 @@ public class WallShapeGenTests
         }
 
         return offenders;
+    }
+
+    // A face a built cell draws, turned and moved to world voxels (16 to a block) with its cell's offset.
+    private record WorldFace(int Cell, string Name, BlockFacing Facing, double Plane, double[] Lo, double[] Hi);
+
+    private static BlockFacing TurnFacing(BlockFacing unrotated, string side)
+    {
+        Vec3i n = unrotated.Normali;
+        var slab = new Cuboidf(0.5f + n.X * 0.4f - 0.05f, 0, 0.5f + n.Z * 0.4f - 0.05f, 0.5f + n.X * 0.4f + 0.05f, 1, 0.5f + n.Z * 0.4f + 0.05f);
+        Cuboidf box = slab.RotatedCopy(0, SidingWallEntity.RotationYDeg(side), 0, new Vec3d(0.5, 0.5, 0.5));
+        int dx = (int)Math.Round(((box.X1 + box.X2) / 2 - 0.5f) * 2.5), dz = (int)Math.Round(((box.Z1 + box.Z2) / 2 - 0.5f) * 2.5);
+        return BlockFacing.HORIZONTALS.First(f => f.Normali.X == dx && f.Normali.Z == dz);
+    }
+
+    private static List<WorldFace> WorldFaces(int cell, string layout, string side, string[] names, BlockFacing? offset)
+    {
+        var faces = new List<WorldFace>();
+        foreach (var element in WallShapeGen.Generate(layout)["elements"]!.Where(e => names.Contains((string)e["name"]!)))
+        {
+            var (lo, hi) = Box(element);
+            var turned = new Cuboidf((float)lo[0] / 16, (float)lo[1] / 16, (float)lo[2] / 16, (float)hi[0] / 16, (float)hi[1] / 16, (float)hi[2] / 16)
+                .RotatedCopy(0, SidingWallEntity.RotationYDeg(side), 0, new Vec3d(0.5, 0.5, 0.5));
+            var (dx, dz) = offset == null ? (0, 0) : (offset.Normali.X * 16, offset.Normali.Z * 16);
+            double[] wlo = [Math.Round(turned.X1 * 16 + dx, 3), Math.Round(turned.Y1 * 16, 3), Math.Round(turned.Z1 * 16 + dz, 3)];
+            double[] whi = [Math.Round(turned.X2 * 16 + dx, 3), Math.Round(turned.Y2 * 16, 3), Math.Round(turned.Z2 * 16 + dz, 3)];
+            foreach (var face in ((JObject)element["faces"]!).Properties())
+            {
+                var facing = BlockFacing.FromCode(face.Name);
+                if (facing.IsHorizontal) facing = TurnFacing(facing, side);
+                int axis = AxisIndex(facing);
+                faces.Add(new(cell, (string)element["name"]!, facing, (facing == BlockFacing.EAST || facing == BlockFacing.SOUTH || facing == BlockFacing.UP ? whi : wlo)[axis], wlo, whi));
+            }
+        }
+
+        return faces;
+    }
+
+    private static int AxisIndex(BlockFacing facing) => facing.Axis == EnumAxis.X ? 0 : facing.Axis == EnumAxis.Y ? 1 : 2;
+
+    private static string[] Built(string layout, bool finished, (bool above, bool below, bool left, bool right) joins)
+    {
+        var finishes = new Vintagestory.API.Datastructures.JsonObject(JObject.Parse("""{ "daub": {} }"""));
+        string? daub = finished ? "daub" : null;
+        return SidingWallEntity.SelectiveElements(layout, "oak", "glass", daub, layout == "cornerout" ? daub : null, daub, finishes, joins, glazed: true);
+    }
+
+    // The cells of a glazed wall (west, offset 0) and a glazed corner one block off along `towards`, as world faces.
+    // The wall has dropped its stile on that side, as its sideways join now does against such a corner.
+    private static (List<WorldFace> Wall, List<WorldFace> Corner) WallBesideCorner(string corneroutSide, BlockFacing towards, bool finished)
+    {
+        bool left = towards == BlockFacing.NORTH;
+        var wall = WorldFaces(0, "wall", "west", Built("wall", finished, (false, false, left, !left)), null);
+        var corner = WorldFaces(1, "cornerout", corneroutSide, Built("cornerout", finished, default), towards);
+        return (wall, corner);
+    }
+
+    // The wall's stile is dropped where a corner's leg ends against it, and where its own line carries on past the
+    // corner post: west beside cornerout-west at its left and cornerout-south at its right, and the two the other way.
+    public static IEnumerable<object[]> WallCornerMeetings()
+    {
+        foreach (bool finished in new[] { false, true })
+        {
+            yield return [finished, "west", "north", Array.Empty<string>()];
+            yield return [finished, "south", "north", finished ? [] : new[] { "glazing-bottom-left", "glazing-top-left" }];
+            yield return [finished, "south", "south", Array.Empty<string>()];
+            yield return [finished, "west", "south", finished ? [] : new[] { "glazing-bottom-right", "glazing-top-right" }];
+        }
+    }
+
+    [Theory]
+    [MemberData(nameof(WallCornerMeetings))]
+    public void AWallAndTheGlazedCornerItJoinsDrawNoFaceOnTheSamePlaneAndOverlap(bool finished, string corneroutSide, string towards, string[] uncoveredFillers)
+    {
+        var (wall, corner) = WallBesideCorner(corneroutSide, BlockFacing.FromCode(towards), finished);
+
+        Assert.Equal([], (from a in wall from b in corner
+                          where a.Facing == b.Facing && a.Plane == b.Plane && a.Facing.IsHorizontal
+                              && Enumerable.Range(0, 3).Where(k => k != AxisIndex(a.Facing)).All(k => Math.Max(a.Lo[k], b.Lo[k]) < Math.Min(a.Hi[k], b.Hi[k]))
+                          select $"{a.Name} and {b.Name} both draw {a.Facing.Code} at {a.Plane}").Distinct().ToList());
+    }
+
+    // Every face the wall draws on the boundary, pointing into the corner's cell, is covered by one of the
+    // corner's pointing back, so no gap shows where the stile has gone. Sampled at half voxels. A corner post
+    // starts a voxel in, so at a T-junction with no finish on the corner's outer face the wall's rail filler
+    // there faces the one-voxel slot beside it, as the stile it replaces does; those fillers are listed.
+    [Theory]
+    [MemberData(nameof(WallCornerMeetings))]
+    public void EveryFaceAWallDrawsOnItsBoundaryWithAGlazedCornerIsCoveredByTheCorner(bool finished, string corneroutSide, string towards, string[] uncoveredFillers)
+    {
+        var toward = BlockFacing.FromCode(towards);
+        var (wall, corner) = WallBesideCorner(corneroutSide, toward, finished);
+        int plane = toward == BlockFacing.NORTH ? 0 : 16;
+        int across = AxisIndex(toward) == 0 ? 2 : 0;
+
+        var uncovered = from a in wall
+                        where a.Facing == toward && a.Plane == plane
+                        from y in Samples(a.Lo[1], a.Hi[1])
+                        from other in Samples(a.Lo[across], a.Hi[across])
+                        where !corner.Any(b => b.Facing == toward.Opposite && b.Plane == plane
+                            && b.Lo[1] <= y && y <= b.Hi[1] && b.Lo[across] <= other && other <= b.Hi[across])
+                        select a.Name;
+
+        Assert.Equal(uncoveredFillers, uncovered.Distinct().OrderBy(name => name).ToList());
+    }
+
+    private static IEnumerable<double> Samples(double lo, double hi)
+    {
+        for (double v = lo + 0.25; v < hi; v += 0.5) yield return v;
     }
 }

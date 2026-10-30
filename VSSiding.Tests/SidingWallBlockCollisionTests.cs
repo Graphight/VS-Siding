@@ -350,6 +350,25 @@ public class SidingWallBlockCollisionTests
         Assert.All(ends, a => Assert.Contains(ends, b => SidingWallBlock.EndsMeet(a, b)));
     }
 
+    // A west wall's left end (toward north) and right end (toward south) each join the leg far end of
+    // one cornerout and the corner post end of another, and no wall or diagonal on another face.
+    [Fact]
+    public void AWallJoinsGlassAtEachEndAgainstTheTwoCorneroutsWhoseEndsMeetIt()
+    {
+        var west = SidingWallBlock.Ends("wall", "west");
+        string[] sides = ["west", "south", "east", "north"];
+        string[] Joining(SidingWallBlock.End end) => [.. from layout in new[] { "wall", "cornerout", "diagonal" } from side in sides
+            where SidingWallBlock.JoinsAtEnd(end, layout, side) select $"{layout}-{side}"];
+
+        Assert.Equal(
+            new Dictionary<string, string[]>
+            {
+                ["left"] = ["wall-west", "cornerout-west", "cornerout-south"],
+                ["right"] = ["wall-west", "cornerout-west", "cornerout-south"],
+            },
+            new Dictionary<string, string[]> { ["left"] = Joining(west[0]), ["right"] = Joining(west[1]) });
+    }
+
     // The rule that stops a glass sheet swallowing the post where it meets a solid wall. Only the
     // block-level half of ContinuesGlazing (same layout, same side) needs a world; this is the
     // half that decides, given two cells that are already on the same run.
