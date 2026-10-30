@@ -1,6 +1,6 @@
 # 0019 — Glazing
 
-- Status: Accepted
+- Status: Accepted; corners merging only vertically superseded by 0080
 - Created: 2026-09-20
 - Reflects: proposal `window-frames`, graduated from PR #24 at 0aa6f98; decompiled `VSSurvivalMod.dll` and `VintagestoryAPI.dll` 1.21 (`BlockBehaviorDoor.GetRetention`, `Block.GetLiquidBarrierHeightOnSide`, `BlockEntityMicroBlock`, `MeshData.AddMeshData`, `ShapeElement.RenderPass`); four playtests across that PR
 

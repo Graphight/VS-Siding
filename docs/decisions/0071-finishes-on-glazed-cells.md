@@ -1,6 +1,6 @@
 # 0071 — Finishes on glazed cells
 
-- Status: Accepted
+- Status: Accepted; a glazed corner's missing inside corner and a glazed diagonal taking no rim superseded by 0080
 - Created: 2026-10-11
 - Reflects: branch `window-frame-depth`, PR #116; issue #98 and mod page comment https://mods.vintagestory.at/vssiding#cmt-245199 with both screenshots; `VSSiding.Tests/WallShapeGen` (`RimPieces`, `CornerRimPieces`, `RimPiece`, and the frame pieces in `WallElements`, `FloorElements` and `CornerOutElements`); `SidingWallEntity.FrameParts`, `RimNames` and `SelectiveElements`; `SidingFloorEntity.SelectiveElements`; the `selectiveElements` of `blocktypes/wall.json` and `floor.json`; `config/materials.json`'s leaded pane entry; decisions 0019, 0062, 0066, 0069, 0070; the playtest of the full-depth frame on 2026-10-11, and a first playtest of the rims the same day, on vertical boards only
 
