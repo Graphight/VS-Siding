@@ -53,8 +53,6 @@ public class FinishElementGroupsTests
 
     // A glazed wall or corner draws a finish group's rim parts in place of the group, for every finish, style and join.
     // Each has to exist in the generated shape, and none may be named among what the block's default shape draws.
-    // A diagonal's rims are the wall's top and bottom ones, each again on the pieces out to the corner and on the
-    // join pieces beyond them.
     [Theory]
     [InlineData("wall")]
     [InlineData("cornerout")]
@@ -64,13 +62,8 @@ public class FinishElementGroupsTests
         var assets = Path.Combine(MaterialTextureOpacityTests.GetAssemblyMetadata("RepoRoot"), "VSSiding", "assets", "vssiding");
         var wallJson = JObject.Parse(File.ReadAllText(Path.Combine(assets, "blocktypes", "wall.json")));
         var rims = RimsEveryGlazedCellAsksFor((finishes, key, style, joins) => SidingWallEntity.SelectiveElements(
-            layout == "diagonal" ? "wall" : layout, "oak", "glass", key, layout == "cornerout" ? key : null, key, finishes, joins, glazed: true,
+            layout, "oak", "glass", key, layout == "cornerout" ? key : null, key, finishes, joins, glazed: true,
             styles: (style, layout == "cornerout" ? style : null, style)));
-        if (layout == "diagonal")
-            rims = [.. rims.Where(r => r.EndsWith("-rim-top") || r.EndsWith("-rim-bottom"))
-                .SelectMany(r => new[] { r, r + "-left", r + "-right", r + "-join-left", r + "-join-right" }
-                    .Concat(r.EndsWith("-rim-top") ? [r[..^4] + "-join-left", r[..^4] + "-join-right"] : []))];
-
         var names = WallShapeGen.Generate(layout)["elements"]!.Select(e => (string)e["name"]!).ToHashSet();
         var offenders = rims.Where(r => !names.Contains(r)).Select(r => $"the {layout} shape has no element '{r}'").ToList();
         foreach (var variant in ((JObject)wallJson["shapebytype"]!).Properties().Where(p => (string)p.Value["base"]! == $"block/wall/{layout}"))

@@ -611,16 +611,6 @@ public class SidingWallBlock : Block
         // Planks that can't finish this face still extend the wall via PlaceWallFrame, and held blocks still place.
         bool heldPlaces = slot.Itemstack!.Class == EnumItemClass.Block || MatchConsumes(heldCode, Attributes["Framings"]) != null;
 
-        // A glazed wall or corner takes a finish as a rim round the glass. A diagonal draws no rim, and a
-        // slab over it would just hide the glass. Refusing here rather than in ResolveFinishFace keeps
-        // breaking unchanged (decision 0013).
-        if (IsTransparent(entity.Infill, Attributes["Infills"]) && Variant["layout"] == "diagonal")
-        {
-            if (heldPlaces) return base.OnBlockInteractStart(world, byPlayer, blockSel);
-            (byPlayer as IServerPlayer)?.SendIngameError("vssiding:glazed", Lang.Get("vssiding:build-glazed"));
-            return true;
-        }
-
         string side = Variant["side"];
         string? face = ResolveFinishFace(Variant["layout"], side, blockSel.Face);
         if (face == null)

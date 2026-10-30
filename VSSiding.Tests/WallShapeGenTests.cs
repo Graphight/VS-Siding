@@ -1046,6 +1046,20 @@ public class WallShapeGenTests
         }).Distinct());
     }
 
+    // A glazed diagonal's rails, pane and rims are turned together and meet as a wall's do, in every set of joins.
+    // Its corner fillers are the unturned pieces, which a box read without the turn cannot be compared with.
+    [Fact]
+    public void NoTwoFacesOfAGlazedDiagonalsTurnedPiecesShareAPlaneAndOverlap()
+    {
+        static bool Filler(string name) => name is "framing-left" or "framing-right";
+        bool[] either = [false, true];
+        Assert.Equal([], (
+            from above in either from below in either from left in either from right in either
+            from finished in either
+            select SharedPlaneOffenders("diagonal", Built("diagonal", finished, (above, below, left, right)), between: (a, b) => Filler(a) == Filler(b))
+        ).SelectMany(offenders => offenders).Distinct().ToList());
+    }
+
     // Behind a decked glazed cell's rim the deck's ledge stands where the rim's top would, between the stiles
     // or out to the edge where one has merged away. Read off the names the wall itself asks for, on the side
     // whose deck copy lies the way the unturned shape does. Only a deck piece against a piece of the wall

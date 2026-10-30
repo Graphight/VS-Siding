@@ -424,6 +424,46 @@ public class SidingWallEntityTests
             });
     }
 
+    // A glazed diagonal draws the glass in glazing rails between its corner fillers, and its finish as rims on the
+    // rails. Where the run carries on, each piece reaches the corner and the rims also cover the half post's front;
+    // a deck takes the room side's top rim, as it does on a wall.
+    [Fact]
+    public void AGlazedDiagonalDrawsRailsAndRimsAndRunsOnToTheCorner()
+    {
+        var finishes = Dict("""{ "daub": {} }""");
+        string[] Elements((bool, bool, bool, bool) joins, bool decked = false) => SidingWallEntity.SelectiveElements(
+            "diagonal", "oak", "glass", "daub", null, "daub", finishes, joins, glazed: true, decked: decked);
+
+        string[][] expected =
+        [
+            [
+                "front-rim-top", "front-rim-bottom", "glazing-top", "glazing-bottom", "infill-pane", "back-rim-top", "back-rim-bottom",
+                "framing-left", "framing-right",
+            ],
+            [
+                "front-rim-top", "front-rim-bottom", "glazing-top", "glazing-bottom", "infill-pane", "back-rim-top", "back-rim-bottom",
+                "front-rim-top-left", "front-rim-bottom-left", "glazing-top-left", "glazing-bottom-left", "infill-pane-left", "back-rim-top-left", "back-rim-bottom-left",
+                "front-rim-join-left", "front-rim-top-join-left", "front-rim-bottom-join-left",
+                "back-rim-join-left", "back-rim-top-join-left", "back-rim-bottom-join-left",
+                "framing-join-left", "framing-right",
+            ],
+            [
+                "front-rim-bottom", "glazing-bottom", "infill-pane", "back-rim-bottom", "framing-left",
+                "front-rim-bottom-right", "glazing-bottom-right", "infill-pane-right", "back-rim-bottom-right",
+                "front-rim-join-right", "front-rim-bottom-join-right", "back-rim-join-right", "back-rim-bottom-join-right",
+                "framing-join-right",
+            ],
+            [
+                "front-rim-top", "front-rim-bottom", "glazing-top", "glazing-bottom", "infill-pane", "back-rim-bottom",
+                "framing-left", "framing-right",
+            ],
+        ];
+
+        Assert.Equal(
+            expected,
+            [Elements((false, false, false, false)), Elements((false, false, true, false)), Elements((true, false, false, true)), Elements((false, false, false, false), decked: true)]);
+    }
+
     // A diagonal takes a finish's own groups as a wall does, draws the plain frame for a rough one, and at
     // each end either the corner filler or, where the next cell carries the run on, every group's piece
     // to the corner and half a post.

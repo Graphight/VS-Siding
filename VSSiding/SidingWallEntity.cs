@@ -310,8 +310,8 @@ public class SidingWallEntity : BlockEntity
     // stop short at its posts, which leaves a notch at the cell's edge once a post drops, so glazing
     // gets its own frame: stiles and the rails between them, overlapping nothing, and a filler in the
     // corner where a stile has merged away. An opaque cornerout has no end posts of its own, and a
-    // diagonal keeps the plain frame. A filler also stands alone in each of `innerCorners`, where rail
-    // and stile have both merged away and the sheet turns.
+    // glazed diagonal's rails run between its corner fillers, which are its stiles. A filler also stands
+    // alone in each of `innerCorners`, where rail and stile have both merged away and the sheet turns.
     internal static List<string> FrameParts(
         string layout, (bool above, bool below, bool left, bool right) joins, bool glazed, string[]? innerCorners = null)
     {
@@ -353,14 +353,20 @@ public class SidingWallEntity : BlockEntity
         // framing's Elements say (decision 0066).
         bool diagonal = layout == "diagonal";
         if (diagonal) frame = "framing";
-        bool glazing = glazed && !diagonal;
+        bool glazing = glazed;
         string member = glazing ? "glazing" : frame;
         var parts = FrameParts(layout, joins, glazed, innerCorners);
 
         // A glazed wall's or corner's finish is a rim round the glass: its group cut to each part the frame draws.
+        var rims = new List<(string group, string[] parts)>();
         void AddFinish(string group, IEnumerable<string>? rimParts = null)
         {
-            if (glazing) names.AddRange(RimNames(group, rimParts ?? parts));
+            if (glazing)
+            {
+                string[] cut = (rimParts ?? parts).ToArray();
+                rims.Add((group, cut));
+                names.AddRange(RimNames(group, cut));
+            }
             else names.Add(group);
         }
 
@@ -393,6 +399,13 @@ public class SidingWallEntity : BlockEntity
             foreach (var (runsOn, end) in new[] { (joins.left, "left"), (joins.right, "right") })
             {
                 if (runsOn) names.AddRange(panel.Select(name => $"{name}-{end}"));
+                // A glazed diagonal's rims also cover the half post's front, between the rails and across them.
+                if (runsOn && glazing)
+                    foreach (var (group, cut) in rims)
+                    {
+                        names.Add($"{group}-rim-join-{end}");
+                        names.AddRange(cut.Select(part => $"{group}-rim{part}-join-{end}"));
+                    }
                 if (framing != null) names.Add(runsOn ? $"framing-join-{end}" : $"framing-{end}");
             }
         }
