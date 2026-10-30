@@ -165,8 +165,9 @@ public class SidingWallEntity : BlockEntity
         int alternate = CellAlternate(Block.Attributes, SidingWallTexSource.Alternate(Pos), Framing, Deck,
             [Infill, DeckInfill], [Front, SecondFront, Back, DeckFront, DeckBack]);
         string[] innerCorners = ((SidingWallBlock)Block).InnerCorners(Api.World.BlockAccessor, Pos, Infill, joins);
+        var glassRunsOn = ((SidingWallBlock)Block).GlassRunsOn(Api.World.BlockAccessor, Pos, Infill, joins);
         string[] selectiveElements = SelectiveElements(layout, Framing, Infill, Front, SecondFront, Back, Block.Attributes["Finishes"], joins, glazed, Styles, step,
-            FrameElements(Block.Attributes["Framings"], Framing, alternate), decked: Deck != null, innerCorners: innerCorners);
+            FrameElements(Block.Attributes["Framings"], Framing, alternate), decked: Deck != null, innerCorners: innerCorners, glassRunsOn: glassRunsOn);
 
         // The deck is laid like a floor, in world directions, so its groups are tesselated unrotated.
         bool deckGlazed = SidingWallBlock.IsTransparent(DeckInfill, Block.Attributes["Infills"]);
@@ -177,7 +178,7 @@ public class SidingWallEntity : BlockEntity
         if (selectiveElements.Length == 0 && deckElements.Length == 0) return false;
 
         string cacheKey = CacheKey(layout, side, Framing, Infill, Front, SecondFront, Back, joins, Styles, Deck, Step, StepOrientation,
-            DeckInfill, DeckFront, DeckBack, (DeckFrontStyle, DeckBackStyle), deckJoins, alternate, innerCorners, deckInnerCorners);
+            DeckInfill, DeckFront, DeckBack, (DeckFrontStyle, DeckBackStyle), deckJoins, alternate, innerCorners, deckInnerCorners, glassRunsOn);
 
         MeshData[] meshes = ObjectCacheUtil.GetOrCreate(capi, cacheKey, () =>
         {
@@ -269,10 +270,10 @@ public class SidingWallEntity : BlockEntity
         (string? front, string? secondFront, string? back) styles = default, string? deck = null, string? step = null, string? stepOrientation = null,
         string? deckInfill = null, string? deckFront = null, string? deckBack = null, (string? front, string? back) deckStyles = default,
         (bool above, bool below, bool left, bool right) deckJoins = default, int alternate = 0,
-        string[]? innerCorners = null, string[]? deckInnerCorners = null)
+        string[]? innerCorners = null, string[]? deckInnerCorners = null, (bool left, bool right) glassRunsOn = default)
         => $"vssiding-wall-mesh-{layout}-{side}-{framing}-{infill}-{front}-{secondFront}-{back}-{joins.above}-{joins.below}-{joins.left}-{joins.right}-{styles.front}-{styles.secondFront}-{styles.back}-{deck}-{step}-{stepOrientation}"
             + $"-{deckInfill}-{deckFront}-{deckBack}-{deckStyles.front}-{deckStyles.back}-{deckJoins.above}-{deckJoins.below}-{deckJoins.left}-{deckJoins.right}-{alternate}"
-            + $"-{string.Concat(innerCorners ?? [])}-{string.Concat(deckInnerCorners ?? [])}";
+            + $"-{string.Concat(innerCorners ?? [])}-{string.Concat(deckInnerCorners ?? [])}-{glassRunsOn.left}-{glassRunsOn.right}";
 
     // The floor's groups for the deck, which the wall shapes carry per side as deck-{side}-{name}. The
     // deck stops a voxel short of the frame, at the slot the wall's room-side finish takes, so the shapes
@@ -346,7 +347,7 @@ public class SidingWallEntity : BlockEntity
         string layout, string? framing, string? infill, string? front, string? secondFront, string? back, JsonObject finishes,
         (bool above, bool below, bool left, bool right) joins, bool glazed,
         (string? front, string? secondFront, string? back) styles = default, string[]? step = null, string frame = "framing", bool decked = false,
-        string[]? innerCorners = null)
+        string[]? innerCorners = null, (bool left, bool right) glassRunsOn = default)
     {
         var names = new List<string>();
         // A diagonal's shape has no rough frame groups, so it draws the plain ones whatever the
@@ -396,17 +397,28 @@ public class SidingWallEntity : BlockEntity
         if (diagonal)
         {
             string[] panel = names.ToArray();
-            foreach (var (runsOn, end) in new[] { (joins.left, "left"), (joins.right, "right") })
+            foreach (var (runsOn, glassOn, end) in new[] { (joins.left, glassRunsOn.left, "left"), (joins.right, glassRunsOn.right, "right") })
             {
                 if (runsOn) names.AddRange(panel.Select(name => $"{name}-{end}"));
                 // A glazed diagonal's rims also cover the half post's front, between the rails and across them.
+                // Where the glass runs on the post is gone: the rails and the pane carry on through it and the
+                // rims follow the rails only.
                 if (runsOn && glazing)
                     foreach (var (group, cut) in rims)
                     {
-                        names.Add($"{group}-rim-join-{end}");
+                        if (!glassOn) names.Add($"{group}-rim-join-{end}");
                         names.AddRange(cut.Select(part => $"{group}-rim{part}-join-{end}"));
                     }
-                if (framing != null) names.Add(runsOn ? $"framing-join-{end}" : $"framing-{end}");
+                if (glassOn)
+                {
+                    if (framing != null)
+                    {
+                        if (!joins.above) names.Add($"glazing-top-join-{end}");
+                        if (!joins.below) names.Add($"glazing-bottom-join-{end}");
+                    }
+                    if (infill != null) names.Add($"infill-pane-join-{end}");
+                }
+                else if (framing != null) names.Add(runsOn ? $"framing-join-{end}" : $"framing-{end}");
             }
         }
         if (step != null) names.AddRange(step);

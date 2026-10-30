@@ -241,6 +241,16 @@ public class SidingWallBlock : Block
         return (JoinsAbove(ContinuesFrame(blockAccessor, pos.UpCopy(), infill), cellsBelow), cellsBelow > 0, runsOn.left, runsOn.right);
     }
 
+    // Which ends of a diagonal the glass carries on through: the run goes on there and the diagonal it
+    // goes on into is glazed in the same stack, so no post stands between them.
+    internal (bool left, bool right) GlassRunsOn(IBlockAccessor blockAccessor, BlockPos pos, string? infill, (bool above, bool below, bool left, bool right) joins)
+    {
+        if (Variant["layout"] != "diagonal" || !IsTransparent(infill, Attributes["Infills"])) return default;
+        var (leftStep, rightStep) = DiagonalRunNeighbours(Variant["side"]);
+        bool GlazedAt(BlockPos at) => ContinuesGlazing(infill, WallAt(blockAccessor, at)?.entity, Attributes["Infills"]);
+        return (joins.left && GlazedAt(pos.AddCopy(leftStep)), joins.right && GlazedAt(pos.AddCopy(rightStep)));
+    }
+
     // The corners a cell merged on both sides still has to frame, as the fillers' suffixes. Where the
     // cell diagonally across carries no glazing on, the sheet is an L and its frame turns an inside
     // corner in this cell; four merged cells round a point leave it clear.

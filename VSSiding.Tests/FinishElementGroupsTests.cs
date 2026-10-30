@@ -308,6 +308,23 @@ public class FinishElementGroupsTests
         Assert.Equal([], asked.Distinct().Where(name => !names.Contains(name)).ToArray());
     }
 
+    // A glazed diagonal whose glass runs on draws rail and pane pieces through the post and no post-front rim; each must exist in the shape.
+    [Fact]
+    public void EveryElementAGlazedDiagonalWhoseGlassRunsOnAsksForExists()
+    {
+        var finishes = new JsonObject(JObject.Parse("""{ "daub": {} }"""));
+        bool[] either = [false, true];
+        var names = WallShapeGen.Generate("diagonal")["elements"]!.Select(e => (string)e["name"]!).ToHashSet();
+        var asked = (
+            from above in either from below in either from left in either from right in either
+            from glassLeft in either.Where(glass => !glass || left) from glassRight in either.Where(glass => !glass || right)
+            from name in SidingWallEntity.SelectiveElements(
+                "diagonal", "oak", "glass", "daub", null, "daub", finishes, (above, below, left, right), glazed: true, glassRunsOn: (glassLeft, glassRight))
+            select name).Distinct();
+
+        Assert.Equal([], asked.Where(name => !names.Contains(name)).ToArray());
+    }
+
     private static readonly string[] PlankFinishes = ["planks", "planks-aged", "planks-veryaged", "planks-{wood}", "stained-{stain}-{wood}", "dyed-{color}-{wood}"];
 
     // The rim names glazed cells ask for, over every finish, each of its styles and none, and every set of joins.

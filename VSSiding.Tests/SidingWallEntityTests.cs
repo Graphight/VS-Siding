@@ -464,6 +464,58 @@ public class SidingWallEntityTests
             [Elements((false, false, false, false)), Elements((false, false, true, false)), Elements((true, false, false, true)), Elements((false, false, false, false), decked: true)]);
     }
 
+    // Where the glass of one glazed diagonal carries on into the next, the end draws no post: the rails and the pane
+    // reach through it and the rims follow the rails. Against a kept post the end draws the half post as before.
+    [Fact]
+    public void AGlazedDiagonalWhoseGlassRunsOnDrawsRailsAndPaneInPlaceOfThePost()
+    {
+        var finishes = Dict("""{ "daub": {} }""");
+        string[] Elements((bool, bool, bool, bool) joins, (bool, bool) glassRunsOn) => SidingWallEntity.SelectiveElements(
+            "diagonal", "oak", "glass", "daub", null, "daub", finishes, joins, glazed: true, glassRunsOn: glassRunsOn);
+
+        string[][] expected =
+        [
+            [
+                "front-rim-top", "front-rim-bottom", "glazing-top", "glazing-bottom", "infill-pane", "back-rim-top", "back-rim-bottom",
+                "front-rim-top-left", "front-rim-bottom-left", "glazing-top-left", "glazing-bottom-left", "infill-pane-left", "back-rim-top-left", "back-rim-bottom-left",
+                "front-rim-top-join-left", "front-rim-bottom-join-left", "back-rim-top-join-left", "back-rim-bottom-join-left",
+                "glazing-top-join-left", "glazing-bottom-join-left", "infill-pane-join-left",
+                "framing-right",
+            ],
+            [
+                "front-rim-bottom", "glazing-bottom", "infill-pane", "back-rim-bottom", "framing-left",
+                "front-rim-bottom-right", "glazing-bottom-right", "infill-pane-right", "back-rim-bottom-right",
+                "front-rim-bottom-join-right", "back-rim-bottom-join-right",
+                "glazing-bottom-join-right", "infill-pane-join-right",
+            ],
+            [
+                "front-rim-top", "front-rim-bottom", "glazing-top", "glazing-bottom", "infill-pane", "back-rim-top", "back-rim-bottom",
+                "front-rim-top-left", "front-rim-bottom-left", "glazing-top-left", "glazing-bottom-left", "infill-pane-left", "back-rim-top-left", "back-rim-bottom-left",
+                "front-rim-top-join-left", "front-rim-bottom-join-left", "back-rim-top-join-left", "back-rim-bottom-join-left",
+                "glazing-top-join-left", "glazing-bottom-join-left", "infill-pane-join-left",
+                "front-rim-top-right", "front-rim-bottom-right", "glazing-top-right", "glazing-bottom-right", "infill-pane-right", "back-rim-top-right", "back-rim-bottom-right",
+                "front-rim-top-join-right", "front-rim-bottom-join-right", "back-rim-top-join-right", "back-rim-bottom-join-right",
+                "glazing-top-join-right", "glazing-bottom-join-right", "infill-pane-join-right",
+            ],
+            [
+                "front-rim-top", "front-rim-bottom", "glazing-top", "glazing-bottom", "infill-pane", "back-rim-top", "back-rim-bottom",
+                "front-rim-top-left", "front-rim-bottom-left", "glazing-top-left", "glazing-bottom-left", "infill-pane-left", "back-rim-top-left", "back-rim-bottom-left",
+                "front-rim-join-left", "front-rim-top-join-left", "front-rim-bottom-join-left",
+                "back-rim-join-left", "back-rim-top-join-left", "back-rim-bottom-join-left",
+                "framing-join-left", "framing-right",
+            ],
+        ];
+
+        Assert.Equal(
+            expected,
+            [
+                Elements((false, false, true, false), (true, false)),
+                Elements((true, false, false, true), (false, true)),
+                Elements((false, false, true, true), (true, true)),
+                Elements((false, false, true, false), (false, false)),
+            ]);
+    }
+
     // A diagonal takes a finish's own groups as a wall does, draws the plain frame for a rough one, and at
     // each end either the corner filler or, where the next cell carries the run on, every group's piece
     // to the corner and half a post.

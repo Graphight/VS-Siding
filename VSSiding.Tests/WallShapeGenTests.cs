@@ -1306,6 +1306,73 @@ public class WallShapeGenTests
         return (Faces(0, a, b, towards, null), Faces(1, b, a, towards.Opposite, towards));
     }
 
+    // A glazed diagonal-west and the glazed one on its left, each with its glass running on to the other, as the faces of their turned
+    // pieces in the shape's own frame: a cell along the run is the same frame moved 2 x 8 root 2 along z, the left's at the negative end.
+    // The unturned corner fillers are left out, as are the deck's strips. Both cells are stacked alike.
+    private static (List<WorldFace> A, List<WorldFace> B) GlassRunningOn(bool above, bool below, bool finished)
+    {
+        const double cellRun = 2 * 11.3137;
+        List<WorldFace> Faces(int cell, string[] names, double dz)
+        {
+            var faces = new List<WorldFace>();
+            foreach (var element in Generated.GetOrAdd("diagonal", WallShapeGen.Generate)["elements"]!.Where(e => e["rotationY"] != null && names.Contains((string)e["name"]!)))
+            {
+                var (lo, hi) = Box(element);
+                double[] wlo = [Math.Round(lo[0], 3), Math.Round(lo[1], 3), Math.Round(lo[2] + dz, 3)];
+                double[] whi = [Math.Round(hi[0], 3), Math.Round(hi[1], 3), Math.Round(hi[2] + dz, 3)];
+                foreach (var face in ((JObject)element["faces"]!).Properties())
+                {
+                    var facing = BlockFacing.FromCode(face.Name);
+                    faces.Add(new(cell, (string)element["name"]!, facing, (facing == BlockFacing.EAST || facing == BlockFacing.SOUTH || facing == BlockFacing.UP ? whi : wlo)[AxisIndex(facing)], wlo, whi));
+                }
+            }
+
+            return faces;
+        }
+
+        var finishes = new Vintagestory.API.Datastructures.JsonObject(JObject.Parse("""{ "daub": {} }"""));
+        string? daub = finished ? "daub" : null;
+        string[] Names((bool, bool, bool, bool) joins, (bool, bool) glassRunsOn)
+            => SidingWallEntity.SelectiveElements("diagonal", "oak", "glass", daub, null, daub, finishes, joins, glazed: true, glassRunsOn: glassRunsOn);
+
+        return (Faces(0, Names((above, below, true, false), (true, false)), 0), Faces(1, Names((above, below, false, true), (false, true)), -cellRun));
+    }
+
+    public static IEnumerable<object[]> StackedAndFinished()
+        => from above in new[] { false, true } from below in new[] { false, true } from finished in new[] { false, true } select new object[] { above, below, finished };
+
+    [Theory]
+    [MemberData(nameof(StackedAndFinished))]
+    public void TwoGlazedDiagonalsWhoseGlassRunsOnDrawNoFaceOnTheSamePlaneAndOverlap(bool above, bool below, bool finished)
+    {
+        var (a, b) = GlassRunningOn(above, below, finished);
+
+        Assert.Equal([], (from p in a from q in b
+                          where p.Facing == q.Facing && p.Plane == q.Plane
+                              && Enumerable.Range(0, 3).Where(k => k != AxisIndex(p.Facing)).All(k => Math.Max(p.Lo[k], q.Lo[k]) < Math.Min(p.Hi[k], q.Hi[k]))
+                          select $"{p.Name} and {q.Name} both draw {p.Facing.Code} at {p.Plane}").Distinct().ToList());
+    }
+
+    // Where the two cells meet, each face one draws on the boundary is met by the other's facing back, so no gap shows where the post has gone.
+    [Theory]
+    [MemberData(nameof(StackedAndFinished))]
+    public void TwoGlazedDiagonalsWhoseGlassRunsOnMeetFlushAcrossTheirBoundary(bool above, bool below, bool finished)
+    {
+        var (a, b) = GlassRunningOn(above, below, finished);
+        const double plane = -3.314;
+
+        List<string> Uncovered(List<WorldFace> own, List<WorldFace> other, BlockFacing toward)
+            => (from p in own
+                where p.Facing == toward && p.Plane == plane
+                from y in Samples(p.Lo[1], p.Hi[1])
+                from x in Samples(p.Lo[0], p.Hi[0])
+                where !other.Any(q => q.Facing == toward.Opposite && q.Plane == plane && q.Lo[1] <= y && y <= q.Hi[1] && q.Lo[0] <= x && x <= q.Hi[0])
+                select p.Name).Distinct().ToList();
+
+        Assert.Equal([], Uncovered(a, b, BlockFacing.NORTH).Concat(Uncovered(b, a, BlockFacing.SOUTH)).ToList());
+        if (finished && !(above && below)) Assert.NotEmpty(a.Where(face => face.Facing == BlockFacing.NORTH && face.Plane == plane));
+    }
+
     // Every ordered pair of cells bar two diagonals, the second one block off along the first's end, whose ends meet there.
     public static IEnumerable<object[]> Meetings(string[] layouts)
     {
