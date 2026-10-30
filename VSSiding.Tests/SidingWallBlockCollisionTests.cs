@@ -315,19 +315,19 @@ public class SidingWallBlockCollisionTests
             return BlockFacing.HORIZONTALS.First(f => f.Normali.X == dx && f.Normali.Z == dz);
         }
 
-        var west = new Dictionary<string, (BlockFacing face, BlockFacing points, bool droppable)[]>
+        var west = new Dictionary<string, (BlockFacing face, BlockFacing points)[]>
         {
-            ["wall"] = [(BlockFacing.WEST, BlockFacing.NORTH, true), (BlockFacing.WEST, BlockFacing.SOUTH, true)],
+            ["wall"] = [(BlockFacing.WEST, BlockFacing.NORTH), (BlockFacing.WEST, BlockFacing.SOUTH)],
             ["cornerout"] =
             [
-                (BlockFacing.WEST, BlockFacing.SOUTH, true), (BlockFacing.NORTH, BlockFacing.EAST, true),
-                (BlockFacing.WEST, BlockFacing.NORTH, false), (BlockFacing.NORTH, BlockFacing.WEST, false),
+                (BlockFacing.NORTH, BlockFacing.EAST), (BlockFacing.WEST, BlockFacing.SOUTH),
+                (BlockFacing.WEST, BlockFacing.NORTH), (BlockFacing.NORTH, BlockFacing.WEST),
             ],
-            ["diagonal"] = [(BlockFacing.WEST, BlockFacing.SOUTH, false), (BlockFacing.NORTH, BlockFacing.EAST, false)],
+            ["diagonal"] = [(BlockFacing.NORTH, BlockFacing.EAST), (BlockFacing.WEST, BlockFacing.SOUTH)],
         };
 
         var expected = new[] { "west", "south", "east", "north" }.SelectMany(side => west.Select(layout =>
-            (key: $"{layout.Key}-{side}", ends: layout.Value.Select(e => new SidingWallBlock.End(Turn(e.face, side), Turn(e.points, side), e.droppable)).ToArray())))
+            (key: $"{layout.Key}-{side}", ends: layout.Value.Select(e => new SidingWallBlock.End(Turn(e.face, side), Turn(e.points, side))).ToArray())))
             .ToDictionary(e => e.key, e => e.ends);
         var actual = new[] { "west", "south", "east", "north" }.SelectMany(side => west.Keys.Select(layout =>
             (key: $"{layout}-{side}", ends: SidingWallBlock.Ends(layout, side))))

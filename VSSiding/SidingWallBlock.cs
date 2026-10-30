@@ -280,31 +280,29 @@ public class SidingWallBlock : Block
             EndContinuesGlazing(blockAccessor, pos.AddCopy(0, rail == "-top" ? 1 : -1, 0), stile == "-left" ? leftEnd : rightEnd, infill));
     }
 
-    // Where a cell's frame stops along a run: the face the end lies on, the way the run carries on
-    // from it, and whether the end's upright can be dropped when the glass runs on (a corner post or
-    // a diagonal's mitre filler never can).
-    internal readonly record struct End(BlockFacing Face, BlockFacing Points, bool Droppable);
+    // Where a cell's frame stops along a run: the face the end lies on and the way the run carries on from it.
+    internal readonly record struct End(BlockFacing Face, BlockFacing Points);
 
-    // A wall's, left then right. A cornerout and a diagonal end right on `side` and left on the second
-    // face, the cornerout adding the two ends of its corner post (decision 0066).
+    // Each layout's, left then right. A wall's lie on `side`; a cornerout's and a diagonal's left lies on the
+    // second face and right on `side`, and the cornerout adds the two ends of its corner post (decision 0066).
     internal static End[] Ends(string layout, string side)
     {
         BlockFacing face = BlockFacing.FromCode(side);
         var (left, right) = RunNeighbours(side);
         return layout switch
         {
-            "wall" => [new(face, left, true), new(face, right, true)],
-            "cornerout" => [new(face, right, true), new(left, face.Opposite, true), new(face, left, false), new(left, face, false)],
-            "diagonal" => [new(face, right, false), new(left, face.Opposite, false)],
+            "wall" => [new(face, left), new(face, right)],
+            "cornerout" => [new(left, face.Opposite), new(face, right), new(face, left), new(left, face)],
+            "diagonal" => [new(left, face.Opposite), new(face, right)],
             _ => [],
         };
     }
 
-    // The ends a wall or corner's left and right joins answer for: a corner's leg 2 is its left and leg 1 its right.
+    // The ends a cell's left and right joins answer for: a corner's leg 2 is its left and leg 1 its right.
     internal static (End left, End right) LeftRightEnds(string layout, string side)
     {
         var ends = Ends(layout, side);
-        return layout == "cornerout" ? (ends[1], ends[0]) : (ends[0], ends[1]);
+        return (ends[0], ends[1]);
     }
 
     // Two ends on the same face pointing at each other are the one join seen from both cells.
@@ -323,7 +321,7 @@ public class SidingWallBlock : Block
     // shortcut: a straight wall standing where a diagonal run passes its corner is a clashing build and
     // is ignored here, so its stile may drop against a diagonal that does not truly carry on; upgrade if players build it.
     internal static bool JoinsAtEnd(End end, string layout, string side)
-        => layout is "wall" or "cornerout" or "diagonal" && Ends(layout, side).Any(other => EndsMeet(end, other));
+        => Ends(layout, side).Any(other => EndsMeet(end, other));
 
     // A diagonal on the same line, whichever way it faces.
     private bool ContinuesDiagonal(IBlockAccessor blockAccessor, BlockPos neighbourPos)
@@ -917,9 +915,7 @@ public class SidingWallBlock : Block
         // cells diagonally across are told too: each frames its inside corner by this one (InnerCorners).
         if (world.BlockAccessor.GetBlock(pos) is not SidingWallBlock block) return;
         if (block.Variant["layout"] == "diagonal") MarkDiagonalRunDirty(world, pos, block.Variant["side"]);
-        BlockFacing[] sideways = block.Variant["layout"] == "cornerout"
-            ? BlockFacing.HORIZONTALS
-            : [.. Ends(block.Variant["layout"], block.Variant["side"]).Select(end => end.Points)];
+        BlockFacing[] sideways = [.. Ends(block.Variant["layout"], block.Variant["side"]).Select(end => end.Points)];
         for (int dy = -1; dy <= 1; dy++)
         {
             foreach (var facing in sideways) world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos.AddCopy(facing).Add(0, dy, 0))?.MarkDirty(true);

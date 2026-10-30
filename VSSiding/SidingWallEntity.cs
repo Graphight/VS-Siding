@@ -316,12 +316,10 @@ public class SidingWallEntity : BlockEntity
     internal static List<string> FrameParts(
         string layout, (bool above, bool below, bool left, bool right) joins, bool glazed, string[]? innerCorners = null)
     {
-        bool diagonal = layout == "diagonal";
-        bool corner = SidingWallBlock.ClaimsTwoFaces(layout);
-        bool fillers = glazed && !diagonal;
+        bool fillers = glazed && layout != "diagonal";
         var parts = new List<string>();
-        if (corner && !diagonal) parts.Add("");
-        if (!corner || fillers)
+        if (layout == "cornerout") parts.Add("");
+        if (layout == "wall" || fillers)
         {
             if (!joins.left) parts.Add("-left");
             if (!joins.right) parts.Add("-right");
@@ -354,8 +352,7 @@ public class SidingWallEntity : BlockEntity
         // framing's Elements say (decision 0066).
         bool diagonal = layout == "diagonal";
         if (diagonal) frame = "framing";
-        bool glazing = glazed;
-        string member = glazing ? "glazing" : frame;
+        string member = glazed ? "glazing" : frame;
         var parts = FrameParts(layout, joins, glazed, innerCorners);
 
         // A glazed wall's or corner's finish is a rim round the glass: its group cut to each part the frame draws
@@ -364,7 +361,7 @@ public class SidingWallEntity : BlockEntity
         void AddFinish(string group, System.Func<string, bool>? keeps = null)
         {
             keeps ??= _ => true;
-            if (glazing)
+            if (glazed)
             {
                 rims.Add((group, keeps));
                 names.AddRange(RimNames(group, parts.Where(keeps)));
@@ -373,7 +370,7 @@ public class SidingWallEntity : BlockEntity
         }
 
         // A corner's front finish rims leg 1, whose far end is its right, and its second front leg 2, whose is its left.
-        bool cornerout = glazing && layout == "cornerout";
+        bool cornerout = layout == "cornerout";
         if (front != null) AddFinish(FinishElement(finishes, front, "front", styles.front), cornerout ? part => !part.EndsWith("-left") : null);
         if (secondFront != null) AddFinish("second" + FinishElement(finishes, secondFront, "front", styles.secondFront), cornerout ? part => !part.EndsWith("-right") : null);
         if (framing != null) names.AddRange(parts.Select(part => member + part));

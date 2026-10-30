@@ -1501,9 +1501,10 @@ public class WallShapeGenTests
                 var joins = JoinsToward(own.Item1, own.Item2, facing, other.Item1, other.Item2);
                 if (!joins.left && !joins.right) continue;
                 var end = joins.left ? SidingWallBlock.LeftRightEnds(own.Item1, own.Item2).left : SidingWallBlock.LeftRightEnds(own.Item1, own.Item2).right;
-                var met = SidingWallBlock.Ends(other.Item1, other.Item2).Select((e, i) => (e, i)).First(pair => SidingWallBlock.EndsMeet(end, pair.e));
+                var (otherLeft, otherRight) = SidingWallBlock.LeftRightEnds(other.Item1, other.Item2);
+                bool otherPost = other.Item1 == "cornerout" && !SidingWallBlock.EndsMeet(end, otherLeft) && !SidingWallBlock.EndsMeet(end, otherRight);
                 actual.AddRange(Uncovered(faces, beyond, facing).Distinct().OrderBy(name => name).Select(name => $"{own.Item1}-{own.Item2} {finished} {name}"));
-                expected.AddRange(Expected(finished, joins.left ? "left" : "right", other.Item1, other.Item1 == "cornerout" && met.i >= 2)
+                expected.AddRange(Expected(finished, joins.left ? "left" : "right", other.Item1, otherPost)
                     .Select(name => $"{own.Item1}-{own.Item2} {finished} {name}"));
             }
         }
