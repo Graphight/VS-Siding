@@ -94,9 +94,9 @@ Vanilla's trunk has the same offsets but got its walls back with or without the 
 The guest wall answers only the faces it claims (`GuestSealingPatches`), and vanilla's `RoomRegistry` reads the neighbouring block's face toward the room, which is the hosted block's.
 The same block standing loose in a stone cellar counts the same way, since vanilla `GetRetention` gives a solid wooden face 1.
 Vanilla tables, the fancy nightstand, the Vintage Engineering machines and Containers Bundle's blocks are not solid on that face, so the wall's infill answers for them.
-- Kevins Furniture's `tallshelftop`, the upper half its tall shelf places, reads `hosts, but a wall does not come back when the block breaks` when placed and broken alone.
-The tall shelf broken from below brings both walls back.
-Breaking a hosted tall shelf by its upper half is not checked.
+- Kevins Furniture's `tallshelftop`, the upper half its tall shelf places, reads `hosts, but a wall does not come back when the block breaks` when the probe places and breaks it alone.
+A player cannot place it alone: it has no creative inventory entry and no recipe of its own.
+A hosted tall shelf brought both walls back in the 2026-10-30 playtest, broken by either half.
 - Kevins Furniture's windows are refused for solid sides, and its canopy and leather flap door as multiblocks.
 They are openings, which belong to `chiselling-walls` or a window layout and not to hosting.
 - Electrical Progressive and Primitive Survival are not patched.
