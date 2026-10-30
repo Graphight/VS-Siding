@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Created: 2026-10-23
-- Reflects: mod page comment https://mods.vintagestory.at/vssiding#cmt-243661, #cmt-245074 and #cmt-246455; decisions 0020, 0035, 0036, 0049, 0079; `SidingModSystem.HostRefusal`/`IsHostable`, `RunCellId`, `BedFootprintPrefix`, `DoubleBedFootprintHosts`, `BedCells`, `IsHostableTests`, `FootprintHostsTests`, `RunCellPatchTests`; `patches/table-hostable.json` and `patches/compat/`; `CakeBuild` `FetchProbe`, `VSSiding.E2E.Tests/CompatProbeScenarios.cs` and `CelticBedScenarios.cs`, `docs/compat/`; Kevins Furniture, Vintage Engineering, Containers Bundle and More Inventorys as probed on 2026-10-23 against game 1.22.7, More Inventorys' `TryPlaceBlock` overrides read decompiled; branch `modded-furniture-hosting`; not played, the evidence is the probe and the Atlas scenarios
+- Reflects: mod page comment https://mods.vintagestory.at/vssiding#cmt-243661, #cmt-245074 and #cmt-246455; decisions 0020, 0035, 0036, 0049, 0079; `SidingModSystem.HostRefusal`/`IsHostable`, `RunCellId`, `BedFootprintPrefix`, `DoubleBedFootprintHosts`, `BedCells`, `IsHostableTests`, `FootprintHostsTests`, `RunCellPatchTests`; `patches/table-hostable.json` and `patches/compat/`; `CakeBuild` `FetchProbe`, `VSSiding.E2E.Tests/CompatProbeScenarios.cs` and `CelticBedScenarios.cs`, `docs/compat/`; Kevins Furniture, Vintage Engineering, Containers Bundle and More Inventorys as probed on 2026-10-23 against game 1.22.7, More Inventorys' `TryPlaceBlock` overrides read decompiled; branch `modded-furniture-hosting`; the probe, the Atlas scenarios and a playtest on 2026-10-30
 
 ## Summary
 Players asked for Kevins Furniture cabinets, Vintage Engineering machines, and More Inventorys and Containers Bundle storage to sit in a siding wall's cell.
@@ -106,6 +106,4 @@ Primitive Survival ships no furniture that the rule refuses.
 An exception while placing is recorded as `placement failed`, which can mean a block that refuses placement outside a wall for its own reasons.
 A verdict is evidence for the variant tried and not for every variant.
 - Other mods' authors can set `"vssidingHostable": true` in a block's attributes and the patch is not needed.
-- Not played.
-None of the hosted modded blocks has been placed by hand in the game client.
-To check: place a Kevins cabinet, a Vintage Engineering machine and a Containers Bundle cupboard against a wall, and walk into each from the room; hang items on a More Inventorys rack; lie in a Celtic bed placed with only its fillers in the wall, and get up.
+- Played on 2026-10-30, and each check worked as expected: a Kevins cabinet, a Vintage Engineering machine and a Containers Bundle cupboard placed against a wall and walked into from the room; items hung on a More Inventorys rack; a Celtic bed placed with only its fillers in the wall, lain in and got up from.
