@@ -457,7 +457,7 @@ public class SidingWallEntity : BlockEntity
     };
 
     // Vanilla's rotateY for a stair facing, and the order +90 carries a direction through: west, south, east, north.
-    private static readonly Dictionary<string, int> StairRotationByFacing = new() { ["north"] = 0, ["west"] = 90, ["south"] = 180, ["east"] = 270 };
+    internal static readonly Dictionary<string, int> StairRotationByFacing =new() { ["north"] = 0, ["west"] = 90, ["south"] = 180, ["east"] = 270 };
     private static readonly string[] TurnOrder = ["west", "south", "east", "north"];
 
     // Which of vanilla's stair shapes a step continues, read off the stair block's shape path; a modded shape draws as planks.

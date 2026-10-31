@@ -786,6 +786,10 @@ public class WallShapeGenTests
             "cornerout", "step-planks-up-left-front-step",
             Step((4, 8, 4), (16, 16, 8), ("north", 0, 0, 12, 8, 0), ("east", 0, 0, 4, 8, 0), ("south", 4, 0, 16, 8, 0), ("west", 4, 0, 8, 8, 0), ("up", 0, 0, 12, 4, 180))
         },
+        {
+            "cornerout", "step-planks-up-right-back-base",
+            Step((0, 0, 0), (12, 8, 12), ("north", 4, 8, 16, 16, 0), ("east", 4, 2.5, 16, 10.5, 0), ("south", 0, 2.5, 12, 10.5, 0), ("west", 0, 8, 12, 16, 0), ("up", 0, 0, 12, 12, 0), ("down", 4, 0, 16, 12, 0))
+        },
     };
 
     [Theory]
@@ -795,12 +799,22 @@ public class WallShapeGenTests
         Assert.Equal(expected, DrawnStep(layout, name));
     }
 
-    [Fact]
-    public void CornerStepSetsCutTheOtherLegsEnd()
+    // StepMesh and StepSetElements each spell the step's element names, and a name the shape lacks draws nothing, with no error.
+    [Theory]
+    [InlineData("wall")]
+    [InlineData("cornerout")]
+    public void EveryStepElementTheEntityCanAskForExists(string layout)
     {
-        var back = DrawnStep("cornerout", "step-planks-up-right-back-base");
+        var names = WallShapeGen.Generate(layout)["elements"]!.Select(e => (string)e["name"]!).ToHashSet();
+        var asked = (
+            from side in new[] { "west", "south", "east", "north" }
+            from vertical in new[] { "up", "down" }
+            from facing in new[] { "north", "west", "south", "east" }
+            from family in new[] { "planks", "basic", "stonepath" }
+            from name in SidingWallEntity.StepMesh(layout, side, $"{vertical}-{facing}", family).Names
+            select name).Distinct().ToList();
 
-        Assert.Equal((new JArray(0.0, 0.0, 0.0).ToString(), new JArray(12.0, 8.0, 12.0).ToString()), (back.From, back.To));
+        Assert.Equal((layout == "wall" ? 20 : 40, ""), (asked.Count, string.Join(" ", asked.Where(name => !names.Contains(name)))));
     }
 
     [Fact]

@@ -303,8 +303,7 @@ public static class WallShapeGen
     // tread toward z 0), so a step and a stair share every seam. The wall's panel takes x 0..4 ("left") or
     // x 12..16 ("right"), and the step is vanilla's box clipped to the rest. Boxes and uvs are transcribed from
     // block/basic/stairs/{planks-free-up,planks-free-down,normal,flipped,stonepath-stairs-free}.json; a face
-    // vanilla disables is left out. The stone path is the one shape that differs: its tread is a child of its
-    // base, so drawn from the base's y -1, and the base itself is cut to the cell and drops its 0.01 overlap.
+    // vanilla disables is left out. The stone path's two rows differ from its file, each noted on the row.
     // A corner takes the same clip plus one on z: "front" keeps z 4..16 (the other leg's panel at z 0..4, the end
     // the stair rises toward), "back" keeps z 0..12 (that panel at z 12..16).
     private static IEnumerable<Element> StepSetElements(bool corner = false)
@@ -351,13 +350,13 @@ public static class WallShapeGen
                 ["north"] = F(0, 0, 16, 8), ["east"] = F(0, 0, 8, 8), ["south"] = F(0, 0, 16, 8),
                 ["west"] = F(0, 0, 8, 8), ["down"] = F(0, 0, 16, 8),
             }),
-            // Vanilla's base runs y -1..7; it is cut to the cell at y 0, so each side's uv loses its bottom texel row.
+            // Vanilla's base runs y -1..7 with a 0.01 overlap; it is cut to the cell at y 0, so each side's uv loses its bottom texel row.
             ("stonepath", "up", "base", (0, 0, 0), (16, 7, 16), new()
             {
                 ["north"] = F(0, 7.5, 16, 14.5), ["east"] = F(0, 8, 16, 15), ["south"] = F(0, 8, 16, 15),
                 ["west"] = F(0, 8, 16, 15), ["up"] = F(0, 0, 16, 16), ["down"] = F(0, 0, 16, 16),
             }),
-            // Cube3 at y 8..16 within Cube2, whose own from is y -1.
+            // The tread is Cube3, a child of the base: y 8..16 drawn from the base's y -1, so y 7..15 in the cell.
             ("stonepath", "up", "step", (0, 7, 0), (16, 15, 8), new()
             {
                 ["north"] = F(0, 0, 16, 8), ["east"] = F(8, 0, 16, 8), ["south"] = F(0, 0, 16, 8),

@@ -110,7 +110,7 @@ public class SidingWallBlock : Block
         {
             foreach (string vertical in new[] { "up", "down" })
             {
-                foreach (string facing in new[] { "north", "west", "south", "east" })
+                foreach (string facing in SidingWallEntity.StairRotationByFacing.Keys)
                 {
                     string orientation = $"{vertical}-{facing}";
                     if (SidingWallEntity.StepFrame("cornerout", side, orientation) is not { } frame) continue;
