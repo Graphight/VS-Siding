@@ -354,6 +354,14 @@ public class SidingWallEntity : BlockEntity
         if (diagonal) frame = "framing";
         string member = glazed ? "glazing" : frame;
         var parts = FrameParts(layout, joins, glazed, innerCorners);
+        // A corner's post stands a finish slot in from the cell's edge, so at a T, where the glass runs on past it, it fills
+        // the slot the run crosses: its left leg's at its left end, its right leg's at its right (decision 0080).
+        bool cornerout = layout == "cornerout";
+        if (cornerout && glazed)
+        {
+            if (glassRunsOn.left) parts.Add("-tee-left");
+            if (glassRunsOn.right) parts.Add("-tee-right");
+        }
 
         // A glazed cell's finish is a rim round the glass: its group cut to each part the frame draws that the
         // group keeps.
@@ -369,11 +377,12 @@ public class SidingWallEntity : BlockEntity
             else names.Add(group);
         }
 
-        // A corner's front finish rims leg 1, whose far end is its right, and its second front leg 2, whose is its left.
-        bool cornerout = layout == "cornerout";
-        if (front != null) AddFinish(FinishElement(finishes, front, "front", styles.front), cornerout ? part => !part.EndsWith("-left") : null);
+        // A corner's front finish rims leg 1, whose far end is its right, and its second front leg 2, whose is its left,
+        // and its corner post rim gives way to the rims either side of a T's piece in its slot.
+        bool OnLeg(string part, string otherLeg, bool tee) => !part.EndsWith(otherLeg) && !(part == "" && tee);
+        if (front != null) AddFinish(FinishElement(finishes, front, "front", styles.front), cornerout ? part => OnLeg(part, "-left", glassRunsOn.right) : null);
         if (secondFront != null)
-            AddFinish("second" + FinishElement(finishes, secondFront, "front", styles.secondFront), cornerout ? part => !part.EndsWith("-right") : null);
+            AddFinish("second" + FinishElement(finishes, secondFront, "front", styles.secondFront), cornerout ? part => OnLeg(part, "-right", glassRunsOn.left) : null);
         if (framing != null) names.AddRange(parts.Select(part => member + part));
         if (infill != null)
         {
@@ -389,8 +398,9 @@ public class SidingWallEntity : BlockEntity
                 if (joins.below) names.Add("infill-bottom");
             }
         }
-        // The top of the room side's rim lies in a deck's height, where the deck's ledge takes its place (Ledges).
-        if (back != null) AddFinish(FinishElement(finishes, back, "back", styles.back), decked ? part => !part.StartsWith("-top") : null);
+        // The top of the room side's rim lies in a deck's height, where the deck's ledge takes its place (Ledges), and a T's
+        // piece lies in a front slot, clear of it.
+        if (back != null) AddFinish(FinishElement(finishes, back, "back", styles.back), part => !part.StartsWith("-tee") && !(decked && part.StartsWith("-top")));
         // A diagonal's end is the filler in its corner, or, where the next cell carries the run on,
         // each group's own piece out to the corner and half a post there.
         if (diagonal)

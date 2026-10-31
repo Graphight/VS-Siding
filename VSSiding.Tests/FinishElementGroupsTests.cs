@@ -306,9 +306,9 @@ public class FinishElementGroupsTests
             from right in either
             from transparent in either
             from finish in new[] { null, "daub" }
-            // Glass runs on only on a glazed cell, through an end the run carries on from.
-            from glassLeft in either.Where(glass => !glass || (transparent && left))
-            from glassRight in either.Where(glass => !glass || (transparent && right))
+            // Glass runs on only on a glazed cell, a diagonal's through an end the run carries on from and a corner's past its post.
+            from glassLeft in either.Where(glass => !glass || (transparent && (left || layout == "cornerout")))
+            from glassRight in either.Where(glass => !glass || (transparent && (right || layout == "cornerout")))
             from corners in innerCorners
             from name in SidingWallEntity.SelectiveElements(
                 layout, "oak", "glass", finish, layout == "cornerout" ? finish : null, finish, finishes,

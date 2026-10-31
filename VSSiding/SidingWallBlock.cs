@@ -242,11 +242,19 @@ public class SidingWallBlock : Block
     }
 
     // Which ends of a diagonal the glass carries on through: the run goes on there and the diagonal it
-    // goes on into is glazed in the same stack, so no post stands between them.
+    // goes on into is glazed in the same stack, so no post stands between them. A corner's are its corner
+    // post's two ends, the left end of its front's line and the right end of its second face's, where a T
+    // runs on past the post, which stays.
     internal (bool left, bool right) GlassRunsOn(
         IBlockAccessor blockAccessor, BlockPos pos, string? infill, (bool above, bool below, bool left, bool right) joins)
     {
-        if (Variant["layout"] != "diagonal" || !IsTransparent(infill, Attributes["Infills"])) return default;
+        if (!IsTransparent(infill, Attributes["Infills"])) return default;
+        if (Variant["layout"] == "cornerout")
+        {
+            var ends = Ends("cornerout", Variant["side"]);
+            return (EndContinuesGlazing(blockAccessor, pos, ends[2], infill), EndContinuesGlazing(blockAccessor, pos, ends[3], infill));
+        }
+        if (Variant["layout"] != "diagonal") return default;
         var (leftStep, rightStep) = DiagonalRunNeighbours(Variant["side"]);
         return (joins.left && GlazedDiagonalAt(blockAccessor, pos.AddCopy(leftStep), infill),
             joins.right && GlazedDiagonalAt(blockAccessor, pos.AddCopy(rightStep), infill));
@@ -898,8 +906,7 @@ public class SidingWallBlock : Block
             if (neibpos.Y != pos.Y || Variant["layout"] == "diagonal") return;
             var entity = world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos);
             if (entity == null || !IsTransparent(entity.Infill, Attributes["Infills"])) return;
-            var (leftEnd, rightEnd) = LeftRightEnds(Variant["layout"], Variant["side"]);
-            if (neibpos.Equals(pos.AddCopy(leftEnd.Points)) || neibpos.Equals(pos.AddCopy(rightEnd.Points))) entity.MarkDirty(true);
+            if (Ends(Variant["layout"], Variant["side"]).Any(end => neibpos.Equals(pos.AddCopy(end.Points)))) entity.MarkDirty(true);
             return;
         }
         if (neibpos.Y == pos.Y + 1) world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos)?.MarkDirty(true);

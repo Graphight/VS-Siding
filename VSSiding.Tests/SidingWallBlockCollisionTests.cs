@@ -406,7 +406,7 @@ public class SidingWallBlockCollisionTests
     // one with glass over it too, turns the sheet's inside corner at its top left only. So does a glazed diagonal under another between
     // two glazed diagonals, of which only the right one has glass over it.
     [Fact]
-    public void AGlazedCellsInsideCornersAreReadOffTheCellsOverItsEnds()
+    public void AGlazedCellsJoinsAndInsideCornersAreReadOffTheCellsAtItsEnds()
     {
         var attributes = new JsonObject(JToken.Parse("""{ "Infills": { "glass": { "Transparent": true } } }"""));
         (Block Block, SidingWallEntity Entity) Glazed(string layout, string side)
@@ -429,6 +429,8 @@ public class SidingWallBlockCollisionTests
             [corner.EastCopy()] = Glazed("wall", "north"),
             [corner.SouthCopy()] = Glazed("wall", "west"),
             [corner.SouthCopy().Up()] = Glazed("wall", "west"),
+            // A west wall to the north carries leg 1's line on past the corner post, a T at the post's left end.
+            [corner.NorthCopy()] = Glazed("wall", "west"),
             [diagonal] = Glazed("diagonal", "west"),
             [diagonal.UpCopy()] = Glazed("diagonal", "west"),
             [diagonal.AddCopy(leftStep)] = Glazed("diagonal", "west"),
@@ -436,19 +438,19 @@ public class SidingWallBlockCollisionTests
             [diagonal.AddCopy(rightStep).Up()] = Glazed("diagonal", "west"),
         };
 
-        ((bool, bool, bool, bool) Joins, string InnerCorners) Read(BlockPos pos)
+        ((bool, bool, bool, bool) Joins, string InnerCorners, (bool, bool) GlassRunsOn) Read(BlockPos pos)
         {
             var wall = (SidingWallBlock)cells[pos].Block;
             var joins = wall.NeighbourJoins(accessor, pos, "glass");
-            return (joins, string.Join(" ", wall.InnerCorners(accessor, pos, "glass", joins)));
+            return (joins, string.Join(" ", wall.InnerCorners(accessor, pos, "glass", joins)), wall.GlassRunsOn(accessor, pos, "glass", joins));
         }
 
         Assert.Equal(
-            new Dictionary<string, ((bool, bool, bool, bool), string)>
+            new Dictionary<string, ((bool, bool, bool, bool), string, (bool, bool))>
             {
-                ["cornerout"] = ((true, false, true, true), "-top-left"),
-                ["diagonal"] = ((true, false, true, true), "-top-left"),
+                ["cornerout"] = ((true, false, true, true), "-top-left", (true, false)),
+                ["diagonal"] = ((true, false, true, true), "-top-left", (true, true)),
             },
-            new Dictionary<string, ((bool, bool, bool, bool), string)> { ["cornerout"] = Read(corner), ["diagonal"] = Read(diagonal) });
+            new Dictionary<string, ((bool, bool, bool, bool), string, (bool, bool))> { ["cornerout"] = Read(corner), ["diagonal"] = Read(diagonal) });
     }
 }

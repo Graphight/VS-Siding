@@ -1305,6 +1305,126 @@
       }
     },
     {
+      "name": "glazing-tee-left",
+      "from": [
+        1.0,
+        0.0,
+        0.0
+      ],
+      "to": [
+        3.0,
+        16.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.0,
+            16.0
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            16.0
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            16.0
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.0,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "glazing-tee-right",
+      "from": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "to": [
+        1.0,
+        16.0,
+        3.0
+      ],
+      "faces": {
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.0,
+            16.0
+          ]
+        },
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            16.0
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            16.0
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            2.0
+          ]
+        }
+      }
+    },
+    {
       "name": "glazing-right",
       "from": [
         1.0,
@@ -44814,6 +44934,5597 @@
       }
     },
     {
+      "name": "front-rim-tee-right",
+      "from": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "to": [
+        1.0,
+        16.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            16.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            16.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            16.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            16.0
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-rim-tee-right",
+      "from": [
+        0.0,
+        0.0,
+        3.0
+      ],
+      "to": [
+        1.0,
+        16.0,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            16.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            16.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            16.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            16.0
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            3.0,
+            1.0,
+            4.0
+          ]
+        },
+        "down": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            3.0,
+            1.0,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-weatherboard-rim-tee-right",
+      "from": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "to": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            15.0,
+            1.0,
+            16.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            15.0,
+            15.0,
+            16.0,
+            16.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            15.0,
+            1.0,
+            16.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            15.0,
+            1.0,
+            16.0
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-weatherboard-rim-tee-right",
+      "from": [
+        0.0,
+        0.0,
+        3.0
+      ],
+      "to": [
+        1.0,
+        1.0,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            15.0,
+            1.0,
+            16.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            12.0,
+            15.0,
+            13.0,
+            16.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            15.0,
+            1.0,
+            16.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            3.0,
+            15.0,
+            4.0,
+            16.0
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            3.0,
+            1.0,
+            4.0
+          ]
+        },
+        "down": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            3.0,
+            1.0,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-weatherboard-rim-tee-right",
+      "from": [
+        0.25,
+        1.0,
+        0.5
+      ],
+      "to": [
+        1.0,
+        2.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            14.0,
+            0.75,
+            15.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            15.0,
+            14.0,
+            15.5,
+            15.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            14.0,
+            0.75,
+            15.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            14.0,
+            0.5,
+            15.0
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.75,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-weatherboard-rim-tee-right",
+      "from": [
+        0.25,
+        1.0,
+        3.0
+      ],
+      "to": [
+        1.0,
+        2.0,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            14.0,
+            0.75,
+            15.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            12.0,
+            14.0,
+            13.0,
+            15.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            14.0,
+            0.75,
+            15.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            2.5,
+            14.0,
+            3.5,
+            15.0
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            2.5,
+            0.75,
+            3.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-weatherboard-rim-tee-right",
+      "from": [
+        0.5,
+        2.0,
+        0.5
+      ],
+      "to": [
+        1.0,
+        3.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            13.0,
+            0.5,
+            14.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            15.0,
+            13.0,
+            15.5,
+            14.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            13.0,
+            0.5,
+            14.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            13.0,
+            0.5,
+            14.0
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-weatherboard-rim-tee-right",
+      "from": [
+        0.5,
+        2.0,
+        3.0
+      ],
+      "to": [
+        1.0,
+        3.0,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            13.0,
+            0.5,
+            14.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            12.0,
+            13.0,
+            13.0,
+            14.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            13.0,
+            0.5,
+            14.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            2.5,
+            13.0,
+            3.5,
+            14.0
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            2.5,
+            0.5,
+            3.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-weatherboard-rim-tee-right",
+      "from": [
+        0.75,
+        3.0,
+        0.5
+      ],
+      "to": [
+        1.0,
+        4.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            12.0,
+            0.25,
+            13.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            15.0,
+            12.0,
+            15.5,
+            13.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            12.0,
+            0.25,
+            13.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            12.0,
+            0.5,
+            13.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-weatherboard-rim-tee-right",
+      "from": [
+        0.75,
+        3.0,
+        3.0
+      ],
+      "to": [
+        1.0,
+        4.0,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            12.0,
+            0.25,
+            13.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            12.0,
+            12.0,
+            13.0,
+            13.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            12.0,
+            0.25,
+            13.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            2.5,
+            12.0,
+            3.5,
+            13.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-weatherboard-rim-tee-right",
+      "from": [
+        0.0,
+        4.0,
+        0.0
+      ],
+      "to": [
+        1.0,
+        5.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            11.0,
+            1.0,
+            12.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            15.0,
+            11.0,
+            16.0,
+            12.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            11.0,
+            1.0,
+            12.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            11.0,
+            1.0,
+            12.0
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-weatherboard-rim-tee-right",
+      "from": [
+        0.0,
+        4.0,
+        3.0
+      ],
+      "to": [
+        1.0,
+        5.0,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            11.0,
+            1.0,
+            12.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            12.0,
+            11.0,
+            13.0,
+            12.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            11.0,
+            1.0,
+            12.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            3.0,
+            11.0,
+            4.0,
+            12.0
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            3.0,
+            1.0,
+            4.0
+          ]
+        },
+        "down": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            3.0,
+            1.0,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-weatherboard-rim-tee-right",
+      "from": [
+        0.25,
+        5.0,
+        0.5
+      ],
+      "to": [
+        1.0,
+        6.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            10.0,
+            0.75,
+            11.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            15.0,
+            10.0,
+            15.5,
+            11.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            10.0,
+            0.75,
+            11.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            10.0,
+            0.5,
+            11.0
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.75,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-weatherboard-rim-tee-right",
+      "from": [
+        0.25,
+        5.0,
+        3.0
+      ],
+      "to": [
+        1.0,
+        6.0,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            10.0,
+            0.75,
+            11.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            12.0,
+            10.0,
+            13.0,
+            11.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            10.0,
+            0.75,
+            11.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            2.5,
+            10.0,
+            3.5,
+            11.0
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            2.5,
+            0.75,
+            3.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-weatherboard-rim-tee-right",
+      "from": [
+        0.5,
+        6.0,
+        0.5
+      ],
+      "to": [
+        1.0,
+        7.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            9.0,
+            0.5,
+            10.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            15.0,
+            9.0,
+            15.5,
+            10.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            9.0,
+            0.5,
+            10.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            9.0,
+            0.5,
+            10.0
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-weatherboard-rim-tee-right",
+      "from": [
+        0.5,
+        6.0,
+        3.0
+      ],
+      "to": [
+        1.0,
+        7.0,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            9.0,
+            0.5,
+            10.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            12.0,
+            9.0,
+            13.0,
+            10.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            9.0,
+            0.5,
+            10.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            2.5,
+            9.0,
+            3.5,
+            10.0
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            2.5,
+            0.5,
+            3.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-weatherboard-rim-tee-right",
+      "from": [
+        0.75,
+        7.0,
+        0.5
+      ],
+      "to": [
+        1.0,
+        8.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            8.0,
+            0.25,
+            9.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            15.0,
+            8.0,
+            15.5,
+            9.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            8.0,
+            0.25,
+            9.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            8.0,
+            0.5,
+            9.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-weatherboard-rim-tee-right",
+      "from": [
+        0.75,
+        7.0,
+        3.0
+      ],
+      "to": [
+        1.0,
+        8.0,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            8.0,
+            0.25,
+            9.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            12.0,
+            8.0,
+            13.0,
+            9.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            8.0,
+            0.25,
+            9.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            2.5,
+            8.0,
+            3.5,
+            9.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-weatherboard-rim-tee-right",
+      "from": [
+        0.0,
+        8.0,
+        0.0
+      ],
+      "to": [
+        1.0,
+        9.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            7.0,
+            1.0,
+            8.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            15.0,
+            7.0,
+            16.0,
+            8.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            7.0,
+            1.0,
+            8.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            7.0,
+            1.0,
+            8.0
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-weatherboard-rim-tee-right",
+      "from": [
+        0.0,
+        8.0,
+        3.0
+      ],
+      "to": [
+        1.0,
+        9.0,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            7.0,
+            1.0,
+            8.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            12.0,
+            7.0,
+            13.0,
+            8.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            7.0,
+            1.0,
+            8.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            3.0,
+            7.0,
+            4.0,
+            8.0
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            3.0,
+            1.0,
+            4.0
+          ]
+        },
+        "down": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            3.0,
+            1.0,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-weatherboard-rim-tee-right",
+      "from": [
+        0.25,
+        9.0,
+        0.5
+      ],
+      "to": [
+        1.0,
+        10.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            6.0,
+            0.75,
+            7.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            15.0,
+            6.0,
+            15.5,
+            7.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            6.0,
+            0.75,
+            7.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            6.0,
+            0.5,
+            7.0
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.75,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-weatherboard-rim-tee-right",
+      "from": [
+        0.25,
+        9.0,
+        3.0
+      ],
+      "to": [
+        1.0,
+        10.0,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            6.0,
+            0.75,
+            7.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            12.0,
+            6.0,
+            13.0,
+            7.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            6.0,
+            0.75,
+            7.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            2.5,
+            6.0,
+            3.5,
+            7.0
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            2.5,
+            0.75,
+            3.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-weatherboard-rim-tee-right",
+      "from": [
+        0.5,
+        10.0,
+        0.5
+      ],
+      "to": [
+        1.0,
+        11.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            5.0,
+            0.5,
+            6.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            15.0,
+            5.0,
+            15.5,
+            6.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            5.0,
+            0.5,
+            6.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            5.0,
+            0.5,
+            6.0
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-weatherboard-rim-tee-right",
+      "from": [
+        0.5,
+        10.0,
+        3.0
+      ],
+      "to": [
+        1.0,
+        11.0,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            5.0,
+            0.5,
+            6.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            12.0,
+            5.0,
+            13.0,
+            6.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            5.0,
+            0.5,
+            6.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            2.5,
+            5.0,
+            3.5,
+            6.0
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            2.5,
+            0.5,
+            3.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-weatherboard-rim-tee-right",
+      "from": [
+        0.75,
+        11.0,
+        0.5
+      ],
+      "to": [
+        1.0,
+        12.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            4.0,
+            0.25,
+            5.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            15.0,
+            4.0,
+            15.5,
+            5.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            4.0,
+            0.25,
+            5.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            4.0,
+            0.5,
+            5.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-weatherboard-rim-tee-right",
+      "from": [
+        0.75,
+        11.0,
+        3.0
+      ],
+      "to": [
+        1.0,
+        12.0,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            4.0,
+            0.25,
+            5.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            12.0,
+            4.0,
+            13.0,
+            5.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            4.0,
+            0.25,
+            5.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            2.5,
+            4.0,
+            3.5,
+            5.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-weatherboard-rim-tee-right",
+      "from": [
+        0.0,
+        12.0,
+        0.0
+      ],
+      "to": [
+        1.0,
+        13.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            3.0,
+            1.0,
+            4.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            15.0,
+            3.0,
+            16.0,
+            4.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            3.0,
+            1.0,
+            4.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            3.0,
+            1.0,
+            4.0
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-weatherboard-rim-tee-right",
+      "from": [
+        0.0,
+        12.0,
+        3.0
+      ],
+      "to": [
+        1.0,
+        13.0,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            3.0,
+            1.0,
+            4.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            12.0,
+            3.0,
+            13.0,
+            4.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            3.0,
+            1.0,
+            4.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            3.0,
+            3.0,
+            4.0,
+            4.0
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            3.0,
+            1.0,
+            4.0
+          ]
+        },
+        "down": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            3.0,
+            1.0,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-weatherboard-rim-tee-right",
+      "from": [
+        0.25,
+        13.0,
+        0.5
+      ],
+      "to": [
+        1.0,
+        14.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            2.0,
+            0.75,
+            3.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            15.0,
+            2.0,
+            15.5,
+            3.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            2.0,
+            0.75,
+            3.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            2.0,
+            0.5,
+            3.0
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.75,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-weatherboard-rim-tee-right",
+      "from": [
+        0.25,
+        13.0,
+        3.0
+      ],
+      "to": [
+        1.0,
+        14.0,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            2.0,
+            0.75,
+            3.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            12.0,
+            2.0,
+            13.0,
+            3.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            2.0,
+            0.75,
+            3.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            2.5,
+            2.0,
+            3.5,
+            3.0
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            2.5,
+            0.75,
+            3.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-weatherboard-rim-tee-right",
+      "from": [
+        0.5,
+        14.0,
+        0.5
+      ],
+      "to": [
+        1.0,
+        15.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            1.0,
+            0.5,
+            2.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            15.0,
+            1.0,
+            15.5,
+            2.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            1.0,
+            0.5,
+            2.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            1.0,
+            0.5,
+            2.0
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-weatherboard-rim-tee-right",
+      "from": [
+        0.5,
+        14.0,
+        3.0
+      ],
+      "to": [
+        1.0,
+        15.0,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            1.0,
+            0.5,
+            2.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            12.0,
+            1.0,
+            13.0,
+            2.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            1.0,
+            0.5,
+            2.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            2.5,
+            1.0,
+            3.5,
+            2.0
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            2.5,
+            0.5,
+            3.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-weatherboard-rim-tee-right",
+      "from": [
+        0.75,
+        15.0,
+        0.5
+      ],
+      "to": [
+        1.0,
+        16.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            15.0,
+            0.0,
+            15.5,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-weatherboard-rim-tee-right",
+      "from": [
+        0.75,
+        15.0,
+        3.0
+      ],
+      "to": [
+        1.0,
+        16.0,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            2.5,
+            0.0,
+            3.5,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            2.5,
+            0.25,
+            3.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-boards-rim-tee-right",
+      "from": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "to": [
+        1.0,
+        16.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            16.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            16.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            16.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ],
+          "rotation": 270
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-boards-rim-tee-right",
+      "from": [
+        0.0,
+        0.0,
+        3.0
+      ],
+      "to": [
+        1.0,
+        16.0,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            16.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            16.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            16.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            3.0,
+            16.0,
+            4.0
+          ],
+          "rotation": 270
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            3.0,
+            1.0,
+            4.0
+          ]
+        },
+        "down": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            3.0,
+            1.0,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-hboards-rim-tee-right",
+      "from": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "to": [
+        1.0,
+        16.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            16.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            16.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            16.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            16.0
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-hboards-rim-tee-right",
+      "from": [
+        0.0,
+        0.0,
+        3.0
+      ],
+      "to": [
+        1.0,
+        16.0,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            16.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            16.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            16.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            16.0
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            3.0,
+            1.0,
+            4.0
+          ]
+        },
+        "down": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            3.0,
+            1.0,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-bark-rim-tee-right",
+      "from": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "to": [
+        1.0,
+        16.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            16.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            16.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            16.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            16.0
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-bark-rim-tee-right",
+      "from": [
+        0.0,
+        0.0,
+        3.0
+      ],
+      "to": [
+        1.0,
+        16.0,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            16.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            16.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            16.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            16.0
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            3.0,
+            1.0,
+            4.0
+          ]
+        },
+        "down": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            3.0,
+            1.0,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-hbark-rim-tee-right",
+      "from": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "to": [
+        1.0,
+        16.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            16.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            16.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            16.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            16.0
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-hbark-rim-tee-right",
+      "from": [
+        0.0,
+        0.0,
+        3.0
+      ],
+      "to": [
+        1.0,
+        16.0,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            16.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            16.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            16.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            16.0
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            3.0,
+            1.0,
+            4.0
+          ]
+        },
+        "down": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            3.0,
+            1.0,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-shakes-rim-tee-right",
+      "from": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "to": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            15.0,
+            1.0,
+            16.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            4.0,
+            15.0,
+            5.0,
+            16.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            15.0,
+            1.0,
+            16.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            15.0,
+            1.0,
+            16.0
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-shakes-rim-tee-right",
+      "from": [
+        0.0,
+        0.0,
+        3.0
+      ],
+      "to": [
+        1.0,
+        1.0,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            15.0,
+            1.0,
+            16.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            1.0,
+            15.0,
+            2.0,
+            16.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            15.0,
+            1.0,
+            16.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            3.0,
+            15.0,
+            4.0,
+            16.0
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            3.0,
+            1.0,
+            4.0
+          ]
+        },
+        "down": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            3.0,
+            1.0,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-shakes-rim-tee-right",
+      "from": [
+        0.5,
+        1.0,
+        0.5
+      ],
+      "to": [
+        1.0,
+        4.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            12.0,
+            0.5,
+            15.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            4.5,
+            12.0,
+            5.0,
+            15.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            12.0,
+            0.5,
+            15.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            0.5,
+            12.0,
+            1.0,
+            15.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-shakes-rim-tee-right",
+      "from": [
+        0.5,
+        1.0,
+        3.0
+      ],
+      "to": [
+        1.0,
+        4.0,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            12.0,
+            0.5,
+            15.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            1.5,
+            12.0,
+            2.5,
+            15.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            12.0,
+            0.5,
+            15.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            3.0,
+            12.0,
+            4.0,
+            15.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-shakes-rim-tee-right",
+      "from": [
+        0.15,
+        4.0,
+        0.0
+      ],
+      "to": [
+        1.0,
+        5.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            11.0,
+            0.85,
+            12.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            3.0,
+            11.0,
+            4.0,
+            12.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            11.0,
+            0.85,
+            12.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            11.0,
+            1.0,
+            12.0
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.85,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.85,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-shakes-rim-tee-right",
+      "from": [
+        0.15,
+        4.0,
+        3.0
+      ],
+      "to": [
+        1.0,
+        5.0,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            11.0,
+            0.85,
+            12.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            11.0,
+            1.0,
+            12.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            11.0,
+            0.85,
+            12.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            3.0,
+            11.0,
+            4.0,
+            12.0
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            3.0,
+            0.85,
+            4.0
+          ]
+        },
+        "down": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            3.0,
+            0.85,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-shakes-rim-tee-right",
+      "from": [
+        0.65,
+        5.0,
+        0.5
+      ],
+      "to": [
+        1.0,
+        8.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            8.0,
+            0.35,
+            11.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            3.5,
+            8.0,
+            4.0,
+            11.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            8.0,
+            0.35,
+            11.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            0.5,
+            8.0,
+            1.0,
+            11.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-shakes-rim-tee-right",
+      "from": [
+        0.65,
+        5.0,
+        3.0
+      ],
+      "to": [
+        1.0,
+        8.0,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            8.0,
+            0.35,
+            11.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            0.5,
+            8.0,
+            1.5,
+            11.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            8.0,
+            0.35,
+            11.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            3.0,
+            8.0,
+            4.0,
+            11.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-shakes-rim-tee-right",
+      "from": [
+        0.25,
+        8.0,
+        0.0
+      ],
+      "to": [
+        1.0,
+        9.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            7.0,
+            0.75,
+            8.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            5.0,
+            7.0,
+            6.0,
+            8.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            7.0,
+            0.75,
+            8.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            7.0,
+            1.0,
+            8.0
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.75,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.75,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-shakes-rim-tee-right",
+      "from": [
+        0.25,
+        8.0,
+        3.0
+      ],
+      "to": [
+        1.0,
+        9.0,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            7.0,
+            0.75,
+            8.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            2.0,
+            7.0,
+            3.0,
+            8.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            7.0,
+            0.75,
+            8.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            3.0,
+            7.0,
+            4.0,
+            8.0
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            3.0,
+            0.75,
+            4.0
+          ]
+        },
+        "down": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            3.0,
+            0.75,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-shakes-rim-tee-right",
+      "from": [
+        0.75,
+        9.0,
+        0.5
+      ],
+      "to": [
+        1.0,
+        12.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            4.0,
+            0.25,
+            7.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            5.5,
+            4.0,
+            6.0,
+            7.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            4.0,
+            0.25,
+            7.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            0.5,
+            4.0,
+            1.0,
+            7.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-shakes-rim-tee-right",
+      "from": [
+        0.75,
+        9.0,
+        3.0
+      ],
+      "to": [
+        1.0,
+        12.0,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            4.0,
+            0.25,
+            7.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            2.5,
+            4.0,
+            3.5,
+            7.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            4.0,
+            0.25,
+            7.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            3.0,
+            4.0,
+            4.0,
+            7.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-shakes-rim-tee-right",
+      "from": [
+        0.1,
+        12.0,
+        0.0
+      ],
+      "to": [
+        1.0,
+        13.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            3.0,
+            0.9,
+            4.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            2.0,
+            3.0,
+            3.0,
+            4.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            3.0,
+            0.9,
+            4.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            3.0,
+            1.0,
+            4.0
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.9,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.9,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-shakes-rim-tee-right",
+      "from": [
+        0.3,
+        12.0,
+        3.0
+      ],
+      "to": [
+        1.0,
+        13.0,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            3.0,
+            0.7,
+            4.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            7.0,
+            3.0,
+            8.0,
+            4.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            3.0,
+            0.7,
+            4.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            3.0,
+            3.0,
+            4.0,
+            4.0
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            3.0,
+            0.7,
+            4.0
+          ]
+        },
+        "down": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            3.0,
+            0.7,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-shakes-rim-tee-right",
+      "from": [
+        0.6,
+        13.0,
+        0.5
+      ],
+      "to": [
+        1.0,
+        16.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.4,
+            3.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            2.5,
+            0.0,
+            3.0,
+            3.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.4,
+            3.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            0.5,
+            0.0,
+            1.0,
+            3.0
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.5,
+            0.4,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-shakes-rim-tee-right",
+      "from": [
+        0.8,
+        13.0,
+        3.0
+      ],
+      "to": [
+        1.0,
+        16.0,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.19999999999999996,
+            3.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            7.0,
+            0.0,
+            8.0,
+            3.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.19999999999999996,
+            3.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            3.0
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            3.0,
+            0.19999999999999996,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-logs-rim-tee-right",
+      "from": [
+        0.5,
+        0.0,
+        0.0
+      ],
+      "to": [
+        1.0,
+        16.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            16.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            16.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            16.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            16.0
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-logs-rim-tee-right",
+      "from": [
+        0.5,
+        0.0,
+        3.0
+      ],
+      "to": [
+        1.0,
+        16.0,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            16.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            16.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            16.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            16.0
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            3.0,
+            0.5,
+            4.0
+          ]
+        },
+        "down": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            3.0,
+            0.5,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-logs-rim-tee-right",
+      "from": [
+        0.0,
+        0.5,
+        0.0
+      ],
+      "to": [
+        0.5,
+        3.5,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            3.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            3.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            12.5,
+            1.0,
+            15.5
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-logs-rim-tee-right",
+      "from": [
+        0.0,
+        0.5,
+        3.0
+      ],
+      "to": [
+        0.5,
+        3.5,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            3.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            3.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            3.0,
+            12.5,
+            4.0,
+            15.5
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            3.0,
+            0.5,
+            4.0
+          ]
+        },
+        "down": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            3.0,
+            0.5,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-logs-rim-tee-right",
+      "from": [
+        0.0,
+        4.5,
+        0.0
+      ],
+      "to": [
+        0.5,
+        7.5,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            3.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            3.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            8.5,
+            1.0,
+            11.5
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-logs-rim-tee-right",
+      "from": [
+        0.0,
+        4.5,
+        3.0
+      ],
+      "to": [
+        0.5,
+        7.5,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            3.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            3.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            3.0,
+            8.5,
+            4.0,
+            11.5
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            3.0,
+            0.5,
+            4.0
+          ]
+        },
+        "down": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            3.0,
+            0.5,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-logs-rim-tee-right",
+      "from": [
+        0.0,
+        8.5,
+        0.0
+      ],
+      "to": [
+        0.5,
+        11.5,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            3.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            3.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            4.5,
+            1.0,
+            7.5
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-logs-rim-tee-right",
+      "from": [
+        0.0,
+        8.5,
+        3.0
+      ],
+      "to": [
+        0.5,
+        11.5,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            3.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            3.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            3.0,
+            4.5,
+            4.0,
+            7.5
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            3.0,
+            0.5,
+            4.0
+          ]
+        },
+        "down": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            3.0,
+            0.5,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-logs-rim-tee-right",
+      "from": [
+        0.0,
+        12.5,
+        0.0
+      ],
+      "to": [
+        0.5,
+        15.5,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            3.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            3.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.5,
+            1.0,
+            3.5
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-logs-rim-tee-right",
+      "from": [
+        0.0,
+        12.5,
+        3.0
+      ],
+      "to": [
+        0.5,
+        15.5,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            3.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            3.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            3.0,
+            0.5,
+            4.0,
+            3.5
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            3.0,
+            0.5,
+            4.0
+          ]
+        },
+        "down": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            3.0,
+            0.5,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-brick-rim-tee-right",
+      "from": [
+        0.25,
+        0.0,
+        0.0
+      ],
+      "to": [
+        1.0,
+        16.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.75,
+            16.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            16.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.75,
+            16.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            16.0
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.75,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.75,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-brick-rim-tee-right",
+      "from": [
+        0.25,
+        0.0,
+        3.0
+      ],
+      "to": [
+        1.0,
+        16.0,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.75,
+            16.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            16.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.75,
+            16.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            16.0
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            3.0,
+            0.75,
+            4.0
+          ]
+        },
+        "down": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            3.0,
+            0.75,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-brick-rim-tee-right",
+      "from": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "to": [
+        0.25,
+        4.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            12.0,
+            0.25,
+            15.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            12.0,
+            0.25,
+            15.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            12.0,
+            1.0,
+            15.0
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-brick-rim-tee-right",
+      "from": [
+        0.0,
+        5.0,
+        0.0
+      ],
+      "to": [
+        0.25,
+        8.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            8.0,
+            0.25,
+            11.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            8.0,
+            0.25,
+            11.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            8.0,
+            1.0,
+            11.0
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-brick-rim-tee-right",
+      "from": [
+        0.0,
+        5.0,
+        3.0
+      ],
+      "to": [
+        0.25,
+        8.0,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            8.0,
+            0.25,
+            11.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            8.0,
+            0.25,
+            11.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            3.0,
+            8.0,
+            4.0,
+            11.0
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            3.0,
+            0.25,
+            4.0
+          ]
+        },
+        "down": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            3.0,
+            0.25,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-brick-rim-tee-right",
+      "from": [
+        0.0,
+        9.0,
+        0.0
+      ],
+      "to": [
+        0.25,
+        12.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            4.0,
+            0.25,
+            7.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            4.0,
+            0.25,
+            7.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            4.0,
+            1.0,
+            7.0
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-brick-rim-tee-right",
+      "from": [
+        0.0,
+        13.0,
+        0.0
+      ],
+      "to": [
+        0.25,
+        16.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            3.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            3.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            3.0
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-brick-rim-tee-right",
+      "from": [
+        0.0,
+        13.0,
+        3.0
+      ],
+      "to": [
+        0.25,
+        16.0,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            3.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            3.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            3.0
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            3.0,
+            0.25,
+            4.0
+          ]
+        },
+        "down": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            3.0,
+            0.25,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-ashlar-rim-tee-right",
+      "from": [
+        0.25,
+        0.0,
+        0.0
+      ],
+      "to": [
+        1.0,
+        16.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.75,
+            16.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            16.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.75,
+            16.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            16.0
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.75,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.75,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-ashlar-rim-tee-right",
+      "from": [
+        0.25,
+        0.0,
+        3.0
+      ],
+      "to": [
+        1.0,
+        16.0,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.75,
+            16.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            16.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.75,
+            16.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            16.0
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            3.0,
+            0.75,
+            4.0
+          ]
+        },
+        "down": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            3.0,
+            0.75,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-ashlar-rim-tee-right",
+      "from": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "to": [
+        0.25,
+        8.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            8.0,
+            0.25,
+            15.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            8.0,
+            0.25,
+            15.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            8.0,
+            1.0,
+            15.0
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-ashlar-rim-tee-right",
+      "from": [
+        0.0,
+        1.0,
+        3.0
+      ],
+      "to": [
+        0.25,
+        8.0,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            8.0,
+            0.25,
+            15.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            8.0,
+            0.25,
+            15.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            3.0,
+            8.0,
+            4.0,
+            15.0
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            3.0,
+            0.25,
+            4.0
+          ]
+        },
+        "down": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            3.0,
+            0.25,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-ashlar-rim-tee-right",
+      "from": [
+        0.0,
+        9.0,
+        0.0
+      ],
+      "to": [
+        0.25,
+        16.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            7.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            7.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            7.0
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-ashlar-rim-tee-right",
+      "from": [
+        0.0,
+        9.0,
+        3.0
+      ],
+      "to": [
+        0.25,
+        16.0,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            7.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            7.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            7.0
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            3.0,
+            0.25,
+            4.0
+          ]
+        },
+        "down": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            3.0,
+            0.25,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-rubble-rim-tee-right",
+      "from": [
+        0.2,
+        0.0,
+        0.0
+      ],
+      "to": [
+        1.0,
+        4.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            12.0,
+            0.8,
+            16.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            4.0,
+            12.0,
+            5.0,
+            16.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            12.0,
+            0.8,
+            16.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            12.0,
+            1.0,
+            16.0
+          ]
+        },
+        "down": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.8,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-rubble-rim-tee-right",
+      "from": [
+        0.2,
+        0.0,
+        3.0
+      ],
+      "to": [
+        1.0,
+        4.0,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            12.0,
+            0.8,
+            16.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            1.0,
+            12.0,
+            2.0,
+            16.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            12.0,
+            0.8,
+            16.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            3.0,
+            12.0,
+            4.0,
+            16.0
+          ]
+        },
+        "down": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            3.0,
+            0.8,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-rubble-rim-tee-right",
+      "from": [
+        0.0,
+        4.0,
+        0.0
+      ],
+      "to": [
+        1.0,
+        8.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            8.0,
+            1.0,
+            12.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            3.0,
+            8.0,
+            4.0,
+            12.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            8.0,
+            1.0,
+            12.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            8.0,
+            1.0,
+            12.0
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-rubble-rim-tee-right",
+      "from": [
+        0.0,
+        4.0,
+        3.0
+      ],
+      "to": [
+        1.0,
+        8.0,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            8.0,
+            1.0,
+            12.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            8.0,
+            1.0,
+            12.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            8.0,
+            1.0,
+            12.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            3.0,
+            8.0,
+            4.0,
+            12.0
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            3.0,
+            1.0,
+            4.0
+          ]
+        },
+        "down": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            3.0,
+            1.0,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-rubble-rim-tee-right",
+      "from": [
+        0.3,
+        8.0,
+        0.0
+      ],
+      "to": [
+        1.0,
+        12.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            4.0,
+            0.7,
+            8.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            5.0,
+            4.0,
+            6.0,
+            8.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            4.0,
+            0.7,
+            8.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            4.0,
+            1.0,
+            8.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-rubble-rim-tee-right",
+      "from": [
+        0.3,
+        8.0,
+        3.0
+      ],
+      "to": [
+        1.0,
+        12.0,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            4.0,
+            0.7,
+            8.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            2.0,
+            4.0,
+            3.0,
+            8.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            4.0,
+            0.7,
+            8.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            3.0,
+            4.0,
+            4.0,
+            8.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-rubble-rim-tee-right",
+      "from": [
+        0.15,
+        12.0,
+        0.0
+      ],
+      "to": [
+        1.0,
+        16.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.85,
+            4.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            2.0,
+            0.0,
+            3.0,
+            4.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.85,
+            4.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            4.0
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.85,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.85,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-rubble-rim-tee-right",
+      "from": [
+        0.3,
+        12.0,
+        3.0
+      ],
+      "to": [
+        1.0,
+        16.0,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.7,
+            4.0
+          ]
+        },
+        "east": {
+          "texture": "#front",
+          "uv": [
+            7.0,
+            0.0,
+            8.0,
+            4.0
+          ]
+        },
+        "south": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            0.0,
+            0.7,
+            4.0
+          ]
+        },
+        "west": {
+          "texture": "#front",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            4.0
+          ]
+        },
+        "up": {
+          "texture": "#front",
+          "uv": [
+            0.0,
+            3.0,
+            0.7,
+            4.0
+          ]
+        }
+      }
+    },
+    {
       "name": "secondfront-rim",
       "from": [
         1.0,
@@ -66388,6 +72099,2737 @@
             0.0,
             14.0,
             0.7999999999999998
+          ]
+        }
+      }
+    },
+    {
+      "name": "secondfront-rim-tee-left",
+      "from": [
+        3.0,
+        0.0,
+        0.0
+      ],
+      "to": [
+        4.0,
+        16.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#secondfront",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            16.0
+          ]
+        },
+        "east": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            16.0
+          ]
+        },
+        "south": {
+          "texture": "#secondfront",
+          "uv": [
+            2.0,
+            0.0,
+            3.0,
+            16.0
+          ]
+        },
+        "west": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            16.0
+          ]
+        },
+        "up": {
+          "texture": "#secondfront",
+          "uv": [
+            2.0,
+            0.0,
+            3.0,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#secondfront",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "secondfront-weatherboard-rim-tee-left",
+      "from": [
+        3.0,
+        0.0,
+        0.0
+      ],
+      "to": [
+        4.0,
+        1.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#secondfront",
+          "uv": [
+            12.0,
+            15.0,
+            13.0,
+            16.0
+          ]
+        },
+        "east": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            15.0,
+            1.0,
+            16.0
+          ]
+        },
+        "south": {
+          "texture": "#secondfront",
+          "uv": [
+            2.0,
+            15.0,
+            3.0,
+            16.0
+          ]
+        },
+        "west": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            15.0,
+            1.0,
+            16.0
+          ]
+        },
+        "up": {
+          "texture": "#secondfront",
+          "uv": [
+            2.0,
+            0.0,
+            3.0,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#secondfront",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "secondfront-weatherboard-rim-tee-left",
+      "from": [
+        3.0,
+        1.0,
+        0.25
+      ],
+      "to": [
+        4.0,
+        2.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#secondfront",
+          "uv": [
+            12.0,
+            14.0,
+            13.0,
+            15.0
+          ]
+        },
+        "east": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            14.0,
+            0.75,
+            15.0
+          ]
+        },
+        "south": {
+          "texture": "#secondfront",
+          "uv": [
+            2.0,
+            14.0,
+            3.0,
+            15.0
+          ]
+        },
+        "west": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            14.0,
+            0.75,
+            15.0
+          ]
+        },
+        "up": {
+          "texture": "#secondfront",
+          "uv": [
+            2.0,
+            0.0,
+            3.0,
+            0.75
+          ]
+        }
+      }
+    },
+    {
+      "name": "secondfront-weatherboard-rim-tee-left",
+      "from": [
+        3.0,
+        2.0,
+        0.5
+      ],
+      "to": [
+        4.0,
+        3.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#secondfront",
+          "uv": [
+            12.0,
+            13.0,
+            13.0,
+            14.0
+          ]
+        },
+        "east": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            13.0,
+            0.5,
+            14.0
+          ]
+        },
+        "south": {
+          "texture": "#secondfront",
+          "uv": [
+            2.0,
+            13.0,
+            3.0,
+            14.0
+          ]
+        },
+        "west": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            13.0,
+            0.5,
+            14.0
+          ]
+        },
+        "up": {
+          "texture": "#secondfront",
+          "uv": [
+            2.0,
+            0.0,
+            3.0,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "secondfront-weatherboard-rim-tee-left",
+      "from": [
+        3.0,
+        3.0,
+        0.75
+      ],
+      "to": [
+        4.0,
+        4.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#secondfront",
+          "uv": [
+            12.0,
+            12.0,
+            13.0,
+            13.0
+          ]
+        },
+        "east": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            12.0,
+            0.25,
+            13.0
+          ]
+        },
+        "south": {
+          "texture": "#secondfront",
+          "uv": [
+            2.0,
+            12.0,
+            3.0,
+            13.0
+          ]
+        },
+        "west": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            12.0,
+            0.25,
+            13.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "secondfront-weatherboard-rim-tee-left",
+      "from": [
+        3.0,
+        4.0,
+        0.0
+      ],
+      "to": [
+        4.0,
+        5.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#secondfront",
+          "uv": [
+            12.0,
+            11.0,
+            13.0,
+            12.0
+          ]
+        },
+        "east": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            11.0,
+            1.0,
+            12.0
+          ]
+        },
+        "south": {
+          "texture": "#secondfront",
+          "uv": [
+            2.0,
+            11.0,
+            3.0,
+            12.0
+          ]
+        },
+        "west": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            11.0,
+            1.0,
+            12.0
+          ]
+        },
+        "up": {
+          "texture": "#secondfront",
+          "uv": [
+            2.0,
+            0.0,
+            3.0,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#secondfront",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "secondfront-weatherboard-rim-tee-left",
+      "from": [
+        3.0,
+        5.0,
+        0.25
+      ],
+      "to": [
+        4.0,
+        6.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#secondfront",
+          "uv": [
+            12.0,
+            10.0,
+            13.0,
+            11.0
+          ]
+        },
+        "east": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            10.0,
+            0.75,
+            11.0
+          ]
+        },
+        "south": {
+          "texture": "#secondfront",
+          "uv": [
+            2.0,
+            10.0,
+            3.0,
+            11.0
+          ]
+        },
+        "west": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            10.0,
+            0.75,
+            11.0
+          ]
+        },
+        "up": {
+          "texture": "#secondfront",
+          "uv": [
+            2.0,
+            0.0,
+            3.0,
+            0.75
+          ]
+        }
+      }
+    },
+    {
+      "name": "secondfront-weatherboard-rim-tee-left",
+      "from": [
+        3.0,
+        6.0,
+        0.5
+      ],
+      "to": [
+        4.0,
+        7.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#secondfront",
+          "uv": [
+            12.0,
+            9.0,
+            13.0,
+            10.0
+          ]
+        },
+        "east": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            9.0,
+            0.5,
+            10.0
+          ]
+        },
+        "south": {
+          "texture": "#secondfront",
+          "uv": [
+            2.0,
+            9.0,
+            3.0,
+            10.0
+          ]
+        },
+        "west": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            9.0,
+            0.5,
+            10.0
+          ]
+        },
+        "up": {
+          "texture": "#secondfront",
+          "uv": [
+            2.0,
+            0.0,
+            3.0,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "secondfront-weatherboard-rim-tee-left",
+      "from": [
+        3.0,
+        7.0,
+        0.75
+      ],
+      "to": [
+        4.0,
+        8.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#secondfront",
+          "uv": [
+            12.0,
+            8.0,
+            13.0,
+            9.0
+          ]
+        },
+        "east": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            8.0,
+            0.25,
+            9.0
+          ]
+        },
+        "south": {
+          "texture": "#secondfront",
+          "uv": [
+            2.0,
+            8.0,
+            3.0,
+            9.0
+          ]
+        },
+        "west": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            8.0,
+            0.25,
+            9.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "secondfront-weatherboard-rim-tee-left",
+      "from": [
+        3.0,
+        8.0,
+        0.0
+      ],
+      "to": [
+        4.0,
+        9.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#secondfront",
+          "uv": [
+            12.0,
+            7.0,
+            13.0,
+            8.0
+          ]
+        },
+        "east": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            7.0,
+            1.0,
+            8.0
+          ]
+        },
+        "south": {
+          "texture": "#secondfront",
+          "uv": [
+            2.0,
+            7.0,
+            3.0,
+            8.0
+          ]
+        },
+        "west": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            7.0,
+            1.0,
+            8.0
+          ]
+        },
+        "up": {
+          "texture": "#secondfront",
+          "uv": [
+            2.0,
+            0.0,
+            3.0,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#secondfront",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "secondfront-weatherboard-rim-tee-left",
+      "from": [
+        3.0,
+        9.0,
+        0.25
+      ],
+      "to": [
+        4.0,
+        10.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#secondfront",
+          "uv": [
+            12.0,
+            6.0,
+            13.0,
+            7.0
+          ]
+        },
+        "east": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            6.0,
+            0.75,
+            7.0
+          ]
+        },
+        "south": {
+          "texture": "#secondfront",
+          "uv": [
+            2.0,
+            6.0,
+            3.0,
+            7.0
+          ]
+        },
+        "west": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            6.0,
+            0.75,
+            7.0
+          ]
+        },
+        "up": {
+          "texture": "#secondfront",
+          "uv": [
+            2.0,
+            0.0,
+            3.0,
+            0.75
+          ]
+        }
+      }
+    },
+    {
+      "name": "secondfront-weatherboard-rim-tee-left",
+      "from": [
+        3.0,
+        10.0,
+        0.5
+      ],
+      "to": [
+        4.0,
+        11.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#secondfront",
+          "uv": [
+            12.0,
+            5.0,
+            13.0,
+            6.0
+          ]
+        },
+        "east": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            5.0,
+            0.5,
+            6.0
+          ]
+        },
+        "south": {
+          "texture": "#secondfront",
+          "uv": [
+            2.0,
+            5.0,
+            3.0,
+            6.0
+          ]
+        },
+        "west": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            5.0,
+            0.5,
+            6.0
+          ]
+        },
+        "up": {
+          "texture": "#secondfront",
+          "uv": [
+            2.0,
+            0.0,
+            3.0,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "secondfront-weatherboard-rim-tee-left",
+      "from": [
+        3.0,
+        11.0,
+        0.75
+      ],
+      "to": [
+        4.0,
+        12.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#secondfront",
+          "uv": [
+            12.0,
+            4.0,
+            13.0,
+            5.0
+          ]
+        },
+        "east": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            4.0,
+            0.25,
+            5.0
+          ]
+        },
+        "south": {
+          "texture": "#secondfront",
+          "uv": [
+            2.0,
+            4.0,
+            3.0,
+            5.0
+          ]
+        },
+        "west": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            4.0,
+            0.25,
+            5.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "secondfront-weatherboard-rim-tee-left",
+      "from": [
+        3.0,
+        12.0,
+        0.0
+      ],
+      "to": [
+        4.0,
+        13.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#secondfront",
+          "uv": [
+            12.0,
+            3.0,
+            13.0,
+            4.0
+          ]
+        },
+        "east": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            3.0,
+            1.0,
+            4.0
+          ]
+        },
+        "south": {
+          "texture": "#secondfront",
+          "uv": [
+            2.0,
+            3.0,
+            3.0,
+            4.0
+          ]
+        },
+        "west": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            3.0,
+            1.0,
+            4.0
+          ]
+        },
+        "up": {
+          "texture": "#secondfront",
+          "uv": [
+            2.0,
+            0.0,
+            3.0,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#secondfront",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "secondfront-weatherboard-rim-tee-left",
+      "from": [
+        3.0,
+        13.0,
+        0.25
+      ],
+      "to": [
+        4.0,
+        14.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#secondfront",
+          "uv": [
+            12.0,
+            2.0,
+            13.0,
+            3.0
+          ]
+        },
+        "east": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            2.0,
+            0.75,
+            3.0
+          ]
+        },
+        "south": {
+          "texture": "#secondfront",
+          "uv": [
+            2.0,
+            2.0,
+            3.0,
+            3.0
+          ]
+        },
+        "west": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            2.0,
+            0.75,
+            3.0
+          ]
+        },
+        "up": {
+          "texture": "#secondfront",
+          "uv": [
+            2.0,
+            0.0,
+            3.0,
+            0.75
+          ]
+        }
+      }
+    },
+    {
+      "name": "secondfront-weatherboard-rim-tee-left",
+      "from": [
+        3.0,
+        14.0,
+        0.5
+      ],
+      "to": [
+        4.0,
+        15.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#secondfront",
+          "uv": [
+            12.0,
+            1.0,
+            13.0,
+            2.0
+          ]
+        },
+        "east": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            1.0,
+            0.5,
+            2.0
+          ]
+        },
+        "south": {
+          "texture": "#secondfront",
+          "uv": [
+            2.0,
+            1.0,
+            3.0,
+            2.0
+          ]
+        },
+        "west": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            1.0,
+            0.5,
+            2.0
+          ]
+        },
+        "up": {
+          "texture": "#secondfront",
+          "uv": [
+            2.0,
+            0.0,
+            3.0,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "secondfront-weatherboard-rim-tee-left",
+      "from": [
+        3.0,
+        15.0,
+        0.75
+      ],
+      "to": [
+        4.0,
+        16.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#secondfront",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#secondfront",
+          "uv": [
+            2.0,
+            0.0,
+            3.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#secondfront",
+          "uv": [
+            2.0,
+            0.0,
+            3.0,
+            0.25
+          ]
+        }
+      }
+    },
+    {
+      "name": "secondfront-boards-rim-tee-left",
+      "from": [
+        3.0,
+        0.0,
+        0.0
+      ],
+      "to": [
+        4.0,
+        16.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            12.8,
+            15.0,
+            13.866666666666667
+          ],
+          "rotation": 270
+        },
+        "east": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            16.0
+          ]
+        },
+        "south": {
+          "texture": "#secondfront",
+          "uv": [
+            2.0,
+            0.0,
+            3.0,
+            16.0
+          ]
+        },
+        "west": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            16.0
+          ]
+        },
+        "up": {
+          "texture": "#secondfront",
+          "uv": [
+            2.0,
+            0.0,
+            3.0,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#secondfront",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "secondfront-hboards-rim-tee-left",
+      "from": [
+        3.0,
+        0.0,
+        0.0
+      ],
+      "to": [
+        4.0,
+        16.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#secondfront",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            16.0
+          ]
+        },
+        "east": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            16.0
+          ]
+        },
+        "south": {
+          "texture": "#secondfront",
+          "uv": [
+            2.0,
+            0.0,
+            3.0,
+            16.0
+          ]
+        },
+        "west": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            16.0
+          ]
+        },
+        "up": {
+          "texture": "#secondfront",
+          "uv": [
+            2.0,
+            0.0,
+            3.0,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#secondfront",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "secondfront-bark-rim-tee-left",
+      "from": [
+        3.0,
+        0.0,
+        0.0
+      ],
+      "to": [
+        4.0,
+        16.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#secondfront",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            16.0
+          ]
+        },
+        "east": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            16.0
+          ]
+        },
+        "south": {
+          "texture": "#secondfront",
+          "uv": [
+            2.0,
+            0.0,
+            3.0,
+            16.0
+          ]
+        },
+        "west": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            16.0
+          ]
+        },
+        "up": {
+          "texture": "#secondfront",
+          "uv": [
+            2.0,
+            0.0,
+            3.0,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#secondfront",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "secondfront-hbark-rim-tee-left",
+      "from": [
+        3.0,
+        0.0,
+        0.0
+      ],
+      "to": [
+        4.0,
+        16.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#secondfront",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            16.0
+          ]
+        },
+        "east": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            16.0
+          ]
+        },
+        "south": {
+          "texture": "#secondfront",
+          "uv": [
+            2.0,
+            0.0,
+            3.0,
+            16.0
+          ]
+        },
+        "west": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            16.0
+          ]
+        },
+        "up": {
+          "texture": "#secondfront",
+          "uv": [
+            2.0,
+            0.0,
+            3.0,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#secondfront",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "secondfront-shakes-rim-tee-left",
+      "from": [
+        3.0,
+        0.0,
+        0.0
+      ],
+      "to": [
+        4.0,
+        1.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#secondfront",
+          "uv": [
+            2.0,
+            15.0,
+            3.0,
+            16.0
+          ]
+        },
+        "east": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            15.0,
+            1.0,
+            16.0
+          ]
+        },
+        "south": {
+          "texture": "#secondfront",
+          "uv": [
+            3.0,
+            15.0,
+            4.0,
+            16.0
+          ]
+        },
+        "west": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            15.0,
+            1.0,
+            16.0
+          ]
+        },
+        "up": {
+          "texture": "#secondfront",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#secondfront",
+          "uv": [
+            2.0,
+            0.0,
+            3.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "secondfront-shakes-rim-tee-left",
+      "from": [
+        3.0,
+        1.0,
+        0.5
+      ],
+      "to": [
+        4.0,
+        4.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#secondfront",
+          "uv": [
+            2.0,
+            12.0,
+            3.0,
+            15.0
+          ]
+        },
+        "east": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            12.0,
+            0.5,
+            15.0
+          ]
+        },
+        "south": {
+          "texture": "#secondfront",
+          "uv": [
+            3.0,
+            12.0,
+            4.0,
+            15.0
+          ]
+        },
+        "west": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            12.0,
+            0.5,
+            15.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "secondfront-shakes-rim-tee-left",
+      "from": [
+        3.0,
+        4.0,
+        0.15
+      ],
+      "to": [
+        4.0,
+        5.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#secondfront",
+          "uv": [
+            1.0,
+            11.0,
+            2.0,
+            12.0
+          ]
+        },
+        "east": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            11.0,
+            0.85,
+            12.0
+          ]
+        },
+        "south": {
+          "texture": "#secondfront",
+          "uv": [
+            3.0,
+            11.0,
+            4.0,
+            12.0
+          ]
+        },
+        "west": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            11.0,
+            0.85,
+            12.0
+          ]
+        },
+        "up": {
+          "texture": "#secondfront",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            0.85
+          ]
+        },
+        "down": {
+          "texture": "#secondfront",
+          "uv": [
+            1.0,
+            0.0,
+            2.0,
+            0.85
+          ]
+        }
+      }
+    },
+    {
+      "name": "secondfront-shakes-rim-tee-left",
+      "from": [
+        3.0,
+        5.0,
+        0.65
+      ],
+      "to": [
+        4.0,
+        8.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#secondfront",
+          "uv": [
+            1.0,
+            8.0,
+            2.0,
+            11.0
+          ]
+        },
+        "east": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            8.0,
+            0.35,
+            11.0
+          ]
+        },
+        "south": {
+          "texture": "#secondfront",
+          "uv": [
+            3.0,
+            8.0,
+            4.0,
+            11.0
+          ]
+        },
+        "west": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            8.0,
+            0.35,
+            11.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "secondfront-shakes-rim-tee-left",
+      "from": [
+        3.0,
+        8.0,
+        0.25
+      ],
+      "to": [
+        4.0,
+        9.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#secondfront",
+          "uv": [
+            3.0,
+            7.0,
+            4.0,
+            8.0
+          ]
+        },
+        "east": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            7.0,
+            0.75,
+            8.0
+          ]
+        },
+        "south": {
+          "texture": "#secondfront",
+          "uv": [
+            3.0,
+            7.0,
+            4.0,
+            8.0
+          ]
+        },
+        "west": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            7.0,
+            0.75,
+            8.0
+          ]
+        },
+        "up": {
+          "texture": "#secondfront",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            0.75
+          ]
+        },
+        "down": {
+          "texture": "#secondfront",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            0.75
+          ]
+        }
+      }
+    },
+    {
+      "name": "secondfront-shakes-rim-tee-left",
+      "from": [
+        3.0,
+        9.0,
+        0.75
+      ],
+      "to": [
+        4.0,
+        12.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#secondfront",
+          "uv": [
+            3.0,
+            4.0,
+            4.0,
+            7.0
+          ]
+        },
+        "east": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            4.0,
+            0.25,
+            7.0
+          ]
+        },
+        "south": {
+          "texture": "#secondfront",
+          "uv": [
+            3.0,
+            4.0,
+            4.0,
+            7.0
+          ]
+        },
+        "west": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            4.0,
+            0.25,
+            7.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "secondfront-shakes-rim-tee-left",
+      "from": [
+        3.0,
+        12.0,
+        0.3
+      ],
+      "to": [
+        4.0,
+        13.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#secondfront",
+          "uv": [
+            7.0,
+            3.0,
+            8.0,
+            4.0
+          ]
+        },
+        "east": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            3.0,
+            0.7,
+            4.0
+          ]
+        },
+        "south": {
+          "texture": "#secondfront",
+          "uv": [
+            3.0,
+            3.0,
+            4.0,
+            4.0
+          ]
+        },
+        "west": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            3.0,
+            0.7,
+            4.0
+          ]
+        },
+        "up": {
+          "texture": "#secondfront",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            0.7
+          ]
+        },
+        "down": {
+          "texture": "#secondfront",
+          "uv": [
+            7.0,
+            0.0,
+            8.0,
+            0.7
+          ]
+        }
+      }
+    },
+    {
+      "name": "secondfront-shakes-rim-tee-left",
+      "from": [
+        3.0,
+        13.0,
+        0.8
+      ],
+      "to": [
+        4.0,
+        16.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#secondfront",
+          "uv": [
+            7.0,
+            0.0,
+            8.0,
+            3.0
+          ]
+        },
+        "east": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            0.0,
+            0.19999999999999996,
+            3.0
+          ]
+        },
+        "south": {
+          "texture": "#secondfront",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            3.0
+          ]
+        },
+        "west": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            0.0,
+            0.19999999999999996,
+            3.0
+          ]
+        },
+        "up": {
+          "texture": "#secondfront",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            0.19999999999999996
+          ]
+        }
+      }
+    },
+    {
+      "name": "secondfront-logs-rim-tee-left",
+      "from": [
+        3.0,
+        0.0,
+        0.5
+      ],
+      "to": [
+        4.0,
+        16.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#secondfront",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            16.0
+          ]
+        },
+        "east": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            16.0
+          ]
+        },
+        "south": {
+          "texture": "#secondfront",
+          "uv": [
+            2.0,
+            0.0,
+            3.0,
+            16.0
+          ]
+        },
+        "west": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            16.0
+          ]
+        },
+        "up": {
+          "texture": "#secondfront",
+          "uv": [
+            2.0,
+            0.0,
+            3.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#secondfront",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "secondfront-logs-rim-tee-left",
+      "from": [
+        3.0,
+        0.5,
+        0.0
+      ],
+      "to": [
+        4.0,
+        3.5,
+        0.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#secondfront",
+          "uv": [
+            12.0,
+            12.5,
+            13.0,
+            15.5
+          ]
+        },
+        "east": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            3.0
+          ]
+        },
+        "west": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            3.0
+          ]
+        },
+        "up": {
+          "texture": "#secondfront",
+          "uv": [
+            2.0,
+            0.0,
+            3.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#secondfront",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "secondfront-logs-rim-tee-left",
+      "from": [
+        3.0,
+        4.5,
+        0.0
+      ],
+      "to": [
+        4.0,
+        7.5,
+        0.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#secondfront",
+          "uv": [
+            12.0,
+            8.5,
+            13.0,
+            11.5
+          ]
+        },
+        "east": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            3.0
+          ]
+        },
+        "west": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            3.0
+          ]
+        },
+        "up": {
+          "texture": "#secondfront",
+          "uv": [
+            2.0,
+            0.0,
+            3.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#secondfront",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "secondfront-logs-rim-tee-left",
+      "from": [
+        3.0,
+        8.5,
+        0.0
+      ],
+      "to": [
+        4.0,
+        11.5,
+        0.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#secondfront",
+          "uv": [
+            12.0,
+            4.5,
+            13.0,
+            7.5
+          ]
+        },
+        "east": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            3.0
+          ]
+        },
+        "west": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            3.0
+          ]
+        },
+        "up": {
+          "texture": "#secondfront",
+          "uv": [
+            2.0,
+            0.0,
+            3.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#secondfront",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "secondfront-logs-rim-tee-left",
+      "from": [
+        3.0,
+        12.5,
+        0.0
+      ],
+      "to": [
+        4.0,
+        15.5,
+        0.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#secondfront",
+          "uv": [
+            12.0,
+            0.5,
+            13.0,
+            3.5
+          ]
+        },
+        "east": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            3.0
+          ]
+        },
+        "west": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            3.0
+          ]
+        },
+        "up": {
+          "texture": "#secondfront",
+          "uv": [
+            2.0,
+            0.0,
+            3.0,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#secondfront",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "secondfront-brick-rim-tee-left",
+      "from": [
+        3.0,
+        0.0,
+        0.25
+      ],
+      "to": [
+        4.0,
+        16.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#secondfront",
+          "uv": [
+            13.0,
+            0.0,
+            14.0,
+            16.0
+          ]
+        },
+        "east": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            0.0,
+            0.75,
+            16.0
+          ]
+        },
+        "south": {
+          "texture": "#secondfront",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            16.0
+          ]
+        },
+        "west": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            0.0,
+            0.75,
+            16.0
+          ]
+        },
+        "up": {
+          "texture": "#secondfront",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            0.75
+          ]
+        },
+        "down": {
+          "texture": "#secondfront",
+          "uv": [
+            13.0,
+            0.0,
+            14.0,
+            0.75
+          ]
+        }
+      }
+    },
+    {
+      "name": "secondfront-brick-rim-tee-left",
+      "from": [
+        3.0,
+        5.0,
+        0.0
+      ],
+      "to": [
+        4.0,
+        8.0,
+        0.25
+      ],
+      "faces": {
+        "north": {
+          "texture": "#secondfront",
+          "uv": [
+            4.0,
+            8.0,
+            5.0,
+            11.0
+          ]
+        },
+        "east": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            8.0,
+            0.25,
+            11.0
+          ]
+        },
+        "west": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            8.0,
+            0.25,
+            11.0
+          ]
+        },
+        "up": {
+          "texture": "#secondfront",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            0.25
+          ]
+        },
+        "down": {
+          "texture": "#secondfront",
+          "uv": [
+            4.0,
+            0.0,
+            5.0,
+            0.25
+          ]
+        }
+      }
+    },
+    {
+      "name": "secondfront-brick-rim-tee-left",
+      "from": [
+        3.0,
+        13.0,
+        0.0
+      ],
+      "to": [
+        4.0,
+        16.0,
+        0.25
+      ],
+      "faces": {
+        "north": {
+          "texture": "#secondfront",
+          "uv": [
+            4.0,
+            0.0,
+            5.0,
+            3.0
+          ]
+        },
+        "east": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            3.0
+          ]
+        },
+        "west": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            3.0
+          ]
+        },
+        "up": {
+          "texture": "#secondfront",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            0.25
+          ]
+        },
+        "down": {
+          "texture": "#secondfront",
+          "uv": [
+            4.0,
+            0.0,
+            5.0,
+            0.25
+          ]
+        }
+      }
+    },
+    {
+      "name": "secondfront-ashlar-rim-tee-left",
+      "from": [
+        3.0,
+        0.0,
+        0.25
+      ],
+      "to": [
+        4.0,
+        16.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#secondfront",
+          "uv": [
+            13.0,
+            0.0,
+            14.0,
+            16.0
+          ]
+        },
+        "east": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            0.0,
+            0.75,
+            16.0
+          ]
+        },
+        "south": {
+          "texture": "#secondfront",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            16.0
+          ]
+        },
+        "west": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            0.0,
+            0.75,
+            16.0
+          ]
+        },
+        "up": {
+          "texture": "#secondfront",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            0.75
+          ]
+        },
+        "down": {
+          "texture": "#secondfront",
+          "uv": [
+            13.0,
+            0.0,
+            14.0,
+            0.75
+          ]
+        }
+      }
+    },
+    {
+      "name": "secondfront-ashlar-rim-tee-left",
+      "from": [
+        3.0,
+        1.0,
+        0.0
+      ],
+      "to": [
+        4.0,
+        8.0,
+        0.25
+      ],
+      "faces": {
+        "north": {
+          "texture": "#secondfront",
+          "uv": [
+            12.0,
+            8.0,
+            13.0,
+            15.0
+          ]
+        },
+        "east": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            8.0,
+            0.25,
+            15.0
+          ]
+        },
+        "west": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            8.0,
+            0.25,
+            15.0
+          ]
+        },
+        "up": {
+          "texture": "#secondfront",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            0.25
+          ]
+        },
+        "down": {
+          "texture": "#secondfront",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            0.25
+          ]
+        }
+      }
+    },
+    {
+      "name": "secondfront-ashlar-rim-tee-left",
+      "from": [
+        3.0,
+        9.0,
+        0.0
+      ],
+      "to": [
+        4.0,
+        16.0,
+        0.25
+      ],
+      "faces": {
+        "north": {
+          "texture": "#secondfront",
+          "uv": [
+            4.0,
+            0.0,
+            5.0,
+            7.0
+          ]
+        },
+        "east": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            7.0
+          ]
+        },
+        "west": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            7.0
+          ]
+        },
+        "up": {
+          "texture": "#secondfront",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            0.25
+          ]
+        },
+        "down": {
+          "texture": "#secondfront",
+          "uv": [
+            4.0,
+            0.0,
+            5.0,
+            0.25
+          ]
+        }
+      }
+    },
+    {
+      "name": "secondfront-rubble-rim-tee-left",
+      "from": [
+        3.0,
+        0.0,
+        0.2
+      ],
+      "to": [
+        4.0,
+        4.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#secondfront",
+          "uv": [
+            2.0,
+            12.0,
+            3.0,
+            16.0
+          ]
+        },
+        "east": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            12.0,
+            0.8,
+            16.0
+          ]
+        },
+        "south": {
+          "texture": "#secondfront",
+          "uv": [
+            3.0,
+            12.0,
+            4.0,
+            16.0
+          ]
+        },
+        "west": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            12.0,
+            0.8,
+            16.0
+          ]
+        },
+        "down": {
+          "texture": "#secondfront",
+          "uv": [
+            2.0,
+            0.0,
+            3.0,
+            0.8
+          ]
+        }
+      }
+    },
+    {
+      "name": "secondfront-rubble-rim-tee-left",
+      "from": [
+        3.0,
+        4.0,
+        0.0
+      ],
+      "to": [
+        4.0,
+        8.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#secondfront",
+          "uv": [
+            1.0,
+            8.0,
+            2.0,
+            12.0
+          ]
+        },
+        "east": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            8.0,
+            1.0,
+            12.0
+          ]
+        },
+        "south": {
+          "texture": "#secondfront",
+          "uv": [
+            3.0,
+            8.0,
+            4.0,
+            12.0
+          ]
+        },
+        "west": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            8.0,
+            1.0,
+            12.0
+          ]
+        },
+        "up": {
+          "texture": "#secondfront",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#secondfront",
+          "uv": [
+            1.0,
+            0.0,
+            2.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "secondfront-rubble-rim-tee-left",
+      "from": [
+        3.0,
+        8.0,
+        0.3
+      ],
+      "to": [
+        4.0,
+        12.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#secondfront",
+          "uv": [
+            3.0,
+            4.0,
+            4.0,
+            8.0
+          ]
+        },
+        "east": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            4.0,
+            0.7,
+            8.0
+          ]
+        },
+        "south": {
+          "texture": "#secondfront",
+          "uv": [
+            3.0,
+            4.0,
+            4.0,
+            8.0
+          ]
+        },
+        "west": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            4.0,
+            0.7,
+            8.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "secondfront-rubble-rim-tee-left",
+      "from": [
+        3.0,
+        12.0,
+        0.3
+      ],
+      "to": [
+        4.0,
+        16.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#secondfront",
+          "uv": [
+            7.0,
+            0.0,
+            8.0,
+            4.0
+          ]
+        },
+        "east": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            0.0,
+            0.7,
+            4.0
+          ]
+        },
+        "south": {
+          "texture": "#secondfront",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            4.0
+          ]
+        },
+        "west": {
+          "texture": "#secondfront",
+          "uv": [
+            0.0,
+            0.0,
+            0.7,
+            4.0
+          ]
+        },
+        "up": {
+          "texture": "#secondfront",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            0.7
           ]
         }
       }

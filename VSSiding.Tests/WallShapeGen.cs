@@ -407,7 +407,8 @@ public static class WallShapeGen
     // corner post's side of it and `G-rim-right` (leg 1) or `G-rim-left` (leg 2) the end post's, both full
     // height, `G-rim-top` and `G-rim-bottom` the parts over and under it, and `G-rim-top-right` and the like
     // the parts over and under the end post, which its fillers take once it drops. A front group belongs to
-    // leg 1, a second front group to leg 2, and a back box to the leg whose back slab holds it.
+    // leg 1, a second front group to leg 2, and a back box to the leg whose back slab holds it. A T's piece lies in
+    // a front or second front slot only, so only those groups give way to it.
     internal static IEnumerable<Element> CornerRimPieces(IEnumerable<Element> elements)
     {
         Element[] all = [.. elements];
@@ -436,6 +437,13 @@ public static class WallShapeGen
             foreach (var e in all.Where(e => e.Name.StartsWith(front) || (e.Name.StartsWith("back") && InSlab(e))))
             foreach (var (part, range, y) in parts)
             foreach (var rim in RimPiece(e, part, (run, range.Lo, range.Hi), ('y', y.Lo, y.Hi)))
+                yield return rim;
+
+            // `G-rim-tee-right` or `G-rim-tee-left`, the corner post's side cut either side of the post's piece in this leg's slot.
+            Element tee = all.Single(e => e.Name == "glazing-tee" + end);
+            foreach (var e in all.Where(e => e.Name.StartsWith(front)))
+            foreach (var (lo, hi) in new[] { (none, Axis(tee.From, run)), (Axis(tee.To, run), opening.Lo) })
+            foreach (var rim in RimPiece(e, "-tee" + end, (run, lo, hi)))
                 yield return rim;
         }
     }
@@ -625,9 +633,13 @@ public static class WallShapeGen
         new("framing", (15, 0, 1), (16, 16, 3), "framing", UvRule.Flat),
         // A glazed corner's frame: a corner post that never drops, an end post per leg named for the side of
         // a wall it lies on (leg 1's far end is its right, leg 2's its left), a rail per leg between them,
-        // and a filler per leg in the rail's corner where the end post has merged away. The corner post is two boxes.
+        // and a filler per leg in the rail's corner where the end post has merged away. The corner post is two boxes,
+        // a finish slot in from the cell's edge on each face, and at a T fills the slot the run carries on through: the
+        // left leg's, where leg 1's line runs on past it, or the right leg's, where leg 2's does.
         new("glazing", (1, 0, 1), (3, 16, 4), "framing", UvRule.Flat),
         new("glazing", (3, 0, 1), (4, 16, 3), "framing", UvRule.Flat),
+        new("glazing-tee-left", (1, 0, 0), (3, 16, 1), "framing", UvRule.Flat, Faces: ["north", "west", "east", "up", "down"]),
+        new("glazing-tee-right", (0, 0, 1), (1, 16, 3), "framing", UvRule.Flat, Faces: ["west", "north", "south", "up", "down"]),
         new("glazing-right", (1, 0, 14), (3, 16, 16), "framing", UvRule.Flat),
         new("glazing-left", (14, 0, 1), (16, 16, 3), "framing", UvRule.Flat),
         new("glazing-top-right", (1, 14, 14), (3, 16, 16), "framing", UvRule.Flat),

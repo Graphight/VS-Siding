@@ -1046,6 +1046,24 @@ public class WallShapeGenTests
         }).Distinct());
     }
 
+    // At a T a glazed corner's post fills the finish slot the run crosses, and the finish on that face gives way to it, in every set of joins.
+    [Fact]
+    public void NoTwoFacesOfAGlazedCornerAtATShareAPlaneAndOverlap()
+    {
+        bool[] either = [false, true];
+        Assert.Equal([], (
+            from above in either
+            from below in either
+            from left in either
+            from right in either
+            from teeLeft in either
+            from teeRight in either
+            where teeLeft || teeRight
+            from finished in either
+            from offender in SharedPlaneOffenders("cornerout", Built("cornerout", finished, (above, below, left, right), glassRunsOn: (teeLeft, teeRight)))
+            select offender).Distinct());
+    }
+
     // A glazed diagonal's rails, pane and rims are turned together and meet as a wall's do, in every set of joins, with the glass
     // running on through each end the run carries on from or not, and with an inside corner there or not. Its corner fillers are
     // the unturned pieces, which a box read without the turn cannot be compared with.
@@ -1207,6 +1225,15 @@ public class WallShapeGenTests
         return (false, false, Meets(left), Meets(right));
     }
 
+    // A corner's glass runs on past its post at a T, where the post end meets the other cell's (SidingWallBlock.GlassRunsOn).
+    private static (bool left, bool right) GlassRunsOnToward(string layout, string side, BlockFacing towards, string otherLayout, string otherSide)
+    {
+        if (layout != "cornerout") return default;
+        var ends = SidingWallBlock.Ends(layout, side);
+        bool Meets(SidingWallBlock.End end) => end.Points == towards && SidingWallBlock.JoinsAtEnd(end, otherLayout, otherSide);
+        return (Meets(ends[2]), Meets(ends[3]));
+    }
+
     // A at the origin and B one block off along `towards`, each dropping its end post where the other's end meets it. Only a
     // diagonal's two fillers are axis-aligned, so they stand for it: its other parts are turned 45 degrees and meet the other
     // cell only through them.
@@ -1218,7 +1245,7 @@ public class WallShapeGenTests
             var joins = JoinsToward(own.Layout, own.Side, facing, other.Layout, other.Side);
             string[] names = own.Layout == "diagonal"
                 ? Built("diagonal", false, default).Where(name => name is "framing-left" or "framing-right").ToArray()
-                : Built(own.Layout, finished, joins);
+                : Built(own.Layout, finished, joins, glassRunsOn: GlassRunsOnToward(own.Layout, own.Side, facing, other.Layout, other.Side));
             return WorldFaces(cell, own.Layout, own.Side, names, offset);
         }
 
@@ -1346,8 +1373,8 @@ public class WallShapeGenTests
 
     // The faces a cell that has dropped its end post draws on the boundary, pointing into its neighbour, are all covered by
     // the neighbour's pointing back, so no gap shows where the post has gone. Sampled at half voxels. A neighbour's corner post
-    // starts a voxel in, so the rail fillers of a bare cell beside it face the slot as the post they replace does; against a
-    // diagonal the room side's finish rims the 1.17 mitre ledge and the 0.01 hairs at the filler's top and bottom (0066).
+    // starts a finish slot in, which it fills at a T; against a diagonal the room side's finish rims the 1.17 mitre ledge and
+    // the 0.01 hairs at the filler's top and bottom (0066).
     // A neighbour that keeps its own post or filler is the jamb, which the dropped end's cell need not be covered by in turn.
     [Theory]
     [MemberData(nameof(Meetings))]
@@ -1357,11 +1384,8 @@ public class WallShapeGenTests
         var toward = BlockFacing.FromCode(towards);
         int plane = toward == BlockFacing.NORTH || toward == BlockFacing.WEST ? 0 : 16;
 
-        string[] Expected(bool finished, string dropped, string otherLayout, bool otherPost)
-        {
-            if (otherLayout == "diagonal") return finished ? [$"back-rim-bottom-{dropped}", $"back-rim-top-{dropped}"] : [];
-            return otherPost && !finished ? [$"glazing-bottom-{dropped}", $"glazing-top-{dropped}"] : [];
-        }
+        string[] Expected(bool finished, string dropped, string otherLayout)
+            => otherLayout == "diagonal" && finished ? [$"back-rim-bottom-{dropped}", $"back-rim-top-{dropped}"] : [];
 
         var actual = new List<string>();
         var expected = new List<string>();
@@ -1376,13 +1400,9 @@ public class WallShapeGenTests
             {
                 var joins = JoinsToward(own.Layout, own.Side, facing, other.Layout, other.Side);
                 if (!joins.left && !joins.right) continue;
-                var (left, right) = SidingWallBlock.LeftRightEnds(own.Layout, own.Side);
-                var end = joins.left ? left : right;
-                var (otherLeft, otherRight) = SidingWallBlock.LeftRightEnds(other.Layout, other.Side);
-                bool otherPost = other.Layout == "cornerout" && !SidingWallBlock.EndsMeet(end, otherLeft) && !SidingWallBlock.EndsMeet(end, otherRight);
                 string cell = $"{own.Layout}-{own.Side} {finished}";
                 actual.AddRange(Uncovered(faces, beyond, facing, plane).Select(name => $"{cell} {name}"));
-                expected.AddRange(Expected(finished, joins.left ? "left" : "right", other.Layout, otherPost).Select(name => $"{cell} {name}"));
+                expected.AddRange(Expected(finished, joins.left ? "left" : "right", other.Layout).Select(name => $"{cell} {name}"));
             }
         }
 
