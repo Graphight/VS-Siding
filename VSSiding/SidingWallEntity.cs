@@ -161,14 +161,19 @@ public class SidingWallEntity : BlockEntity
         // empty means nothing is built, and the block's default JSON shape stands in.
         bool glazed = SidingWallBlock.IsTransparent(Infill, Block.Attributes["Infills"]);
         string side = Block.Variant["side"];
-        string[]? step = Step != null && layout == "wall" ? StepElements(side, StepOrientation) : null;
+        bool stepped = Step != null && layout is "wall" or "cornerout";
+        Block? stair = stepped ? Api.World.GetBlock(new AssetLocation(Step)) : null;
+        (string[] stepElements, float stepRotation) = stepped
+            ? StepMesh(layout, side, StepOrientation, StepFamily(stair?.Shape?.Base?.Path))
+            : ([], 0);
         int alternate = CellAlternate(Block.Attributes, SidingWallTexSource.Alternate(Pos), Framing, Deck,
-            [Infill, DeckInfill], [Front, SecondFront, Back, DeckFront, DeckBack]);
+            [Infill, DeckInfill], [Front, SecondFront, Back, DeckFront, DeckBack],
+            SidingWallTexSource.Varies(SidingWallTexSource.StairTexture(stair)));
         string[] innerCorners = ((SidingWallBlock)Block).InnerCorners(Api.World.BlockAccessor, Pos, Infill, joins);
         var glassRunsOn = ((SidingWallBlock)Block).GlassRunsOn(Api.World.BlockAccessor, Pos, Infill, joins);
         var tees = ((SidingWallBlock)Block).Tees(Api.World.BlockAccessor, Pos);
-        string[] selectiveElements = SelectiveElements(layout, Framing, Infill, Front, SecondFront, Back, Block.Attributes["Finishes"], joins, glazed, Styles, step,
-            FrameElements(Block.Attributes["Framings"], Framing, alternate), decked: Deck != null, innerCorners: innerCorners, glassRunsOn: glassRunsOn, tees: tees);
+        string[] selectiveElements = SelectiveElements(layout, Framing, Infill, Front, SecondFront, Back, Block.Attributes["Finishes"], joins, glazed, Styles,
+            frame: FrameElements(Block.Attributes["Framings"], Framing, alternate), decked: Deck != null, innerCorners: innerCorners, glassRunsOn: glassRunsOn, tees: tees);
 
         // The deck is laid like a floor, in world directions, so its groups are tesselated unrotated.
         bool deckGlazed = SidingWallBlock.IsTransparent(DeckInfill, Block.Attributes["Infills"]);
@@ -176,7 +181,7 @@ public class SidingWallEntity : BlockEntity
         string[] deckInnerCorners = SidingFloorBlock.InnerCorners(Api.World.BlockAccessor, Pos, deckGlazed, deckJoins);
         string[] deckElements = DeckElements(side, Deck, DeckInfill, DeckFront, DeckBack, Block.Attributes["Finishes"], deckJoins, (DeckFrontStyle, DeckBackStyle), deckGlazed,
             FrameElements(Block.Attributes["Framings"], Deck, alternate), Ledges(layout, Back == null, glazed, joins), deckInnerCorners);
-        if (selectiveElements.Length == 0 && deckElements.Length == 0) return false;
+        if (selectiveElements.Length == 0 && deckElements.Length == 0 && stepElements.Length == 0) return false;
 
         string cacheKey = CacheKey(layout, side, Framing, Infill, Front, SecondFront, Back, joins, Styles, Deck, Step, StepOrientation,
             DeckInfill, DeckFront, DeckBack, (DeckFrontStyle, DeckBackStyle), deckJoins, alternate, innerCorners, deckInnerCorners, glassRunsOn, tees);
@@ -189,6 +194,7 @@ public class SidingWallEntity : BlockEntity
             var rotation = new Vec3f(0, RotationYDeg(side), 0);
             return Meshes(tesselator, shape, texSource, rotation, selectiveElements, glazed)
                 .Concat(Meshes(tesselator, shape, texSource, new Vec3f(0, 0, 0), deckElements, deckGlazed))
+                .Concat(Meshes(tesselator, shape, texSource, new Vec3f(0, stepRotation, 0), stepElements, false))
                 .ToArray();
         });
 
@@ -206,9 +212,9 @@ public class SidingWallEntity : BlockEntity
     // cell keeps the whole hash while any layer's texture varies, the parity alone for a rough wall or
     // deck frame, and nothing otherwise, which is what lets a long plain wall share one mesh.
     internal static int CellAlternate(
-        JsonObject attributes, int hash, string? framing, string? deck, string?[] infills, string?[] finishes)
+        JsonObject attributes, int hash, string? framing, string? deck, string?[] infills, string?[] finishes, bool stepVaries = false)
     {
-        if (SidingWallTexSource.AnyVaries(attributes["Framings"], framing, deck)
+        if (stepVaries || SidingWallTexSource.AnyVaries(attributes["Framings"], framing, deck)
             || SidingWallTexSource.AnyVaries(attributes["Infills"], infills)
             || SidingWallTexSource.AnyVaries(attributes["Finishes"], finishes)) return hash;
         return FrameElements(attributes["Framings"], framing) != "framing" || FrameElements(attributes["Framings"], deck) != "framing" ? hash % 2 : 0;
@@ -345,7 +351,7 @@ public class SidingWallEntity : BlockEntity
     internal static string[] SelectiveElements(
         string layout, string? framing, string? infill, string? front, string? secondFront, string? back, JsonObject finishes,
         (bool above, bool below, bool left, bool right) joins, bool glazed,
-        (string? front, string? secondFront, string? back) styles = default, string[]? step = null, string frame = "framing", bool decked = false,
+        (string? front, string? secondFront, string? back) styles = default, string frame = "framing", bool decked = false,
         string[]? innerCorners = null, (bool left, bool right) glassRunsOn = default, (bool left, bool right) tees = default)
     {
         var names = new List<string>();
@@ -423,7 +429,6 @@ public class SidingWallEntity : BlockEntity
                 if (framing != null) names.Add(runsOn ? $"framing-join-{end}" : $"framing-{end}");
             }
         }
-        if (step != null) names.AddRange(step);
         return names.ToArray();
     }
 
@@ -451,8 +456,48 @@ public class SidingWallEntity : BlockEntity
         ["north"] = new() { ["east"] = "north", ["west"] = "south" },
     };
 
-    // "up-F" rises to a full lower half plus an upper half on the F side; "down-F" is the
-    // mirror. F has to run along the wall - the wall's own normal axis (e.g. east/west for
+    // Vanilla's rotateY for a stair facing, and the order +90 carries a direction through: west, south, east, north.
+    internal static readonly Dictionary<string, int> StairRotationByFacing =new() { ["north"] = 0, ["west"] = 90, ["south"] = 180, ["east"] = 270 };
+    private static readonly string[] TurnOrder = ["west", "south", "east", "north"];
+
+    // Which of vanilla's stair shapes a step continues, read off the stair block's shape path; a modded shape draws as planks.
+    // Loading a shape rewrites its AssetLocation in place to shapes/....json, so the path may come either way.
+    internal static string StepFamily(string? shapePath)
+    {
+        string name = shapePath == null ? "" : shapePath[(shapePath.LastIndexOf('/') + 1)..].Replace(".json", "");
+        return name.StartsWith("stonepath") ? "stonepath" : name is "normal" or "flipped" ? "basic" : "planks";
+    }
+
+    // The step drawn in its stair's frame (decision 0081): the element names are the stair-north clips, and the
+    // rotation is the stair facing's rather than the wall side's, so neighbouring steps share a texture phase.
+    // The hand is where the wall's panel sits once the facing's rotation is undone. A facing across the wall has none.
+    // A corner has two panels: the one that lands west or east gives the hand, and the other lands north (front)
+    // or south (back), the end of the step its second leg closes.
+    internal static (string[] Names, float Rotation) StepMesh(string layout, string side, string? orientation, string family)
+    {
+        if (StepFrame(layout, side, orientation) is not { } frame) return ([], 0);
+        var (vertical, hand, end, rotation) = frame;
+        string prefix = $"step-{family}-{(family == "stonepath" ? "up" : vertical)}-{hand}{(end == null ? "" : "-" + end)}";
+        return ([$"{prefix}-base", $"{prefix}-step"], rotation);
+    }
+
+    // Where a step sits in its stair's frame: the hand and end (null on a wall, front or back on a corner) its open
+    // part is clipped to, and the facing's rotation. Null when the facing runs across the wall. The collision boxes
+    // of a corner step are cut from the same frame.
+    internal static (string Vertical, string Hand, string? End, int Rotation)? StepFrame(string layout, string side, string? orientation)
+    {
+        string[] parts = orientation?.Split('-') ?? [];
+        if (parts.Length != 2 || !StairRotationByFacing.TryGetValue(parts[1], out int rotation)) return null;
+        string[] turned = [.. TurnOrder.Where(face => SidingWallBlock.ClaimsFace(layout, side, face))
+            .Select(face => TurnOrder[((Array.IndexOf(TurnOrder, face) - rotation / 90) % 4 + 4) % 4])];
+        string? hand = turned.Contains("west") ? "left" : turned.Contains("east") ? "right" : null;
+        if (hand == null) return null;
+        string? end = turned.Contains("north") ? "front" : turned.Contains("south") ? "back" : null;
+        return (parts[0], hand, end, rotation);
+    }
+
+    // Collision only: the mesh draws through StepMesh. "up-F" rises to a full lower half plus an upper half on the
+    // F side; "down-F" is the mirror. F has to run along the wall - the wall's own normal axis (e.g. east/west for
     // side west) isn't a direction a step against it can rise toward.
     internal static string[] StepElements(string side, string? orientation)
     {

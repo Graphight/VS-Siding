@@ -92,11 +92,20 @@ public class SidingWallTexSource : ITexPositionSource
     private TextureAtlasPosition StepTexture()
     {
         Block? block = entity.Step == null ? null : capi.World.GetBlock(new AssetLocation(entity.Step));
-        // Stairs with only their own keys, like vanilla stone path's normal1, have no "up" to ask for.
-        var source = block == null ? null : capi.Tesselator.GetTextureSource(block, returnNullWhenMissing: true);
-        TextureAtlasPosition? pos = source == null ? null : source["up"] ?? block!.Textures.Keys.Select(key => source[key]).FirstOrDefault(p => p != null);
-        return pos ?? capi.BlockTextureAtlas.UnknownTexturePosition;
+        return StairTexture(block) is { } texture ? AtlasPosition(capi, texture, alternate) : capi.BlockTextureAtlas.UnknownTexturePosition;
     }
+
+    // Stairs with only their own keys, like vanilla stone path's normal1, have no "up" to ask for.
+    internal static CompositeTexture? StairTexture(Block? block)
+        => block?.Textures == null ? null
+            : block.Textures.TryGetValue("up", out var up) ? up
+            : block.Textures.Values.FirstOrDefault();
+
+    // Vanilla tesselates a shaped block once per variant, N the most any of its textures has, and a cell
+    // takes MurmurHash3 of its position mod N (ShapeTesselatorManager.Tesselate, then JsonTesselator). With
+    // Alternate's mod 120 and PickAlternate's own mod, one texture's pick is the same index.
+    internal static bool Varies(CompositeTexture? texture)
+        => texture != null && (texture.Base.EndsWithWildCard || texture.Alternates is { Length: > 0 });
 
     private const string LashingTexture = "game:item/resource/rope";
 

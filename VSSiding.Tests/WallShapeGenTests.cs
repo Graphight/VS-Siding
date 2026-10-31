@@ -744,30 +744,85 @@ public class WallShapeGenTests
         Assert.Equal([], offenders);
     }
 
-    [Theory]
-    [InlineData("step-lower", 4, 0, 0, 16, 8, 16)]
-    [InlineData("step-upper", 4, 8, 0, 16, 16, 16)]
-    [InlineData("step-lower-north", 4, 0, 0, 16, 8, 8)]
-    [InlineData("step-lower-south", 4, 0, 8, 16, 8, 16)]
-    [InlineData("step-upper-north", 4, 8, 0, 16, 16, 8)]
-    [InlineData("step-upper-south", 4, 8, 8, 16, 16, 16)]
-    public void StepElementsFillTheOpenPartInLowerUpperHalves(
-        string name, double fx, double fy, double fz, double tx, double ty, double tz)
+    // A generated step element as its box and faces, to compare whole against one built from vanilla's uvs by hand.
+    private static (string From, string To, string Faces) DrawnStep(string layout, string name)
     {
-        var step = WallShapeGen.Generate("wall")["elements"]!
-            .Single(e => (string)e["name"]! == name);
+        var element = WallShapeGen.Generate(layout)["elements"]!.Single(e => (string)e["name"]! == name);
+        return (element["from"]!.ToString(), element["to"]!.ToString(), element["faces"]!.ToString());
+    }
 
-        Assert.Equal(new JArray(fx, fy, fz).ToString(), step["from"]!.ToString());
-        Assert.Equal(new JArray(tx, ty, tz).ToString(), step["to"]!.ToString());
-        Assert.All(((JObject)step["faces"]!).Properties(), p => Assert.Equal("#step", p.Value["texture"]!.ToString()));
+    private static (string From, string To, string Faces) Step(
+        (double, double, double) from, (double, double, double) to, params (string Face, double U0, double V0, double U1, double V1, int Rotation)[] faces)
+    {
+        var drawn = new JObject();
+        foreach (var (face, u0, v0, u1, v1, rotation) in faces)
+        {
+            drawn[face] = new JObject { ["texture"] = "#step", ["uv"] = new JArray(u0, v0, u1, v1) };
+            if (rotation != 0) drawn[face]!["rotation"] = rotation;
+        }
+        return (new JArray(from.Item1, from.Item2, from.Item3).ToString(), new JArray(to.Item1, to.Item2, to.Item3).ToString(), drawn.ToString());
+    }
+
+    public static TheoryData<string, string, (string, string, string)> StepSetRows => new()
+    {
+        {
+            "wall", "step-planks-up-left-step",
+            Step((4, 8, 0), (16, 16, 8), ("north", 0, 0, 12, 8, 0), ("east", 0, 0, 8, 8, 0), ("south", 4, 0, 16, 8, 0), ("west", 0, 0, 8, 8, 0), ("up", 0, 0, 12, 8, 180))
+        },
+        {
+            "wall", "step-planks-up-right-base",
+            Step((0, 0, 0), (12, 8, 16), ("north", 4, 8, 16, 16, 0), ("east", 0, 2.5, 16, 10.5, 0), ("south", 0, 2.5, 12, 10.5, 0), ("west", 0, 8, 16, 16, 0), ("up", 0, 0, 12, 16, 0), ("down", 4, 0, 16, 16, 0))
+        },
+        {
+            "wall", "step-planks-down-left-base",
+            Step((4, 8, 0), (16, 16, 16), ("north", 0, 5.5, 12, 13.5, 0), ("east", 0, 0, 16, 8, 0), ("south", 4, 5.5, 16, 13.5, 0), ("west", 0, 5.5, 16, 13.5, 0), ("up", 4, 0, 16, 16, 0), ("down", 0, 0, 12, 16, 0))
+        },
+        // Vanilla nests the stone path's tread in its base, which starts at y -1, so the tread sits at y 7..15.
+        {
+            "wall", "step-stonepath-up-left-step",
+            Step((4, 7, 0), (16, 15, 8), ("north", 0, 0, 12, 8, 0), ("east", 8, 0, 16, 8, 0), ("south", 4, 0, 16, 8, 0), ("west", 0, 0, 8, 8, 0), ("up", 4, 0, 16, 8, 0), ("down", 0, 0, 12, 8, 0))
+        },
+        {
+            "cornerout", "step-planks-up-left-front-step",
+            Step((4, 8, 4), (16, 16, 8), ("north", 0, 0, 12, 8, 0), ("east", 0, 0, 4, 8, 0), ("south", 4, 0, 16, 8, 0), ("west", 4, 0, 8, 8, 0), ("up", 0, 0, 12, 4, 180))
+        },
+        {
+            "cornerout", "step-planks-up-right-back-base",
+            Step((0, 0, 0), (12, 8, 12), ("north", 4, 8, 16, 16, 0), ("east", 4, 2.5, 16, 10.5, 0), ("south", 0, 2.5, 12, 10.5, 0), ("west", 0, 8, 12, 16, 0), ("up", 0, 0, 12, 12, 0), ("down", 4, 0, 16, 12, 0))
+        },
+    };
+
+    [Theory]
+    [MemberData(nameof(StepSetRows))]
+    public void StepSetsCarryVanillasStairFacesClippedToTheOpenPart(string layout, string name, (string, string, string) expected)
+    {
+        Assert.Equal(expected, DrawnStep(layout, name));
+    }
+
+    // StepMesh and StepSetElements each spell the step's element names, and a name the shape lacks draws nothing, with no error.
+    [Theory]
+    [InlineData("wall")]
+    [InlineData("cornerout")]
+    public void EveryStepElementTheEntityCanAskForExists(string layout)
+    {
+        var names = WallShapeGen.Generate(layout)["elements"]!.Select(e => (string)e["name"]!).ToHashSet();
+        var asked = (
+            from side in new[] { "west", "south", "east", "north" }
+            from vertical in new[] { "up", "down" }
+            from facing in new[] { "north", "west", "south", "east" }
+            from family in new[] { "planks", "basic", "stonepath" }
+            from name in SidingWallEntity.StepMesh(layout, side, $"{vertical}-{facing}", family).Names
+            select name).Distinct().ToList();
+
+        Assert.Equal((layout == "wall" ? 20 : 40, ""), (asked.Count, string.Join(" ", asked.Where(name => !names.Contains(name)))));
     }
 
     [Fact]
-    public void CornerOutHasNoStepElements()
+    public void WallHasNoCornerStepElements()
     {
-        var names = WallShapeGen.Generate("cornerout")["elements"]!.Select(e => (string)e["name"]!);
+        var names = WallShapeGen.Generate("wall")["elements"]!.Select(e => (string)e["name"]!);
 
-        Assert.DoesNotContain(names, n => n.StartsWith("step"));
+        Assert.DoesNotContain(names, n => n.StartsWith("step") && (n.Contains("-front-") || n.Contains("-back-")));
     }
 
     // A masonry unit has to sit where the texture paints one, and the golden file cannot say so -

@@ -36,7 +36,11 @@ public record Element(
     Element? ClippedFrom = null,
     double RotationY = 0,
     (double X, double Y, double Z)? RotationOrigin = null,
-    (double X, double Y, double Z) Offset = default);
+    (double X, double Y, double Z) Offset = default,
+    Dictionary<string, FaceUv>? Explicit = null);
+
+// A face's uv rect and rotation exactly as a vanilla shape writes them, for the step sets copied from vanilla's stairs.
+public record FaceUv(double U0, double V0, double U1, double V1, int Rotation = 0);
 
 public static class WallShapeGen
 {
@@ -293,6 +297,93 @@ public static class WallShapeGen
     private static IEnumerable<Element> WithBark(params Element[] hboards)
         => hboards.Concat(new[] { "bark", "hbark" }.SelectMany(style => hboards.Select(e => e with { Name = e.Name.Replace("hboards", style) })));
 
+    private static FaceUv F(double u0, double v0, double u1, double v1, int rotation = 0) => new(u0, v0, u1, v1, rotation);
+
+    // The wall step as the vanilla stair it continues, in the stair's own frame (vanilla rotateY 0: the upper
+    // tread toward z 0), so a step and a stair share every seam. The wall's panel takes x 0..4 ("left") or
+    // x 12..16 ("right"), and the step is vanilla's box clipped to the rest. Boxes and uvs are transcribed from
+    // block/basic/stairs/{planks-free-up,planks-free-down,normal,flipped,stonepath-stairs-free}.json; a face
+    // vanilla disables is left out. The stone path's two rows differ from its file, each noted on the row.
+    // A corner takes the same clip plus one on z: "front" keeps z 4..16 (the other leg's panel at z 0..4, the end
+    // the stair rises toward), "back" keeps z 0..12 (that panel at z 12..16).
+    private static IEnumerable<Element> StepSetElements(bool corner = false)
+    {
+        var sources = new (string Family, string Vertical, string Part, (double, double, double) From, (double, double, double) To, Dictionary<string, FaceUv> Faces)[]
+        {
+            ("planks", "up", "base", (0, 0, 0), (16, 8, 16), new()
+            {
+                ["north"] = F(0, 8, 16, 16), ["east"] = F(0, 2.5, 16, 10.5), ["south"] = F(0, 2.5, 16, 10.5),
+                ["west"] = F(0, 8, 16, 16), ["up"] = F(0, 0, 16, 16), ["down"] = F(0, 0, 16, 16),
+            }),
+            ("planks", "up", "step", (0, 8, 0), (16, 16, 8), new()
+            {
+                ["north"] = F(0, 0, 16, 8), ["east"] = F(0, 0, 8, 8), ["south"] = F(0, 0, 16, 8),
+                ["west"] = F(0, 0, 8, 8), ["up"] = F(0, 0, 16, 8, 180),
+            }),
+            ("planks", "down", "base", (0, 8, 0), (16, 16, 16), new()
+            {
+                ["north"] = F(0, 5.5, 16, 13.5), ["east"] = F(0, 0, 16, 8), ["south"] = F(0, 5.5, 16, 13.5),
+                ["west"] = F(0, 5.5, 16, 13.5), ["up"] = F(0, 0, 16, 16), ["down"] = F(0, 0, 16, 16),
+            }),
+            ("planks", "down", "step", (0, 0, 0), (16, 8, 8), new()
+            {
+                ["north"] = F(0, 3, 16, 11), ["east"] = F(2.5, 3, 10.5, 11), ["south"] = F(0, 0, 16, 8),
+                ["west"] = F(0, 3, 8, 11), ["down"] = F(0, 0, 16, 8),
+            }),
+            ("basic", "up", "base", (0, 0, 0), (16, 8, 16), new()
+            {
+                ["north"] = F(0, 0, 16, 8), ["east"] = F(0, 0, 16, 8), ["south"] = F(0, 0, 16, 8),
+                ["west"] = F(0, 0, 16, 8), ["up"] = F(0, 0, 16, 16, 180), ["down"] = F(0, 0, 16, 16),
+            }),
+            ("basic", "up", "step", (0, 8, 0), (16, 16, 8), new()
+            {
+                ["north"] = F(0, 0, 16, 8), ["east"] = F(0, 0, 8, 8), ["south"] = F(0, 0, 16, 8),
+                ["west"] = F(0, 0, 8, 8), ["up"] = F(0, 0, 16, 8, 180),
+            }),
+            ("basic", "down", "base", (0, 8, 0), (16, 16, 16), new()
+            {
+                ["north"] = F(0, 0, 16, 8), ["east"] = F(0, 0, 16, 8), ["south"] = F(0, 0, 16, 8),
+                ["west"] = F(0, 0, 16, 8), ["up"] = F(0, 0, 16, 16, 180), ["down"] = F(0, 0, 16, 16),
+            }),
+            ("basic", "down", "step", (0, 0, 0), (16, 8, 8), new()
+            {
+                ["north"] = F(0, 0, 16, 8), ["east"] = F(0, 0, 8, 8), ["south"] = F(0, 0, 16, 8),
+                ["west"] = F(0, 0, 8, 8), ["down"] = F(0, 0, 16, 8),
+            }),
+            // Vanilla's base runs y -1..7 with a 0.01 overlap; it is cut to the cell at y 0, so each side's uv loses its bottom texel row.
+            ("stonepath", "up", "base", (0, 0, 0), (16, 7, 16), new()
+            {
+                ["north"] = F(0, 7.5, 16, 14.5), ["east"] = F(0, 8, 16, 15), ["south"] = F(0, 8, 16, 15),
+                ["west"] = F(0, 8, 16, 15), ["up"] = F(0, 0, 16, 16), ["down"] = F(0, 0, 16, 16),
+            }),
+            // The tread is Cube3, a child of the base: y 8..16 drawn from the base's y -1, so y 7..15 in the cell.
+            ("stonepath", "up", "step", (0, 7, 0), (16, 15, 8), new()
+            {
+                ["north"] = F(0, 0, 16, 8), ["east"] = F(8, 0, 16, 8), ["south"] = F(0, 0, 16, 8),
+                ["west"] = F(0, 0, 8, 8), ["up"] = F(0, 0, 16, 8), ["down"] = F(0, 0, 16, 8),
+            }),
+        };
+
+        (string? End, double Lo, double Hi)[] ends = corner ? [("front", 4, 16), ("back", 0, 12)] : [(null, 0, 16)];
+        foreach (var (family, vertical, part, from, to, faces) in sources)
+        {
+            var source = new Element("", from, to, "step", UvRule.Flat, Faces: [.. faces.Keys], Explicit: faces);
+            foreach (var (hand, xLo, xHi) in new[] { ("left", 4.0, 16.0), ("right", 0.0, 12.0) })
+            {
+                foreach (var (end, zLo, zHi) in ends)
+                {
+                    yield return source with
+                    {
+                        Name = $"step-{family}-{vertical}-{hand}{(end == null ? "" : "-" + end)}-{part}",
+                        From = (xLo, from.Item2, Math.Max(from.Item3, zLo)),
+                        To = (xHi, to.Item2, Math.Min(to.Item3, zHi)),
+                        ClippedFrom = source,
+                    };
+                }
+            }
+        }
+    }
+
     private static readonly Element[] WallElements =
     [
         new("front", (0, 0, 0), (1, 16, 16), "front", UvRule.Flat),
@@ -318,13 +409,7 @@ public static class WallShapeGen
         new("glazing-bottom-left", (1, 0, 0), (3, 2, 2), "framing", UvRule.Flat),
         new("glazing-bottom-right", (1, 0, 14), (3, 2, 16), "framing", UvRule.Flat),
         new("back", (3, 0, 0), (4, 16, 16), "back", UvRule.Flat),
-        // A step draws two of these: a full-length half plus the opposite-height half on the side it rises toward.
-        new("step-lower", (4, 0, 0), (16, 8, 16), "step", UvRule.Flat),
-        new("step-upper", (4, 8, 0), (16, 16, 16), "step", UvRule.Flat),
-        new("step-lower-north", (4, 0, 0), (16, 8, 8), "step", UvRule.Flat),
-        new("step-lower-south", (4, 0, 8), (16, 8, 16), "step", UvRule.Flat),
-        new("step-upper-north", (4, 8, 0), (16, 16, 8), "step", UvRule.Flat),
-        new("step-upper-south", (4, 8, 8), (16, 16, 16), "step", UvRule.Flat),
+        .. StepSetElements(),
         new("back-boards", (3, 0, 0), (4, 16, 16), "back", UvRule.Flat, RotatedFaces: ["east"]),
         new("front-boards", (0, 0, 0), (1, 16, 16), "front", UvRule.Flat, RotatedFaces: ["west"]),
         .. WithBark(
@@ -633,6 +718,7 @@ public static class WallShapeGen
         new("framing", (1, 0, 15), (3, 16, 16), "framing", UvRule.Flat),
         new("back", (3, 0, 4), (4, 16, 16), "back", UvRule.Flat),
         new("secondfront", (1, 0, 0), (16, 16, 1), "secondfront", UvRule.Flat),
+        .. StepSetElements(corner: true),
         new("framing-top", (3, 15, 1), (15, 16, 3), "framing", UvRule.Flat),
         new("framing-bottom", (3, 0, 1), (15, 1, 3), "framing", UvRule.Flat),
         new("infill-top", (3, 15, 1.5), (15, 16, 2.5), "infill", UvRule.Positional),
@@ -788,6 +874,7 @@ public static class WallShapeGen
         ("deckinfill", "game:block/wood/planks/aged/aged1"),
         ("deckfront", "game:block/wood/planks/aged/aged1"),
         ("deckback", "game:block/wood/planks/aged/aged1"),
+        ("step", "game:block/wood/planks/aged/aged1"),
         ("lashing", "game:item/resource/rope"),
     ];
 
@@ -1232,6 +1319,14 @@ public static class WallShapeGen
 
     private static JObject EmitFace(Element element, string face)
     {
+        if (element.Explicit?[face] is { } vanilla)
+        {
+            var (e0, e1, e2, e3) = element.ClippedFrom is { } from ? ClippedUv(from, element, face) : (vanilla.U0, vanilla.V0, vanilla.U1, vanilla.V1);
+            var explicitFace = new JObject { ["texture"] = "#" + element.Slot, ["uv"] = new JArray(e0, e1, e2, e3) };
+            if (vanilla.Rotation != 0) explicitFace["rotation"] = vanilla.Rotation;
+            return explicitFace;
+        }
+
         var (fx, fy, fz) = element.From;
         var (tx, ty, tz) = element.To;
 
@@ -1298,6 +1393,8 @@ public static class WallShapeGen
     {
         var sourceUv = EmitFace(source, face)["uv"]!.Select(v => (double)v!).ToArray();
         var (uAxis, uSign, vAxis, vSign) = UvLayout(face, clipped.RotatedFaces?.Contains(face) ?? false);
+        // A vanilla 180 turns the rect half way round, so both axes run against the face's own.
+        if (source.Explicit?[face].Rotation == 180) (uSign, vSign) = (-uSign, -vSign);
 
         (double, double) Sub(double s0, double s1, char axis, int sign)
         {

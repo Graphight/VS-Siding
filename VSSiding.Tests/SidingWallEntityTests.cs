@@ -61,6 +61,18 @@ public class SidingWallEntityTests
             cells.Select(c => SidingWallEntity.CellAlternate(attributes, 77, c.Framing, c.Deck, [c.Infill, null], [c.Front, null])));
     }
 
+    [Fact]
+    public void ASteppedCellKeepsTheWholeHashWhenItsStairTextureVaries()
+    {
+        var attributes = Dict("""
+        { "Framings": { "aged": { "Texture": "planks/aged1" } }, "Infills": { "wattle": { "Texture": "wattle" } }, "Finishes": {} }
+        """);
+
+        Assert.Equal(
+            new[] { 77, 0 },
+            new[] { true, false }.Select(varies => SidingWallEntity.CellAlternate(attributes, 77, "aged", null, ["wattle"], [], varies)));
+    }
+
     // Three stacked infill boxes share a face at each seam; for glass that blends twice and draws
     // a bright line where a cross-beam would be. Glazing must take the single full-cell pane
     // instead, in every join state, and the pane must still count as infill for the render split.
@@ -665,12 +677,63 @@ public class SidingWallEntityTests
             SidingWallEntity.SelectiveElements("wall", "oak", null, null, null, null, NoElementFinishes, (false, false, false, false), glazed: false));
     }
 
-    [Fact]
-    public void SelectiveElementsAppendsStepElementsWhenSet()
+    public static TheoryData<string, string, string, string, string[], float> StepMeshRows => new()
     {
-        Assert.Equal(new[] { "framing-left", "framing-right", "framing-top", "framing-bottom", "step-lower", "step-upper-north" },
-            SidingWallEntity.SelectiveElements("wall", "oak", null, null, null, null, NoElementFinishes, (false, false, false, false), glazed: false,
-                step: new[] { "step-lower", "step-upper-north" }));
+        { "cornerout", "west", "up-north", "planks", ["step-planks-up-left-front-base", "step-planks-up-left-front-step"], 0 },
+        { "cornerout", "west", "up-east", "planks", ["step-planks-up-left-back-base", "step-planks-up-left-back-step"], 270 },
+        { "cornerout", "west", "up-south", "basic", ["step-basic-up-right-back-base", "step-basic-up-right-back-step"], 180 },
+        { "cornerout", "west", "down-west", "planks", ["step-planks-down-right-front-base", "step-planks-down-right-front-step"], 90 },
+        { "cornerout", "south", "up-west", "planks", ["step-planks-up-left-front-base", "step-planks-up-left-front-step"], 90 },
+        { "cornerout", "south", "down-north", "basic", ["step-basic-down-left-back-base", "step-basic-down-left-back-step"], 0 },
+        { "cornerout", "east", "up-south", "planks", ["step-planks-up-left-front-base", "step-planks-up-left-front-step"], 180 },
+        { "cornerout", "east", "up-east", "stonepath", ["step-stonepath-up-right-front-base", "step-stonepath-up-right-front-step"], 270 },
+        { "cornerout", "north", "up-east", "planks", ["step-planks-up-left-front-base", "step-planks-up-left-front-step"], 270 },
+        { "cornerout", "north", "down-south", "planks", ["step-planks-down-left-back-base", "step-planks-down-left-back-step"], 180 },
+        { "wall", "west", "up-north", "planks", ["step-planks-up-left-base", "step-planks-up-left-step"], 0 },
+        { "wall", "east", "up-north", "planks", ["step-planks-up-right-base", "step-planks-up-right-step"], 0 },
+        { "wall", "west", "down-south", "planks", ["step-planks-down-right-base", "step-planks-down-right-step"], 180 },
+        { "wall", "east", "down-south", "basic", ["step-basic-down-left-base", "step-basic-down-left-step"], 180 },
+        { "wall", "south", "up-west", "basic", ["step-basic-up-left-base", "step-basic-up-left-step"], 90 },
+        { "wall", "south", "down-east", "planks", ["step-planks-down-right-base", "step-planks-down-right-step"], 270 },
+        { "wall", "north", "up-east", "planks", ["step-planks-up-left-base", "step-planks-up-left-step"], 270 },
+        { "wall", "north", "down-west", "basic", ["step-basic-down-right-base", "step-basic-down-right-step"], 90 },
+        { "wall", "west", "down-north", "stonepath", ["step-stonepath-up-left-base", "step-stonepath-up-left-step"], 0 },
+        { "wall", "west", "up-east", "planks", [], 0 },
+        { "wall", "south", "up-north", "planks", [], 0 },
+    };
+
+    [Theory]
+    [MemberData(nameof(StepMeshRows))]
+    public void StepMeshDrawsInTheStairsFrame(string layout, string side, string orientation, string family, string[] names, float rotation)
+    {
+        var (actualNames, actualRotation) = SidingWallEntity.StepMesh(layout, side, orientation, family);
+        Assert.Equal((string.Join(" ", names), rotation), (string.Join(" ", actualNames), actualRotation));
+    }
+
+    [Fact]
+    public void StepMeshTurnsMirroredWallsTheSameAndTakesOppositeHands()
+    {
+        var (west, westRotation) = SidingWallEntity.StepMesh("wall", "west", "up-north", "planks");
+        var (east, eastRotation) = SidingWallEntity.StepMesh("wall", "east", "up-north", "planks");
+        Assert.Equal(
+            ("step-planks-up-left-base step-planks-up-left-step", "step-planks-up-right-base step-planks-up-right-step", 0f, 0f),
+            (string.Join(" ", west), string.Join(" ", east), westRotation, eastRotation));
+    }
+
+    [Theory]
+    [InlineData("block/basic/stairs/planks-free-up", "planks")]
+    [InlineData("block/basic/stairs/planks-free-down", "planks")]
+    [InlineData("block/basic/stairs/normal", "basic")]
+    [InlineData("block/basic/stairs/flipped", "basic")]
+    [InlineData("block/basic/stairs/stonepath-stairs-free", "stonepath")]
+    [InlineData("shapes/block/basic/stairs/normal.json", "basic")]
+    [InlineData("shapes/block/basic/stairs/stonepath-stairs-free.json", "stonepath")]
+    [InlineData("block/basic/stairs/abnormal", "planks")]
+    [InlineData("othermod:block/stairs/odd", "planks")]
+    [InlineData(null, "planks")]
+    public void StepFamilyReadsTheStairsShapePath(string? shapePath, string expected)
+    {
+        Assert.Equal(expected, SidingWallEntity.StepFamily(shapePath));
     }
 
     [Theory]

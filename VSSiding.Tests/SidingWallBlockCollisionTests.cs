@@ -272,9 +272,33 @@ public class SidingWallBlockCollisionTests
     }
 
     [Fact]
-    public void CorneroutIgnoresAStep()
+    public void DiagonalIgnoresAStep()
     {
-        Assert.Same(FullBoxes, SidingWallBlock.AddOpenPartBoxes(FullBoxes, "cornerout", "west", null, "up-north"));
+        Assert.Same(FullBoxes, SidingWallBlock.AddOpenPartBoxes(FullBoxes, "diagonal", "west", null, "up-north"));
+    }
+
+    // Each row is hand-derived in the stair's frame (x 4..16 left / 0..12 right, z 4..16 front / 0..12 back, the
+    // upper half cut at z 8), then turned by the facing: 90 maps (x, z) to (z, 1 - x), 180 to (1 - x, 1 - z),
+    // 270 to (1 - z, x). The base box comes first, then the half on the side the stair rises toward.
+    public static TheoryData<string, Cuboidf[]> CorneroutWestStepRows => new()
+    {
+        { "up-east", [new Cuboidf(0.25f, 0, 0.25f, 1, 0.5f, 1), new Cuboidf(0.5f, 0.5f, 0.25f, 1, 1, 1)] },
+        { "down-north", [new Cuboidf(0.25f, 0.5f, 0.25f, 1, 1, 1), new Cuboidf(0.25f, 0, 0.25f, 1, 0.5f, 0.5f)] },
+        { "up-south", [new Cuboidf(0.25f, 0, 0.25f, 1, 0.5f, 1), new Cuboidf(0.25f, 0.5f, 0.5f, 1, 1, 1)] },
+        { "down-west", [new Cuboidf(0.25f, 0.5f, 0.25f, 1, 1, 1), new Cuboidf(0.25f, 0, 0.25f, 0.5f, 0.5f, 1)] },
+    };
+
+    [Theory]
+    [MemberData(nameof(CorneroutWestStepRows))]
+    public void ACornerStepIsCutInTheStairsFrameThenTurned(string orientation, Cuboidf[] step)
+    {
+        Assert.Equal([FullBoxes[0], .. step], SidingWallBlock.AddOpenPartBoxes(FullBoxes, "cornerout", "west", null, orientation), Comparer);
+    }
+
+    [Fact]
+    public void CorneroutIgnoresAnUnknownFacing()
+    {
+        Assert.Same(FullBoxes, SidingWallBlock.AddOpenPartBoxes(FullBoxes, "cornerout", "west", null, "up-nowhere"));
     }
 
     // RunNeighbours reuses cornerout's table on the claim that the face counter-clockwise from
