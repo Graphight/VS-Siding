@@ -96,4 +96,4 @@ The shape tests generate each shape once per run and reuse it, since regeneratin
 - Stacks of differing height across a glazed diagonal run frame the inside corner where one stops short of the other, and the flush tests cover every pair of stack heights.
 - Decisions 0019, 0066 and 0071 are amended in part and say so in their status lines.
 - An opaque T, or glass meeting an opaque wall at a corner post, keeps the open finish slot beside the post while that face is unfinished, as on `main`: the tee pieces are drawn only where glass runs on, the one case where the wall drops its stile.
-- The playtest of PR #144 showed every merge and redraw on its list working bar the T, and the tee pieces that fill its slot are not played yet; the Atlas scenario asserts only that a finish goes on a glazed diagonal.
+- The playtest of PR #144 showed every merge and redraw on its list working bar the T, and a second showed the tee pieces closing its slot; the Atlas scenario asserts only that a finish goes on a glazed diagonal.
