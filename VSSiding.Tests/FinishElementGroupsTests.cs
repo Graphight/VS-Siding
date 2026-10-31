@@ -306,13 +306,16 @@ public class FinishElementGroupsTests
             from right in either
             from transparent in either
             from finish in new[] { null, "daub" }
-            // Glass runs on only on a glazed cell, a diagonal's through an end the run carries on from and a corner's past its post.
-            from glassLeft in either.Where(glass => !glass || (transparent && (left || layout == "cornerout")))
-            from glassRight in either.Where(glass => !glass || (transparent && (right || layout == "cornerout")))
+            // Glass runs on only on a glazed cell, through an end the run carries on from; only a corner has a post to make a T at.
+            from glassLeft in either.Where(glass => !glass || (transparent && left))
+            from glassRight in either.Where(glass => !glass || (transparent && right))
+            from teeLeft in either.Where(tee => !tee || layout == "cornerout")
+            from teeRight in either.Where(tee => !tee || layout == "cornerout")
+            from frame in new[] { "framing", "poles", "poles2" }
             from corners in innerCorners
             from name in SidingWallEntity.SelectiveElements(
                 layout, "oak", "glass", finish, layout == "cornerout" ? finish : null, finish, finishes,
-                (above, below, left, right), glazed: transparent, innerCorners: corners, glassRunsOn: (glassLeft, glassRight))
+                (above, below, left, right), glazed: transparent, frame: frame, innerCorners: corners, glassRunsOn: (glassLeft, glassRight), tees: (teeLeft, teeRight))
             select name;
 
         Assert.Equal([], asked.Distinct().Where(name => !names.Contains(name)).ToArray());

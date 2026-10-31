@@ -592,6 +592,7 @@ public static class WallShapeGen
         new("poles-bottom", (2.75, 1, 14.75), (3, 2.5, 16), "lashing", UvRule.Flat),
         new("poles-bottom", (14.75, 1, 1), (16, 2.5, 1.25), "lashing", UvRule.Flat),
         new("poles-bottom", (14.75, 1, 2.75), (16, 2.5, 3), "lashing", UvRule.Flat),
+        .. CornerTees("poles"),
     ];
 
     private static readonly Element[] CornerPole2Elements =
@@ -609,6 +610,15 @@ public static class WallShapeGen
         new("poles2", (13, 7, 2.5), (15, 8, 3), "framing", UvRule.Flat),
         new("poles2", (13.5, 8.5, 1), (15, 9.5, 1.5), "framing", UvRule.Flat),
         .. CornerPoleElements.Where(e => e.Name is "poles-top" or "poles-bottom").Select(e => e with { Name = e.Name.Replace("poles", "poles2") }),
+        .. CornerTees("poles2"),
+    ];
+
+    // Every frame's corner post stands a finish slot in from the cell's edge on each face, so at a T it fills the slot
+    // the run crosses: the left leg's, where leg 1's line runs on past it, or the right leg's, where leg 2's does.
+    private static Element[] CornerTees(string group) =>
+    [
+        new($"{group}-tee-left", (1, 0, 0), (3, 16, 1), "framing", UvRule.Flat, Faces: ["north", "west", "east", "up", "down"]),
+        new($"{group}-tee-right", (0, 0, 1), (1, 16, 3), "framing", UvRule.Flat, Faces: ["west", "north", "south", "up", "down"]),
     ];
 
     private static readonly Element[] CornerOutElements =
@@ -631,15 +641,13 @@ public static class WallShapeGen
         new("infill-pane", (2, 0, 3), (2, 16, 16), "infill", UvRule.Flat, Faces: ["west", "east"]),
         new("infill-pane", (3, 0, 2), (16, 16, 2), "infill", UvRule.Flat, Faces: ["north", "south"]),
         new("framing", (15, 0, 1), (16, 16, 3), "framing", UvRule.Flat),
+        .. CornerTees("framing"),
         // A glazed corner's frame: a corner post that never drops, an end post per leg named for the side of
         // a wall it lies on (leg 1's far end is its right, leg 2's its left), a rail per leg between them,
-        // and a filler per leg in the rail's corner where the end post has merged away. The corner post is two boxes,
-        // a finish slot in from the cell's edge on each face, and at a T fills the slot the run carries on through: the
-        // left leg's, where leg 1's line runs on past it, or the right leg's, where leg 2's does.
+        // and a filler per leg in the rail's corner where the end post has merged away. The corner post is two boxes.
         new("glazing", (1, 0, 1), (3, 16, 4), "framing", UvRule.Flat),
         new("glazing", (3, 0, 1), (4, 16, 3), "framing", UvRule.Flat),
-        new("glazing-tee-left", (1, 0, 0), (3, 16, 1), "framing", UvRule.Flat, Faces: ["north", "west", "east", "up", "down"]),
-        new("glazing-tee-right", (0, 0, 1), (1, 16, 3), "framing", UvRule.Flat, Faces: ["west", "north", "south", "up", "down"]),
+        .. CornerTees("glazing"),
         new("glazing-right", (1, 0, 14), (3, 16, 16), "framing", UvRule.Flat),
         new("glazing-left", (14, 0, 1), (16, 16, 3), "framing", UvRule.Flat),
         new("glazing-top-right", (1, 14, 14), (3, 16, 16), "framing", UvRule.Flat),

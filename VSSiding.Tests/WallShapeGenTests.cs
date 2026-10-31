@@ -1046,12 +1046,15 @@ public class WallShapeGenTests
         }).Distinct());
     }
 
-    // At a T a glazed corner's post fills the finish slot the run crosses, and the finish on that face gives way to it, in every set of joins.
+    // At a T a corner's post fills the finish slot the run crosses, glazed or with a plain or rough frame, in every set of joins:
+    // a glazed face's rim gives way to the post's piece, and an opaque face's finish slab takes the slot in its place.
     [Fact]
-    public void NoTwoFacesOfAGlazedCornerAtATShareAPlaneAndOverlap()
+    public void NoFaceOfACornerPostsPieceAtATSharesAPlaneWithAnotherAndOverlaps()
     {
         bool[] either = [false, true];
         Assert.Equal([], (
+            from glazed in either
+            from frame in glazed ? ["framing"] : new[] { "framing", "poles", "poles2" }
             from above in either
             from below in either
             from left in either
@@ -1060,8 +1063,9 @@ public class WallShapeGenTests
             from teeRight in either
             where teeLeft || teeRight
             from finished in either
-            from offender in SharedPlaneOffenders("cornerout", Built("cornerout", finished, (above, below, left, right), glassRunsOn: (teeLeft, teeRight)))
-            select offender).Distinct());
+            let names = Built("cornerout", finished, (above, below, left, right), tees: (teeLeft, teeRight), glazed: glazed, frame: frame)
+            from offender in SharedPlaneOffenders("cornerout", names, (a, b) => a.Contains("-tee") || b.Contains("-tee"))
+            select $"{(glazed ? "glazed" : frame)} {offender}").Distinct());
     }
 
     // A glazed diagonal's rails, pane and rims are turned together and meet as a wall's do, in every set of joins, with the glass
@@ -1185,12 +1189,13 @@ public class WallShapeGenTests
     private static int AxisIndex(BlockFacing facing) => facing.Axis == EnumAxis.X ? 0 : facing.Axis == EnumAxis.Y ? 1 : 2;
 
     private static string[] Built(string layout, bool finished, (bool above, bool below, bool left, bool right) joins,
-        string[]? innerCorners = null, (bool left, bool right) glassRunsOn = default)
+        string[]? innerCorners = null, (bool left, bool right) glassRunsOn = default, (bool left, bool right) tees = default,
+        bool glazed = true, string frame = "framing")
     {
         var finishes = new Vintagestory.API.Datastructures.JsonObject(JObject.Parse("""{ "daub": {} }"""));
         string? daub = finished ? "daub" : null;
-        return SidingWallEntity.SelectiveElements(layout, "oak", "glass", daub, layout == "cornerout" ? daub : null, daub, finishes, joins, glazed: true,
-            innerCorners: innerCorners, glassRunsOn: glassRunsOn);
+        return SidingWallEntity.SelectiveElements(layout, "oak", glazed ? "glass" : "wattle", daub, layout == "cornerout" ? daub : null, daub, finishes, joins,
+            glazed: glazed, frame: frame, innerCorners: innerCorners, glassRunsOn: glassRunsOn, tees: tees);
     }
 
     // Each pair of faces, one from each cell, that point the same way on the same plane and overlap there.
@@ -1225,8 +1230,8 @@ public class WallShapeGenTests
         return (false, false, Meets(left), Meets(right));
     }
 
-    // A corner's glass runs on past its post at a T, where the post end meets the other cell's (SidingWallBlock.GlassRunsOn).
-    private static (bool left, bool right) GlassRunsOnToward(string layout, string side, BlockFacing towards, string otherLayout, string otherSide)
+    // A corner's post ends that the other cell's end meets, a T (SidingWallBlock.Tees).
+    private static (bool left, bool right) TeesToward(string layout, string side, BlockFacing towards, string otherLayout, string otherSide)
     {
         if (layout != "cornerout") return default;
         var ends = SidingWallBlock.Ends(layout, side);
@@ -1245,7 +1250,7 @@ public class WallShapeGenTests
             var joins = JoinsToward(own.Layout, own.Side, facing, other.Layout, other.Side);
             string[] names = own.Layout == "diagonal"
                 ? Built("diagonal", false, default).Where(name => name is "framing-left" or "framing-right").ToArray()
-                : Built(own.Layout, finished, joins, glassRunsOn: GlassRunsOnToward(own.Layout, own.Side, facing, other.Layout, other.Side));
+                : Built(own.Layout, finished, joins, tees: TeesToward(own.Layout, own.Side, facing, other.Layout, other.Side));
             return WorldFaces(cell, own.Layout, own.Side, names, offset);
         }
 
@@ -1407,6 +1412,52 @@ public class WallShapeGenTests
         }
 
         Assert.Equal(expected, actual);
+    }
+
+    // Every T at a corner's post bar glass to glass, which Meetings has: the cell whose end meets the post's, and whether the
+    // corner and that cell are glazed. Neither drops a member, since glass merges only into glass.
+    public static IEnumerable<object[]> TeesBarGlassToGlass()
+    {
+        string[] sides = ["west", "south", "east", "north"];
+        bool[] either = [false, true];
+        return from side in sides
+               from post in SidingWallBlock.Ends("cornerout", side)[2..]
+               from layout in new[] { "wall", "cornerout", "diagonal" }
+               from otherSide in sides
+               where SidingWallBlock.JoinsAtEnd(post, layout, otherSide)
+               from cornerGlazed in either
+               from otherGlazed in either
+               where !(cornerGlazed && otherGlazed)
+               select new object[] { side, post.Points.Code, layout, otherSide, cornerGlazed, otherGlazed };
+    }
+
+    // The corner's post fills the slot beside it, so every face a wall or a corner's leg draws on the boundary, pointing at the
+    // corner, is covered by the corner's pointing back, and no two faces across it share a plane, finished and bare. A diagonal,
+    // standing as its two fillers as in Meeting, keeps a filler that is its own jamb, and a corner whose post meets this one's has
+    // its leg face to face with this one's, so neither leaves a gap for the post to fill and only their overlaps are checked.
+    [Theory]
+    [MemberData(nameof(TeesBarGlassToGlass))]
+    public void TheCellAtACornerPostsTMeetsItFlushWithNoSharedPlane(string side, string towards, string layout, string otherSide, bool cornerGlazed, bool otherGlazed)
+    {
+        var toward = BlockFacing.FromCode(towards);
+        int plane = toward == BlockFacing.NORTH || toward == BlockFacing.WEST ? 0 : 16;
+        var tees = TeesToward("cornerout", side, toward, layout, otherSide);
+        var post = SidingWallBlock.Ends("cornerout", side)[2..].Single(end => end.Points == toward);
+        var (otherLeft, otherRight) = SidingWallBlock.LeftRightEnds(layout, otherSide);
+        bool flush = layout != "diagonal" && (SidingWallBlock.EndsMeet(post, otherLeft) || SidingWallBlock.EndsMeet(post, otherRight));
+        var actual = new List<string>();
+        foreach (bool finished in new[] { false, true })
+        {
+            string[] otherNames = layout == "diagonal"
+                ? [.. Built("diagonal", false, default).Where(name => name is "framing-left" or "framing-right")]
+                : Built(layout, finished, default, glazed: otherGlazed);
+            var corner = WorldFaces(0, "cornerout", side, Built("cornerout", finished, default, tees: tees, glazed: cornerGlazed), null);
+            var other = WorldFaces(1, layout, otherSide, otherNames, toward);
+            actual.AddRange(CrossCellOverlaps(corner, other).Select(overlap => $"{finished} {overlap}"));
+            if (flush) actual.AddRange(Uncovered(other, corner, toward.Opposite, plane).Select(name => $"{finished} {name}"));
+        }
+
+        Assert.Equal([], actual);
     }
 
     private static IEnumerable<double> Samples(double lo, double hi)

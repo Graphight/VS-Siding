@@ -404,17 +404,17 @@ public class SidingWallBlockCollisionTests
 
     // A glazed corner under another, whose left leg runs on into a glazed wall with nothing over it and whose right leg runs on into
     // one with glass over it too, turns the sheet's inside corner at its top left only. So does a glazed diagonal under another between
-    // two glazed diagonals, of which only the right one has glass over it.
+    // two glazed diagonals, of which only the right one has glass over it. A wattle wall at the corner's post makes a T there all the same.
     [Fact]
     public void AGlazedCellsJoinsAndInsideCornersAreReadOffTheCellsAtItsEnds()
     {
         var attributes = new JsonObject(JToken.Parse("""{ "Infills": { "glass": { "Transparent": true } } }"""));
-        (Block Block, SidingWallEntity Entity) Glazed(string layout, string side)
+        (Block Block, SidingWallEntity Entity) Glazed(string layout, string side, string infill = "glass")
         {
             var block = new SidingWallBlock { Attributes = attributes };
             block.VariantStrict["layout"] = layout;
             block.VariantStrict["side"] = side;
-            return (block, new SidingWallEntity { Framing = "oak", Infill = "glass" });
+            return (block, new SidingWallEntity { Framing = "oak", Infill = infill });
         }
 
         var corner = new BlockPos(10, 60, 10, 0);
@@ -430,7 +430,7 @@ public class SidingWallBlockCollisionTests
             [corner.SouthCopy()] = Glazed("wall", "west"),
             [corner.SouthCopy().Up()] = Glazed("wall", "west"),
             // A west wall to the north carries leg 1's line on past the corner post, a T at the post's left end.
-            [corner.NorthCopy()] = Glazed("wall", "west"),
+            [corner.NorthCopy()] = Glazed("wall", "west", "wattle"),
             [diagonal] = Glazed("diagonal", "west"),
             [diagonal.UpCopy()] = Glazed("diagonal", "west"),
             [diagonal.AddCopy(leftStep)] = Glazed("diagonal", "west"),
@@ -438,19 +438,19 @@ public class SidingWallBlockCollisionTests
             [diagonal.AddCopy(rightStep).Up()] = Glazed("diagonal", "west"),
         };
 
-        ((bool, bool, bool, bool) Joins, string InnerCorners, (bool, bool) GlassRunsOn) Read(BlockPos pos)
+        ((bool, bool, bool, bool) Joins, string InnerCorners, (bool, bool) GlassRunsOn, (bool, bool) Tees) Read(BlockPos pos)
         {
             var wall = (SidingWallBlock)cells[pos].Block;
             var joins = wall.NeighbourJoins(accessor, pos, "glass");
-            return (joins, string.Join(" ", wall.InnerCorners(accessor, pos, "glass", joins)), wall.GlassRunsOn(accessor, pos, "glass", joins));
+            return (joins, string.Join(" ", wall.InnerCorners(accessor, pos, "glass", joins)), wall.GlassRunsOn(accessor, pos, "glass", joins), wall.Tees(accessor, pos));
         }
 
         Assert.Equal(
-            new Dictionary<string, ((bool, bool, bool, bool), string, (bool, bool))>
+            new Dictionary<string, ((bool, bool, bool, bool), string, (bool, bool), (bool, bool))>
             {
-                ["cornerout"] = ((true, false, true, true), "-top-left", (true, false)),
-                ["diagonal"] = ((true, false, true, true), "-top-left", (true, true)),
+                ["cornerout"] = ((true, false, true, true), "-top-left", (false, false), (true, false)),
+                ["diagonal"] = ((true, false, true, true), "-top-left", (true, true), (false, false)),
             },
-            new Dictionary<string, ((bool, bool, bool, bool), string, (bool, bool))> { ["cornerout"] = Read(corner), ["diagonal"] = Read(diagonal) });
+            new Dictionary<string, ((bool, bool, bool, bool), string, (bool, bool), (bool, bool))> { ["cornerout"] = Read(corner), ["diagonal"] = Read(diagonal) });
     }
 }
