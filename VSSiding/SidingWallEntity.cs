@@ -477,14 +477,14 @@ public class SidingWallEntity : BlockEntity
     {
         if (StepFrame(layout, side, orientation) is not { } frame) return ([], 0);
         var (vertical, hand, end, rotation) = frame;
-        string prefix = $"step-{family}-{(family == "stonepath" ? "up" : vertical)}-{hand}{end}";
+        string prefix = $"step-{family}-{(family == "stonepath" ? "up" : vertical)}-{hand}{(end == null ? "" : "-" + end)}";
         return ([$"{prefix}-base", $"{prefix}-step"], rotation);
     }
 
-    // Where a step sits in its stair's frame: the hand and end ("" on a wall, "-front"/"-back" on a corner) its open
+    // Where a step sits in its stair's frame: the hand and end (null on a wall, front or back on a corner) its open
     // part is clipped to, and the facing's rotation. Null when the facing runs across the wall. The collision boxes
     // of a corner step are cut from the same frame.
-    internal static (string Vertical, string Hand, string End, int Rotation)? StepFrame(string layout, string side, string? orientation)
+    internal static (string Vertical, string Hand, string? End, int Rotation)? StepFrame(string layout, string side, string? orientation)
     {
         string[] parts = orientation?.Split('-') ?? [];
         if (parts.Length != 2 || !StairRotationByFacing.TryGetValue(parts[1], out int rotation)) return null;
@@ -492,7 +492,7 @@ public class SidingWallEntity : BlockEntity
             .Select(face => TurnOrder[((Array.IndexOf(TurnOrder, face) - rotation / 90) % 4 + 4) % 4])];
         string? hand = turned.Contains("west") ? "left" : turned.Contains("east") ? "right" : null;
         if (hand == null) return null;
-        string end = turned.Contains("north") ? "-front" : turned.Contains("south") ? "-back" : "";
+        string? end = turned.Contains("north") ? "front" : turned.Contains("south") ? "back" : null;
         return (parts[0], hand, end, rotation);
     }
 

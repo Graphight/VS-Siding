@@ -327,7 +327,7 @@ public class SidingWallBlockBuildFlowTests
     [InlineData("cornerout", "west", "DOWN", 0.9, 0.1, "north")]
     [InlineData("cornerout", "south", "DOWN", 0.9, 0.9, "south")]
     [InlineData("cornerout", "south", "DOWN", 0.1, 0.1, "west")]
-    public void ResolveStepLeg(string layout, string side, string clickedFace, double hitX, double hitZ, string expected)
+    public void AStepContinuesTheLegOnTheClickedFacesAxisOrNearestTheHitBelow(string layout, string side, string clickedFace, double hitX, double hitZ, string expected)
     {
         Assert.Equal(
             expected,

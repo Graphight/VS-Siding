@@ -3056,12 +3056,12 @@
       "name": "step-stonepath-up-left-front-step",
       "from": [
         4.0,
-        8.0,
+        7.0,
         4.0
       ],
       "to": [
         16.0,
-        16.0,
+        15.0,
         8.0
       ],
       "faces": {
@@ -3125,12 +3125,12 @@
       "name": "step-stonepath-up-left-back-step",
       "from": [
         4.0,
-        8.0,
+        7.0,
         0.0
       ],
       "to": [
         16.0,
-        16.0,
+        15.0,
         8.0
       ],
       "faces": {
@@ -3194,12 +3194,12 @@
       "name": "step-stonepath-up-right-front-step",
       "from": [
         0.0,
-        8.0,
+        7.0,
         4.0
       ],
       "to": [
         12.0,
-        16.0,
+        15.0,
         8.0
       ],
       "faces": {
@@ -3263,12 +3263,12 @@
       "name": "step-stonepath-up-right-back-step",
       "from": [
         0.0,
-        8.0,
+        7.0,
         0.0
       ],
       "to": [
         12.0,
-        16.0,
+        15.0,
         8.0
       ],
       "faces": {

@@ -5798,12 +5798,12 @@
       "name": "step-stonepath-up-left-step",
       "from": [
         4.0,
-        8.0,
+        7.0,
         0.0
       ],
       "to": [
         16.0,
-        16.0,
+        15.0,
         8.0
       ],
       "faces": {
@@ -5867,12 +5867,12 @@
       "name": "step-stonepath-up-right-step",
       "from": [
         0.0,
-        8.0,
+        7.0,
         0.0
       ],
       "to": [
         12.0,
-        16.0,
+        15.0,
         8.0
       ],
       "faces": {

@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Created: 2026-10-30
-- Reflects: branch `131-step-seams`, issue #131; `SidingWallEntity.StepMesh`/`StepFrame`/`StepFamily`/`CellAlternate`, `SidingWallTexSource.StairTexture`/`Varies`, `SidingWallBlock.ResolveStepLeg`/`ResolveStepOrientation`/`OpenStepBoxes`/`CornerStepBoxes`, `VSSiding.Tests/WallShapeGen` (`StepSetElements`), `shapes/block/wall/wall.json` and `cornerout.json`, `blocktypes/wall.json`, `lang/en.json`'s `build-step-corner`; `WallShapeGenTests`, `SidingWallEntityTests`, `SidingWallTexSourceTests`, `SidingWallBlockCollisionTests`, `SidingWallBlockBuildFlowTests`, `VSSiding.E2E.Tests/JunctionScenarios.cs`; decisions 0046, 0026
+- Reflects: branch `131-step-seams`, issue #131; `SidingWallEntity.StepMesh`/`StepFrame`/`StepFamily`/`CellAlternate`, `SidingWallTexSource.StairTexture`/`Varies`, `SidingWallBlock.ResolveStepLeg`/`ResolveStepOrientation`/`OpenStepBoxes`/`CornerStepBoxes`, `VSSiding.Tests/WallShapeGen` (`StepSetElements`), `shapes/block/wall/wall.json` and `cornerout.json`, `blocktypes/wall.json`, `lang/en.json`'s `build-step-diagonal`; `WallShapeGenTests`, `SidingWallEntityTests`, `SidingWallTexSourceTests`, `SidingWallBlockCollisionTests`, `SidingWallBlockBuildFlowTests`, `VSSiding.E2E.Tests/JunctionScenarios.cs`; decisions 0046, 0026
 
 ## Summary
 A step is drawn as the vanilla stair it continues, clipped to the wall's open part, and turned by that stair's facing.
@@ -23,7 +23,8 @@ Vanilla stairs in one flight share a rotation, so they line up; only the step di
 `StepSetElements` clips each box to the wall's open part in the stair-north frame, the upper tread toward z 0: x 4..16 for a wall on the left, 0..12 for one on the right.
 The uv of a clipped face is vanilla's rect cut to the clip, so the texture stays anchored to the stair's frame, not the step's.
 Each set emits `step-{family}-{up|down}-{left|right}-{base|step}`.
-The stone path's base is cut to y 0..7, where vanilla's runs y -1..7: the bottom voxel lies inside the block below, so each side's uv loses its bottom texel row.
+The stone path's shape nests its tread in its base, so the tread is drawn from the base's y -1 and sits at y 7..15, the top of a path block; the generator places it there.
+Its base is cut to y 0..7, where vanilla's runs y -1..7: the bottom voxel lies inside the block below, so each side's uv loses its bottom texel row.
 The old six `step-*` elements leave `wall.json` and the blocktype lists; `StepElements` and its boxes stay for collision under their own names.
 
 **Family from the stair block.**
@@ -52,7 +53,7 @@ The orientation comes from the stair beside that leg, the room cell off that leg
 **Unchanged.**
 Collision and selection boxes for the wall step.
 A stepped frame still refuses the in-place corner upgrade (`build-stepped`).
-A diagonal takes no step, and `build-step-corner` now says so.
+A diagonal takes no step, refused with `build-step-diagonal`.
 Storage is unchanged, so no migration: a built step redraws in the stair's frame on load.
 
 **Relation to 0046.**
@@ -60,8 +61,8 @@ This decision supersedes 0046's "Generated boxes, not clipped vanilla shapes" an
 The rest of 0046 stands: the `Step` layer, storing the stair's block code, building by clicking with the stair in hand, one per cell, peeling, drops, burning and the hosting refusals.
 
 ## Alternatives considered
-- **Anchor the texture to the stair's frame with position-based uvs, keeping the six boxes.** Each box would take a uv from its position in the stair's frame. Rejected: the stone path and basic families have their own uv rects and rotations, and copying vanilla's reproduces all of them.
-- **Clip each family's shape at mesh time.** Rejected for generated shapes, as 0046 did for its own boxes: the elements are picked by name and the clip is checked in tests.
+- **Anchor the texture to the stair's frame with position-based uvs, keeping the six boxes.** Each box would take a uv from its position in the stair's frame. Rejected: steps would line up with each other, but vanilla's plank tread samples its rows flipped (rotation 180), so a step's upper tread would still miss the plank stair beside it.
+- **Clip each family's shape at mesh time.** Read the held stair's own shape when the mesh is built, so modded shapes match too. Rejected: the heaviest option, and it reopens the alternative 0046 rejected.
 - **A turning corner step, an outside-shape stair round the corner.** Rejected: the flight turns in the next cell, and a straight step on one leg is what the neighbouring stair continues.
 - **A landing half-slab on the corner.** Rejected: it is not a continuation of a stair.
 - **Take a corner's orientation from either neighbour, whichever is found first.** Rejected: two stairs may stand beside the two legs, so the order would pick for the player. The clicked leg picks.
@@ -69,6 +70,7 @@ The rest of 0046 stands: the `Step` layer, storing the stair's block code, build
 
 ## Consequences & open questions
 - `wall.json` and `cornerout.json` grow by the step sets for three families, two directions, two hands and, on the corner, two ends.
-- No migration: nothing stored changes.
 - A step with a modded shape draws as planks, whatever its own shape.
+- A step still draws every face with one texture, the stair's `up`, so a quartz step's sides take the top texture where a quartz stair has its own side texture; 0046's question about per-face textures stays open.
+- A stone path step collides as the two halves every step uses (y 0..8 and 8..16), a voxel off its drawn tread at y 7..15.
 - A playtest is pending: two plank steps in mirrored walls rising the same way, up and down; a step beside a stair, in stone brick, cobble and plank; a stone path step; and a corner step from each leg, checking that seams carry across every boundary.

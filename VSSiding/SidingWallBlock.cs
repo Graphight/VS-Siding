@@ -115,7 +115,7 @@ public class SidingWallBlock : Block
                     string orientation = $"{vertical}-{facing}";
                     if (SidingWallEntity.StepFrame("cornerout", side, orientation) is not { } frame) continue;
                     (float x1, float x2) = frame.Hand == "left" ? (4f / 16, 1f) : (0f, 12f / 16);
-                    (float z1, float z2) = frame.End == "-front" ? (4f / 16, 1f) : (0f, 12f / 16);
+                    (float z1, float z2) = frame.End == "front" ? (4f / 16, 1f) : (0f, 12f / 16);
                     float halfZ2 = Math.Min(z2, 8f / 16);
                     (float baseY1, float baseY2, float stepY1, float stepY2) = vertical == "up" ? (0f, 8f / 16, 8f / 16, 1f) : (8f / 16, 1f, 0f, 8f / 16);
                     boxes[(side, orientation)] =
@@ -581,7 +581,7 @@ public class SidingWallBlock : Block
         {
             if (Variant["layout"] == "diagonal")
             {
-                (byPlayer as IServerPlayer)?.SendIngameError("vssiding:stepcorner", Lang.Get("vssiding:build-step-corner"));
+                (byPlayer as IServerPlayer)?.SendIngameError("vssiding:stepdiagonal", Lang.Get("vssiding:build-step-diagonal"));
                 return true;
             }
 

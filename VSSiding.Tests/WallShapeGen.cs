@@ -303,75 +303,85 @@ public static class WallShapeGen
     // tread toward z 0), so a step and a stair share every seam. The wall's panel takes x 0..4 ("left") or
     // x 12..16 ("right"), and the step is vanilla's box clipped to the rest. Boxes and uvs are transcribed from
     // block/basic/stairs/{planks-free-up,planks-free-down,normal,flipped,stonepath-stairs-free}.json; a face
-    // vanilla disables is left out, and stonepath's lone 0.01 overlap is dropped so the clip stays on the voxel.
+    // vanilla disables is left out. The stone path is the one shape that differs: its tread is a child of its
+    // base, so drawn from the base's y -1, and the base itself is cut to the cell and drops its 0.01 overlap.
     // A corner takes the same clip plus one on z: "front" keeps z 4..16 (the other leg's panel at z 0..4, the end
     // the stair rises toward), "back" keeps z 0..12 (that panel at z 12..16).
     private static IEnumerable<Element> StepSetElements(bool corner = false)
     {
-        var sources = new (string Set, string Part, (double, double, double) From, (double, double, double) To, Dictionary<string, FaceUv> Faces)[]
+        var sources = new (string Family, string Vertical, string Part, (double, double, double) From, (double, double, double) To, Dictionary<string, FaceUv> Faces)[]
         {
-            ("planks-up", "base", (0, 0, 0), (16, 8, 16), new()
+            ("planks", "up", "base", (0, 0, 0), (16, 8, 16), new()
             {
                 ["north"] = F(0, 8, 16, 16), ["east"] = F(0, 2.5, 16, 10.5), ["south"] = F(0, 2.5, 16, 10.5),
                 ["west"] = F(0, 8, 16, 16), ["up"] = F(0, 0, 16, 16), ["down"] = F(0, 0, 16, 16),
             }),
-            ("planks-up", "step", (0, 8, 0), (16, 16, 8), new()
+            ("planks", "up", "step", (0, 8, 0), (16, 16, 8), new()
             {
                 ["north"] = F(0, 0, 16, 8), ["east"] = F(0, 0, 8, 8), ["south"] = F(0, 0, 16, 8),
                 ["west"] = F(0, 0, 8, 8), ["up"] = F(0, 0, 16, 8, 180),
             }),
-            ("planks-down", "base", (0, 8, 0), (16, 16, 16), new()
+            ("planks", "down", "base", (0, 8, 0), (16, 16, 16), new()
             {
                 ["north"] = F(0, 5.5, 16, 13.5), ["east"] = F(0, 0, 16, 8), ["south"] = F(0, 5.5, 16, 13.5),
                 ["west"] = F(0, 5.5, 16, 13.5), ["up"] = F(0, 0, 16, 16), ["down"] = F(0, 0, 16, 16),
             }),
-            ("planks-down", "step", (0, 0, 0), (16, 8, 8), new()
+            ("planks", "down", "step", (0, 0, 0), (16, 8, 8), new()
             {
                 ["north"] = F(0, 3, 16, 11), ["east"] = F(2.5, 3, 10.5, 11), ["south"] = F(0, 0, 16, 8),
                 ["west"] = F(0, 3, 8, 11), ["down"] = F(0, 0, 16, 8),
             }),
-            ("basic-up", "base", (0, 0, 0), (16, 8, 16), new()
+            ("basic", "up", "base", (0, 0, 0), (16, 8, 16), new()
             {
                 ["north"] = F(0, 0, 16, 8), ["east"] = F(0, 0, 16, 8), ["south"] = F(0, 0, 16, 8),
                 ["west"] = F(0, 0, 16, 8), ["up"] = F(0, 0, 16, 16, 180), ["down"] = F(0, 0, 16, 16),
             }),
-            ("basic-up", "step", (0, 8, 0), (16, 16, 8), new()
+            ("basic", "up", "step", (0, 8, 0), (16, 16, 8), new()
             {
                 ["north"] = F(0, 0, 16, 8), ["east"] = F(0, 0, 8, 8), ["south"] = F(0, 0, 16, 8),
                 ["west"] = F(0, 0, 8, 8), ["up"] = F(0, 0, 16, 8, 180),
             }),
-            ("basic-down", "base", (0, 8, 0), (16, 16, 16), new()
+            ("basic", "down", "base", (0, 8, 0), (16, 16, 16), new()
             {
                 ["north"] = F(0, 0, 16, 8), ["east"] = F(0, 0, 16, 8), ["south"] = F(0, 0, 16, 8),
                 ["west"] = F(0, 0, 16, 8), ["up"] = F(0, 0, 16, 16, 180), ["down"] = F(0, 0, 16, 16),
             }),
-            ("basic-down", "step", (0, 0, 0), (16, 8, 8), new()
+            ("basic", "down", "step", (0, 0, 0), (16, 8, 8), new()
             {
                 ["north"] = F(0, 0, 16, 8), ["east"] = F(0, 0, 8, 8), ["south"] = F(0, 0, 16, 8),
                 ["west"] = F(0, 0, 8, 8), ["down"] = F(0, 0, 16, 8),
             }),
             // Vanilla's base runs y -1..7; it is cut to the cell at y 0, so each side's uv loses its bottom texel row.
-            ("stonepath-up", "base", (0, 0, 0), (16, 7, 16), new()
+            ("stonepath", "up", "base", (0, 0, 0), (16, 7, 16), new()
             {
                 ["north"] = F(0, 7.5, 16, 14.5), ["east"] = F(0, 8, 16, 15), ["south"] = F(0, 8, 16, 15),
                 ["west"] = F(0, 8, 16, 15), ["up"] = F(0, 0, 16, 16), ["down"] = F(0, 0, 16, 16),
             }),
-            ("stonepath-up", "step", (0, 8, 0), (16, 16, 8), new()
+            // Cube3 at y 8..16 within Cube2, whose own from is y -1.
+            ("stonepath", "up", "step", (0, 7, 0), (16, 15, 8), new()
             {
                 ["north"] = F(0, 0, 16, 8), ["east"] = F(8, 0, 16, 8), ["south"] = F(0, 0, 16, 8),
                 ["west"] = F(0, 0, 8, 8), ["up"] = F(0, 0, 16, 8), ["down"] = F(0, 0, 16, 8),
             }),
         };
 
-        foreach (var (set, part, from, to, faces) in sources)
+        (string? End, double Lo, double Hi)[] ends = corner ? [("front", 4, 16), ("back", 0, 12)] : [(null, 0, 16)];
+        foreach (var (family, vertical, part, from, to, faces) in sources)
         {
             var source = new Element("", from, to, "step", UvRule.Flat, Faces: [.. faces.Keys], Explicit: faces);
-            foreach (var (side, lo, hi) in new[] { ("left", 4.0, 16.0), ("right", 0.0, 12.0) })
-                foreach (var (end, zLo, zHi) in corner ? new[] { ("-front", 4.0, 16.0), ("-back", 0.0, 12.0) } : [("", 0.0, 16.0)])
+            foreach (var (hand, xLo, xHi) in new[] { ("left", 4.0, 16.0), ("right", 0.0, 12.0) })
+            {
+                foreach (var (end, zLo, zHi) in ends)
                 {
-                    var name = set.Split('-') is [var family, var dir] ? $"step-{family}-{dir}-{side}{end}-{part}" : throw new ArgumentException(set);
-                    yield return source with { Name = name, From = (lo, from.Item2, Math.Max(from.Item3, zLo)), To = (hi, to.Item2, Math.Min(to.Item3, zHi)), ClippedFrom = source };
+                    yield return source with
+                    {
+                        Name = $"step-{family}-{vertical}-{hand}{(end == null ? "" : "-" + end)}-{part}",
+                        From = (xLo, from.Item2, Math.Max(from.Item3, zLo)),
+                        To = (xHi, to.Item2, Math.Min(to.Item3, zHi)),
+                        ClippedFrom = source,
+                    };
                 }
+            }
         }
     }
 

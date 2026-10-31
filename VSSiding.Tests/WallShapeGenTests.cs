@@ -744,72 +744,63 @@ public class WallShapeGenTests
         Assert.Equal([], offenders);
     }
 
-    [Fact]
-    public void StepSetsCarryVanillasStairFacesClippedToTheOpenPart()
+    // A generated step element as its box and faces, to compare whole against one built from vanilla's uvs by hand.
+    private static (string From, string To, string Faces) DrawnStep(string layout, string name)
     {
-        var elements = WallShapeGen.Generate("wall")["elements"]!;
-        JObject Element(string name) => (JObject)elements.Single(e => (string)e["name"]! == name);
-        JObject Face(double u0, double v0, double u1, double v1, int rotation = 0)
+        var element = WallShapeGen.Generate(layout)["elements"]!.Single(e => (string)e["name"]! == name);
+        return (element["from"]!.ToString(), element["to"]!.ToString(), element["faces"]!.ToString());
+    }
+
+    private static (string From, string To, string Faces) Step(
+        (double, double, double) from, (double, double, double) to, params (string Face, double U0, double V0, double U1, double V1, int Rotation)[] faces)
+    {
+        var drawn = new JObject();
+        foreach (var (face, u0, v0, u1, v1, rotation) in faces)
         {
-            var face = new JObject { ["texture"] = "#step", ["uv"] = new JArray(u0, v0, u1, v1) };
-            if (rotation != 0) face["rotation"] = rotation;
-            return face;
+            drawn[face] = new JObject { ["texture"] = "#step", ["uv"] = new JArray(u0, v0, u1, v1) };
+            if (rotation != 0) drawn[face]!["rotation"] = rotation;
         }
+        return (new JArray(from.Item1, from.Item2, from.Item3).ToString(), new JArray(to.Item1, to.Item2, to.Item3).ToString(), drawn.ToString());
+    }
 
-        var leftStep = Element("step-planks-up-left-step");
-        Assert.Equal(new JArray(4.0, 8.0, 0.0).ToString(), leftStep["from"]!.ToString());
-        Assert.Equal(new JArray(16.0, 16.0, 8.0).ToString(), leftStep["to"]!.ToString());
-        Assert.Equal(
-            new JObject
-            {
-                ["north"] = Face(0, 0, 12, 8),
-                ["east"] = Face(0, 0, 8, 8),
-                ["south"] = Face(4, 0, 16, 8),
-                ["west"] = Face(0, 0, 8, 8),
-                ["up"] = Face(0, 0, 12, 8, 180),
-            }.ToString(),
-            leftStep["faces"]!.ToString());
+    public static TheoryData<string, string, (string, string, string)> StepSetRows => new()
+    {
+        {
+            "wall", "step-planks-up-left-step",
+            Step((4, 8, 0), (16, 16, 8), ("north", 0, 0, 12, 8, 0), ("east", 0, 0, 8, 8, 0), ("south", 4, 0, 16, 8, 0), ("west", 0, 0, 8, 8, 0), ("up", 0, 0, 12, 8, 180))
+        },
+        {
+            "wall", "step-planks-up-right-base",
+            Step((0, 0, 0), (12, 8, 16), ("north", 4, 8, 16, 16, 0), ("east", 0, 2.5, 16, 10.5, 0), ("south", 0, 2.5, 12, 10.5, 0), ("west", 0, 8, 16, 16, 0), ("up", 0, 0, 12, 16, 0), ("down", 4, 0, 16, 16, 0))
+        },
+        {
+            "wall", "step-planks-down-left-base",
+            Step((4, 8, 0), (16, 16, 16), ("north", 0, 5.5, 12, 13.5, 0), ("east", 0, 0, 16, 8, 0), ("south", 4, 5.5, 16, 13.5, 0), ("west", 0, 5.5, 16, 13.5, 0), ("up", 4, 0, 16, 16, 0), ("down", 0, 0, 12, 16, 0))
+        },
+        // Vanilla nests the stone path's tread in its base, which starts at y -1, so the tread sits at y 7..15.
+        {
+            "wall", "step-stonepath-up-left-step",
+            Step((4, 7, 0), (16, 15, 8), ("north", 0, 0, 12, 8, 0), ("east", 8, 0, 16, 8, 0), ("south", 4, 0, 16, 8, 0), ("west", 0, 0, 8, 8, 0), ("up", 4, 0, 16, 8, 0), ("down", 0, 0, 12, 8, 0))
+        },
+        {
+            "cornerout", "step-planks-up-left-front-step",
+            Step((4, 8, 4), (16, 16, 8), ("north", 0, 0, 12, 8, 0), ("east", 0, 0, 4, 8, 0), ("south", 4, 0, 16, 8, 0), ("west", 4, 0, 8, 8, 0), ("up", 0, 0, 12, 4, 180))
+        },
+    };
 
-        Assert.Equal(
-            Face(4, 8, 16, 16).ToString(),
-            Element("step-planks-up-right-base")["faces"]!["north"]!.ToString());
-        Assert.Equal(
-            Face(0, 0, 16, 8).ToString(),
-            Element("step-planks-down-left-base")["faces"]!["east"]!.ToString());
-        Assert.Equal(
-            ["north", "east", "south", "west", "up", "down"],
-            ((JObject)Element("step-stonepath-up-left-step")["faces"]!).Properties().Select(p => p.Name));
+    [Theory]
+    [MemberData(nameof(StepSetRows))]
+    public void StepSetsCarryVanillasStairFacesClippedToTheOpenPart(string layout, string name, (string, string, string) expected)
+    {
+        Assert.Equal(expected, DrawnStep(layout, name));
     }
 
     [Fact]
-    public void CornerStepSetsCarryVanillasStairFacesClippedToTheCornersOpenPart()
+    public void CornerStepSetsCutTheOtherLegsEnd()
     {
-        var elements = WallShapeGen.Generate("cornerout")["elements"]!;
-        JObject Element(string name) => (JObject)elements.Single(e => (string)e["name"]! == name);
-        JObject Face(double u0, double v0, double u1, double v1, int rotation = 0)
-        {
-            var face = new JObject { ["texture"] = "#step", ["uv"] = new JArray(u0, v0, u1, v1) };
-            if (rotation != 0) face["rotation"] = rotation;
-            return face;
-        }
+        var back = DrawnStep("cornerout", "step-planks-up-right-back-base");
 
-        var front = Element("step-planks-up-left-front-step");
-        Assert.Equal(
-            (new JArray(4.0, 8.0, 4.0).ToString(), new JArray(16.0, 16.0, 8.0).ToString(),
-                new JObject
-                {
-                    ["north"] = Face(0, 0, 12, 8),
-                    ["east"] = Face(0, 0, 4, 8),
-                    ["south"] = Face(4, 0, 16, 8),
-                    ["west"] = Face(4, 0, 8, 8),
-                    ["up"] = Face(0, 0, 12, 4, 180),
-                }.ToString()),
-            (front["from"]!.ToString(), front["to"]!.ToString(), front["faces"]!.ToString()));
-
-        var back = Element("step-planks-up-right-back-base");
-        Assert.Equal(
-            (new JArray(0.0, 0.0, 0.0).ToString(), new JArray(12.0, 8.0, 12.0).ToString()),
-            (back["from"]!.ToString(), back["to"]!.ToString()));
+        Assert.Equal((new JArray(0.0, 0.0, 0.0).ToString(), new JArray(12.0, 8.0, 12.0).ToString()), (back.From, back.To));
     }
 
     [Fact]

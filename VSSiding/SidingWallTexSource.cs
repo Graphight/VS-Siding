@@ -102,7 +102,7 @@ public class SidingWallTexSource : ITexPositionSource
             : block.Textures.Values.FirstOrDefault();
 
     // Vanilla tesselates a shaped block once per variant, N the most any of its textures has, and a cell
-    // takes MurmurHash3 of its position mod N (ShapeTesselatorManager.Tesselate, JsonTesselator:566). With
+    // takes MurmurHash3 of its position mod N (ShapeTesselatorManager.Tesselate, then JsonTesselator). With
     // Alternate's mod 120 and PickAlternate's own mod, one texture's pick is the same index.
     internal static bool Varies(CompositeTexture? texture)
         => texture != null && (texture.Base.EndsWithWildCard || texture.Alternates is { Length: > 0 });
