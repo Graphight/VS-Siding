@@ -24,6 +24,7 @@ just shapes     # rewrite the committed shapes/block/wall/*.json from WallShapeG
 ```
 Needs [`just`](https://github.com/casey/just); recipes run on macOS and Windows.
 `just build` runs the Cake build (`CakeBuild/Program.cs`): validates JSON in `VSSiding/assets/`, `dotnet publish`es Release, packages into `Releases/vssiding/`, zips it.
+The package step fails if the dll or pdb still carries the local repo path; Release builds map it to `/_/` (`ContinuousIntegrationBuild`), so a player's stack trace shows no home directory.
 `./build.sh` / `build.ps1` run the same build without `just`.
 
 Manual build: `dotnet build VSSiding/VSSiding.csproj -c Release`

@@ -4,6 +4,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net.Http;
+using System.Text;
 using Cake.Common;
 using Cake.Common.IO;
 using Cake.Common.Tools.DotNet;
@@ -108,6 +109,16 @@ public sealed class PackageTask : FrostingTask<BuildContext>
         if (context.FileExists($"../{BuildContext.ProjectName}/modicon.png"))
         {
             context.CopyFile($"../{BuildContext.ProjectName}/modicon.png", $"../Releases/{context.Name}/modicon.png");
+        }
+
+        string repo = context.MakeAbsolute(context.Directory("..")).FullPath;
+        byte[][] leaks = { Encoding.UTF8.GetBytes(repo), Encoding.UTF8.GetBytes(repo.Replace('/', '\\')) };
+        foreach (string ext in new[] { "dll", "pdb" })
+        {
+            string file = $"../Releases/{context.Name}/{BuildContext.ProjectName}.{ext}";
+            byte[] bytes = File.ReadAllBytes(file);
+            if (leaks.Any(leak => bytes.AsSpan().IndexOf(leak) >= 0))
+                throw new Exception($"{file} contains the local path {repo}; check ContinuousIntegrationBuild in {BuildContext.ProjectName}.csproj");
         }
 
         context.Zip($"../Releases/{context.Name}", $"../Releases/{context.Name}_{context.Version}.zip");

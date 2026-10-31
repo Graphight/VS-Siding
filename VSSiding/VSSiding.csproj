@@ -7,6 +7,8 @@
         <Nullable>enable</Nullable>
         <AssemblyName>VSSiding</AssemblyName>
         <RootNamespace>VSSiding</RootNamespace>
+        <!-- Maps the repo root to /_/ in the shipped dll and pdb, so a player's stack trace carries no local path. -->
+        <ContinuousIntegrationBuild Condition="'$(Configuration)' == 'Release'">true</ContinuousIntegrationBuild>
     </PropertyGroup>
 
     <ItemGroup>

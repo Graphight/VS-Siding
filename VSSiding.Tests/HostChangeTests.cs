@@ -47,6 +47,13 @@ public class HostChangeTests
     }
 
     [Fact]
+    public void NeighbourUpdatePrefixesSkipANullPosition()
+    {
+        Assert.Null(Record.Exception(() => NeighbourUpdatePrefix(null!, null!)));
+        Assert.Null(Record.Exception(() => ClientNeighbourUpdatePrefix(null!, null!)));
+    }
+
+    [Fact]
     public void PatchTargetsStillExist()
     {
         Assert.NotNull(AccessTools.Method(typeof(WorldChunk), nameof(WorldChunk.BreakAllDecorFast)));
