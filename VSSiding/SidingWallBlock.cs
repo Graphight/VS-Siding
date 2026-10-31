@@ -80,7 +80,7 @@ public class SidingWallBlock : Block
             .ToArray(),
     };
 
-    // Unrotated ("west") step boxes per element, matching WallShapeGen's six step elements.
+    // Unrotated ("west") step boxes per element, for the collision only; the mesh draws a step from the stair's own shapes.
     private static readonly Dictionary<string, Cuboidf> UnrotatedStepBoxes = new()
     {
         ["step-lower"] = new Cuboidf(4f / 16, 0, 0, 1, 8f / 16, 1),

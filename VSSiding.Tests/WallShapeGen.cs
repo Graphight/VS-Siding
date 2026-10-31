@@ -397,13 +397,6 @@ public static class WallShapeGen
         new("glazing-bottom-left", (1, 0, 0), (3, 2, 2), "framing", UvRule.Flat),
         new("glazing-bottom-right", (1, 0, 14), (3, 2, 16), "framing", UvRule.Flat),
         new("back", (3, 0, 0), (4, 16, 16), "back", UvRule.Flat),
-        // A step draws two of these: a full-length half plus the opposite-height half on the side it rises toward.
-        new("step-lower", (4, 0, 0), (16, 8, 16), "step", UvRule.Flat),
-        new("step-upper", (4, 8, 0), (16, 16, 16), "step", UvRule.Flat),
-        new("step-lower-north", (4, 0, 0), (16, 8, 8), "step", UvRule.Flat),
-        new("step-lower-south", (4, 0, 8), (16, 8, 16), "step", UvRule.Flat),
-        new("step-upper-north", (4, 8, 0), (16, 16, 8), "step", UvRule.Flat),
-        new("step-upper-south", (4, 8, 8), (16, 16, 16), "step", UvRule.Flat),
         .. StepSetElements(),
         new("back-boards", (3, 0, 0), (4, 16, 16), "back", UvRule.Flat, RotatedFaces: ["east"]),
         new("front-boards", (0, 0, 0), (1, 16, 16), "front", UvRule.Flat, RotatedFaces: ["west"]),

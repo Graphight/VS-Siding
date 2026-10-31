@@ -744,24 +744,6 @@ public class WallShapeGenTests
         Assert.Equal([], offenders);
     }
 
-    [Theory]
-    [InlineData("step-lower", 4, 0, 0, 16, 8, 16)]
-    [InlineData("step-upper", 4, 8, 0, 16, 16, 16)]
-    [InlineData("step-lower-north", 4, 0, 0, 16, 8, 8)]
-    [InlineData("step-lower-south", 4, 0, 8, 16, 8, 16)]
-    [InlineData("step-upper-north", 4, 8, 0, 16, 16, 8)]
-    [InlineData("step-upper-south", 4, 8, 8, 16, 16, 16)]
-    public void StepElementsFillTheOpenPartInLowerUpperHalves(
-        string name, double fx, double fy, double fz, double tx, double ty, double tz)
-    {
-        var step = WallShapeGen.Generate("wall")["elements"]!
-            .Single(e => (string)e["name"]! == name);
-
-        Assert.Equal(new JArray(fx, fy, fz).ToString(), step["from"]!.ToString());
-        Assert.Equal(new JArray(tx, ty, tz).ToString(), step["to"]!.ToString());
-        Assert.All(((JObject)step["faces"]!).Properties(), p => Assert.Equal("#step", p.Value["texture"]!.ToString()));
-    }
-
     [Fact]
     public void StepSetsCarryVanillasStairFacesClippedToTheOpenPart()
     {
