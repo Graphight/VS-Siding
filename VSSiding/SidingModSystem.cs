@@ -1398,6 +1398,8 @@ public class SidingModSystem : ModSystem
     // wall from that SetBlock still has the record to fill it from (SidingWallEntity.Initialize).
     private static void RestoreGuestWall(IWorldAccessor world, BlockPos pos)
     {
+        // A corrupted UpdatedBlocks queue dequeues null (#128); vanilla's body catches that, but the prefix runs before its try.
+        if (pos == null) return;
         IWorldChunk? chunk = world.BlockAccessor.GetChunkAtBlockPos(pos);
         if (chunk == null) return;
         var guest = GuestWalls.GuestAt(world.Api, chunk, pos);
