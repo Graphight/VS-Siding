@@ -161,11 +161,13 @@ public class SidingWallEntity : BlockEntity
         // empty means nothing is built, and the block's default JSON shape stands in.
         bool glazed = SidingWallBlock.IsTransparent(Infill, Block.Attributes["Infills"]);
         string side = Block.Variant["side"];
+        Block? stair = Step != null && layout == "wall" ? Api.World.GetBlock(new AssetLocation(Step)) : null;
         (string[] stepElements, float stepRotation) = Step != null && layout == "wall"
-            ? StepMesh(side, StepOrientation, StepFamily(Api.World.GetBlock(new AssetLocation(Step))?.Shape?.Base?.Path))
+            ? StepMesh(side, StepOrientation, StepFamily(stair?.Shape?.Base?.Path))
             : ([], 0);
         int alternate = CellAlternate(Block.Attributes, SidingWallTexSource.Alternate(Pos), Framing, Deck,
-            [Infill, DeckInfill], [Front, SecondFront, Back, DeckFront, DeckBack]);
+            [Infill, DeckInfill], [Front, SecondFront, Back, DeckFront, DeckBack],
+            SidingWallTexSource.Varies(SidingWallTexSource.StairTexture(stair)));
         string[] innerCorners = ((SidingWallBlock)Block).InnerCorners(Api.World.BlockAccessor, Pos, Infill, joins);
         var glassRunsOn = ((SidingWallBlock)Block).GlassRunsOn(Api.World.BlockAccessor, Pos, Infill, joins);
         var tees = ((SidingWallBlock)Block).Tees(Api.World.BlockAccessor, Pos);
@@ -209,9 +211,9 @@ public class SidingWallEntity : BlockEntity
     // cell keeps the whole hash while any layer's texture varies, the parity alone for a rough wall or
     // deck frame, and nothing otherwise, which is what lets a long plain wall share one mesh.
     internal static int CellAlternate(
-        JsonObject attributes, int hash, string? framing, string? deck, string?[] infills, string?[] finishes)
+        JsonObject attributes, int hash, string? framing, string? deck, string?[] infills, string?[] finishes, bool stepVaries = false)
     {
-        if (SidingWallTexSource.AnyVaries(attributes["Framings"], framing, deck)
+        if (stepVaries || SidingWallTexSource.AnyVaries(attributes["Framings"], framing, deck)
             || SidingWallTexSource.AnyVaries(attributes["Infills"], infills)
             || SidingWallTexSource.AnyVaries(attributes["Finishes"], finishes)) return hash;
         return FrameElements(attributes["Framings"], framing) != "framing" || FrameElements(attributes["Framings"], deck) != "framing" ? hash % 2 : 0;

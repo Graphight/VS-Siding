@@ -216,6 +216,18 @@ public class SidingWallTexSourceTests
     }
 
     [Fact]
+    public void AStairTextureVariesWhenWildcardOrAlternated()
+    {
+        var wildcard = new CompositeTexture(new AssetLocation("game:block/wood/planks/oak*"));
+        var alternated = new CompositeTexture(new AssetLocation("game:block/wood/planks/oak1")) { Alternates = [new CompositeTexture(new AssetLocation("game:block/wood/planks/oak2"))] };
+        var plain = new CompositeTexture(new AssetLocation("game:block/stone/path/normal1"));
+
+        Assert.Equal(
+            new[] { true, true, false, false },
+            new[] { wildcard, alternated, plain, null }.Select(SidingWallTexSource.Varies));
+    }
+
+    [Fact]
     public void AnyVariesForAWildcardFinish()
     {
         var finishes = Dict("""

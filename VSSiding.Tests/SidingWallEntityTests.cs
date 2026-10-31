@@ -61,6 +61,18 @@ public class SidingWallEntityTests
             cells.Select(c => SidingWallEntity.CellAlternate(attributes, 77, c.Framing, c.Deck, [c.Infill, null], [c.Front, null])));
     }
 
+    [Fact]
+    public void ASteppedCellKeepsTheWholeHashWhenItsStairTextureVaries()
+    {
+        var attributes = Dict("""
+        { "Framings": { "aged": { "Texture": "planks/aged1" } }, "Infills": { "wattle": { "Texture": "wattle" } }, "Finishes": {} }
+        """);
+
+        Assert.Equal(
+            new[] { 77, 0 },
+            new[] { true, false }.Select(varies => SidingWallEntity.CellAlternate(attributes, 77, "aged", null, ["wattle"], [], varies)));
+    }
+
     // Three stacked infill boxes share a face at each seam; for glass that blends twice and draws
     // a bright line where a cross-beam would be. Glazing must take the single full-cell pane
     // instead, in every join state, and the pane must still count as infill for the render split.
