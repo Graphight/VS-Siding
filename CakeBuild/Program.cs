@@ -4,6 +4,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net.Http;
+using System.Text;
 using Cake.Common;
 using Cake.Common.IO;
 using Cake.Common.Tools.DotNet;
@@ -110,12 +111,13 @@ public sealed class PackageTask : FrostingTask<BuildContext>
             context.CopyFile($"../{BuildContext.ProjectName}/modicon.png", $"../Releases/{context.Name}/modicon.png");
         }
 
-        // A player's stack trace prints the paths baked into these, so the release must not carry this machine's.
         string repo = context.MakeAbsolute(context.Directory("..")).FullPath;
-        foreach (string file in new[] { "dll", "pdb" }.Select(ext => $"../Releases/{context.Name}/{BuildContext.ProjectName}.{ext}"))
+        byte[][] leaks = { Encoding.UTF8.GetBytes(repo), Encoding.UTF8.GetBytes(repo.Replace('/', '\\')) };
+        foreach (string ext in new[] { "dll", "pdb" })
         {
+            string file = $"../Releases/{context.Name}/{BuildContext.ProjectName}.{ext}";
             byte[] bytes = File.ReadAllBytes(file);
-            if (new[] { repo, repo.Replace('/', '\\') }.Any(p => bytes.AsSpan().IndexOf(System.Text.Encoding.UTF8.GetBytes(p)) >= 0))
+            if (leaks.Any(leak => bytes.AsSpan().IndexOf(leak) >= 0))
                 throw new Exception($"{file} contains the local path {repo}; check ContinuousIntegrationBuild in {BuildContext.ProjectName}.csproj");
         }
 
