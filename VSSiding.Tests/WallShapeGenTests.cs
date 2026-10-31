@@ -782,11 +782,42 @@ public class WallShapeGenTests
     }
 
     [Fact]
-    public void CornerOutHasNoStepElements()
+    public void CornerStepSetsCarryVanillasStairFacesClippedToTheCornersOpenPart()
     {
-        var names = WallShapeGen.Generate("cornerout")["elements"]!.Select(e => (string)e["name"]!);
+        var elements = WallShapeGen.Generate("cornerout")["elements"]!;
+        JObject Element(string name) => (JObject)elements.Single(e => (string)e["name"]! == name);
+        JObject Face(double u0, double v0, double u1, double v1, int rotation = 0)
+        {
+            var face = new JObject { ["texture"] = "#step", ["uv"] = new JArray(u0, v0, u1, v1) };
+            if (rotation != 0) face["rotation"] = rotation;
+            return face;
+        }
 
-        Assert.DoesNotContain(names, n => n.StartsWith("step"));
+        var front = Element("step-planks-up-left-front-step");
+        Assert.Equal(
+            (new JArray(4.0, 8.0, 4.0).ToString(), new JArray(16.0, 16.0, 8.0).ToString(),
+                new JObject
+                {
+                    ["north"] = Face(0, 0, 12, 8),
+                    ["east"] = Face(0, 0, 4, 8),
+                    ["south"] = Face(4, 0, 16, 8),
+                    ["west"] = Face(4, 0, 8, 8),
+                    ["up"] = Face(0, 0, 12, 4, 180),
+                }.ToString()),
+            (front["from"]!.ToString(), front["to"]!.ToString(), front["faces"]!.ToString()));
+
+        var back = Element("step-planks-up-right-back-base");
+        Assert.Equal(
+            (new JArray(0.0, 0.0, 0.0).ToString(), new JArray(12.0, 8.0, 12.0).ToString()),
+            (back["from"]!.ToString(), back["to"]!.ToString()));
+    }
+
+    [Fact]
+    public void WallHasNoCornerStepElements()
+    {
+        var names = WallShapeGen.Generate("wall")["elements"]!.Select(e => (string)e["name"]!);
+
+        Assert.DoesNotContain(names, n => n.StartsWith("step") && (n.Contains("-front-") || n.Contains("-back-")));
     }
 
     // A masonry unit has to sit where the texture paints one, and the golden file cannot say so -

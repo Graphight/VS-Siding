@@ -677,34 +677,44 @@ public class SidingWallEntityTests
             SidingWallEntity.SelectiveElements("wall", "oak", null, null, null, null, NoElementFinishes, (false, false, false, false), glazed: false));
     }
 
-    public static TheoryData<string, string, string, string[], float> StepMeshRows => new()
+    public static TheoryData<string, string, string, string, string[], float> StepMeshRows => new()
     {
-        { "west", "up-north", "planks", ["step-planks-up-left-base", "step-planks-up-left-step"], 0 },
-        { "east", "up-north", "planks", ["step-planks-up-right-base", "step-planks-up-right-step"], 0 },
-        { "west", "down-south", "planks", ["step-planks-down-right-base", "step-planks-down-right-step"], 180 },
-        { "east", "down-south", "basic", ["step-basic-down-left-base", "step-basic-down-left-step"], 180 },
-        { "south", "up-west", "basic", ["step-basic-up-left-base", "step-basic-up-left-step"], 90 },
-        { "south", "down-east", "planks", ["step-planks-down-right-base", "step-planks-down-right-step"], 270 },
-        { "north", "up-east", "planks", ["step-planks-up-left-base", "step-planks-up-left-step"], 270 },
-        { "north", "down-west", "basic", ["step-basic-down-right-base", "step-basic-down-right-step"], 90 },
-        { "west", "down-north", "stonepath", ["step-stonepath-up-left-base", "step-stonepath-up-left-step"], 0 },
-        { "west", "up-east", "planks", [], 0 },
-        { "south", "up-north", "planks", [], 0 },
+        { "cornerout", "west", "up-north", "planks", ["step-planks-up-left-front-base", "step-planks-up-left-front-step"], 0 },
+        { "cornerout", "west", "up-east", "planks", ["step-planks-up-left-back-base", "step-planks-up-left-back-step"], 270 },
+        { "cornerout", "west", "up-south", "basic", ["step-basic-up-right-back-base", "step-basic-up-right-back-step"], 180 },
+        { "cornerout", "west", "down-west", "planks", ["step-planks-down-right-front-base", "step-planks-down-right-front-step"], 90 },
+        { "cornerout", "south", "up-west", "planks", ["step-planks-up-left-front-base", "step-planks-up-left-front-step"], 90 },
+        { "cornerout", "south", "down-north", "basic", ["step-basic-down-left-back-base", "step-basic-down-left-back-step"], 0 },
+        { "cornerout", "east", "up-south", "planks", ["step-planks-up-left-front-base", "step-planks-up-left-front-step"], 180 },
+        { "cornerout", "east", "up-east", "stonepath", ["step-stonepath-up-right-front-base", "step-stonepath-up-right-front-step"], 270 },
+        { "cornerout", "north", "up-east", "planks", ["step-planks-up-left-front-base", "step-planks-up-left-front-step"], 270 },
+        { "cornerout", "north", "down-south", "planks", ["step-planks-down-left-back-base", "step-planks-down-left-back-step"], 180 },
+        { "wall", "west", "up-north", "planks", ["step-planks-up-left-base", "step-planks-up-left-step"], 0 },
+        { "wall", "east", "up-north", "planks", ["step-planks-up-right-base", "step-planks-up-right-step"], 0 },
+        { "wall", "west", "down-south", "planks", ["step-planks-down-right-base", "step-planks-down-right-step"], 180 },
+        { "wall", "east", "down-south", "basic", ["step-basic-down-left-base", "step-basic-down-left-step"], 180 },
+        { "wall", "south", "up-west", "basic", ["step-basic-up-left-base", "step-basic-up-left-step"], 90 },
+        { "wall", "south", "down-east", "planks", ["step-planks-down-right-base", "step-planks-down-right-step"], 270 },
+        { "wall", "north", "up-east", "planks", ["step-planks-up-left-base", "step-planks-up-left-step"], 270 },
+        { "wall", "north", "down-west", "basic", ["step-basic-down-right-base", "step-basic-down-right-step"], 90 },
+        { "wall", "west", "down-north", "stonepath", ["step-stonepath-up-left-base", "step-stonepath-up-left-step"], 0 },
+        { "wall", "west", "up-east", "planks", [], 0 },
+        { "wall", "south", "up-north", "planks", [], 0 },
     };
 
     [Theory]
     [MemberData(nameof(StepMeshRows))]
-    public void StepMeshDrawsInTheStairsFrame(string side, string orientation, string family, string[] names, float rotation)
+    public void StepMeshDrawsInTheStairsFrame(string layout, string side, string orientation, string family, string[] names, float rotation)
     {
-        var (actualNames, actualRotation) = SidingWallEntity.StepMesh(side, orientation, family);
+        var (actualNames, actualRotation) = SidingWallEntity.StepMesh(layout, side, orientation, family);
         Assert.Equal((string.Join(" ", names), rotation), (string.Join(" ", actualNames), actualRotation));
     }
 
     [Fact]
     public void StepMeshTurnsMirroredWallsTheSameAndTakesOppositeHands()
     {
-        var (west, westRotation) = SidingWallEntity.StepMesh("west", "up-north", "planks");
-        var (east, eastRotation) = SidingWallEntity.StepMesh("east", "up-north", "planks");
+        var (west, westRotation) = SidingWallEntity.StepMesh("wall", "west", "up-north", "planks");
+        var (east, eastRotation) = SidingWallEntity.StepMesh("wall", "east", "up-north", "planks");
         Assert.Equal(
             ("step-planks-up-left-base step-planks-up-left-step", "step-planks-up-right-base step-planks-up-right-step", 0f, 0f),
             (string.Join(" ", west), string.Join(" ", east), westRotation, eastRotation));

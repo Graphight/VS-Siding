@@ -304,7 +304,9 @@ public static class WallShapeGen
     // x 12..16 ("right"), and the step is vanilla's box clipped to the rest. Boxes and uvs are transcribed from
     // block/basic/stairs/{planks-free-up,planks-free-down,normal,flipped,stonepath-stairs-free}.json; a face
     // vanilla disables is left out, and stonepath's lone 0.01 overlap is dropped so the clip stays on the voxel.
-    private static IEnumerable<Element> StepSetElements()
+    // A corner takes the same clip plus one on z: "front" keeps z 4..16 (the other leg's panel at z 0..4, the end
+    // the stair rises toward), "back" keeps z 0..12 (that panel at z 12..16).
+    private static IEnumerable<Element> StepSetElements(bool corner = false)
     {
         var sources = new (string Set, string Part, (double, double, double) From, (double, double, double) To, Dictionary<string, FaceUv> Faces)[]
         {
@@ -365,10 +367,11 @@ public static class WallShapeGen
         {
             var source = new Element("", from, to, "step", UvRule.Flat, Faces: [.. faces.Keys], Explicit: faces);
             foreach (var (side, lo, hi) in new[] { ("left", 4.0, 16.0), ("right", 0.0, 12.0) })
-            {
-                var name = set.Split('-') is [var family, var dir] ? $"step-{family}-{dir}-{side}-{part}" : throw new ArgumentException(set);
-                yield return source with { Name = name, From = (lo, from.Item2, from.Item3), To = (hi, to.Item2, to.Item3), ClippedFrom = source };
-            }
+                foreach (var (end, zLo, zHi) in corner ? new[] { ("-front", 4.0, 16.0), ("-back", 0.0, 12.0) } : [("", 0.0, 16.0)])
+                {
+                    var name = set.Split('-') is [var family, var dir] ? $"step-{family}-{dir}-{side}{end}-{part}" : throw new ArgumentException(set);
+                    yield return source with { Name = name, From = (lo, from.Item2, Math.Max(from.Item3, zLo)), To = (hi, to.Item2, Math.Min(to.Item3, zHi)), ClippedFrom = source };
+                }
         }
     }
 
@@ -706,6 +709,7 @@ public static class WallShapeGen
         new("framing", (1, 0, 15), (3, 16, 16), "framing", UvRule.Flat),
         new("back", (3, 0, 4), (4, 16, 16), "back", UvRule.Flat),
         new("secondfront", (1, 0, 0), (16, 16, 1), "secondfront", UvRule.Flat),
+        .. StepSetElements(corner: true),
         new("framing-top", (3, 15, 1), (15, 16, 3), "framing", UvRule.Flat),
         new("framing-bottom", (3, 0, 1), (15, 1, 3), "framing", UvRule.Flat),
         new("infill-top", (3, 15, 1.5), (15, 16, 2.5), "infill", UvRule.Positional),
@@ -861,6 +865,7 @@ public static class WallShapeGen
         ("deckinfill", "game:block/wood/planks/aged/aged1"),
         ("deckfront", "game:block/wood/planks/aged/aged1"),
         ("deckback", "game:block/wood/planks/aged/aged1"),
+        ("step", "game:block/wood/planks/aged/aged1"),
         ("lashing", "game:item/resource/rope"),
     ];
 

@@ -161,9 +161,10 @@ public class SidingWallEntity : BlockEntity
         // empty means nothing is built, and the block's default JSON shape stands in.
         bool glazed = SidingWallBlock.IsTransparent(Infill, Block.Attributes["Infills"]);
         string side = Block.Variant["side"];
-        Block? stair = Step != null && layout == "wall" ? Api.World.GetBlock(new AssetLocation(Step)) : null;
-        (string[] stepElements, float stepRotation) = Step != null && layout == "wall"
-            ? StepMesh(side, StepOrientation, StepFamily(stair?.Shape?.Base?.Path))
+        bool stepped = Step != null && layout is "wall" or "cornerout";
+        Block? stair = stepped ? Api.World.GetBlock(new AssetLocation(Step)) : null;
+        (string[] stepElements, float stepRotation) = stepped
+            ? StepMesh(layout, side, StepOrientation, StepFamily(stair?.Shape?.Base?.Path))
             : ([], 0);
         int alternate = CellAlternate(Block.Attributes, SidingWallTexSource.Alternate(Pos), Framing, Deck,
             [Infill, DeckInfill], [Front, SecondFront, Back, DeckFront, DeckBack],
@@ -470,19 +471,19 @@ public class SidingWallEntity : BlockEntity
     // The step drawn in its stair's frame (decision 0081): the element names are the stair-north clips, and the
     // rotation is the stair facing's rather than the wall side's, so neighbouring steps share a texture phase.
     // The hand is where the wall's panel sits once the facing's rotation is undone. A facing across the wall has none.
-    internal static (string[] Names, float Rotation) StepMesh(string side, string? orientation, string family)
+    // A corner has two panels: the one that lands west or east gives the hand, and the other lands north (front)
+    // or south (back), the end of the step its second leg closes.
+    internal static (string[] Names, float Rotation) StepMesh(string layout, string side, string? orientation, string family)
     {
         string[] parts = orientation?.Split('-') ?? [];
         if (parts.Length != 2 || !StairRotationByFacing.TryGetValue(parts[1], out int rotation)) return ([], 0);
-        string hand = TurnOrder[((Array.IndexOf(TurnOrder, side) - rotation / 90) % 4 + 4) % 4] switch
-        {
-            "west" => "left",
-            "east" => "right",
-            _ => "",
-        };
-        if (hand == "") return ([], 0);
+        string[] turned = [.. TurnOrder.Where(face => SidingWallBlock.ClaimsFace(layout, side, face))
+            .Select(face => TurnOrder[((Array.IndexOf(TurnOrder, face) - rotation / 90) % 4 + 4) % 4])];
+        string? hand = turned.Contains("west") ? "left" : turned.Contains("east") ? "right" : null;
+        if (hand == null) return ([], 0);
+        string end = turned.Contains("north") ? "-front" : turned.Contains("south") ? "-back" : "";
         string vertical = family == "stonepath" ? "up" : parts[0];
-        string prefix = $"step-{family}-{vertical}-{hand}";
+        string prefix = $"step-{family}-{vertical}-{hand}{end}";
         return ([$"{prefix}-base", $"{prefix}-step"], rotation);
     }
 

@@ -11,6 +11,7 @@
     "deckinfill": "game:block/wood/planks/aged/aged1",
     "deckfront": "game:block/wood/planks/aged/aged1",
     "deckback": "game:block/wood/planks/aged/aged1",
+    "step": "game:block/wood/planks/aged/aged1",
     "lashing": "game:item/resource/rope"
   },
   "elements": [
@@ -691,6 +692,2638 @@
             0.0,
             15.0,
             1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "step-planks-up-left-front-base",
+      "from": [
+        4.0,
+        0.0,
+        4.0
+      ],
+      "to": [
+        16.0,
+        8.0,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            8.0,
+            12.0,
+            16.0
+          ]
+        },
+        "east": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            2.5,
+            12.0,
+            10.5
+          ]
+        },
+        "south": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            2.5,
+            16.0,
+            10.5
+          ]
+        },
+        "west": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            8.0,
+            16.0,
+            16.0
+          ]
+        },
+        "up": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            4.0,
+            16.0,
+            16.0
+          ]
+        },
+        "down": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            4.0,
+            12.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "step-planks-up-left-back-base",
+      "from": [
+        4.0,
+        0.0,
+        0.0
+      ],
+      "to": [
+        16.0,
+        8.0,
+        12.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            8.0,
+            12.0,
+            16.0
+          ]
+        },
+        "east": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            2.5,
+            16.0,
+            10.5
+          ]
+        },
+        "south": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            2.5,
+            16.0,
+            10.5
+          ]
+        },
+        "west": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            8.0,
+            12.0,
+            16.0
+          ]
+        },
+        "up": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            12.0
+          ]
+        },
+        "down": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            12.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "step-planks-up-right-front-base",
+      "from": [
+        0.0,
+        0.0,
+        4.0
+      ],
+      "to": [
+        12.0,
+        8.0,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            8.0,
+            16.0,
+            16.0
+          ]
+        },
+        "east": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            2.5,
+            12.0,
+            10.5
+          ]
+        },
+        "south": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            2.5,
+            12.0,
+            10.5
+          ]
+        },
+        "west": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            8.0,
+            16.0,
+            16.0
+          ]
+        },
+        "up": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            4.0,
+            12.0,
+            16.0
+          ]
+        },
+        "down": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            4.0,
+            16.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "step-planks-up-right-back-base",
+      "from": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "to": [
+        12.0,
+        8.0,
+        12.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            8.0,
+            16.0,
+            16.0
+          ]
+        },
+        "east": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            2.5,
+            16.0,
+            10.5
+          ]
+        },
+        "south": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            2.5,
+            12.0,
+            10.5
+          ]
+        },
+        "west": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            8.0,
+            12.0,
+            16.0
+          ]
+        },
+        "up": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            12.0
+          ]
+        },
+        "down": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            12.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "step-planks-up-left-front-step",
+      "from": [
+        4.0,
+        8.0,
+        4.0
+      ],
+      "to": [
+        16.0,
+        16.0,
+        8.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            8.0
+          ]
+        },
+        "east": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            4.0,
+            8.0
+          ]
+        },
+        "south": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            8.0
+          ]
+        },
+        "west": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            0.0,
+            8.0,
+            8.0
+          ]
+        },
+        "up": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            4.0
+          ],
+          "rotation": 180
+        }
+      }
+    },
+    {
+      "name": "step-planks-up-left-back-step",
+      "from": [
+        4.0,
+        8.0,
+        0.0
+      ],
+      "to": [
+        16.0,
+        16.0,
+        8.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            8.0
+          ]
+        },
+        "east": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            8.0,
+            8.0
+          ]
+        },
+        "south": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            8.0
+          ]
+        },
+        "west": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            8.0,
+            8.0
+          ]
+        },
+        "up": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            8.0
+          ],
+          "rotation": 180
+        }
+      }
+    },
+    {
+      "name": "step-planks-up-right-front-step",
+      "from": [
+        0.0,
+        8.0,
+        4.0
+      ],
+      "to": [
+        12.0,
+        16.0,
+        8.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            8.0
+          ]
+        },
+        "east": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            4.0,
+            8.0
+          ]
+        },
+        "south": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            8.0
+          ]
+        },
+        "west": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            0.0,
+            8.0,
+            8.0
+          ]
+        },
+        "up": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            4.0
+          ],
+          "rotation": 180
+        }
+      }
+    },
+    {
+      "name": "step-planks-up-right-back-step",
+      "from": [
+        0.0,
+        8.0,
+        0.0
+      ],
+      "to": [
+        12.0,
+        16.0,
+        8.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            8.0
+          ]
+        },
+        "east": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            8.0,
+            8.0
+          ]
+        },
+        "south": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            8.0
+          ]
+        },
+        "west": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            8.0,
+            8.0
+          ]
+        },
+        "up": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            8.0
+          ],
+          "rotation": 180
+        }
+      }
+    },
+    {
+      "name": "step-planks-down-left-front-base",
+      "from": [
+        4.0,
+        8.0,
+        4.0
+      ],
+      "to": [
+        16.0,
+        16.0,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            5.5,
+            12.0,
+            13.5
+          ]
+        },
+        "east": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            8.0
+          ]
+        },
+        "south": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            5.5,
+            16.0,
+            13.5
+          ]
+        },
+        "west": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            5.5,
+            16.0,
+            13.5
+          ]
+        },
+        "up": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            4.0,
+            16.0,
+            16.0
+          ]
+        },
+        "down": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            4.0,
+            12.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "step-planks-down-left-back-base",
+      "from": [
+        4.0,
+        8.0,
+        0.0
+      ],
+      "to": [
+        16.0,
+        16.0,
+        12.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            5.5,
+            12.0,
+            13.5
+          ]
+        },
+        "east": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            8.0
+          ]
+        },
+        "south": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            5.5,
+            16.0,
+            13.5
+          ]
+        },
+        "west": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            5.5,
+            12.0,
+            13.5
+          ]
+        },
+        "up": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            12.0
+          ]
+        },
+        "down": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            12.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "step-planks-down-right-front-base",
+      "from": [
+        0.0,
+        8.0,
+        4.0
+      ],
+      "to": [
+        12.0,
+        16.0,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            5.5,
+            16.0,
+            13.5
+          ]
+        },
+        "east": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            8.0
+          ]
+        },
+        "south": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            5.5,
+            12.0,
+            13.5
+          ]
+        },
+        "west": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            5.5,
+            16.0,
+            13.5
+          ]
+        },
+        "up": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            4.0,
+            12.0,
+            16.0
+          ]
+        },
+        "down": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            4.0,
+            16.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "step-planks-down-right-back-base",
+      "from": [
+        0.0,
+        8.0,
+        0.0
+      ],
+      "to": [
+        12.0,
+        16.0,
+        12.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            5.5,
+            16.0,
+            13.5
+          ]
+        },
+        "east": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            8.0
+          ]
+        },
+        "south": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            5.5,
+            12.0,
+            13.5
+          ]
+        },
+        "west": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            5.5,
+            12.0,
+            13.5
+          ]
+        },
+        "up": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            12.0
+          ]
+        },
+        "down": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            12.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "step-planks-down-left-front-step",
+      "from": [
+        4.0,
+        0.0,
+        4.0
+      ],
+      "to": [
+        16.0,
+        8.0,
+        8.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            3.0,
+            12.0,
+            11.0
+          ]
+        },
+        "east": {
+          "texture": "#step",
+          "uv": [
+            2.5,
+            3.0,
+            6.5,
+            11.0
+          ]
+        },
+        "south": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            8.0
+          ]
+        },
+        "west": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            3.0,
+            8.0,
+            11.0
+          ]
+        },
+        "down": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            4.0,
+            12.0,
+            8.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "step-planks-down-left-back-step",
+      "from": [
+        4.0,
+        0.0,
+        0.0
+      ],
+      "to": [
+        16.0,
+        8.0,
+        8.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            3.0,
+            12.0,
+            11.0
+          ]
+        },
+        "east": {
+          "texture": "#step",
+          "uv": [
+            2.5,
+            3.0,
+            10.5,
+            11.0
+          ]
+        },
+        "south": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            8.0
+          ]
+        },
+        "west": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            3.0,
+            8.0,
+            11.0
+          ]
+        },
+        "down": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            8.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "step-planks-down-right-front-step",
+      "from": [
+        0.0,
+        0.0,
+        4.0
+      ],
+      "to": [
+        12.0,
+        8.0,
+        8.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            3.0,
+            16.0,
+            11.0
+          ]
+        },
+        "east": {
+          "texture": "#step",
+          "uv": [
+            2.5,
+            3.0,
+            6.5,
+            11.0
+          ]
+        },
+        "south": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            8.0
+          ]
+        },
+        "west": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            3.0,
+            8.0,
+            11.0
+          ]
+        },
+        "down": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            4.0,
+            16.0,
+            8.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "step-planks-down-right-back-step",
+      "from": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "to": [
+        12.0,
+        8.0,
+        8.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            3.0,
+            16.0,
+            11.0
+          ]
+        },
+        "east": {
+          "texture": "#step",
+          "uv": [
+            2.5,
+            3.0,
+            10.5,
+            11.0
+          ]
+        },
+        "south": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            8.0
+          ]
+        },
+        "west": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            3.0,
+            8.0,
+            11.0
+          ]
+        },
+        "down": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            8.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "step-basic-up-left-front-base",
+      "from": [
+        4.0,
+        0.0,
+        4.0
+      ],
+      "to": [
+        16.0,
+        8.0,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            8.0
+          ]
+        },
+        "east": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            8.0
+          ]
+        },
+        "south": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            8.0
+          ]
+        },
+        "west": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            8.0
+          ]
+        },
+        "up": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            12.0
+          ],
+          "rotation": 180
+        },
+        "down": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            4.0,
+            12.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "step-basic-up-left-back-base",
+      "from": [
+        4.0,
+        0.0,
+        0.0
+      ],
+      "to": [
+        16.0,
+        8.0,
+        12.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            8.0
+          ]
+        },
+        "east": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            8.0
+          ]
+        },
+        "south": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            8.0
+          ]
+        },
+        "west": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            8.0
+          ]
+        },
+        "up": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            4.0,
+            12.0,
+            16.0
+          ],
+          "rotation": 180
+        },
+        "down": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            12.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "step-basic-up-right-front-base",
+      "from": [
+        0.0,
+        0.0,
+        4.0
+      ],
+      "to": [
+        12.0,
+        8.0,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            8.0
+          ]
+        },
+        "east": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            8.0
+          ]
+        },
+        "south": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            8.0
+          ]
+        },
+        "west": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            8.0
+          ]
+        },
+        "up": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            12.0
+          ],
+          "rotation": 180
+        },
+        "down": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            4.0,
+            16.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "step-basic-up-right-back-base",
+      "from": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "to": [
+        12.0,
+        8.0,
+        12.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            8.0
+          ]
+        },
+        "east": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            8.0
+          ]
+        },
+        "south": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            8.0
+          ]
+        },
+        "west": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            8.0
+          ]
+        },
+        "up": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            4.0,
+            16.0,
+            16.0
+          ],
+          "rotation": 180
+        },
+        "down": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            12.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "step-basic-up-left-front-step",
+      "from": [
+        4.0,
+        8.0,
+        4.0
+      ],
+      "to": [
+        16.0,
+        16.0,
+        8.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            8.0
+          ]
+        },
+        "east": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            4.0,
+            8.0
+          ]
+        },
+        "south": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            8.0
+          ]
+        },
+        "west": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            0.0,
+            8.0,
+            8.0
+          ]
+        },
+        "up": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            4.0
+          ],
+          "rotation": 180
+        }
+      }
+    },
+    {
+      "name": "step-basic-up-left-back-step",
+      "from": [
+        4.0,
+        8.0,
+        0.0
+      ],
+      "to": [
+        16.0,
+        16.0,
+        8.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            8.0
+          ]
+        },
+        "east": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            8.0,
+            8.0
+          ]
+        },
+        "south": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            8.0
+          ]
+        },
+        "west": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            8.0,
+            8.0
+          ]
+        },
+        "up": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            8.0
+          ],
+          "rotation": 180
+        }
+      }
+    },
+    {
+      "name": "step-basic-up-right-front-step",
+      "from": [
+        0.0,
+        8.0,
+        4.0
+      ],
+      "to": [
+        12.0,
+        16.0,
+        8.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            8.0
+          ]
+        },
+        "east": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            4.0,
+            8.0
+          ]
+        },
+        "south": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            8.0
+          ]
+        },
+        "west": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            0.0,
+            8.0,
+            8.0
+          ]
+        },
+        "up": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            4.0
+          ],
+          "rotation": 180
+        }
+      }
+    },
+    {
+      "name": "step-basic-up-right-back-step",
+      "from": [
+        0.0,
+        8.0,
+        0.0
+      ],
+      "to": [
+        12.0,
+        16.0,
+        8.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            8.0
+          ]
+        },
+        "east": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            8.0,
+            8.0
+          ]
+        },
+        "south": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            8.0
+          ]
+        },
+        "west": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            8.0,
+            8.0
+          ]
+        },
+        "up": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            8.0
+          ],
+          "rotation": 180
+        }
+      }
+    },
+    {
+      "name": "step-basic-down-left-front-base",
+      "from": [
+        4.0,
+        8.0,
+        4.0
+      ],
+      "to": [
+        16.0,
+        16.0,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            8.0
+          ]
+        },
+        "east": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            8.0
+          ]
+        },
+        "south": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            8.0
+          ]
+        },
+        "west": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            8.0
+          ]
+        },
+        "up": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            12.0
+          ],
+          "rotation": 180
+        },
+        "down": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            4.0,
+            12.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "step-basic-down-left-back-base",
+      "from": [
+        4.0,
+        8.0,
+        0.0
+      ],
+      "to": [
+        16.0,
+        16.0,
+        12.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            8.0
+          ]
+        },
+        "east": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            8.0
+          ]
+        },
+        "south": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            8.0
+          ]
+        },
+        "west": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            8.0
+          ]
+        },
+        "up": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            4.0,
+            12.0,
+            16.0
+          ],
+          "rotation": 180
+        },
+        "down": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            12.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "step-basic-down-right-front-base",
+      "from": [
+        0.0,
+        8.0,
+        4.0
+      ],
+      "to": [
+        12.0,
+        16.0,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            8.0
+          ]
+        },
+        "east": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            8.0
+          ]
+        },
+        "south": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            8.0
+          ]
+        },
+        "west": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            8.0
+          ]
+        },
+        "up": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            12.0
+          ],
+          "rotation": 180
+        },
+        "down": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            4.0,
+            16.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "step-basic-down-right-back-base",
+      "from": [
+        0.0,
+        8.0,
+        0.0
+      ],
+      "to": [
+        12.0,
+        16.0,
+        12.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            8.0
+          ]
+        },
+        "east": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            8.0
+          ]
+        },
+        "south": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            8.0
+          ]
+        },
+        "west": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            8.0
+          ]
+        },
+        "up": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            4.0,
+            16.0,
+            16.0
+          ],
+          "rotation": 180
+        },
+        "down": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            12.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "step-basic-down-left-front-step",
+      "from": [
+        4.0,
+        0.0,
+        4.0
+      ],
+      "to": [
+        16.0,
+        8.0,
+        8.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            8.0
+          ]
+        },
+        "east": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            4.0,
+            8.0
+          ]
+        },
+        "south": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            8.0
+          ]
+        },
+        "west": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            0.0,
+            8.0,
+            8.0
+          ]
+        },
+        "down": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            4.0,
+            12.0,
+            8.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "step-basic-down-left-back-step",
+      "from": [
+        4.0,
+        0.0,
+        0.0
+      ],
+      "to": [
+        16.0,
+        8.0,
+        8.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            8.0
+          ]
+        },
+        "east": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            8.0,
+            8.0
+          ]
+        },
+        "south": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            8.0
+          ]
+        },
+        "west": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            8.0,
+            8.0
+          ]
+        },
+        "down": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            8.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "step-basic-down-right-front-step",
+      "from": [
+        0.0,
+        0.0,
+        4.0
+      ],
+      "to": [
+        12.0,
+        8.0,
+        8.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            8.0
+          ]
+        },
+        "east": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            4.0,
+            8.0
+          ]
+        },
+        "south": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            8.0
+          ]
+        },
+        "west": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            0.0,
+            8.0,
+            8.0
+          ]
+        },
+        "down": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            4.0,
+            16.0,
+            8.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "step-basic-down-right-back-step",
+      "from": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "to": [
+        12.0,
+        8.0,
+        8.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            8.0
+          ]
+        },
+        "east": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            8.0,
+            8.0
+          ]
+        },
+        "south": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            8.0
+          ]
+        },
+        "west": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            8.0,
+            8.0
+          ]
+        },
+        "down": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            8.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "step-stonepath-up-left-front-base",
+      "from": [
+        4.0,
+        0.0,
+        4.0
+      ],
+      "to": [
+        16.0,
+        7.0,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            7.5,
+            12.0,
+            14.5
+          ]
+        },
+        "east": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            8.0,
+            12.0,
+            15.0
+          ]
+        },
+        "south": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            8.0,
+            16.0,
+            15.0
+          ]
+        },
+        "west": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            8.0,
+            16.0,
+            15.0
+          ]
+        },
+        "up": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            4.0,
+            16.0,
+            16.0
+          ]
+        },
+        "down": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            4.0,
+            12.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "step-stonepath-up-left-back-base",
+      "from": [
+        4.0,
+        0.0,
+        0.0
+      ],
+      "to": [
+        16.0,
+        7.0,
+        12.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            7.5,
+            12.0,
+            14.5
+          ]
+        },
+        "east": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            8.0,
+            16.0,
+            15.0
+          ]
+        },
+        "south": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            8.0,
+            16.0,
+            15.0
+          ]
+        },
+        "west": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            8.0,
+            12.0,
+            15.0
+          ]
+        },
+        "up": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            12.0
+          ]
+        },
+        "down": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            12.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "step-stonepath-up-right-front-base",
+      "from": [
+        0.0,
+        0.0,
+        4.0
+      ],
+      "to": [
+        12.0,
+        7.0,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            7.5,
+            16.0,
+            14.5
+          ]
+        },
+        "east": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            8.0,
+            12.0,
+            15.0
+          ]
+        },
+        "south": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            8.0,
+            12.0,
+            15.0
+          ]
+        },
+        "west": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            8.0,
+            16.0,
+            15.0
+          ]
+        },
+        "up": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            4.0,
+            12.0,
+            16.0
+          ]
+        },
+        "down": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            4.0,
+            16.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "step-stonepath-up-right-back-base",
+      "from": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "to": [
+        12.0,
+        7.0,
+        12.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            7.5,
+            16.0,
+            14.5
+          ]
+        },
+        "east": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            8.0,
+            16.0,
+            15.0
+          ]
+        },
+        "south": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            8.0,
+            12.0,
+            15.0
+          ]
+        },
+        "west": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            8.0,
+            12.0,
+            15.0
+          ]
+        },
+        "up": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            12.0
+          ]
+        },
+        "down": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            12.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "step-stonepath-up-left-front-step",
+      "from": [
+        4.0,
+        8.0,
+        4.0
+      ],
+      "to": [
+        16.0,
+        16.0,
+        8.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            8.0
+          ]
+        },
+        "east": {
+          "texture": "#step",
+          "uv": [
+            8.0,
+            0.0,
+            12.0,
+            8.0
+          ]
+        },
+        "south": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            8.0
+          ]
+        },
+        "west": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            0.0,
+            8.0,
+            8.0
+          ]
+        },
+        "up": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            4.0,
+            16.0,
+            8.0
+          ]
+        },
+        "down": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            4.0,
+            12.0,
+            8.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "step-stonepath-up-left-back-step",
+      "from": [
+        4.0,
+        8.0,
+        0.0
+      ],
+      "to": [
+        16.0,
+        16.0,
+        8.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            8.0
+          ]
+        },
+        "east": {
+          "texture": "#step",
+          "uv": [
+            8.0,
+            0.0,
+            16.0,
+            8.0
+          ]
+        },
+        "south": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            8.0
+          ]
+        },
+        "west": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            8.0,
+            8.0
+          ]
+        },
+        "up": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            8.0
+          ]
+        },
+        "down": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            8.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "step-stonepath-up-right-front-step",
+      "from": [
+        0.0,
+        8.0,
+        4.0
+      ],
+      "to": [
+        12.0,
+        16.0,
+        8.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            8.0
+          ]
+        },
+        "east": {
+          "texture": "#step",
+          "uv": [
+            8.0,
+            0.0,
+            12.0,
+            8.0
+          ]
+        },
+        "south": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            8.0
+          ]
+        },
+        "west": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            0.0,
+            8.0,
+            8.0
+          ]
+        },
+        "up": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            4.0,
+            12.0,
+            8.0
+          ]
+        },
+        "down": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            4.0,
+            16.0,
+            8.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "step-stonepath-up-right-back-step",
+      "from": [
+        0.0,
+        8.0,
+        0.0
+      ],
+      "to": [
+        12.0,
+        16.0,
+        8.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            8.0
+          ]
+        },
+        "east": {
+          "texture": "#step",
+          "uv": [
+            8.0,
+            0.0,
+            16.0,
+            8.0
+          ]
+        },
+        "south": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            8.0
+          ]
+        },
+        "west": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            8.0,
+            8.0
+          ]
+        },
+        "up": {
+          "texture": "#step",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            8.0
+          ]
+        },
+        "down": {
+          "texture": "#step",
+          "uv": [
+            4.0,
+            0.0,
+            16.0,
+            8.0
           ]
         }
       }
