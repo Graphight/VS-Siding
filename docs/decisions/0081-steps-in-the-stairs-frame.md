@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Created: 2026-10-30
-- Reflects: branch `131-step-seams`, issue #131; `SidingWallEntity.StepMesh`/`StepFrame`/`StepFamily`/`CellAlternate`, `SidingWallTexSource.StairTexture`/`Varies`, `SidingWallBlock.ResolveStepLeg`/`ResolveStepOrientation`/`OpenStepBoxes`/`CornerStepBoxes`, `VSSiding.Tests/WallShapeGen` (`StepSetElements`), `shapes/block/wall/wall.json` and `cornerout.json`, `blocktypes/wall.json`, `lang/en.json`'s `build-step-diagonal`; `WallShapeGenTests`, `SidingWallEntityTests`, `SidingWallTexSourceTests`, `SidingWallBlockCollisionTests`, `SidingWallBlockBuildFlowTests`, `VSSiding.E2E.Tests/JunctionScenarios.cs`; decisions 0046, 0026
+- Reflects: branch `131-step-seams`, issue #131; `SidingWallEntity.StepMesh`/`StepFrame`/`StepFamily`/`CellAlternate`, `SidingWallTexSource.StairTexture`/`Varies`, `SidingWallBlock.ResolveStepLeg`/`ResolveStepOrientation`/`OpenStepBoxes`/`CornerStepBoxes`, `VSSiding.Tests/WallShapeGen` (`StepSetElements`), `shapes/block/wall/wall.json` and `cornerout.json`, `blocktypes/wall.json`, `lang/en.json`'s `build-step-diagonal`; `WallShapeGenTests`, `SidingWallEntityTests`, `SidingWallTexSourceTests`, `SidingWallBlockCollisionTests`, `SidingWallBlockBuildFlowTests`, `VSSiding.E2E.Tests/JunctionScenarios.cs`; decisions 0046, 0026; played
 
 ## Summary
 A step is drawn as the vanilla stair it continues, clipped to the wall's open part, and turned by that stair's facing.
@@ -73,4 +73,4 @@ The rest of 0046 stands: the `Step` layer, storing the stair's block code, build
 - A step with a modded shape draws as planks, whatever its own shape.
 - A step still draws every face with one texture, the stair's `up`, so a quartz step's sides take the top texture where a quartz stair has its own side texture; 0046's question about per-face textures stays open.
 - A stone path step collides as the two halves every step uses (y 0..8 and 8..16), a voxel off its drawn tread at y 7..15.
-- A playtest is pending: two plank steps in mirrored walls rising the same way, up and down; a step beside a stair, in stone brick, cobble and plank; a stone path step; and a corner step from each leg, checking that seams carry across every boundary.
+- Played: plank steps in two mirrored walls rising the same way, up and down, where issue #131's screenshot showed the seams apart, and the seams now carry across the boundary; a step beside a vanilla plank stair; stone brick, cobble and stone path steps; a quartz step's sides; and a corner step from each leg.
