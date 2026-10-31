@@ -404,7 +404,8 @@ public class SidingWallBlockCollisionTests
 
     // A glazed corner under another, whose left leg runs on into a glazed wall with nothing over it and whose right leg runs on into
     // one with glass over it too, turns the sheet's inside corner at its top left only. So does a glazed diagonal under another between
-    // two glazed diagonals, of which only the right one has glass over it. A wattle wall at the corner's post makes a T there all the same.
+    // two glazed diagonals, of which only the right one has glass over it; a glazed wall over the left one carries no diagonal's glass on.
+    // A wattle wall at the corner's post makes a T there all the same.
     [Fact]
     public void AGlazedCellsJoinsAndInsideCornersAreReadOffTheCellsAtItsEnds()
     {
@@ -434,6 +435,7 @@ public class SidingWallBlockCollisionTests
             [diagonal] = Glazed("diagonal", "west"),
             [diagonal.UpCopy()] = Glazed("diagonal", "west"),
             [diagonal.AddCopy(leftStep)] = Glazed("diagonal", "west"),
+            [diagonal.AddCopy(leftStep).Up()] = Glazed("wall", "west"),
             [diagonal.AddCopy(rightStep)] = Glazed("diagonal", "west"),
             [diagonal.AddCopy(rightStep).Up()] = Glazed("diagonal", "west"),
         };
