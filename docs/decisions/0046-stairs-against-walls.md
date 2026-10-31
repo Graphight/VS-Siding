@@ -1,6 +1,6 @@
 # 0046 — Stairs against walls
 
-- Status: Accepted
+- Status: Accepted; generated boxes and wall layout only superseded by 0081
 - Created: 2026-09-25
 - Reflects: branch `stairs-against-walls`; `SidingWallEntity.Step`/`StepOrientation`/`StepElements`; `SidingWallBlock.ResolveStepOrientation`/`AddOpenPartBoxes`/`PeelLayer`/`OnBlockInteractStart`; `SidingWallTexSource`; `SidingModSystem.HostChangePrefix`/`DeckedCellPostfix`; decisions 0002, 0035, 0042, 0047; played
 
