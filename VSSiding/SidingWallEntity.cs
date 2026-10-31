@@ -475,16 +475,25 @@ public class SidingWallEntity : BlockEntity
     // or south (back), the end of the step its second leg closes.
     internal static (string[] Names, float Rotation) StepMesh(string layout, string side, string? orientation, string family)
     {
+        if (StepFrame(layout, side, orientation) is not { } frame) return ([], 0);
+        var (vertical, hand, end, rotation) = frame;
+        string prefix = $"step-{family}-{(family == "stonepath" ? "up" : vertical)}-{hand}{end}";
+        return ([$"{prefix}-base", $"{prefix}-step"], rotation);
+    }
+
+    // Where a step sits in its stair's frame: the hand and end ("" on a wall, "-front"/"-back" on a corner) its open
+    // part is clipped to, and the facing's rotation. Null when the facing runs across the wall. The collision boxes
+    // of a corner step are cut from the same frame.
+    internal static (string Vertical, string Hand, string End, int Rotation)? StepFrame(string layout, string side, string? orientation)
+    {
         string[] parts = orientation?.Split('-') ?? [];
-        if (parts.Length != 2 || !StairRotationByFacing.TryGetValue(parts[1], out int rotation)) return ([], 0);
+        if (parts.Length != 2 || !StairRotationByFacing.TryGetValue(parts[1], out int rotation)) return null;
         string[] turned = [.. TurnOrder.Where(face => SidingWallBlock.ClaimsFace(layout, side, face))
             .Select(face => TurnOrder[((Array.IndexOf(TurnOrder, face) - rotation / 90) % 4 + 4) % 4])];
         string? hand = turned.Contains("west") ? "left" : turned.Contains("east") ? "right" : null;
-        if (hand == null) return ([], 0);
+        if (hand == null) return null;
         string end = turned.Contains("north") ? "-front" : turned.Contains("south") ? "-back" : "";
-        string vertical = family == "stonepath" ? "up" : parts[0];
-        string prefix = $"step-{family}-{vertical}-{hand}{end}";
-        return ([$"{prefix}-base", $"{prefix}-step"], rotation);
+        return (parts[0], hand, end, rotation);
     }
 
     // Collision only: the mesh draws through StepMesh. "up-F" rises to a full lower half plus an upper half on the

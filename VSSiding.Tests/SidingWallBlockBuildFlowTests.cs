@@ -311,6 +311,30 @@ public class SidingWallBlockBuildFlowTests
     }
 
     [Theory]
+    [InlineData("wall", "west", "NORTH", 0.5, 0.5, "west")]
+    [InlineData("cornerout", "west", "WEST", 0.5, 0.5, "west")]
+    [InlineData("cornerout", "west", "EAST", 0.5, 0.5, "west")]
+    [InlineData("cornerout", "west", "NORTH", 0.5, 0.5, "north")]
+    [InlineData("cornerout", "west", "SOUTH", 0.5, 0.5, "north")]
+    [InlineData("cornerout", "south", "SOUTH", 0.5, 0.5, "south")]
+    [InlineData("cornerout", "south", "NORTH", 0.5, 0.5, "south")]
+    [InlineData("cornerout", "south", "EAST", 0.5, 0.5, "west")]
+    [InlineData("cornerout", "east", "WEST", 0.5, 0.5, "east")]
+    [InlineData("cornerout", "east", "NORTH", 0.5, 0.5, "south")]
+    [InlineData("cornerout", "north", "EAST", 0.5, 0.5, "east")]
+    [InlineData("cornerout", "north", "SOUTH", 0.5, 0.5, "north")]
+    [InlineData("cornerout", "west", "DOWN", 0.1, 0.9, "west")]
+    [InlineData("cornerout", "west", "DOWN", 0.9, 0.1, "north")]
+    [InlineData("cornerout", "south", "DOWN", 0.9, 0.9, "south")]
+    [InlineData("cornerout", "south", "DOWN", 0.1, 0.1, "west")]
+    public void ResolveStepLeg(string layout, string side, string clickedFace, double hitX, double hitZ, string expected)
+    {
+        Assert.Equal(
+            expected,
+            SidingWallBlock.ResolveStepLeg(layout, side, BlockFacing.FromFirstLetter(clickedFace[..1]), new Vec3d(hitX, 0, hitZ)));
+    }
+
+    [Theory]
     [InlineData("west", "down-south", 0, 0, "DOWN", 0.5, true, "down-south")]
     [InlineData("west", "up-east", -1, 0, "NORTH", 0.5, true, "up-south")]
     [InlineData("west", null, 0, -1, "NORTH", 0.5, true, "up-north")]

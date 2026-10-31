@@ -98,6 +98,37 @@ public class SidingWallBlock : Block
 
     private static readonly Dictionary<(string side, string element), Cuboidf> StepBoxes = BuildStepBoxes();
 
+    private static readonly Dictionary<(string side, string orientation), Cuboidf[]> CornerStepBoxes = BuildCornerStepBoxes();
+
+    // A corner's step is cut in the stair's frame, as its mesh is (SidingWallEntity.StepFrame): the stair-north
+    // step clipped to x 4..16 (left) or 0..12 (right) and z 4..16 (front) or 0..12 (back), then turned by the facing.
+    private static Dictionary<(string side, string orientation), Cuboidf[]> BuildCornerStepBoxes()
+    {
+        var origin = new Vec3d(0.5, 0.5, 0.5);
+        var boxes = new Dictionary<(string side, string orientation), Cuboidf[]>();
+        foreach (string side in CorneroutSecondFace.Keys)
+        {
+            foreach (string vertical in new[] { "up", "down" })
+            {
+                foreach (string facing in new[] { "north", "west", "south", "east" })
+                {
+                    string orientation = $"{vertical}-{facing}";
+                    if (SidingWallEntity.StepFrame("cornerout", side, orientation) is not { } frame) continue;
+                    (float x1, float x2) = frame.Hand == "left" ? (4f / 16, 1f) : (0f, 12f / 16);
+                    (float z1, float z2) = frame.End == "-front" ? (4f / 16, 1f) : (0f, 12f / 16);
+                    float halfZ2 = Math.Min(z2, 8f / 16);
+                    (float baseY1, float baseY2, float stepY1, float stepY2) = vertical == "up" ? (0f, 8f / 16, 8f / 16, 1f) : (8f / 16, 1f, 0f, 8f / 16);
+                    boxes[(side, orientation)] =
+                    [
+                        new Cuboidf(x1, baseY1, z1, x2, baseY2, z2).RotatedCopy(0, frame.Rotation, 0, origin),
+                        new Cuboidf(x1, stepY1, z1, x2, stepY2, halfZ2).RotatedCopy(0, frame.Rotation, 0, origin),
+                    ];
+                }
+            }
+        }
+        return boxes;
+    }
+
     private static Dictionary<(string layout, string side), Cuboidf[]> BuildDeckBoxes()
     {
         var origin = new Vec3d(0.5, 0.5, 0.5);
@@ -157,16 +188,19 @@ public class SidingWallBlock : Block
 
     // The deck and the step both sit in the open 12/16, outside both the frame's boxes and the
     // panel's, except a diagonal's deck, whose strips run on under its plate to the middle of the frame.
-    // A step only applies to layout "wall"; a cornerout or a diagonal never has one.
+    // A step applies to a wall and a cornerout; a diagonal never has one.
     internal static Cuboidf[] AddOpenPartBoxes(Cuboidf[] boxes, string layout, string side, string? deck, string? stepOrientation)
     {
         if (deck != null) boxes = boxes.Concat(DeckBoxes[(layout, side)]).ToArray();
-        if (layout == "wall" && stepOrientation != null)
-        {
-            foreach (string element in SidingWallEntity.StepElements(side, stepOrientation))
-                boxes = boxes.Append(StepBoxes[(side, element)]).ToArray();
-        }
-        return boxes;
+        var step = OpenStepBoxes(layout, side, stepOrientation);
+        return step.Length == 0 ? boxes : boxes.Concat(step).ToArray();
+    }
+
+    private static Cuboidf[] OpenStepBoxes(string layout, string side, string? stepOrientation)
+    {
+        if (stepOrientation == null) return [];
+        if (layout == "wall") return SidingWallEntity.StepElements(side, stepOrientation).Select(element => StepBoxes[(side, element)]).ToArray();
+        return layout == "cornerout" && CornerStepBoxes.TryGetValue((side, stepOrientation), out var boxes) ? boxes : [];
     }
 
     // wall.json's collisionSelectionBoxesbytype makes the selection box the panel alone, so without
@@ -398,6 +432,17 @@ public class SidingWallBlock : Block
         _ => null,
     };
 
+    // The leg of a corner a step continues: the one whose panel faces along the clicked face's axis, and for the
+    // underside the one nearer the hit. A wall has the one leg.
+    internal static string ResolveStepLeg(string layout, string side, BlockFacing clickedFace, Vec3d hit)
+    {
+        if (layout != "cornerout") return side;
+        string second = CorneroutSecondFace[side];
+        if (clickedFace.IsHorizontal) return clickedFace.Axis == BlockFacing.FromCode(side).Axis ? side : second;
+        double Distance(string leg) => leg switch { "west" => hit.X, "east" => 1 - hit.X, "north" => hit.Z, _ => 1 - hit.Z };
+        return Distance(side) <= Distance(second) ? side : second;
+    }
+
     // A stair beside the wall running along it is copied; otherwise the player picks, as vanilla
     // places stairs: look direction for the along-wall facing, clicked face and hit height for upside-down.
     // A stair with no upside-down variant (noDownVariant, like the stone path) always steps upright.
@@ -534,7 +579,7 @@ public class SidingWallBlock : Block
         // A stair on a side face fills the open part beside the stair in the room (decision 0046).
         if (slot.Itemstack!.Block is BlockStairs && blockSel.Face != BlockFacing.UP)
         {
-            if (Variant["layout"] != "wall")
+            if (Variant["layout"] == "diagonal")
             {
                 (byPlayer as IServerPlayer)?.SendIngameError("vssiding:stepcorner", Lang.Get("vssiding:build-step-corner"));
                 return true;
@@ -552,7 +597,8 @@ public class SidingWallBlock : Block
                 return true;
             }
 
-            BlockPos neighbourPos = blockSel.Position.AddCopy(BlockFacing.FromCode(Variant["side"]).Opposite);
+            string leg = ResolveStepLeg(Variant["layout"], Variant["side"], blockSel.Face, blockSel.HitPosition);
+            BlockPos neighbourPos = blockSel.Position.AddCopy(BlockFacing.FromCode(leg).Opposite);
             // A stair with no vertical group, like vanilla's stone path, only comes upright.
             string? neighbourOrientation = world.BlockAccessor.GetBlock(neighbourPos) is BlockStairs neighbourBlock
                 && neighbourBlock.Variant["horizontalorientation"] is { } neighbourFacing
@@ -560,7 +606,7 @@ public class SidingWallBlock : Block
                 : null;
 
             string orientation = ResolveStepOrientation(
-                Variant["side"], neighbourOrientation, byPlayer.Entity.SidedPos.GetViewVector(), blockSel.Face, blockSel.HitPosition.Y,
+                leg, neighbourOrientation, byPlayer.Entity.SidedPos.GetViewVector(), blockSel.Face, blockSel.HitPosition.Y,
                 slot.Itemstack.Block.Attributes?.IsTrue("noDownVariant") != true);
 
             if (StepOccupied(world, blockSel.Position, orientation))
@@ -1037,8 +1083,7 @@ public class SidingWallBlock : Block
 
     internal bool StepOccupied(IWorldAccessor world, BlockPos pos, string orientation)
     {
-        var boxes = SidingWallEntity.StepElements(Variant["side"], orientation)
-            .Select(element => StepBoxes[(Variant["side"], element)]).ToArray();
+        var boxes = OpenStepBoxes(Variant["layout"], Variant["side"], orientation);
         return world.GetIntersectingEntities(pos, boxes, e => e.IsInteractable) is { Length: > 0 };
     }
 

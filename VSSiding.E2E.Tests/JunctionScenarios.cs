@@ -135,6 +135,37 @@ public class JunctionScenarios : AtlasScenarioBase
         Assert.Equal(("wall", "game:plankstairs-oak-up-north-free"), (World.BlockAt(cell).Variant["layout"], Read(cell, "step")));
     }
 
+    // The corner's west leg is clicked from the west and takes the stair standing east of the cell.
+    [AtlasScenario(FreshWorld = true)]
+    public async Task Corner_Should_TakeAStepFromTheStairBesideItsWestLeg_When_AStairIsPressedOnThatLeg()
+    {
+        (BlockPos cell, ITestPlayer player) = await RaiseCorner();
+        World.SetBlock("game:plankstairs-oak-down-south-free", cell.EastCopy());
+
+        await WallBuilder.Press(World, player, cell, "game:plankstairs-oak-up-north-free", BlockFacing.WEST, new Vec3d(0, 0.5, 0.5), quantity: 1);
+
+        Assert.Equal(("cornerout", "game:plankstairs-oak-up-north-free", "down-south"), (World.BlockAt(cell).Variant["layout"], Read(cell, "step"), Read(cell, "steporientation")));
+    }
+
+    [AtlasScenario(FreshWorld = true)]
+    public async Task Corner_Should_TakeAStepFromTheStairBesideItsNorthLeg_When_AStairIsPressedOnThatLeg()
+    {
+        (BlockPos cell, ITestPlayer player) = await RaiseCorner();
+        World.SetBlock("game:plankstairs-oak-down-east-free", cell.SouthCopy());
+
+        await WallBuilder.Press(World, player, cell, "game:plankstairs-oak-up-north-free", BlockFacing.NORTH, new Vec3d(0.5, 0.5, 0), quantity: 1);
+
+        Assert.Equal(("cornerout", "game:plankstairs-oak-up-north-free", "down-east"), (World.BlockAt(cell).Variant["layout"], Read(cell, "step"), Read(cell, "steporientation")));
+    }
+
+    private async Task<(BlockPos Cell, ITestPlayer Player)> RaiseCorner()
+    {
+        (BlockPos cell, ITestPlayer player) = await RaiseWall("game:clay-blue");
+        await WallBuilder.Press(World, player, cell, "game:stick", BlockFacing.WEST, NorthEnd);
+        Assert.Equal(("cornerout", "north,west"), (World.BlockAt(cell).Variant["layout"], Describe(cell).Retaining));
+        return (cell, player);
+    }
+
     [AtlasScenario(FreshWorld = true)]
     public async Task FilledWall_Should_StayAWall_When_AnAnimalStandsWhereTheNewLegGoes()
     {
