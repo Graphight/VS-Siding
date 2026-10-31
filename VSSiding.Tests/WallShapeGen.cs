@@ -36,7 +36,11 @@ public record Element(
     Element? ClippedFrom = null,
     double RotationY = 0,
     (double X, double Y, double Z)? RotationOrigin = null,
-    (double X, double Y, double Z) Offset = default);
+    (double X, double Y, double Z) Offset = default,
+    Dictionary<string, FaceUv>? Explicit = null);
+
+// A face's uv rect and rotation exactly as a vanilla shape writes them, for the step sets copied from vanilla's stairs.
+public record FaceUv(double U0, double V0, double U1, double V1, int Rotation = 0);
 
 public static class WallShapeGen
 {
@@ -293,6 +297,81 @@ public static class WallShapeGen
     private static IEnumerable<Element> WithBark(params Element[] hboards)
         => hboards.Concat(new[] { "bark", "hbark" }.SelectMany(style => hboards.Select(e => e with { Name = e.Name.Replace("hboards", style) })));
 
+    private static FaceUv F(double u0, double v0, double u1, double v1, int rotation = 0) => new(u0, v0, u1, v1, rotation);
+
+    // The wall step as the vanilla stair it continues, in the stair's own frame (vanilla rotateY 0: the upper
+    // tread toward z 0), so a step and a stair share every seam. The wall's panel takes x 0..4 ("left") or
+    // x 12..16 ("right"), and the step is vanilla's box clipped to the rest. Boxes and uvs are transcribed from
+    // block/basic/stairs/{planks-free-up,planks-free-down,normal,flipped,stonepath-stairs-free}.json; a face
+    // vanilla disables is left out, and stonepath's lone 0.01 overlap is dropped so the clip stays on the voxel.
+    private static IEnumerable<Element> StepSetElements()
+    {
+        var sources = new (string Set, string Part, (double, double, double) From, (double, double, double) To, Dictionary<string, FaceUv> Faces)[]
+        {
+            ("planks-up", "base", (0, 0, 0), (16, 8, 16), new()
+            {
+                ["north"] = F(0, 8, 16, 16), ["east"] = F(0, 2.5, 16, 10.5), ["south"] = F(0, 2.5, 16, 10.5),
+                ["west"] = F(0, 8, 16, 16), ["up"] = F(0, 0, 16, 16), ["down"] = F(0, 0, 16, 16),
+            }),
+            ("planks-up", "step", (0, 8, 0), (16, 16, 8), new()
+            {
+                ["north"] = F(0, 0, 16, 8), ["east"] = F(0, 0, 8, 8), ["south"] = F(0, 0, 16, 8),
+                ["west"] = F(0, 0, 8, 8), ["up"] = F(0, 0, 16, 8, 180),
+            }),
+            ("planks-down", "base", (0, 8, 0), (16, 16, 16), new()
+            {
+                ["north"] = F(0, 5.5, 16, 13.5), ["east"] = F(0, 0, 16, 8), ["south"] = F(0, 5.5, 16, 13.5),
+                ["west"] = F(0, 5.5, 16, 13.5), ["up"] = F(0, 0, 16, 16), ["down"] = F(0, 0, 16, 16),
+            }),
+            ("planks-down", "step", (0, 0, 0), (16, 8, 8), new()
+            {
+                ["north"] = F(0, 3, 16, 11), ["east"] = F(2.5, 3, 10.5, 11), ["south"] = F(0, 0, 16, 8),
+                ["west"] = F(0, 3, 8, 11), ["down"] = F(0, 0, 16, 8),
+            }),
+            ("basic-up", "base", (0, 0, 0), (16, 8, 16), new()
+            {
+                ["north"] = F(0, 0, 16, 8), ["east"] = F(0, 0, 16, 8), ["south"] = F(0, 0, 16, 8),
+                ["west"] = F(0, 0, 16, 8), ["up"] = F(0, 0, 16, 16, 180), ["down"] = F(0, 0, 16, 16),
+            }),
+            ("basic-up", "step", (0, 8, 0), (16, 16, 8), new()
+            {
+                ["north"] = F(0, 0, 16, 8), ["east"] = F(0, 0, 8, 8), ["south"] = F(0, 0, 16, 8),
+                ["west"] = F(0, 0, 8, 8), ["up"] = F(0, 0, 16, 8, 180),
+            }),
+            ("basic-down", "base", (0, 8, 0), (16, 16, 16), new()
+            {
+                ["north"] = F(0, 0, 16, 8), ["east"] = F(0, 0, 16, 8), ["south"] = F(0, 0, 16, 8),
+                ["west"] = F(0, 0, 16, 8), ["up"] = F(0, 0, 16, 16, 180), ["down"] = F(0, 0, 16, 16),
+            }),
+            ("basic-down", "step", (0, 0, 0), (16, 8, 8), new()
+            {
+                ["north"] = F(0, 0, 16, 8), ["east"] = F(0, 0, 8, 8), ["south"] = F(0, 0, 16, 8),
+                ["west"] = F(0, 0, 8, 8), ["down"] = F(0, 0, 16, 8),
+            }),
+            // Vanilla's base runs y -1..7; it is cut to the cell at y 0, so each side's uv loses its bottom texel row.
+            ("stonepath-up", "base", (0, 0, 0), (16, 7, 16), new()
+            {
+                ["north"] = F(0, 7.5, 16, 14.5), ["east"] = F(0, 8, 16, 15), ["south"] = F(0, 8, 16, 15),
+                ["west"] = F(0, 8, 16, 15), ["up"] = F(0, 0, 16, 16), ["down"] = F(0, 0, 16, 16),
+            }),
+            ("stonepath-up", "step", (0, 8, 0), (16, 16, 8), new()
+            {
+                ["north"] = F(0, 0, 16, 8), ["east"] = F(8, 0, 16, 8), ["south"] = F(0, 0, 16, 8),
+                ["west"] = F(0, 0, 8, 8), ["up"] = F(0, 0, 16, 8), ["down"] = F(0, 0, 16, 8),
+            }),
+        };
+
+        foreach (var (set, part, from, to, faces) in sources)
+        {
+            var source = new Element("", from, to, "step", UvRule.Flat, Faces: [.. faces.Keys], Explicit: faces);
+            foreach (var (side, lo, hi) in new[] { ("left", 4.0, 16.0), ("right", 0.0, 12.0) })
+            {
+                var name = set.Split('-') is [var family, var dir] ? $"step-{family}-{dir}-{side}-{part}" : throw new ArgumentException(set);
+                yield return source with { Name = name, From = (lo, from.Item2, from.Item3), To = (hi, to.Item2, to.Item3), ClippedFrom = source };
+            }
+        }
+    }
+
     private static readonly Element[] WallElements =
     [
         new("front", (0, 0, 0), (1, 16, 16), "front", UvRule.Flat),
@@ -325,6 +404,7 @@ public static class WallShapeGen
         new("step-lower-south", (4, 0, 8), (16, 8, 16), "step", UvRule.Flat),
         new("step-upper-north", (4, 8, 0), (16, 16, 8), "step", UvRule.Flat),
         new("step-upper-south", (4, 8, 8), (16, 16, 16), "step", UvRule.Flat),
+        .. StepSetElements(),
         new("back-boards", (3, 0, 0), (4, 16, 16), "back", UvRule.Flat, RotatedFaces: ["east"]),
         new("front-boards", (0, 0, 0), (1, 16, 16), "front", UvRule.Flat, RotatedFaces: ["west"]),
         .. WithBark(
@@ -1232,6 +1312,14 @@ public static class WallShapeGen
 
     private static JObject EmitFace(Element element, string face)
     {
+        if (element.Explicit?[face] is { } vanilla)
+        {
+            var (e0, e1, e2, e3) = element.ClippedFrom is { } from ? ClippedUv(from, element, face) : (vanilla.U0, vanilla.V0, vanilla.U1, vanilla.V1);
+            var explicitFace = new JObject { ["texture"] = "#" + element.Slot, ["uv"] = new JArray(e0, e1, e2, e3) };
+            if (vanilla.Rotation != 0) explicitFace["rotation"] = vanilla.Rotation;
+            return explicitFace;
+        }
+
         var (fx, fy, fz) = element.From;
         var (tx, ty, tz) = element.To;
 
@@ -1298,6 +1386,8 @@ public static class WallShapeGen
     {
         var sourceUv = EmitFace(source, face)["uv"]!.Select(v => (double)v!).ToArray();
         var (uAxis, uSign, vAxis, vSign) = UvLayout(face, clipped.RotatedFaces?.Contains(face) ?? false);
+        // A vanilla 180 turns the rect half way round, so both axes run against the face's own.
+        if (source.Explicit?[face].Rotation == 180) (uSign, vSign) = (-uSign, -vSign);
 
         (double, double) Sub(double s0, double s1, char axis, int sign)
         {

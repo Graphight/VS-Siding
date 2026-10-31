@@ -763,6 +763,43 @@ public class WallShapeGenTests
     }
 
     [Fact]
+    public void StepSetsCarryVanillasStairFacesClippedToTheOpenPart()
+    {
+        var elements = WallShapeGen.Generate("wall")["elements"]!;
+        JObject Element(string name) => (JObject)elements.Single(e => (string)e["name"]! == name);
+        JObject Face(double u0, double v0, double u1, double v1, int rotation = 0)
+        {
+            var face = new JObject { ["texture"] = "#step", ["uv"] = new JArray(u0, v0, u1, v1) };
+            if (rotation != 0) face["rotation"] = rotation;
+            return face;
+        }
+
+        var leftStep = Element("step-planks-up-left-step");
+        Assert.Equal(new JArray(4.0, 8.0, 0.0).ToString(), leftStep["from"]!.ToString());
+        Assert.Equal(new JArray(16.0, 16.0, 8.0).ToString(), leftStep["to"]!.ToString());
+        Assert.Equal(
+            new JObject
+            {
+                ["north"] = Face(0, 0, 12, 8),
+                ["east"] = Face(0, 0, 8, 8),
+                ["south"] = Face(4, 0, 16, 8),
+                ["west"] = Face(0, 0, 8, 8),
+                ["up"] = Face(0, 0, 12, 8, 180),
+            }.ToString(),
+            leftStep["faces"]!.ToString());
+
+        Assert.Equal(
+            Face(4, 8, 16, 16).ToString(),
+            Element("step-planks-up-right-base")["faces"]!["north"]!.ToString());
+        Assert.Equal(
+            Face(0, 0, 16, 8).ToString(),
+            Element("step-planks-down-left-base")["faces"]!["east"]!.ToString());
+        Assert.Equal(
+            ["north", "east", "south", "west", "up", "down"],
+            ((JObject)Element("step-stonepath-up-left-step")["faces"]!).Properties().Select(p => p.Name));
+    }
+
+    [Fact]
     public void CornerOutHasNoStepElements()
     {
         var names = WallShapeGen.Generate("cornerout")["elements"]!.Select(e => (string)e["name"]!);
