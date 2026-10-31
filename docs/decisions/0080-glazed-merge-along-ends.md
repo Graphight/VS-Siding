@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Created: 2026-10-30
-- Reflects: branch `glazed-corner-merge`, which graduates the proposal of the same name (2026-10-11, from the playtest of PR #116); `SidingWallBlock.End`/`Ends`/`LeftRightEnds`/`EndsMeet`/`JoinsAtEnd`/`EndContinuesGlazing`/`GlassRunsOn`/`NeighbourJoins`/`InnerCorners`/`MarkNeighboursDirty`/`MarkDiagonalRunDirty`/`OnNeighbourBlockChange`/`OnBlockInteractStart`, `SidingWallEntity.FrameParts`/`SelectiveElements`/`CacheKey`, `VSSiding.Tests/WallShapeGen` (`CornerOutElements`, `CornerRimPieces`, `DiagonalFrame`, `DiagonalJoined`, `DiagonalRims`), `shapes/block/wall/cornerout.json` and `diagonal.json`, `lang/en.json`'s `build-glazed`; `WallShapeGenTests`' cross-cell overlap and flush tests, `SidingWallBlockCollisionTests`' end table and world-backed inside-corner test, `VSSiding.E2E.Tests/DiagonalScenarios.cs`; decisions 0019, 0066, 0071; the interview of 2026-10-30 and the review of PR #144; unit tests (866) and e2e scenarios (92) pass
+- Reflects: branch `glazed-corner-merge`, which graduates the proposal of the same name (2026-10-11, from the playtest of PR #116); `SidingWallBlock.End`/`Ends`/`LeftRightEnds`/`EndsMeet`/`JoinsAtEnd`/`EndContinuesGlazing`/`GlassRunsOn`/`NeighbourJoins`/`InnerCorners`/`MarkNeighboursDirty`/`MarkDiagonalRunDirty`/`OnNeighbourBlockChange`/`OnBlockInteractStart`, `SidingWallEntity.FrameParts`/`SelectiveElements`/`CacheKey`, `VSSiding.Tests/WallShapeGen` (`CornerOutElements`, `CornerRimPieces`, `DiagonalFrame`, `DiagonalJoined`, `DiagonalRims`), `shapes/block/wall/cornerout.json` and `diagonal.json`, `lang/en.json`'s `build-glazed`; `WallShapeGenTests`' cross-cell overlap and flush tests, `SidingWallBlockCollisionTests`' end table and world-backed inside-corner test, `VSSiding.E2E.Tests/DiagonalScenarios.cs`; decisions 0019, 0066, 0071; the interview of 2026-10-30, the review of PR #144 and its playtest, which found the T's slot; unit tests (867) and e2e scenarios (92) pass
 
 ## Summary
 A glazed wall, corner and diagonal drop the upright between them wherever their glass carries on through the shared boundary, so a run of glass is one sheet round a corner or along a diagonal run.
@@ -31,6 +31,8 @@ A corner post's ends are not among a corner's left and right, and a diagonal's l
 
 **Wall against corner and diagonal.**
 A glazed wall drops its stile beside a glazed corner's leg far end, and at a T-junction where the wall carries straight on past the corner post's end, coplanar with a leg.
+The corner post stands a finish slot in from the cell's edge on each face, so at a T the corner fills the slot the run crosses with `glazing-tee-left` (its left leg's slot, where leg 1's line runs on past the post) or `glazing-tee-right` (its right leg's, where leg 2's does), and that face's rim over the post gives way to `G-rim-tee-left` or `G-rim-tee-right`, cut either side of it.
+`GlassRunsOn` answers a corner's two post ends, so the tee pieces ride the mesh cache key as a diagonal's join pieces do.
 It drops its stile against a glazed diagonal's end, and the diagonal's mitre filler stays as the one member.
 
 **Corner against anything.**
@@ -63,7 +65,7 @@ The inside corners join the mesh cache key as a wall's do.
 **Redraws.**
 `MarkNeighboursDirty` marks the cell beyond each end at dy -1 to 1: a wall's two as before, a cornerout's four, which point every way, and a diagonal's two, where a wall or a corner meets its mitre filler.
 `MarkDiagonalRunDirty` marks a diagonal's run neighbours at dy -1 to 1 where it marked them at its own height alone, so an inside corner redraws when glass goes in or out over or under the next cell.
-`OnNeighbourBlockChange` redraws a glazed corner when a cell at one of its leg ends changes, and a wall when a cell at either of its ends does.
+`OnNeighbourBlockChange` redraws a glazed corner when a cell at any of its four ends changes, and a wall when a cell at either of its ends does.
 
 **Tests.**
 A rotation-pinned table test turns each layout's unrotated ends with `Cuboidf.RotatedCopy`, and an agreement table lists, for each joining end of a west wall and a west corner, every cell it meets and whether that cell drops its own member.
@@ -71,7 +73,8 @@ The `Meetings` tests place every pair of cells whose ends meet, bar two diagonal
 No two faces across their boundary share a plane and overlap, and every face a dropped end draws there is covered by the cell beyond, bar the listed slots, ledges and hairs; where the cell beyond keeps its member, its face is the jamb.
 Two glazed diagonals whose glass runs on are checked the same way for every pair of stack heights, with the left cell facing either way, and the flush test also requires every rail end along the run to be closed by a face or carried on by another piece.
 A kept join post's front and back are checked to be rimmed over the whole cell height however the cell is stacked.
-A world-backed test reads a glazed corner's and a glazed diagonal's joins and inside corners through a stand-in `IBlockAccessor`.
+A glazed corner at every T, in every set of joins, finished and bare, is checked for two of its own faces sharing a plane.
+A world-backed test reads a glazed corner's and a glazed diagonal's joins, inside corners and `GlassRunsOn` through a stand-in `IBlockAccessor`, the corner with a wall at its post's left end.
 The room-side mitre ledge and the 0.01 hairs at the filler's top and bottom are listed in the diagonal tests as expected-uncovered faces.
 The existing name, rim, plane and deck tests are extended to the new parts.
 The shape tests generate each shape once per run and reuse it, since regenerating the diagonal's for every pairing took the suite from about 20 seconds to over two minutes.
@@ -86,10 +89,11 @@ The shape tests generate each shape once per run and reuse it, since regeneratin
 - **Check the join per pair of layouts.** A table keyed by layout pair grows with each layout; ends on a shared face and direction are one rule.
 
 ## Consequences & open questions
-- `cornerout.json` grows from 1804 to 2132 elements, and `diagonal.json` from about 2.1 MB and 2218 elements to about 3.1 MB and 2916.
+- `cornerout.json` grows from 1804 to 2268 elements, and `diagonal.json` from about 2.1 MB and 2218 elements to about 3.1 MB and 2916.
 - No migration: nothing is stored, so a build that stands changes its look on load.
 - A straight wall standing where a diagonal run passes its corner is a clashing build that `JoinsAtEnd` does not tell apart, since it compares the two ends alone (a `shortcut:` comment marks it), so the wall's stile may drop against a diagonal whose run goes on into the next diagonal there instead.
 - A hosted cell's wall is read through `WallAt`, so a guest joins glass as any wall does, but `MarkNeighboursDirty` reaches block entities only, so a guest's panel is not redrawn when its neighbour's glass changes (decision 0035).
 - Stacks of differing height across a glazed diagonal run frame the inside corner where one stops short of the other, and the flush tests cover every pair of stack heights.
 - Decisions 0019, 0066 and 0071 are amended in part and say so in their status lines.
-- Not played yet; the Atlas scenario asserts only that a finish goes on a glazed diagonal. To check: a bay of two glazed corners, a glazed wall running into a corner's post end at a T, and an octagon of glazed diagonals, each with and without finishes, from both sides.
+- An opaque T, or glass meeting an opaque wall at a corner post, keeps the open finish slot beside the post while that face is unfinished, as on `main`: the tee pieces are drawn only where glass runs on, the one case where the wall drops its stile.
+- The playtest of PR #144 showed every merge and redraw on its list working bar the T, and the tee pieces that fill its slot are not played yet; the Atlas scenario asserts only that a finish goes on a glazed diagonal.
