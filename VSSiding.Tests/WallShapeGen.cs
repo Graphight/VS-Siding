@@ -403,10 +403,12 @@ public static class WallShapeGen
                select rim;
     }
 
-    // A corner's rims, cut round each leg's opening, which is read off the leg's own rails: `G-rim` is
-    // everything beside it, full height, and `G-rim-top` and `G-rim-bottom` the parts over and under it.
-    // A front group belongs to leg 1, a second front group to leg 2, and a back box to the leg whose
-    // back slab holds it.
+    // A corner's rims, cut round each leg's opening, which is read off the leg's own rails: `G-rim` is the
+    // corner post's side of it and `G-rim-right` (leg 1) or `G-rim-left` (leg 2) the end post's, both full
+    // height, `G-rim-top` and `G-rim-bottom` the parts over and under it, and `G-rim-top-right` and the like
+    // the parts over and under the end post, which its fillers take once it drops. A front group belongs to
+    // leg 1, a second front group to leg 2, and a back box to the leg whose back slab holds it. A T's piece lies in
+    // a front or second front slot only, so only those groups give way to it.
     internal static IEnumerable<Element> CornerRimPieces(IEnumerable<Element> elements)
     {
         Element[] all = [.. elements];
@@ -418,12 +420,16 @@ public static class WallShapeGen
             Element OnLeg(string name) => all.Single(e => e.Name == name && Length(e, run) > Length(e, across));
             Element top = OnLeg("glazing-top"), bottom = OnLeg("glazing-bottom"), slab = OnLeg("back");
             var opening = (Lo: Axis(top.From, run), Hi: Axis(top.To, run));
+            string end = run == 'z' ? "-right" : "-left";
+            var beyond = (opening.Hi, any);
             (string Part, (double Lo, double Hi) Run, (double Lo, double Hi) Y)[] parts =
             [
                 ("", (none, opening.Lo), (none, any)),
-                ("", (opening.Hi, any), (none, any)),
+                (end, beyond, (none, any)),
                 ("-top", opening, (top.From.Y, any)),
                 ("-bottom", opening, (none, bottom.To.Y)),
+                ("-top" + end, beyond, (top.From.Y, any)),
+                ("-bottom" + end, beyond, (none, bottom.To.Y)),
             ];
 
             string front = run == 'z' ? "front" : "secondfront";
@@ -431,6 +437,13 @@ public static class WallShapeGen
             foreach (var e in all.Where(e => e.Name.StartsWith(front) || (e.Name.StartsWith("back") && InSlab(e))))
             foreach (var (part, range, y) in parts)
             foreach (var rim in RimPiece(e, part, (run, range.Lo, range.Hi), ('y', y.Lo, y.Hi)))
+                yield return rim;
+
+            // `G-rim-tee-right` or `G-rim-tee-left`, the corner post's side cut either side of the post's piece in this leg's slot.
+            Element tee = all.Single(e => e.Name == "glazing-tee" + end);
+            foreach (var e in all.Where(e => e.Name.StartsWith(front)))
+            foreach (var (lo, hi) in new[] { (none, Axis(tee.From, run)), (Axis(tee.To, run), opening.Lo) })
+            foreach (var rim in RimPiece(e, "-tee" + end, (run, lo, hi)))
                 yield return rim;
         }
     }
@@ -579,6 +592,7 @@ public static class WallShapeGen
         new("poles-bottom", (2.75, 1, 14.75), (3, 2.5, 16), "lashing", UvRule.Flat),
         new("poles-bottom", (14.75, 1, 1), (16, 2.5, 1.25), "lashing", UvRule.Flat),
         new("poles-bottom", (14.75, 1, 2.75), (16, 2.5, 3), "lashing", UvRule.Flat),
+        .. CornerTees("poles"),
     ];
 
     private static readonly Element[] CornerPole2Elements =
@@ -596,6 +610,15 @@ public static class WallShapeGen
         new("poles2", (13, 7, 2.5), (15, 8, 3), "framing", UvRule.Flat),
         new("poles2", (13.5, 8.5, 1), (15, 9.5, 1.5), "framing", UvRule.Flat),
         .. CornerPoleElements.Where(e => e.Name is "poles-top" or "poles-bottom").Select(e => e with { Name = e.Name.Replace("poles", "poles2") }),
+        .. CornerTees("poles2"),
+    ];
+
+    // Every frame's corner post stands a finish slot in from the cell's edge on each face, so at a T it fills the slot
+    // the run crosses: the left leg's, where leg 1's line runs on past it, or the right leg's, where leg 2's does.
+    private static Element[] CornerTees(string group) =>
+    [
+        new($"{group}-tee-left", (1, 0, 0), (3, 16, 1), "framing", UvRule.Flat, Faces: ["north", "west", "east", "up", "down"]),
+        new($"{group}-tee-right", (0, 0, 1), (1, 16, 3), "framing", UvRule.Flat, Faces: ["west", "north", "south", "up", "down"]),
     ];
 
     private static readonly Element[] CornerOutElements =
@@ -618,12 +641,19 @@ public static class WallShapeGen
         new("infill-pane", (2, 0, 3), (2, 16, 16), "infill", UvRule.Flat, Faces: ["west", "east"]),
         new("infill-pane", (3, 0, 2), (16, 16, 2), "infill", UvRule.Flat, Faces: ["north", "south"]),
         new("framing", (15, 0, 1), (16, 16, 3), "framing", UvRule.Flat),
-        // A glazed corner's frame: posts that never drop and a rail per leg between them,
-        // so a rail's two end faces always stand against a post. The corner post is two boxes.
+        .. CornerTees("framing"),
+        // A glazed corner's frame: a corner post that never drops, an end post per leg named for the side of
+        // a wall it lies on (leg 1's far end is its right, leg 2's its left), a rail per leg between them,
+        // and a filler per leg in the rail's corner where the end post has merged away. The corner post is two boxes.
         new("glazing", (1, 0, 1), (3, 16, 4), "framing", UvRule.Flat),
         new("glazing", (3, 0, 1), (4, 16, 3), "framing", UvRule.Flat),
-        new("glazing", (1, 0, 14), (3, 16, 16), "framing", UvRule.Flat),
-        new("glazing", (14, 0, 1), (16, 16, 3), "framing", UvRule.Flat),
+        .. CornerTees("glazing"),
+        new("glazing-right", (1, 0, 14), (3, 16, 16), "framing", UvRule.Flat),
+        new("glazing-left", (14, 0, 1), (16, 16, 3), "framing", UvRule.Flat),
+        new("glazing-top-right", (1, 14, 14), (3, 16, 16), "framing", UvRule.Flat),
+        new("glazing-bottom-right", (1, 0, 14), (3, 2, 16), "framing", UvRule.Flat),
+        new("glazing-top-left", (14, 14, 1), (16, 16, 3), "framing", UvRule.Flat),
+        new("glazing-bottom-left", (14, 0, 1), (16, 2, 3), "framing", UvRule.Flat),
         new("glazing-top", (1, 14, 4), (3, 16, 14), "framing", UvRule.Flat, Faces: ["west", "east", "up", "down"]),
         new("glazing-top", (4, 14, 1), (14, 16, 3), "framing", UvRule.Flat, Faces: ["north", "south", "up", "down"]),
         new("glazing-bottom", (1, 0, 4), (3, 2, 14), "framing", UvRule.Flat, Faces: ["west", "east", "up", "down"]),
@@ -769,18 +799,35 @@ public static class WallShapeGen
     // straight wall. Where the next cell carries the run on, the -left and -right groups take every
     // piece to the corner instead, and half a post stands there; their square ends reach into the two
     // cells beside the corner, and with the next cell's they make one band.
-    private const double DiagonalCorner = 11.3137;
+    internal const double DiagonalCorner = 11.3137;
     private const double DiagonalEnd = 9.3137;
     private const double DiagonalFiller = 2.8284;
 
+    // A glazed diagonal has no stiles of its own, since its corner fillers are its stiles, so its glazing
+    // rails run end to end between them.
     private static readonly string[] DiagonalFrame =
-        ["framing-top", "framing-bottom", "infill-top", "infill", "infill-bottom", "infill-pane"];
+        ["framing-top", "framing-bottom", "infill-top", "infill", "infill-bottom", "infill-pane", "glazing-top", "glazing-bottom"];
+
+    // Where two glazed diagonals' glass runs on, the pieces named for a join fill the half post's place
+    // beyond the rails' and the pane's -left and -right pieces.
+    private static readonly string[] DiagonalJoined = ["glazing-top", "glazing-bottom", "infill-pane"];
+
+    // A finish on a glazed diagonal is a border on the rails, cut to their heights.
+    private static readonly (string Part, double Lo, double Hi)[] DiagonalRails =
+    [
+        .. new[] { "top", "bottom" }.Select(rail => WallElements.Single(e => e.Name == "glazing-" + rail))
+            .Select(e => (e.Name["glazing".Length..], (double)e.From.Y, (double)e.To.Y)),
+    ];
 
     private static Element OnDiagonal(Element e, string suffix = "", double shift = 0)
         => e with { Name = e.Name + suffix, Offset = (6, 0, shift), RotationY = -45 };
 
     private static Element DiagonalRun(Element e, double lo, double hi, string suffix = "")
         => OnDiagonal(e with { From = (e.From.X, e.From.Y, 8 + lo), To = (e.To.X, e.To.Y, 8 + hi) }, suffix);
+
+    // A join's rail piece draws its end toward the cell, where it frames an inside corner with no rail beside it.
+    // The pane is a plane and has no end to draw.
+    private static Element InnerEnd(Element e, string face) => e.Name == "infill-pane" ? e : e with { Faces = [.. e.Faces!, face] };
 
     private static IEnumerable<Element> DiagonalFinish(double runLo, double runHi, string suffix = "")
         => from shift in new[] { -16, 0, 16 }
@@ -790,6 +837,16 @@ public static class WallShapeGen
            let hi = Math.Min(e.To.Z, 8 + runHi - shift)
            where hi > lo
            select OnDiagonal(e with { From = (e.From.X, e.From.Y, lo), To = (e.To.X, e.To.Y, hi), ClippedFrom = e }, suffix, shift);
+
+    // A finish's pieces over a run cut to each rail's height, or with `post`, where the half post stays, one piece over the
+    // post's whole height: `G-rim-join-left` and `-right`.
+    private static IEnumerable<Element> DiagonalRims(double runLo, double runHi, string suffix = "", bool post = false)
+        => from shift in new[] { -16, 0, 16 }
+           from e in WallElements
+           where e.Name.StartsWith("front") || e.Name.StartsWith("back")
+           from rail in post ? [("-join", double.NegativeInfinity, double.PositiveInfinity)] : DiagonalRails
+           from rim in RimPiece(e, rail.Part, ('z', 8 + runLo - shift, 8 + runHi - shift), ('y', rail.Lo, rail.Hi))
+           select OnDiagonal(rim, suffix, shift);
 
     private static readonly Element[] DiagonalElements =
     [
@@ -808,6 +865,18 @@ public static class WallShapeGen
         .. DiagonalFinish(-DiagonalEnd, DiagonalEnd),
         .. DiagonalFinish(-DiagonalCorner, -DiagonalEnd, "-left"),
         .. DiagonalFinish(DiagonalEnd, DiagonalCorner, "-right"),
+        .. WallElements.Where(e => DiagonalJoined.Contains(e.Name)).SelectMany(e => new[]
+        {
+            DiagonalRun(InnerEnd(e, "south"), -DiagonalCorner, 1 - DiagonalCorner, "-join-left"),
+            DiagonalRun(InnerEnd(e, "north"), DiagonalCorner - 1, DiagonalCorner, "-join-right"),
+        }),
+        .. DiagonalRims(-DiagonalEnd, DiagonalEnd),
+        .. DiagonalRims(1 - DiagonalCorner, -DiagonalEnd, "-left"),
+        .. DiagonalRims(DiagonalEnd, DiagonalCorner - 1, "-right"),
+        .. DiagonalRims(-DiagonalCorner, 1 - DiagonalCorner, "-join-left"),
+        .. DiagonalRims(DiagonalCorner - 1, DiagonalCorner, "-join-right"),
+        .. DiagonalRims(-DiagonalCorner, 1 - DiagonalCorner, "-left", post: true),
+        .. DiagonalRims(DiagonalCorner - 1, DiagonalCorner, "-right", post: true),
     ];
 
     private static readonly (string Slot, string Texture)[] DiagonalTextures =

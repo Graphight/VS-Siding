@@ -182,10 +182,11 @@ public class SidingWallEntityTests
                 "wall", "oak", "glass", "planks", null, "daub", finishes, j, glazed: true)));
     }
 
-    // A cornerout's three posts never drop, so glazing gives it ones of its own and a rail per
-    // leg between them whatever the sideways joins - and no fillers, which only a dropped stile needs.
+    // A glazed cornerout's corner post never drops and each leg's end post is named like a wall's stile, with a
+    // rail per leg between them, and the leg's filler in each rail's corner in place of an end post that has dropped.
+    // An opaque cornerout has no end posts, so it draws only its corner post and rails.
     [Fact]
-    public void GlazedCorneroutKeepsItsPosts()
+    public void GlazedCorneroutKeepsItsCornerPostAndNamesItsEndPosts()
     {
         var joins = new (bool above, bool below, bool left, bool right)[]
         {
@@ -197,16 +198,53 @@ public class SidingWallEntityTests
         Assert.Equal(
             new Dictionary<(bool, bool, bool, bool), string[]>
             {
-                [(false, false, false, false)] = ["glazing", "glazing-top", "glazing-bottom", "infill-pane"],
-                [(false, false, true, true)] = ["glazing", "glazing-top", "glazing-bottom", "infill-pane"],
-                [(true, true, false, false)] = ["glazing", "infill-pane"],
+                [(false, false, false, false)] = ["glazing", "glazing-left", "glazing-right", "glazing-top", "glazing-bottom", "infill-pane"],
+                [(false, false, true, true)] =
+                [
+                    "glazing", "glazing-top", "glazing-top-left", "glazing-top-right",
+                    "glazing-bottom", "glazing-bottom-left", "glazing-bottom-right", "infill-pane",
+                ],
+                [(true, true, false, false)] = ["glazing", "glazing-left", "glazing-right", "infill-pane"],
             },
             joins.ToDictionary(j => j, j => SidingWallEntity.SelectiveElements(
                 "cornerout", "oak", "glass", null, null, null, NoElementFinishes, j, glazed: true)));
+        Assert.Equal(
+            ["framing", "framing-top", "framing-bottom", "infill"],
+            SidingWallEntity.SelectiveElements(
+                "cornerout", "oak", "wattle", null, null, null, NoElementFinishes, (false, false, false, false), glazed: false));
     }
 
-    // A glazed corner's finishes are rims too, on both legs: the post's piece always, and the pieces over and
-    // under the opening for as long as the rails are drawn. The second front goes the way the front does.
+    // Each end post drops on its own join: left is leg 2's, right is leg 1's, and the finish rims follow the legs.
+    [Fact]
+    public void AGlazedCorneroutDropsEachEndPostOnItsOwnJoin()
+    {
+        var finishes = Dict("""{ "daub": {} }""");
+
+        Assert.Equal(
+            new string[][]
+            {
+                [
+                    "front-rim", "front-rim-right", "front-rim-top", "front-rim-bottom",
+                    "secondfront-rim", "secondfront-rim-top", "secondfront-rim-top-left", "secondfront-rim-bottom", "secondfront-rim-bottom-left",
+                    "glazing", "glazing-right", "glazing-top", "glazing-top-left", "glazing-bottom", "glazing-bottom-left", "infill-pane",
+                ],
+                [
+                    "front-rim", "front-rim-top", "front-rim-top-right", "front-rim-bottom", "front-rim-bottom-right",
+                    "secondfront-rim", "secondfront-rim-left", "secondfront-rim-top", "secondfront-rim-bottom",
+                    "glazing", "glazing-left", "glazing-top", "glazing-top-right", "glazing-bottom", "glazing-bottom-right", "infill-pane",
+                ],
+            },
+            new[]
+            {
+                SidingWallEntity.SelectiveElements("cornerout", "oak", "glass", "daub", "daub", null, finishes, (false, false, true, false), glazed: true),
+                SidingWallEntity.SelectiveElements("cornerout", "oak", "glass", "daub", "daub", null, finishes, (false, false, false, true), glazed: true),
+            });
+    }
+
+    // A glazed corner's finishes are rims too, on both legs: the corner post's piece always, the end post's piece
+    // (or the fillers' once it drops), and the pieces over and under the opening for as long as the rails are
+    // drawn. The front rims leg 1, whose end post is its right; the second front leg 2, whose is its left; the
+    // back both.
     [Fact]
     public void GlazedCorneroutDrawsEachFacesFinishAsARimOfTheFramesParts()
     {
@@ -219,30 +257,39 @@ public class SidingWallEntityTests
             (true, true, false, false),
         };
 
-        string[] unjoined =
-        [
-            "front-weatherboard-rim", "front-weatherboard-rim-top", "front-weatherboard-rim-bottom",
-            "secondfront-rim", "secondfront-rim-top", "secondfront-rim-bottom",
-            "glazing", "glazing-top", "glazing-bottom", "infill-pane",
-            "back-boards-rim", "back-boards-rim-top", "back-boards-rim-bottom",
-        ];
-
         Assert.Equal(
             new Dictionary<(bool, bool, bool, bool), string[]>
             {
-                [(false, false, false, false)] = unjoined,
-                // Sideways joins are a wall's, not a corner's.
-                [(false, false, true, true)] = unjoined,
+                [(false, false, false, false)] =
+                [
+                    "front-weatherboard-rim", "front-weatherboard-rim-right", "front-weatherboard-rim-top", "front-weatherboard-rim-bottom",
+                    "secondfront-rim", "secondfront-rim-left", "secondfront-rim-top", "secondfront-rim-bottom",
+                    "glazing", "glazing-left", "glazing-right", "glazing-top", "glazing-bottom", "infill-pane",
+                    "back-boards-rim", "back-boards-rim-left", "back-boards-rim-right", "back-boards-rim-top", "back-boards-rim-bottom",
+                ],
+                [(false, false, true, true)] =
+                [
+                    "front-weatherboard-rim", "front-weatherboard-rim-top", "front-weatherboard-rim-top-right",
+                    "front-weatherboard-rim-bottom", "front-weatherboard-rim-bottom-right",
+                    "secondfront-rim", "secondfront-rim-top", "secondfront-rim-top-left",
+                    "secondfront-rim-bottom", "secondfront-rim-bottom-left",
+                    "glazing", "glazing-top", "glazing-top-left", "glazing-top-right",
+                    "glazing-bottom", "glazing-bottom-left", "glazing-bottom-right", "infill-pane",
+                    "back-boards-rim", "back-boards-rim-top", "back-boards-rim-top-left", "back-boards-rim-top-right",
+                    "back-boards-rim-bottom", "back-boards-rim-bottom-left", "back-boards-rim-bottom-right",
+                ],
                 [(true, false, false, false)] =
                 [
-                    "front-weatherboard-rim", "front-weatherboard-rim-bottom",
-                    "secondfront-rim", "secondfront-rim-bottom",
-                    "glazing", "glazing-bottom", "infill-pane",
-                    "back-boards-rim", "back-boards-rim-bottom",
+                    "front-weatherboard-rim", "front-weatherboard-rim-right", "front-weatherboard-rim-bottom",
+                    "secondfront-rim", "secondfront-rim-left", "secondfront-rim-bottom",
+                    "glazing", "glazing-left", "glazing-right", "glazing-bottom", "infill-pane",
+                    "back-boards-rim", "back-boards-rim-left", "back-boards-rim-right", "back-boards-rim-bottom",
                 ],
                 [(true, true, false, false)] =
                 [
-                    "front-weatherboard-rim", "secondfront-rim", "glazing", "infill-pane", "back-boards-rim",
+                    "front-weatherboard-rim", "front-weatherboard-rim-right", "secondfront-rim", "secondfront-rim-left",
+                    "glazing", "glazing-left", "glazing-right", "infill-pane",
+                    "back-boards-rim", "back-boards-rim-left", "back-boards-rim-right",
                 ],
             },
             joins.ToDictionary(j => j, j => SidingWallEntity.SelectiveElements(
@@ -269,7 +316,11 @@ public class SidingWallEntityTests
                     "glazing-right", "glazing-top", "glazing-top-left", "glazing-bottom", "glazing-bottom-left", "infill-pane",
                     "back-rim-right", "back-rim-bottom", "back-rim-bottom-left",
                 ],
-                ["front-rim", "front-rim-top", "front-rim-bottom", "glazing", "glazing-top", "glazing-bottom", "infill-pane", "back-rim", "back-rim-bottom"],
+                [
+                    "front-rim", "front-rim-right", "front-rim-top", "front-rim-bottom",
+                    "glazing", "glazing-left", "glazing-right", "glazing-top", "glazing-bottom", "infill-pane",
+                    "back-rim", "back-rim-left", "back-rim-right", "back-rim-bottom",
+                ],
                 ["framing-left", "framing-right", "framing-top", "framing-bottom", "infill", "back"],
             },
             new[]
@@ -306,7 +357,7 @@ public class SidingWallEntityTests
     }
 
     // An inside corner draws the frame's filler alone, and each finish's rim on it, on a wall, a floor and
-    // a deck; a corner and an opaque wall have no fillers to draw.
+    // a deck; an opaque wall has no fillers to draw.
     [Fact]
     public void AnInsideCornerDrawsItsFillerAndEachFinishesRimOnIt()
     {
@@ -330,7 +381,7 @@ public class SidingWallEntityTests
                     "deck-west-glazing-right", "deck-west-glazing-bottom", "deck-west-glazing-bottom-left", "deck-west-glazing-top-left",
                     "deck-west-infill-pane",
                 ],
-                ["glazing", "glazing-bottom", "infill-pane"],
+                ["glazing", "glazing-right", "glazing-bottom", "glazing-bottom-left", "glazing-top-left", "infill-pane"],
                 ["framing-right", "framing-bottom", "infill", "infill-top"],
             },
             new[]
@@ -371,6 +422,106 @@ public class SidingWallEntityTests
                 SidingWallEntity.Ledges("diagonal", roomSideBare: true, glazed: false, unjoined),
                 SidingWallEntity.Ledges("diagonal", roomSideBare: true, glazed: true, unjoined),
             });
+    }
+
+    // A glazed diagonal draws the glass in glazing rails between its corner fillers, and its finish as rims on the
+    // rails. Where the run carries on, each piece reaches the corner and the rims also cover the half post's front
+    // full height, however the cell is stacked; a deck takes the room side's top rim, as it does on a wall.
+    [Fact]
+    public void AGlazedDiagonalDrawsRailsAndRimsAndRunsOnToTheCorner()
+    {
+        var finishes = Dict("""{ "daub": {} }""");
+        string[] Elements((bool, bool, bool, bool) joins, bool decked = false) => SidingWallEntity.SelectiveElements(
+            "diagonal", "oak", "glass", "daub", null, "daub", finishes, joins, glazed: true, decked: decked);
+
+        string[][] expected =
+        [
+            [
+                "front-rim-top", "front-rim-bottom", "glazing-top", "glazing-bottom", "infill-pane", "back-rim-top", "back-rim-bottom",
+                "framing-left", "framing-right",
+            ],
+            [
+                "front-rim-top", "front-rim-bottom", "glazing-top", "glazing-bottom", "infill-pane", "back-rim-top", "back-rim-bottom",
+                "front-rim-top-left", "front-rim-bottom-left", "glazing-top-left", "glazing-bottom-left", "infill-pane-left",
+                "back-rim-top-left", "back-rim-bottom-left",
+                "front-rim-join-left", "back-rim-join-left", "framing-join-left", "framing-right",
+            ],
+            [
+                "front-rim-bottom", "glazing-bottom", "infill-pane", "back-rim-bottom", "framing-left",
+                "front-rim-bottom-right", "glazing-bottom-right", "infill-pane-right", "back-rim-bottom-right",
+                "front-rim-join-right", "back-rim-join-right", "framing-join-right",
+            ],
+            [
+                "front-rim-top", "front-rim-bottom", "glazing-top", "glazing-bottom", "infill-pane", "back-rim-bottom",
+                "framing-left", "framing-right",
+            ],
+        ];
+
+        Assert.Equal(
+            expected,
+            [
+                Elements((false, false, false, false)),
+                Elements((false, false, true, false)),
+                Elements((true, false, false, true)),
+                Elements((false, false, false, false), decked: true),
+            ]);
+    }
+
+    // Where the glass of one glazed diagonal carries on into the next, the end draws no post: the rails and the pane
+    // reach through it and the rims follow the rails. Where the next cell's stack stops short of this one's, the rail
+    // this cell has merged away still crosses the post's place, framing the inside corner the sheet turns there.
+    [Fact]
+    public void AGlazedDiagonalWhoseGlassRunsOnDrawsRailsAndPaneInPlaceOfThePost()
+    {
+        var finishes = Dict("""{ "daub": {} }""");
+        string[] Elements((bool, bool, bool, bool) joins, (bool, bool) glassRunsOn, string[]? innerCorners = null)
+            => SidingWallEntity.SelectiveElements(
+                "diagonal", "oak", "glass", "daub", null, "daub", finishes, joins, glazed: true, innerCorners: innerCorners, glassRunsOn: glassRunsOn);
+
+        string[][] expected =
+        [
+            [
+                "front-rim-top", "front-rim-bottom", "glazing-top", "glazing-bottom", "infill-pane", "back-rim-top", "back-rim-bottom",
+                "front-rim-top-left", "front-rim-bottom-left", "glazing-top-left", "glazing-bottom-left", "infill-pane-left",
+                "back-rim-top-left", "back-rim-bottom-left",
+                "front-rim-top-join-left", "front-rim-bottom-join-left", "back-rim-top-join-left", "back-rim-bottom-join-left",
+                "glazing-top-join-left", "glazing-bottom-join-left", "infill-pane-join-left",
+                "framing-right",
+            ],
+            [
+                "front-rim-bottom", "glazing-bottom", "infill-pane", "back-rim-bottom", "framing-left",
+                "front-rim-bottom-right", "glazing-bottom-right", "infill-pane-right", "back-rim-bottom-right",
+                "front-rim-bottom-join-right", "back-rim-bottom-join-right",
+                "glazing-bottom-join-right", "infill-pane-join-right",
+            ],
+            [
+                "front-rim-top", "front-rim-bottom", "glazing-top", "glazing-bottom", "infill-pane", "back-rim-top", "back-rim-bottom",
+                "front-rim-top-left", "front-rim-bottom-left", "glazing-top-left", "glazing-bottom-left", "infill-pane-left",
+                "back-rim-top-left", "back-rim-bottom-left",
+                "front-rim-top-join-left", "front-rim-bottom-join-left", "back-rim-top-join-left", "back-rim-bottom-join-left",
+                "glazing-top-join-left", "glazing-bottom-join-left", "infill-pane-join-left",
+                "front-rim-top-right", "front-rim-bottom-right", "glazing-top-right", "glazing-bottom-right", "infill-pane-right",
+                "back-rim-top-right", "back-rim-bottom-right",
+                "front-rim-top-join-right", "front-rim-bottom-join-right", "back-rim-top-join-right", "back-rim-bottom-join-right",
+                "glazing-top-join-right", "glazing-bottom-join-right", "infill-pane-join-right",
+            ],
+            [
+                "front-rim-bottom", "glazing-bottom", "infill-pane", "back-rim-bottom",
+                "front-rim-bottom-left", "glazing-bottom-left", "infill-pane-left", "back-rim-bottom-left",
+                "front-rim-top-join-left", "front-rim-bottom-join-left", "back-rim-top-join-left", "back-rim-bottom-join-left",
+                "glazing-top-join-left", "glazing-bottom-join-left", "infill-pane-join-left",
+                "framing-right",
+            ],
+        ];
+
+        Assert.Equal(
+            expected,
+            [
+                Elements((false, false, true, false), (true, false)),
+                Elements((true, false, false, true), (false, true)),
+                Elements((false, false, true, true), (true, true)),
+                Elements((true, false, true, false), (true, false), ["-top-left"]),
+            ]);
     }
 
     // A diagonal takes a finish's own groups as a wall does, draws the plain frame for a rough one, and at

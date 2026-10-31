@@ -225,23 +225,45 @@ public class SidingWallBlock : Block
         // Glazing merges with the glazing around it in every direction, with no member between,
         // so a run of it reads as one sheet however large. Opaque fill keeps decision 0008's
         // alternating cross-beam. That is why this asks the infill and not the layout: merging
-        // belongs to glass, not to a shape. A cornerout's three posts stay put either way -
-        // corners are structural and a corner has nothing to merge along.
+        // belongs to glass, not to a shape. A cornerout merges at its two leg ends and its corner
+        // post stays either way (decision 0080).
         if (IsTransparent(infill, Attributes["Infills"]))
         {
             bool above = ContinuesGlazing(blockAccessor, pos.UpCopy(), infill);
             bool below = ContinuesGlazing(blockAccessor, pos.DownCopy(), infill);
-            if (ClaimsTwoFaces(Variant["layout"])) return (above, below, runsOn.left, runsOn.right);
-            var (left, right) = RunNeighbours(Variant["side"]);
-            return (above, below,
-                ContinuesGlazing(blockAccessor, pos.AddCopy(left), infill),
-                ContinuesGlazing(blockAccessor, pos.AddCopy(right), infill));
+            if (Variant["layout"] == "diagonal") return (above, below, runsOn.left, runsOn.right);
+            var (leftEnd, rightEnd) = LeftRightEnds(Variant["layout"], Variant["side"]);
+            return (above, below, EndContinuesGlazing(blockAccessor, pos, leftEnd, infill), EndContinuesGlazing(blockAccessor, pos, rightEnd, infill));
         }
 
         int cellsBelow = 0;
         for (BlockPos p = pos.DownCopy(); ContinuesFrame(blockAccessor, p, infill); p.Down()) cellsBelow++;
         return (JoinsAbove(ContinuesFrame(blockAccessor, pos.UpCopy(), infill), cellsBelow), cellsBelow > 0, runsOn.left, runsOn.right);
     }
+
+    // Which ends of a diagonal the glass carries on through: the run goes on there and the diagonal it
+    // goes on into is glazed in the same stack, so no post stands between them.
+    internal (bool left, bool right) GlassRunsOn(
+        IBlockAccessor blockAccessor, BlockPos pos, string? infill, (bool above, bool below, bool left, bool right) joins)
+    {
+        if (Variant["layout"] != "diagonal" || !IsTransparent(infill, Attributes["Infills"])) return default;
+        var (leftStep, rightStep) = DiagonalRunNeighbours(Variant["side"]);
+        return (joins.left && GlazedDiagonalAt(blockAccessor, pos.AddCopy(leftStep), infill),
+            joins.right && GlazedDiagonalAt(blockAccessor, pos.AddCopy(rightStep), infill));
+    }
+
+    // Which of a corner's post ends another cell's end meets, a T, whatever either is filled with: the left end
+    // of its front's line and the right end of its second face's. The post stays, and fills the slot the run crosses.
+    internal (bool left, bool right) Tees(IBlockAccessor blockAccessor, BlockPos pos)
+    {
+        if (Variant["layout"] != "cornerout") return default;
+        var ends = Ends("cornerout", Variant["side"]);
+        bool Met(End end) => WallAt(blockAccessor, pos.AddCopy(end.Points)) is var (wall, _) && JoinsAtEnd(end, wall.Variant["layout"], wall.Variant["side"]);
+        return (Met(ends[2]), Met(ends[3]));
+    }
+
+    private bool GlazedDiagonalAt(IBlockAccessor blockAccessor, BlockPos at, string? infill)
+        => ContinuesDiagonal(blockAccessor, at) && ContinuesGlazing(infill, WallAt(blockAccessor, at)?.entity, Attributes["Infills"]);
 
     // The corners a cell merged on both sides still has to frame, as the fillers' suffixes. Where the
     // cell diagonally across carries no glazing on, the sheet is an L and its frame turns an inside
@@ -252,13 +274,67 @@ public class SidingWallBlock : Block
             where rail.Joined && stile.Joined && !glazedAcross(rail.Part, stile.Part)
             select rail.Part + stile.Part).ToArray();
 
+    // A diagonal's sheet turns an inside corner at an end its glass runs on through, where the next cell's stack stops short of its own.
     internal string[] InnerCorners(IBlockAccessor blockAccessor, BlockPos pos, string? infill, (bool above, bool below, bool left, bool right) joins)
     {
-        if (Variant["layout"] != "wall" || !IsTransparent(infill, Attributes["Infills"])) return [];
-        var (left, right) = RunNeighbours(Variant["side"]);
+        if (!IsTransparent(infill, Attributes["Infills"])) return [];
+        if (Variant["layout"] == "diagonal")
+        {
+            var (leftStep, rightStep) = DiagonalRunNeighbours(Variant["side"]);
+            var glassOn = GlassRunsOn(blockAccessor, pos, infill, joins);
+            return InnerCorners((joins.above, joins.below, glassOn.left, glassOn.right), (rail, stile) =>
+                GlazedDiagonalAt(blockAccessor, pos.AddCopy(stile == "-left" ? leftStep : rightStep).Add(0, rail == "-top" ? 1 : -1, 0), infill));
+        }
+        if (Variant["layout"] is not ("wall" or "cornerout")) return [];
+        var (leftEnd, rightEnd) = LeftRightEnds(Variant["layout"], Variant["side"]);
         return InnerCorners(joins, (rail, stile) =>
-            ContinuesGlazing(blockAccessor, pos.AddCopy(stile == "-left" ? left : right).Add(0, rail == "-top" ? 1 : -1, 0), infill));
+            EndContinuesGlazing(blockAccessor, pos.AddCopy(0, rail == "-top" ? 1 : -1, 0), stile == "-left" ? leftEnd : rightEnd, infill));
     }
+
+    // Where a cell's frame stops along a run: the face the end lies on and the way the run carries on from it.
+    internal readonly record struct End(BlockFacing Face, BlockFacing Points);
+
+    // Each layout's, left then right. A wall's lie on `side`; a cornerout's and a diagonal's left lies on the
+    // second face and right on `side`, and the cornerout adds the two ends of its corner post (decision 0066).
+    internal static End[] Ends(string layout, string side)
+    {
+        BlockFacing face = BlockFacing.FromCode(side);
+        var (left, right) = RunNeighbours(side);
+        return layout switch
+        {
+            "wall" => [new(face, left), new(face, right)],
+            "cornerout" => [new(left, face.Opposite), new(face, right), new(face, left), new(left, face)],
+            "diagonal" => [new(left, face.Opposite), new(face, right)],
+            _ => [],
+        };
+    }
+
+    // The ends a cell's left and right joins answer for: a corner's leg 2 is its left and leg 1 its right.
+    internal static (End left, End right) LeftRightEnds(string layout, string side)
+    {
+        var ends = Ends(layout, side);
+        return (ends[0], ends[1]);
+    }
+
+    // Two ends on the same face pointing at each other are the one join seen from both cells.
+    internal static bool EndsMeet(End a, End b) => a.Face == b.Face && a.Points == b.Points.Opposite;
+
+    private bool EndContinuesGlazing(IBlockAccessor blockAccessor, BlockPos pos, End end, string? infill)
+    {
+        BlockPos neighbourPos = pos.AddCopy(end.Points);
+        if (WallAt(blockAccessor, neighbourPos) is not var (wall, neighbour)) return false;
+        return JoinsAtEnd(end, wall.Variant["layout"], wall.Variant["side"])
+            && ContinuesGlazing(infill, neighbour, Attributes["Infills"]);
+    }
+
+    // Whether a cell of `layout` and `side` has an end meeting `end`: another wall on its line, a corner
+    // whose leg end or corner post end lies against it, or a diagonal whose end meets it (decision 0080).
+    // Whether glass runs on through the join is EndContinuesGlazing's question, not this one's.
+    // shortcut: this compares the two ends alone, so a straight wall standing where a diagonal run passes its
+    // corner, a clashing build, may drop its stile against a diagonal whose run goes on into the next diagonal
+    // there instead; upgrade if players build it.
+    internal static bool JoinsAtEnd(End end, string layout, string side)
+        => Ends(layout, side).Any(other => EndsMeet(end, other));
 
     // A diagonal on the same line, whichever way it faces.
     private bool ContinuesDiagonal(IBlockAccessor blockAccessor, BlockPos neighbourPos)
@@ -568,16 +644,6 @@ public class SidingWallBlock : Block
         // Planks that can't finish this face still extend the wall via PlaceWallFrame, and held blocks still place.
         bool heldPlaces = slot.Itemstack!.Class == EnumItemClass.Block || MatchConsumes(heldCode, Attributes["Framings"]) != null;
 
-        // A glazed wall or corner takes a finish as a rim round the glass. A diagonal draws no rim, and a
-        // slab over it would just hide the glass. Refusing here rather than in ResolveFinishFace keeps
-        // breaking unchanged (decision 0013).
-        if (IsTransparent(entity.Infill, Attributes["Infills"]) && Variant["layout"] == "diagonal")
-        {
-            if (heldPlaces) return base.OnBlockInteractStart(world, byPlayer, blockSel);
-            (byPlayer as IServerPlayer)?.SendIngameError("vssiding:glazed", Lang.Get("vssiding:build-glazed"));
-            return true;
-        }
-
         string side = Variant["side"];
         string? face = ResolveFinishFace(Variant["layout"], side, blockSel.Face);
         if (face == null)
@@ -835,15 +901,17 @@ public class SidingWallBlock : Block
         base.OnNeighbourBlockChange(world, pos, neibpos);
         if (neibpos.X != pos.X || neibpos.Z != pos.Z)
         {
-            // Only glazing merges sideways, and only along its own run, so those are the only
+            // Only glazing merges sideways, and only at its ends, so those are the only
             // horizontal neighbours that can change what this cell draws - an opaque wall never
-            // joins one. Just this cell: merging is local, and the one thing drawn by a cell further
+            // joins one - bar a corner's post ends, where it fills a T's slot whatever its fill (Tees).
+            // Just this cell: merging is local, and the one thing drawn by a cell further
             // off, an inside corner (InnerCorners), is redrawn where a layer changes (MarkNeighboursDirty).
-            if (neibpos.Y != pos.Y || ClaimsTwoFaces(Variant["layout"])) return;
+            if (neibpos.Y != pos.Y || Variant["layout"] == "diagonal") return;
             var entity = world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos);
-            if (entity == null || !IsTransparent(entity.Infill, Attributes["Infills"])) return;
-            var (left, right) = RunNeighbours(Variant["side"]);
-            if (neibpos.Equals(pos.AddCopy(left)) || neibpos.Equals(pos.AddCopy(right))) entity.MarkDirty(true);
+            if (entity == null) return;
+            var ends = Ends(Variant["layout"], Variant["side"]);
+            if (!IsTransparent(entity.Infill, Attributes["Infills"])) ends = Variant["layout"] == "cornerout" ? ends[2..] : [];
+            if (ends.Any(end => neibpos.Equals(pos.AddCopy(end.Points)))) entity.MarkDirty(true);
             return;
         }
         if (neibpos.Y == pos.Y + 1) world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos)?.MarkDirty(true);
@@ -862,22 +930,24 @@ public class SidingWallBlock : Block
         // cells diagonally across are told too: each frames its inside corner by this one (InnerCorners).
         if (world.BlockAccessor.GetBlock(pos) is not SidingWallBlock block) return;
         if (block.Variant["layout"] == "diagonal") MarkDiagonalRunDirty(world, pos, block.Variant["side"]);
-        if (ClaimsTwoFaces(block.Variant["layout"])) return;
-        var (left, right) = RunNeighbours(block.Variant["side"]);
+        BlockFacing[] sideways = [.. Ends(block.Variant["layout"], block.Variant["side"]).Select(end => end.Points)];
+        for (int dy = -1; dy <= 1; dy++)
+        {
+            foreach (var facing in sideways) world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos.AddCopy(facing).Add(0, dy, 0))?.MarkDirty(true);
+        }
+    }
+
+    // A diagonal draws its end by whether the next cell carries the run on, and its inside corner there by
+    // the cells above and below that one (InnerCorners). None of them is a face neighbour, so vanilla's
+    // neighbour update reaches none of them.
+    private static void MarkDiagonalRunDirty(IWorldAccessor world, BlockPos pos, string side)
+    {
+        var (left, right) = DiagonalRunNeighbours(side);
         for (int dy = -1; dy <= 1; dy++)
         {
             world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos.AddCopy(left).Add(0, dy, 0))?.MarkDirty(true);
             world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos.AddCopy(right).Add(0, dy, 0))?.MarkDirty(true);
         }
-    }
-
-    // A diagonal draws its end by whether the next cell carries the run on, and that cell is no face
-    // neighbour, so vanilla tells it nothing.
-    private static void MarkDiagonalRunDirty(IWorldAccessor world, BlockPos pos, string side)
-    {
-        var (left, right) = DiagonalRunNeighbours(side);
-        world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos.AddCopy(left))?.MarkDirty(true);
-        world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos.AddCopy(right))?.MarkDirty(true);
     }
 
     public override void OnBlockRemoved(IWorldAccessor world, BlockPos pos)

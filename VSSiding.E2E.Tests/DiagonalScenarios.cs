@@ -74,9 +74,9 @@ public class DiagonalScenarios : AtlasScenarioBase
         Assert.Equal((false, "clay", true), (bare, DeckInfill(cell), World.BlockAt(cell).GetRetention(cell, BlockFacing.UP, EnumRetentionType.Heat) != 0));
     }
 
-    // The one glazed cell that takes no finish (decision 0071): the wall hands the planks on, to place as they would anywhere.
+    // A glazed diagonal takes a finish like any glazed cell, as a rim round the glass.
     [AtlasScenario(FreshWorld = true)]
-    public async Task Diagonal_Should_TakeNoFinish_When_ItIsGlazedAndPlanksArePressedOnItsFront()
+    public async Task Diagonal_Should_TakeTheFinish_When_ItIsGlazedAndPlanksArePressedOnItsFront()
     {
         (BlockPos cell, ITestPlayer player) = await RaiseFrame("diagonal", deck: false);
         Block wall = World.BlockAt(cell);
@@ -87,7 +87,7 @@ public class DiagonalScenarios : AtlasScenarioBase
         await player.GiveItem("game:plank-oak", 4);
         bool handled = wall.OnBlockInteractStart(player.Entity.World, player.Player, frontSel);
 
-        Assert.Equal((false, ("oak", "glass-plain", null, null, null)), (handled, WallBuilder.Layers(World, cell)));
+        Assert.Equal((true, ("oak", "glass-plain", "planks", null, null)), (handled, WallBuilder.Layers(World, cell)));
     }
 
     // With no saw held the wall's click hosts or hands the click on; vanilla's placement asks IsReplacableBy.
