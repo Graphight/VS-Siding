@@ -101,4 +101,4 @@ The shape tests generate each shape once per run and reuse it, since regeneratin
 - Decisions 0019, 0066 and 0071 are amended in part and say so in their status lines.
 - Every T at a corner post whose face is bare changes on load, opaque ones included, since the tee pieces stand whatever the fill.
 - A diagonal at a corner's post keeps its mitre filler, whose face shows over a bare corner's empty front slot, as it does beside a bare wall.
-- The playtest of PR #144 showed every merge and redraw on its list working bar the T, and a second showed the glazed tee pieces closing its slot; the opaque ones are not played yet, and the Atlas scenario asserts only that a finish goes on a glazed diagonal.
+- The playtest of PR #144 showed every merge and redraw on its list working bar the T, and two more showed the tee pieces closing its slot, glazed and then opaque; the Atlas scenario asserts only that a finish goes on a glazed diagonal.
