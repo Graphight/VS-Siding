@@ -65,6 +65,23 @@ public class StickScenarios : AtlasScenarioBase
                 .Single()));
     }
 
+    // A frame the sticks cannot pay for still claims the click, so a later stick behavior never runs in its place (#143).
+    [AtlasScenario(FreshWorld = true)]
+    public async Task Click_Should_StayHandled_When_TooFewSticksForAFrame()
+    {
+        BlockPos cell = World.Spawn.Offset(1, 2, 0);
+        World.SetBlock("game:planks-aged-ud", cell.DownCopy());
+        ITestPlayer player = await WallBuilder.JoinBuilder(World);
+
+        await player.GiveItem("game:stick", 1);
+        ItemSlot slot = player.Player.InventoryManager.ActiveHotbarSlot;
+        var groundSel = new BlockSelection { Position = cell.DownCopy(), Face = BlockFacing.UP, HitPosition = new Vec3d(0.5, 1, 0.5) };
+        var handling = EnumHandHandling.NotHandled;
+        slot.Itemstack!.Collectible.OnHeldInteractStart(slot, player.Entity, groundSel, null, true, ref handling);
+
+        Assert.Equal((EnumHandHandling.PreventDefault, "game:air", 1), (handling, World.BlockAt(cell).Code.ToString(), slot.Itemstack.StackSize));
+    }
+
     private static async Task SneakClickTop(ITestPlayer player, BlockPos cell)
     {
         await player.GiveItem("game:stick", 4);
