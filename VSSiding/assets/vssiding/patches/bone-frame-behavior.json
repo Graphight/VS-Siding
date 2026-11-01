@@ -2,7 +2,7 @@
 	{
 		"op": "add",
 		"file": "game:itemtypes/resource/bone.json",
-		"path": "/behaviors/-",
+		"path": "/behaviors/2",
 		"value": { "name": "vssiding.PlaceWallFrame" }
 	}
 ]

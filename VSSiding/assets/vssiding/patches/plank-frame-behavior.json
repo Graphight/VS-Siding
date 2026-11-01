@@ -2,7 +2,7 @@
 	{
 		"op": "add",
 		"file": "game:itemtypes/resource/plank.json",
-		"path": "/behaviors/-",
+		"path": "/behaviors/1",
 		"value": { "name": "vssiding.PlaceWallFrame" }
 	}
 ]
