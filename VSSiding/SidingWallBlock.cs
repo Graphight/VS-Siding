@@ -1020,25 +1020,15 @@ public class SidingWallBlock : Block
     internal static bool FrontsFaceEachOther(string layout, string side, string direction, string otherLayout, string otherSide)
         => FrontDirections(layout, side).Contains(direction) && FrontDirections(otherLayout, otherSide).Contains(Opposite(direction));
 
-    // The front slot whose edge a click on a wall's or cornerout's end face lands on: a wall's two ends are its front's,
-    // a cornerout's first leg ends at its right and its second at its first end (the corner post's ends are no leg's).
-    internal static string? EndFaceFront(string layout, string side, BlockFacing clickedFace)
-    {
-        if (layout is not ("wall" or "cornerout")) return null;
-        var (left, right) = LeftRightEnds(layout, side);
-        if (clickedFace == right.Points) return "front";
-        return clickedFace == left.Points ? (layout == "wall" ? "front" : "secondfront") : null;
-    }
-
-    // The front slot an end-face click finishes: the one it lies on, while another wall's front hides it and it is bare (decision 0083).
+    // "front" for a click on a plain wall's end while its front is bare and another wall's front hides it (decision 0083).
+    // A cornerout's leg ends share their faces with its back, which ResolveFinishFace answers first; its hidden front is
+    // reached through the back's far face instead (decision 0075).
     internal string? HiddenBareFrontAtEnd(IBlockAccessor blockAccessor, BlockPos pos, BlockFacing clickedFace, SidingWallEntity entity)
     {
-        string layout = Variant["layout"], side = Variant["side"];
-        if (ResolveFinishFace(layout, side, clickedFace) != null || EndFaceFront(layout, side, clickedFace) is not { } slot) return null;
-        string direction = slot == "front" ? side : CorneroutSecondFace[side];
-        if ((slot == "front" ? entity.Front : entity.SecondFront) != null) return null;
-        return WallAt(blockAccessor, pos.AddCopy(BlockFacing.FromCode(direction))) is var (wall, _)
-            && FrontsFaceEachOther(layout, side, direction, wall.Variant["layout"], wall.Variant["side"]) ? slot : null;
+        string side = Variant["side"];
+        if (Variant["layout"] != "wall" || !clickedFace.IsHorizontal || ResolveFinishFace("wall", side, clickedFace) != null || entity.Front != null) return null;
+        return WallAt(blockAccessor, pos.AddCopy(BlockFacing.FromCode(side))) is var (wall, _)
+            && FrontsFaceEachOther("wall", side, side, wall.Variant["layout"], wall.Variant["side"]) ? "front" : null;
     }
 
     // The faces this block's panels actually cover: the hugged side, plus a cornerout's or diagonal's second face.

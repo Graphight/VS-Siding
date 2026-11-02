@@ -220,22 +220,6 @@ public class SidingWallBlockBuildFlowTests
         Assert.Equal(expected, SidingWallBlock.ResolveFinishFace(layout, side, BlockFacing.FromCode(clicked)));
     }
 
-    [Fact]
-    public void EndFaceFrontNamesTheFrontSlotWhoseEdgeAWallOrLegEndsOn()
-    {
-        (string, string, string)[] cases =
-        [
-            ("wall", "west", "north"), ("wall", "west", "south"), ("wall", "west", "west"), ("wall", "west", "up"),
-            ("cornerout", "west", "south"), ("cornerout", "west", "east"), ("cornerout", "west", "north"), ("cornerout", "west", "west"),
-            ("cornerout", "north", "west"), ("cornerout", "north", "south"),
-            ("diagonal", "west", "north"), ("cornerin", "west", "north"),
-        ];
-
-        Assert.Equal(
-            ["front", "front", null, null, "front", "secondfront", null, null, "front", "secondfront", null, null],
-            cases.Select(c => SidingWallBlock.EndFaceFront(c.Item1, c.Item2, BlockFacing.FromCode(c.Item3))));
-    }
-
     [Theory]
     [InlineData("wall", "west", "east", true)]
     [InlineData("wall", "west", "west", false)]

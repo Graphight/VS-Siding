@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Created: 2026-11-01
-- Reflects: branch `inside-corner-post`; `SidingWallBlock.FrontsFaceEachOther`/`EndFaceFront`/`HiddenBareFrontAtEnd`, `SidingWallEntity`'s facing-front fill, `VSSiding.Tests/WallShapeGen` (`infill-front`/`infill-secondfront` groups), `SidingWallEntityTests`, `VSSiding.E2E.Tests/FarFaceScenarios.cs`; decisions 0003, 0065, 0074, 0075; not yet played
+- Reflects: branch `inside-corner-post`; `SidingWallBlock.FrontsFaceEachOther`/`HiddenBareFrontAtEnd`, `SidingWallEntity`'s facing-front fill, `VSSiding.Tests/WallShapeGen` (`infill-front`/`infill-secondfront` groups), `SidingWallEntityTests`, `VSSiding.E2E.Tests/FarFaceScenarios.cs`; decisions 0003, 0065, 0074, 0075; not yet played
 
 ## Summary
 Two walls on either side of one cell boundary put their fronts on the same plane.
@@ -34,8 +34,10 @@ Absorption is unchanged, so a bare wattle pair still passes light (decision 0074
 `DescribeFaces` treats a front closed this way as covered, as it does a buried one (decision 0065).
 
 **End-face finish click.**
-At the wall's null-face fall-through, a finish clicked on a wall's end goes onto the front whose edge it is (`EndFaceFront`), when that front is bare and hidden by a facing front (`HiddenBareFrontAtEnd`).
+At the wall's null-face fall-through, a finish clicked on a plain wall's end goes onto its front, when that front is bare and hidden by a facing front (`HiddenBareFrontAtEnd`).
 Every other end-face click extends the run as before, and a sneak-click still frames the next cell.
+A `cornerout` takes no end-face click: each leg's end lies on a face that `ResolveFinishFace` already names as the corner's back, so the click finishes the back.
+Its hidden front is reached through the back once that is finished, as a finish on a finished face goes on the face behind it (decision 0075).
 `PlaceWallFrame` needs no guard: vanilla calls the block's `OnBlockInteractStart` before the held item's, so a click that finishes the front never reaches it.
 
 ## Alternatives considered
