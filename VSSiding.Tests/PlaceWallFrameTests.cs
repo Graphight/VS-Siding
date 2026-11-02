@@ -18,7 +18,7 @@ public class PlaceWallFrameTests
     [Fact]
     public void PostChargesAQuarterOfTheFramingRoundedUpToOne()
     {
-        Assert.Equal(new[] { 1, 1, 2, 1 }, new[] { 2, 4, 8, 1 }.Select(SidingWallBlock.PostQuarter));
+        Assert.Equal(new[] { 1, 1, 1, 2, 2, 2, 2, 3 }, new[] { 1, 2, 4, 5, 6, 7, 8, 9 }.Select(SidingWallBlock.PostQuarter));
     }
 
     // Behaviors answer a click in array order, so the framing behavior has to sit ahead of any behavior another mod appended (#143).
