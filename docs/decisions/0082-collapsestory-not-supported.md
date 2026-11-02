@@ -32,23 +32,26 @@ CollapseStory gives planks `StructuralLoad` and does not count a siding wall und
 Vanilla planks never fall, so this is CollapseStory's doing.
 3. `Wall_Should_Stay_When_RaisedOnAWall`: both walls stay.
 4. `Floor_Should_Stay_When_ItSpansARoomBetweenTwoWalls`: with the planks under a thin floor removed across three cells between two walls, all three cells stay.
-5. `Cabinet_Should_BeRefusedOverAWall_And_FallWhenItsGroundGoes` and `ScrollRack_Should_BeRefusedOverAWall_And_FallWhenItsGroundGoes`: CollapseStory gives vanilla cabinets, scroll racks, chests, trunks, crates, bookshelves, lanterns, doors and trapdoors the vanilla `UnstableFalling` behavior (`patches/collapsestory-unstablefalling-fixtures.json`); without it none of them have it.
-That behavior's `CanPlaceBlock` fails with `requiresolidground` unless the block below answers `CanAttachBlockAt` on its top, and a siding wall does not.
+5. `Cabinet_Should_BeRefused_When_HostedOverAWall`, `ScrollRack_Should_BeRefused_When_HostedOverAWall`, and the two `_Should_FallAndLeaveItsWall_When_ThePlanksUnderItsWallBreak`: CollapseStory gives vanilla cabinets, scroll racks, chests, trunks, crates, bookshelves, lanterns, doors and trapdoors the vanilla `UnstableFalling` behavior (`patches/collapsestory-unstablefalling-fixtures.json`); without it none of them have it.
+For a block that lists no `attachableFaces`, that behavior's `CanPlaceBlock` fails with `requiresolidground` unless the block below answers `CanAttachBlockAt` on its top, and a siding wall does not.
 So a cabinet or scroll rack cannot be hosted in a wall cell over another wall, which is an upper storey.
-Hosted in a wall standing on planks, it falls when the planks under the wall are broken, and the guest wall is restored with its guest record cleared, so no wall is lost.
+Hosted in a wall standing on planks, it falls when the planks under the wall are broken, and the wall comes back with its layers and its guest record cleared, so no wall is lost.
+Lanterns, doors and trapdoors list `attachableFaces` on all six faces, and antler mounts and torch holders on the four sides, so for them the behavior passes when any listed neighbour takes the attachment; they were not probed.
 6. `Wall_Should_Stay_When_ThePlanksUnderItAreBroken`: breaking the planks through the player's break path leaves the wall standing in the air.
 
-The probe's hosting table lists CollapseStory's own blocks (mortared bricks, cobble, mud brick and the like).
-All are refused for solid sides, as any full building block is.
+The probe's hosting table lists CollapseStory's own blocks.
+Its building blocks (mortared bricks, cobble, mud brick, tile and the like) are refused for solid sides, as any full building block is.
+Its two support beams are not hosted either: the stick beam is refused as replaceable, and the metal beam failed to place, for a reason the probe does not record.
 That file is rewritten by each probe run, which is why the findings are recorded here.
 
 ## Alternatives considered
-- **Opt walls and floors into `StructuralLoad` by a conditional patch.** Every wall would get one strength, and a covered block on a wall would still fall unless CollapseStory reads the wall as support.
+- **Opt walls and floors into `StructuralLoad` by a conditional patch.** Every wall would get one strength whatever it is built from, and whether CollapseStory would then count a wall as support for the block above was not tested.
 - **Make walls answer `CanAttachBlockAt` upward so hosted furniture places over a wall.** It changes attachment for every block in every game (decision 0020's list of consumers), for one mod.
 - **An issue-only answer with no scenarios.** It leaves no evidence for a later look.
 
 ## Consequences & open questions
-- A player who runs both mods finds that a covered block set on a wall falls, and that `UnstableFalling` furniture is not hosted in an upper storey.
-- Walls never collapse.
-- Not checked: beams anchored on a wall face, Roofing on a wall, wind loads, a deck.
+- A player who runs both mods finds that a covered block set on a wall falls, and that a cabinet, scroll rack, chest, trunk, crate or bookshelf is not hosted in an upper storey.
+- A wall stays standing with nothing under it.
+- Not checked: lanterns, doors and trapdoors hosted in a wall, beams anchored on a wall face, Roofing on a wall, wind loads, a deck.
+- Not checked: CollapseStory adds `UnstableFalling` on the server only, so a client predicts a cabinet's placement over a wall that the server refuses, and whether the client's guest record (#65) is left behind was not looked at.
 - The scenarios run only under `just probe collapsestory`, so a CollapseStory update may change these results with nothing in `just e2e` noticing.
