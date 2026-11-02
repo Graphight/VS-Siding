@@ -397,6 +397,8 @@ public static class WallShapeGen
         new("infill", (1.5, 1, 1), (2.5, 15, 15), "infill", UvRule.Positional),
         new("infill-bottom", (1.5, 0, 1), (2.5, 1, 15), "infill", UvRule.Positional),
         new("infill-pane", (2, 0, 0), (2, 16, 16), "infill", UvRule.Flat, Faces: ["west", "east"]),
+        // A bare front facing another wall's front is closed in the infill (decision 0083).
+        new("infill-front", (0, 0, 0), (1, 16, 16), "infill", UvRule.Positional),
         // A glazed cell's frame: stiles, the rails between them, and a filler in each corner for a rail
         // whose stile has merged away. A rail's ends always stand against another piece, so those
         // faces are left out; a filler keeps all six, since at an L's inside corner it stands alone.
@@ -718,6 +720,8 @@ public static class WallShapeGen
         new("framing", (1, 0, 15), (3, 16, 16), "framing", UvRule.Flat),
         new("back", (3, 0, 4), (4, 16, 16), "back", UvRule.Flat),
         new("secondfront", (1, 0, 0), (16, 16, 1), "secondfront", UvRule.Flat),
+        new("infill-front", (0, 0, 0), (1, 16, 16), "infill", UvRule.Positional),
+        new("infill-secondfront", (1, 0, 0), (16, 16, 1), "infill", UvRule.Positional),
         .. StepSetElements(corner: true),
         new("framing-top", (3, 15, 1), (15, 16, 3), "framing", UvRule.Flat),
         new("framing-bottom", (3, 0, 1), (15, 1, 3), "framing", UvRule.Flat),

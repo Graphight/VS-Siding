@@ -95,6 +95,53 @@ public class SidingWallEntityTests
                 .Where(SidingWallEntity.IsInfillElement).ToArray());
     }
 
+    [Fact]
+    public void FrontsFaceEachOtherOnlyWhereBothHaveAFrontSlotOnTheSharedBoundary()
+    {
+        (string, string, string, string, string)[] cases =
+        [
+            ("wall", "west", "west", "wall", "east"),
+            ("wall", "west", "west", "wall", "west"),
+            ("wall", "west", "west", "wall", "north"),
+            ("wall", "west", "west", "cornerout", "east"),
+            ("wall", "north", "north", "cornerout", "north"),
+            ("cornerout", "west", "north", "wall", "south"),
+            ("cornerout", "west", "north", "cornerout", "south"),
+            ("cornerout", "west", "south", "wall", "north"),
+            ("wall", "west", "west", "diagonal", "east"),
+            ("diagonal", "east", "east", "wall", "west"),
+            ("wall", "west", "west", "cornerin", "east"),
+            ("cornerin", "east", "east", "wall", "west"),
+        ];
+
+        Assert.Equal(
+            [true, false, false, true, false, true, true, false, false, false, false, false],
+            cases.Select(c => SidingWallBlock.FrontsFaceEachOther(c.Item1, c.Item2, c.Item3, c.Item4, c.Item5)));
+    }
+
+    [Fact]
+    public void ABareFrontFacingAnotherFrontDrawsItsInfillWhileTheWallHasOne()
+    {
+        Assert.Equal(
+            new string[][] {
+                new[] { "infill-front", "infill" },
+                new[] { "infill" },
+                System.Array.Empty<string>(),
+                new[] { "infill" },
+                new[] { "infill-front", "infill-secondfront", "infill" } },
+            new string[][] {
+                Elements("wall", "wattle", null, null, (true, false)),
+                Elements("wall", "wattle", "daub", null, (true, false)),
+                Elements("wall", null, null, null, (true, false)),
+                Elements("wall", "wattle", null, null, (false, false)),
+                Elements("cornerout", "wattle", null, null, (true, true)) });
+    }
+
+    private static string[] Elements(string layout, string? infill, string? front, string? secondFront, (bool front, bool second) closed)
+        => SidingWallEntity.SelectiveElements(layout, "oak", infill, front, secondFront, null, Dict("""{ "daub": { "Elements": { "front": "front" } } }"""),
+            (false, false, false, false), glazed: false, closed: closed)
+            .Where(name => name is "infill-front" or "infill-secondfront" or "infill").ToArray();
+
     // Glazing splits the mesh in two by this predicate, so a name landing on the wrong side
     // renders the frame see-through or the glass solid - neither of which throws.
     [Fact]

@@ -965,6 +965,8 @@ public class SidingWallBlock : Block
             if (neibpos.Y != pos.Y || Variant["layout"] == "diagonal") return;
             var entity = world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos);
             if (entity == null) return;
+            // The wall across a front face decides whether a bare front draws closed.
+            if (FrontDirections(Variant["layout"], Variant["side"]).Any(direction => neibpos.Equals(pos.AddCopy(BlockFacing.FromCode(direction))))) entity.MarkDirty(true);
             var ends = Ends(Variant["layout"], Variant["side"]);
             if (!IsTransparent(entity.Infill, Attributes["Infills"])) ends = Variant["layout"] == "cornerout" ? ends[2..] : [];
             if (ends.Any(end => neibpos.Equals(pos.AddCopy(end.Points)))) entity.MarkDirty(true);
@@ -1023,6 +1025,18 @@ public class SidingWallBlock : Block
 
     // A cornerout and a diagonal both claim the hugged side and the face counter-clockwise from it.
     internal static bool ClaimsTwoFaces(string layout) => layout is "cornerout" or "diagonal";
+
+    // The directions a wall's or cornerout's front slots face: a diagonal's panel is not flush with its faces and a post has none.
+    internal static string[] FrontDirections(string layout, string side) => layout switch
+    {
+        "wall" => [side],
+        "cornerout" => [side, CorneroutSecondFace[side]],
+        _ => [],
+    };
+
+    // Whether the wall across `direction` has a front slot facing back, so the two fronts lie against each other (decision 0083).
+    internal static bool FrontsFaceEachOther(string layout, string side, string direction, string otherLayout, string otherSide)
+        => FrontDirections(layout, side).Contains(direction) && FrontDirections(otherLayout, otherSide).Contains(Opposite(direction));
 
     // The faces this block's panels actually cover: the hugged side, plus a cornerout's or diagonal's second face.
     // An inside corner's post covers none.
