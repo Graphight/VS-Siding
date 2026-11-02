@@ -220,6 +220,19 @@ public class SidingWallBlockBuildFlowTests
         Assert.Equal(expected, SidingWallBlock.ResolveFinishFace(layout, side, BlockFacing.FromCode(clicked)));
     }
 
+    [Theory]
+    [InlineData("wall", "west", "east", true)]
+    [InlineData("wall", "west", "west", false)]
+    [InlineData("cornerout", "west", "north", false)]
+    [InlineData("cornerin", "west", "east", true)]
+    [InlineData("cornerin", "west", "south", true)]
+    [InlineData("cornerin", "west", "west", false)]
+    [InlineData("cornerin", "west", "up", false)]
+    public void HostsClickTakesAWallsBackOrEitherOfAPostsFaces(string layout, string side, string clicked, bool expected)
+    {
+        Assert.Equal(expected, SidingWallBlock.HostsClick(layout, side, BlockFacing.FromCode(clicked)));
+    }
+
     // Every wall is one leg of two possible corners, and the click picks which by which end of
     // the run it landed nearer. The run's axis and its direction both change with `side`, so all
     // four sides are here at both ends: a fixed "coordinate below 0.5" gets east and south wrong.

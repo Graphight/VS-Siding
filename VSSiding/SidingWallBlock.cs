@@ -515,7 +515,7 @@ public class SidingWallBlock : Block
         ItemSlot slot = byPlayer.InventoryManager.ActiveHotbarSlot;
         Block? heldBlock = slot.Itemstack?.Block;
         if (heldBlock == null || !SidingModSystem.IsHostableId(heldBlock.BlockId) || Variant["layout"] == "diagonal") return false;
-        if (ResolveFinishFace(Variant["layout"], Variant["side"], blockSel.Face) != "back") return false;
+        if (!HostsClick(Variant["layout"], Variant["side"], blockSel.Face)) return false;
 
         // Furniture would sit where the deck or step is. Swallowed rather than returning false,
         // which hands the click to vanilla and hosts anyway. Other ways in drop it
@@ -1738,6 +1738,13 @@ public class SidingWallBlock : Block
         if (!ClaimsTwoFaces(layout)) return null;
         return FinishFaceFor(CorneroutSecondFace[side], clickedFace, layout == "diagonal" ? "front" : "secondfront");
     }
+
+    // A click hosts furniture on a wall's open side, "back"; a post has no back, so either of its faces does.
+    internal static bool HostsClick(string layout, string side, BlockFacing clickedFace)
+        => ResolveFinishFace(layout, side, clickedFace) is { } face && (face == "back" || layout == "cornerin");
+
+    // The two faces a post stands against; it claims none, but a hosted block shifts away from both.
+    internal static string[] PostFaces(string side) => [side, CorneroutSecondFace[side]];
 
     private static string? FinishFaceFor(string side, BlockFacing clickedFace, string frontLayer)
     {

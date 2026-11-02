@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Atlas.Api;
@@ -104,6 +105,48 @@ public class PostScenarios : AtlasScenarioBase
         bool handled = World.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, sideSel);
 
         Assert.Equal((true, null, ("oak", null, null, null)), (handled, slot.Itemstack, DeckLayers(cell)));
+    }
+
+    // A click on either of a post's two faces hosts a table in its cell and the post becomes the guest; breaking the table brings it back.
+    [AtlasScenario(FreshWorld = true)]
+    public async Task Post_Should_BecomeAGuestAndComeBack_When_AFurnitureBlockIsHostedOnEitherFaceAndBroken()
+    {
+        BlockPos cell = World.Spawn.Offset(1, 2, 0);
+        World.SetBlock("game:planks-aged-ud", cell.DownCopy());
+        ITestPlayer player = await WallBuilder.JoinBuilder(World);
+        player.Entity.WatchedAttributes.SetString("vssidingFraming", "post");
+        await player.TeleportTo(cell.WestCopy());
+        await player.GiveItem("game:plank-oak", 1);
+        ItemSlot slot = player.Player.InventoryManager.ActiveHotbarSlot;
+        var sel = new BlockSelection { Position = cell.DownCopy(), Face = BlockFacing.UP, HitPosition = new Vec3d(0.2, 1, 0.8) };
+        var handling = EnumHandHandling.NotHandled;
+        slot.Itemstack!.Collectible.OnHeldInteractStart(slot, player.Entity, sel, null, true, ref handling);
+        (string?, string?, string?, string?, string?) guestPost = ("oak", null, null, null, null);
+        Assert.Equal(guestPost, WallBuilder.Layers(World, cell));
+
+        var seen = new List<(string, (string?, string?, string?, string?, string?)?)>();
+        foreach (BlockFacing face in new[] { BlockFacing.NORTH, BlockFacing.EAST })
+        {
+            player.Entity.LeftHandItemSlot.Itemstack = null;
+            slot.Itemstack = new ItemStack(World.Api.World.GetBlock(new AssetLocation("game:table-normal")));
+            var click = new BlockSelection { Position = cell.Copy(), Face = face, HitPosition = new Vec3d(0.5, 0.5, 0.5) };
+            Assert.True(World.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, click));
+            seen.Add((World.BlockAt(cell).Code.ToString(), WallBuilder.GuestLayers(World, cell)));
+
+            World.BlockAt(cell).OnBlockBroken(player.Entity.World, cell, player.Player);
+            await World.Ticks(2);
+            seen.Add((World.BlockAt(cell).Code.Path, WallBuilder.GuestLayers(World, cell)));
+        }
+
+        Assert.Equal(
+            new (string, (string?, string?, string?, string?, string?)?)[]
+            {
+                ("game:table-normal", guestPost),
+                ("wall-cornerin-south", null),
+                ("game:table-normal", guestPost),
+                ("wall-cornerin-south", null),
+            },
+            seen.ToArray());
     }
 
     private (string? Deck, string? Infill, string? Front, string? Back) DeckLayers(BlockPos cell)
