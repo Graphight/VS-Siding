@@ -23,17 +23,31 @@ public class CollapseStoryScenarios : AtlasScenarioBase
 
     private BlockPos Cell => World.Spawn.Offset(1, 2, 0);
 
-    private string CodeAt(BlockPos pos) => World.BlockAt(pos).Code.ToString();
+    private string CodeAt(BlockPos pos) => World.BlockAt(pos).Code.ToShortString();
+
+    private bool IsWall(BlockPos pos) => World.BlockAt(pos).Code is { Domain: "vssiding" } code && code.Path.StartsWith("wall");
+
+    private async Task AsBuilder(System.Func<ITestPlayer, Task> act)
+    {
+        ITestPlayer player = await WallBuilder.JoinBuilder(World);
+        try
+        {
+            await act(player);
+        }
+        finally
+        {
+            player.Player.Disconnect();
+            await World.Until(() => !player.IsConnected);
+        }
+    }
 
     private async Task Raise(ITestPlayer player, BlockPos cell)
         => await WallBuilder.Raise(World, player, cell, cell.WestCopy(), "game:plank-oak", "game:clay-blue", "game:plank-oak");
 
-    private static bool IsWall(Block block) => block.Code is { Domain: "vssiding" } code && code.Path.StartsWith("wall");
-
-    private async Task Finish(ITestPlayer player)
+    private async Task RaiseOnPlanks(ITestPlayer player, BlockPos cell)
     {
-        player.Player.Disconnect();
-        await World.Until(() => !player.IsConnected);
+        World.SetBlock("game:planks-aged-ud", cell.DownCopy());
+        await Raise(player, cell);
     }
 
     [AtlasScenario(FreshWorld = true)]
@@ -41,18 +55,14 @@ public class CollapseStoryScenarios : AtlasScenarioBase
     {
         if (!CollapseStoryLoaded) return;
 
-        BlockPos cell = Cell;
-        World.SetBlock("game:planks-aged-ud", cell.DownCopy());
-        ITestPlayer player = await WallBuilder.JoinBuilder(World);
-        try
+        await AsBuilder(async player =>
         {
-            await Raise(player, cell);
+            await RaiseOnPlanks(player, Cell);
             await World.Ticks(SettleTicks);
 
             // Observed: the wall stays with all its layers.
-            Assert.Equal((true, Finished), (IsWall(World.BlockAt(cell)), WallBuilder.Layers(World, cell)));
-        }
-        finally { await Finish(player); }
+            Assert.Equal((true, Finished), (IsWall(Cell), WallBuilder.Layers(World, Cell)));
+        });
     }
 
     [AtlasScenario(FreshWorld = true)]
@@ -60,19 +70,15 @@ public class CollapseStoryScenarios : AtlasScenarioBase
     {
         if (!CollapseStoryLoaded) return;
 
-        BlockPos cell = Cell;
-        World.SetBlock("game:planks-aged-ud", cell.DownCopy());
-        ITestPlayer player = await WallBuilder.JoinBuilder(World);
-        try
+        await AsBuilder(async player =>
         {
-            await Raise(player, cell);
-            World.SetBlock("game:planks-aged-ud", cell.UpCopy());
+            await RaiseOnPlanks(player, Cell);
+            World.SetBlock("game:planks-aged-ud", Cell.UpCopy());
             await World.Ticks(SettleTicks);
 
             // Observed: the wall stays and the planks on top of it are gone; CollapseStory does not count a wall as support.
-            Assert.Equal((true, "game:air"), (IsWall(World.BlockAt(cell)), CodeAt(cell.UpCopy())));
-        }
-        finally { await Finish(player); }
+            Assert.Equal((true, "air"), (IsWall(Cell), CodeAt(Cell.UpCopy())));
+        });
     }
 
     [AtlasScenario(FreshWorld = true)]
@@ -80,19 +86,15 @@ public class CollapseStoryScenarios : AtlasScenarioBase
     {
         if (!CollapseStoryLoaded) return;
 
-        BlockPos cell = Cell;
-        World.SetBlock("game:planks-aged-ud", cell.DownCopy());
-        ITestPlayer player = await WallBuilder.JoinBuilder(World);
-        try
+        await AsBuilder(async player =>
         {
-            await Raise(player, cell);
-            await Raise(player, cell.UpCopy());
+            await RaiseOnPlanks(player, Cell);
+            await Raise(player, Cell.UpCopy());
             await World.Ticks(SettleTicks);
 
             // Observed: both walls stay.
-            Assert.Equal((true, true), (IsWall(World.BlockAt(cell)), IsWall(World.BlockAt(cell.UpCopy()))));
-        }
-        finally { await Finish(player); }
+            Assert.Equal((true, true), (IsWall(Cell), IsWall(Cell.UpCopy())));
+        });
     }
 
     [AtlasScenario(FreshWorld = true)]
@@ -100,17 +102,15 @@ public class CollapseStoryScenarios : AtlasScenarioBase
     {
         if (!CollapseStoryLoaded) return;
 
-        // Walls at x+0 and x+4 on planks; three floor cells between them, their planks removed once the floors stand.
+        // Walls at x+0 and x+4 on planks; three floor cells between them, the planks under them broken once the floors stand.
         BlockPos west = World.Spawn.Offset(0, 2, 0);
-        BlockPos[] walls = [west, west.EastCopy(4)];
         BlockPos[] floors = [west.EastCopy(1), west.EastCopy(2), west.EastCopy(3)];
-        ITestPlayer player = await WallBuilder.JoinBuilder(World);
-        try
+        await AsBuilder(async player =>
         {
-            foreach (BlockPos wall in walls)
+            foreach ((BlockPos wall, BlockFacing inside) in new[] { (west, BlockFacing.EAST), (west.EastCopy(4), BlockFacing.WEST) })
             {
                 World.SetBlock("game:planks-aged-ud", wall.DownCopy());
-                await WallBuilder.Raise(World, player, wall, wall.AddCopy(wall.X == west.X ? BlockFacing.EAST : BlockFacing.WEST), "game:plank-oak", "game:clay-blue", "game:plank-oak");
+                await WallBuilder.Raise(World, player, wall, wall.AddCopy(inside), "game:plank-oak", "game:clay-blue", "game:plank-oak");
             }
             player.Entity.WatchedAttributes.SetString("vssidingFraming", "floor");
             foreach (BlockPos floor in floors)
@@ -118,69 +118,40 @@ public class CollapseStoryScenarios : AtlasScenarioBase
                 World.SetBlock("game:planks-aged-ud", floor.DownCopy());
                 await WallBuilder.Raise(World, player, floor, floor.WestCopy(), "game:plank-oak", null);
             }
-            foreach (BlockPos floor in floors) World.Api.World.BlockAccessor.SetBlock(0, floor.DownCopy());
+            foreach (BlockPos floor in floors) World.Api.World.BlockAccessor.BreakBlock(floor.DownCopy(), player.Player);
             await World.Ticks(SettleTicks);
 
             // Observed: all three floor cells stay.
-            Assert.Equal(floors.Select(floor => true), floors.Select(floor => World.BlockAt(floor).Code is { Domain: "vssiding" }));
-        }
-        finally { await Finish(player); }
+            Assert.Equal(floors.Select(_ => "vssiding"), floors.Select(floor => World.BlockAt(floor).Code.Domain));
+        });
     }
 
     [AtlasScenario(FreshWorld = true)]
-    public async Task Cabinet_Should_BeRefusedOverAWall_And_FallWhenItsGroundGoes()
+    public async Task Cabinet_Should_BeRefused_When_HostedOverAWall()
     {
         if (!CollapseStoryLoaded) return;
-
-        Block cabinet = World.Api.World.Blocks.First(b => b.Code?.Domain == "game" && b.Code.Path.StartsWith("cabinet-") && b.Code.Path.Contains("bottom"));
-        await AssertHostedFalls(new ItemStack(cabinet), "cabinet");
+        await AssertRefusedOverAWall(Cabinet());
     }
 
     [AtlasScenario(FreshWorld = true)]
-    public async Task ScrollRack_Should_BeRefusedOverAWall_And_FallWhenItsGroundGoes()
+    public async Task ScrollRack_Should_BeRefused_When_HostedOverAWall()
     {
         if (!CollapseStoryLoaded) return;
-
-        var rack = new ItemStack(World.Api.World.GetBlock(new AssetLocation("game:scrollrack")));
-        rack.Attributes.SetString("type", "normal");
-        rack.Attributes.SetString("material", "aged");
-        await AssertHostedFalls(rack, "scrollrack");
+        await AssertRefusedOverAWall(ScrollRack());
     }
 
-    // CollapseStory gives vanilla cabinets and scroll racks the UnstableFalling behavior, which neither has without it.
-    // Its placement check needs the block below to take an attachment on its top, and a wall does not.
-    private async Task AssertHostedFalls(ItemStack furniture, string pathStart)
+    [AtlasScenario(FreshWorld = true)]
+    public async Task Cabinet_Should_FallAndLeaveItsWall_When_ThePlanksUnderItsWallBreak()
     {
-        BlockPos lower = Cell;
-        BlockPos upper = lower.UpCopy();
-        World.SetBlock("game:planks-aged-ud", lower.DownCopy());
-        ITestPlayer player = await WallBuilder.JoinBuilder(World);
-        try
-        {
-            await Raise(player, lower);
-            await Raise(player, upper);
+        if (!CollapseStoryLoaded) return;
+        await AssertFallsOutOfItsWall(Cabinet(), "cabinet");
+    }
 
-            // A saw in the off hand layers the wall instead of hosting (SidingWallBlock.OnBlockInteractStart).
-            player.Entity.LeftHandItemSlot.Itemstack = null;
-            player.Entity.RightHandItemSlot.Itemstack = furniture;
-            var onUpper = new BlockSelection { Position = upper.Copy(), Face = BlockFacing.EAST, HitPosition = new Vec3d(0.5, 0.5, 0.5) };
-            string failureCode = "";
-            bool placed = furniture.Block.TryPlaceBlock(player.Entity.World, player.Player, furniture, onUpper, ref failureCode);
-            // Observed: refused over a wall, so no cabinet or scroll rack is hosted in an upper storey.
-            Assert.Equal((false, "requiresolidground"), (placed, failureCode));
-
-            World.Api.World.BlockAccessor.SetBlock(0, upper);
-            var onLower = new BlockSelection { Position = lower.Copy(), Face = BlockFacing.EAST, HitPosition = new Vec3d(0.5, 0.5, 0.5) };
-            Assert.True(World.BlockAt(lower).OnBlockInteractStart(player.Entity.World, player.Player, onLower));
-            Assert.StartsWith(pathStart, World.BlockAt(lower).Code.Path);
-
-            World.Api.World.BlockAccessor.BreakBlock(lower.DownCopy(), player.Player);
-            await World.Ticks(SettleTicks);
-
-            // Observed: the furniture falls out of the cell and the wall is back, its guest record cleared.
-            Assert.Equal(("vssiding:wall-wall-west", null), (World.BlockAt(lower).Code.ToString(), WallBuilder.GuestLayers(World, lower)));
-        }
-        finally { await Finish(player); }
+    [AtlasScenario(FreshWorld = true)]
+    public async Task ScrollRack_Should_FallAndLeaveItsWall_When_ThePlanksUnderItsWallBreak()
+    {
+        if (!CollapseStoryLoaded) return;
+        await AssertFallsOutOfItsWall(ScrollRack(), "scrollrack");
     }
 
     [AtlasScenario(FreshWorld = true)]
@@ -188,18 +159,62 @@ public class CollapseStoryScenarios : AtlasScenarioBase
     {
         if (!CollapseStoryLoaded) return;
 
-        BlockPos cell = Cell;
-        World.SetBlock("game:planks-aged-ud", cell.DownCopy());
-        ITestPlayer player = await WallBuilder.JoinBuilder(World);
-        try
+        await AsBuilder(async player =>
         {
-            await Raise(player, cell);
-            World.Api.World.BlockAccessor.BreakBlock(cell.DownCopy(), player.Player);
+            await RaiseOnPlanks(player, Cell);
+            World.Api.World.BlockAccessor.BreakBlock(Cell.DownCopy(), player.Player);
             await World.Ticks(SettleTicks);
 
             // Observed: the wall stays in the air; CollapseStory does not drop it.
-            Assert.Equal((true, "air"), (IsWall(World.BlockAt(cell)), World.BlockAt(cell.DownCopy()).Code.ToShortString()));
-        }
-        finally { await Finish(player); }
+            Assert.Equal((true, "air"), (IsWall(Cell), CodeAt(Cell.DownCopy())));
+        });
     }
+
+    private ItemStack Cabinet()
+        => new(World.Api.World.Blocks.First(b => b.Code?.Domain == "game" && b.Code.Path.StartsWith("cabinet-") && b.Code.Path.Contains("bottom")));
+
+    private ItemStack ScrollRack()
+    {
+        var rack = new ItemStack(World.Api.World.GetBlock(new AssetLocation("game:scrollrack")));
+        rack.Attributes.SetString("type", "normal");
+        rack.Attributes.SetString("material", "aged");
+        return rack;
+    }
+
+    private static BlockSelection EastFaceOf(BlockPos cell) => new() { Position = cell.Copy(), Face = BlockFacing.EAST, HitPosition = new Vec3d(0.5, 0.5, 0.5) };
+
+    private static void Hold(ITestPlayer player, ItemStack furniture)
+    {
+        // A saw in the off hand layers the wall instead of hosting (SidingWallBlock.OnBlockInteractStart).
+        player.Entity.LeftHandItemSlot.Itemstack = null;
+        player.Entity.RightHandItemSlot.Itemstack = furniture;
+    }
+
+    // CollapseStory gives vanilla cabinets and scroll racks the UnstableFalling behavior, which neither has without it.
+    // With no attachableFaces listed, its placement check needs the block below to take an attachment on its top, and a wall does not.
+    private async Task AssertRefusedOverAWall(ItemStack furniture) => await AsBuilder(async player =>
+    {
+        await RaiseOnPlanks(player, Cell);
+        await Raise(player, Cell.UpCopy());
+        Hold(player, furniture);
+        string failureCode = "";
+        bool placed = furniture.Block.TryPlaceBlock(player.Entity.World, player.Player, furniture, EastFaceOf(Cell.UpCopy()), ref failureCode);
+
+        // Observed: refused over a wall, so no cabinet or scroll rack is hosted in an upper storey.
+        Assert.Equal((false, "requiresolidground"), (placed, failureCode));
+    });
+
+    private async Task AssertFallsOutOfItsWall(ItemStack furniture, string pathStart) => await AsBuilder(async player =>
+    {
+        await RaiseOnPlanks(player, Cell);
+        Hold(player, furniture);
+        Assert.True(World.BlockAt(Cell).OnBlockInteractStart(player.Entity.World, player.Player, EastFaceOf(Cell)));
+        Assert.StartsWith(pathStart, World.BlockAt(Cell).Code.Path);
+
+        World.Api.World.BlockAccessor.BreakBlock(Cell.DownCopy(), player.Player);
+        await World.Ticks(SettleTicks);
+
+        // Observed: the furniture falls out of the cell and the wall is back with its layers, its guest record cleared.
+        Assert.Equal(("vssiding:wall-wall-west", Finished, null), (CodeAt(Cell), WallBuilder.Layers(World, Cell), WallBuilder.GuestLayers(World, Cell)));
+    });
 }
