@@ -151,7 +151,7 @@ public class SidingWallEntity : BlockEntity
     public override bool OnTesselation(ITerrainMeshPool mesher, ITesselatorAPI tesselator)
     {
         string layout = Block.Variant["layout"];
-        if (layout is not ("wall" or "cornerout" or "diagonal")) return false;
+        if (layout is not ("wall" or "cornerout" or "diagonal" or "cornerin")) return false;
         if (Api is not ICoreClientAPI capi) return false;
 
         var joins = ((SidingWallBlock)Block).NeighbourJoins(Api.World.BlockAccessor, Pos, Infill);
@@ -323,6 +323,7 @@ public class SidingWallEntity : BlockEntity
     internal static List<string> FrameParts(
         string layout, (bool above, bool below, bool left, bool right) joins, bool glazed, string[]? innerCorners = null)
     {
+        if (layout == "cornerin") return [""];
         bool fillers = glazed && layout != "diagonal";
         var parts = new List<string>();
         if (layout == "cornerout") parts.Add("");
@@ -358,7 +359,7 @@ public class SidingWallEntity : BlockEntity
         // A diagonal's shape has no rough frame groups, so it draws the plain ones whatever the
         // framing's Elements say (decision 0066).
         bool diagonal = layout == "diagonal";
-        if (diagonal) frame = "framing";
+        if (diagonal || layout == "cornerin") frame = "framing";
         string member = glazed ? "glazing" : frame;
         var parts = FrameParts(layout, joins, glazed, innerCorners);
         // A corner's post stands a finish slot in from the cell's edge, so at a T it fills the slot the run crosses: its

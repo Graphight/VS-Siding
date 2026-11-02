@@ -21,6 +21,7 @@ public class WallShapeGenTests
     [InlineData("wall")]
     [InlineData("cornerout")]
     [InlineData("diagonal")]
+    [InlineData("cornerin")]
     [InlineData("floor")]
     public void GeneratedShapeMatchesTheCommittedOne(string layout)
     {

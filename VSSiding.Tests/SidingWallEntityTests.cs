@@ -226,6 +226,21 @@ public class SidingWallEntityTests
                 "cornerout", "oak", "wattle", null, null, null, NoElementFinishes, (false, false, false, false), glazed: false));
     }
 
+    // An inside corner's post is one framing core and a slab on each of its two inner faces, whatever its joins.
+    [Fact]
+    public void ACornerinDrawsItsFramingAndTheFinishesOnItsTwoFaces()
+    {
+        Assert.Equal(
+            new string[][] { ["framing"], ["front", "secondfront", "framing"] },
+            new string[][]
+            {
+                SidingWallEntity.SelectiveElements(
+                    "cornerin", "oak", null, null, null, null, NoElementFinishes, (true, true, true, true), glazed: false, frame: "poles"),
+                SidingWallEntity.SelectiveElements(
+                    "cornerin", "oak", null, "daub", "daub", null, NoElementFinishes, (false, false, false, false), glazed: false),
+            });
+    }
+
     // Each end post drops on its own join: left is leg 2's, right is leg 1's, and the finish rims follow the legs.
     [Fact]
     public void AGlazedCorneroutDropsEachEndPostOnItsOwnJoin()

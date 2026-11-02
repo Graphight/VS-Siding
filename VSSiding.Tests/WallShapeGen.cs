@@ -1207,6 +1207,22 @@ public static class WallShapeGen
 
     // The lengths between two z over which the boxes, taken together, cover a piece from one side of its
     // width to the other. Two boxes that meet inside the width cover it between them.
+    // An inside corner's post, 4 by 4 in the cell's west-north corner: a 3 by 3 framing core, and a 1/16 finish on each
+    // of the two faces that look into the cell, the east one (front) and the south one (secondfront).
+    private static readonly Element[] CornerInElements =
+    [
+        new("framing", (0, 0, 0), (3, 16, 3), "framing", UvRule.Flat),
+        new("front", (3, 0, 0), (4, 16, 4), "front", UvRule.Flat),
+        new("secondfront", (0, 0, 3), (3, 16, 4), "secondfront", UvRule.Flat),
+    ];
+
+    private static readonly (string Slot, string Texture)[] CornerInTextures =
+    [
+        ("framing", "game:block/wood/planks/aged/aged1"),
+        ("front", "game:block/wood/planks/aged/aged1"),
+        ("secondfront", "game:block/wood/planks/aged/aged1"),
+    ];
+
     private static IEnumerable<(double Z, double Z2)> CoveredLengths(
         Element source, (double X, double Y, double Z, double X2, double Y2, double Z2)[] regions, double from, double to)
     {
@@ -1238,6 +1254,7 @@ public static class WallShapeGen
         "floor" => Emit(FloorShape, FloorTextures),
         "cornerout" => Emit(WithDeck([.. CornerOutElements, .. CornerRimPieces(CornerOutElements)], ((4, 12, 4), (16, 16, 16))), CornerOutTextures),
         "diagonal" => Rounded(Emit([.. DiagonalElements, .. DeckGroups("deck", DiagonalDeckStrips())], DiagonalTextures)),
+        "cornerin" => Emit(CornerInElements, CornerInTextures),
         _ => throw new KeyNotFoundException(layout),
     };
 

@@ -67,12 +67,16 @@ public class SidingWallBlock : Block
             Enumerable.Range(1, 11)
                 .Select(k => new Cuboidf(k / 16f, 15f / 16, (12f - k) / 16, (k + 4f) / 16, 1, (16f - k) / 16))
                 .ToArray()),
+        // An inside corner's post: the 3/16 framing core of its 4/16 footprint, with no plate.
+        ["cornerin"] = ([new Cuboidf(0, 0, 0, 3f / 16, 1, 3f / 16)], []),
     };
 
     // Unrotated ("west") deck boxes per layout, matching the area WallShapeGen clips the floor's layers to.
     // A diagonal's are eight strips stepping across the half of the cell on the room side of its panel.
+    // A post has none yet.
     private static readonly Dictionary<string, Cuboidf[]> UnrotatedDeckBoxes = new()
     {
+        ["cornerin"] = [],
         ["wall"] = new[] { new Cuboidf(4f / 16, 12f / 16, 0, 1, 1, 1) },
         ["cornerout"] = new[] { new Cuboidf(4f / 16, 12f / 16, 4f / 16, 1, 1, 1) },
         ["diagonal"] = Enumerable.Range(0, 8)
@@ -1015,10 +1019,11 @@ public class SidingWallBlock : Block
     internal static bool ClaimsTwoFaces(string layout) => layout is "cornerout" or "diagonal";
 
     // The faces this block's panels actually cover: the hugged side, plus a cornerout's or diagonal's second face.
+    // An inside corner's post covers none.
     internal bool ClaimsFace(BlockFacing facing) => ClaimsFace(Variant["layout"], Variant["side"], facing.Code);
 
     internal static bool ClaimsFace(string layout, string side, string faceCode)
-        => faceCode == side || (ClaimsTwoFaces(layout) && faceCode == CorneroutSecondFace[side]);
+        => layout != "cornerin" && (faceCode == side || (ClaimsTwoFaces(layout) && faceCode == CorneroutSecondFace[side]));
 
     public override int GetRetention(BlockPos pos, BlockFacing facing, EnumRetentionType type)
     {

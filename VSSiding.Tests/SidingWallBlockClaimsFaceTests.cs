@@ -28,6 +28,10 @@ public class SidingWallBlockClaimsFaceTests
         { "diagonal", "west", "south", false },
         { "diagonal", "south", "west", true },
         { "diagonal", "south", "north", false },
+        { "cornerin", "west", "west", false },
+        { "cornerin", "west", "north", false },
+        { "cornerin", "west", "east", false },
+        { "cornerin", "west", "south", false },
     };
 
     [Theory]

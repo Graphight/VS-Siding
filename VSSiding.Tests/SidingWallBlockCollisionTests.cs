@@ -93,6 +93,15 @@ public class SidingWallBlockCollisionTests
     }
 
     [Fact]
+    public void ACornerinWestBareFrameCollidesOnItsCoreAndNeverOnAPlate()
+    {
+        var expected = new[] { new Cuboidf(0, 0, 0, 3f / 16, 1, 3f / 16) };
+
+        Assert.Equal(expected, SidingWallBlock.ComputeCollisionBoxes("cornerin", "west", "oak", null, false, FullBoxes), Comparer);
+        Assert.Equal(expected, SidingWallBlock.ComputeCollisionBoxes("cornerin", "west", "oak", null, true, FullBoxes), Comparer);
+    }
+
+    [Fact]
     public void DiagonalWestPostBoxesAreUnrotated()
     {
         var expected = new[]
