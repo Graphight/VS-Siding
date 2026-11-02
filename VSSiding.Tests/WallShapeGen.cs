@@ -1214,7 +1214,38 @@ public static class WallShapeGen
         new("framing", (0, 0, 0), (3, 16, 3), "framing", UvRule.Flat),
         new("front", (3, 0, 0), (4, 16, 4), "front", UvRule.Flat),
         new("secondfront", (0, 0, 3), (3, 16, 4), "secondfront", UvRule.Flat),
+        .. PostFinishes("front", "front", 'x', 0, 4, "east"),
+        .. PostFinishes("secondfront", "secondfront", 'z', 0, 3, "south"),
     ];
+
+    // Every style a wall's face takes, on one of the post's slabs: the slab is 4 deep at its outer face and
+    // 3 at the framing, as a cornerout's back is, with the run cut to the slab's length.
+    private static IEnumerable<Element> PostFinishes(string group, string slot, char depthAxis, double runLo, double runHi, string outwardFace)
+    {
+        char runAxis = depthAxis == 'x' ? 'z' : 'x';
+        Element Slab(string name, string[]? rotated = null) => new(name,
+            Corner(depthAxis, 3, runLo, 0), Corner(depthAxis, 4, runHi, 16), slot, UvRule.Flat, RotatedFaces: rotated);
+
+        var weatherboard = Enumerable.Range(0, 16).Select(course => new Element($"{group}-weatherboard",
+            Corner(depthAxis, 3, runLo, course), Corner(depthAxis, 4 - 0.25 * (course % 4), runHi, course + 1), slot, UvRule.Positional));
+
+        // The wall's shakes table, turned onto the slab's run and mirrored onto its depth.
+        var shakes = FrontShakesElements.Select(e => depthAxis == 'x'
+            ? MirrorDepthX(e, $"{group}-shakes", slot)
+            : MirrorDepthZ(e with { From = (e.From.Z, e.From.Y, e.From.X), To = (e.To.Z, e.To.Y, e.To.X), RunAxis = 'x' }, $"{group}-shakes", slot));
+
+        return
+        [
+            .. WithBark(Slab($"{group}-hboards")),
+            Slab($"{group}-boards", [outwardFace]),
+            .. weatherboard,
+            .. ClipRun(shakes, runAxis, runLo, runHi),
+            .. Logs($"{group}-logs", slot, depthAxis, 4, 3, outwardFace, runLo, runHi),
+            .. RunningBond($"{group}-brick", slot, 4, 8, depthAxis, 4, 3, runLo, runHi),
+            .. RunningBond($"{group}-ashlar", slot, 8, 16, depthAxis, 4, 3, runLo, runHi, flipBond: true),
+            .. RubbleGrid($"{group}-rubble", slot, depthAxis, 4, 3, runLo, runHi),
+        ];
+    }
 
     private static readonly (string Slot, string Texture)[] CornerInTextures =
     [

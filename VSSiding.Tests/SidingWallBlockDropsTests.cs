@@ -68,6 +68,15 @@ public class SidingWallBlockDropsTests
     }
 
     [Fact]
+    public void PostRefundsAQuarterOfEachFinishToo()
+    {
+        var drops = SidingWallBlock.ComputeDrops("oak", null, "daub", "brick", null, null, Framings, Infills, Finishes, post: true);
+        Assert.Equal(
+            new[] { ("game:plank-oak", 1f), ("game:clay-blue", 1f), ("game:burnedbrick-red", 1f) },
+            drops.ConvertAll(d => (d.Code!.ToString(), d.Quantity.avg)));
+    }
+
+    [Fact]
     public void DeckDropsItsFramingsMaterial()
     {
         var drops = SidingWallBlock.ComputeDrops(null, null, null, null, null, "oak", Framings, Infills, Finishes);

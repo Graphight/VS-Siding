@@ -202,6 +202,15 @@ public class SidingWallTooltipTests
             Describe(layout: "cornerout", front: "daub", back: "planks"));
     }
 
+    // A post hugs "west" and "north" like a cornerout, so its two outer faces look the other way and it has no back.
+    [Fact]
+    public void PostNamesItsTwoFaces()
+    {
+        Assert.Equal(
+            "\n  Oak Framing\n  No infill\n  East: Daub Finish\n  South: unfinished\n  Does not seal the room\n",
+            Describe(layout: "cornerin", infill: null, front: "daub"));
+    }
+
     [Fact]
     public void DiagonalSharesItsFrontAcrossBothClaimedFacesAndItsBackAcrossTheOpposites()
     {

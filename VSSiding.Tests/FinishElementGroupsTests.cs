@@ -32,6 +32,7 @@ public class FinishElementGroupsTests
         {
             ["block/wall/wall"] = fronts.Concat(backs).ToList(),
             ["block/wall/cornerout"] = fronts.Concat(fronts.Select(f => "second" + f)).Concat(backs).ToList(),
+            ["block/wall/cornerin"] = fronts.Concat(fronts.Select(f => "second" + f)).ToList(),
         };
 
         var offenders = new List<string>();
@@ -289,6 +290,7 @@ public class FinishElementGroupsTests
     [InlineData("wall")]
     [InlineData("cornerout")]
     [InlineData("diagonal")]
+    [InlineData("cornerin")]
     public void EveryElementSelectiveElementsCanAskForExistsInItsShape(string layout)
     {
         var repoRoot = MaterialTextureOpacityTests.GetAssemblyMetadata("RepoRoot");
@@ -314,8 +316,9 @@ public class FinishElementGroupsTests
             from frame in new[] { "framing", "poles", "poles2" }
             from corners in innerCorners
             from name in SidingWallEntity.SelectiveElements(
-                layout, "oak", "glass", finish, layout == "cornerout" ? finish : null, finish, finishes,
-                (above, below, left, right), glazed: transparent, frame: frame, innerCorners: corners, glassRunsOn: (glassLeft, glassRight), tees: (teeLeft, teeRight))
+                layout, "oak", layout == "cornerin" ? null : "glass", finish, layout is "cornerout" or "cornerin" ? finish : null,
+                layout == "cornerin" ? null : finish, finishes,
+                (above, below, left, right), glazed: transparent && layout != "cornerin", frame: frame, innerCorners: corners, glassRunsOn: (glassLeft, glassRight), tees: (teeLeft, teeRight))
             select name;
 
         Assert.Equal([], asked.Distinct().Where(name => !names.Contains(name)).ToArray());

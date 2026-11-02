@@ -629,15 +629,15 @@ public class SidingWallBlock : Block
             return true;
         }
 
-        // A post takes neither a deck nor an infill; its finishes come with the next stage.
-        if (Variant["layout"] == "cornerin") return base.OnBlockInteractStart(world, byPlayer, blockSel);
+        // A post takes no infill and, for now, no deck; it goes straight to the finish path at a quarter of the cost.
+        bool post = Variant["layout"] == "cornerin";
 
         if (IsDeckHit(world.BlockAccessor, blockSel, entity))
             return LayerDeck(world, byPlayer, blockSel, entity, slot, heldCode, isCreative);
 
         // With the deck lit, planks on a side face add a deck in place. Ahead of finishing, since
         // planks are a finish too. The top face still stacks the next course (PlaceWallFrame).
-        if (entity.Deck == null && blockSel.Face != BlockFacing.UP && SidingModePicker.Deck(byPlayer)
+        if (!post && entity.Deck == null && blockSel.Face != BlockFacing.UP && SidingModePicker.Deck(byPlayer)
             && MatchFraming(heldCode, entity.Infill != null, Attributes["Framings"], Attributes["Infills"]) is { } deckKey)
         {
             if (entity.Step != null)
@@ -660,7 +660,7 @@ public class SidingWallBlock : Block
             return true;
         }
 
-        if (entity.Infill == null)
+        if (!post && entity.Infill == null)
         {
             // A bare frame clicked in corner or diagonal mode becomes one in place, for a T-junction
             // found once a partition reaches it (decision 0026). Nothing is charged: a fresh
@@ -736,6 +736,7 @@ public class SidingWallBlock : Block
         }
 
         var finishConsumes = Attributes["Finishes"][finishKey]["Consumes"];
+        if (post) finishConsumes = PostConsumes(finishConsumes);
         if (!TryAffordOrError(byPlayer, isCreative, slot.StackSize, finishConsumes)) return true;
 
         SetFinish(world, entity, blockSel.Position, face, finishKey, style);
@@ -1166,6 +1167,13 @@ public class SidingWallBlock : Block
         string layout, string side, string? front, string? secondFront, string? back, JsonObject finishes,
         System.Func<string, string?> translate, System.Func<string, bool>? buried = null)
     {
+        if (layout == "cornerin")
+        {
+            foreach (var (direction, key) in new[] { (Opposite(side), front), (Opposite(CorneroutSecondFace[side]), secondFront) })
+                yield return $"{Translate($"game:facing-{direction}", translate)}: {DescribeLayer(Installed(key, finishes), finishes, "vssiding:tooltip-unfinished", translate)}";
+            yield break;
+        }
+
         string? builtFront = Installed(front, finishes), builtBack = Installed(back, finishes);
         var directions = new List<(string direction, string? finish)> { (side, builtFront), (Opposite(side), builtBack) };
         var fronts = new List<string> { side };
@@ -1475,7 +1483,7 @@ public class SidingWallBlock : Block
             }
             else
             {
-                AddDrops(drops, key, Attributes[layer switch { "infill" or "deckinfill" => "Infills", "deck" => "Framings", _ => "Finishes" }]);
+                AddDrops(drops, key, Attributes[layer switch { "infill" or "deckinfill" => "Infills", "deck" => "Framings", _ => "Finishes" }], Variant["layout"] == "cornerin");
             }
             foreach (var stack in ResolveDrops(world, drops, dropQuantityMultiplier)) world.SpawnItemEntity(stack, pos);
 
@@ -1573,8 +1581,8 @@ public class SidingWallBlock : Block
         var drops = new List<BlockDropItemStack>();
         AddDrops(drops, framing, framings, post);
         AddDrops(drops, infill, infills);
-        AddDrops(drops, front, finishes);
-        AddDrops(drops, secondFront, finishes);
+        AddDrops(drops, front, finishes, post);
+        AddDrops(drops, secondFront, finishes, post);
         AddDrops(drops, back, finishes);
         AddDrops(drops, deck, framings);
         AddDrops(drops, deckInfill, infills);
@@ -1721,6 +1729,10 @@ public class SidingWallBlock : Block
     // the first leg. A diagonal's second claimed face is the same "front": the panel has one outer face.
     internal static string? ResolveFinishFace(string layout, string side, BlockFacing clickedFace)
     {
+        // A post's two outer faces look away from the corner it fills, and it has no back.
+        if (layout == "cornerin")
+            return clickedFace == BlockFacing.FromCode(side).Opposite ? "front"
+                : clickedFace == BlockFacing.FromCode(CorneroutSecondFace[side]).Opposite ? "secondfront" : null;
         if (FinishFaceFor(side, clickedFace, "front") is string face) return face;
         if (!ClaimsTwoFaces(layout)) return null;
         return FinishFaceFor(CorneroutSecondFace[side], clickedFace, layout == "diagonal" ? "front" : "secondfront");
