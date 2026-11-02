@@ -68,6 +68,10 @@ public class FloorScenarios : AtlasScenarioBase
     {
         BlockPos beside = World.Spawn.Offset(1, 2, 0);
         ITestPlayer player = await WallBuilder.JoinBuilder(World);
+        // The joined player keeps the yaw an earlier scenario left, and Raise's teleport resets it to 0, so the run would
+        // walk a different way from the wall placed here; 0 is the yaw every later step then sees.
+        player.Entity.Pos.Yaw = 0;
+        player.Entity.Pos.Pitch = 0;
         Vec3f view = player.Entity.SidedPos.GetViewVector();
         BlockFacing ahead = System.Math.Abs(view.X) >= System.Math.Abs(view.Z)
             ? (view.X > 0 ? BlockFacing.EAST : BlockFacing.WEST)
@@ -126,7 +130,9 @@ public class FloorScenarios : AtlasScenarioBase
     [AtlasScenario(FreshWorld = true)]
     public async Task Floor_Should_BeLaidBesideTheWall_When_PlanksArePressedOnTheWallItself()
     {
-        (_, BlockPos wall, BlockFacing ahead, ITestPlayer player) = await RaiseWallAhead();
+        (BlockPos beside, BlockPos wall, BlockFacing ahead, ITestPlayer player) = await RaiseWallAhead();
+        // Raise left the player standing in the cell the floor is laid into.
+        await player.TeleportTo(beside.AddCopy(ahead.Opposite));
 
         await WallBuilder.Press(World, player, wall, "game:plank-oak", ahead, Middle, quantity: 3);
 
