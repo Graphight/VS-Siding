@@ -18,6 +18,16 @@ public class PlaceWallFrame : CollectibleBehavior
     {
     }
 
+    // Behaviors answer a click in array order, so this one moves to just after vanilla's GroundStorable, ahead of
+    // anything another mod appended for the same click (#143). Done in code: a JSON patch at a fixed index fails
+    // once another mod has shortened the array. Without GroundStorable it goes first.
+    internal static CollectibleBehavior[] AfterGroundStorable(CollectibleBehavior[] behaviors)
+    {
+        var rest = behaviors.Where(behavior => behavior is not PlaceWallFrame).ToList();
+        rest.InsertRange(rest.FindIndex(behavior => behavior is CollectibleBehaviorGroundStorable) + 1, behaviors.OfType<PlaceWallFrame>());
+        return rest.ToArray();
+    }
+
     public override void OnHeldInteractStart(ItemSlot slot, EntityAgent byEntity, BlockSelection blockSel, EntitySelection entitySel, bool firstEvent, ref EnumHandHandling handHandling, ref EnumHandling handling)
     {
         if (!firstEvent || blockSel == null) return;
@@ -52,10 +62,7 @@ public class PlaceWallFrame : CollectibleBehavior
             && world.BlockAccessor.GetBlock(blockSel.Position) is SidingWallBlock hitWall
             && world.BlockAccessor.GetBlockEntity<SidingWallEntity>(blockSel.Position) is { Infill: not null } hitEntity
             && !hitWall.IsDeckHit(world.BlockAccessor, blockSel, hitEntity)
-            && hitWall.TryUpgradeLayout(world, byPlayer, blockSel, hitEntity, heldCode))
-        {
-            return;
-        }
+            && hitWall.TryUpgradeLayout(world, byPlayer, blockSel, hitEntity, heldCode)) return;
 
         bool withDeck = layout != "floor" && SidingModePicker.Deck(byPlayer);
 

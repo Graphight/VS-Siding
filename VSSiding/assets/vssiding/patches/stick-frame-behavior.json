@@ -2,7 +2,7 @@
 	{
 		"op": "add",
 		"file": "game:itemtypes/resource/stick.json",
-		"path": "/behaviors/1",
+		"path": "/behaviors/-",
 		"value": { "name": "vssiding.PlaceWallFrame" }
 	}
 ]
