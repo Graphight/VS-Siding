@@ -948,7 +948,8 @@ public class SidingWallBlock : Block
             var entity = world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos);
             if (entity == null) return;
             // The wall across a front face decides whether a bare front draws closed.
-            if (FrontDirections(Variant["layout"], Variant["side"]).Any(direction => neibpos.Equals(pos.AddCopy(BlockFacing.FromCode(direction))))) entity.MarkDirty(true);
+            var fronts = FrontDirections(Variant["layout"], Variant["side"]);
+            if (fronts.Any(direction => neibpos.Equals(pos.AddCopy(BlockFacing.FromCode(direction))))) entity.MarkDirty(true);
             var ends = Ends(Variant["layout"], Variant["side"]);
             if (!IsTransparent(entity.Infill, Attributes["Infills"])) ends = Variant["layout"] == "cornerout" ? ends[2..] : [];
             if (ends.Any(end => neibpos.Equals(pos.AddCopy(end.Points)))) entity.MarkDirty(true);
@@ -1207,7 +1208,7 @@ public class SidingWallBlock : Block
     {
         if (layout == "cornerin")
         {
-            foreach (var (direction, key) in new[] { (Opposite(side), front), (Opposite(CorneroutSecondFace[side]), secondFront) })
+            foreach (var (direction, key) in PostFaces(side).Select(Opposite).Zip(new[] { front, secondFront }))
                 yield return $"{Translate($"game:facing-{direction}", translate)}: {DescribeLayer(Installed(key, finishes), finishes, "vssiding:tooltip-unfinished", translate)}";
             yield break;
         }
@@ -1326,7 +1327,6 @@ public class SidingWallBlock : Block
         return (open.X + second.X, open.Z + second.Z);
     }
 
-    // The real wall at a cell, or the guest wall of a hosted block there (decision 0035).
     // Nothing stands on the cell: its above holds air or a block that gives way to a placement, and no wall or guest wall.
     internal static bool FreeAbove(IBlockAccessor accessor, BlockPos pos)
     {
@@ -1335,6 +1335,7 @@ public class SidingWallBlock : Block
         return (block.BlockId == 0 || block.Replaceable >= 6000) && WallAt(accessor, above) == null;
     }
 
+    // The real wall at a cell, or the guest wall of a hosted block there (decision 0035).
     internal static (SidingWallBlock wall, SidingWallEntity entity)? WallAt(IBlockAccessor accessor, BlockPos pos)
     {
         Block block = accessor.GetBlock(pos);
@@ -1778,8 +1779,11 @@ public class SidingWallBlock : Block
     {
         // A post's two outer faces look away from the corner it fills, and it has no back.
         if (layout == "cornerin")
-            return clickedFace == BlockFacing.FromCode(side).Opposite ? "front"
-                : clickedFace == BlockFacing.FromCode(CorneroutSecondFace[side]).Opposite ? "secondfront" : null;
+        {
+            if (clickedFace == BlockFacing.FromCode(side).Opposite) return "front";
+            if (clickedFace == BlockFacing.FromCode(CorneroutSecondFace[side]).Opposite) return "secondfront";
+            return null;
+        }
         if (FinishFaceFor(side, clickedFace, "front") is string face) return face;
         if (!ClaimsTwoFaces(layout)) return null;
         return FinishFaceFor(CorneroutSecondFace[side], clickedFace, layout == "diagonal" ? "front" : "secondfront");

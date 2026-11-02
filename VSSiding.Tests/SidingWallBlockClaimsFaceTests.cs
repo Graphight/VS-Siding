@@ -60,4 +60,28 @@ public class SidingWallBlockClaimsFaceTests
             return ((left.X, left.Z), (right.X, right.Z));
         }));
     }
+
+    [Fact]
+    public void FrontsFaceEachOtherOnlyWhereBothHaveAFrontSlotOnTheSharedBoundary()
+    {
+        (string, string, string, string, string)[] cases =
+        [
+            ("wall", "west", "west", "wall", "east"),
+            ("wall", "west", "west", "wall", "west"),
+            ("wall", "west", "west", "wall", "north"),
+            ("wall", "west", "west", "cornerout", "east"),
+            ("wall", "north", "north", "cornerout", "north"),
+            ("cornerout", "west", "north", "wall", "south"),
+            ("cornerout", "west", "north", "cornerout", "south"),
+            ("cornerout", "west", "south", "wall", "north"),
+            ("wall", "west", "west", "diagonal", "east"),
+            ("diagonal", "east", "east", "wall", "west"),
+            ("wall", "west", "west", "cornerin", "east"),
+            ("cornerin", "east", "east", "wall", "west"),
+        ];
+
+        Assert.Equal(
+            [true, false, false, true, false, true, true, false, false, false, false, false],
+            cases.Select(c => SidingWallBlock.FrontsFaceEachOther(c.Item1, c.Item2, c.Item3, c.Item4, c.Item5)));
+    }
 }

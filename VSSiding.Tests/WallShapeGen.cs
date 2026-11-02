@@ -1209,8 +1209,6 @@ public static class WallShapeGen
         }
     }
 
-    // The lengths between two z over which the boxes, taken together, cover a piece from one side of its
-    // width to the other. Two boxes that meet inside the width cover it between them.
     // An inside corner's post, 4 by 4 in the cell's west-north corner: a 3 by 3 framing core, and a 1/16 finish on each
     // of the two faces that look into the cell, the east one (front) and the south one (secondfront).
     private static readonly Element[] CornerInElements =
@@ -1268,6 +1266,8 @@ public static class WallShapeGen
         => [.. SidingWallBlock.AddOpenPartBoxes([], "cornerin", "west", "oak", null)
             .Select(box => ((box.X1 * 16.0, box.Y1 * 16.0, box.Z1 * 16.0), (box.X2 * 16.0, box.Y2 * 16.0, box.Z2 * 16.0)))];
 
+    // The lengths between two z over which the boxes, taken together, cover a piece from one side of its
+    // width to the other. Two boxes that meet inside the width cover it between them.
     private static IEnumerable<(double Z, double Z2)> CoveredLengths(
         Element source, (double X, double Y, double Z, double X2, double Y2, double Z2)[] regions, double from, double to)
     {

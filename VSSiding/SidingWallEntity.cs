@@ -187,14 +187,13 @@ public class SidingWallEntity : BlockEntity
         bool deckGlazed = SidingWallBlock.IsTransparent(DeckInfill, Block.Attributes["Infills"]);
         var deckJoins = SidingFloorBlock.Joins(Api.World.BlockAccessor, Pos, deckGlazed);
         string[] deckInnerCorners = SidingFloorBlock.InnerCorners(Api.World.BlockAccessor, Pos, deckGlazed, deckJoins);
+        bool capped = Capped(layout, DeckFront, SidingWallBlock.FreeAbove(Api.World.BlockAccessor, Pos));
         string[] deckElements = DeckElements(side, Deck, DeckInfill, DeckFront, DeckBack, Block.Attributes["Finishes"], deckJoins, (DeckFrontStyle, DeckBackStyle), deckGlazed,
-            FrameElements(Block.Attributes["Framings"], Deck, alternate), Ledges(layout, Back == null, glazed, joins), deckInnerCorners,
-            Capped(layout, DeckFront, SidingWallBlock.FreeAbove(Api.World.BlockAccessor, Pos)));
+            FrameElements(Block.Attributes["Framings"], Deck, alternate), Ledges(layout, Back == null, glazed, joins), deckInnerCorners, capped);
         if (selectiveElements.Length == 0 && deckElements.Length == 0 && stepElements.Length == 0) return false;
 
         string cacheKey = CacheKey(layout, side, Framing, Infill, Front, SecondFront, Back, joins, Styles, Deck, Step, StepOrientation,
-            DeckInfill, DeckFront, DeckBack, (DeckFrontStyle, DeckBackStyle), deckJoins, alternate, innerCorners, deckInnerCorners, glassRunsOn, tees, closed,
-            deckElements.Any(name => name.StartsWith("cap-")));
+            DeckInfill, DeckFront, DeckBack, (DeckFrontStyle, DeckBackStyle), deckJoins, alternate, innerCorners, deckInnerCorners, glassRunsOn, tees, closed, capped);
 
         MeshData[] meshes = ObjectCacheUtil.GetOrCreate(capi, cacheKey, () =>
         {

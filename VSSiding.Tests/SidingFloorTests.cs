@@ -138,6 +138,9 @@ public class SidingFloorTests
     public void ACappedDeckAddsItsTopFinishOverTheWallAndOnlyWhileItHasOneAndIsNotGlazed()
     {
         string[] bare = ["deck-west-framing-left", "deck-west-framing-right", "deck-west-framing-top", "deck-west-framing-bottom"];
+        string[] Deck(string? infill, string? front, bool glazed, bool capped = false)
+            => SidingWallEntity.DeckElements("west", "oak", infill, front, null, Finishes, (false, false, false, false), default, glazed, capped: capped);
+
         Assert.Equal(
             new string[][]
             {
@@ -145,17 +148,16 @@ public class SidingFloorTests
                 ["deck-west-front-hboards", .. bare],
                 bare,
                 bare,
+                Deck("glass", "planks", glazed: true),
             },
             new[]
             {
-                SidingWallEntity.DeckElements("west", "oak", null, "planks", null, Finishes, (false, false, false, false), default, false, capped: true),
-                SidingWallEntity.DeckElements("west", "oak", null, "planks", null, Finishes, (false, false, false, false), default, false),
-                SidingWallEntity.DeckElements("west", "oak", null, null, null, Finishes, (false, false, false, false), default, false, capped: true),
-                SidingWallEntity.DeckElements("west", "oak", null, null, null, Finishes, (false, false, false, false), default, false),
+                Deck(null, "planks", glazed: false, capped: true),
+                Deck(null, "planks", glazed: false),
+                Deck(null, null, glazed: false, capped: true),
+                Deck(null, null, glazed: false),
+                Deck("glass", "planks", glazed: true, capped: true),
             });
-        Assert.DoesNotContain(
-            SidingWallEntity.DeckElements("west", "oak", "glass", "planks", null, Finishes, (false, false, false, false), default, true, capped: true),
-            name => name.StartsWith("cap-"));
     }
 
     [Theory]

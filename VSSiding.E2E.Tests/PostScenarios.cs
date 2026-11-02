@@ -18,17 +18,7 @@ public class PostScenarios : AtlasScenarioBase
     [AtlasScenario(FreshWorld = true)]
     public async Task Post_Should_StandInTheNearestCornerForOnePlank_When_PlanksArePressedInPostMode()
     {
-        BlockPos cell = World.Spawn.Offset(1, 2, 0);
-        World.SetBlock("game:planks-aged-ud", cell.DownCopy());
-        ITestPlayer player = await WallBuilder.JoinBuilder(World);
-        player.Entity.WatchedAttributes.SetString("vssidingFraming", "post");
-        await player.TeleportTo(cell.WestCopy());
-        await player.GiveItem("game:plank-oak", 3);
-
-        ItemSlot slot = player.Player.InventoryManager.ActiveHotbarSlot;
-        var sel = new BlockSelection { Position = cell.DownCopy(), Face = BlockFacing.UP, HitPosition = new Vec3d(0.2, 1, 0.8) };
-        var handling = EnumHandHandling.NotHandled;
-        slot.Itemstack!.Collectible.OnHeldInteractStart(slot, player.Entity, sel, null, true, ref handling);
+        (BlockPos cell, ITestPlayer player, ItemSlot slot, EnumHandHandling handling) = await PlacePost(planks: 3);
 
         int planksLeft = slot.Itemstack?.StackSize ?? 0;
         await WallBuilder.Press(World, player, cell, "game:clay-blue", BlockFacing.WEST, new Vec3d(0.5, 0.5, 0.5));
@@ -43,17 +33,7 @@ public class PostScenarios : AtlasScenarioBase
     [AtlasScenario(FreshWorld = true)]
     public async Task Post_Should_TakeADeckAtFullCostAndRefundItInFull_When_TheDeckToggleIsLit()
     {
-        BlockPos cell = World.Spawn.Offset(1, 2, 0);
-        World.SetBlock("game:planks-aged-ud", cell.DownCopy());
-        ITestPlayer player = await WallBuilder.JoinBuilder(World);
-        player.Entity.WatchedAttributes.SetString("vssidingFraming", "post");
-        await player.TeleportTo(cell.WestCopy());
-        await player.GiveItem("game:plank-oak", 3);
-        ItemSlot slot = player.Player.InventoryManager.ActiveHotbarSlot;
-        var sel = new BlockSelection { Position = cell.DownCopy(), Face = BlockFacing.UP, HitPosition = new Vec3d(0.2, 1, 0.8) };
-        var handling = EnumHandHandling.NotHandled;
-        player.Entity.WatchedAttributes.SetString("vssidingDeck", "deck");
-        slot.Itemstack!.Collectible.OnHeldInteractStart(slot, player.Entity, sel, null, true, ref handling);
+        (BlockPos cell, ITestPlayer player, ItemSlot slot, _) = await PlacePost(planks: 3, deck: true);
         int planksLeft = slot.Itemstack?.StackSize ?? 0;
         var placed = (World.BlockAt(cell).Code.Path, planksLeft, DeckLayers(cell));
 
@@ -88,16 +68,7 @@ public class PostScenarios : AtlasScenarioBase
     [AtlasScenario(FreshWorld = true)]
     public async Task Post_Should_TakeADeckInPlaceForTwoPlanks_When_PlanksAreClickedWithTheDeckToggleLit()
     {
-        BlockPos cell = World.Spawn.Offset(1, 2, 0);
-        World.SetBlock("game:planks-aged-ud", cell.DownCopy());
-        ITestPlayer player = await WallBuilder.JoinBuilder(World);
-        player.Entity.WatchedAttributes.SetString("vssidingFraming", "post");
-        await player.TeleportTo(cell.WestCopy());
-        await player.GiveItem("game:plank-oak", 1);
-        ItemSlot slot = player.Player.InventoryManager.ActiveHotbarSlot;
-        var sel = new BlockSelection { Position = cell.DownCopy(), Face = BlockFacing.UP, HitPosition = new Vec3d(0.2, 1, 0.8) };
-        var handling = EnumHandHandling.NotHandled;
-        slot.Itemstack!.Collectible.OnHeldInteractStart(slot, player.Entity, sel, null, true, ref handling);
+        (BlockPos cell, ITestPlayer player, ItemSlot slot, _) = await PlacePost(planks: 1);
 
         player.Entity.WatchedAttributes.SetString("vssidingDeck", "deck");
         await player.GiveItem("game:plank-oak", 2);
@@ -111,16 +82,7 @@ public class PostScenarios : AtlasScenarioBase
     [AtlasScenario(FreshWorld = true)]
     public async Task Post_Should_BecomeAGuestAndComeBack_When_AFurnitureBlockIsHostedOnEitherFaceAndBroken()
     {
-        BlockPos cell = World.Spawn.Offset(1, 2, 0);
-        World.SetBlock("game:planks-aged-ud", cell.DownCopy());
-        ITestPlayer player = await WallBuilder.JoinBuilder(World);
-        player.Entity.WatchedAttributes.SetString("vssidingFraming", "post");
-        await player.TeleportTo(cell.WestCopy());
-        await player.GiveItem("game:plank-oak", 1);
-        ItemSlot slot = player.Player.InventoryManager.ActiveHotbarSlot;
-        var sel = new BlockSelection { Position = cell.DownCopy(), Face = BlockFacing.UP, HitPosition = new Vec3d(0.2, 1, 0.8) };
-        var handling = EnumHandHandling.NotHandled;
-        slot.Itemstack!.Collectible.OnHeldInteractStart(slot, player.Entity, sel, null, true, ref handling);
+        (BlockPos cell, ITestPlayer player, ItemSlot slot, _) = await PlacePost(planks: 1);
         (string?, string?, string?, string?, string?) guestPost = ("oak", null, null, null, null);
         Assert.Equal(guestPost, WallBuilder.Layers(World, cell));
 
@@ -149,28 +111,11 @@ public class PostScenarios : AtlasScenarioBase
             seen.ToArray());
     }
 
-    private (string? Deck, string? Infill, string? Front, string? Back) DeckLayers(BlockPos cell)
-    {
-        var tree = new TreeAttribute();
-        World.BlockEntityAt<BlockEntity>(cell)!.ToTreeAttributes(tree);
-        string? Read(string key) => tree.GetString(key) is { Length: > 0 } value ? value : null;
-        return (Read("deck"), Read("deckinfill"), Read("deckfront"), Read("deckback"));
-    }
-
     // Each finish costs a quarter of its two planks, and peeling both finishes and then the frame hands back what was paid.
     [AtlasScenario(FreshWorld = true)]
     public async Task Post_Should_TakeAFinishOnEachFaceForOnePlankAndRefundThemAll_When_PlanksAreBuiltAndPeeled()
     {
-        BlockPos cell = World.Spawn.Offset(1, 2, 0);
-        World.SetBlock("game:planks-aged-ud", cell.DownCopy());
-        ITestPlayer player = await WallBuilder.JoinBuilder(World);
-        player.Entity.WatchedAttributes.SetString("vssidingFraming", "post");
-        await player.TeleportTo(cell.WestCopy());
-        await player.GiveItem("game:plank-oak", 1);
-        ItemSlot slot = player.Player.InventoryManager.ActiveHotbarSlot;
-        var sel = new BlockSelection { Position = cell.DownCopy(), Face = BlockFacing.UP, HitPosition = new Vec3d(0.2, 1, 0.8) };
-        var handling = EnumHandHandling.NotHandled;
-        slot.Itemstack!.Collectible.OnHeldInteractStart(slot, player.Entity, sel, null, true, ref handling);
+        (BlockPos cell, ITestPlayer player, ItemSlot slot, _) = await PlacePost(planks: 1);
 
         // Away from the post, so the planks it gives back stay on the ground to be counted.
         await player.TeleportTo(cell.EastCopy(6).Up());
@@ -211,5 +156,32 @@ public class PostScenarios : AtlasScenarioBase
                 "air", 3
             ),
             ((heldAfterFront, heldAfterSecondFront), styles, built, afterFront, afterSecondFront, World.BlockAt(cell).Code.Path, refunded));
+    }
+
+    // A post placed as a player places one: Post picked, planks pressed on the block below in the cell's south-west quarter,
+    // so the post stands in that corner as `wall-cornerin-south`.
+    private async Task<(BlockPos Cell, ITestPlayer Player, ItemSlot Slot, EnumHandHandling Handling)> PlacePost(int planks, bool deck = false)
+    {
+        BlockPos cell = World.Spawn.Offset(1, 2, 0);
+        World.SetBlock("game:planks-aged-ud", cell.DownCopy());
+        ITestPlayer player = await WallBuilder.JoinBuilder(World);
+        player.Entity.WatchedAttributes.SetString("vssidingFraming", "post");
+        if (deck) player.Entity.WatchedAttributes.SetString("vssidingDeck", "deck");
+        await player.TeleportTo(cell.WestCopy());
+        await player.GiveItem("game:plank-oak", planks);
+
+        ItemSlot slot = player.Player.InventoryManager.ActiveHotbarSlot;
+        var sel = new BlockSelection { Position = cell.DownCopy(), Face = BlockFacing.UP, HitPosition = new Vec3d(0.2, 1, 0.8) };
+        var handling = EnumHandHandling.NotHandled;
+        slot.Itemstack!.Collectible.OnHeldInteractStart(slot, player.Entity, sel, null, true, ref handling);
+        return (cell, player, slot, handling);
+    }
+
+    private (string? Deck, string? Infill, string? Front, string? Back) DeckLayers(BlockPos cell)
+    {
+        var tree = new TreeAttribute();
+        World.BlockEntityAt<BlockEntity>(cell)!.ToTreeAttributes(tree);
+        string? Read(string key) => tree.GetString(key) is { Length: > 0 } value ? value : null;
+        return (Read("deck"), Read("deckinfill"), Read("deckfront"), Read("deckback"));
     }
 }

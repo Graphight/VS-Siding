@@ -68,13 +68,11 @@ public class PlaceWallFrame : CollectibleBehavior
         bool post = layout == "cornerin";
         bool withDeck = layout != "floor" && SidingModePicker.Deck(byPlayer);
 
-        var fullConsumes = wallBlock.Attributes["Framings"][framingKey]["Consumes"];
-        // A post's frame costs a quarter, but its deck the full amount.
-        var consumes = post ? SidingWallBlock.PostConsumes(fullConsumes) : fullConsumes;
-        if (post && withDeck) consumes = new(new JObject { ["quantity"] = SidingWallBlock.ConsumeQuantity(consumes) + SidingWallBlock.ConsumeQuantity(fullConsumes) });
-        int times = withDeck && !post ? 2 : 1;
+        int frame = SidingWallBlock.ConsumeQuantity(wallBlock.Attributes["Framings"][framingKey]["Consumes"]);
+        // A post's frame costs a quarter of a wall's; a deck costs a full frame on either.
+        JsonObject Cost(bool deck) => new(new JObject { ["quantity"] = (post ? SidingWallBlock.PostQuarter(frame) : frame) + (deck ? frame : 0) });
         bool isCreative = byPlayer.WorldData.CurrentGameMode == EnumGameMode.Creative;
-        if (!SidingWallBlock.TryAffordOrError(byPlayer, isCreative, slot.Itemstack.StackSize, consumes, times)) return;
+        if (!SidingWallBlock.TryAffordOrError(byPlayer, isCreative, slot.Itemstack.StackSize, Cost(withDeck))) return;
         var placeholder = world.GetBlock(new AssetLocation("vssiding", layout == "floor" ? "floor" : $"wall-{layout}-west"));
         if (placeholder == null) return;
 
@@ -102,11 +100,7 @@ public class PlaceWallFrame : CollectibleBehavior
         if (layout == "floor" && world.BlockAccessor.GetBlock(targetPos) is SidingWallBlock deckWall
             && world.BlockAccessor.GetBlockEntity<SidingWallEntity>(targetPos) is { } deckEntity
             && deckWall.TryAddDeck(world, byPlayer, targetPos, deckEntity, slot, heldCode, isCreative))
-        {
-            handling = EnumHandling.PreventSubsequent;
-            handHandling = EnumHandHandling.PreventDefault;
             return;
-        }
         BlockSelection placeSel = blockSel.Clone();
         placeSel.Position = targetPos;
         placeSel.DidOffset = didOffset;
@@ -140,17 +134,13 @@ public class PlaceWallFrame : CollectibleBehavior
             entity.Framing = framingKey;
             // Vanilla's placement check ran before the entity existed, so it only saw the panel.
             if (withDeck && world.BlockAccessor.GetBlock(targetPos) is SidingWallBlock placedWall && placedWall.DeckOccupied(world, targetPos))
-            {
                 withDeck = false;
-                times = 1;
-                if (post) consumes = SidingWallBlock.PostConsumes(fullConsumes);
-            }
             if (withDeck) entity.Deck = framingKey;
             entity.MarkDirty(true);
             SidingWallBlock.MarkNeighboursDirty(world, targetPos);
         }
 
-        SidingWallBlock.ConsumeHeld(slot, consumes, isCreative, times);
+        SidingWallBlock.ConsumeHeld(slot, Cost(withDeck), isCreative);
     }
 
     // The wall variant whose post corner (its side face plus the face counter-clockwise from it) is the cell

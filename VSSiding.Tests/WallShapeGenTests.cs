@@ -489,31 +489,36 @@ public class WallShapeGenTests
     // The cap is the deck's top finish over the wall's own 4/16 top, in each side's footprint: top faces alone, on the
     // deck's front texture, standing a hair above the wall's top.
     [Theory]
-    [InlineData("wall", 4, 16)]
-    [InlineData("cornerin", 4, 4)]
-    public void EverySidesCapLiesOverTheWallsTopAndDrawsOnlyItsTopFace(string layout, double footX, double footZ)
+    [InlineData("wall")]
+    [InlineData("cornerout")]
+    [InlineData("cornerin")]
+    public void EverySidesCapLiesOverTheWallsTopAndDrawsOnlyItsTopFace(string layout)
     {
+        ((double X, double Y, double Z) From, (double X, double Y, double Z) To)[] footprint = layout switch
+        {
+            "wall" => [((0, 15, 0), (4, 16, 16))],
+            "cornerout" => [((0, 15, 0), (4, 16, 16)), ((4, 15, 0), (16, 16, 4))],
+            _ => [((0, 15, 0), (4, 16, 4))],
+        };
         var elements = WallShapeGen.Generate(layout)["elements"]!.Cast<JObject>().ToArray();
+        var offenders = new List<string>();
         foreach (string side in Sides)
         {
+            int rotation = side switch { "west" => 0, "south" => 90, "east" => 180, _ => 270 };
+            var regions = footprint.Select(box => WallShapeGen.DeckRegion(box.From, box.To, rotation)).ToArray();
             var caps = elements.Where(e => ((string)e["name"]!).StartsWith($"cap-{side}-")).ToArray();
-            Assert.NotEmpty(caps);
-            var footprint = DeckRegionOf(side, footX, footZ);
-            Assert.All(caps, cap =>
+            if (caps.Length == 0) offenders.Add($"{layout} {side} has no cap");
+            foreach (var cap in caps)
             {
-                Assert.True(Inside(cap, [footprint.X, 15, footprint.Z, footprint.X2, 16.05, footprint.Z2]), (string)cap["name"]!);
-                Assert.Equal(["up"], ((JObject)cap["faces"]!).Properties().Select(p => p.Name));
-                Assert.Equal("#deckfront", (string)cap["faces"]!["up"]!["texture"]!);
-                Assert.Equal(16.05, (double)cap["to"]![1]!, 3);
-            });
+                string name = (string)cap["name"]!;
+                if (!regions.Any(r => Inside(cap, [r.X, 15, r.Z, r.X2, 16.05, r.Z2]))) offenders.Add($"{layout} '{name}' leaves the wall's top");
+                string faces = string.Join(", ", ((JObject)cap["faces"]!).Properties().Select(p => $"{p.Name} {p.Value["texture"]}"));
+                if (faces != "up #deckfront") offenders.Add($"{layout} '{name}' draws {faces}");
+                if (Math.Abs((double)cap["to"]![1]! - 16.05) > 1e-3) offenders.Add($"{layout} '{name}' tops out at {cap["to"]![1]}");
+            }
         }
-    }
 
-    private static (double X, double Z, double X2, double Z2) DeckRegionOf(string side, double footX, double footZ)
-    {
-        int rotation = side switch { "west" => 0, "south" => 90, "east" => 180, _ => 270 };
-        var region = WallShapeGen.DeckRegion((0, 15, 0), (footX, 16, footZ), rotation);
-        return (region.X, region.Z, region.X2, region.Z2);
+        Assert.Empty(offenders);
     }
 
     private static bool Inside(JObject element, double[] box)
