@@ -18,6 +18,16 @@ public class PlaceWallFrame : CollectibleBehavior
     {
     }
 
+    // Behaviors answer a click in array order, so this one moves to just after vanilla's GroundStorable, ahead of
+    // anything another mod appended for the same click (#143). Done in code: a JSON patch at a fixed index fails
+    // once another mod has shortened the array. Without GroundStorable it goes first.
+    internal static CollectibleBehavior[] AfterGroundStorable(CollectibleBehavior[] behaviors)
+    {
+        var rest = behaviors.Where(behavior => behavior is not PlaceWallFrame).ToList();
+        rest.InsertRange(rest.FindIndex(behavior => behavior is CollectibleBehaviorGroundStorable) + 1, behaviors.OfType<PlaceWallFrame>());
+        return rest.ToArray();
+    }
+
     public override void OnHeldInteractStart(ItemSlot slot, EntityAgent byEntity, BlockSelection blockSel, EntitySelection entitySel, bool firstEvent, ref EnumHandHandling handHandling, ref EnumHandling handling)
     {
         if (!firstEvent || blockSel == null) return;
@@ -33,14 +43,15 @@ public class PlaceWallFrame : CollectibleBehavior
         string? framingKey = SidingWallBlock.MatchConsumes(heldCode, wallBlock.Attributes["Framings"]);
         if (framingKey == null) return;
 
+        // The build signal makes the click ours even when nothing is placed, so a later behavior such as
+        // Immersive Woodworking's sawhorse never runs instead of a failed frame (#143).
+        handling = EnumHandling.PreventSubsequent;
+        handHandling = EnumHandHandling.PreventDefault;
+
         string layout = SidingModePicker.Layout(byPlayer);
         if (layout == "face")
         {
-            if (TrySkinFace(slot, byPlayer, blockSel, heldCode, wallBlock))
-            {
-                handling = EnumHandling.PreventSubsequent;
-                handHandling = EnumHandHandling.PreventDefault;
-            }
+            TrySkinFace(slot, byPlayer, blockSel, heldCode, wallBlock);
             return;
         }
 
@@ -51,12 +62,7 @@ public class PlaceWallFrame : CollectibleBehavior
             && world.BlockAccessor.GetBlock(blockSel.Position) is SidingWallBlock hitWall
             && world.BlockAccessor.GetBlockEntity<SidingWallEntity>(blockSel.Position) is { Infill: not null } hitEntity
             && !hitWall.IsDeckHit(world.BlockAccessor, blockSel, hitEntity)
-            && hitWall.TryUpgradeLayout(world, byPlayer, blockSel, hitEntity, heldCode))
-        {
-            handling = EnumHandling.PreventSubsequent;
-            handHandling = EnumHandHandling.PreventDefault;
-            return;
-        }
+            && hitWall.TryUpgradeLayout(world, byPlayer, blockSel, hitEntity, heldCode)) return;
 
         bool withDeck = layout != "floor" && SidingModePicker.Deck(byPlayer);
 
@@ -118,45 +124,42 @@ public class PlaceWallFrame : CollectibleBehavior
         }
 
         SidingWallBlock.ConsumeHeld(slot, consumes, isCreative, times);
-
-        handling = EnumHandling.PreventSubsequent;
-        handHandling = EnumHandHandling.PreventDefault;
     }
 
     // Face mode puts a plank's vanilla decor block on the clicked face of any solid block (decision 0077).
     // A face finish already there is swapped: the same wood only turns to the picked boards, for free, and
     // another wood drops the old planks. Siding's own blocks, chiselled hosts and any other decor are left alone.
-    private static bool TrySkinFace(ItemSlot slot, IPlayer byPlayer, BlockSelection blockSel, AssetLocation heldCode, SidingWallBlock wallBlock)
+    private static void TrySkinFace(ItemSlot slot, IPlayer byPlayer, BlockSelection blockSel, AssetLocation heldCode, SidingWallBlock wallBlock)
     {
         IWorldAccessor world = byPlayer.Entity.World;
         IBlockAccessor accessor = world.BlockAccessor;
         BlockPos pos = blockSel.Position;
         Block host = accessor.GetBlock(pos);
-        if (host is SidingWallBlock or SidingFloorBlock || host.GetInterface<IAcceptsDecor>(world, pos) != null) return false;
+        if (host is SidingWallBlock or SidingFloorBlock || host.GetInterface<IAcceptsDecor>(world, pos) != null) return;
 
         EnumBlockMaterial material = host.GetBlockMaterial(accessor, pos);
-        if (material is EnumBlockMaterial.Snow or EnumBlockMaterial.Ice) return false;
+        if (material is EnumBlockMaterial.Snow or EnumBlockMaterial.Ice) return;
 
         string? wood = slot.Itemstack.Collectible.Variant["wood"];
-        if (wood == null) return false;
+        if (wood == null) return;
         Block? decor = world.GetBlock(new AssetLocation("vssiding", $"facefinish-planks-{wood}"));
-        if (decor == null || !host.CanAttachBlockAt(accessor, decor, pos, blockSel.Face)) return false;
+        if (decor == null || !host.CanAttachBlockAt(accessor, decor, pos, blockSel.Face)) return;
 
         var bits = new DecorBits(blockSel.Face) { Rotation = SidingModePicker.Boards(byPlayer) == "boards" ? 1 : 0 };
         // The chunk keys a decor by its rotation too, so the old one is found and removed by its own key.
         var old = accessor.GetSubDecors(pos)?.FirstOrDefault(entry => new DecorBits(entry.Key).Face == blockSel.Face.Index) ?? default;
-        if (old.Value != null && (old.Value.Code.Domain != "vssiding" || old.Value.FirstCodePart() != "facefinish")) return false;
+        if (old.Value != null && (old.Value.Code.Domain != "vssiding" || old.Value.FirstCodePart() != "facefinish")) return;
         bool sameWood = old.Value?.Id == decor.Id;
-        if (sameWood && new DecorBits(old.Key).Rotation == bits.Rotation) return false;
+        if (sameWood && new DecorBits(old.Key).Rotation == bits.Rotation) return;
 
         bool isCreative = byPlayer.WorldData.CurrentGameMode == EnumGameMode.Creative;
         JsonObject? consumes = null;
         if (!sameWood)
         {
             string? finishKey = SidingWallBlock.MatchConsumes(heldCode, wallBlock.Attributes["Finishes"]);
-            if (finishKey == null) return false;
+            if (finishKey == null) return;
             consumes = wallBlock.Attributes["Finishes"][finishKey]["Consumes"];
-            if (!SidingWallBlock.TryAffordOrError(byPlayer, isCreative, slot.Itemstack.StackSize, consumes)) return false;
+            if (!SidingWallBlock.TryAffordOrError(byPlayer, isCreative, slot.Itemstack.StackSize, consumes)) return;
         }
 
         if (old.Value != null)
@@ -167,6 +170,5 @@ public class PlaceWallFrame : CollectibleBehavior
         accessor.SetDecor(decor, pos, bits);
 
         if (consumes != null) SidingWallBlock.ConsumeHeld(slot, consumes, isCreative);
-        return true;
     }
 }
