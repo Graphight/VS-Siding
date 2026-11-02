@@ -461,6 +461,7 @@ public class WallShapeGenTests
     [InlineData("wall")]
     [InlineData("cornerout")]
     [InlineData("diagonal")]
+    [InlineData("cornerin")]
     public void EverySidesDeckGroupsLieInsideItsDeckBox(string layout)
     {
         var elements = WallShapeGen.Generate(layout)["elements"]!.Cast<JObject>().ToArray();

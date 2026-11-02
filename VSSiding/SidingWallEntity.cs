@@ -303,7 +303,7 @@ public class SidingWallEntity : BlockEntity
     // away. A diagonal's deck draws none (0067).
     internal static string[] Ledges(string layout, bool roomSideBare, bool glazed, (bool above, bool below, bool left, bool right) joins)
     {
-        if (layout == "diagonal") return [];
+        if (layout is "diagonal" or "cornerin") return [];
         if (roomSideBare) return ["ledge"];
         if (!glazed) return [];
         var ledges = new List<string> { "ledgetop" };

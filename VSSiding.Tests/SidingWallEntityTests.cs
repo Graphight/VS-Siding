@@ -434,7 +434,7 @@ public class SidingWallEntityTests
             {
                 ["ledge"], ["ledge"], [],
                 ["ledgetop"], ["ledgetop", "ledgetopleft"], ["ledgetop", "ledgetopright"], ["ledgetop", "ledgetopleft", "ledgetopright"],
-                ["ledgetop"], [], [],
+                ["ledgetop"], [], [], [], [],
             },
             new[]
             {
@@ -448,6 +448,8 @@ public class SidingWallEntityTests
                 SidingWallEntity.Ledges("cornerout", roomSideBare: false, glazed: true, (true, false, false, false)),
                 SidingWallEntity.Ledges("diagonal", roomSideBare: true, glazed: false, unjoined),
                 SidingWallEntity.Ledges("diagonal", roomSideBare: true, glazed: true, unjoined),
+                SidingWallEntity.Ledges("cornerin", roomSideBare: true, glazed: false, unjoined),
+                SidingWallEntity.Ledges("cornerin", roomSideBare: false, glazed: true, (true, false, true, true)),
             });
     }
 

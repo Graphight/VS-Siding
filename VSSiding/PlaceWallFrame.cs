@@ -1,4 +1,5 @@
 using System.Linq;
+using Newtonsoft.Json.Linq;
 using Vintagestory.API.Common;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
@@ -59,11 +60,13 @@ public class PlaceWallFrame : CollectibleBehavior
         }
 
         bool post = layout == "cornerin";
-        bool withDeck = layout != "floor" && !post && SidingModePicker.Deck(byPlayer);
+        bool withDeck = layout != "floor" && SidingModePicker.Deck(byPlayer);
 
-        var consumes = wallBlock.Attributes["Framings"][framingKey]["Consumes"];
-        if (post) consumes = SidingWallBlock.PostConsumes(consumes);
-        int times = withDeck ? 2 : 1;
+        var fullConsumes = wallBlock.Attributes["Framings"][framingKey]["Consumes"];
+        // A post's frame costs a quarter, but its deck the full amount.
+        var consumes = post ? SidingWallBlock.PostConsumes(fullConsumes) : fullConsumes;
+        if (post && withDeck) consumes = new(new JObject { ["quantity"] = SidingWallBlock.ConsumeQuantity(consumes) + SidingWallBlock.ConsumeQuantity(fullConsumes) });
+        int times = withDeck && !post ? 2 : 1;
         bool isCreative = byPlayer.WorldData.CurrentGameMode == EnumGameMode.Creative;
         if (!SidingWallBlock.TryAffordOrError(byPlayer, isCreative, slot.Itemstack.StackSize, consumes, times)) return;
         var placeholder = world.GetBlock(new AssetLocation("vssiding", layout == "floor" ? "floor" : $"wall-{layout}-west"));
@@ -125,6 +128,7 @@ public class PlaceWallFrame : CollectibleBehavior
             {
                 withDeck = false;
                 times = 1;
+                if (post) consumes = SidingWallBlock.PostConsumes(fullConsumes);
             }
             if (withDeck) entity.Deck = framingKey;
             entity.MarkDirty(true);

@@ -37,6 +37,83 @@ public class PostScenarios : AtlasScenarioBase
             (World.BlockAt(cell).Code.Path, handling, planksLeft, WallBuilder.Layers(World, cell)));
     }
 
+    // The post's frame costs a quarter, its deck the full two planks; the deck takes infill and floorboards like a wall's,
+    // and breaking the post hands back the quarter plus every deck layer in full.
+    [AtlasScenario(FreshWorld = true)]
+    public async Task Post_Should_TakeADeckAtFullCostAndRefundItInFull_When_TheDeckToggleIsLit()
+    {
+        BlockPos cell = World.Spawn.Offset(1, 2, 0);
+        World.SetBlock("game:planks-aged-ud", cell.DownCopy());
+        ITestPlayer player = await WallBuilder.JoinBuilder(World);
+        player.Entity.WatchedAttributes.SetString("vssidingFraming", "post");
+        await player.TeleportTo(cell.WestCopy());
+        await player.GiveItem("game:plank-oak", 3);
+        ItemSlot slot = player.Player.InventoryManager.ActiveHotbarSlot;
+        var sel = new BlockSelection { Position = cell.DownCopy(), Face = BlockFacing.UP, HitPosition = new Vec3d(0.2, 1, 0.8) };
+        var handling = EnumHandHandling.NotHandled;
+        player.Entity.WatchedAttributes.SetString("vssidingDeck", "deck");
+        slot.Itemstack!.Collectible.OnHeldInteractStart(slot, player.Entity, sel, null, true, ref handling);
+        int planksLeft = slot.Itemstack?.StackSize ?? 0;
+        var placed = (World.BlockAt(cell).Code.Path, planksLeft, DeckLayers(cell));
+
+        player.Entity.WatchedAttributes.SetString("vssidingDeck", "");
+        var deckTopSel = new BlockSelection
+        {
+            Position = cell.Copy(), Face = BlockFacing.UP, HitPosition = new Vec3d(0.5, 1, 0.5),
+            SelectionBoxIndex = World.BlockAt(cell).SelectionBoxes.Length,
+        };
+        await player.GiveItem("game:clay-blue", 4);
+        World.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, deckTopSel);
+        player.Entity.WatchedAttributes.SetString("vssidingFraming", "floor");
+        await player.GiveItem("game:plank-oak", 2);
+        World.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, deckTopSel);
+        var layered = DeckLayers(cell);
+
+        var drops = World.BlockAt(cell).GetDrops(player.Entity.World, cell, player.Player, 1)
+            .GroupBy(stack => stack.Collectible.Code.ToString()).OrderBy(group => group.Key)
+            .Select(group => $"{group.Key} x{group.Sum(stack => stack.StackSize)}");
+        string dropped = string.Join(", ", drops);
+
+        Assert.Equal(
+            (
+                ("wall-cornerin-south", 0, ("oak", null, null, null)),
+                ("oak", "clay", "planks", null),
+                "game:clay-blue x4, game:plank-oak x5"
+            ),
+            (placed, layered, dropped));
+    }
+
+    // A post already standing takes the deck from a click on its side with the toggle lit, for the full two planks.
+    [AtlasScenario(FreshWorld = true)]
+    public async Task Post_Should_TakeADeckInPlaceForTwoPlanks_When_PlanksAreClickedWithTheDeckToggleLit()
+    {
+        BlockPos cell = World.Spawn.Offset(1, 2, 0);
+        World.SetBlock("game:planks-aged-ud", cell.DownCopy());
+        ITestPlayer player = await WallBuilder.JoinBuilder(World);
+        player.Entity.WatchedAttributes.SetString("vssidingFraming", "post");
+        await player.TeleportTo(cell.WestCopy());
+        await player.GiveItem("game:plank-oak", 1);
+        ItemSlot slot = player.Player.InventoryManager.ActiveHotbarSlot;
+        var sel = new BlockSelection { Position = cell.DownCopy(), Face = BlockFacing.UP, HitPosition = new Vec3d(0.2, 1, 0.8) };
+        var handling = EnumHandHandling.NotHandled;
+        slot.Itemstack!.Collectible.OnHeldInteractStart(slot, player.Entity, sel, null, true, ref handling);
+
+        player.Entity.WatchedAttributes.SetString("vssidingDeck", "deck");
+        await player.GiveItem("game:plank-oak", 2);
+        var sideSel = new BlockSelection { Position = cell.Copy(), Face = BlockFacing.EAST, HitPosition = new Vec3d(1, 0.5, 0.5) };
+        bool handled = World.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, sideSel);
+
+        Assert.Equal((true, null, ("oak", null, null, null)), (handled, slot.Itemstack, DeckLayers(cell)));
+    }
+
+    private (string? Deck, string? Infill, string? Front, string? Back) DeckLayers(BlockPos cell)
+    {
+        var tree = new TreeAttribute();
+        World.BlockEntityAt<BlockEntity>(cell)!.ToTreeAttributes(tree);
+        string? Read(string key) => tree.GetString(key) is { Length: > 0 } value ? value : null;
+        return (Read("deck"), Read("deckinfill"), Read("deckfront"), Read("deckback"));
+    }
+
     // Each finish costs a quarter of its two planks, and peeling both finishes and then the frame hands back what was paid.
     [AtlasScenario(FreshWorld = true)]
     public async Task Post_Should_TakeAFinishOnEachFaceForOnePlankAndRefundThemAll_When_PlanksAreBuiltAndPeeled()

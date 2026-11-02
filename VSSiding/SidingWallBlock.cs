@@ -74,10 +74,10 @@ public class SidingWallBlock : Block
 
     // Unrotated ("west") deck boxes per layout, matching the area WallShapeGen clips the floor's layers to.
     // A diagonal's are eight strips stepping across the half of the cell on the room side of its panel.
-    // A post has none yet.
+    // A post's are two strips covering the cell around its 4/16 corner.
     private static readonly Dictionary<string, Cuboidf[]> UnrotatedDeckBoxes = new()
     {
-        ["cornerin"] = [],
+        ["cornerin"] = new[] { new Cuboidf(4f / 16, 12f / 16, 0, 1, 1, 1), new Cuboidf(0, 12f / 16, 4f / 16, 4f / 16, 1, 1) },
         ["wall"] = new[] { new Cuboidf(4f / 16, 12f / 16, 0, 1, 1, 1) },
         ["cornerout"] = new[] { new Cuboidf(4f / 16, 12f / 16, 4f / 16, 1, 1, 1) },
         ["diagonal"] = Enumerable.Range(0, 8)
@@ -629,7 +629,7 @@ public class SidingWallBlock : Block
             return true;
         }
 
-        // A post takes no infill and, for now, no deck; it goes straight to the finish path at a quarter of the cost.
+        // A post takes no infill; it goes straight to the finish path at a quarter of the cost.
         bool post = Variant["layout"] == "cornerin";
 
         if (IsDeckHit(world.BlockAccessor, blockSel, entity))
@@ -637,7 +637,7 @@ public class SidingWallBlock : Block
 
         // With the deck lit, planks on a side face add a deck in place. Ahead of finishing, since
         // planks are a finish too. The top face still stacks the next course (PlaceWallFrame).
-        if (!post && entity.Deck == null && blockSel.Face != BlockFacing.UP && SidingModePicker.Deck(byPlayer)
+        if (entity.Deck == null && blockSel.Face != BlockFacing.UP && SidingModePicker.Deck(byPlayer)
             && MatchFraming(heldCode, entity.Infill != null, Attributes["Framings"], Attributes["Infills"]) is { } deckKey)
         {
             if (entity.Step != null)
@@ -1483,7 +1483,8 @@ public class SidingWallBlock : Block
             }
             else
             {
-                AddDrops(drops, key, Attributes[layer switch { "infill" or "deckinfill" => "Infills", "deck" => "Framings", _ => "Finishes" }], Variant["layout"] == "cornerin");
+                AddDrops(drops, key, Attributes[layer switch { "infill" or "deckinfill" => "Infills", "deck" => "Framings", _ => "Finishes" }],
+                    Variant["layout"] == "cornerin" && layer?.StartsWith("deck") != true);
             }
             foreach (var stack in ResolveDrops(world, drops, dropQuantityMultiplier)) world.SpawnItemEntity(stack, pos);
 

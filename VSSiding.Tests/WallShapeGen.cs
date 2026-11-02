@@ -1252,7 +1252,17 @@ public static class WallShapeGen
         ("framing", "game:block/wood/planks/aged/aged1"),
         ("front", "game:block/wood/planks/aged/aged1"),
         ("secondfront", "game:block/wood/planks/aged/aged1"),
+        ("deck", "game:block/wood/planks/aged/aged1"),
+        ("deckinfill", "game:block/wood/planks/aged/aged1"),
+        ("deckfront", "game:block/wood/planks/aged/aged1"),
+        ("deckback", "game:block/wood/planks/aged/aged1"),
+        ("lashing", "game:item/resource/rope"),
     ];
+
+    // The strips of the block's own west post deck, covering the cell around the post.
+    private static ((double X, double Y, double Z) From, (double X, double Y, double Z) To)[] PostDeckStrips()
+        => [.. SidingWallBlock.AddOpenPartBoxes([], "cornerin", "west", "oak", null)
+            .Select(box => ((box.X1 * 16.0, box.Y1 * 16.0, box.Z1 * 16.0), (box.X2 * 16.0, box.Y2 * 16.0, box.Z2 * 16.0)))];
 
     private static IEnumerable<(double Z, double Z2)> CoveredLengths(
         Element source, (double X, double Y, double Z, double X2, double Y2, double Z2)[] regions, double from, double to)
@@ -1285,7 +1295,7 @@ public static class WallShapeGen
         "floor" => Emit(FloorShape, FloorTextures),
         "cornerout" => Emit(WithDeck([.. CornerOutElements, .. CornerRimPieces(CornerOutElements)], ((4, 12, 4), (16, 16, 16))), CornerOutTextures),
         "diagonal" => Rounded(Emit([.. DiagonalElements, .. DeckGroups("deck", DiagonalDeckStrips())], DiagonalTextures)),
-        "cornerin" => Emit(CornerInElements, CornerInTextures),
+        "cornerin" => Emit([.. CornerInElements, .. DeckGroups("deck", PostDeckStrips())], CornerInTextures),
         _ => throw new KeyNotFoundException(layout),
     };
 

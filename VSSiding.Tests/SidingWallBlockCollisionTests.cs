@@ -212,6 +212,19 @@ public class SidingWallBlockCollisionTests
     }
 
     [Fact]
+    public void CornerinWestDeckBoxesAreTwoStripsAroundThePost()
+    {
+        var expected = new[]
+        {
+            FullBoxes[0],
+            new Cuboidf(4f / 16, 12f / 16, 0, 1, 1, 1),
+            new Cuboidf(0, 12f / 16, 4f / 16, 4f / 16, 1, 1),
+        };
+
+        Assert.Equal(expected, SidingWallBlock.AddOpenPartBoxes(FullBoxes, "cornerin", "west", "oak", null), Comparer);
+    }
+
+    [Fact]
     public void CorneroutWestDeckBoxIsUnrotated()
     {
         var expected = new[] { FullBoxes[0], new Cuboidf(4f / 16, 12f / 16, 4f / 16, 1, 1, 1) };
