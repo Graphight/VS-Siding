@@ -20,6 +20,16 @@ internal static class WallBuilder
         return player;
     }
 
+    // A click of the held stack on the top of the block at pos, run on the server; the hand handling it answers.
+    internal static EnumHandHandling ClickTop(ITestPlayer player, BlockPos pos)
+    {
+        ItemSlot slot = player.Player.InventoryManager.ActiveHotbarSlot;
+        var topSel = new BlockSelection { Position = pos.Copy(), Face = BlockFacing.UP, HitPosition = new Vec3d(0.5, 1, 0.5) };
+        var handling = EnumHandHandling.NotHandled;
+        slot.Itemstack!.Collectible.OnHeldInteractStart(slot, player.Entity, topSel, null, true, ref handling);
+        return handling;
+    }
+
     // A placed lantern's entity takes its material, lining and glass from the stack.
     internal static ItemStack LanternStack(IWorldSession world)
     {

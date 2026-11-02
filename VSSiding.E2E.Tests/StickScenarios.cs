@@ -48,10 +48,7 @@ public class StickScenarios : AtlasScenarioBase
         player.Entity.WatchedAttributes.SetString("vssidingFraming", "floor");
 
         await player.GiveItem("game:stick", 4);
-        ItemSlot slot = player.Player.InventoryManager.ActiveHotbarSlot;
-        var groundSel = new BlockSelection { Position = cell.DownCopy(), Face = BlockFacing.UP, HitPosition = new Vec3d(0.5, 1, 0.5) };
-        var handling = EnumHandHandling.NotHandled;
-        slot.Itemstack!.Collectible.OnHeldInteractStart(slot, player.Entity, groundSel, null, true, ref handling);
+        WallBuilder.ClickTop(player, cell.DownCopy());
 
         await SneakClickTop(player, cell);
 
@@ -74,23 +71,17 @@ public class StickScenarios : AtlasScenarioBase
         ITestPlayer player = await WallBuilder.JoinBuilder(World);
 
         await player.GiveItem("game:stick", 1);
-        ItemSlot slot = player.Player.InventoryManager.ActiveHotbarSlot;
-        var groundSel = new BlockSelection { Position = cell.DownCopy(), Face = BlockFacing.UP, HitPosition = new Vec3d(0.5, 1, 0.5) };
-        var handling = EnumHandHandling.NotHandled;
-        slot.Itemstack!.Collectible.OnHeldInteractStart(slot, player.Entity, groundSel, null, true, ref handling);
+        EnumHandHandling handling = WallBuilder.ClickTop(player, cell.DownCopy());
 
-        Assert.Equal((EnumHandHandling.PreventDefault, "game:air", 1), (handling, World.BlockAt(cell).Code.ToString(), slot.Itemstack.StackSize));
+        Assert.Equal((EnumHandHandling.PreventDefault, "game:air", 1), (handling, World.BlockAt(cell).Code.ToString(), player.Player.InventoryManager.ActiveHotbarSlot.Itemstack?.StackSize));
     }
 
     private static async Task SneakClickTop(ITestPlayer player, BlockPos cell)
     {
         await player.GiveItem("game:stick", 4);
-        ItemSlot slot = player.Player.InventoryManager.ActiveHotbarSlot;
         player.Entity.Controls.ShiftKey = true;
-        var topSel = new BlockSelection { Position = cell.Copy(), Face = BlockFacing.UP, HitPosition = new Vec3d(0.5, 1, 0.5) };
-        var handling = EnumHandHandling.NotHandled;
-        slot.Itemstack!.Collectible.OnHeldInteractStart(slot, player.Entity, topSel, null, true, ref handling);
-        Assert.Equal((EnumHandHandling.PreventDefault, null), (handling, slot.Itemstack));
+        EnumHandHandling handling = WallBuilder.ClickTop(player, cell);
+        Assert.Equal((EnumHandHandling.PreventDefault, null), (handling, player.Player.InventoryManager.ActiveHotbarSlot.Itemstack));
     }
 
     private async Task<(BlockPos Cell, ITestPlayer Player)> RaiseBareStickFrame()

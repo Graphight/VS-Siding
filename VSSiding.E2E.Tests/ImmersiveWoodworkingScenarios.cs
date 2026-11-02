@@ -2,7 +2,6 @@ using System;
 using System.Threading.Tasks;
 using Atlas.Api;
 using Atlas.XUnit;
-using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
 using Xunit;
 
@@ -21,12 +20,12 @@ public class ImmersiveWoodworkingScenarios : AtlasScenarioBase
     {
         if (!WoodworkingLoaded) return;
 
-        (BlockPos cell, ITestPlayer player) = await JoinBesideGround("game:saw-copper");
+        (BlockPos cell, ITestPlayer player) = await JoinBesideGround(withSaw: true);
         try
         {
-            ClickGroundTop(player, cell, 4);
+            int? sticksLeft = await ClickGroundTop(player, cell, 4);
 
-            Assert.Equal(("vssiding", ("sticks", (string?)null, (string?)null, (string?)null, (string?)null)), (World.BlockAt(cell).Code.Domain, WallBuilder.Layers(World, cell)));
+            Assert.Equal(("vssiding", ("sticks", null, null, null, null), null), (World.BlockAt(cell).Code.Domain, WallBuilder.Layers(World, cell), sticksLeft));
         }
         finally
         {
@@ -39,12 +38,12 @@ public class ImmersiveWoodworkingScenarios : AtlasScenarioBase
     {
         if (!WoodworkingLoaded) return;
 
-        (BlockPos cell, ITestPlayer player) = await JoinBesideGround("game:saw-copper");
+        (BlockPos cell, ITestPlayer player) = await JoinBesideGround(withSaw: true);
         try
         {
-            ItemSlot slot = ClickGroundTop(player, cell, 1);
+            int? sticksLeft = await ClickGroundTop(player, cell, 1);
 
-            Assert.Equal(("game:air", 1), (World.BlockAt(cell).Code.ToString(), slot.Itemstack?.StackSize));
+            Assert.Equal(("game:air", 1), (World.BlockAt(cell).Code.ToString(), sticksLeft));
         }
         finally
         {
@@ -57,12 +56,12 @@ public class ImmersiveWoodworkingScenarios : AtlasScenarioBase
     {
         if (!WoodworkingLoaded) return;
 
-        (BlockPos cell, ITestPlayer player) = await JoinBesideGround(null);
+        (BlockPos cell, ITestPlayer player) = await JoinBesideGround(withSaw: false);
         try
         {
-            ItemSlot slot = ClickGroundTop(player, cell, 4);
+            int? sticksLeft = await ClickGroundTop(player, cell, 4);
 
-            Assert.Equal(("immersivewoodworking:sawhorse", 3), (World.BlockAt(cell).Code.ToString(), slot.Itemstack?.StackSize));
+            Assert.Equal(("immersivewoodworking:sawhorse", 3), (World.BlockAt(cell).Code.ToString(), sticksLeft));
         }
         finally
         {
@@ -71,24 +70,21 @@ public class ImmersiveWoodworkingScenarios : AtlasScenarioBase
     }
 
     // Soil under an empty cell, the ground the reports were on, with the player standing west of the cell.
-    private async Task<(BlockPos Cell, ITestPlayer Player)> JoinBesideGround(string? offhand)
+    private async Task<(BlockPos Cell, ITestPlayer Player)> JoinBesideGround(bool withSaw)
     {
         BlockPos cell = World.Spawn.Offset(1, 2, 0);
         World.SetBlock("game:soil-medium-none", cell.DownCopy());
         ITestPlayer player = await WallBuilder.JoinBuilder(World);
-        if (offhand == null) player.Entity.LeftHandItemSlot.Itemstack = null;
+        if (!withSaw) player.Entity.LeftHandItemSlot.Itemstack = null;
         await player.TeleportTo(cell.WestCopy());
         return (cell, player);
     }
 
-    private ItemSlot ClickGroundTop(ITestPlayer player, BlockPos cell, int sticks)
+    private static async Task<int?> ClickGroundTop(ITestPlayer player, BlockPos cell, int sticks)
     {
-        ItemSlot slot = player.Player.InventoryManager.ActiveHotbarSlot;
-        slot.Itemstack = new ItemStack(World.Api.World.GetItem(new AssetLocation("game:stick")), sticks);
-        var groundSel = new BlockSelection { Position = cell.DownCopy(), Face = BlockFacing.UP, HitPosition = new Vec3d(0.5, 1, 0.5) };
-        var handling = EnumHandHandling.NotHandled;
-        slot.Itemstack.Collectible.OnHeldInteractStart(slot, player.Entity, groundSel, null, true, ref handling);
-        return slot;
+        await player.GiveItem("game:stick", sticks);
+        WallBuilder.ClickTop(player, cell.DownCopy());
+        return player.Player.InventoryManager.ActiveHotbarSlot.Itemstack?.StackSize;
     }
 
     private async Task Leave(ITestPlayer player)
