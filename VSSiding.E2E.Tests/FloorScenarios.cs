@@ -59,4 +59,86 @@ public class FloorScenarios : AtlasScenarioBase
             (null, "shakes-oak", "bark", "shakes-oak", "hbark"),
             (slot.Itemstack, tree.GetString("front"), tree.GetString("frontstyle"), tree.GetString("back"), tree.GetString("backstyle")));
     }
+
+    private static readonly Vec3d Middle = new(0.5, 0.5, 0.5);
+    private static readonly Vec3d TopHit = new(0.5, 1, 0.5);
+
+    // A filled wall one cell ahead of where the player looks from `beside`, with floor picked.
+    private async Task<(BlockPos Beside, BlockPos Wall, BlockFacing Ahead, ITestPlayer Player)> RaiseWallAhead()
+    {
+        BlockPos beside = World.Spawn.Offset(1, 2, 0);
+        ITestPlayer player = await WallBuilder.JoinBuilder(World);
+        Vec3f view = player.Entity.SidedPos.GetViewVector();
+        BlockFacing ahead = System.Math.Abs(view.X) >= System.Math.Abs(view.Z)
+            ? (view.X > 0 ? BlockFacing.EAST : BlockFacing.WEST)
+            : (view.Z > 0 ? BlockFacing.SOUTH : BlockFacing.NORTH);
+        BlockPos wall = beside.AddCopy(ahead);
+        World.SetBlock("game:planks-aged-ud", beside.DownCopy());
+        World.SetBlock("game:planks-aged-ud", wall.DownCopy());
+        player.Entity.WatchedAttributes.SetString("vssidingFraming", "wall");
+        await WallBuilder.Raise(World, player, wall, beside, "game:plank-oak", "game:clay-blue");
+        player.Entity.WatchedAttributes.SetString("vssidingFraming", "floor");
+        return (beside, wall, ahead, player);
+    }
+
+    private string? DeckOf(BlockPos cell)
+    {
+        var tree = new TreeAttribute();
+        World.BlockEntityAt<BlockEntity>(cell)!.ToTreeAttributes(tree);
+        return tree.GetString("deck") is { Length: > 0 } deck ? deck : null;
+    }
+
+    private static int Held(ITestPlayer player) => player.Player.InventoryManager.ActiveHotbarSlot.Itemstack?.StackSize ?? 0;
+
+    [AtlasScenario(FreshWorld = true)]
+    public async Task Wall_Should_TakeADeck_When_PlanksArePressedOnTheSideOfABlockBesideIt()
+    {
+        (BlockPos beside, BlockPos wall, BlockFacing ahead, ITestPlayer player) = await RaiseWallAhead();
+        World.SetBlock("game:planks-aged-ud", beside);
+
+        await WallBuilder.Press(World, player, beside, "game:plank-oak", ahead, Middle, quantity: 3);
+
+        Assert.Equal(("oak", 1), (DeckOf(wall), Held(player)));
+    }
+
+    [AtlasScenario(FreshWorld = true)]
+    public async Task Wall_Should_TakeADeck_When_AFloorRunIsExtendedTowardIt()
+    {
+        (BlockPos beside, BlockPos wall, _, ITestPlayer player) = await RaiseFloorBesideWall();
+
+        await WallBuilder.Press(World, player, beside, "game:plank-oak", BlockFacing.UP, TopHit, quantity: 3);
+
+        Assert.Equal((("oak", "clay", "planks", null, (string?)null), "oak", 1), (WallBuilder.Layers(World, beside), DeckOf(wall), Held(player)));
+    }
+
+    [AtlasScenario(FreshWorld = true)]
+    public async Task Floor_Should_TakePlanksOnItsUnderside_When_TheWallAtTheEndOfItsRunHasADeck()
+    {
+        (BlockPos beside, BlockPos wall, _, ITestPlayer player) = await RaiseFloorBesideWall();
+        await WallBuilder.Press(World, player, beside, "game:plank-oak", BlockFacing.UP, TopHit, quantity: 2);
+        Assert.Equal("oak", DeckOf(wall));
+
+        await WallBuilder.Press(World, player, beside, "game:plank-oak", BlockFacing.UP, TopHit, quantity: 2);
+
+        Assert.Equal((("oak", "clay", "planks", null, "planks"), "oak"), (WallBuilder.Layers(World, beside), DeckOf(wall)));
+    }
+
+    [AtlasScenario(FreshWorld = true)]
+    public async Task Floor_Should_BeLaidBesideTheWall_When_PlanksArePressedOnTheWallItself()
+    {
+        (_, BlockPos wall, BlockFacing ahead, ITestPlayer player) = await RaiseWallAhead();
+
+        await WallBuilder.Press(World, player, wall, "game:plank-oak", ahead, Middle, quantity: 3);
+
+        Assert.Equal((null, "floor"), (DeckOf(wall), World.BlockAt(wall.AddCopy(ahead)).Code.Path));
+    }
+
+    // A boarded floor beside the wall, the run ending at it.
+    private async Task<(BlockPos Beside, BlockPos Wall, BlockFacing Ahead, ITestPlayer Player)> RaiseFloorBesideWall()
+    {
+        var built = await RaiseWallAhead();
+        await WallBuilder.Raise(World, built.Player, built.Beside, built.Wall, "game:plank-oak", "game:clay-blue");
+        await WallBuilder.Press(World, built.Player, built.Beside, "game:plank-oak", BlockFacing.UP, TopHit, quantity: 2);
+        return built;
+    }
 }

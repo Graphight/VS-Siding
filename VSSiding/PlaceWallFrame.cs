@@ -79,7 +79,7 @@ public class PlaceWallFrame : CollectibleBehavior
             // Stacking a floor 12/16 above another is never wanted, so a click on a floor's top
             // extends its run instead, the way a rope ladder extends down: over water, a floor's
             // edge is only reachable by crouching out past it and looking back.
-            BlockPos? end = SidingFloorBlock.RunEndFor(world, byPlayer, targetPos, placeholder);
+            BlockPos? end = SidingFloorBlock.RunEndFor(world, byPlayer, targetPos, placeholder, heldCode);
             if (end == null) return;
             targetPos = end;
             didOffset = true;
@@ -91,6 +91,15 @@ public class PlaceWallFrame : CollectibleBehavior
             {
                 targetPos = targetPos.AddCopy(blockSel.Face);
             }
+        }
+        // A floor laid up to a wall decks that wall; a click on the wall itself already offset to the cell beside it.
+        if (layout == "floor" && world.BlockAccessor.GetBlock(targetPos) is SidingWallBlock deckWall
+            && world.BlockAccessor.GetBlockEntity<SidingWallEntity>(targetPos) is { } deckEntity
+            && deckWall.TryAddDeck(world, byPlayer, targetPos, deckEntity, slot, heldCode, isCreative))
+        {
+            handling = EnumHandling.PreventSubsequent;
+            handHandling = EnumHandHandling.PreventDefault;
+            return;
         }
         BlockSelection placeSel = blockSel.Clone();
         placeSel.Position = targetPos;

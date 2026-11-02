@@ -637,28 +637,9 @@ public class SidingWallBlock : Block
 
         // With the deck lit, planks on a side face add a deck in place. Ahead of finishing, since
         // planks are a finish too. The top face still stacks the next course (PlaceWallFrame).
-        if (entity.Deck == null && blockSel.Face != BlockFacing.UP && SidingModePicker.Deck(byPlayer)
-            && MatchFraming(heldCode, entity.Infill != null, Attributes["Framings"], Attributes["Infills"]) is { } deckKey)
-        {
-            if (entity.Step != null)
-            {
-                (byPlayer as IServerPlayer)?.SendIngameError("vssiding:stepped", Lang.Get("vssiding:build-stepped"));
-                return true;
-            }
-
-            if (DeckOccupied(world, blockSel.Position))
-            {
-                (byPlayer as IServerPlayer)?.SendIngameError("vssiding:occupied", Lang.Get("vssiding:build-occupied"));
-                return true;
-            }
-
-            var deckConsumes = Attributes["Framings"][deckKey]["Consumes"];
-            if (!TryAffordOrError(byPlayer, isCreative, slot.StackSize, deckConsumes)) return true;
-
-            SetDeck(world, entity, blockSel.Position, deckKey);
-            ConsumeHeld(slot, deckConsumes, isCreative);
+        if (blockSel.Face != BlockFacing.UP && SidingModePicker.Deck(byPlayer)
+            && TryAddDeck(world, byPlayer, blockSel.Position, entity, slot, heldCode, isCreative))
             return true;
-        }
 
         if (!post && entity.Infill == null)
         {
@@ -1127,6 +1108,37 @@ public class SidingWallBlock : Block
     // so the block is exchanged for itself as OnInfillChanged does.
     internal bool DeckOccupied(IWorldAccessor world, BlockPos pos)
         => world.GetIntersectingEntities(pos, DeckBoxes[(Variant["layout"], Variant["side"])], e => e.IsInteractable) is { Length: > 0 };
+
+    // Whether the held framing could give this wall a deck now: used where a refusal must stay quiet (a floor run's end).
+    internal bool CanTakeDeck(IWorldAccessor world, BlockPos pos, SidingWallEntity entity, AssetLocation heldCode)
+        => entity.Framing != null && entity.Deck == null && entity.Step == null && !DeckOccupied(world, pos)
+            && MatchFraming(heldCode, entity.Infill != null, Attributes["Framings"], Attributes["Infills"]) != null;
+
+    // Adds a deck from the held framing, shared by a plank click on a side face and a floor laid up to the cell.
+    // False when the wall has a deck or the held item is no framing for it; true once handled, refused or done.
+    internal bool TryAddDeck(IWorldAccessor world, IPlayer byPlayer, BlockPos pos, SidingWallEntity entity, ItemSlot slot, AssetLocation heldCode, bool isCreative)
+    {
+        if (entity.Deck != null || MatchFraming(heldCode, entity.Infill != null, Attributes["Framings"], Attributes["Infills"]) is not { } deckKey) return false;
+
+        if (entity.Step != null)
+        {
+            (byPlayer as IServerPlayer)?.SendIngameError("vssiding:stepped", Lang.Get("vssiding:build-stepped"));
+            return true;
+        }
+
+        if (DeckOccupied(world, pos))
+        {
+            (byPlayer as IServerPlayer)?.SendIngameError("vssiding:occupied", Lang.Get("vssiding:build-occupied"));
+            return true;
+        }
+
+        var deckConsumes = Attributes["Framings"][deckKey]["Consumes"];
+        if (!TryAffordOrError(byPlayer, isCreative, slot.StackSize, deckConsumes)) return true;
+
+        SetDeck(world, entity, pos, deckKey);
+        ConsumeHeld(slot, deckConsumes, isCreative);
+        return true;
+    }
 
     internal bool StepOccupied(IWorldAccessor world, BlockPos pos, string orientation)
     {
