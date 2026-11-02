@@ -32,6 +32,6 @@ A click on the wall itself still lays a floor in the cell beside it (decision 00
 
 ## Consequences & open questions
 - This extends 0050 and does not supersede it.
-- `SidingFloorTests`' "wall at gap gives null" row changes with the run end.
+- Only `RunEndFor`'s own predicate changed, so `RunEnd`'s unit rows stand; `FloorScenarios.Floor_Should_TakePlanksOnItsUnderside_When_TheWallAtTheEndOfItsRunHasADeck` covers the fallback.
 - Whether the strip that "won't fill" is in the floor or in the wall is still the player's to say.
 - Played: not yet played in game; the playtest is the last step before merge.
