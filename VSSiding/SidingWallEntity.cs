@@ -188,11 +188,13 @@ public class SidingWallEntity : BlockEntity
         var deckJoins = SidingFloorBlock.Joins(Api.World.BlockAccessor, Pos, deckGlazed);
         string[] deckInnerCorners = SidingFloorBlock.InnerCorners(Api.World.BlockAccessor, Pos, deckGlazed, deckJoins);
         string[] deckElements = DeckElements(side, Deck, DeckInfill, DeckFront, DeckBack, Block.Attributes["Finishes"], deckJoins, (DeckFrontStyle, DeckBackStyle), deckGlazed,
-            FrameElements(Block.Attributes["Framings"], Deck, alternate), Ledges(layout, Back == null, glazed, joins), deckInnerCorners);
+            FrameElements(Block.Attributes["Framings"], Deck, alternate), Ledges(layout, Back == null, glazed, joins), deckInnerCorners,
+            Capped(layout, DeckFront, SidingWallBlock.FreeAbove(Api.World.BlockAccessor, Pos)));
         if (selectiveElements.Length == 0 && deckElements.Length == 0 && stepElements.Length == 0) return false;
 
         string cacheKey = CacheKey(layout, side, Framing, Infill, Front, SecondFront, Back, joins, Styles, Deck, Step, StepOrientation,
-            DeckInfill, DeckFront, DeckBack, (DeckFrontStyle, DeckBackStyle), deckJoins, alternate, innerCorners, deckInnerCorners, glassRunsOn, tees, closed);
+            DeckInfill, DeckFront, DeckBack, (DeckFrontStyle, DeckBackStyle), deckJoins, alternate, innerCorners, deckInnerCorners, glassRunsOn, tees, closed,
+            deckElements.Any(name => name.StartsWith("cap-")));
 
         MeshData[] meshes = ObjectCacheUtil.GetOrCreate(capi, cacheKey, () =>
         {
@@ -286,10 +288,10 @@ public class SidingWallEntity : BlockEntity
         string? deckInfill = null, string? deckFront = null, string? deckBack = null, (string? front, string? back) deckStyles = default,
         (bool above, bool below, bool left, bool right) deckJoins = default, int alternate = 0,
         string[]? innerCorners = null, string[]? deckInnerCorners = null, (bool left, bool right) glassRunsOn = default, (bool left, bool right) tees = default,
-        (bool front, bool second) closed = default)
+        (bool front, bool second) closed = default, bool capped = false)
         => $"vssiding-wall-mesh-{layout}-{side}-{framing}-{infill}-{front}-{secondFront}-{back}-{joins.above}-{joins.below}-{joins.left}-{joins.right}-{styles.front}-{styles.secondFront}-{styles.back}-{deck}-{step}-{stepOrientation}"
             + $"-{deckInfill}-{deckFront}-{deckBack}-{deckStyles.front}-{deckStyles.back}-{deckJoins.above}-{deckJoins.below}-{deckJoins.left}-{deckJoins.right}-{alternate}"
-            + $"-{string.Concat(innerCorners ?? [])}-{string.Concat(deckInnerCorners ?? [])}-{glassRunsOn.left}-{glassRunsOn.right}-{tees.left}-{tees.right}-{closed.front}-{closed.second}";
+            + $"-{string.Concat(innerCorners ?? [])}-{string.Concat(deckInnerCorners ?? [])}-{glassRunsOn.left}-{glassRunsOn.right}-{tees.left}-{tees.right}-{closed.front}-{closed.second}-{capped}";
 
     // The floor's groups for the deck, which the wall shapes carry per side as deck-{side}-{name}. The
     // deck stops a voxel short of the frame, at the slot the wall's room-side finish takes, so the shapes
@@ -297,13 +299,19 @@ public class SidingWallEntity : BlockEntity
     internal static string[] DeckElements(
         string side, string? deck, string? infill, string? front, string? back, JsonObject finishes,
         (bool above, bool below, bool left, bool right) joins, (string? front, string? back) styles, bool glazed,
-        string frame = "framing", string[]? ledges = null, string[]? innerCorners = null)
+        string frame = "framing", string[]? ledges = null, string[]? innerCorners = null, bool capped = false)
     {
         if (deck == null) return [];
         string[] names = SidingFloorEntity.SelectiveElements(deck, infill, front, back, finishes, joins, styles, glazed, frame, innerCorners);
         string[] copies = ["deck", .. ledges ?? []];
-        return copies.SelectMany(copy => names.Select(name => $"{copy}-{side}-{name}")).ToArray();
+        // The top finish is the first name, and a glazed deck's is a rim round the glass, which has no top to lay over the wall.
+        string[] cap = capped && front != null && !glazed ? [$"cap-{side}-{names[0]}"] : [];
+        return [.. copies.SelectMany(copy => names.Select(name => $"{copy}-{side}-{name}")), .. cap];
     }
+
+    // A decked wall or corner with nothing standing on it shows the deck's top finish over its own 4/16 top, so the floor
+    // reads as one surface (decision 0085). A diagonal's deck is strips round its run, which the cap does not follow.
+    internal static bool Capped(string layout, string? deckFront, bool freeAbove) => layout != "diagonal" && deckFront != null && freeAbove;
 
     // The copies of the deck that reach into the slot the wall's room-side finish takes. While that side
     // is bare the whole slot is open, and the deck draws its ledge. A finish fills the slot, but a glazed

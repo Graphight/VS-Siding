@@ -1289,17 +1289,29 @@ public static class WallShapeGen
         }
     }
 
+    // How far the cap sits above the wall's own top, so its face lies over the slabs' and the frame's, which end at the same height.
+    private const double CapRise = 0.05;
+
+    // The deck's top finish laid over the wall's own 4/16 top, for when nothing stands on it: each finish group cut to the
+    // wall's footprint, its top face alone, so the floor reads as one surface across the wall.
+    private static IEnumerable<Element> CapGroups(params ((double X, double Y, double Z) From, (double X, double Y, double Z) To)[] footprint)
+        => DeckGroups("cap", footprint.Select(box => (box.From with { Y = 15 }, box.To with { Y = 16 })).ToArray())
+            .Where(e => e.Slot == "deckfront" && !e.Name.Contains("-rim"))
+            .Select(e => e with { Faces = ["up"], Offset = (0, CapRise, 0) });
+
     // A wall's or corner's own pieces, then its deck's: the deck in its box, and each of its ledges.
     private static Element[] WithDeck(Element[] elements, ((double X, double Y, double Z) From, (double X, double Y, double Z) To) deck)
         => [.. elements, .. DeckGroups("deck", deck), .. DeckGroups("ledge", Ledge(elements)), .. RimLedges(elements)];
 
     public static JObject Generate(string layout) => layout switch
     {
-        "wall" => Emit(WithDeck([.. WallElements, .. RimPieces(WallElements)], ((4, 12, 0), (16, 16, 16))), WallTextures),
+        "wall" => Emit([.. WithDeck([.. WallElements, .. RimPieces(WallElements)], ((4, 12, 0), (16, 16, 16))), .. CapGroups(((0, 15, 0), (4, 16, 16)))], WallTextures),
         "floor" => Emit(FloorShape, FloorTextures),
-        "cornerout" => Emit(WithDeck([.. CornerOutElements, .. CornerRimPieces(CornerOutElements)], ((4, 12, 4), (16, 16, 16))), CornerOutTextures),
+        "cornerout" => Emit(
+            [.. WithDeck([.. CornerOutElements, .. CornerRimPieces(CornerOutElements)], ((4, 12, 4), (16, 16, 16))),
+             .. CapGroups(((0, 15, 0), (4, 16, 16)), ((4, 15, 0), (16, 16, 4)))], CornerOutTextures),
         "diagonal" => Rounded(Emit([.. DiagonalElements, .. DeckGroups("deck", DiagonalDeckStrips())], DiagonalTextures)),
-        "cornerin" => Emit([.. CornerInElements, .. DeckGroups("deck", PostDeckStrips())], CornerInTextures),
+        "cornerin" => Emit([.. CornerInElements, .. DeckGroups("deck", PostDeckStrips()), .. CapGroups(((0, 15, 0), (4, 16, 4)))], CornerInTextures),
         _ => throw new KeyNotFoundException(layout),
     };
 

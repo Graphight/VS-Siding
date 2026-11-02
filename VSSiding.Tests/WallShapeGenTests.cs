@@ -146,7 +146,8 @@ public class WallShapeGenTests
             // A turned element's plan is measured after the turn (TheDiagonalRunsCornerToCornerWithItsFrontToTheNorthWest).
             offenders.AddRange(
                 from v in element["rotationY"] == null ? lo.Concat(hi) : [lo[1], hi[1]]
-                where v < 0 || v > 16
+                // A cap stands a hair above the block's top so its face wins over the slabs' and the frame's at the same height.
+                where v < 0 || v > (name.StartsWith("cap-") && v == hi[1] ? 16.05 : 16)
                 select $"{layout} '{name}' leaves the block: {v}");
         }
 
@@ -483,6 +484,36 @@ public class WallShapeGenTests
         }
 
         Assert.Equal(expected, actual);
+    }
+
+    // The cap is the deck's top finish over the wall's own 4/16 top, in each side's footprint: top faces alone, on the
+    // deck's front texture, standing a hair above the wall's top.
+    [Theory]
+    [InlineData("wall", 4, 16)]
+    [InlineData("cornerin", 4, 4)]
+    public void EverySidesCapLiesOverTheWallsTopAndDrawsOnlyItsTopFace(string layout, double footX, double footZ)
+    {
+        var elements = WallShapeGen.Generate(layout)["elements"]!.Cast<JObject>().ToArray();
+        foreach (string side in Sides)
+        {
+            var caps = elements.Where(e => ((string)e["name"]!).StartsWith($"cap-{side}-")).ToArray();
+            Assert.NotEmpty(caps);
+            var footprint = DeckRegionOf(side, footX, footZ);
+            Assert.All(caps, cap =>
+            {
+                Assert.True(Inside(cap, [footprint.X, 15, footprint.Z, footprint.X2, 16.05, footprint.Z2]), (string)cap["name"]!);
+                Assert.Equal(["up"], ((JObject)cap["faces"]!).Properties().Select(p => p.Name));
+                Assert.Equal("#deckfront", (string)cap["faces"]!["up"]!["texture"]!);
+                Assert.Equal(16.05, (double)cap["to"]![1]!, 3);
+            });
+        }
+    }
+
+    private static (double X, double Z, double X2, double Z2) DeckRegionOf(string side, double footX, double footZ)
+    {
+        int rotation = side switch { "west" => 0, "south" => 90, "east" => 180, _ => 270 };
+        var region = WallShapeGen.DeckRegion((0, 15, 0), (footX, 16, footZ), rotation);
+        return (region.X, region.Z, region.X2, region.Z2);
     }
 
     private static bool Inside(JObject element, double[] box)

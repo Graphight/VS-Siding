@@ -135,6 +135,40 @@ public class SidingFloorTests
     }
 
     [Fact]
+    public void ACappedDeckAddsItsTopFinishOverTheWallAndOnlyWhileItHasOneAndIsNotGlazed()
+    {
+        string[] bare = ["deck-west-framing-left", "deck-west-framing-right", "deck-west-framing-top", "deck-west-framing-bottom"];
+        Assert.Equal(
+            new string[][]
+            {
+                ["deck-west-front-hboards", .. bare, "cap-west-front-hboards"],
+                ["deck-west-front-hboards", .. bare],
+                bare,
+                bare,
+            },
+            new[]
+            {
+                SidingWallEntity.DeckElements("west", "oak", null, "planks", null, Finishes, (false, false, false, false), default, false, capped: true),
+                SidingWallEntity.DeckElements("west", "oak", null, "planks", null, Finishes, (false, false, false, false), default, false),
+                SidingWallEntity.DeckElements("west", "oak", null, null, null, Finishes, (false, false, false, false), default, false, capped: true),
+                SidingWallEntity.DeckElements("west", "oak", null, null, null, Finishes, (false, false, false, false), default, false),
+            });
+        Assert.DoesNotContain(
+            SidingWallEntity.DeckElements("west", "oak", "glass", "planks", null, Finishes, (false, false, false, false), default, true, capped: true),
+            name => name.StartsWith("cap-"));
+    }
+
+    [Theory]
+    [InlineData("wall", "planks", true, true)]
+    [InlineData("cornerout", "planks", true, true)]
+    [InlineData("cornerin", "planks", true, true)]
+    [InlineData("diagonal", "planks", true, false)]
+    [InlineData("wall", null, true, false)]
+    [InlineData("wall", "planks", false, false)]
+    public void ADeckCapsItsWallOnlyWithATopFinishAndNothingAbove(string layout, string? deckFront, bool freeAbove, bool expected)
+        => Assert.Equal(expected, SidingWallEntity.Capped(layout, deckFront, freeAbove));
+
+    [Fact]
     public void AJoinedRimDropsAndTheInfillCarriesAcross()
     {
         Assert.Equal(

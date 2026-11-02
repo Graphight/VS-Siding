@@ -1337,6 +1337,14 @@ public class SidingWallBlock : Block
     }
 
     // The real wall at a cell, or the guest wall of a hosted block there (decision 0035).
+    // Nothing stands on the cell: its above holds air or a block that gives way to a placement, and no wall or guest wall.
+    internal static bool FreeAbove(IBlockAccessor accessor, BlockPos pos)
+    {
+        BlockPos above = pos.UpCopy();
+        Block block = accessor.GetBlock(above);
+        return (block.BlockId == 0 || block.Replaceable >= 6000) && WallAt(accessor, above) == null;
+    }
+
     internal static (SidingWallBlock wall, SidingWallEntity entity)? WallAt(IBlockAccessor accessor, BlockPos pos)
     {
         Block block = accessor.GetBlock(pos);
