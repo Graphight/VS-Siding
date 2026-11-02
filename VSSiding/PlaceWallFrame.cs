@@ -58,9 +58,11 @@ public class PlaceWallFrame : CollectibleBehavior
             return;
         }
 
-        bool withDeck = layout != "floor" && SidingModePicker.Deck(byPlayer);
+        bool post = layout == "cornerin";
+        bool withDeck = layout != "floor" && !post && SidingModePicker.Deck(byPlayer);
 
         var consumes = wallBlock.Attributes["Framings"][framingKey]["Consumes"];
+        if (post) consumes = SidingWallBlock.PostConsumes(consumes);
         int times = withDeck ? 2 : 1;
         bool isCreative = byPlayer.WorldData.CurrentGameMode == EnumGameMode.Creative;
         if (!SidingWallBlock.TryAffordOrError(byPlayer, isCreative, slot.Itemstack.StackSize, consumes, times)) return;
@@ -92,7 +94,19 @@ public class PlaceWallFrame : CollectibleBehavior
         placeSel.DidOffset = didOffset;
 
         string failureCode = "";
-        bool placed = placeholder.TryPlaceBlock(world, byPlayer, new ItemStack(placeholder), placeSel, ref failureCode);
+        bool placed;
+        if (post)
+        {
+            // HorizontalOrientable would orient the post to the player; its corner is the click's instead.
+            Vec3d inCell = blockSel.HitPosition.AddCopy(blockSel.Position.X - targetPos.X, blockSel.Position.Y - targetPos.Y, blockSel.Position.Z - targetPos.Z);
+            var postBlock = world.GetBlock(new AssetLocation("vssiding", $"wall-cornerin-{PostSide(inCell.X, inCell.Z)}"));
+            placed = postBlock != null && postBlock.CanPlaceBlock(world, byPlayer, placeSel, ref failureCode);
+            if (placed) postBlock!.DoPlaceBlock(world, byPlayer, placeSel, new ItemStack(postBlock));
+        }
+        else
+        {
+            placed = placeholder.TryPlaceBlock(world, byPlayer, new ItemStack(placeholder), placeSel, ref failureCode);
+        }
         if (!placed) return;
 
         if (world.BlockAccessor.GetBlockEntity<SidingFloorEntity>(targetPos) is { } floor)
@@ -122,6 +136,16 @@ public class PlaceWallFrame : CollectibleBehavior
         handling = EnumHandling.PreventSubsequent;
         handHandling = EnumHandHandling.PreventDefault;
     }
+
+    // The wall variant whose post corner (its side face plus the face counter-clockwise from it) is the cell
+    // corner a click at x, z lands nearest; west and north are the low x and z.
+    internal static string PostSide(double x, double z) => (x < 0.5, z < 0.5) switch
+    {
+        (true, true) => "west",
+        (true, false) => "south",
+        (false, false) => "east",
+        (false, true) => "north",
+    };
 
     // Face mode puts a plank's vanilla decor block on the clicked face of any solid block (decision 0077).
     // A face finish already there is swapped: the same wood only turns to the picked boards, for free, and

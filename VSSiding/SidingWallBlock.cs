@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using Newtonsoft.Json.Linq;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
 using Vintagestory.API.Datastructures;
@@ -583,9 +584,10 @@ public class SidingWallBlock : Block
         // A stair on a side face fills the open part beside the stair in the room (decision 0046).
         if (slot.Itemstack!.Block is BlockStairs && blockSel.Face != BlockFacing.UP)
         {
-            if (Variant["layout"] == "diagonal")
+            if (Variant["layout"] is "diagonal" or "cornerin")
             {
-                (byPlayer as IServerPlayer)?.SendIngameError("vssiding:stepdiagonal", Lang.Get("vssiding:build-step-diagonal"));
+                string noStep = Variant["layout"] == "diagonal" ? "diagonal" : "post";
+                (byPlayer as IServerPlayer)?.SendIngameError($"vssiding:step{noStep}", Lang.Get($"vssiding:build-step-{noStep}"));
                 return true;
             }
 
@@ -626,6 +628,9 @@ public class SidingWallBlock : Block
             slot.MarkDirty();
             return true;
         }
+
+        // A post takes neither a deck nor an infill; its finishes come with the next stage.
+        if (Variant["layout"] == "cornerin") return base.OnBlockInteractStart(world, byPlayer, blockSel);
 
         if (IsDeckHit(world.BlockAccessor, blockSel, entity))
             return LayerDeck(world, byPlayer, blockSel, entity, slot, heldCode, isCreative);
@@ -1536,7 +1541,7 @@ public class SidingWallBlock : Block
         var drops = ComputeDrops(
             entity?.Framing, entity?.Infill, entity?.Front, entity?.SecondFront, entity?.Back, entity?.Deck,
             Attributes["Framings"], Attributes["Infills"], Attributes["Finishes"], entity?.Step,
-            entity?.DeckInfill, entity?.DeckFront, entity?.DeckBack);
+            entity?.DeckInfill, entity?.DeckFront, entity?.DeckBack, Variant["layout"] == "cornerin");
 
         // Nothing built yet - fall back to the base drops so HorizontalOrientable still
         // hands back the placed block.
@@ -1563,10 +1568,10 @@ public class SidingWallBlock : Block
     internal static List<BlockDropItemStack> ComputeDrops(
         string? framing, string? infill, string? front, string? secondFront, string? back, string? deck,
         JsonObject framings, JsonObject infills, JsonObject finishes, string? step = null,
-        string? deckInfill = null, string? deckFront = null, string? deckBack = null)
+        string? deckInfill = null, string? deckFront = null, string? deckBack = null, bool post = false)
     {
         var drops = new List<BlockDropItemStack>();
-        AddDrops(drops, framing, framings);
+        AddDrops(drops, framing, framings, post);
         AddDrops(drops, infill, infills);
         AddDrops(drops, front, finishes);
         AddDrops(drops, secondFront, finishes);
@@ -1580,7 +1585,7 @@ public class SidingWallBlock : Block
         return drops;
     }
 
-    internal static void AddDrops(List<BlockDropItemStack> drops, string? key, JsonObject dictionary)
+    internal static void AddDrops(List<BlockDropItemStack> drops, string? key, JsonObject dictionary, bool quarter = false)
     {
         if (key == null) return;
         var entry = dictionary[key];
@@ -1588,7 +1593,9 @@ public class SidingWallBlock : Block
 
         foreach (var drop in entry["Drops"].AsObject(Array.Empty<BlockDropItemStack>()))
         {
-            if (drop.Code != null) drops.Add(drop);
+            if (drop.Code == null) continue;
+            if (quarter) drop.Quantity = NatFloat.createUniform(PostQuarter((int)drop.Quantity.avg), 0);
+            drops.Add(drop);
         }
     }
 
@@ -1701,6 +1708,12 @@ public class SidingWallBlock : Block
     }
 
     internal static int ConsumeQuantity(JsonObject consumes) => consumes["quantity"].AsInt(1);
+
+    // A post is a quarter of a wall's cross-section, so it costs and refunds a quarter of the full amount.
+    internal static int PostQuarter(int quantity) => Math.Max(1, (quantity + 3) / 4);
+
+    internal static JsonObject PostConsumes(JsonObject consumes)
+        => new(new JObject { ["quantity"] = PostQuarter(ConsumeQuantity(consumes)) });
 
     // Which finish layer a build-flow click's clicked face targets - the hugged side is
     // "front", the opposite side is "back", an end/top/bottom face is neither. A cornerout's
