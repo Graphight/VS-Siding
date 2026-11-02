@@ -1626,6 +1626,9 @@ public class SidingModSystem : ModSystem
         foreach (var item in api.World.Items.Where(i => SidingWallBlock.IsBuildSignal(i?.Code)))
             item.StorageFlags |= EnumItemStorageFlags.Offhand;
 
+        foreach (var item in api.World.Items.Where(i => i?.CollectibleBehaviors?.Any(behavior => behavior is PlaceWallFrame) == true))
+            item.CollectibleBehaviors = PlaceWallFrame.AfterGroundStorable(item.CollectibleBehaviors);
+
         var candidates = api.World.Items.Where(i => i?.Code != null)
             .Select(i => ("item", i.Code, (IDictionary<string, string>)i.Variant))
             .Concat(api.World.Blocks.Where(b => b?.Code != null)
