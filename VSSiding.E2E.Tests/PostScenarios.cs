@@ -111,7 +111,7 @@ public class PostScenarios : AtlasScenarioBase
             seen.ToArray());
     }
 
-    // Each finish costs a quarter of its two planks, and peeling both finishes and then the frame hands back what was paid.
+    // Each finish costs a quarter of its two planks, and peeling all four finishes and then the frame hands back what was paid.
     [AtlasScenario(FreshWorld = true)]
     public async Task Post_Should_TakeAFinishOnEachFaceForOnePlankAndRefundThemAll_When_PlanksAreBuiltAndPeeled()
     {
@@ -126,22 +126,28 @@ public class PostScenarios : AtlasScenarioBase
             return slot.Itemstack?.StackSize ?? 0;
         }
 
-        // A post saying "south" has its front on the north face and its second front on the east one.
+        // A post saying "south" has its fronts on the north and east faces and its backs on the south and west ones.
         int heldAfterFront = await Finish(BlockFacing.NORTH, "hboards");
         int heldAfterSecondFront = await Finish(BlockFacing.EAST, "boards");
-        var tree = new TreeAttribute();
-        World.BlockEntityAt<BlockEntity>(cell)!.ToTreeAttributes(tree);
-        var styles = (tree.GetString("frontstyle"), tree.GetString("secondfrontstyle"));
-        var built = WallBuilder.Layers(World, cell);
+        int heldAfterBack = await Finish(BlockFacing.SOUTH, "boards");
+        int heldAfterSecondBack = await Finish(BlockFacing.WEST, "hboards");
+        (string?, string?, string?, string?, string?) Faces(string suffix = "")
+        {
+            var tree = new TreeAttribute();
+            World.BlockEntityAt<BlockEntity>(cell)!.ToTreeAttributes(tree);
+            string? Read(string key) => tree.GetString(key + suffix) is { Length: > 0 } value ? value : null;
+            return (Read("framing"), Read("front"), Read("secondfront"), Read("back"), Read("secondback"));
+        }
+        var styles = Faces("style");
+        var built = Faces();
 
         // The server calls OnBlockBroken once per player break; BreakBlock would take the block with the last layer.
         (string?, string?, string?, string?, string?) Peel()
         {
             World.BlockAt(cell).OnBlockBroken(player.Entity.World, cell, player.Player);
-            return WallBuilder.Layers(World, cell);
+            return Faces();
         }
-        var afterFront = Peel();
-        var afterSecondFront = Peel();
+        var peeled = (Peel(), Peel(), Peel(), Peel());
         World.BlockAt(cell).OnBlockBroken(player.Entity.World, cell, player.Player);
         await World.Ticks(2);
 
@@ -150,12 +156,17 @@ public class PostScenarios : AtlasScenarioBase
 
         Assert.Equal(
             (
-                (3, 3), ("hboards", "boards"),
-                ("oak", null, "planks", "planks", null),
-                ("oak", null, null, "planks", null), ("oak", null, null, null, null),
-                "air", 3
+                (3, 3, 3, 3), ((string?)null, "hboards", "boards", "boards", "hboards"),
+                ("oak", "planks", "planks", "planks", "planks"),
+                (
+                    ("oak", (string?)null, "planks", "planks", "planks"),
+                    ("oak", (string?)null, (string?)null, "planks", "planks"),
+                    ("oak", (string?)null, (string?)null, (string?)null, "planks"),
+                    ("oak", (string?)null, (string?)null, (string?)null, (string?)null)
+                ),
+                "air", 5
             ),
-            ((heldAfterFront, heldAfterSecondFront), styles, built, afterFront, afterSecondFront, World.BlockAt(cell).Code.Path, refunded));
+            ((heldAfterFront, heldAfterSecondFront, heldAfterBack, heldAfterSecondBack), styles, built, peeled, World.BlockAt(cell).Code.Path, refunded));
     }
 
     // A post placed as a player places one: Post picked, planks pressed on the block below in the cell's south-west quarter,

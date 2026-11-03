@@ -17,10 +17,13 @@ public class SidingWallEntity : BlockEntity
     public string? Front;
     public string? SecondFront;
     public string? Back;
+    // A post's fourth face, the one at CorneroutSecondFace[side] (decision 0082).
+    public string? SecondBack;
     // Null means "the finish entry's own Elements default" (decision 0027).
     public string? FrontStyle;
     public string? SecondFrontStyle;
     public string? BackStyle;
+    public string? SecondBackStyle;
     // A Framings key, like Framing.
     public string? Deck;
     // The deck's own layers, laid like a floor's; null is unbuilt.
@@ -46,9 +49,11 @@ public class SidingWallEntity : BlockEntity
         tree.SetString("front", Front);
         tree.SetString("secondfront", SecondFront);
         tree.SetString("back", Back);
+        tree.SetString("secondback", SecondBack);
         tree.SetString("frontstyle", FrontStyle);
         tree.SetString("secondfrontstyle", SecondFrontStyle);
         tree.SetString("backstyle", BackStyle);
+        tree.SetString("secondbackstyle", SecondBackStyle);
         tree.SetString("deck", Deck);
         tree.SetString("deckinfill", DeckInfill);
         tree.SetString("deckfront", DeckFront);
@@ -83,11 +88,13 @@ public class SidingWallEntity : BlockEntity
         Front = NullIfEmpty(tree.GetString("front", null));
         SecondFront = NullIfEmpty(tree.GetString("secondfront", null));
         Back = NullIfEmpty(tree.GetString("back", null));
+        SecondBack = NullIfEmpty(tree.GetString("secondback", null));
         if (oldAbsorption is int old && Block is SidingWallBlock wall && wall.AbsorptionOf(this) != old)
             wall.MarkAbsorptionChanged(worldAccessForResolve.BlockAccessor, Pos, old);
         FrontStyle = NullIfEmpty(tree.GetString("frontstyle", null));
         SecondFrontStyle = NullIfEmpty(tree.GetString("secondfrontstyle", null));
         BackStyle = NullIfEmpty(tree.GetString("backstyle", null));
+        SecondBackStyle = NullIfEmpty(tree.GetString("secondbackstyle", null));
         Deck = NullIfEmpty(tree.GetString("deck", null));
         DeckInfill = NullIfEmpty(tree.GetString("deckinfill", null));
         DeckFront = NullIfEmpty(tree.GetString("deckfront", null));
@@ -125,13 +132,14 @@ public class SidingWallEntity : BlockEntity
             Framing, Infill, Deck, Block.Attributes["Framings"], Block.Attributes["Infills"],
             Block.Variant["layout"], Block.Variant["side"], Front, SecondFront, Back, Block.Attributes["Finishes"],
             SidingWallBlock.LangEntry, stepName, DeckInfill, DeckFront, DeckBack,
-            SidingWallBlock.HasBuildSignal(forPlayer), Api != null && Pos != null ? Buried : null));
+            SidingWallBlock.HasBuildSignal(forPlayer), Api != null && Pos != null ? Buried : null, SecondBack));
     }
 
     private bool Buried(string direction)
     {
         BlockFacing facing = BlockFacing.FromCode(direction);
-        return Api.World.BlockAccessor.GetBlock(Pos.AddCopy(facing)).SideOpaque[facing.Opposite.Index] || FrontClosed(direction);
+        return Api.World.BlockAccessor.GetBlock(Pos.AddCopy(facing)).SideOpaque[facing.Opposite.Index] || FrontClosed(direction)
+            || (Block.Variant["layout"] == "cornerin" && SidingWallBlock.WallAt(Api.World.BlockAccessor, Pos.AddCopy(facing)) != null);
     }
 
     // A bare front facing another wall's front is closed in this wall's own infill, glazing and a bare frame excepted (decision 0083).
@@ -141,9 +149,9 @@ public class SidingWallEntity : BlockEntity
             && SidingWallBlock.FrontsFaceEachOther(Block.Variant["layout"], Block.Variant["side"], direction, wall.Variant["layout"], wall.Variant["side"]);
 
     // Everything OnTesselation reads off this entity, which is exactly what CacheKey covers.
-    private ((string?, string?, string?, string?, string?, string?, string?, string?, string?, string?, string?), (string?, string?, string?, string?, string?)) MeshState
+    private ((string?, string?, string?, string?, string?, string?, string?, string?, string?, string?, string?), (string?, string?, string?, string?, string?, string?, string?)) MeshState
         => ((Framing, Infill, Front, SecondFront, Back, FrontStyle, SecondFrontStyle, BackStyle, Deck, Step, StepOrientation),
-            (DeckInfill, DeckFront, DeckBack, DeckFrontStyle, DeckBackStyle));
+            (DeckInfill, DeckFront, DeckBack, DeckFrontStyle, DeckBackStyle, SecondBack, SecondBackStyle));
 
     // A ToBytes/FromBytes round trip (chunk save/reload, client sync) turns a null
     // SetString value into "" - normalize back to null so "unbuilt" survives a reload.
@@ -173,7 +181,7 @@ public class SidingWallEntity : BlockEntity
             ? StepMesh(layout, side, StepOrientation, StepFamily(stair?.Shape?.Base?.Path))
             : ([], 0);
         int alternate = CellAlternate(Block.Attributes, SidingWallTexSource.Alternate(Pos), Framing, Deck,
-            [Infill, DeckInfill], [Front, SecondFront, Back, DeckFront, DeckBack],
+            [Infill, DeckInfill], [Front, SecondFront, Back, SecondBack, DeckFront, DeckBack],
             SidingWallTexSource.Varies(SidingWallTexSource.StairTexture(stair)));
         string[] innerCorners = ((SidingWallBlock)Block).InnerCorners(Api.World.BlockAccessor, Pos, Infill, joins);
         var glassRunsOn = ((SidingWallBlock)Block).GlassRunsOn(Api.World.BlockAccessor, Pos, Infill, joins);
@@ -181,7 +189,8 @@ public class SidingWallEntity : BlockEntity
         string[] frontDirections = SidingWallBlock.FrontDirections(layout, side);
         var closed = (front: frontDirections.Length > 0 && FrontClosed(frontDirections[0]), second: frontDirections.Length > 1 && FrontClosed(frontDirections[1]));
         string[] selectiveElements = SelectiveElements(layout, Framing, Infill, Front, SecondFront, Back, Block.Attributes["Finishes"], joins, glazed, Styles,
-            frame: FrameElements(Block.Attributes["Framings"], Framing, alternate), decked: Deck != null, innerCorners: innerCorners, glassRunsOn: glassRunsOn, tees: tees, closed: closed);
+            frame: FrameElements(Block.Attributes["Framings"], Framing, alternate), decked: Deck != null, innerCorners: innerCorners, glassRunsOn: glassRunsOn, tees: tees, closed: closed,
+            secondBack: SecondBack, secondBackStyle: SecondBackStyle);
 
         // The deck is laid like a floor, in world directions, so its groups are tesselated unrotated.
         bool deckGlazed = SidingWallBlock.IsTransparent(DeckInfill, Block.Attributes["Infills"]);
@@ -193,7 +202,8 @@ public class SidingWallEntity : BlockEntity
         if (selectiveElements.Length == 0 && deckElements.Length == 0 && stepElements.Length == 0) return false;
 
         string cacheKey = CacheKey(layout, side, Framing, Infill, Front, SecondFront, Back, joins, Styles, Deck, Step, StepOrientation,
-            DeckInfill, DeckFront, DeckBack, (DeckFrontStyle, DeckBackStyle), deckJoins, alternate, innerCorners, deckInnerCorners, glassRunsOn, tees, closed, capped);
+            DeckInfill, DeckFront, DeckBack, (DeckFrontStyle, DeckBackStyle), deckJoins, alternate, innerCorners, deckInnerCorners, glassRunsOn, tees, closed, capped,
+            SecondBack, SecondBackStyle);
 
         MeshData[] meshes = ObjectCacheUtil.GetOrCreate(capi, cacheKey, () =>
         {
@@ -287,10 +297,10 @@ public class SidingWallEntity : BlockEntity
         string? deckInfill = null, string? deckFront = null, string? deckBack = null, (string? front, string? back) deckStyles = default,
         (bool above, bool below, bool left, bool right) deckJoins = default, int alternate = 0,
         string[]? innerCorners = null, string[]? deckInnerCorners = null, (bool left, bool right) glassRunsOn = default, (bool left, bool right) tees = default,
-        (bool front, bool second) closed = default, bool capped = false)
+        (bool front, bool second) closed = default, bool capped = false, string? secondBack = null, string? secondBackStyle = null)
         => $"vssiding-wall-mesh-{layout}-{side}-{framing}-{infill}-{front}-{secondFront}-{back}-{joins.above}-{joins.below}-{joins.left}-{joins.right}-{styles.front}-{styles.secondFront}-{styles.back}-{deck}-{step}-{stepOrientation}"
             + $"-{deckInfill}-{deckFront}-{deckBack}-{deckStyles.front}-{deckStyles.back}-{deckJoins.above}-{deckJoins.below}-{deckJoins.left}-{deckJoins.right}-{alternate}"
-            + $"-{string.Concat(innerCorners ?? [])}-{string.Concat(deckInnerCorners ?? [])}-{glassRunsOn.left}-{glassRunsOn.right}-{tees.left}-{tees.right}-{closed.front}-{closed.second}-{capped}";
+            + $"-{string.Concat(innerCorners ?? [])}-{string.Concat(deckInnerCorners ?? [])}-{glassRunsOn.left}-{glassRunsOn.right}-{tees.left}-{tees.right}-{closed.front}-{closed.second}-{capped}-{secondBack}-{secondBackStyle}";
 
     // The floor's groups for the deck, which the wall shapes carry per side as deck-{side}-{name}. The
     // deck stops a voxel short of the frame, at the slot the wall's room-side finish takes, so the shapes
@@ -370,8 +380,9 @@ public class SidingWallEntity : BlockEntity
         (bool above, bool below, bool left, bool right) joins, bool glazed,
         (string? front, string? secondFront, string? back) styles = default, string frame = "framing", bool decked = false,
         string[]? innerCorners = null, (bool left, bool right) glassRunsOn = default, (bool left, bool right) tees = default,
-        (bool front, bool second) closed = default)
+        (bool front, bool second) closed = default, string? secondBack = null, string? secondBackStyle = null)
     {
+        if (layout == "cornerin") return PostElements(framing, finishes, [(front, styles.front), (secondFront, styles.secondFront), (back, styles.back), (secondBack, secondBackStyle)]);
         var names = new List<string>();
         // A diagonal's shape has no rough frame groups, so it draws the plain ones whatever the
         // framing's Elements say (decision 0066).
@@ -403,16 +414,9 @@ public class SidingWallEntity : BlockEntity
         // A corner's front finish rims leg 1, whose far end is its right, and its second front leg 2, whose is its left,
         // and its corner post rim gives way to the rims either side of a T's piece in its slot.
         bool OnLeg(string part, string otherLeg, bool tee) => !part.EndsWith(otherLeg) && !(part == "" && tee);
-        string? frontGroup = front != null ? FinishElement(finishes, front, "front", styles.front) : null;
-        string? secondGroup = secondFront != null ? "second" + FinishElement(finishes, secondFront, "front", styles.secondFront) : null;
-        if (frontGroup != null) AddFinish(frontGroup, cornerout ? part => OnLeg(part, "-left", tees.right) : null);
-        if (secondGroup != null) AddFinish(secondGroup, cornerout ? part => OnLeg(part, "-right", tees.left) : null);
-        // A post's two finishes meet in a mitre at its outer corner, each showing to the edge (decision 0082).
-        if (layout == "cornerin")
-        {
-            if (frontGroup != null && secondGroup == null) names.Add(frontGroup + "-end");
-            if (secondGroup != null) names.Add(secondGroup + (frontGroup != null ? "-mitre" : "-corner"));
-        }
+        if (front != null) AddFinish(FinishElement(finishes, front, "front", styles.front), cornerout ? part => OnLeg(part, "-left", tees.right) : null);
+        if (secondFront != null)
+            AddFinish("second" + FinishElement(finishes, secondFront, "front", styles.secondFront), cornerout ? part => OnLeg(part, "-right", tees.left) : null);
         if (framing != null) names.AddRange(parts.Select(part => member + part));
         if (infill != null)
         {
@@ -458,6 +462,22 @@ public class SidingWallEntity : BlockEntity
             }
         }
         return names.ToArray();
+    }
+
+    // A post's core, and on each face, front, secondfront, back and secondback, its finish's layer or, bare, the framing's,
+    // with the mitre piece each layer meets the next with (decision 0082). Every face takes the front's groups.
+    internal static string[] PostElements(string? framing, JsonObject finishes, (string? key, string? style)[] faces)
+    {
+        if (framing == null) return [];
+        string[] slots = ["front", "secondfront", "back", "secondback"];
+        var names = new List<string> { "framing" };
+        foreach (var (slot, (key, style)) in slots.Zip(faces))
+        {
+            string group = key == null ? $"framing-{slot}" : slot + FinishElement(finishes, key, "front", style)["front".Length..];
+            names.Add(group);
+            names.Add(group + "-mitre");
+        }
+        return [.. names];
     }
 
     // A style names its element outright; without one the entry's Elements default stands.

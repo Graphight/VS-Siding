@@ -210,8 +210,8 @@ public class SidingWallBlockBuildFlowTests
     [InlineData("diagonal", "north", "west", "back")]
     [InlineData("cornerin", "west", "east", "front")]
     [InlineData("cornerin", "west", "south", "secondfront")]
-    [InlineData("cornerin", "west", "west", null)]
-    [InlineData("cornerin", "west", "north", null)]
+    [InlineData("cornerin", "west", "west", "back")]
+    [InlineData("cornerin", "west", "north", "secondback")]
     [InlineData("cornerin", "west", "up", null)]
     [InlineData("cornerin", "north", "south", "front")]
     [InlineData("cornerin", "north", "west", "secondfront")]
@@ -227,6 +227,7 @@ public class SidingWallBlockBuildFlowTests
     [InlineData("cornerin", "west", "east", true)]
     [InlineData("cornerin", "west", "south", true)]
     [InlineData("cornerin", "west", "west", false)]
+    [InlineData("cornerin", "west", "north", false)]
     [InlineData("cornerin", "west", "up", false)]
     public void HostsClickTakesAWallsBackOrEitherOfAPostsFaces(string layout, string side, string clicked, bool expected)
     {

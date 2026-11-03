@@ -7,7 +7,7 @@
 ## Summary
 A `cornerin` post is a 4/16 square post in one corner of a cell, claiming no face and sealing nothing.
 It closes the notch two walls leave at an inside corner, and the notch an L-shaped house leaves at its reflex corner.
-It takes framing and a finish on each of its two cell-facing faces, at a quarter of a wall's cost.
+It takes framing and a finish on each of its four faces, at a quarter of a wall's cost.
 
 ## Context
 Two walls on the inside faces of their cells meet at a point and leave a 4/16 square open in a third cell.
@@ -22,7 +22,7 @@ An unglazed inside corner and one beside a finished glazed cell were built in cr
 The post stands in the corner between the `side` face and `CorneroutSecondFace[side]`, the corner a `cornerout` of the same side turns (`PostFaces`).
 It claims no face, seals nothing and absorbs no light; the walls on either side already close the cell's faces.
 Collision is the post's own box.
-`WallShapeGen` generates `cornerin.json`: a post frame and one finish group per face.
+`WallShapeGen` generates `cornerin.json`: a 2/16 framing core and a 1/16 layer on each face, in every finish style and in the framing (`PostLayer`).
 
 **Post mode and placement.**
 The saw picker's framing row gains `post`.
@@ -33,11 +33,13 @@ A wall or corner clicked in Post mode does what it does today; there is no upgra
 Framing and each finish charge `PostQuarter`, a quarter of the wall's quantity rounded up, at least 1 (`PostConsumes`).
 Peeling and drops refund the same amount.
 
-**Two finish faces, no infill.**
-The face pointing at `side`'s opposite maps to `front`, and the face pointing at `CorneroutSecondFace[side]`'s opposite to `secondfront`.
+**Four finish faces, no infill.**
+The face pointing at `side`'s opposite maps to `front`, the face pointing at `CorneroutSecondFace[side]`'s opposite to `secondfront`, the face pointing at `side` to `back`, and the face pointing at `CorneroutSecondFace[side]` to `secondback`, a slot only a post uses (`SidingWallEntity.SecondBack`).
+A post's backs face the walls in an inside corner and show on a post standing free, as a stilt or at a wall's end.
 A post takes no infill, so a framed post goes straight to finishes.
-The two finishes meet in a mitre at the post's outer corner, so each face shows its own finish to the edge.
-While one face is bare, the finished face runs on to the corner and shows its end there.
+A bare face draws in the framing, so a bare post is the whole 4/16 timber, and a finish takes that face's outer 1/16.
+Each face's layer owns the corner at one end of its run and meets the next face round in a mitre at the other, so each face shows its own finish, or the framing, to both edges.
+A bare back against a wall is left out of the tooltip.
 
 **No step.**
 A step click on a post places nothing and shows `build-step-post`.
@@ -48,7 +50,7 @@ The deck draws no ledge, as the diagonal's draws none (decision 0067's way of cu
 `cornerin`'s default `selectiveElements` leave the deck element names out, as the diagonal's do.
 
 **Hosting.**
-A post's cell hosts furniture on either of its two faces (`HostsClick`).
+A post's cell hosts furniture on either of its two fronts (`HostsClick`); its backs look out of the cell.
 The hosted block's shift is the sum of the shifts away from both faces, which is the diagonal shift of 4/16 off the post (decision 0035).
 
 ## Alternatives considered
@@ -60,7 +62,8 @@ The hosted block's shift is the sum of the shifts away from both faces, which is
 - **Issue #132's slit.** A line beside a corner in one orientation, not the 4/16 notch; left alone.
 
 ## Consequences & open questions
-- `blocktypes/wall.json` grows by four blocks, and `cornerin.json` by the post, its two finish groups and the deck groups in every deck style.
+- `blocktypes/wall.json` grows by four blocks, and `cornerin.json` by the post, its four layers in every style and the deck groups in every deck style.
+- The four faces are generated in place rather than as one face turned by element `rotationY`, since how the game lights a quarter-turned element's face was not checked.
 - A post takes no infill, no step and no in-place upgrade.
 - A post's deck is the full deck cost for the L of the cell, not scaled to the post.
-- Played: in creative on 2026-11-02, finishing both faces in planks, brick and plaster and stacking posts; the playtest found vertical boards stretched on the post's narrow faces and the front's finish wrapping the outer corner, both fixed before merge.
+- Played: in creative on 2026-11-02, finishing both faces in planks, brick and plaster and stacking posts; the playtest found vertical boards stretched on the post's narrow faces, the front's finish wrapping the outer corner, and a free-standing post's two back faces taking no finish, all fixed before merge; the four-face post has not been played.

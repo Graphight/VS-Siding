@@ -249,30 +249,26 @@ public class SidingWallEntityTests
                 "cornerout", "oak", "wattle", null, null, null, NoElementFinishes, (false, false, false, false), glazed: false));
     }
 
-    // An inside corner's post is one framing core and a slab on each of its two inner faces, whatever its joins. The
-    // outer corner shows the front's end while the second front is bare, the second front's piece while the front is,
-    // and with both finished the second front's mitre face, so each face shows its own finish to the edge.
+    // An inside corner's post is a framing core and a layer on each of its four faces, whatever its joins: a face's
+    // finish, or the framing while it is bare, each with the mitre piece it meets the next face with.
     [Fact]
-    public void ACornerinDrawsItsFramingAndTheFinishesOnItsTwoFaces()
+    public void ACornerinDrawsItsFramingAndALayerOnEachOfItsFourFaces()
     {
         Assert.Equal(
             new string[][]
             {
-                ["framing"],
-                ["front", "front-end", "framing"],
-                ["secondfront", "secondfront-corner", "framing"],
-                ["front", "secondfront", "secondfront-mitre", "framing"],
+                ["framing", "framing-front", "framing-front-mitre", "framing-secondfront", "framing-secondfront-mitre",
+                    "framing-back", "framing-back-mitre", "framing-secondback", "framing-secondback-mitre"],
+                ["framing", "front", "front-mitre", "framing-secondfront", "framing-secondfront-mitre",
+                    "back-brick", "back-brick-mitre", "secondback", "secondback-mitre"],
             },
             new string[][]
             {
                 SidingWallEntity.SelectiveElements(
                     "cornerin", "oak", null, null, null, null, NoElementFinishes, (true, true, true, true), glazed: false, frame: "poles"),
                 SidingWallEntity.SelectiveElements(
-                    "cornerin", "oak", null, "daub", null, null, NoElementFinishes, (false, false, false, false), glazed: false),
-                SidingWallEntity.SelectiveElements(
-                    "cornerin", "oak", null, null, "daub", null, NoElementFinishes, (false, false, false, false), glazed: false),
-                SidingWallEntity.SelectiveElements(
-                    "cornerin", "oak", null, "daub", "daub", null, NoElementFinishes, (false, false, false, false), glazed: false),
+                    "cornerin", "oak", null, "daub", null, "daub", NoElementFinishes, (false, false, false, false), glazed: false,
+                    styles: (null, null, "brick"), secondBack: "daub"),
             });
     }
 

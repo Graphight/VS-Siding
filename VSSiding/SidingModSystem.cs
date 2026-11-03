@@ -1310,7 +1310,7 @@ public class SidingModSystem : ModSystem
                 {
                     var drops = SidingWallBlock.ComputeDrops(
                         guest.Framing, guest.Infill, guest.Front, guest.SecondFront, guest.Back, guest.Deck,
-                        guestWall.Attributes["Framings"], guestWall.Attributes["Infills"], guestWall.Attributes["Finishes"], guest.Step, post: guestWall.Variant["layout"] == "cornerin");
+                        guestWall.Attributes["Framings"], guestWall.Attributes["Infills"], guestWall.Attributes["Finishes"], guest.Step, post: guestWall.Variant["layout"] == "cornerin", secondBack: guest.SecondBack);
                     foreach (var stack in guestWall.ResolveDrops(world, drops, 1f)) world.SpawnItemEntity(stack, pos);
                 }
                 GuestWalls.Set(world, __instance, pos, null);

@@ -1209,66 +1209,88 @@ public static class WallShapeGen
         }
     }
 
-    // An inside corner's post, 4 by 4 in the cell's west-north corner: a 3 by 3 framing core, and a 1/16 finish on each
-    // of the two faces that look into the cell, the east one (front) and the south one (secondfront). The two meet in a
-    // mitre at the post's outer corner, so each face shows its own finish to the edge: the front fills the corner and
-    // keeps its end there as `-end`, drawn while the second front is bare, and the second front reaches the corner as
-    // `-corner` while the front is bare, or as `-mitre`, its south face alone, while the front is finished.
+    // An inside corner's post, 4 by 4 in the cell's west-north corner: a 2 by 2 framing core and a 1/16 layer on each face,
+    // drawn in its finish or, bare, in the framing (`framing-<slot>`): front looks east, secondfront south, back west and
+    // secondback north. Each layer owns the corner at one end of its run and meets the next layer round in a mitre at the
+    // other, where its `-mitre` piece draws its outward face alone, so every face shows its own finish to the edge.
     private static readonly Element[] CornerInElements =
     [
-        new("framing", (0, 0, 0), (3, 16, 3), "framing", UvRule.Flat),
-        .. PostFrontEnds([new("front", (3, 0, 0), (4, 16, 4), "front", UvRule.Flat), .. PostFinishes("front", "front", 'x', 0, 4, "east")]),
-        new("secondfront", (0, 0, 3), (3, 16, 4), "secondfront", UvRule.Flat),
-        .. PostFinishes("secondfront", "secondfront", 'z', 0, 3, "south"),
-        .. PostSecondCorners([new("secondfront", (0, 0, 3), (4, 16, 4), "secondfront", UvRule.Flat), .. PostFinishes("secondfront", "secondfront", 'z', 0, 4, "south")]),
+        new("framing", (1, 0, 1), (3, 16, 3), "framing", UvRule.Flat),
+        .. PostLayer("front", 'x', 4, "east", ownsHigh: true),
+        .. PostLayer("secondfront", 'z', 4, "south", ownsHigh: false),
+        .. PostLayer("back", 'x', 0, "west", ownsHigh: false),
+        .. PostLayer("secondback", 'z', 0, "north", ownsHigh: true),
     ];
 
-    private static IEnumerable<Element> PostFrontEnds(IEnumerable<Element> front) => front.SelectMany(e => e.To.Z < 4
-        ? [e]
-        : new[]
-        {
-            e with { Faces = [.. (e.Faces ?? AllFaces).Where(face => face != "south")] },
-            e with { Name = e.Name + "-end", Faces = [.. (e.Faces ?? AllFaces).Where(face => face == "south")] },
-        });
-
-    // The second front's groups laid to the corner and cut to its last voxel, sampling the texture where they sit.
-    private static IEnumerable<Element> PostSecondCorners(IEnumerable<Element> second) =>
-        from e in second
-        where e.To.X > 3
-        let piece = e with { From = e.From with { X = Math.Max(e.From.X, 3) }, ClippedFrom = e }
-        from corner in new[]
-        {
-            piece with { Name = e.Name + "-corner" },
-            piece with { Name = e.Name + "-mitre", Faces = [.. (e.Faces ?? AllFaces).Where(face => face == "south")] },
-        }
-        select corner;
-
-    // Every style a wall's face takes, on one of the post's slabs: the slab is 4 deep at its outer face and
-    // 3 at the framing, as a cornerout's back is, with the run cut to the slab's length.
-    private static IEnumerable<Element> PostFinishes(string group, string slot, char depthAxis, double runLo, double runHi, string outwardFace)
+    private static IEnumerable<Element> PostLayer(string slot, char depthAxis, double outer, string outwardFace, bool ownsHigh)
     {
         char runAxis = depthAxis == 'x' ? 'z' : 'x';
-        Element Slab(string name, string[]? rotated = null) => new(name,
-            Corner(depthAxis, 3, runLo, 0), Corner(depthAxis, 4, runHi, 16), slot, UvRule.Flat, RotatedFaces: rotated);
+        string ownedEnd = (runAxis, ownsHigh) switch { ('z', true) => "south", ('z', false) => "north", ('x', true) => "east", _ => "west" };
+        (double Lo, double Hi) body = ownsHigh ? (1, 4) : (0, 3), mitre = ownsHigh ? (0, 1) : (3, 4);
+        Element[] full =
+        [
+            PostSlab(slot, slot, depthAxis, outer),
+            PostSlab($"framing-{slot}", "framing", depthAxis, outer),
+            .. PostFinishes(slot, slot, depthAxis, outer, outwardFace),
+        ];
+        foreach (var e in full)
+        {
+            if (Cut(e, runAxis, body) is { } main)
+            {
+                bool atEnd = ownsHigh ? Axis(main.To, runAxis) == 4 : Axis(main.From, runAxis) == 0;
+                yield return atEnd ? main with { Faces = [.. (e.Faces ?? AllFaces).Where(face => face != ownedEnd)] } : main;
+            }
+            if (Cut(e, runAxis, mitre) is { } piece)
+                yield return piece with { Name = e.Name + "-mitre", Faces = [.. (e.Faces ?? AllFaces).Where(face => face == outwardFace)] };
+        }
+    }
+
+    // The part of a post layer's element along one stretch of its run, sampling the texture where it sits.
+    private static Element? Cut(Element e, char runAxis, (double Lo, double Hi) run)
+    {
+        double lo = Math.Max(Axis(e.From, runAxis), run.Lo), hi = Math.Min(Axis(e.To, runAxis), run.Hi);
+        if (hi <= lo) return null;
+        return e with
+        {
+            From = runAxis == 'x' ? e.From with { X = lo } : e.From with { Z = lo },
+            To = runAxis == 'x' ? e.To with { X = hi } : e.To with { Z = hi },
+            ClippedFrom = e,
+        };
+    }
+
+    private static Element PostSlab(string name, string slot, char depthAxis, double outer) => new(name,
+        Corner(depthAxis, outer == 4 ? 3 : 0, 0, 0), Corner(depthAxis, outer == 4 ? 4 : 1, 4, 16), slot, UvRule.Flat);
+
+    // Every style a wall's face takes, on one of the post's layers: outer 4 on the east or south, 0 on the west or north,
+    // and 1/16 deep, as a cornerout's back is.
+    private static IEnumerable<Element> PostFinishes(string group, string slot, char depthAxis, double outer, string outwardFace)
+    {
+        char runAxis = depthAxis == 'x' ? 'z' : 'x';
+        double inner = outer == 4 ? 3 : 1, dir = Math.Sign(inner - outer);
+        Element Slab(string name, string[]? rotated = null) => PostSlab(name, slot, depthAxis, outer) with { RotatedFaces = rotated };
 
         var weatherboard = Enumerable.Range(0, 16).Select(course => new Element($"{group}-weatherboard",
-            Corner(depthAxis, 3, runLo, course), Corner(depthAxis, 4 - 0.25 * (course % 4), runHi, course + 1), slot, UvRule.Positional));
+            Corner(depthAxis, Math.Min(inner, outer + dir * 0.25 * (course % 4)), 0, course),
+            Corner(depthAxis, Math.Max(inner, outer + dir * 0.25 * (course % 4)), 4, course + 1), slot, UvRule.Positional));
 
-        // The wall's shakes table, turned onto the slab's run and mirrored onto its depth.
-        var shakes = FrontShakesElements.Select(e => depthAxis == 'x'
-            ? MirrorDepthX(e, $"{group}-shakes", slot)
-            : MirrorDepthZ(e with { From = (e.From.Z, e.From.Y, e.From.X), To = (e.To.Z, e.To.Y, e.To.X), RunAxis = 'x' }, $"{group}-shakes", slot));
+        // The wall's shakes table, a front at depth 0..1, turned onto the layer's run and mirrored for an outer of 4.
+        var shakes = FrontShakesElements.Select(e =>
+        {
+            var turned = depthAxis == 'x' ? e : e with { From = (e.From.Z, e.From.Y, e.From.X), To = (e.To.Z, e.To.Y, e.To.X), RunAxis = 'x' };
+            if (outer == 0) return turned with { Name = $"{group}-shakes", Slot = slot };
+            return depthAxis == 'x' ? MirrorDepthX(turned, $"{group}-shakes", slot) : MirrorDepthZ(turned, $"{group}-shakes", slot);
+        });
 
         return
         [
             .. WithBark(Slab($"{group}-hboards")),
             Slab($"{group}-boards", [outwardFace]),
             .. weatherboard,
-            .. ClipRun(shakes, runAxis, runLo, runHi),
-            .. Logs($"{group}-logs", slot, depthAxis, 4, 3, outwardFace, runLo, runHi),
-            .. RunningBond($"{group}-brick", slot, 4, 8, depthAxis, 4, 3, runLo, runHi),
-            .. RunningBond($"{group}-ashlar", slot, 8, 16, depthAxis, 4, 3, runLo, runHi, flipBond: true),
-            .. RubbleGrid($"{group}-rubble", slot, depthAxis, 4, 3, runLo, runHi),
+            .. ClipRun(shakes, runAxis, 0, 4),
+            .. Logs($"{group}-logs", slot, depthAxis, outer, inner, outwardFace, 0, 4),
+            .. RunningBond($"{group}-brick", slot, 4, 8, depthAxis, outer, inner, 0, 4),
+            .. RunningBond($"{group}-ashlar", slot, 8, 16, depthAxis, outer, inner, 0, 4, flipBond: true),
+            .. RubbleGrid($"{group}-rubble", slot, depthAxis, outer, inner, 0, 4),
         ];
     }
 
@@ -1277,6 +1299,8 @@ public static class WallShapeGen
         ("framing", "game:block/wood/planks/aged/aged1"),
         ("front", "game:block/wood/planks/aged/aged1"),
         ("secondfront", "game:block/wood/planks/aged/aged1"),
+        ("back", "game:block/wood/planks/aged/aged1"),
+        ("secondback", "game:block/wood/planks/aged/aged1"),
         ("deck", "game:block/wood/planks/aged/aged1"),
         ("deckinfill", "game:block/wood/planks/aged/aged1"),
         ("deckfront", "game:block/wood/planks/aged/aged1"),

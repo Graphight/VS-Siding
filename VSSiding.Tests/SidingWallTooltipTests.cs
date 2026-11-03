@@ -60,10 +60,10 @@ public class SidingWallTooltipTests
         string? framing = "oak", string? infill = "wattle", string? deck = null, string layout = "wall",
         string? front = null, string? secondFront = null, string? back = null, string? stepName = null,
         string? deckInfill = null, string? deckFront = null, string? deckBack = null, bool full = true,
-        System.Func<string, bool>? buried = null)
+        System.Func<string, bool>? buried = null, string? secondBack = null)
         => SidingWallBlock.Describe(
             framing, infill, deck, Framings, Infills, layout, "west", front, secondFront, back, Finishes,
-            key => Lang.GetValueOrDefault(key), stepName, deckInfill, deckFront, deckBack, full, buried);
+            key => Lang.GetValueOrDefault(key), stepName, deckInfill, deckFront, deckBack, full, buried, secondBack);
 
     [Fact]
     public void BuiltFramingAndInfillNameTheirMaterials()
@@ -202,13 +202,22 @@ public class SidingWallTooltipTests
             Describe(layout: "cornerout", front: "daub", back: "planks"));
     }
 
-    // A post hugs "west" and "north" like a cornerout, so its two outer faces look the other way and it has no back.
+    // A post hugs "west" and "north" like a cornerout: its fronts look the other way and its backs into the corner,
+    // where a bare back against a wall is left out.
     [Fact]
-    public void PostNamesItsTwoFaces()
+    public void PostNamesItsFourFaces()
     {
         Assert.Equal(
-            "\n  Oak Framing\n  No infill\n  East: Daub Finish\n  South: unfinished\n  Does not seal the room\n",
-            Describe(layout: "cornerin", infill: null, front: "daub"));
+            new[]
+            {
+                "\n  Oak Framing\n  No infill\n  East: Daub Finish\n  South: unfinished\n  West: Planks Finish\n  North: unfinished\n  Does not seal the room\n",
+                "\n  Oak Framing\n  No infill\n  East: Daub Finish\n  South: unfinished\n  West: Planks Finish\n  Does not seal the room\n",
+            },
+            new[]
+            {
+                Describe(layout: "cornerin", infill: null, front: "daub", back: "planks"),
+                Describe(layout: "cornerin", infill: null, front: "daub", back: "planks", buried: direction => direction is "west" or "north"),
+            });
     }
 
     [Fact]

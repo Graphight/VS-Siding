@@ -42,10 +42,10 @@
 		"*-diagonal-south": { base: "block/wall/diagonal", selectiveElements: ["front", "framing-left", "framing-right", "framing-top", "framing-bottom", "infill", "back"], rotateY: 90 },
 		"*-diagonal-east": { base: "block/wall/diagonal", selectiveElements: ["front", "framing-left", "framing-right", "framing-top", "framing-bottom", "infill", "back"], rotateY: 180 },
 		"*-diagonal-north": { base: "block/wall/diagonal", selectiveElements: ["front", "framing-left", "framing-right", "framing-top", "framing-bottom", "infill", "back"], rotateY: 270 },
-		"*-cornerin-west": { base: "block/wall/cornerin", selectiveElements: ["front", "secondfront", "framing"], rotateY: 0 },
-		"*-cornerin-south": { base: "block/wall/cornerin", selectiveElements: ["front", "secondfront", "framing"], rotateY: 90 },
-		"*-cornerin-east": { base: "block/wall/cornerin", selectiveElements: ["front", "secondfront", "framing"], rotateY: 180 },
-		"*-cornerin-north": { base: "block/wall/cornerin", selectiveElements: ["front", "secondfront", "framing"], rotateY: 270 }
+		"*-cornerin-west": { base: "block/wall/cornerin", selectiveElements: ["framing", "framing-front", "framing-front-mitre", "framing-secondfront", "framing-secondfront-mitre", "framing-back", "framing-back-mitre", "framing-secondback", "framing-secondback-mitre"], rotateY: 0 },
+		"*-cornerin-south": { base: "block/wall/cornerin", selectiveElements: ["framing", "framing-front", "framing-front-mitre", "framing-secondfront", "framing-secondfront-mitre", "framing-back", "framing-back-mitre", "framing-secondback", "framing-secondback-mitre"], rotateY: 90 },
+		"*-cornerin-east": { base: "block/wall/cornerin", selectiveElements: ["framing", "framing-front", "framing-front-mitre", "framing-secondfront", "framing-secondfront-mitre", "framing-back", "framing-back-mitre", "framing-secondback", "framing-secondback-mitre"], rotateY: 180 },
+		"*-cornerin-north": { base: "block/wall/cornerin", selectiveElements: ["framing", "framing-front", "framing-front-mitre", "framing-secondfront", "framing-secondfront-mitre", "framing-back", "framing-back-mitre", "framing-secondback", "framing-secondback-mitre"], rotateY: 270 }
 	},
 	resistance: 1.2,
 	lightAbsorption: 0,
