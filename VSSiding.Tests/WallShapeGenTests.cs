@@ -684,6 +684,36 @@ public class WallShapeGenTests
         Assert.Equal([], offenders);
     }
 
+    // A face samples one texel per voxel along both its edges however it is turned, so no finish stretches
+    // on a face narrower than the block, read from the game's tables and not from the generator's reading of them.
+    [Theory]
+    [InlineData("wall")]
+    [InlineData("cornerout")]
+    [InlineData("diagonal")]
+    [InlineData("cornerin")]
+    [InlineData("floor")]
+    public void EveryFaceSamplesOneTexelPerVoxel(string layout)
+    {
+        static double Length(double[] a, double[] b) => Math.Sqrt(a.Zip(b, (p, q) => (p - q) * (p - q)).Sum());
+
+        var offenders = new List<string>();
+        foreach (var element in WallShapeGen.Generate(layout)["elements"]!.Cast<JObject>())
+        {
+            foreach (string face in ((JObject)element["faces"]!).Properties().Select(p => p.Name))
+            {
+                var corners = FaceCorners(element, face);
+                foreach (var next in new[] { corners[1], corners[3] })
+                {
+                    double voxels = Length(corners[0].Xyz, next.Xyz), texels = Length(corners[0].Uv, next.Uv);
+                    if (Math.Abs(voxels - texels) > 0.001)
+                        offenders.Add($"{element["name"]} {face}: {texels} texels over {voxels} voxels");
+                }
+            }
+        }
+
+        Assert.Equal([], offenders);
+    }
+
     // Every cut leaves an end that looks onto the glass or the next piece, so a rim piece draws a face at
     // each plane it was cut at, whatever its source group draws.
     [Theory]

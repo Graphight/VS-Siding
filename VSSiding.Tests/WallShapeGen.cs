@@ -1422,8 +1422,10 @@ public static class WallShapeGen
         (double, double) Span(char axis) =>
             element.RunAxis == axis ? (Lo(axis), Hi(axis)) : (0.0, Hi(axis) - Lo(axis));
 
-        var (u0, u1) = Span(uAxis);
-        var (v0, v1) = positional ? (16 - ty, 16 - fy) : Span(vAxis);
+        // A turned face lays its rect a quarter round (UvLayout), so u spans the axis v would have, and v the axis u would.
+        bool rotated = element.RotatedFaces?.Contains(face) ?? false;
+        var (u0, u1) = Span(rotated ? vAxis : uAxis);
+        var (v0, v1) = positional ? (16 - ty, 16 - fy) : Span(rotated ? uAxis : vAxis);
 
         if (element.ClippedFrom is { } source)
             (u0, v0, u1, v1) = ClippedUv(source, element, face);
@@ -1435,7 +1437,7 @@ public static class WallShapeGen
         };
         // A face rotation turns the texture the opposite way to a texture's own rotation, so 270 on a side
         // face matches vanilla's upright planks (rotation 90), seam for seam. Floors keep 90.
-        if (element.RotatedFaces?.Contains(face) ?? false) result["rotation"] = face is "up" or "down" ? 90 : 270;
+        if (rotated) result["rotation"] = face is "up" or "down" ? 90 : 270;
         return result;
     }
 
@@ -1461,8 +1463,7 @@ public static class WallShapeGen
     };
 
     // The part of the source face's uv rect the clipped box covers, so the clip samples the texels the
-    // source would have drawn there. A turned face that is not square spreads its rect unevenly over
-    // the face, so the part is taken in proportion, not texel for voxel.
+    // source would have drawn there, in proportion to the source's rect.
     private static (double, double, double, double) ClippedUv(Element source, Element clipped, string face)
     {
         var sourceUv = EmitFace(source, face)["uv"]!.Select(v => (double)v!).ToArray();
