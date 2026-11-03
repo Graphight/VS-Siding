@@ -403,9 +403,16 @@ public class SidingWallEntity : BlockEntity
         // A corner's front finish rims leg 1, whose far end is its right, and its second front leg 2, whose is its left,
         // and its corner post rim gives way to the rims either side of a T's piece in its slot.
         bool OnLeg(string part, string otherLeg, bool tee) => !part.EndsWith(otherLeg) && !(part == "" && tee);
-        if (front != null) AddFinish(FinishElement(finishes, front, "front", styles.front), cornerout ? part => OnLeg(part, "-left", tees.right) : null);
-        if (secondFront != null)
-            AddFinish("second" + FinishElement(finishes, secondFront, "front", styles.secondFront), cornerout ? part => OnLeg(part, "-right", tees.left) : null);
+        string? frontGroup = front != null ? FinishElement(finishes, front, "front", styles.front) : null;
+        string? secondGroup = secondFront != null ? "second" + FinishElement(finishes, secondFront, "front", styles.secondFront) : null;
+        if (frontGroup != null) AddFinish(frontGroup, cornerout ? part => OnLeg(part, "-left", tees.right) : null);
+        if (secondGroup != null) AddFinish(secondGroup, cornerout ? part => OnLeg(part, "-right", tees.left) : null);
+        // A post's two finishes meet in a mitre at its outer corner, each showing to the edge (decision 0082).
+        if (layout == "cornerin")
+        {
+            if (frontGroup != null && secondGroup == null) names.Add(frontGroup + "-end");
+            if (secondGroup != null) names.Add(secondGroup + (frontGroup != null ? "-mitre" : "-corner"));
+        }
         if (framing != null) names.AddRange(parts.Select(part => member + part));
         if (infill != null)
         {

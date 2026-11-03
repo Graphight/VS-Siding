@@ -36,6 +36,8 @@ Peeling and drops refund the same amount.
 **Two finish faces, no infill.**
 The face pointing at `side`'s opposite maps to `front`, and the face pointing at `CorneroutSecondFace[side]`'s opposite to `secondfront`.
 A post takes no infill, so a framed post goes straight to finishes.
+The two finishes meet in a mitre at the post's outer corner, so each face shows its own finish to the edge.
+While one face is bare, the finished face runs on to the corner and shows its end there.
 
 **No step.**
 A step click on a post places nothing and shows `build-step-post`.

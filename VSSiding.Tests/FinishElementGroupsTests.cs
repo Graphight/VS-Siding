@@ -32,7 +32,7 @@ public class FinishElementGroupsTests
         {
             ["block/wall/wall"] = fronts.Concat(backs).ToList(),
             ["block/wall/cornerout"] = fronts.Concat(fronts.Select(f => "second" + f)).Concat(backs).ToList(),
-            ["block/wall/cornerin"] = fronts.Concat(fronts.Select(f => "second" + f)).ToList(),
+            ["block/wall/cornerin"] = [.. fronts, .. fronts.Select(f => f + "-end"), .. fronts.SelectMany(f => new[] { "second" + f, $"second{f}-corner", $"second{f}-mitre" })],
         };
 
         var offenders = new List<string>();
@@ -308,6 +308,7 @@ public class FinishElementGroupsTests
             from right in either
             from transparent in either
             from finish in new[] { null, "daub" }
+            from second in layout is "cornerout" or "cornerin" ? new[] { null, "daub" } : [null]
             // Glass runs on only on a glazed cell, through an end the run carries on from; only a corner has a post to make a T at.
             from glassLeft in either.Where(glass => !glass || (transparent && left))
             from glassRight in either.Where(glass => !glass || (transparent && right))
@@ -316,12 +317,61 @@ public class FinishElementGroupsTests
             from frame in new[] { "framing", "poles", "poles2" }
             from corners in innerCorners
             from name in SidingWallEntity.SelectiveElements(
-                layout, "oak", layout == "cornerin" ? null : "glass", finish, layout is "cornerout" or "cornerin" ? finish : null,
+                layout, "oak", layout == "cornerin" ? null : "glass", finish, second,
                 layout == "cornerin" ? null : finish, finishes,
                 (above, below, left, right), glazed: transparent && layout != "cornerin", frame: frame, innerCorners: corners, glassRunsOn: (glassLeft, glassRight), tees: (teeLeft, teeRight))
             select name;
 
         Assert.Equal([], asked.Distinct().Where(name => !names.Contains(name)).ToArray());
+    }
+
+    // A post finished on both faces shows each face's own finish across its whole width, the outer corner's last voxel
+    // included, and nothing of the other face's, in every pair of finishes and styles (decision 0082).
+    [Fact]
+    public void AFinishedPostShowsEachFacesOwnFinishToTheCorner()
+    {
+        var entries = FinishEntries();
+        var finishes = new JsonObject(new JObject(entries.Select(e => new JProperty(e.Name, e.Value))));
+        var elements = WallShapeGen.Generate("cornerin")["elements"]!.Cast<JObject>().ToArray();
+        static double At(JObject element, string corner, int axis) => (double)element[corner]![axis]!;
+        var looks = (
+            from entry in entries
+            from style in new string?[] { null }.Concat(entry.Value["Styles"]?.Select(t => (string)t!) ?? [])
+            select (entry.Name, Style: style)).ToArray();
+        var posts = (
+            from front in looks
+            from second in looks
+            select SidingWallEntity.SelectiveElements("cornerin", "oak", null, front.Name, second.Name, null, finishes,
+                (false, false, false, false), glazed: false, styles: (front.Style, second.Style, null)))
+            .DistinctBy(drawn => string.Join(",", drawn));
+
+        var offenders = new List<string>();
+        foreach (var drawn in posts)
+        {
+            var faces = (
+                from element in elements
+                where drawn.Contains((string)element["name"]!)
+                from face in ((JObject)element["faces"]!).Properties()
+                select (Element: element, Face: face.Name, Texture: (string)face.Value["texture"]!)).ToArray();
+            foreach (var (outward, depth, across, own, other) in new[] { ("east", 0, 2, "#front", "#secondfront"), ("south", 2, 0, "#secondfront", "#front") })
+            {
+                var side = faces.Where(f => f.Face == outward).ToArray();
+                offenders.AddRange(side.Where(f => f.Texture == other && At(f.Element, "to", depth) > 3)
+                    .Select(f => $"{string.Join(",", drawn)}: {f.Element["name"]} shows on the {outward} side"));
+
+                var uncovered = (
+                    from a in Enumerable.Range(0, 16)
+                    from y in Enumerable.Range(0, 64)
+                    let point = (Across: a / 4.0 + 0.125, Y: y / 4.0 + 0.125)
+                    where !side.Any(f => f.Texture == own
+                        && At(f.Element, "from", across) <= point.Across && point.Across <= At(f.Element, "to", across)
+                        && At(f.Element, "from", 1) <= point.Y && point.Y <= At(f.Element, "to", 1))
+                    select point).FirstOrDefault();
+                if (uncovered != default) offenders.Add($"{string.Join(",", drawn)}: the {outward} side shows no {own} at {uncovered}");
+            }
+        }
+
+        Assert.Equal([], offenders);
     }
 
     private static readonly string[] PlankFinishes = ["planks", "planks-aged", "planks-veryaged", "planks-{wood}", "stained-{stain}-{wood}", "dyed-{color}-{wood}"];

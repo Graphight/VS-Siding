@@ -1210,15 +1210,38 @@ public static class WallShapeGen
     }
 
     // An inside corner's post, 4 by 4 in the cell's west-north corner: a 3 by 3 framing core, and a 1/16 finish on each
-    // of the two faces that look into the cell, the east one (front) and the south one (secondfront).
+    // of the two faces that look into the cell, the east one (front) and the south one (secondfront). The two meet in a
+    // mitre at the post's outer corner, so each face shows its own finish to the edge: the front fills the corner and
+    // keeps its end there as `-end`, drawn while the second front is bare, and the second front reaches the corner as
+    // `-corner` while the front is bare, or as `-mitre`, its south face alone, while the front is finished.
     private static readonly Element[] CornerInElements =
     [
         new("framing", (0, 0, 0), (3, 16, 3), "framing", UvRule.Flat),
-        new("front", (3, 0, 0), (4, 16, 4), "front", UvRule.Flat),
+        .. PostFrontEnds([new("front", (3, 0, 0), (4, 16, 4), "front", UvRule.Flat), .. PostFinishes("front", "front", 'x', 0, 4, "east")]),
         new("secondfront", (0, 0, 3), (3, 16, 4), "secondfront", UvRule.Flat),
-        .. PostFinishes("front", "front", 'x', 0, 4, "east"),
         .. PostFinishes("secondfront", "secondfront", 'z', 0, 3, "south"),
+        .. PostSecondCorners([new("secondfront", (0, 0, 3), (4, 16, 4), "secondfront", UvRule.Flat), .. PostFinishes("secondfront", "secondfront", 'z', 0, 4, "south")]),
     ];
+
+    private static IEnumerable<Element> PostFrontEnds(IEnumerable<Element> front) => front.SelectMany(e => e.To.Z < 4
+        ? [e]
+        : new[]
+        {
+            e with { Faces = [.. (e.Faces ?? AllFaces).Where(face => face != "south")] },
+            e with { Name = e.Name + "-end", Faces = [.. (e.Faces ?? AllFaces).Where(face => face == "south")] },
+        });
+
+    // The second front's groups laid to the corner and cut to its last voxel, sampling the texture where they sit.
+    private static IEnumerable<Element> PostSecondCorners(IEnumerable<Element> second) =>
+        from e in second
+        where e.To.X > 3
+        let piece = e with { From = e.From with { X = Math.Max(e.From.X, 3) }, ClippedFrom = e }
+        from corner in new[]
+        {
+            piece with { Name = e.Name + "-corner" },
+            piece with { Name = e.Name + "-mitre", Faces = [.. (e.Faces ?? AllFaces).Where(face => face == "south")] },
+        }
+        select corner;
 
     // Every style a wall's face takes, on one of the post's slabs: the slab is 4 deep at its outer face and
     // 3 at the framing, as a cornerout's back is, with the run cut to the slab's length.
