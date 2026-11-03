@@ -397,6 +397,8 @@ public static class WallShapeGen
         new("infill", (1.5, 1, 1), (2.5, 15, 15), "infill", UvRule.Positional),
         new("infill-bottom", (1.5, 0, 1), (2.5, 1, 15), "infill", UvRule.Positional),
         new("infill-pane", (2, 0, 0), (2, 16, 16), "infill", UvRule.Flat, Faces: ["west", "east"]),
+        // A bare front facing another wall's front is closed in the infill (decision 0083).
+        new("infill-front", (0, 0, 0), (1, 16, 16), "infill", UvRule.Positional),
         // A glazed cell's frame: stiles, the rails between them, and a filler in each corner for a rail
         // whose stile has merged away. A rail's ends always stand against another piece, so those
         // faces are left out; a filler keeps all six, since at an L's inside corner it stands alone.
@@ -718,6 +720,8 @@ public static class WallShapeGen
         new("framing", (1, 0, 15), (3, 16, 16), "framing", UvRule.Flat),
         new("back", (3, 0, 4), (4, 16, 16), "back", UvRule.Flat),
         new("secondfront", (1, 0, 0), (16, 16, 1), "secondfront", UvRule.Flat),
+        new("infill-front", (0, 0, 0), (1, 16, 16), "infill", UvRule.Positional),
+        new("infill-secondfront", (1, 0, 0), (16, 16, 1), "infill", UvRule.Positional),
         .. StepSetElements(corner: true),
         new("framing-top", (3, 15, 1), (15, 16, 3), "framing", UvRule.Flat),
         new("framing-bottom", (3, 0, 1), (15, 1, 3), "framing", UvRule.Flat),
@@ -1205,6 +1209,110 @@ public static class WallShapeGen
         }
     }
 
+    // An inside corner's post, 4 by 4 in the cell's west-north corner: a 2 by 2 framing core and a 1/16 layer on each face,
+    // drawn in its finish or, bare, in the framing (`framing-<slot>`): front looks east, secondfront south, back west and
+    // secondback north. Each layer owns the corner at one end of its run and meets the next layer round in a mitre at the
+    // other, where its `-mitre` piece draws its outward face alone, so every face shows its own finish to the edge.
+    private static readonly Element[] CornerInElements =
+    [
+        new("framing", (1, 0, 1), (3, 16, 3), "framing", UvRule.Flat),
+        .. PostLayer("front", 'x', 4, "east", ownsHigh: true),
+        .. PostLayer("secondfront", 'z', 4, "south", ownsHigh: false),
+        .. PostLayer("back", 'x', 0, "west", ownsHigh: false),
+        .. PostLayer("secondback", 'z', 0, "north", ownsHigh: true),
+    ];
+
+    private static IEnumerable<Element> PostLayer(string slot, char depthAxis, double outer, string outwardFace, bool ownsHigh)
+    {
+        char runAxis = depthAxis == 'x' ? 'z' : 'x';
+        string ownedEnd = (runAxis, ownsHigh) switch { ('z', true) => "south", ('z', false) => "north", ('x', true) => "east", _ => "west" };
+        (double Lo, double Hi) body = ownsHigh ? (1, 4) : (0, 3), mitre = ownsHigh ? (0, 1) : (3, 4);
+        Element[] full =
+        [
+            PostSlab(slot, slot, depthAxis, outer),
+            PostSlab($"framing-{slot}", "framing", depthAxis, outer),
+            .. PostFinishes(slot, slot, depthAxis, outer, outwardFace),
+        ];
+        foreach (var e in full)
+        {
+            if (Cut(e, runAxis, body) is { } main)
+            {
+                bool atEnd = ownsHigh ? Axis(main.To, runAxis) == 4 : Axis(main.From, runAxis) == 0;
+                yield return atEnd ? main with { Faces = [.. (e.Faces ?? AllFaces).Where(face => face != ownedEnd)] } : main;
+            }
+            if (Cut(e, runAxis, mitre) is { } piece)
+                yield return piece with { Name = e.Name + "-mitre", Faces = [.. (e.Faces ?? AllFaces).Where(face => face == outwardFace)] };
+        }
+    }
+
+    // The part of a post layer's element along one stretch of its run, sampling the texture where it sits.
+    private static Element? Cut(Element e, char runAxis, (double Lo, double Hi) run)
+    {
+        double lo = Math.Max(Axis(e.From, runAxis), run.Lo), hi = Math.Min(Axis(e.To, runAxis), run.Hi);
+        if (hi <= lo) return null;
+        return e with
+        {
+            From = runAxis == 'x' ? e.From with { X = lo } : e.From with { Z = lo },
+            To = runAxis == 'x' ? e.To with { X = hi } : e.To with { Z = hi },
+            ClippedFrom = e,
+        };
+    }
+
+    private static Element PostSlab(string name, string slot, char depthAxis, double outer) => new(name,
+        Corner(depthAxis, outer == 4 ? 3 : 0, 0, 0), Corner(depthAxis, outer == 4 ? 4 : 1, 4, 16), slot, UvRule.Flat);
+
+    // Every style a wall's face takes, on one of the post's layers: outer 4 on the east or south, 0 on the west or north,
+    // and 1/16 deep, as a cornerout's back is.
+    private static IEnumerable<Element> PostFinishes(string group, string slot, char depthAxis, double outer, string outwardFace)
+    {
+        char runAxis = depthAxis == 'x' ? 'z' : 'x';
+        double inner = outer == 4 ? 3 : 1, dir = Math.Sign(inner - outer);
+        Element Slab(string name, string[]? rotated = null) => PostSlab(name, slot, depthAxis, outer) with { RotatedFaces = rotated };
+
+        var weatherboard = Enumerable.Range(0, 16).Select(course => new Element($"{group}-weatherboard",
+            Corner(depthAxis, Math.Min(inner, outer + dir * 0.25 * (course % 4)), 0, course),
+            Corner(depthAxis, Math.Max(inner, outer + dir * 0.25 * (course % 4)), 4, course + 1), slot, UvRule.Positional));
+
+        // The wall's shakes table, a front at depth 0..1, turned onto the layer's run and mirrored for an outer of 4.
+        var shakes = FrontShakesElements.Select(e =>
+        {
+            var turned = depthAxis == 'x' ? e : e with { From = (e.From.Z, e.From.Y, e.From.X), To = (e.To.Z, e.To.Y, e.To.X), RunAxis = 'x' };
+            if (outer == 0) return turned with { Name = $"{group}-shakes", Slot = slot };
+            return depthAxis == 'x' ? MirrorDepthX(turned, $"{group}-shakes", slot) : MirrorDepthZ(turned, $"{group}-shakes", slot);
+        });
+
+        return
+        [
+            .. WithBark(Slab($"{group}-hboards")),
+            Slab($"{group}-boards", [outwardFace]),
+            .. weatherboard,
+            .. ClipRun(shakes, runAxis, 0, 4),
+            .. Logs($"{group}-logs", slot, depthAxis, outer, inner, outwardFace, 0, 4),
+            .. RunningBond($"{group}-brick", slot, 4, 8, depthAxis, outer, inner, 0, 4),
+            .. RunningBond($"{group}-ashlar", slot, 8, 16, depthAxis, outer, inner, 0, 4, flipBond: true),
+            .. RubbleGrid($"{group}-rubble", slot, depthAxis, outer, inner, 0, 4),
+        ];
+    }
+
+    private static readonly (string Slot, string Texture)[] CornerInTextures =
+    [
+        ("framing", "game:block/wood/planks/aged/aged1"),
+        ("front", "game:block/wood/planks/aged/aged1"),
+        ("secondfront", "game:block/wood/planks/aged/aged1"),
+        ("back", "game:block/wood/planks/aged/aged1"),
+        ("secondback", "game:block/wood/planks/aged/aged1"),
+        ("deck", "game:block/wood/planks/aged/aged1"),
+        ("deckinfill", "game:block/wood/planks/aged/aged1"),
+        ("deckfront", "game:block/wood/planks/aged/aged1"),
+        ("deckback", "game:block/wood/planks/aged/aged1"),
+        ("lashing", "game:item/resource/rope"),
+    ];
+
+    // The strips of the block's own west post deck, covering the cell around the post.
+    private static ((double X, double Y, double Z) From, (double X, double Y, double Z) To)[] PostDeckStrips()
+        => [.. SidingWallBlock.AddOpenPartBoxes([], "cornerin", "west", "oak", null)
+            .Select(box => ((box.X1 * 16.0, box.Y1 * 16.0, box.Z1 * 16.0), (box.X2 * 16.0, box.Y2 * 16.0, box.Z2 * 16.0)))];
+
     // The lengths between two z over which the boxes, taken together, cover a piece from one side of its
     // width to the other. Two boxes that meet inside the width cover it between them.
     private static IEnumerable<(double Z, double Z2)> CoveredLengths(
@@ -1228,16 +1336,29 @@ public static class WallShapeGen
         }
     }
 
+    // How far the cap sits above the wall's own top, so its face lies over the slabs' and the frame's, which end at the same height.
+    private const double CapRise = 0.05;
+
+    // The deck's top finish laid over the wall's own 4/16 top, for when nothing stands on it: each finish group cut to the
+    // wall's footprint, its top face alone, so the floor reads as one surface across the wall.
+    private static IEnumerable<Element> CapGroups(params ((double X, double Y, double Z) From, (double X, double Y, double Z) To)[] footprint)
+        => DeckGroups("cap", footprint.Select(box => (box.From with { Y = 15 }, box.To with { Y = 16 })).ToArray())
+            .Where(e => e.Slot == "deckfront" && !e.Name.Contains("-rim"))
+            .Select(e => e with { Faces = ["up"], Offset = (0, CapRise, 0) });
+
     // A wall's or corner's own pieces, then its deck's: the deck in its box, and each of its ledges.
     private static Element[] WithDeck(Element[] elements, ((double X, double Y, double Z) From, (double X, double Y, double Z) To) deck)
         => [.. elements, .. DeckGroups("deck", deck), .. DeckGroups("ledge", Ledge(elements)), .. RimLedges(elements)];
 
     public static JObject Generate(string layout) => layout switch
     {
-        "wall" => Emit(WithDeck([.. WallElements, .. RimPieces(WallElements)], ((4, 12, 0), (16, 16, 16))), WallTextures),
+        "wall" => Emit([.. WithDeck([.. WallElements, .. RimPieces(WallElements)], ((4, 12, 0), (16, 16, 16))), .. CapGroups(((0, 15, 0), (4, 16, 16)))], WallTextures),
         "floor" => Emit(FloorShape, FloorTextures),
-        "cornerout" => Emit(WithDeck([.. CornerOutElements, .. CornerRimPieces(CornerOutElements)], ((4, 12, 4), (16, 16, 16))), CornerOutTextures),
+        "cornerout" => Emit(
+            [.. WithDeck([.. CornerOutElements, .. CornerRimPieces(CornerOutElements)], ((4, 12, 4), (16, 16, 16))),
+             .. CapGroups(((0, 15, 0), (4, 16, 16)), ((4, 15, 0), (16, 16, 4)))], CornerOutTextures),
         "diagonal" => Rounded(Emit([.. DiagonalElements, .. DeckGroups("deck", DiagonalDeckStrips())], DiagonalTextures)),
+        "cornerin" => Emit([.. CornerInElements, .. DeckGroups("deck", PostDeckStrips()), .. CapGroups(((0, 15, 0), (4, 16, 4)))], CornerInTextures),
         _ => throw new KeyNotFoundException(layout),
     };
 
@@ -1348,8 +1469,10 @@ public static class WallShapeGen
         (double, double) Span(char axis) =>
             element.RunAxis == axis ? (Lo(axis), Hi(axis)) : (0.0, Hi(axis) - Lo(axis));
 
-        var (u0, u1) = Span(uAxis);
-        var (v0, v1) = positional ? (16 - ty, 16 - fy) : Span(vAxis);
+        // A turned face lays its rect a quarter round (UvLayout), so u spans the axis v would have, and v the axis u would.
+        bool rotated = element.RotatedFaces?.Contains(face) ?? false;
+        var (u0, u1) = Span(rotated ? vAxis : uAxis);
+        var (v0, v1) = positional ? (16 - ty, 16 - fy) : Span(rotated ? uAxis : vAxis);
 
         if (element.ClippedFrom is { } source)
             (u0, v0, u1, v1) = ClippedUv(source, element, face);
@@ -1361,7 +1484,7 @@ public static class WallShapeGen
         };
         // A face rotation turns the texture the opposite way to a texture's own rotation, so 270 on a side
         // face matches vanilla's upright planks (rotation 90), seam for seam. Floors keep 90.
-        if (element.RotatedFaces?.Contains(face) ?? false) result["rotation"] = face is "up" or "down" ? 90 : 270;
+        if (rotated) result["rotation"] = face is "up" or "down" ? 90 : 270;
         return result;
     }
 
@@ -1387,8 +1510,7 @@ public static class WallShapeGen
     };
 
     // The part of the source face's uv rect the clipped box covers, so the clip samples the texels the
-    // source would have drawn there. A turned face that is not square spreads its rect unevenly over
-    // the face, so the part is taken in proportion, not texel for voxel.
+    // source would have drawn there, in proportion to the source's rect.
     private static (double, double, double, double) ClippedUv(Element source, Element clipped, string face)
     {
         var sourceUv = EmitFace(source, face)["uv"]!.Select(v => (double)v!).ToArray();

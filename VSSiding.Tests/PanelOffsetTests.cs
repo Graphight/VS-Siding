@@ -21,6 +21,13 @@ public class PanelOffsetTests
         Assert.Equal((0.25, 0.25), SidingModSystem.PanelOffset(FullCube, new[] { "north", "west" }));
     }
 
+    // A south post stands in the south-west corner, so furniture shifts north and east off it.
+    [Fact]
+    public void APostGuestShiftsDiagonallyAwayFromItsTwoCornerFaces()
+    {
+        Assert.Equal((0.25, -0.25), SidingModSystem.PanelOffset(FullCube, SidingWallBlock.PostFaces("south")));
+    }
+
     [Fact]
     public void ABlockAlreadyInsetPastThePanelThicknessDoesNotShift()
     {

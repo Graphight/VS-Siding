@@ -135,6 +135,42 @@ public class SidingFloorTests
     }
 
     [Fact]
+    public void ACappedDeckAddsItsTopFinishOverTheWallAndOnlyWhileItHasOneAndIsNotGlazed()
+    {
+        string[] bare = ["deck-west-framing-left", "deck-west-framing-right", "deck-west-framing-top", "deck-west-framing-bottom"];
+        string[] Deck(string? infill, string? front, bool glazed, bool capped = false)
+            => SidingWallEntity.DeckElements("west", "oak", infill, front, null, Finishes, (false, false, false, false), default, glazed, capped: capped);
+
+        Assert.Equal(
+            new string[][]
+            {
+                ["deck-west-front-hboards", .. bare, "cap-west-front-hboards"],
+                ["deck-west-front-hboards", .. bare],
+                bare,
+                bare,
+                Deck("glass", "planks", glazed: true),
+            },
+            new[]
+            {
+                Deck(null, "planks", glazed: false, capped: true),
+                Deck(null, "planks", glazed: false),
+                Deck(null, null, glazed: false, capped: true),
+                Deck(null, null, glazed: false),
+                Deck("glass", "planks", glazed: true, capped: true),
+            });
+    }
+
+    [Theory]
+    [InlineData("wall", "planks", true, true)]
+    [InlineData("cornerout", "planks", true, true)]
+    [InlineData("cornerin", "planks", true, true)]
+    [InlineData("diagonal", "planks", true, false)]
+    [InlineData("wall", null, true, false)]
+    [InlineData("wall", "planks", false, false)]
+    public void ADeckCapsItsWallOnlyWithATopFinishAndNothingAbove(string layout, string? deckFront, bool freeAbove, bool expected)
+        => Assert.Equal(expected, SidingWallEntity.Capped(layout, deckFront, freeAbove));
+
+    [Fact]
     public void AJoinedRimDropsAndTheInfillCarriesAcross()
     {
         Assert.Equal(
@@ -182,7 +218,7 @@ public class SidingFloorTests
     public void ADeckReachesTheEdgesItsWallDoesNotClaim()
     {
         Assert.Equal(
-            [false, true, true, true, false, true, false, false, true, true],
+            [false, true, true, true, false, true, false, false, true, true, true, true, true, true],
             new[]
             {
                 SidingFloorBlock.DeckReaches("wall", "west", BlockFacing.EAST),
@@ -195,6 +231,10 @@ public class SidingFloorTests
                 SidingFloorBlock.DeckReaches("diagonal", "west", BlockFacing.SOUTH),
                 SidingFloorBlock.DeckReaches("diagonal", "west", BlockFacing.WEST),
                 SidingFloorBlock.DeckReaches("diagonal", "west", BlockFacing.NORTH),
+                SidingFloorBlock.DeckReaches("cornerin", "west", BlockFacing.EAST),
+                SidingFloorBlock.DeckReaches("cornerin", "west", BlockFacing.SOUTH),
+                SidingFloorBlock.DeckReaches("cornerin", "west", BlockFacing.WEST),
+                SidingFloorBlock.DeckReaches("cornerin", "west", BlockFacing.NORTH),
             });
     }
 

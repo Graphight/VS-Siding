@@ -40,7 +40,8 @@ public class SidingWallTexSource : ITexPositionSource
                 textureCode, entity.Framing, entity.Infill, entity.Front, entity.SecondFront, entity.Back,
                 framings, infills, finishes, entity.FrontStyle, entity.SecondFrontStyle, entity.BackStyle, entity.Deck,
                 entity.DeckInfill, entity.DeckFront, entity.DeckBack, entity.DeckFrontStyle, entity.DeckBackStyle,
-                blockTexture: BlockTexture(capi));
+                blockTexture: BlockTexture(capi), secondBack: entity.SecondBack, secondBackStyle: entity.SecondBackStyle,
+                post: entity.Block?.Variant["layout"] == "cornerin");
             return AtlasPosition(capi, texture, alternate);
         }
     }
@@ -118,7 +119,8 @@ public class SidingWallTexSource : ITexPositionSource
         string? frontStyle = null, string? secondFrontStyle = null, string? backStyle = null, string? deck = null,
         string? deckInfill = null, string? deckFront = null, string? deckBack = null,
         string? deckFrontStyle = null, string? deckBackStyle = null,
-        System.Func<AssetLocation, CompositeTexture?>? blockTexture = null)
+        System.Func<AssetLocation, CompositeTexture?>? blockTexture = null,
+        string? secondBack = null, string? secondBackStyle = null, bool post = false)
     {
         if (slotCode == "lashing") return new CompositeTexture(new AssetLocation(LashingTexture));
 
@@ -134,7 +136,9 @@ public class SidingWallTexSource : ITexPositionSource
             // style falls back the same way.
             "front" => (front, finishes, "front", frontStyle),
             "secondfront" => (secondFront, finishes, "front", secondFrontStyle),
-            "back" => (back, finishes, "back", backStyle),
+            // A post's four faces all take the front's groups (decision 0082).
+            "back" => (back, finishes, post ? "front" : "back", backStyle),
+            "secondback" => (secondBack, finishes, "front", secondBackStyle),
             _ => (null, finishes, slotCode, null),
         };
         if (key == null) return null;

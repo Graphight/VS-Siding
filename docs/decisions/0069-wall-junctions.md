@@ -119,4 +119,4 @@ A click on the deck's boxes is the deck's, so it still falls through to placing.
 - A `cornerout` takes no step, so a stair cannot share the cell at a junction.
 - Atlas scenarios cover the carried layers and deck, per-face retention, the held press, the sneak press, the deck click and both refusals. A T-junction on a filled, finished outer wall was played in creative on 2026-10-11 with `/sidingroom` on both sides, before the fresh-press change. The crossing's four rooms have no `/sidingroom` check on record.
 - The crossing screenshot for the mod page is not yet taken.
-- What did not ship lives in the `inside-corner-post` proposal: the inside-corner post, and the shapes that wait on the players' answers.
+- What did not ship went on to decisions 0082–0085: the inside-corner post, facing fronts, a floor decking a wall and the decked wall's top.

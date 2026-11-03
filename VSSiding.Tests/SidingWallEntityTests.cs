@@ -95,6 +95,29 @@ public class SidingWallEntityTests
                 .Where(SidingWallEntity.IsInfillElement).ToArray());
     }
 
+    [Fact]
+    public void ABareFrontFacingAnotherFrontDrawsItsInfillWhileTheWallHasOne()
+    {
+        Assert.Equal(
+            new string[][] {
+                new[] { "infill-front", "infill" },
+                new[] { "infill" },
+                System.Array.Empty<string>(),
+                new[] { "infill" },
+                new[] { "infill-front", "infill-secondfront", "infill" } },
+            new string[][] {
+                Elements("wall", "wattle", null, null, (true, false)),
+                Elements("wall", "wattle", "daub", null, (true, false)),
+                Elements("wall", null, null, null, (true, false)),
+                Elements("wall", "wattle", null, null, (false, false)),
+                Elements("cornerout", "wattle", null, null, (true, true)) });
+    }
+
+    private static string[] Elements(string layout, string? infill, string? front, string? secondFront, (bool front, bool second) closed)
+        => SidingWallEntity.SelectiveElements(layout, "oak", infill, front, secondFront, null, Dict("""{ "daub": { "Elements": { "front": "front" } } }"""),
+            (false, false, false, false), glazed: false, closed: closed)
+            .Where(name => name is "infill-front" or "infill-secondfront" or "infill").ToArray();
+
     // Glazing splits the mesh in two by this predicate, so a name landing on the wrong side
     // renders the frame see-through or the glass solid - neither of which throws.
     [Fact]
@@ -224,6 +247,29 @@ public class SidingWallEntityTests
             ["framing", "framing-top", "framing-bottom", "infill"],
             SidingWallEntity.SelectiveElements(
                 "cornerout", "oak", "wattle", null, null, null, NoElementFinishes, (false, false, false, false), glazed: false));
+    }
+
+    // An inside corner's post is a framing core and a layer on each of its four faces, whatever its joins: a face's
+    // finish, or the framing while it is bare, each with the mitre piece it meets the next face with.
+    [Fact]
+    public void ACornerinDrawsItsFramingAndALayerOnEachOfItsFourFaces()
+    {
+        Assert.Equal(
+            new string[][]
+            {
+                ["framing", "framing-front", "framing-front-mitre", "framing-secondfront", "framing-secondfront-mitre",
+                    "framing-back", "framing-back-mitre", "framing-secondback", "framing-secondback-mitre"],
+                ["framing", "front", "front-mitre", "framing-secondfront", "framing-secondfront-mitre",
+                    "back-brick", "back-brick-mitre", "secondback", "secondback-mitre"],
+            },
+            new string[][]
+            {
+                SidingWallEntity.SelectiveElements(
+                    "cornerin", "oak", null, null, null, null, NoElementFinishes, (true, true, true, true), glazed: false, frame: "poles"),
+                SidingWallEntity.SelectiveElements(
+                    "cornerin", "oak", null, "daub", null, "daub", NoElementFinishes, (false, false, false, false), glazed: false,
+                    styles: (null, null, "brick"), secondBack: "daub"),
+            });
     }
 
     // Each end post drops on its own join: left is leg 2's, right is leg 1's, and the finish rims follow the legs.
@@ -419,7 +465,7 @@ public class SidingWallEntityTests
             {
                 ["ledge"], ["ledge"], [],
                 ["ledgetop"], ["ledgetop", "ledgetopleft"], ["ledgetop", "ledgetopright"], ["ledgetop", "ledgetopleft", "ledgetopright"],
-                ["ledgetop"], [], [],
+                ["ledgetop"], [], [], [], [],
             },
             new[]
             {
@@ -433,6 +479,8 @@ public class SidingWallEntityTests
                 SidingWallEntity.Ledges("cornerout", roomSideBare: false, glazed: true, (true, false, false, false)),
                 SidingWallEntity.Ledges("diagonal", roomSideBare: true, glazed: false, unjoined),
                 SidingWallEntity.Ledges("diagonal", roomSideBare: true, glazed: true, unjoined),
+                SidingWallEntity.Ledges("cornerin", roomSideBare: true, glazed: false, unjoined),
+                SidingWallEntity.Ledges("cornerin", roomSideBare: false, glazed: true, (true, false, true, true)),
             });
     }
 

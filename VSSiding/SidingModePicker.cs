@@ -27,7 +27,7 @@ public static class SidingModePicker
     // means "use the entry's Elements default" back in SidingWallBlock.
     internal static readonly (string Key, string[] Options, bool AllowNone)[] Rows =
     {
-        ("vssidingFraming", new[] { "wall", "corner", "diagonal", "floor", "face" }, false),
+        ("vssidingFraming", new[] { "wall", "corner", "diagonal", "post", "floor", "face" }, false),
         ("vssidingDeck", new[] { "deck" }, true),
         ("vssidingBoards", new[] { "weatherboard", "boards", "hboards" }, true),
         ("vssidingLogs", new[] { "shakes", "logs", "bark", "hbark" }, true),
@@ -202,12 +202,13 @@ public static class SidingModePicker
     }
 
     // The framing row never comes back null - "corner" upgrades to cornerout, "diagonal" to a
-    // diagonal, "floor" frames a floor, "face" skins a vanilla block's face, anything else a plain
+    // diagonal, "post" to a corner post, "floor" frames a floor, "face" skins a vanilla block's face, anything else a plain
     // wall - so a build-flow click always has somewhere to place.
     internal static string Layout(IPlayer player) => ChoiceOf(player, 0) switch
     {
         "corner" => "cornerout",
         "diagonal" => "diagonal",
+        "post" => "cornerin",
         "floor" => "floor",
         "face" => "face",
         _ => "wall",

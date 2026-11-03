@@ -4,7 +4,7 @@
 	entityclass: "SidingWallEntity",
 	behaviors: [{name: "HorizontalOrientable", properties: { dropBlockFace: "west" }}],
 	variantgroups: [
-		{ code: "layout", states: ["wall", "cornerout", "diagonal"] },
+		{ code: "layout", states: ["wall", "cornerout", "diagonal", "cornerin"] },
 		{ code: "side", loadFromProperties: "abstract/horizontalorientation" }
 	],
 	creativeinventory: { "general": ["*-west"], "decorative": ["*-west"] },
@@ -41,7 +41,11 @@
 		"*-diagonal-west": { base: "block/wall/diagonal", selectiveElements: ["front", "framing-left", "framing-right", "framing-top", "framing-bottom", "infill", "back"], rotateY: 0 },
 		"*-diagonal-south": { base: "block/wall/diagonal", selectiveElements: ["front", "framing-left", "framing-right", "framing-top", "framing-bottom", "infill", "back"], rotateY: 90 },
 		"*-diagonal-east": { base: "block/wall/diagonal", selectiveElements: ["front", "framing-left", "framing-right", "framing-top", "framing-bottom", "infill", "back"], rotateY: 180 },
-		"*-diagonal-north": { base: "block/wall/diagonal", selectiveElements: ["front", "framing-left", "framing-right", "framing-top", "framing-bottom", "infill", "back"], rotateY: 270 }
+		"*-diagonal-north": { base: "block/wall/diagonal", selectiveElements: ["front", "framing-left", "framing-right", "framing-top", "framing-bottom", "infill", "back"], rotateY: 270 },
+		"*-cornerin-west": { base: "block/wall/cornerin", selectiveElements: ["framing", "framing-front", "framing-front-mitre", "framing-secondfront", "framing-secondfront-mitre", "framing-back", "framing-back-mitre", "framing-secondback", "framing-secondback-mitre"], rotateY: 0 },
+		"*-cornerin-south": { base: "block/wall/cornerin", selectiveElements: ["framing", "framing-front", "framing-front-mitre", "framing-secondfront", "framing-secondfront-mitre", "framing-back", "framing-back-mitre", "framing-secondback", "framing-secondback-mitre"], rotateY: 90 },
+		"*-cornerin-east": { base: "block/wall/cornerin", selectiveElements: ["framing", "framing-front", "framing-front-mitre", "framing-secondfront", "framing-secondfront-mitre", "framing-back", "framing-back-mitre", "framing-secondback", "framing-secondback-mitre"], rotateY: 180 },
+		"*-cornerin-north": { base: "block/wall/cornerin", selectiveElements: ["framing", "framing-front", "framing-front-mitre", "framing-secondfront", "framing-secondfront-mitre", "framing-back", "framing-back-mitre", "framing-secondback", "framing-secondback-mitre"], rotateY: 270 }
 	},
 	resistance: 1.2,
 	lightAbsorption: 0,
@@ -190,6 +194,16 @@
 				}
 			},
 			{ x1: 0.75, y1: 0, z1: 0.0, x2: 1.0, y2: 1, z2: 0.25,
+				rotateYByType: {
+					"*-west": 0,
+					"*-south": 90,
+					"*-east": 180,
+					"*-north": 270
+				}
+			}
+		],
+		"*-cornerin-*": [
+			{ x1: 0, y1: 0, z1: 0, x2: 0.25, y2: 1, z2: 0.25,
 				rotateYByType: {
 					"*-west": 0,
 					"*-south": 90,

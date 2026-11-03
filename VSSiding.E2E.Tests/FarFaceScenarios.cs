@@ -174,6 +174,33 @@ public class FarFaceScenarios : AtlasScenarioBase
             (Read(cell, "deckfront"), Read(cell, "deckback"), World.BlockAt(cell.UpCopy()).Variant["layout"]));
     }
 
+    [AtlasScenario(FreshWorld = true)]
+    public async Task Wall_Should_FinishItsHiddenFront_When_PlanksArePressedOnItsEndAgainstAFacingWall()
+    {
+        (BlockPos cell, ITestPlayer player) = await RaiseWall(back: null);
+        BlockPos facing = cell.WestCopy();
+        World.SetBlock("game:planks-aged-ud", facing.DownCopy());
+        await WallBuilder.Raise(World, player, facing, cell, "game:plank-oak", "game:clay-blue");
+
+        await WallBuilder.Press(World, player, cell, "game:plank-oak", BlockFacing.NORTH, NorthEnd);
+
+        Assert.Equal(
+            (("oak", "clay", "planks", null, (string?)null), 2, "air"),
+            (WallBuilder.Layers(World, cell), player.Player.InventoryManager.ActiveHotbarSlot.Itemstack?.StackSize ?? 0, World.BlockAt(cell.NorthCopy()).Code.Path));
+    }
+
+    [AtlasScenario(FreshWorld = true)]
+    public async Task Wall_Should_ExtendItsRun_When_PlanksArePressedOnItsEndWithNoFacingWall()
+    {
+        (BlockPos cell, ITestPlayer player) = await RaiseWall(back: null);
+
+        await WallBuilder.Press(World, player, cell, "game:plank-oak", BlockFacing.NORTH, NorthEnd);
+
+        Assert.Equal(
+            (("oak", "clay", null, null, (string?)null), "wall"),
+            (WallBuilder.Layers(World, cell), World.BlockAt(cell.NorthCopy()).Variant["layout"]));
+    }
+
     // The deck is boarded the way a player boards it, with Floor picked, and Floor stays picked.
     private async Task<(BlockPos Cell, ITestPlayer Player)> RaiseBoardedDeck()
     {

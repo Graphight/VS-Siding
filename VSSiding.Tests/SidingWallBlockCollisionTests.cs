@@ -93,6 +93,15 @@ public class SidingWallBlockCollisionTests
     }
 
     [Fact]
+    public void ACornerinWestBareFrameCollidesOnItsWholePostAndNeverOnAPlate()
+    {
+        var expected = new[] { new Cuboidf(0, 0, 0, 4f / 16, 1, 4f / 16) };
+
+        Assert.Equal(expected, SidingWallBlock.ComputeCollisionBoxes("cornerin", "west", "oak", null, false, FullBoxes), Comparer);
+        Assert.Equal(expected, SidingWallBlock.ComputeCollisionBoxes("cornerin", "west", "oak", null, true, FullBoxes), Comparer);
+    }
+
+    [Fact]
     public void DiagonalWestPostBoxesAreUnrotated()
     {
         var expected = new[]
@@ -200,6 +209,19 @@ public class SidingWallBlockCollisionTests
             .ToArray();
 
         Assert.Equal(expected, SidingWallBlock.AddOpenPartBoxes(FullBoxes, "diagonal", "west", "oak", null), Comparer);
+    }
+
+    [Fact]
+    public void CornerinWestDeckBoxesAreTwoStripsAroundThePost()
+    {
+        var expected = new[]
+        {
+            FullBoxes[0],
+            new Cuboidf(4f / 16, 12f / 16, 0, 1, 1, 1),
+            new Cuboidf(0, 12f / 16, 4f / 16, 4f / 16, 1, 1),
+        };
+
+        Assert.Equal(expected, SidingWallBlock.AddOpenPartBoxes(FullBoxes, "cornerin", "west", "oak", null), Comparer);
     }
 
     [Fact]

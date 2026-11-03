@@ -1310,7 +1310,7 @@ public class SidingModSystem : ModSystem
                 {
                     var drops = SidingWallBlock.ComputeDrops(
                         guest.Framing, guest.Infill, guest.Front, guest.SecondFront, guest.Back, guest.Deck,
-                        guestWall.Attributes["Framings"], guestWall.Attributes["Infills"], guestWall.Attributes["Finishes"], guest.Step);
+                        guestWall.Attributes["Framings"], guestWall.Attributes["Infills"], guestWall.Attributes["Finishes"], guest.Step, post: guestWall.Variant["layout"] == "cornerin", secondBack: guest.SecondBack);
                     foreach (var stack in guestWall.ResolveDrops(world, drops, 1f)) world.SpawnItemEntity(stack, pos);
                 }
                 GuestWalls.Set(world, __instance, pos, null);
@@ -1343,7 +1343,7 @@ public class SidingModSystem : ModSystem
     // TryHost takes that inner-face click too, but only with no saw in the off hand.
     internal static bool ClickedIsReplacableBy(Block clicked, Block placing, BlockSelection blockSel)
         => (clicked is not SidingWallBlock
-                || SidingWallBlock.ResolveFinishFace(clicked.Variant["layout"], clicked.Variant["side"], blockSel.Face) == "back")
+                || SidingWallBlock.HostsClick(clicked.Variant["layout"], clicked.Variant["side"], blockSel.Face))
             && clicked.IsReplacableBy(placing);
 
     internal static IEnumerable<CodeInstruction> BlockBuildTranspiler(IEnumerable<CodeInstruction> instructions)
@@ -1535,7 +1535,8 @@ public class SidingModSystem : ModSystem
         if (guest?.Block is not SidingWallBlock wall) return (0, 0);
 
         if (FaceShiftByBlock![ShiftSource(api.World.BlockAccessor, pos, block).BlockId] is not { } shifts) return (0, 0);
-        var claimed = HorizontalFaces.Where(face => SidingWallBlock.ClaimsFace(wall.Variant["layout"], wall.Variant["side"], face));
+        string layout = wall.Variant["layout"], side = wall.Variant["side"];
+        IEnumerable<string> claimed = layout == "cornerin" ? SidingWallBlock.PostFaces(side) : HorizontalFaces.Where(face => SidingWallBlock.ClaimsFace(layout, side, face));
         return Combine(claimed, face => shifts[HorizontalFaceIndex[face]]);
     }
 

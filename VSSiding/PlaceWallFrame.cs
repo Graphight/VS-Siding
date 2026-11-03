@@ -1,4 +1,5 @@
 using System.Linq;
+using Newtonsoft.Json.Linq;
 using Vintagestory.API.Common;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
@@ -64,12 +65,14 @@ public class PlaceWallFrame : CollectibleBehavior
             && !hitWall.IsDeckHit(world.BlockAccessor, blockSel, hitEntity)
             && hitWall.TryUpgradeLayout(world, byPlayer, blockSel, hitEntity, heldCode)) return;
 
+        bool post = layout == "cornerin";
         bool withDeck = layout != "floor" && SidingModePicker.Deck(byPlayer);
 
-        var consumes = wallBlock.Attributes["Framings"][framingKey]["Consumes"];
-        int times = withDeck ? 2 : 1;
+        int frame = SidingWallBlock.ConsumeQuantity(wallBlock.Attributes["Framings"][framingKey]["Consumes"]);
+        // A post's frame costs a quarter of a wall's; a deck costs a full frame on either.
+        JsonObject Cost(bool deck) => new(new JObject { ["quantity"] = (post ? SidingWallBlock.PostQuarter(frame) : frame) + (deck ? frame : 0) });
         bool isCreative = byPlayer.WorldData.CurrentGameMode == EnumGameMode.Creative;
-        if (!SidingWallBlock.TryAffordOrError(byPlayer, isCreative, slot.Itemstack.StackSize, consumes, times)) return;
+        if (!SidingWallBlock.TryAffordOrError(byPlayer, isCreative, slot.Itemstack.StackSize, Cost(withDeck))) return;
         var placeholder = world.GetBlock(new AssetLocation("vssiding", layout == "floor" ? "floor" : $"wall-{layout}-west"));
         if (placeholder == null) return;
 
@@ -80,7 +83,7 @@ public class PlaceWallFrame : CollectibleBehavior
             // Stacking a floor 12/16 above another is never wanted, so a click on a floor's top
             // extends its run instead, the way a rope ladder extends down: over water, a floor's
             // edge is only reachable by crouching out past it and looking back.
-            BlockPos? end = SidingFloorBlock.RunEndFor(world, byPlayer, targetPos, placeholder);
+            BlockPos? end = SidingFloorBlock.RunEndFor(world, byPlayer, targetPos, placeholder, heldCode);
             if (end == null) return;
             targetPos = end;
             didOffset = true;
@@ -93,12 +96,29 @@ public class PlaceWallFrame : CollectibleBehavior
                 targetPos = targetPos.AddCopy(blockSel.Face);
             }
         }
+        // A floor laid up to a wall decks that wall; a click on the wall itself already offset to the cell beside it.
+        if (layout == "floor" && world.BlockAccessor.GetBlock(targetPos) is SidingWallBlock deckWall
+            && world.BlockAccessor.GetBlockEntity<SidingWallEntity>(targetPos) is { } deckEntity
+            && deckWall.TryAddDeck(world, byPlayer, targetPos, deckEntity, slot, heldCode, isCreative))
+            return;
         BlockSelection placeSel = blockSel.Clone();
         placeSel.Position = targetPos;
         placeSel.DidOffset = didOffset;
 
         string failureCode = "";
-        bool placed = placeholder.TryPlaceBlock(world, byPlayer, new ItemStack(placeholder), placeSel, ref failureCode);
+        bool placed;
+        if (post)
+        {
+            // HorizontalOrientable would orient the post to the player; its corner is the click's instead.
+            Vec3d inCell = blockSel.HitPosition.AddCopy(blockSel.Position.X - targetPos.X, blockSel.Position.Y - targetPos.Y, blockSel.Position.Z - targetPos.Z);
+            var postBlock = world.GetBlock(new AssetLocation("vssiding", $"wall-cornerin-{PostSide(inCell.X, inCell.Z)}"));
+            placed = postBlock != null && postBlock.CanPlaceBlock(world, byPlayer, placeSel, ref failureCode);
+            if (placed) postBlock!.DoPlaceBlock(world, byPlayer, placeSel, new ItemStack(postBlock));
+        }
+        else
+        {
+            placed = placeholder.TryPlaceBlock(world, byPlayer, new ItemStack(placeholder), placeSel, ref failureCode);
+        }
         if (!placed) return;
 
         if (world.BlockAccessor.GetBlockEntity<SidingFloorEntity>(targetPos) is { } floor)
@@ -114,17 +134,24 @@ public class PlaceWallFrame : CollectibleBehavior
             entity.Framing = framingKey;
             // Vanilla's placement check ran before the entity existed, so it only saw the panel.
             if (withDeck && world.BlockAccessor.GetBlock(targetPos) is SidingWallBlock placedWall && placedWall.DeckOccupied(world, targetPos))
-            {
                 withDeck = false;
-                times = 1;
-            }
             if (withDeck) entity.Deck = framingKey;
             entity.MarkDirty(true);
             SidingWallBlock.MarkNeighboursDirty(world, targetPos);
         }
 
-        SidingWallBlock.ConsumeHeld(slot, consumes, isCreative, times);
+        SidingWallBlock.ConsumeHeld(slot, Cost(withDeck), isCreative);
     }
+
+    // The wall variant whose post corner (its side face plus the face counter-clockwise from it) is the cell
+    // corner a click at x, z lands nearest; west and north are the low x and z.
+    internal static string PostSide(double x, double z) => (x < 0.5, z < 0.5) switch
+    {
+        (true, true) => "west",
+        (true, false) => "south",
+        (false, false) => "east",
+        (false, true) => "north",
+    };
 
     // Face mode puts a plank's vanilla decor block on the clicked face of any solid block (decision 0077).
     // A face finish already there is swapped: the same wood only turns to the picked boards, for free, and

@@ -208,9 +208,30 @@ public class SidingWallBlockBuildFlowTests
     [InlineData("diagonal", "west", "up", null)]
     [InlineData("diagonal", "north", "east", "front")]
     [InlineData("diagonal", "north", "west", "back")]
+    [InlineData("cornerin", "west", "east", "front")]
+    [InlineData("cornerin", "west", "south", "secondfront")]
+    [InlineData("cornerin", "west", "west", "back")]
+    [InlineData("cornerin", "west", "north", "secondback")]
+    [InlineData("cornerin", "west", "up", null)]
+    [InlineData("cornerin", "north", "south", "front")]
+    [InlineData("cornerin", "north", "west", "secondfront")]
     public void ResolveFinishFaceMapsClickedFaceToLayer(string layout, string side, string clicked, string? expected)
     {
         Assert.Equal(expected, SidingWallBlock.ResolveFinishFace(layout, side, BlockFacing.FromCode(clicked)));
+    }
+
+    [Theory]
+    [InlineData("wall", "west", "east", true)]
+    [InlineData("wall", "west", "west", false)]
+    [InlineData("cornerout", "west", "north", false)]
+    [InlineData("cornerin", "west", "east", true)]
+    [InlineData("cornerin", "west", "south", true)]
+    [InlineData("cornerin", "west", "west", false)]
+    [InlineData("cornerin", "west", "north", false)]
+    [InlineData("cornerin", "west", "up", false)]
+    public void HostsClickTakesAWallsBackOrEitherOfAPostsFaces(string layout, string side, string clicked, bool expected)
+    {
+        Assert.Equal(expected, SidingWallBlock.HostsClick(layout, side, BlockFacing.FromCode(clicked)));
     }
 
     // Every wall is one leg of two possible corners, and the click picks which by which end of

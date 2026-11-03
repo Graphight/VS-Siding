@@ -21,6 +21,7 @@ public class WallShapeGenTests
     [InlineData("wall")]
     [InlineData("cornerout")]
     [InlineData("diagonal")]
+    [InlineData("cornerin")]
     [InlineData("floor")]
     public void GeneratedShapeMatchesTheCommittedOne(string layout)
     {
@@ -145,7 +146,8 @@ public class WallShapeGenTests
             // A turned element's plan is measured after the turn (TheDiagonalRunsCornerToCornerWithItsFrontToTheNorthWest).
             offenders.AddRange(
                 from v in element["rotationY"] == null ? lo.Concat(hi) : [lo[1], hi[1]]
-                where v < 0 || v > 16
+                // A cap stands a hair above the block's top so its face wins over the slabs' and the frame's at the same height.
+                where v < 0 || v > (name.StartsWith("cap-") && v == hi[1] ? 16.05 : 16)
                 select $"{layout} '{name}' leaves the block: {v}");
         }
 
@@ -460,6 +462,7 @@ public class WallShapeGenTests
     [InlineData("wall")]
     [InlineData("cornerout")]
     [InlineData("diagonal")]
+    [InlineData("cornerin")]
     public void EverySidesDeckGroupsLieInsideItsDeckBox(string layout)
     {
         var elements = WallShapeGen.Generate(layout)["elements"]!.Cast<JObject>().ToArray();
@@ -481,6 +484,41 @@ public class WallShapeGenTests
         }
 
         Assert.Equal(expected, actual);
+    }
+
+    // The cap is the deck's top finish over the wall's own 4/16 top, in each side's footprint: top faces alone, on the
+    // deck's front texture, standing a hair above the wall's top.
+    [Theory]
+    [InlineData("wall")]
+    [InlineData("cornerout")]
+    [InlineData("cornerin")]
+    public void EverySidesCapLiesOverTheWallsTopAndDrawsOnlyItsTopFace(string layout)
+    {
+        ((double X, double Y, double Z) From, (double X, double Y, double Z) To)[] footprint = layout switch
+        {
+            "wall" => [((0, 15, 0), (4, 16, 16))],
+            "cornerout" => [((0, 15, 0), (4, 16, 16)), ((4, 15, 0), (16, 16, 4))],
+            _ => [((0, 15, 0), (4, 16, 4))],
+        };
+        var elements = WallShapeGen.Generate(layout)["elements"]!.Cast<JObject>().ToArray();
+        var offenders = new List<string>();
+        foreach (string side in Sides)
+        {
+            int rotation = side switch { "west" => 0, "south" => 90, "east" => 180, _ => 270 };
+            var regions = footprint.Select(box => WallShapeGen.DeckRegion(box.From, box.To, rotation)).ToArray();
+            var caps = elements.Where(e => ((string)e["name"]!).StartsWith($"cap-{side}-")).ToArray();
+            if (caps.Length == 0) offenders.Add($"{layout} {side} has no cap");
+            foreach (var cap in caps)
+            {
+                string name = (string)cap["name"]!;
+                if (!regions.Any(r => Inside(cap, [r.X, 15, r.Z, r.X2, 16.05, r.Z2]))) offenders.Add($"{layout} '{name}' leaves the wall's top");
+                string faces = string.Join(", ", ((JObject)cap["faces"]!).Properties().Select(p => $"{p.Name} {p.Value["texture"]}"));
+                if (faces != "up #deckfront") offenders.Add($"{layout} '{name}' draws {faces}");
+                if (Math.Abs((double)cap["to"]![1]! - 16.05) > 1e-3) offenders.Add($"{layout} '{name}' tops out at {cap["to"]![1]}");
+            }
+        }
+
+        Assert.Empty(offenders);
     }
 
     private static bool Inside(JObject element, double[] box)
@@ -639,6 +677,36 @@ public class WallShapeGenTests
 
                     if (Math.Abs(uv[0] - there[0]) > 0.001 || Math.Abs(uv[1] - there[1]) > 0.001)
                         offenders.Add($"{rim["name"]} {face} at {string.Join(",", xyz)}: {string.Join(",", uv)}, the uncut finish has {string.Join(",", there)}");
+                }
+            }
+        }
+
+        Assert.Equal([], offenders);
+    }
+
+    // A face samples one texel per voxel along both its edges however it is turned, so no finish stretches
+    // on a face narrower than the block, read from the game's tables and not from the generator's reading of them.
+    [Theory]
+    [InlineData("wall")]
+    [InlineData("cornerout")]
+    [InlineData("diagonal")]
+    [InlineData("cornerin")]
+    [InlineData("floor")]
+    public void EveryFaceSamplesOneTexelPerVoxel(string layout)
+    {
+        static double Length(double[] a, double[] b) => Math.Sqrt(a.Zip(b, (p, q) => (p - q) * (p - q)).Sum());
+
+        var offenders = new List<string>();
+        foreach (var element in WallShapeGen.Generate(layout)["elements"]!.Cast<JObject>())
+        {
+            foreach (string face in ((JObject)element["faces"]!).Properties().Select(p => p.Name))
+            {
+                var corners = FaceCorners(element, face);
+                foreach (var next in new[] { corners[1], corners[3] })
+                {
+                    double voxels = Length(corners[0].Xyz, next.Xyz), texels = Length(corners[0].Uv, next.Uv);
+                    if (Math.Abs(voxels - texels) > 0.001)
+                        offenders.Add($"{element["name"]} {face}: {texels} texels over {voxels} voxels");
                 }
             }
         }

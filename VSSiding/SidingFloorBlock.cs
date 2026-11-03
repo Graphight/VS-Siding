@@ -90,7 +90,7 @@ public class SidingFloorBlock : Block
             // A framing material keeps placing: planks on a boarded top extend the run or raise a wall. Where the
             // run cannot extend, that click would do nothing, so there the planks take the underside too.
             bool placesFrame = SidingWallBlock.MatchConsumes(heldCode, Attributes["Framings"]) != null
-                && !(SidingModePicker.Layout(byPlayer) == "floor" && blockSel.Face == BlockFacing.UP && RunEndFor(world, byPlayer, blockSel.Position, this) == null);
+                && !(SidingModePicker.Layout(byPlayer) == "floor" && blockSel.Face == BlockFacing.UP && RunEndFor(world, byPlayer, blockSel.Position, this, heldCode) == null);
             string? farFace = placesFrame ? null : FinishFace(blockSel.Face.Opposite);
             if (farFace == null || (farFace == "front" ? entity.Front : entity.Back) != null)
             {
@@ -283,12 +283,15 @@ public class SidingFloorBlock : Block
         return null;
     }
 
-    // RunEnd for a player's click on the floor at `start`, walking the way the player looks.
-    internal static BlockPos? RunEndFor(IWorldAccessor world, IPlayer byPlayer, BlockPos start, Block placeholder)
+    // RunEnd for a player's click on the floor at `start`, walking the way the player looks. A wall that
+    // the held framing could deck ends the run too, and that deck is what the click then builds.
+    internal static BlockPos? RunEndFor(IWorldAccessor world, IPlayer byPlayer, BlockPos start, Block placeholder, AssetLocation heldCode)
     {
         var accessor = world.BlockAccessor;
         return RunEnd(
-            pos => accessor.GetBlock(pos) is SidingFloorBlock, pos => accessor.GetBlock(pos).IsReplacableBy(placeholder),
+            pos => accessor.GetBlock(pos) is SidingFloorBlock,
+            pos => accessor.GetBlock(pos).IsReplacableBy(placeholder)
+                || (accessor.GetBlock(pos) is SidingWallBlock wall && accessor.GetBlockEntity<SidingWallEntity>(pos) is { } entity && wall.CanTakeDeck(world, pos, entity, heldCode)),
             start, Ahead(byPlayer.Entity.SidedPos.GetViewVector()));
     }
 
