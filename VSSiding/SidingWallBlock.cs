@@ -703,10 +703,11 @@ public class SidingWallBlock : Block
             }
 
             // A finish clicked on a finished face goes on the face behind it while that one is bare (decision 0075),
-            // except a framing material that would turn this wall into a corner (PlaceWallFrame).
+            // except a framing material that would turn this wall into a corner (PlaceWallFrame), and on a post, whose
+            // every face is clicked on its own and whose backs an inside corner hides.
             bool turnsToCorner = Variant["layout"] == "wall" && SidingModePicker.Layout(byPlayer) == "cornerout"
                 && MatchFraming(heldCode, true, Attributes["Framings"], Attributes["Infills"]) != null;
-            string? farFace = turnsToCorner ? null : ResolveFinishFace(Variant["layout"], side, blockSel.Face.Opposite);
+            string? farFace = turnsToCorner || post ? null : ResolveFinishFace(Variant["layout"], side, blockSel.Face.Opposite);
             if (farFace == null || FinishOn(entity, farFace) != null)
             {
                 if (heldPlaces) return base.OnBlockInteractStart(world, byPlayer, blockSel);

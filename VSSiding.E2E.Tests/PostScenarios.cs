@@ -127,10 +127,6 @@ public class PostScenarios : AtlasScenarioBase
         }
 
         // A post saying "south" has its fronts on the north and east faces and its backs on the south and west ones.
-        int heldAfterFront = await Finish(BlockFacing.NORTH, "hboards");
-        int heldAfterSecondFront = await Finish(BlockFacing.EAST, "boards");
-        int heldAfterBack = await Finish(BlockFacing.SOUTH, "boards");
-        int heldAfterSecondBack = await Finish(BlockFacing.WEST, "hboards");
         (string?, string?, string?, string?, string?) Faces(string suffix = "")
         {
             var tree = new TreeAttribute();
@@ -138,6 +134,13 @@ public class PostScenarios : AtlasScenarioBase
             string? Read(string key) => tree.GetString(key + suffix) is { Length: > 0 } value ? value : null;
             return (Read("framing"), Read("front"), Read("secondfront"), Read("back"), Read("secondback"));
         }
+        int heldAfterFront = await Finish(BlockFacing.NORTH, "hboards");
+        // A finish clicked again on a finished face stays off the back behind it, which an inside corner hides.
+        await Finish(BlockFacing.NORTH, "hboards");
+        var afterRepeat = Faces();
+        int heldAfterSecondFront = await Finish(BlockFacing.EAST, "boards");
+        int heldAfterBack = await Finish(BlockFacing.SOUTH, "boards");
+        int heldAfterSecondBack = await Finish(BlockFacing.WEST, "hboards");
         var styles = Faces("style");
         var built = Faces();
 
@@ -156,7 +159,8 @@ public class PostScenarios : AtlasScenarioBase
 
         Assert.Equal(
             (
-                (3, 3, 3, 3), ((string?)null, "hboards", "boards", "boards", "hboards"),
+                (3, 3, 3, 3), ("oak", "planks", (string?)null, (string?)null, (string?)null),
+                ((string?)null, "hboards", "boards", "boards", "hboards"),
                 ("oak", "planks", "planks", "planks", "planks"),
                 (
                     ("oak", (string?)null, "planks", "planks", "planks"),
@@ -166,7 +170,7 @@ public class PostScenarios : AtlasScenarioBase
                 ),
                 "air", 5
             ),
-            ((heldAfterFront, heldAfterSecondFront, heldAfterBack, heldAfterSecondBack), styles, built, peeled, World.BlockAt(cell).Code.Path, refunded));
+            ((heldAfterFront, heldAfterSecondFront, heldAfterBack, heldAfterSecondBack), afterRepeat, styles, built, peeled, World.BlockAt(cell).Code.Path, refunded));
     }
 
     // A post placed as a player places one: Post picked, planks pressed on the block below in the cell's south-west quarter,

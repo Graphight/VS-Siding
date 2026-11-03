@@ -40,6 +40,7 @@ A post takes no infill, so a framed post goes straight to finishes.
 A bare face draws in the framing, so a bare post is the whole 4/16 timber, and a finish takes that face's outer 1/16.
 Each face's layer owns the corner at one end of its run and meets the next face round in a mitre at the other, so each face shows its own finish, or the framing, to both edges.
 A bare back against a wall is left out of the tooltip.
+A finish clicked on a post's finished face does not pass to the face behind it (decision 0075): each face is clicked on its own, and an inside corner hides the backs, where a passed finish would cost a quarter of a wall to no visible end.
 
 **No step.**
 A step click on a post places nothing and shows `build-step-post`.
