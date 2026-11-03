@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Created: 2026-11-01
-- Reflects: branch `inside-corner-post`; `blocktypes/wall.json`'s `cornerin` layout, `shapes/block/wall/cornerin.json`, `SidingWallBlock.PostQuarter`/`PostConsumes`/`PostFaces`/`HostsClick`, `PlaceWallFrame.PostSide`, `SidingModePicker`'s `post` mode, `VSSiding.Tests/WallShapeGen` (`PostDeckStrips`), `VSSiding.E2E.Tests/PostScenarios.cs`; decisions 0002, 0035, 0042, 0053, 0066, 0069, 0071; the mod page comments listed in the retired `inside-corner-post` proposal (#cmt-243545, #cmt-243968, #cmt-243661, #cmt-244456, #cmt-245074, #cmt-245199, #cmt-245197, #cmt-249019); not yet played
+- Reflects: branch `inside-corner-post`; `blocktypes/wall.json`'s `cornerin` layout, `shapes/block/wall/cornerin.json`, `SidingWallBlock.PostQuarter`/`PostConsumes`/`PostFaces`/`HostsClick`, `PlaceWallFrame.PostSide`, `SidingModePicker`'s `post` mode, `VSSiding.Tests/WallShapeGen` (`PostDeckStrips`), `VSSiding.E2E.Tests/PostScenarios.cs`; decisions 0002, 0035, 0042, 0053, 0066, 0069, 0071; the mod page comments listed in the retired `inside-corner-post` proposal (#cmt-243545, #cmt-243968, #cmt-243661, #cmt-244456, #cmt-245074, #cmt-245199, #cmt-245197, #cmt-249019); played in creative on 2026-11-02
 
 ## Summary
 A `cornerin` post is a 4/16 square post in one corner of a cell, claiming no face and sealing nothing.
@@ -63,4 +63,4 @@ The hosted block's shift is the sum of the shifts away from both faces, which is
 - `blocktypes/wall.json` grows by four blocks, and `cornerin.json` by the post, its two finish groups and the deck groups in every deck style.
 - A post takes no infill, no step and no in-place upgrade.
 - A post's deck is the full deck cost for the L of the cell, not scaled to the post.
-- Played: not yet played in game; the playtest is the last step before merge.
+- Played: in creative on 2026-11-02, finishing both faces in planks, brick and plaster and stacking posts; the playtest found vertical boards stretched on the post's narrow faces and the front's finish wrapping the outer corner, both fixed before merge.

@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Created: 2026-11-01
-- Reflects: branch `inside-corner-post`; `SidingWallBlock.TryAddDeck`/`CanTakeDeck`, `PlaceWallFrame`'s floor path, `SidingFloorBlock.RunEndFor`, `SidingFloorTests`, `VSSiding.E2E.Tests/FloorScenarios.cs`; decisions 0042, 0050, 0053; not yet played
+- Reflects: branch `inside-corner-post`; `SidingWallBlock.TryAddDeck`/`CanTakeDeck`, `PlaceWallFrame`'s floor path, `SidingFloorBlock.RunEndFor`, `SidingFloorTests`, `VSSiding.E2E.Tests/FloorScenarios.cs`; decisions 0042, 0050, 0053; played in creative on 2026-11-02
 
 ## Summary
 A Floor-mode plank click whose target is a wall's cell, or a floor run that reaches one, gives that wall a deck from the held framing.
@@ -34,4 +34,4 @@ A click on the wall itself still lays a floor in the cell beside it (decision 00
 - This extends 0050 and does not supersede it.
 - Only `RunEndFor`'s own predicate changed, so `RunEnd`'s unit rows stand; `FloorScenarios.Floor_Should_TakePlanksOnItsUnderside_When_TheWallAtTheEndOfItsRunHasADeck` covers the fallback.
 - Whether the strip that "won't fill" is in the floor or in the wall is still the player's to say.
-- Played: not yet played in game; the playtest is the last step before merge.
+- Played: in creative on 2026-11-02; the playtest raised no issue.

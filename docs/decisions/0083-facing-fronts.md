@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Created: 2026-11-01
-- Reflects: branch `inside-corner-post`; `SidingWallBlock.FrontsFaceEachOther`/`HiddenBareFrontAtEnd`, `SidingWallEntity`'s facing-front fill, `VSSiding.Tests/WallShapeGen` (`infill-front`/`infill-secondfront` groups), `SidingWallEntityTests`, `VSSiding.E2E.Tests/FarFaceScenarios.cs`; decisions 0003, 0065, 0074, 0075; not yet played
+- Reflects: branch `inside-corner-post`; `SidingWallBlock.FrontsFaceEachOther`/`HiddenBareFrontAtEnd`, `SidingWallEntity`'s facing-front fill, `VSSiding.Tests/WallShapeGen` (`infill-front`/`infill-secondfront` groups), `SidingWallEntityTests`, `VSSiding.E2E.Tests/FarFaceScenarios.cs`; decisions 0003, 0065, 0074, 0075; played in creative on 2026-11-02
 
 ## Summary
 Two walls on either side of one cell boundary put their fronts on the same plane.
@@ -49,4 +49,4 @@ Its hidden front is reached through the back once that is finished, as a finish 
 ## Consequences & open questions
 - A wall built front to front with another shows its infill in its bare front slot; a finish clicked on its end replaces the fill.
 - The reading of the report is unconfirmed until the player's screenshot arrives.
-- Played: not yet played in game; the playtest is the last step before merge.
+- Played: in creative on 2026-11-02; the playtest raised no issue.

@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Created: 2026-11-01
-- Reflects: branch `inside-corner-post`; `SidingWallEntity.Capped`, `SidingWallBlock.FreeAbove`, `VSSiding.Tests/WallShapeGen` (`cap-*` groups), `shapes/block/wall/wall.json`, `cornerout.json` and `cornerin.json`, `SidingFloorTests`, `WallShapeGenTests`; decisions 0042, 0053; not yet played
+- Reflects: branch `inside-corner-post`; `SidingWallEntity.Capped`, `SidingWallBlock.FreeAbove`, `VSSiding.Tests/WallShapeGen` (`cap-*` groups), `shapes/block/wall/wall.json`, `cornerout.json` and `cornerin.json`, `SidingFloorTests`, `WallShapeGenTests`; decisions 0042, 0053; played in creative on 2026-11-02
 
 ## Summary
 A decked wall whose cell above holds nothing draws the deck's top finish over the wall's own 4/16 top.
@@ -30,8 +30,8 @@ The entity then draws the cap.
 - **A second wall per cell** (`multiple-walls-per-cell`, parked).
 
 ## Consequences & open questions
-- Z-fighting between the cap and the slab top at distance is unchecked; the slab split is the fallback.
+- The playtest raised no z-fighting between the cap and the slab top; the slab split stays the fallback if it shows.
 - The cap stands 0.003 block into the cell above, which `FreeAbove` keeps to air or a replaceable block.
 - The diagonal and a glazed deck keep their own tops.
 - Whether the decked wall's top is what reads wrong in the stairwell is unconfirmed.
-- Played: not yet played in game; the playtest is the last step before merge.
+- Played: in creative on 2026-11-02; the playtest raised no issue.
