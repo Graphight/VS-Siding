@@ -22,6 +22,16 @@ public class SidingWallEntityTests
     """);
 
     [Fact]
+    public void BambooDrawsItsRingedPolesAndAlternatesOnOddCells()
+    {
+        var framings = Dict("""{ "bamboo": { "Elements": "bamboo" } }""");
+
+        Assert.Equal(
+            new[] { "bamboo", "bamboo2" },
+            new[] { 0, 1 }.Select(alternate => SidingWallEntity.FrameElements(framings, "bamboo", alternate)));
+    }
+
+    [Fact]
     public void AFramingNamesItsGroupsOrFallsBackToThePlainOnes()
     {
         var framings = Dict("""{ "oak": {}, "sticks": { "Elements": "poles" } }""");
