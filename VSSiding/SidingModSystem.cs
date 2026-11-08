@@ -197,7 +197,9 @@ public class SidingModSystem : ModSystem
         }
 
         // BlockOilLamp sets its own basePos instead of calling base, so its flame needs its own patch.
-        foreach (var particleBlock in new[] { typeof(Block), typeof(BlockOilLamp) })
+        // Oil Lamps Anywhere's ceiling lamp overrides it again without calling base.
+        var particleBlocks = new[] { typeof(Block), typeof(BlockOilLamp), AccessTools.TypeByName("OilLampCeilingFix.BlockCeilingLamp") };
+        foreach (var particleBlock in particleBlocks.Where(t => t != null))
         {
             try
             {
