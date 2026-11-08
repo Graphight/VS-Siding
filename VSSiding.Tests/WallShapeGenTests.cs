@@ -232,8 +232,8 @@ public class WallShapeGenTests
     }
 
     // The floor's whole layout, written out: a 4/16 panel at y 12..16, three joists running north-south.
-    // The poles* groups are left out: the committed shape and the pole invariants pin them. So are the rim
-    // pieces, which FloorCutsItsFinishesToTheGlazingFramesFootprints pins.
+    // The poles* and stems* groups are left out: the committed shape and their own invariants pin them. So are
+    // the rim pieces, which FloorCutsItsFinishesToTheGlazingFramesFootprints pins.
     [Fact]
     public void FloorLaysTheWallsLayersFlatAtTheTopOfTheCell()
     {
@@ -274,9 +274,31 @@ public class WallShapeGenTests
             .. Enumerable.Range(0, 8).Select(i => $"back-lath-boards {2 * i + 0.5},12,0 {2 * i + 1.5},12.5,16"),
         ];
         Assert.Equal(expected, WallShapeGen.Generate("floor")["elements"]!
-            .Where(e => !((string)e["name"]!).StartsWith("poles") && !((string)e["name"]!).Contains("-rim"))
+            .Where(e => !((string)e["name"]!).StartsWith("poles") && !((string)e["name"]!).StartsWith("stems") && !((string)e["name"]!).Contains("-rim"))
             .Select(e => $"{e["name"]} {string.Join(",", e["from"]!.Select(v => (double)v!))} {string.Join(",", e["to"]!.Select(v => (double)v!))}")
             .ToArray());
+    }
+
+    // The bamboo stems stay inside the frame's thickness, where the infill's slab sits and any finish covers them: x 1..3 on a
+    // wall and a diagonal (whose pieces carry the run's offset of 6), either leg's depth on a corner, y 13..15 on a floor.
+    [Theory]
+    [InlineData("wall")]
+    [InlineData("cornerout")]
+    [InlineData("diagonal")]
+    [InlineData("floor")]
+    public void EveryStemsBoxStaysInsideTheFramesThickness(string layout)
+    {
+        bool Inside(double[] lo, double[] hi, int axis, double from, double to) => lo[axis] >= from && hi[axis] <= to;
+        var boxes = WallShapeGen.Generate(layout)["elements"]!.Where(e => ((string)e["name"]!).StartsWith("stems")).Select(Box).ToList();
+
+        Assert.NotEmpty(boxes);
+        Assert.Equal([], boxes.Where(b => !(layout switch
+        {
+            "wall" => Inside(b.Lo, b.Hi, 0, 1, 3),
+            "cornerout" => Inside(b.Lo, b.Hi, 0, 1, 3) || Inside(b.Lo, b.Hi, 2, 1, 3),
+            "diagonal" => Inside(b.Lo, b.Hi, 0, 7, 9),
+            _ => Inside(b.Lo, b.Hi, 1, 13, 15),
+        })).Select(b => $"{string.Join(",", b.Lo)} to {string.Join(",", b.Hi)}"));
     }
 
     // A glazed floor's finish is its group cut to each of the frame's eight footprints on x and z, keeping
@@ -345,6 +367,11 @@ public class WallShapeGenTests
             ["floor bare frame"] = 66,
             ["floor pole frame"] = 240,
             ["floor second pole frame"] = 240,
+            // Bamboo poles, a plain frame round them: seven poles of core, two ridges and four nodes, faces shared between
+            // touching poles and against a core pruned, 240 quads; a corner's legs take six apiece, a floor its seven.
+            ["wall bamboo poles"] = 264,
+            ["cornerout bamboo poles"] = 454,
+            ["floor bamboo poles"] = 306,
             ["wall wattle"] = 30,
             ["wall wattle, mid-stack"] = 30,
             ["wall daub both faces"] = 42,
@@ -458,6 +485,10 @@ public class WallShapeGenTests
                     layout, "sticks", null, null, null, null, finishes, (false, false, false, false), false, frame: frame)
                     .Sum(n => quads[n]);
             }
+
+            actual[$"{layout} bamboo poles"] = SidingWallEntity.SelectiveElements(
+                layout, "oak", "bamboopoles", null, null, null, finishes, (false, false, false, false), false, fill: "stems")
+                .Sum(n => quads[n]);
         }
 
         var floorQuads = Quads("floor");
@@ -467,6 +498,10 @@ public class WallShapeGenTests
                 framing, null, null, null, finishes, (false, false, false, false), frame: frame)
                 .Sum(n => floorQuads[n]);
         }
+
+        actual["floor bamboo poles"] = SidingFloorEntity.SelectiveElements(
+            "oak", "bamboopoles", null, null, finishes, (false, false, false, false), fill: "stems")
+            .Sum(n => floorQuads[n]);
 
         foreach (var (state, finish, joins) in new (string, string?, (bool, bool, bool, bool))[]
         {
@@ -1195,6 +1230,23 @@ public class WallShapeGenTests
     {
         string[] together = [.. PolesOf(layout, prefix).Select(p => p.Pole), "infill", "infill-pane", "front", "secondfront", "back"];
         Assert.Equal([], SharedPlaneOffenders(layout, together));
+    }
+
+    // A bamboo pole infill is drawn with a plain or either rough frame and any finish; its ridges and nodes stand in the half
+    // voxel the rough frames' stubs and lashings share, and a floor's poles cross its joists.
+    [Theory]
+    [InlineData("wall", "framing")]
+    [InlineData("wall", "poles")]
+    [InlineData("wall", "poles2")]
+    [InlineData("cornerout", "framing")]
+    [InlineData("cornerout", "poles")]
+    [InlineData("cornerout", "poles2")]
+    [InlineData("floor", "framing")]
+    [InlineData("floor", "poles")]
+    [InlineData("floor", "poles2")]
+    public void NoFaceOfTheStemsSharesAPlaneWithItsFrameOrAFinishAndOverlaps(string layout, string prefix)
+    {
+        Assert.Equal([], SharedPlaneOffenders(layout, [.. PolesOf(layout, prefix).Select(p => p.Pole), "stems", "front", "secondfront", "back"]));
     }
 
     // A glazed wall's or floor's frame is stiles and rails that meet edge to edge. Where a stile has merged away
