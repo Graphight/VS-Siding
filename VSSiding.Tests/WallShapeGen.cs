@@ -1480,6 +1480,30 @@ public static class WallShapeGen
         .. PostLayer("secondback", 'z', 0, "north", ownsHigh: true),
     ];
 
+    // A bare post in bamboo: one fat pole filling the 4 by 4, a core and a slice in each layer's owned body, so a finished
+    // face drops its slice alone. A slice stands a quarter voxel inside its outer face and its rings reach it, stopping a
+    // tenth short of the run's ends so no ring face shares a plane with the slice's.
+    private static IEnumerable<Element> BambooFatPost(string prefix, double[] rings)
+    {
+        yield return new Element(prefix, (1, 0, 1), (3, 16, 3), "framing", UvRule.Flat);
+        foreach (var (slot, x1, z1, x2, z2, depthAxis, high) in new (string, double, double, double, double, char, bool)[]
+        {
+            ("front", 3, 1, 4, 4, 'x', true), ("secondfront", 0, 3, 3, 4, 'z', true),
+            ("back", 0, 0, 1, 3, 'x', false), ("secondback", 1, 0, 4, 1, 'z', false),
+        })
+        {
+            double inset = high ? -0.25 : 0.25;
+            var slice = new Element($"{prefix}-{slot}", (x1, 0, z1), (x2, 16, z2), "framing", UvRule.Flat);
+            yield return depthAxis == 'x'
+                ? slice with { From = high ? slice.From : slice.From with { X = x1 + inset }, To = high ? slice.To with { X = x2 + inset } : slice.To }
+                : slice with { From = high ? slice.From : slice.From with { Z = z1 + inset }, To = high ? slice.To with { Z = z2 + inset } : slice.To };
+            foreach (double ring in rings)
+                yield return depthAxis == 'x'
+                    ? new Element($"{prefix}-{slot}", (x1, ring, z1 + 0.1), (x2, ring + 0.5, z2 - 0.1), "framing", UvRule.Flat)
+                    : new Element($"{prefix}-{slot}", (x1 + 0.1, ring, z1), (x2 - 0.1, ring + 0.5, z2), "framing", UvRule.Flat);
+        }
+    }
+
     private static IEnumerable<Element> PostLayer(string slot, char depthAxis, double outer, string outwardFace, bool ownsHigh)
     {
         char runAxis = depthAxis == 'x' ? 'z' : 'x';
@@ -1617,7 +1641,7 @@ public static class WallShapeGen
             [.. WithDeck(FrontEdgeOnSecondFace([.. CornerOutElements, .. CornerRimPieces(CornerOutElements)]), ((4, 12, 4), (16, 16, 16))),
              .. CapGroups(((0, 15, 0), (4, 16, 16)), ((4, 15, 0), (16, 16, 4)))], CornerOutTextures),
         "diagonal" => Rounded(Emit([.. DiagonalElements, .. DeckGroups("deck", DiagonalDeckStrips())], DiagonalTextures)),
-        "cornerin" => Emit([.. CornerInElements, .. DeckGroups("deck", PostDeckStrips()), .. CapGroups(((0, 15, 0), (4, 16, 4)))], CornerInTextures),
+        "cornerin" => Emit([.. CornerInElements, .. BambooFatPost("bamboo", [4.25, 10.25]), .. BambooFatPost("bamboo2", [6.75, 12.25]), .. DeckGroups("deck", PostDeckStrips()), .. CapGroups(((0, 15, 0), (4, 16, 4)))], CornerInTextures),
         _ => throw new KeyNotFoundException(layout),
     };
 

@@ -406,7 +406,7 @@ public class SidingWallEntity : BlockEntity
         string[]? innerCorners = null, (bool left, bool right) glassRunsOn = default, (bool left, bool right) tees = default,
         (bool front, bool second) closed = default, string? secondBack = null, string? secondBackStyle = null, string fill = "infill")
     {
-        if (layout == "cornerin") return PostElements(framing, finishes, [(front, styles.front), (secondFront, styles.secondFront), (back, styles.back), (secondBack, secondBackStyle)]);
+        if (layout == "cornerin") return PostElements(framing, finishes, [(front, styles.front), (secondFront, styles.secondFront), (back, styles.back), (secondBack, secondBackStyle)], frame);
         var names = new List<string>();
         // A diagonal's shape has no rough frame groups, so it draws the plain ones whatever a poles
         // framing's Elements say (decision 0066); bamboo's ringed groups it does have.
@@ -504,16 +504,20 @@ public class SidingWallEntity : BlockEntity
 
     // A post's core, and on each face, front, secondfront, back and secondback, its finish's layer or, bare, the framing's,
     // with the mitre piece each layer meets the next with (decision 0082). Every face takes the front's groups.
-    internal static string[] PostElements(string? framing, JsonObject finishes, (string? key, string? style)[] faces)
+    // A bamboo post is one round pole, so a bare face has no mitre, and a finished face's mitre lies over the previous
+    // face's body, where it would float over the pole while that face is bare.
+    internal static string[] PostElements(string? framing, JsonObject finishes, (string? key, string? style)[] faces, string frame = "framing")
     {
         if (framing == null) return [];
         string[] slots = ["front", "secondfront", "back", "secondback"];
-        var names = new List<string> { "framing" };
+        bool bamboo = frame.StartsWith("bamboo");
+        string member = bamboo ? frame : "framing";
+        var names = new List<string> { member };
         foreach (var (slot, (key, style)) in slots.Zip(faces))
         {
-            string group = key == null ? $"framing-{slot}" : slot + FinishElement(finishes, key, "front", style)["front".Length..];
+            string group = key == null ? $"{member}-{slot}" : slot + FinishElement(finishes, key, "front", style)["front".Length..];
             names.Add(group);
-            names.Add(group + "-mitre");
+            if (!bamboo || (key != null && faces[(System.Array.IndexOf(slots, slot) + 3) % 4].key != null)) names.Add(group + "-mitre");
         }
         return [.. names];
     }

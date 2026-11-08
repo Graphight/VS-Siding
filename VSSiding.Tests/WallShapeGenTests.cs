@@ -301,6 +301,24 @@ public class WallShapeGenTests
         })).Select(b => $"{string.Join(",", b.Lo)} to {string.Join(",", b.Hi)}"));
     }
 
+    // A bare bamboo post's slices stay in the body their layer owns, so a finished face drops its slice and nothing else
+    // shows past it.
+    [Theory]
+    [InlineData("bamboo")]
+    [InlineData("bamboo2")]
+    public void EveryBambooPostSliceStaysInItsLayersBody(string prefix)
+    {
+        var bodies = new Dictionary<string, double[]>
+        {
+            ["front"] = [3, 1, 4, 4], ["secondfront"] = [0, 3, 3, 4], ["back"] = [0, 0, 1, 3], ["secondback"] = [1, 0, 4, 1],
+        };
+        var boxes = WallShapeGen.Generate("cornerin")["elements"]!.Where(e => ((string)e["name"]!).StartsWith(prefix + "-")).Select(e => (Name: ((string)e["name"]!)[(prefix.Length + 1)..], Box: Box(e)));
+
+        Assert.Equal(bodies.Keys.Order(), boxes.Select(b => b.Name).Distinct().Order());
+        Assert.Equal([], boxes.Where(b => b.Box.Lo[0] < bodies[b.Name][0] || b.Box.Lo[2] < bodies[b.Name][1] || b.Box.Hi[0] > bodies[b.Name][2] || b.Box.Hi[2] > bodies[b.Name][3])
+            .Select(b => $"{b.Name} {string.Join(",", b.Box.Lo)} to {string.Join(",", b.Box.Hi)}"));
+    }
+
     // A glazed floor's finish is its group cut to each of the frame's eight footprints on x and z, keeping
     // its own y: the top boards at y 15 to 16, and a batten of the daub's lath, which the north rail
     // reaches and the south rail does not.

@@ -693,6 +693,25 @@ public class SidingWallEntityTests
         Assert.Equal(["framing-top", "framing-bottom", "framing-left", "framing-right"], Elements("poles", false));
     }
 
+    // A bare bamboo face draws its slice of the pole with no mitre; a finished face keeps its mitre only where the previous
+    // face (the front's is the second back's) is finished too; a poles post draws the plain frame.
+    [Fact]
+    public void ABambooPostDrawsSlicesAndMitresOnlyOverFinishedNeighbours()
+    {
+        string[] Post(string frame, string? front, string? secondFront, string? back, string? secondBack) => SidingWallEntity.PostElements(
+            "oak", NoElementFinishes, [(front, null), (secondFront, null), (back, null), (secondBack, null)], frame);
+
+        Assert.Equal(
+            new string[][]
+            {
+                ["bamboo", "bamboo-front", "bamboo-secondfront", "bamboo-back", "bamboo-secondback"],
+                ["bamboo2", "front", "front-mitre", "secondfront", "secondfront-mitre", "bamboo2-back", "secondback"],
+                ["framing", "framing-front", "framing-front-mitre", "framing-secondfront", "framing-secondfront-mitre",
+                    "framing-back", "framing-back-mitre", "framing-secondback", "framing-secondback-mitre"],
+            },
+            new string[][] { Post("bamboo", null, null, null, null), Post("bamboo2", "daub", "daub", null, "daub"), Post("poles", null, null, null, null) });
+    }
+
     [Fact]
     public void UnsetKeySurvivesByteRoundTripAsNullNotEmptyString()
     {
