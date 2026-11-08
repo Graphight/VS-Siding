@@ -19,7 +19,7 @@ public class GuestWallsTests
                 : throw new System.NotSupportedException($"{targetMethod?.Name} is not stubbed");
     }
 
-    private static readonly IWorldAccessor World = DispatchProxy.Create<IWorldAccessor, ServerWorld>();
+    internal static readonly IWorldAccessor World =DispatchProxy.Create<IWorldAccessor, ServerWorld>();
 
     // Every field the guest store carries has to survive the trip a chunk actually makes it on:
     // Encode (ToTreeAttributes), a protobuf round trip (chunk save, or the sync packet), and

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json.Linq;
+using Vintagestory.API.Common;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Xunit;
@@ -726,6 +727,28 @@ public class SidingWallEntityTests
         reloaded.FromBytes(tree.ToBytes());
 
         Assert.False(SidingWallEntity.ReadLegacyDeck(reloaded, "oak"));
+    }
+
+    // A corner saved before its inner faces split laid one back across both legs, and loads with it on each (decision 0090).
+    [Theory]
+    [InlineData("cornerout", false, "daub", "coursed")]
+    [InlineData("cornerout", true, null, null)]
+    [InlineData("wall", false, null, null)]
+    [InlineData("cornerin", false, null, null)]
+    public void ALoadedCornerCopiesItsBackOntoItsSecondInnerFaceOnlyWhenSavedBeforeTheSplit(
+        string layout, bool savedSinceSplit, string? secondBack, string? secondBackStyle)
+    {
+        var block = new Block { Code = new AssetLocation("vssiding", $"wall-{layout}-west") };
+        block.VariantStrict["layout"] = layout;
+        var saved = new SidingWallEntity { Block = block, Pos = new BlockPos(0, 0, 0, 0), Framing = "oak", Infill = "wattle", Back = "daub", BackStyle = "coursed" };
+        var tree = new TreeAttribute();
+        saved.ToTreeAttributes(tree);
+        if (!savedSinceSplit) tree.RemoveAttribute("splitback");
+
+        var loaded = new SidingWallEntity { Block = block };
+        loaded.FromTreeAttributes(tree, GuestWallsTests.World);
+
+        Assert.Equal((secondBack, secondBackStyle), (loaded.SecondBack, loaded.SecondBackStyle));
     }
 
     [Fact]

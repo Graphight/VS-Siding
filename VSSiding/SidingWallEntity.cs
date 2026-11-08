@@ -54,6 +54,7 @@ public class SidingWallEntity : BlockEntity
         tree.SetString("secondfrontstyle", SecondFrontStyle);
         tree.SetString("backstyle", BackStyle);
         tree.SetString("secondbackstyle", SecondBackStyle);
+        tree.SetBool("splitback", true);
         tree.SetString("deck", Deck);
         tree.SetString("deckinfill", DeckInfill);
         tree.SetString("deckfront", DeckFront);
@@ -89,12 +90,13 @@ public class SidingWallEntity : BlockEntity
         SecondFront = NullIfEmpty(tree.GetString("secondfront", null));
         Back = NullIfEmpty(tree.GetString("back", null));
         SecondBack = NullIfEmpty(tree.GetString("secondback", null));
-        if (oldAbsorption is int old && Block is SidingWallBlock wall && wall.AbsorptionOf(this) != old)
-            wall.MarkAbsorptionChanged(worldAccessForResolve.BlockAccessor, Pos, old);
         FrontStyle = NullIfEmpty(tree.GetString("frontstyle", null));
         SecondFrontStyle = NullIfEmpty(tree.GetString("secondfrontstyle", null));
         BackStyle = NullIfEmpty(tree.GetString("backstyle", null));
         SecondBackStyle = NullIfEmpty(tree.GetString("secondbackstyle", null));
+        if (SharesLegacyBack(tree, Block?.Variant["layout"])) (SecondBack, SecondBackStyle) = (Back, BackStyle);
+        if (oldAbsorption is int old && Block is SidingWallBlock wall && wall.AbsorptionOf(this) != old)
+            wall.MarkAbsorptionChanged(worldAccessForResolve.BlockAccessor, Pos, old);
         Deck = NullIfEmpty(tree.GetString("deck", null));
         DeckInfill = NullIfEmpty(tree.GetString("deckinfill", null));
         DeckFront = NullIfEmpty(tree.GetString("deckfront", null));
@@ -119,6 +121,12 @@ public class SidingWallEntity : BlockEntity
     // The flag is keyed rather than deckinfill, which a null string never stores.
     internal static bool ReadLegacyDeck(ITreeAttribute tree, string? deck)
         => tree.HasAttribute("legacydeck") ? tree.GetBool("legacydeck") : deck != null;
+
+    // A corner saved before its inner faces split laid one back across both legs (decision 0090). Every load path
+    // sets Block before this runs (CreateBehaviors, GuestWalls.Decode); a plain wall or post never gets the copy,
+    // since ComputeDrops refunds SecondBack on every layout.
+    internal static bool SharesLegacyBack(ITreeAttribute tree, string? layout)
+        => layout == "cornerout" && !tree.HasAttribute("splitback");
 
     // Block.GetPlacedBlockInfo calls this inside a try/catch and appends the blockdesc- line
     // after it; SidingWallBlock's override takes that line back off without the build signal.
