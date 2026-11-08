@@ -330,4 +330,47 @@ public class MaterialFamiliesTests
         }
         """), (JObject)actual["dyed-red-oak"]!);
     }
+
+    private static (string, AssetLocation, IDictionary<string, string>) PaneCandidate(string type)
+        => ("item", new AssetLocation($"industrialstory:glass-pane-{type}"), new Dictionary<string, string> { ["type"] = type });
+
+    [Theory]
+    [InlineData("wall.json")]
+    [InlineData("floor.json")]
+    public void ShippedIndustrialStoryPaneTemplatesExpandOneEntryPerType(string blockFile)
+    {
+        var families = (JObject)MaterialTextureOpacityTests.BlockAttributes(blockFile)["InfillFamilies"]!;
+
+        // The unannealed pane shares the type group and loads first; it must not take the real pane's key.
+        var actual = MaterialFamilies.Expand(families, new JObject(), new[]
+        {
+            ("item", new AssetLocation("industrialstory:glass-pane-unannealed-plain"), new Dictionary<string, string> { ["type"] = "plain" }),
+            PaneCandidate("plain"),
+            PaneCandidate("lead"),
+            PaneCandidate("green"),
+        });
+
+        Assert.Equal(new[] { "glass-pane-lead", "glass-pane-plain", "glass-pane-green" },
+            actual.Properties().Select(p => p.Name));
+        AssertJson(JObject.Parse("""
+        {
+            "DisplayName": "vssiding:infill-glass-lead",
+            "Texture": "game:block/glass/plain",
+            "BlockMaterial": "Glass",
+            "Transparent": true,
+            "Consumes": { "type": "item", "code": "industrialstory:glass-pane-lead", "quantity": 1 },
+            "Drops": [ { "type": "item", "code": "industrialstory:glass-pane-lead", "quantity": { "avg": 1, "var": 0 } } ]
+        }
+        """), (JObject)actual["glass-pane-lead"]!);
+        AssertJson(JObject.Parse("""
+        {
+            "DisplayName": "vssiding:infill-glass-green",
+            "Texture": "game:block/glass/green",
+            "BlockMaterial": "Glass",
+            "Transparent": true,
+            "Consumes": { "type": "item", "code": "industrialstory:glass-pane-green", "quantity": 1 },
+            "Drops": [ { "type": "item", "code": "industrialstory:glass-pane-green", "quantity": { "avg": 1, "var": 0 } } ]
+        }
+        """), (JObject)actual["glass-pane-green"]!);
+    }
 }
