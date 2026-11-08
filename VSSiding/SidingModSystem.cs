@@ -733,7 +733,9 @@ public class SidingModSystem : ModSystem
     // A chandelier attaches on DOWN as well as UP, so one the cell below holds up is standing, not hung.
     internal static double HangShift(IBlockAccessor accessor, BlockPos pos, Block block)
     {
-        if (accessor.GetBlock(pos.UpCopy()) is not SidingFloorBlock) return 0;
+        var up = pos.UpCopy();
+        if (accessor.GetBlock(up) is not SidingFloorBlock
+            && !(SidingWallBlock.WallAt(accessor, up) is var (wall, entity) && wall.CanAttachOf(entity, BlockFacing.DOWN))) return 0;
 
         if (block.BlockBehaviors.OfType<BlockBehaviorUnstableFalling>().FirstOrDefault() is { } falling &&AttachableFacesRef(falling)?.Contains(BlockFacing.DOWN) == true)
         {

@@ -74,9 +74,11 @@ public class IsHangerTests
     {
         internal Block Above = null!, Below = null!;
         internal int HangerY;
+        internal BlockEntity? AboveEntity;
 
         protected override object? Invoke(MethodInfo? targetMethod, object?[]? args)
         {
+            if (targetMethod?.Name == nameof(IBlockAccessor.GetBlockEntity) && args?.Length == 1) return AboveEntity;
             if (targetMethod?.Name != nameof(IBlockAccessor.GetBlock) || args?.Length != 1)
                 throw new System.NotSupportedException($"{targetMethod?.Name} is not stubbed");
             return ((BlockPos)args[0]!).Y > HangerY ? Above : Below;
@@ -118,5 +120,39 @@ public class IsHangerTests
         });
 
         Assert.Equal(expected, actual);
+    }
+
+    private static SidingWallBlock Wall(string layout)
+    {
+        var wall = new SidingWallBlock { Attributes = new JsonObject(JObject.Parse("{ \"Framings\": {}, \"Infills\": {} }")) };
+        wall.VariantStrict["layout"] = layout;
+        wall.VariantStrict["side"] = "north";
+        return wall;
+    }
+
+    [Fact]
+    public void AHangerRisesUnderADeckedWallButNotABareOrDiagonalOne()
+    {
+        var pos = new BlockPos(5, 60, 9, 0);
+        var cases = new Dictionary<string, (string layout, string? deck)>
+        {
+            ["decked wall"] = ("wall", "oak"),
+            ["decked cornerout"] = ("cornerout", "oak"),
+            ["bare wall"] = ("wall", null),
+            ["decked diagonal"] = ("diagonal", "oak"),
+        };
+
+        var actual = cases.ToDictionary(kv => kv.Key, kv =>
+        {
+            var accessor = DispatchProxy.Create<IBlockAccessor, ColumnAccessor>();
+            var column = (ColumnAccessor)(object)accessor;
+            column.Above = Wall(kv.Value.layout);
+            column.Below = new Block();
+            column.HangerY = pos.Y;
+            column.AboveEntity = new SidingWallEntity { Deck = kv.Value.deck };
+            return SidingModSystem.HangShift(accessor, pos, Lantern("down"));
+        });
+
+        Assert.Equal(new Dictionary<string, double> { ["decked wall"] = 0.75, ["decked cornerout"] = 0.75, ["bare wall"] = 0, ["decked diagonal"] = 0 }, actual);
     }
 }

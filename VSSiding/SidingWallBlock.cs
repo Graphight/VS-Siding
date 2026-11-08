@@ -215,8 +215,9 @@ public class SidingWallBlock : Block
     {
         var boxes = base.GetSelectionBoxes(blockAccessor, pos);
         var entity = blockAccessor.GetBlockEntity<SidingWallEntity>(pos);
-        return entity == null ? boxes : AddOpenPartBoxes(
+        var own = entity == null ? boxes : AddOpenPartBoxes(
             boxes, Variant["layout"], Variant["side"], entity.Deck, entity.Step == null ? null : entity.StepOrientation);
+        return SidingFloorBlock.WithHangerBelow(blockAccessor, pos, own);
     }
 
     public override Cuboidf[] GetCollisionBoxes(IBlockAccessor blockAccessor, BlockPos pos)
@@ -1073,9 +1074,13 @@ public class SidingWallBlock : Block
     // Another SideSolid consumer (decision 0020): with sidesolid off, nothing could be hung on any
     // siding wall. attachmentArea is ignored - a sealed face is solid across its whole 16x16.
     public override bool CanAttachBlockAt(IBlockAccessor blockAccessor, Block block, BlockPos pos, BlockFacing blockFace, Cuboidi? attachmentArea = null)
+        => CanAttachOf(blockAccessor.GetBlockEntity<SidingWallEntity>(pos), blockFace);
+
+    // A deck's underside takes hangers (decision 0092); a diagonal's deck covers half the cell, so it has none.
+    internal bool CanAttachOf(SidingWallEntity? entity, BlockFacing blockFace)
     {
-        var entity = blockAccessor.GetBlockEntity<SidingWallEntity>(pos);
         if (blockFace == BlockFacing.UP) return ComputeDeckRetention(entity?.Deck, entity?.DeckInfill, entity?.LegacyDeck ?? false, Attributes["Framings"], Attributes["Infills"]) != 0;
+        if (blockFace == BlockFacing.DOWN && entity?.Deck != null) return Variant["layout"] != "diagonal";
         return ComputeRetention(ClaimsFace(blockFace), entity?.Framing, entity?.Infill, Attributes["Framings"], Attributes["Infills"]) != 0;
     }
 

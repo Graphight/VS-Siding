@@ -46,6 +46,14 @@ internal static class GapShiftCollisionPatches
 
     private static void Prefix() => depth++;
 
+    // The boxes as the block itself answers, for a caller that moves them on its own (a floor or deck over a hanger).
+    internal static Cuboidf[] UnshiftedSelectionBoxes(Block block, IBlockAccessor accessor, BlockPos pos)
+    {
+        depth++;
+        try { return block.GetSelectionBoxes(accessor, pos); }
+        finally { depth--; }
+    }
+
     private static void Finalizer() => depth--;
 
     // Each passes the full boxes the wall's own override would start from.

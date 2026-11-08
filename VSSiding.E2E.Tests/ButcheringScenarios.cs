@@ -46,4 +46,36 @@ public class ButcheringScenarios : AtlasScenarioBase
             await World.Until(() => !player.IsConnected);
         }
     }
+
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
+    public async Task CeilingHook_Should_RiseToTheUndersideOfADeckedWall()
+    {
+        if (!ButcheringLoaded) return;
+
+        BlockPos cell = World.Spawn.Offset(1, 3, 0);
+        BlockPos hook = cell.DownCopy();
+        World.SetBlock("game:planks-aged-ud", hook.DownCopy());
+        ITestPlayer player = await WallBuilder.JoinBuilder(World);
+        try
+        {
+            await WallBuilder.Raise(World, player, cell, cell.WestCopy(), "game:plank-oak", "game:clay-blue");
+            player.Entity.WatchedAttributes.SetString("vssidingDeck", "deck");
+            await player.GiveItem("game:plank-oak", 2);
+            var sideSel = new BlockSelection { Position = cell.Copy(), Face = BlockFacing.EAST, HitPosition = new Vec3d(1, 0.5, 0.5) };
+            Assert.True(World.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, sideSel));
+            World.SetBlock("butchering:butcherhookceiling-iron-north", hook);
+
+            Type modSystem = World.Api.ModLoader.GetModSystem("VSSiding.SidingModSystem").GetType();
+            var shift = (double)modSystem.GetMethod("HangShiftAt", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public)!
+                .Invoke(null, new object[] { hook, World.BlockAt(hook) })!;
+            Cuboidf[] boxes = World.BlockAt(cell).GetSelectionBoxes(World.Api.World.BlockAccessor, cell);
+
+            Assert.Equal((0.75, true), (shift, boxes.Any(box => box.GetType().Name == "DecorSelectionBox")));
+        }
+        finally
+        {
+            player.Player.Disconnect();
+            await World.Until(() => !player.IsConnected);
+        }
+    }
 }

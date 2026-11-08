@@ -4,6 +4,7 @@ using System.Linq;
 using Newtonsoft.Json.Linq;
 using Vintagestory.API.Common;
 using Vintagestory.API.Datastructures;
+using Vintagestory.API.MathTools;
 using Xunit;
 
 namespace VSSiding.Tests;
@@ -194,5 +195,19 @@ public class SidingWallBlockRetentionTests
             .Select(d => SidingWallBlock.ComputeDeckRetention(d.Deck, d.DeckInfill, true, Framings, Infills));
 
         Assert.Equal(new[] { 1, -1 }, actual);
+    }
+
+    [Fact]
+    public void OnlyADeckedNonDiagonalWallTakesAHangerOnItsUnderside()
+    {
+        var actual = new (string Layout, string? Deck)[] { ("wall", "oak"), ("cornerout", "oak"), ("cornerin", "oak"), ("wall", null), ("diagonal", "oak") }.Select(c =>
+        {
+            var wall = new SidingWallBlock { Attributes = new JsonObject(JToken.Parse("""{ "Framings": {}, "Infills": {} }""")) };
+            wall.VariantStrict["layout"] = c.Layout;
+            wall.VariantStrict["side"] = "north";
+            return wall.CanAttachOf(new SidingWallEntity { Deck = c.Deck }, BlockFacing.DOWN);
+        });
+
+        Assert.Equal(new[] { true, true, true, false, false }, actual);
     }
 }
