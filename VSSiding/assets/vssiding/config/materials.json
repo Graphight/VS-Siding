@@ -206,6 +206,19 @@
 			Consumes: { type: "item", code: "game:plank-oak", quantity: 2 },
 			Drops: [ { type: "item", code: "game:plank-oak", quantity: { avg: 2, var: 0 } } ]
 		},
+		"stackedbamboo": {
+			DisplayName: "vssiding:finish-stackedbamboo",
+			Texture: "game:block/wood/planks/bamboo-side",
+			Elements: { front: "front-boards", back: "back-boards" },
+			FloorElements: {
+				front: { hboards: "front-hboards", boards: "front-boards" },
+				back: { hboards: "back-hboards", boards: "back-boards" }
+			},
+			Styles: ["boards", "hboards"],
+			BlockMaterial: "Wood",
+			Consumes: { type: "block", code: "game:stackedbamboo-*", quantity: 1 },
+			Drops: [ { type: "block", code: "game:stackedbamboo-ud", quantity: { avg: 1, var: 0 } } ]
+		},
 		"planks-aged": {
 			DisplayName: "vssiding:finish-planks-aged",
 			Texture: "game:block/wood/planks/aged/aged*",
