@@ -196,6 +196,51 @@ public class FinishElementGroupsTests
         Assert.Equal([], offenders);
     }
 
+    // An infill's Elements is a prefix SelectiveElements draws the fill with, its join pieces and a diagonal's ends
+    // included. Read from the real entries, as the framing's test is.
+    [Fact]
+    public void EveryInfillElementGroupExistsAndIsLeftOutOfTheDefaultShape()
+    {
+        var assets = Path.Combine(MaterialTextureOpacityTests.GetAssemblyMetadata("RepoRoot"), "VSSiding", "assets", "vssiding");
+        var attributes = MaterialTextureOpacityTests.BlockAttributes("wall.json");
+        var fills = new[] { "Infills", "InfillFamilies" }.Select(name => attributes[name]).OfType<JObject>()
+            .SelectMany(entries => entries.Properties().Select(entry => SidingWallEntity.InfillElements(new JsonObject(entries), entry.Name)))
+            .Where(fill => fill != "infill").Distinct().ToList();
+        Assert.NotEmpty(fills);
+        bool[] either = [false, true];
+        var joinSets = (from above in either from below in either from left in either from right in either select (above, below, left, right)).ToList();
+        var none = new JsonObject(new JObject());
+
+        var offenders = new List<string>();
+        void Check(string shape, IEnumerable<string> groups, IEnumerable<(string Name, HashSet<string> Selected)> variants)
+        {
+            var names = JObject.Parse(File.ReadAllText(Path.Combine(assets, "shapes", shape + ".json")))["elements"]!.Select(e => (string)e["name"]!).ToHashSet();
+            var asked = groups.Distinct().ToList();
+            offenders.AddRange(asked.Where(g => !names.Contains(g)).Select(g => $"{shape} has no element '{g}'"));
+            foreach (var (name, selected) in variants) offenders.AddRange(asked.Where(selected.Contains).Select(g => $"{name} draws '{g}'"));
+        }
+
+        var wallJson = JObject.Parse(File.ReadAllText(Path.Combine(assets, "blocktypes", "wall.json")));
+        foreach (var layout in new[] { "wall", "cornerout", "diagonal" })
+            Check("block/wall/" + layout,
+                from fill in fills
+                from joins in joinSets
+                from name in SidingWallEntity.SelectiveElements(layout, null, fill, null, null, null, none, joins, glazed: false, fill: fill)
+                select name,
+                ((JObject)wallJson["shapebytype"]!).Properties().Where(p => (string)p.Value["base"]! == "block/wall/" + layout)
+                    .Select(p => (p.Name, p.Value["selectiveElements"]!.Select(t => (string)t!).ToHashSet())));
+
+        var floorJson = JObject.Parse(File.ReadAllText(Path.Combine(assets, "blocktypes", "floor.json")));
+        Check("block/floor/floor",
+            from fill in fills
+            from joins in joinSets
+            from name in SidingFloorEntity.SelectiveElements(null, fill, null, null, none, joins, fill: fill)
+            select name,
+            [("floor", floorJson["shape"]!["selectiveElements"]!.Select(t => (string)t!).ToHashSet())]);
+
+        Assert.Equal([], offenders);
+    }
+
     // A deck, and its ledge, is the floor clipped to its side, and the clip drops some members whole, such
     // as the rim against the wall. A pole deck has to keep exactly the members the plain deck keeps, or it
     // draws a piece of a member with the rest of it clipped away.
@@ -320,12 +365,13 @@ public class FinishElementGroupsTests
             from teeLeft in either.Where(tee => !tee || layout == "cornerout")
             from teeRight in either.Where(tee => !tee || layout == "cornerout")
             from frame in new[] { "framing", "poles", "poles2" }
+            from fill in new[] { "infill", "stems" }
             from corners in innerCorners
             from name in SidingWallEntity.SelectiveElements(
                 layout, "oak", layout == "cornerin" ? null : "glass", finish, second,
                 layout == "cornerin" ? second : finish, finishes,
                 (above, below, left, right), glazed: transparent && layout != "cornerin", frame: frame, innerCorners: corners, glassRunsOn: (glassLeft, glassRight), tees: (teeLeft, teeRight),
-                secondBack: layout == "cornerin" ? finish : null)
+                secondBack: layout == "cornerin" ? finish : null, fill: fill)
             select name;
 
         Assert.Equal([], asked.Distinct().Where(name => !names.Contains(name)).ToArray());

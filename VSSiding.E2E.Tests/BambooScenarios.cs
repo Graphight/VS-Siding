@@ -7,16 +7,16 @@ using Xunit;
 
 namespace VSSiding.E2E.Tests;
 
-// Bamboo stakes are a framing and the woven bamboo infill at once, as sticks are wattle's (decision 0058).
+// Bamboo stakes are a framing and the bamboo pole infill at once, as sticks are wattle's (decision 0058).
 [AtlasWorld(StrictBootDiagnostics = true)]
 public class BambooScenarios : AtlasScenarioBase
 {
     [AtlasScenario(FreshWorld = true)]
-    public async Task Wall_Should_FillWithWovenBamboo_When_StakesClickABareBambooFrameWithFloorPicked()
+    public async Task Wall_Should_FillWithBambooPoles_When_StakesClickABareBambooFrameWithFloorPicked()
     {
         BlockPos cell = await FillWithStakes();
 
-        Assert.Equal(("bamboo", "bamboowoven", null, null, null), WallBuilder.Layers(World, cell));
+        Assert.Equal(("bamboo", "bamboopoles", null, null, null), WallBuilder.Layers(World, cell));
     }
 
     [AtlasScenario(FreshWorld = true)]
@@ -55,7 +55,7 @@ public class BambooScenarios : AtlasScenarioBase
 
         player.Entity.WatchedAttributes.SetString("vssidingFraming", "floor");
         await WallBuilder.Press(World, player, top, "game:bamboostakes", behind, new Vec3d(0.5, 0.5, 0.5));
-        // The first press on the bare floor fills it with woven bamboo; the second extends the run.
+        // The first press on the bare floor fills it with bamboo poles; the second extends the run.
         await WallBuilder.Press(World, player, floor, "game:bamboostakes", BlockFacing.UP, new Vec3d(0.5, 1, 0.5));
         await WallBuilder.Press(World, player, floor, "game:bamboostakes", BlockFacing.UP, new Vec3d(0.5, 1, 0.5));
 
@@ -63,7 +63,7 @@ public class BambooScenarios : AtlasScenarioBase
         Assert.Equal(
             (
                 ("wall-cornerin-south", "bamboo"), ("wall-cornerin-south", "bamboo"), ("wall-cornerin-south", "bamboo"),
-                ("bamboo", "bamboowoven", null, null, null), ("bamboo", null, null, null)
+                ("bamboo", "bamboopoles", null, null, null), ("bamboo", null, null, null)
             ),
             (Post(bottom), Post(bottom.UpCopy()), Post(top), WallBuilder.Layers(World, floor), WallBuilder.DeckLayers(World, top)));
     }

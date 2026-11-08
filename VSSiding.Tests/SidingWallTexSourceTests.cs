@@ -317,6 +317,20 @@ public class SidingWallTexSourceTests
         Assert.Null(SidingWallTexSource.ResolveTexture("front", null, null, "stained", null, null, Framings, Infills, finishes));
     }
 
+    // An infill's Elements names its groups, not a style, so the bamboo pole infill draws the bamboo frame's texture, as a deck too.
+    [Fact]
+    public void BambooPoleInfillDrawsTheBambooFramesTexture()
+    {
+        var attributes = MaterialTextureOpacityTests.BlockAttributes("wall.json");
+        var bamboo = new AssetLocation("game:block/wood/planks/bamboo-side");
+
+        Assert.Equal(
+            new[] { bamboo, bamboo, bamboo },
+            new[] { "framing", "infill", "deckinfill" }.Select(slot => SidingWallTexSource.ResolveTexture(
+                slot, "bamboo", "bamboopoles", null, null, null, new JsonObject(attributes["Framings"]), new JsonObject(attributes["Infills"]),
+                new JsonObject(attributes["Finishes"]), deck: "bamboo", deckInfill: "bamboopoles")?.Base));
+    }
+
     // A cell's framing and plank finish share one alternate, so they must name the same variants.
     [Fact]
     public void PlankFramingDrawsTheSameTexturesAsItsFinish()

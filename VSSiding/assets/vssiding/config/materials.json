@@ -53,9 +53,10 @@
 			Consumes: { type: "item", code: "game:stick", quantity: 4 },
 			Drops: [ { type: "item", code: "game:stick", quantity: { avg: 4, var: 0 } } ]
 		},
-		"bamboowoven": {
-			DisplayName: "vssiding:infill-bamboowoven",
-			Texture: "game:block/plant/bamboo/bamboowoven",
+		"bamboopoles": {
+			DisplayName: "vssiding:infill-bamboopoles",
+			Texture: "game:block/wood/planks/bamboo-side",
+			Elements: "stems",
 			BlockMaterial: "Wood",
 			Porous: true,
 			Consumes: { type: "item", code: "game:bamboostakes", quantity: 2 },
