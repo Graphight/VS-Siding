@@ -58,14 +58,14 @@ public class WallShapeGenTests
         int run = style == "-boards" ? 1 : 0;
 
         // The outer side: the sliver samples the column the second leg leaves, and the two meet. The inner legs:
-        // the visible run (4..16 of the box) maps onto 0..16, a hidden strip extrapolated.
-        var expected = new[] { (15.0, 16.0), (0.0, 15.0), (0.0, 16.0), (-4.0 / 3, 16.0) };
+        // each one's 12 voxels map onto 0..16.
+        var expected = new[] { (15.0, 16.0), (0.0, 15.0), (0.0, 16.0), (0.0, 16.0) };
         var actual = new[]
         {
             Uv("front" + style, 0, 0, "north"),
             Uv("secondfront" + style, 1, 0, "north"),
             Uv("back" + style, 3, 4, "east"),
-            Uv("back" + style, 3, 3, "south"),
+            Uv("back" + style, 4, 3, "south"),
         }.Select(uv => (uv[run], uv[run + 2])).ToArray();
 
         Assert.Equal(expected, actual);
@@ -366,8 +366,8 @@ public class WallShapeGenTests
             ["cornerout second pole frame"] = 158,
             ["cornerout wattle"] = 54,
             ["cornerout wattle, mid-stack"] = 54,
-            ["cornerout daub both faces"] = 77,
-            ["cornerout weatherboard both faces"] = 227,
+            ["cornerout daub both faces"] = 80,
+            ["cornerout weatherboard both faces"] = 230,
             ["cornerout shakes both faces"] = 400,
             ["cornerout glazed"] = 43,
             // A corner's left end post gives way to two fillers: 43 - 6 + 2 * 6 = 49.
@@ -383,7 +383,7 @@ public class WallShapeGenTests
             ["cornerout glazed, daub both faces, merged all round"] = 33,
             ["cornerout glazed, merged all round"] = 15,
             ["wall shakes front, daub elsewhere"] = 185,
-            ["cornerout shakes front, daub elsewhere"] = 220,
+            ["cornerout shakes front, daub elsewhere"] = 223,
             ["wall weatherboard front, shakes back"] = 137,
             ["cornerout weatherboard front, shakes back"] = 332,
             ["wall brick both faces"] = 142,
@@ -745,6 +745,24 @@ public class WallShapeGenTests
                 }
             }
         }
+
+        Assert.Equal([], offenders);
+    }
+
+    // The atlas packs textures with no border, so a uv past 0..16 draws the neighbouring texture.
+    [Theory]
+    [InlineData("wall")]
+    [InlineData("cornerout")]
+    [InlineData("diagonal")]
+    [InlineData("cornerin")]
+    [InlineData("floor")]
+    public void EveryFaceSamplesInsideItsTexture(string layout)
+    {
+        var offenders =
+            from element in WallShapeGen.Generate(layout)["elements"]!
+            from face in ((JObject)element["faces"]!).Properties()
+            where face.Value["uv"]!.Any(v => (double)v! < 0 || (double)v! > 16)
+            select $"{element["name"]} {face.Name}: {face.Value["uv"]!.ToString(Newtonsoft.Json.Formatting.None)}";
 
         Assert.Equal([], offenders);
     }
