@@ -143,7 +143,7 @@ public class SidingWallBlockRetentionTests
     }
 
     // A wall's back or front covers its whole side; a cornerout's two outer faces and its two inner faces are separate
-    // layers, so it takes both of either pair (decision 0088).
+    // layers, so it takes both of either pair (decision 0090).
     [Fact]
     public void AWallIsFinishedOnceItsBackOrItsOuterFacesAreCovered()
     {

@@ -38,7 +38,7 @@ public class FarFaceScenarios : AtlasScenarioBase
         Assert.Equal(("oak", "clay", "planks", null, "planks-birch"), WallBuilder.Layers(World, cell));
     }
 
-    // The corner claims west and north, so its back is east and its second back south (decision 0088).
+    // The corner claims west and north, so its back is east and its second back south (decision 0090).
     [AtlasScenario(FreshWorld = true)]
     public async Task Corner_Should_ReachItsFrontAndSecondFront_When_DaubIsPressedOnItsTwoFinishedBacks()
     {

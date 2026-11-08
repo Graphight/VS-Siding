@@ -398,7 +398,7 @@ public class WallShapeGenTests
             ["cornerout second pole frame"] = 158,
             ["cornerout wattle"] = 54,
             ["cornerout wattle, mid-stack"] = 54,
-            // A corner's leg 1 and leg 2 backs are separate groups, so the seam between them no longer buries two faces (decision 0088).
+            // A corner's leg 1 and leg 2 backs are separate groups, so the seam between them no longer buries two faces (decision 0090).
             ["cornerout daub both faces"] = 82,
             ["cornerout weatherboard both faces"] = 232,
             ["cornerout shakes both faces"] = 404,

@@ -1209,7 +1209,7 @@ public class SidingWallBlock : Block
     // Faces are named by the direction they point - the only vocabulary that covers a cornerout's
     // four finishable faces without inventing words for them. Directions carrying the same finish
     // share a line, grouped by first appearance, so a corner whose two backs match names them on
-    // one line even with a SecondFront direction between them (decision 0088). A diagonal's two claimed
+    // one line even with a SecondFront direction between them (decision 0090). A diagonal's two claimed
     // faces are one front, so its four directions come out as two lines. An unfinished front
     // flush against a solid block (buried) cannot be seen, so it is left out (decision 0075).
     private static IEnumerable<string> DescribeFaces(
@@ -1297,7 +1297,7 @@ public class SidingWallBlock : Block
             IsFinished(Variant["layout"], entity?.Front, entity?.SecondFront, entity?.Back, entity?.SecondBack));
 
     // A wall's back or front covers its whole side; a cornerout's two outer faces and its two inner faces are
-    // separate layers, so it takes both of either pair (decisions 0074, 0088).
+    // separate layers, so it takes both of either pair (decisions 0074, 0090).
     internal static bool IsFinished(string layout, string? front, string? secondFront, string? back, string? secondBack = null)
         => layout == "cornerout"
             ? (back != null && secondBack != null) || (front != null && secondFront != null)
@@ -1813,7 +1813,7 @@ public class SidingWallBlock : Block
     internal static int ConsumeQuantity(JsonObject consumes) => consumes["quantity"].AsInt(1);
 
     // A post is a quarter of a wall's cross-section and a corner's inner face about half a wall's run, so each
-    // costs and refunds that share of the full amount, rounded up (decisions 0082, 0088).
+    // costs and refunds that share of the full amount, rounded up (decisions 0082, 0090).
     internal static int Share(int quantity, int parts) => Math.Max(1, (quantity + parts - 1) / parts);
 
     internal static int PostQuarter(int quantity) => Share(quantity, 4);
@@ -1832,7 +1832,7 @@ public class SidingWallBlock : Block
 
     // Which finish layer a build-flow click's clicked face targets - the hugged side is
     // "front", the opposite side is "back", an end/top/bottom face is neither. A cornerout's
-    // second leg has its own layers on both sides, "secondfront" and "secondback" (decision 0088).
+    // second leg has its own layers on both sides, "secondfront" and "secondback" (decision 0090).
     // A diagonal's second claimed face is the same "front": the panel has one outer face.
     internal static string? ResolveFinishFace(string layout, string side, BlockFacing clickedFace)
     {

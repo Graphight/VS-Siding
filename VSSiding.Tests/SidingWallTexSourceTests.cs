@@ -136,7 +136,7 @@ public class SidingWallTexSourceTests
         }, actual);
     }
 
-    // A corner's second back takes the back's default, and a post's backs the front's (decisions 0082, 0088).
+    // A corner's second back takes the back's default, and a post's backs the front's (decisions 0082, 0090).
     [Fact]
     public void StyleTexturesFollowEachSlotsDefaultStyle()
     {

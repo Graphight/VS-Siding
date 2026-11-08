@@ -388,7 +388,7 @@ public class SidingWallEntityTests
                 "cornerout", "oak", "glass", "planks", "daub", "planks", finishes, j, glazed: true, secondBack: "planks")));
     }
 
-    // A corner's two inner faces each draw their own finish in their own style, and a bare one draws nothing (decision 0088).
+    // A corner's two inner faces each draw their own finish in their own style, and a bare one draws nothing (decision 0090).
     [Fact]
     public void ACornersInnerFacesEachDrawTheirOwnFinish()
     {

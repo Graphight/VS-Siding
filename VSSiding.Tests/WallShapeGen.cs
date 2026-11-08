@@ -922,7 +922,7 @@ public static class WallShapeGen
         .. RubbleGrid("back-rubble", "back", 'z', 4, 3, 3, 16),
     ]);
 
-    // A corner's room side is two faces, leg 1 and leg 2, and the inner corner's column goes with leg 2 (decision 0088).
+    // A corner's room side is two faces, leg 1 and leg 2, and the inner corner's column goes with leg 2 (decision 0090).
     // The shapes are built as one back and split here, so every style keeps its two legs' look and only the name differs.
     private static Element[] SecondBackOnLegTwo(Element[] elements)
         => [.. elements.Select(e => e.Slot == "back" && e.From.Z < 4 ? e with { Name = "second" + e.Name, Slot = "secondback" } : e)];

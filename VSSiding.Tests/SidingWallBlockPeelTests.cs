@@ -28,7 +28,7 @@ public class SidingWallBlockPeelTests
     public void BackHitTakesTheDeckBeforeTheBackFinish()
         => Assert.Equal("deck", SidingWallBlock.PeelLayer("back", "wattle", null, null, "planks", "oak"));
 
-    // A corner's second back faces the same open side as its first (decision 0088).
+    // A corner's second back faces the same open side as its first (decision 0090).
     [Fact]
     public void SecondBackHitTakesTheDeckBeforeTheSecondBackFinish()
         => Assert.Equal("deck", SidingWallBlock.PeelLayer("secondback", "wattle", null, null, null, "oak", secondBack: "planks"));

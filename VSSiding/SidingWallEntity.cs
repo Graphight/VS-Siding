@@ -174,7 +174,7 @@ public class SidingWallEntity : BlockEntity
     // names - front/framing/infill/back - so selectiveElements works identically on
     // any). A cornerout wraps both claimed faces (decision 0002's CorneroutSecondFace)
     // with a shared Framing/Infill but its own SecondFront (decision 0009) and SecondBack
-    // (decision 0088) - each leg's faces finish independently.
+    // (decision 0090) - each leg's faces finish independently.
     public override bool OnTesselation(ITerrainMeshPool mesher, ITesselatorAPI tesselator)
     {
         string layout = Block.Variant["layout"];
@@ -345,7 +345,7 @@ public class SidingWallEntity : BlockEntity
     // wall's is only a rim, which leaves the slot open across the glass, so there the ledge carries on in
     // the place of the rim's top: between the stiles, and out to the cell's edge where a stile has merged
     // away. A diagonal's deck draws none (0067). A corner's second inner leg has ledge copies of its own, which
-    // follow its own face (decision 0088).
+    // follow its own face (decision 0090).
     internal static string[] Ledges(
         string layout, bool roomSideBare, bool glazed, (bool above, bool below, bool left, bool right) joins, bool secondRoomSideBare = false)
     {
@@ -462,7 +462,7 @@ public class SidingWallEntity : BlockEntity
         // The top of the room side's rim lies in a deck's height, where the deck's ledge takes its place (Ledges), and a T's
         // piece lies in a front slot, clear of it. A framed pattern takes a corner's `-whole` copy, which fits its border onto
         // each 12-voxel leg (decision 0086). A corner's back rims leg 1 and its second back leg 2, the corner post's
-        // piece included (decision 0088).
+        // piece included (decision 0090).
         bool Keeps(string part) => !part.StartsWith("-tee") && !(decked && part.StartsWith("-top"));
         string Whole(string key) => cornerout && finishes[key]["WholeOnCorners"].AsBool() ? "-whole" : "";
         if (back != null)

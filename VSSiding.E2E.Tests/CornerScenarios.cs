@@ -10,7 +10,7 @@ using Xunit;
 
 namespace VSSiding.E2E.Tests;
 
-// A corner's two inner faces each take a finish of their own, at half a wall's cost (decision 0088).
+// A corner's two inner faces each take a finish of their own, at half a wall's cost (decision 0090).
 // Every corner here is a filled wall turned at its north end, so it claims west and north, and its backs are east and south.
 [AtlasWorld(StrictBootDiagnostics = true)]
 public class CornerScenarios : AtlasScenarioBase

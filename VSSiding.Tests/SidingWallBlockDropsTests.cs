@@ -76,7 +76,7 @@ public class SidingWallBlockDropsTests
             drops.ConvertAll(d => (d.Code!.ToString(), d.Quantity.avg)));
     }
 
-    // A corner's inner faces each refund half a wall's finish; its frame, infill and outer faces refund in full (decision 0088).
+    // A corner's inner faces each refund half a wall's finish; its frame, infill and outer faces refund in full (decision 0090).
     [Fact]
     public void CornerRefundsHalfOfEachInnerFace()
     {

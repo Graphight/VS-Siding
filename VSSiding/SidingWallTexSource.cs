@@ -138,7 +138,7 @@ public class SidingWallTexSource : ITexPositionSource
             "secondfront" => (secondFront, finishes, "front", secondFrontStyle),
             // A post's four faces all take the front's groups (decision 0082).
             "back" => (back, finishes, post ? "front" : "back", backStyle),
-            // A corner's second inner leg takes the back's groups (decision 0088).
+            // A corner's second inner leg takes the back's groups (decision 0090).
             "secondback" => (secondBack, finishes, post ? "front" : "back", secondBackStyle),
             _ => (null, finishes, slotCode, null),
         };
