@@ -710,8 +710,10 @@ public class SidingModSystem : ModSystem
         AccessTools.FieldRefAccess<BlockBehaviorUnstableFalling, BlockFacing[]?>("attachableFaces");
 
     // A lantern or oil lamp hangs as its "down" variant; a chandelier is unstable falling attached on UP.
+    // Oil Lamps Anywhere adds its ceiling lamp from code after JSON patches run, so only its code names it.
     internal static bool IsHanger(Block block)
-        => block.BlockBehaviors.Any(behavior => behavior switch
+        => block.Code is { Domain: "game" } code && code.Path.StartsWith("oillampceilingfix-")
+        || block.BlockBehaviors.Any(behavior => behavior switch
         {
             BlockBehaviorOmniAttachable omni => block.Variant[omni.facingCode] == "down",
             BlockBehaviorUnstableFalling falling => AttachableFacesRef(falling)?.Contains(BlockFacing.UP) == true,
