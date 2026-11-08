@@ -135,6 +135,48 @@ public class GuestWallScenarios : AtlasScenarioBase
         }
     }
 
+    // The server's player dig runs the BreakBlock event, then OnBlockBroken on the block there unless the event answered.
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
+    public async Task Lamp_Should_Break_When_ItsWallPanelIsMined()
+    {
+        BlockPos cell = Cell;
+        World.SetBlock("game:planks-aged-ud", cell.DownCopy());
+
+        ITestPlayer player = await WallBuilder.JoinBuilder(World);
+        try
+        {
+            await WallBuilder.Raise(World, player, cell, cell.WestCopy(), "game:plank-oak", "game:clay-blue", "game:plank-oak");
+
+            player.Entity.LeftHandItemSlot.Itemstack = null;
+            player.Player.InventoryManager.ActiveHotbarSlot.Itemstack = new ItemStack(World.Api.World.GetBlock(new AssetLocation("game:oillamp-blue-up")));
+            var click = new BlockSelection { Position = cell.Copy(), Face = BlockFacing.EAST, HitPosition = new Vec3d(0.5, 0.5, 0.5) };
+            Assert.True(World.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, click));
+            Assert.Equal("game:oillamp-blue-east", World.BlockAt(cell).Code.ToString());
+
+            var panelHit = new BlockSelection
+            {
+                Position = cell.Copy(), Face = BlockFacing.EAST, HitPosition = new Vec3d(0.5, 0.5, 0.5),
+                SelectionBoxIndex = World.BlockAt(cell).SelectionBoxes.Length,
+            };
+            object events = World.Api.World.GetType().GetField("EventManager")!.GetValue(World.Api.World)!;
+            var args = new object[] { player.Player, panelHit, 1f, EnumHandling.PassThrough };
+            events.GetType().GetMethod("TriggerBreakBlock")!.Invoke(events, args);
+            var handling = (EnumHandling)args[3];
+            World.BlockAt(cell).OnBlockBroken(player.Entity.World, cell, player.Player);
+            await World.Ticks(2);
+
+            Assert.Equal(
+                (EnumHandling.PassThrough, "vssiding:wall-wall-west", Expected),
+                (handling, World.BlockAt(cell).Code.ToString(), WallBuilder.Layers(World, cell)));
+            Assert.Null(WallBuilder.GuestLayers(World, cell));
+        }
+        finally
+        {
+            player.Player.Disconnect();
+            await World.Until(() => !player.IsConnected);
+        }
+    }
+
     [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Wall_Should_BecomeAGuest_When_ATableIsPlacedInItsCell()
     {
