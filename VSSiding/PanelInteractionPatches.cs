@@ -4,7 +4,7 @@ using Vintagestory.API.Common;
 namespace VSSiding;
 
 // A click on a hosted cell's panel reaches nothing (decision 0035). A break aimed at the panel reaches
-// the host (decision 0092), except a support beam's, swallowed here and in the server's BreakBlock
+// the host (decision 0093), except a support beam's, swallowed here and in the server's BreakBlock
 // handler (SidingModSystem.StartServerSide).
 internal static class PanelInteractionPatches
 {

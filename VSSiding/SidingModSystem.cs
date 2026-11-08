@@ -1594,7 +1594,7 @@ public class SidingModSystem : ModSystem
         {
             SidingWallBlock.ServerBreakSelection = blockSel;
 
-            // A panel break reaches the host (decision 0092), except a support beam's, which reads the
+            // A panel break reaches the host (decision 0093), except a support beam's, which reads the
             // selection index unchecked. Creative breaks skip OnGettingBroken, so it is caught here too.
             Block host = api.World.BlockAccessor.GetBlock(blockSel.Position);
             if (GapShiftCollisionPatches.SwallowsPanelBreak(host, api.World.BlockAccessor, blockSel))
