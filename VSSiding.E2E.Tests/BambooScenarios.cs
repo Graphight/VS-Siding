@@ -12,14 +12,9 @@ namespace VSSiding.E2E.Tests;
 public class BambooScenarios : AtlasScenarioBase
 {
     [AtlasScenario(FreshWorld = true)]
-    public async Task Wall_Should_FillWithWovenBamboo_When_StakesClickABareBambooFrame()
+    public async Task Wall_Should_FillWithWovenBamboo_When_StakesClickABareBambooFrameWithFloorPicked()
     {
-        (BlockPos cell, ITestPlayer player) = await RaiseBareFrame();
-
-        player.Entity.WatchedAttributes.SetString("vssidingFraming", "floor");
-        await player.GiveItem("game:bamboostakes", 4);
-        var sideSel = new BlockSelection { Position = cell.Copy(), Face = BlockFacing.EAST, HitPosition = new Vec3d(0.5, 0.5, 0.5) };
-        Assert.True(World.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, sideSel));
+        (BlockPos cell, _, _) = await FillWithStakes();
 
         Assert.Equal(("bamboo", "bamboowoven", null, null, null), WallBuilder.Layers(World, cell));
     }
@@ -41,11 +36,7 @@ public class BambooScenarios : AtlasScenarioBase
     [AtlasScenario(FreshWorld = true)]
     public async Task Wall_Should_TakeStackedBambooFinish_When_ABlockClicksAWovenFace()
     {
-        (BlockPos cell, ITestPlayer player) = await RaiseBareFrame();
-        player.Entity.WatchedAttributes.SetString("vssidingFraming", "floor");
-        var sideSel = new BlockSelection { Position = cell.Copy(), Face = BlockFacing.EAST, HitPosition = new Vec3d(0.5, 0.5, 0.5) };
-        await player.GiveItem("game:bamboostakes", 4);
-        Assert.True(World.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, sideSel));
+        (BlockPos cell, ITestPlayer player, BlockSelection sideSel) = await FillWithStakes();
 
         await player.GiveItem("game:stackedbamboo-ns", 2);
         Assert.True(World.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, sideSel));
@@ -64,20 +55,17 @@ public class BambooScenarios : AtlasScenarioBase
         await player.TeleportTo(bottom.WestCopy(2));
         player.Entity.Pos.Yaw = 0;
         player.Entity.Pos.Pitch = 0;
-        Vec3f view = player.Entity.SidedPos.GetViewVector();
-        BlockFacing ahead = System.Math.Abs(view.X) >= System.Math.Abs(view.Z)
-            ? (view.X > 0 ? BlockFacing.EAST : BlockFacing.WEST)
-            : (view.Z > 0 ? BlockFacing.SOUTH : BlockFacing.NORTH);
         // The run walks the way the player looks, so the floor goes on the side of the post the player looks from.
+        BlockFacing behind = WallBuilder.Ahead(player).Opposite;
         BlockPos top = bottom.UpCopy(2);
-        BlockPos floor = top.AddCopy(ahead.Opposite);
+        BlockPos floor = top.AddCopy(behind);
 
         player.Entity.WatchedAttributes.SetString("vssidingFraming", "post");
         foreach (BlockPos below in new[] { bottom.DownCopy(), bottom, bottom.UpCopy() })
             await WallBuilder.Press(World, player, below, "game:bamboostakes", BlockFacing.UP, new Vec3d(0.2, 1, 0.8));
 
         player.Entity.WatchedAttributes.SetString("vssidingFraming", "floor");
-        await WallBuilder.Press(World, player, top, "game:bamboostakes", ahead.Opposite, new Vec3d(0.5, 0.5, 0.5));
+        await WallBuilder.Press(World, player, top, "game:bamboostakes", behind, new Vec3d(0.5, 0.5, 0.5));
         // The first press on the bare floor fills it with woven bamboo; the second extends the run.
         await WallBuilder.Press(World, player, floor, "game:bamboostakes", BlockFacing.UP, new Vec3d(0.5, 1, 0.5));
         await WallBuilder.Press(World, player, floor, "game:bamboostakes", BlockFacing.UP, new Vec3d(0.5, 1, 0.5));
@@ -88,7 +76,18 @@ public class BambooScenarios : AtlasScenarioBase
                 ("wall-cornerin-south", "bamboo"), ("wall-cornerin-south", "bamboo"), ("wall-cornerin-south", "bamboo"),
                 ("bamboo", "bamboowoven", null, null, null), ("bamboo", null, null, null)
             ),
-            (Post(bottom), Post(bottom.UpCopy()), Post(top), WallBuilder.Layers(World, floor), PostScenarios.DeckLayers(World, top)));
+            (Post(bottom), Post(bottom.UpCopy()), Post(top), WallBuilder.Layers(World, floor), WallBuilder.DeckLayers(World, top)));
+    }
+
+    // A bare bamboo frame, then a plain stake click on its side with Floor picked, which fills it rather than laying a floor.
+    private async Task<(BlockPos Cell, ITestPlayer Player, BlockSelection SideSel)> FillWithStakes()
+    {
+        (BlockPos cell, ITestPlayer player) = await RaiseBareFrame();
+        player.Entity.WatchedAttributes.SetString("vssidingFraming", "floor");
+        await player.GiveItem("game:bamboostakes", 4);
+        var sideSel = new BlockSelection { Position = cell.Copy(), Face = BlockFacing.EAST, HitPosition = new Vec3d(0.5, 0.5, 0.5) };
+        Assert.True(World.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, sideSel));
+        return (cell, player, sideSel);
     }
 
     private async Task<(BlockPos Cell, ITestPlayer Player)> RaiseBareFrame()

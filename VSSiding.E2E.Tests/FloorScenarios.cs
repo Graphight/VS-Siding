@@ -72,10 +72,7 @@ public class FloorScenarios : AtlasScenarioBase
         // walk a different way from the wall placed here; 0 is the yaw every later step then sees.
         player.Entity.Pos.Yaw = 0;
         player.Entity.Pos.Pitch = 0;
-        Vec3f view = player.Entity.SidedPos.GetViewVector();
-        BlockFacing ahead = System.Math.Abs(view.X) >= System.Math.Abs(view.Z)
-            ? (view.X > 0 ? BlockFacing.EAST : BlockFacing.WEST)
-            : (view.Z > 0 ? BlockFacing.SOUTH : BlockFacing.NORTH);
+        BlockFacing ahead = WallBuilder.Ahead(player);
         BlockPos wall = beside.AddCopy(ahead);
         World.SetBlock("game:planks-aged-ud", beside.DownCopy());
         World.SetBlock("game:planks-aged-ud", wall.DownCopy());
