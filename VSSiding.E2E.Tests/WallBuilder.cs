@@ -121,12 +121,12 @@ internal static class WallBuilder
 
     // A one-cell room on a plank floor under a plank roof, walled with the framing on every side and the infill on the filled ones.
     internal static async Task<(BlockPos Inside, ITestPlayer Player)> BuildRoom(
-        IWorldSession world, string infill, BlockFacing[] filled, string framing = "game:plank-oak", int framingCost = 2, string offhand = "game:saw-copper")
+        IWorldSession world, string infill, BlockFacing[] filled, string framing = "game:plank-oak", int framingCost = 2, string offhand = "game:saw-copper", string ground = "game:planks-aged-ud")
     {
         BlockPos inside = world.Spawn.Offset(0, 2, 0);
         for (int dx = -1; dx <= 1; dx++)
             for (int dz = -1; dz <= 1; dz++)
-                world.SetBlock("game:planks-aged-ud", inside.Offset(dx, -1, dz));
+                world.SetBlock(ground, inside.Offset(dx, -1, dz));
 
         ITestPlayer player = await JoinBuilder(world, offhand);
         foreach (BlockFacing side in BlockFacing.HORIZONTALS)
@@ -134,7 +134,7 @@ internal static class WallBuilder
 
         for (int dx = -1; dx <= 1; dx++)
             for (int dz = -1; dz <= 1; dz++)
-                world.SetBlock("game:planks-aged-ud", inside.Offset(dx, 1, dz));
+                world.SetBlock(ground, inside.Offset(dx, 1, dz));
         return (inside, player);
     }
 }
