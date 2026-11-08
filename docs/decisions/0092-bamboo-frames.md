@@ -54,11 +54,13 @@ The test is on bamboo rather than on excluding `poles`, so a sticks or bone diag
 A glazed bamboo diagonal draws the glazing's rails, as a glazed wall does, so its ends stay `framing-{end}` and `framing-join-{end}`.
 
 **A bare post is one ringed pole.**
-A bare bamboo post is a notched pole 3 voxels across in the middle of the 4 by 4, a half voxel notched down each vertical edge so it reads round, and each ring the same outline a quarter voxel out all round (`BambooFatPost`).
+A bare bamboo post's rings fill the 4 by 4, a half voxel notched down each vertical edge so they read round, and between them the pole is the same outline a quarter voxel in all round, as a wall's pole stands inside its rings (`BambooFatPost`).
+The rings meet the walls behind the post and a floor round it edge to edge, and one more closes the post's top, a node at each joint of a stack, so a floor laid onto it leaves no groove to see down.
 A ring is drawn as the part of it standing out of the pole, a strip along each flat and an L in each notch (`FatPostRing`), so no ring box lies over the pole's faces once both are cut.
 All of it is cut along the post's existing pinwheel into a core `bamboo` and one slice `bamboo-<slot>` per face, each that layer's owned body (`PostLayer`), so the core and slices together are exactly the notched outline between the rings and the ring's at them.
 The notches stand in for the wall's ridges.
 The first cut filled the whole 4 by 4 with rings flush in its notches; the author played it, found it too thick and its rings lost, and asked for it thinner with rings standing out.
+A pole 3 across inside 3.5 rings followed, but it left half a voxel of air between the pole and the walls and floor that meet the 4 by 4, so the author kept the thickness and the rings took the full square instead.
 A finished face drops its slice and draws its finish layer as today.
 Its `-mitre` piece lies in the previous slot's body (front, secondfront, back, secondback, cyclic), so on a bamboo post it is left out while that neighbour is bare, and no mitre quad floats over the round pole.
 `PostElements` takes the frame, with `poles` still mapping to `framing`, so a sticks or bone post is unchanged.
@@ -79,7 +81,7 @@ The shapes grew as follows, in bytes:
 | `wall.json` | 2,481,733 | 3,047,399 |
 | `cornerout.json` | 3,369,514 | 3,894,084 |
 | `diagonal.json` | 3,644,906 | 4,258,993 |
-| `cornerin.json` | 1,613,453 | 2,195,312 |
+| `cornerin.json` | 1,613,453 | 2,236,736 |
 | `floor.json` | 327,721 | 462,898 |
 
 ## Alternatives considered
