@@ -24,7 +24,7 @@ public class JunctionScenarios : AtlasScenarioBase
 
         await WallBuilder.Press(World, player, cell, "game:plank-oak", BlockFacing.WEST, SouthEnd);
 
-        Assert.Equal((("cornerout", "south,west", "oak", ("oak", "clay", null, "planks-birch", "planks-birch")), (string?)null), (Describe(cell), Read(cell, "secondback")));
+        Assert.Equal((("cornerout", "south,west", "oak", ("oak", "clay", null, "planks-birch", null)), "planks-birch"), (Describe(cell), Read(cell, "secondback")));
     }
 
     [AtlasScenario(FreshWorld = true)]

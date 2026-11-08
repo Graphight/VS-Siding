@@ -52,8 +52,9 @@ The copy is made on a `cornerout` only: `ComputeDrops` refunds `SecondBack` on e
 At half cost per leg, peeling both inner faces refunds what was paid for the shared back, or one item more for a finish whose wall quantity is odd.
 
 **Upgrading a filled wall.**
-A wall turned into a corner in place (decision 0069) keeps its back on the first inner leg, and the second inner face is bare.
-The upgrade stays free, so it copies no finish: a copy would refund two halves rounded up for one back laid, and the upgrade can be repeated.
+A wall turned into a corner in place (decision 0069) keeps its back on the leg the old wall becomes, as its front does: on the first inner leg at the left end, and moved to the second at the right end, where the front moves to the second front.
+The new leg's inner face is bare.
+The upgrade stays free, so it moves the back and copies nothing: a copy would refund two halves rounded up for one back laid, and the upgrade can be repeated.
 
 **Diagonal plaster mirrors.**
 `plaster-diagonal` sets `MirrorsOnCorners`.

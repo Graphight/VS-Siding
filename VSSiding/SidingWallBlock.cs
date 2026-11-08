@@ -773,6 +773,8 @@ public class SidingWallBlock : Block
                 entity.SecondFrontStyle = entity.FrontStyle;
                 entity.Front = null;
                 entity.FrontStyle = null;
+                // The old wall's room side goes with it, moved rather than copied, since the upgrade is free (decision 0090).
+                (entity.SecondBack, entity.SecondBackStyle, entity.Back, entity.BackStyle) = (entity.Back, entity.BackStyle, null, null);
             }
 
             // The new leg changes retention, light and the liquid barrier. On the target, since
