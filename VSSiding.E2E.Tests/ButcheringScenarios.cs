@@ -17,6 +17,15 @@ public class ButcheringScenarios : AtlasScenarioBase
 {
     private static bool ButcheringLoaded => Environment.GetEnvironmentVariable("SIDING_PROBE") == "butchering";
 
+    // The builder's picks are player data, which the world rollback leaves as the last scenario set them.
+    private async Task<ITestPlayer> Join()
+    {
+        ITestPlayer player = await WallBuilder.JoinBuilder(World);
+        player.Entity.WatchedAttributes.SetString("vssidingFraming", "wall");
+        player.Entity.WatchedAttributes.SetString("vssidingDeck", "");
+        return player;
+    }
+
     [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task CeilingHook_Should_RiseToAThinFloorAndBeSelectableThroughIt()
     {
@@ -25,7 +34,7 @@ public class ButcheringScenarios : AtlasScenarioBase
         BlockPos hook = World.Spawn.Offset(1, 2, 0);
         BlockPos floor = hook.UpCopy();
         World.SetBlock("game:planks-aged-ud", hook);
-        ITestPlayer player = await WallBuilder.JoinBuilder(World);
+        ITestPlayer player = await Join();
         try
         {
             player.Entity.WatchedAttributes.SetString("vssidingFraming", "floor");
@@ -54,7 +63,7 @@ public class ButcheringScenarios : AtlasScenarioBase
 
         BlockPos cell = World.Spawn.Offset(1, 2, 0);
         World.SetBlock("game:planks-aged-ud", cell.DownCopy());
-        ITestPlayer player = await WallBuilder.JoinBuilder(World);
+        ITestPlayer player = await Join();
         try
         {
             await WallBuilder.Raise(World, player, cell, cell.WestCopy(), "game:plank-oak", "game:clay-blue");
@@ -72,6 +81,7 @@ public class ButcheringScenarios : AtlasScenarioBase
             var hosted = WallBuilder.GuestDeckLayers(World, cell);
 
             World.Api.World.BlockAccessor.BreakBlock(cell, player.Player);
+            await World.Until(() => World.BlockEntityAt<BlockEntity>(cell) != null, 100);
 
             Assert.Equal((-0.25, deck, deck), (shift, hosted, WallBuilder.DeckLayers(World, cell)));
         }
@@ -90,9 +100,10 @@ public class ButcheringScenarios : AtlasScenarioBase
         BlockPos cell = World.Spawn.Offset(1, 3, 0);
         BlockPos hook = cell.DownCopy();
         World.SetBlock("game:planks-aged-ud", hook.DownCopy());
-        ITestPlayer player = await WallBuilder.JoinBuilder(World);
+        ITestPlayer player = await Join();
         try
         {
+            await WallBuilder.Raise(World, player, hook, hook.WestCopy(), "game:plank-oak", "game:clay-blue", "game:plank-oak");
             await WallBuilder.Raise(World, player, cell, cell.WestCopy(), "game:plank-oak", "game:clay-blue");
             player.Entity.WatchedAttributes.SetString("vssidingDeck", "deck");
             await player.GiveItem("game:plank-oak", 2);
