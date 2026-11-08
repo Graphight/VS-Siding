@@ -274,7 +274,7 @@ public class WallShapeGenTests
             .. Enumerable.Range(0, 8).Select(i => $"back-lath-boards {2 * i + 0.5},12,0 {2 * i + 1.5},12.5,16"),
         ];
         Assert.Equal(expected, WallShapeGen.Generate("floor")["elements"]!
-            .Where(e => !((string)e["name"]!).StartsWith("poles") && !((string)e["name"]!).StartsWith("stems") && !((string)e["name"]!).Contains("-rim"))
+            .Where(e => !((string)e["name"]!).StartsWith("poles") && !((string)e["name"]!).StartsWith("bamboo") && !((string)e["name"]!).StartsWith("stems") && !((string)e["name"]!).Contains("-rim"))
             .Select(e => $"{e["name"]} {string.Join(",", e["from"]!.Select(v => (double)v!))} {string.Join(",", e["to"]!.Select(v => (double)v!))}")
             .ToArray());
     }
@@ -1101,6 +1101,8 @@ public class WallShapeGenTests
     [InlineData("cornerout", "bamboo2")]
     [InlineData("floor", "poles")]
     [InlineData("floor", "poles2")]
+    [InlineData("floor", "bamboo")]
+    [InlineData("floor", "bamboo2")]
     public void EveryPoleBoxLiesInsideTheFramesThickness(string layout, string prefix)
     {
         string[] groups = PolesOf(layout, prefix).Select(p => p.Pole).ToArray();
@@ -1129,6 +1131,8 @@ public class WallShapeGenTests
     [InlineData("cornerout", "bamboo2")]
     [InlineData("floor", "poles")]
     [InlineData("floor", "poles2")]
+    [InlineData("floor", "bamboo")]
+    [InlineData("floor", "bamboo2")]
     public void EveryPoleGroupCoversTheMidPlaneOfThePlainMemberItReplaces(string layout, string prefix)
     {
         var elements = WallShapeGen.Generate(layout)["elements"]!.ToArray();
@@ -1205,7 +1209,7 @@ public class WallShapeGenTests
         double mid = (frame.Lo + frame.Hi) / 2;
         var groups = WallShapeGen.Generate(layout)["elements"]!
             .Where(e => layout == "floor" || ((string)e["name"]!).StartsWith("deck-") || ((string)e["name"]!).StartsWith("ledge"))
-            .Where(e => ((string)e["name"]!).Contains("poles"))
+            .Where(e => ((string)e["name"]!).Contains("poles") || ((string)e["name"]!).Contains("bamboo"))
             .GroupBy(e => (string)e["name"]!, Box);
         Assert.NotEmpty(groups);
 
@@ -1239,6 +1243,8 @@ public class WallShapeGenTests
     [InlineData("cornerout", "bamboo2")]
     [InlineData("floor", "poles")]
     [InlineData("floor", "poles2")]
+    [InlineData("floor", "bamboo")]
+    [InlineData("floor", "bamboo2")]
     public void NoTwoEmittedFacesOfGroupsDrawnTogetherShareAPlaneAndOverlap(string layout, string prefix)
     {
         string[] together = [.. PolesOf(layout, prefix).Select(p => p.Pole), "infill", "infill-pane", "front", "secondfront", "back"];
@@ -1261,6 +1267,8 @@ public class WallShapeGenTests
     [InlineData("floor", "framing")]
     [InlineData("floor", "poles")]
     [InlineData("floor", "poles2")]
+    [InlineData("floor", "bamboo")]
+    [InlineData("floor", "bamboo2")]
     public void NoFaceOfTheStemsSharesAPlaneWithItsFrameOrAFinishAndOverlaps(string layout, string prefix)
     {
         Assert.Equal([], SharedPlaneOffenders(layout, [.. PolesOf(layout, prefix).Select(p => p.Pole), "stems", "front", "secondfront", "back"]));

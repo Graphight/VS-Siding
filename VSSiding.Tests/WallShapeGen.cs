@@ -298,7 +298,7 @@ public static class WallShapeGen
     // the member's box, so a finish still covers it. Rings sit a quarter voxel off the grid and off the frame's lashings, and
     // the ridge stands at 0.1, off the ring's plane, so no two faces share one.
     private static IEnumerable<Element> BambooPole(
-        string name, (double X, double Y, double Z) from, (double X, double Y, double Z) to, char depth, char run, double[] rings, string[]? coreFaces = null)
+        string name, (double X, double Y, double Z) from, (double X, double Y, double Z) to, char depth, char run, double[] rings, string[]? coreFaces = null, double ridgeInset = 0.25)
     {
         double[] lo = [from.X, from.Y, from.Z], hi = [to.X, to.Y, to.Z];
         int d = depth - 'x', r = run - 'x', o = 3 - d - r;
@@ -311,7 +311,7 @@ public static class WallShapeGen
 
         yield return Box(lo[d] + 0.25, hi[d] - 0.25, lo[r], hi[r], lo[o], hi[o], coreFaces);
         foreach (var (near, far) in new[] { (lo[d] + 0.1, lo[d] + 0.25), (hi[d] - 0.25, hi[d] - 0.1) })
-            yield return Box(near, far, lo[r], hi[r], lo[o] + 0.25, hi[o] - 0.25);
+            yield return Box(near, far, lo[r], hi[r], lo[o] + ridgeInset, hi[o] - ridgeInset);
         foreach (double ring in rings)
         {
             yield return Box(lo[d], lo[d] + 0.25, ring, ring + 0.5, lo[o], hi[o]);
@@ -1248,6 +1248,33 @@ public static class WallShapeGen
         .. FloorPoleElements.Where(e => e.Name is "poles-top" or "poles-bottom").Select(e => e with { Name = e.Name.Replace("poles", "poles2") }),
     ];
 
+    // The floor's frame in bamboo: ringed joists in the plain joists' boxes and ringed rim lengths between them, with the rough
+    // frame's lashings where a rim meets a joist. Rings keep to z 2.75..13.25 on a joist, clear of those lashings,
+    // and sit off the planes of the floor's stems.
+    private static IEnumerable<Element> BambooFloor(string prefix, double[][] joists, double[][] rims)
+    {
+        (double Lo, double Hi)[] rimX = [(0, 2), (3, 7.5), (8.5, 13), (14, 16)];
+        IEnumerable<Element> Joists(string name, double[] rings, (double Lo, double Hi) x) => BambooPole(name, (x.Lo, 13, 0), (x.Hi, 15, 16), 'y', 'z', rings, ridgeInset: 0.1);
+        IEnumerable<Element> Rims(string name, double z1, double z2, double[][] rings) => rimX
+            .Select((x, i) => BambooPole(name, (x.Lo, 13, z1), (x.Hi, 15, z2), 'y', 'x', rings[i]).Select(e => e with { RunAxis = 'x' }))
+            .SelectMany(e => e)
+            .Concat(FloorPoleElements.Where(e => e.Name == "poles" + name[prefix.Length..] && e.Slot == "lashing").Select(e => e with { Name = name }));
+        return
+        [
+            .. Joists($"{prefix}-left", joists[0], (2, 3)),
+            .. Joists($"{prefix}-left", joists[1], (7.5, 8.5)),
+            .. Joists($"{prefix}-right", joists[2], (13, 14)),
+            .. Rims($"{prefix}-top", 0, 1, rims),
+            .. Rims($"{prefix}-bottom", 15, 16, rims),
+        ];
+    }
+
+    private static readonly Element[] FloorBambooElements =
+    [
+        .. BambooFloor("bamboo", [[3.25, 8.25, 12.25], [4.75, 10.25], [3.75, 9.75]], [[0.25], [4.75], [10.5], [14.75]]),
+        .. BambooFloor("bamboo2", [[4.75, 10.75], [3.25, 8.75, 12.75], [5.25, 11.25]], [[1.25], [6.5], [9.5], [15.25]]),
+    ];
+
     // The wall's layers laid flat: top finish, joists with infill between, underside, filling y 12..16
     // so the top sits where a plank block's would. Every floor's joists run north-south (along z) at
     // the same x, three to a cell and never more than 4.5 voxels apart, so they tile across any run
@@ -1265,6 +1292,7 @@ public static class WallShapeGen
         .. Rim("framing-bottom", 15, 16),
         .. FloorPoleElements,
         .. FloorPole2Elements,
+        .. FloorBambooElements,
         new("infill-top", (0, 13.5, 0), (16, 14.5, 1), "infill", UvRule.Flat, RunAxis: 'z'),
         new("infill", (0, 13.5, 1), (16, 14.5, 15), "infill", UvRule.Flat, RunAxis: 'z'),
         new("infill-bottom", (0, 13.5, 15), (16, 14.5, 16), "infill", UvRule.Flat, RunAxis: 'z'),
@@ -1393,7 +1421,7 @@ public static class WallShapeGen
                 // Only a rim runs across an edge. Any other pole piece an edge cuts is a sliver of a joist,
                 // or a stub, cheek or lashing whose joist is on the far side, so a box draws its part of one
                 // only along the lengths where the side's boxes together cover the piece's whole width.
-                var lengths = source.Name.StartsWith("poles") && source.RunAxis != 'x'
+                var lengths = (source.Name.StartsWith("poles") || source.Name.StartsWith("bamboo")) && source.RunAxis != 'x'
                     ? CoveredLengths(source, regions, lo.Z, hi.Z)
                     : [(lo.Z, hi.Z)];
                 foreach (var (z, z2) in lengths)
