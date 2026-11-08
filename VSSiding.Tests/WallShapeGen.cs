@@ -293,6 +293,53 @@ public static class WallShapeGen
         .. WallPoleElements.Where(e => e.Name is "poles-top" or "poles-bottom").Select(e => e with { Name = e.Name.Replace("poles", "poles2") }),
     ];
 
+    // A bamboo pole standing in for a plain member's box: a core a quarter voxel inside it across `depth`, a ridge down
+    // each of its two depth faces so the seam reads, and a thin ring at each of `rings` along `run`. Everything stays inside
+    // the member's box, so a finish still covers it. Rings sit a quarter voxel off the grid and off the frame's lashings, and
+    // the ridge stands at 0.1, off the ring's plane, so no two faces share one.
+    private static IEnumerable<Element> BambooPole(
+        string name, (double X, double Y, double Z) from, (double X, double Y, double Z) to, char depth, char run, double[] rings, string[]? coreFaces = null)
+    {
+        double[] lo = [from.X, from.Y, from.Z], hi = [to.X, to.Y, to.Z];
+        int d = depth - 'x', r = run - 'x', o = 3 - d - r;
+        Element Box(double depthLo, double depthHi, double runLo, double runHi, double acrossLo, double acrossHi, string[]? faces = null)
+        {
+            double[] a = new double[3], b = new double[3];
+            (a[d], b[d], a[r], b[r], a[o], b[o]) = (depthLo, depthHi, runLo, runHi, acrossLo, acrossHi);
+            return new Element(name, (a[0], a[1], a[2]), (b[0], b[1], b[2]), "framing", UvRule.Flat, Faces: faces);
+        }
+
+        yield return Box(lo[d] + 0.25, hi[d] - 0.25, lo[r], hi[r], lo[o], hi[o], coreFaces);
+        foreach (var (near, far) in new[] { (lo[d] + 0.1, lo[d] + 0.25), (hi[d] - 0.25, hi[d] - 0.1) })
+            yield return Box(near, far, lo[r], hi[r], lo[o] + 0.25, hi[o] - 0.25);
+        foreach (double ring in rings)
+        {
+            yield return Box(lo[d], lo[d] + 0.25, ring, ring + 0.5, lo[o], hi[o]);
+            yield return Box(hi[d] - 0.25, hi[d], ring, ring + 0.5, lo[o], hi[o]);
+        }
+    }
+
+    // The wall's frame in bamboo: posts left and right, plates top and bottom, and the rough frame's lashings where a plate
+    // crosses an upright. The ring places on each member are the variant's.
+    private static IEnumerable<Element> BambooWall(string prefix, double[] left, double[] right, double[] top, double[] bottom)
+    {
+        string[] plate = ["west", "east", "up", "down"];
+        return
+        [
+            .. BambooPole($"{prefix}-left", (1, 0, 0), (3, 16, 1), 'x', 'y', left),
+            .. BambooPole($"{prefix}-right", (1, 0, 15), (3, 16, 16), 'x', 'y', right),
+            .. BambooPole($"{prefix}-top", (1, 15, 1), (3, 16, 15), 'x', 'z', top, plate),
+            .. BambooPole($"{prefix}-bottom", (1, 0, 1), (3, 1, 15), 'x', 'z', bottom, plate),
+            .. WallPoleElements.Where(e => e.Slot == "lashing").Select(e => e with { Name = e.Name.Replace("poles", prefix) }),
+        ];
+    }
+
+    private static readonly Element[] WallBambooElements =
+    [
+        .. BambooWall("bamboo", [0.25, 5.25, 15.25], [0.25, 4.75, 15.25], [3.25, 7.75, 12.25], [2.25, 6.75, 11.25]),
+        .. BambooWall("bamboo2", [4.75, 15.25], [5.25, 0.25], [2.75, 8.25, 13.25], [3.75, 9.25, 13.75]),
+    ];
+
     // Bamboo poles standing side by side, two voxels wide on the odd voxels from z 1, in the wall's frame: a core in the
     // infill's depth, a ridge down each face so the seams read, and two nodes a pole at heights staggered pole to pole.
     // Ridges and nodes sit at 1.3, 1.15, 2.7 and 2.85, off the planes of the pole frames' stubs, lashings and joists. The
@@ -437,6 +484,7 @@ public static class WallShapeGen
         new("framing-right", (1, 0, 15), (3, 16, 16), "framing", UvRule.Flat),
         .. WallPoleElements,
         .. WallPole2Elements,
+        .. WallBambooElements,
         new("infill-top", (1.5, 15, 1), (2.5, 16, 15), "infill", UvRule.Positional),
         new("infill", (1.5, 1, 1), (2.5, 15, 15), "infill", UvRule.Positional),
         new("infill-bottom", (1.5, 0, 1), (2.5, 1, 15), "infill", UvRule.Positional),
