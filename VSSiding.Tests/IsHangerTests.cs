@@ -32,7 +32,7 @@ public class IsHangerTests
 
     private static Block Declared(Block block, bool hanger)
     {
-        block.Attributes = new JsonObject(JObject.Parse("{ \"vssidingHanger\": " + (hanger ? "true" : "false") + " }"));
+        block.Attributes = new JsonObject(new JObject { ["vssidingHanger"] = hanger });
         return block;
     }
 
