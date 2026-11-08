@@ -1737,11 +1737,11 @@ public class SidingWallBlock : Block
     internal static string? MatchFraming(AssetLocation heldCode, bool filled, JsonObject framings, JsonObject infills)
         => !filled && MatchConsumes(heldCode, infills) != null ? null : MatchConsumes(heldCode, framings);
 
-    // An item that frames and fills frames on from a face that takes no finish, and fills from one that does (decision 0088).
+    // An item that frames and fills frames on from a face that takes no finish, and fills from one that does (decision 0089).
     internal static bool FramesOnFrom(AssetLocation heldCode, bool finishFace, JsonObject framings)
         => !finishFace && MatchConsumes(heldCode, framings) != null;
 
-    // The lang key for the line telling which faces fill a bare frame and which frame on, for an item that does both (decision 0088).
+    // The lang key for the line telling which faces fill a bare frame and which frame on, for an item that does both (decision 0089).
     internal static string? FillHintKey(string layout, AssetLocation? held, JsonObject framings, JsonObject infills)
         => held == null || MatchConsumes(held, framings) == null || MatchConsumes(held, infills) == null ? null : layout switch
         {

@@ -8,7 +8,7 @@ using Xunit;
 
 namespace VSSiding.E2E.Tests;
 
-// Sticks are a framing and the wattle infill at once (decision 0058): a plain click on a bare frame's face fills it, and on its top or an end frames on (decision 0088).
+// Sticks are a framing and the wattle infill at once (decision 0058): a plain click on a bare frame's face fills it, and on its top or an end frames on (decision 0089).
 [AtlasWorld(StrictBootDiagnostics = true)]
 public class StickScenarios : AtlasScenarioBase
 {
