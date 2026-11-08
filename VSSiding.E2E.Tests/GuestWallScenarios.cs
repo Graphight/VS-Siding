@@ -1,14 +1,10 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Atlas.Api;
 using Atlas.XUnit;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
 using Xunit;
-using Xunit.Abstractions;
-using Xunit.Sdk;
 
 namespace VSSiding.E2E.Tests;
 
@@ -20,7 +16,7 @@ public class GuestWallScenarios : AtlasScenarioBase
     private BlockPos Cell => World.Spawn.Offset(1, 2, 0);
 
     [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
-    public async Task C_Wall_Should_BecomeAGuest_When_ALanternIsClickedOntoIt()
+    public async Task Wall_Should_BecomeAGuest_When_ALanternIsClickedOntoIt()
     {
         BlockPos cell = Cell;
         World.SetBlock("game:planks-aged-ud", cell.DownCopy());
@@ -51,7 +47,7 @@ public class GuestWallScenarios : AtlasScenarioBase
     }
 
     [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
-    public async Task D_Wall_Should_BecomeAGuest_When_ALanternIsPlacedOnTheFloorOfItsCell()
+    public async Task Wall_Should_BecomeAGuest_When_ALanternIsPlacedOnTheFloorOfItsCell()
     {
         BlockPos cell = Cell;
         World.SetBlock("game:planks-aged-ud", cell.DownCopy());
@@ -81,7 +77,7 @@ public class GuestWallScenarios : AtlasScenarioBase
 
     // A bare frame holds nothing up, so the lantern takes the next face that does: the floor of the wall's cell.
     [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
-    public async Task E_Lantern_Should_StandOnTheFloorOfTheCell_When_ClickedOntoABareFrame()
+    public async Task Lantern_Should_StandOnTheFloorOfTheCell_When_ClickedOntoABareFrame()
     {
         BlockPos cell = Cell;
         World.SetBlock("game:planks-aged-ud", cell.DownCopy());
@@ -110,7 +106,7 @@ public class GuestWallScenarios : AtlasScenarioBase
 
     // Asserted with no tick between: a wall that came back a tick late was sent to clients as an empty cell first.
     [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
-    public async Task F_Wall_Should_ComeBackAtOnce_When_ItsLanternIsPickedUp()
+    public async Task Wall_Should_ComeBackAtOnce_When_ItsLanternIsPickedUp()
     {
         BlockPos cell = Cell;
         World.SetBlock("game:planks-aged-ud", cell.DownCopy());
@@ -140,7 +136,7 @@ public class GuestWallScenarios : AtlasScenarioBase
     }
 
     [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
-    public async Task G_Wall_Should_BecomeAGuest_When_ATableIsPlacedInItsCell()
+    public async Task Wall_Should_BecomeAGuest_When_ATableIsPlacedInItsCell()
     {
         BlockPos cell = Cell;
         World.SetBlock("game:planks-aged-ud", cell.DownCopy());

@@ -19,8 +19,9 @@ internal class MethodNameOrderer : ITestCaseOrderer
         => testCases.OrderBy(testCase => testCase.TestMethod.Method.Name, StringComparer.Ordinal);
 }
 
-// A restart boots a new host, so these pairs keep FreshWorld/RestartWorld and rollback cannot apply.
-// Each pair is one scenario split by the restart: the build is A_ or C_ and the check follows in name order.
+// A guest wall survives a restart (0035) and comes back when its chunk loads (#64).
+// A restart needs no joined player and runs before a scenario, so each pair is one scenario split in two: A_ or C_ builds, the next name checks.
+// Kept out of the rollback classes (0091): a restart boots a new host, whose next rollback scenario would snapshot the world the build left.
 [TestCaseOrderer("VSSiding.E2E.Tests.MethodNameOrderer", "VSSiding.E2E.Tests")]
 [AtlasWorld(StrictBootDiagnostics = true)]
 public class GuestRestartScenarios : AtlasScenarioBase
@@ -68,6 +69,7 @@ public class GuestRestartScenarios : AtlasScenarioBase
         Assert.Null(WallBuilder.GuestLayers(World, cell.NorthCopy()));
         return Task.CompletedTask;
     }
+
     // The state #64's save was found in: air in the cell, the wall still in the guest store, and no change at the cell left to restore it.
     // Built directly, since every vanilla path tried restores the wall when its host goes.
     [AtlasScenario(FreshWorld = true)]
