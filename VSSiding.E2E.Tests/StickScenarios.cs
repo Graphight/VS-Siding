@@ -132,9 +132,12 @@ public class StickScenarios : AtlasScenarioBase
 
         await WallBuilder.Press(World, player, cell, "game:stick", BlockFacing.NORTH, new Vec3d(0.5, 0.9, 0), onDeck: true);
         var afterEdge = WallBuilder.DeckLayers(World, cell);
+        var next = World.BlockEntityAt<BlockEntity>(cell.NorthCopy()) == null ? default : WallBuilder.Layers(World, cell.NorthCopy());
         await WallBuilder.Press(World, player, cell, "game:stick", BlockFacing.UP, new Vec3d(0.5, 1, 0.5), onDeck: true);
 
-        Assert.Equal((("oak", null, null, null), ("oak", "wattle", null, null)), (afterEdge, WallBuilder.DeckLayers(World, cell)));
+        Assert.Equal(
+            (("oak", null, null, null), ("sticks", null, null, null, null), ("oak", "wattle", null, null)),
+            (afterEdge, next, WallBuilder.DeckLayers(World, cell)));
     }
 
     // A frame the sticks cannot pay for still claims the click, so a later stick behavior never runs in its place (#143).
