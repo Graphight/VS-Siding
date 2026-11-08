@@ -84,9 +84,9 @@ public class CompatProbeScenarios : AtlasScenarioBase
     {
         player.Player.InventoryManager.ActiveHotbarSlot.Itemstack = null;
         player.Entity.LeftHandItemSlot.Itemstack = new ItemStack(World.Api.World.GetItem(new AssetLocation("game:saw-copper")));
-        // Three high and two long: More Inventorys' largest racks are two wide and three high.
-        var walls = new[] { cell, cell.NorthCopy() }.SelectMany(column => new[] { column, column.UpCopy(), column.UpCopy(2) }).ToArray();
-        foreach (BlockPos column in new[] { cell, cell.NorthCopy() })
+        // Three high and three long: More Inventorys' largest racks are two wide and three high, Butchering's table three long.
+        var walls = new[] { cell, cell.NorthCopy(), cell.NorthCopy(2) }.SelectMany(column => new[] { column, column.UpCopy(), column.UpCopy(2) }).ToArray();
+        foreach (BlockPos column in new[] { cell, cell.NorthCopy(), cell.NorthCopy(2) })
         {
             World.SetBlock("game:planks-aged-ud", column.DownCopy());
             for (int up = 0; up < 3; up++)

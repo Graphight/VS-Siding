@@ -5,5 +5,12 @@
 		"path": "/attributes",
 		"value": { "vssidingHanger": true },
 		"dependsOn": [{ "modid": "butchering" }]
+	},
+	{
+		"op": "addmerge",
+		"file": "butchering:blocktypes/butchertable.json",
+		"path": "/attributes",
+		"value": { "vssidingHostable": true },
+		"dependsOn": [{ "modid": "butchering" }]
 	}
 ]

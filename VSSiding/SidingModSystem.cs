@@ -1076,16 +1076,19 @@ public class SidingModSystem : ModSystem
         if (!__result || __instance.block is BlockBed || !IsHostableId(__instance.block.BlockId)) return;
 
         var cells = new List<Block>();
+        string? openPart = null;
         __instance.IterateOverEach(blockSel.Position, mpos =>
         {
             cells.Add(world.BlockAccessor.GetBlock(mpos));
+            openPart ??= SidingWallBlock.OpenPartRefusal(world.BlockAccessor.GetBlockEntity<SidingWallEntity>(mpos));
             return true;
         });
 
-        if (FootprintHosts(__instance.block.Variant["side"], cells)) return;
+        bool hosts = FootprintHosts(__instance.block.Variant["side"], cells);
+        if (hosts && openPart == null) return;
         __result = false;
         handling = EnumHandling.PreventDefault;
-        failureCode = "notenoughspace";
+        failureCode = hosts ? openPart! : "notenoughspace";
     }
 
     // More Inventorys' multi-cell blocks (racks, the clothing rack, the double crate, the large cabinet)
