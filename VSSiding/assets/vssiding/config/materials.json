@@ -208,7 +208,7 @@
 		},
 		"stackedbamboo": {
 			DisplayName: "vssiding:finish-stackedbamboo",
-			Texture: "game:block/wood/planks/bamboo-side",
+			Texture: { base: "game:block/wood/planks/bamboo-side", rotation: 90 },
 			Elements: { front: "front-boards", back: "back-boards" },
 			FloorElements: {
 				front: { hboards: "front-hboards", boards: "front-boards" },
