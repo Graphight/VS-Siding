@@ -20,6 +20,8 @@ public class IsHangerTests
         return lantern;
     }
 
+    private static Block Named(string path) => new() { Code = new AssetLocation("game", path) };
+
     private static Block Chandelier(params BlockFacing[] attachableFaces)
     {
         var chandelier = new Block();
@@ -40,6 +42,9 @@ public class IsHangerTests
             ["two-way chandelier"] = Chandelier(BlockFacing.UP, BlockFacing.DOWN),
             ["falling sand"] = Chandelier(BlockFacing.DOWN),
             ["plain block"] = new Block(),
+            ["ceiling lamp"] = Named("oillampceilingfix-blue-down-north-normal"),
+            ["raised ceiling lamp"] = Named("oillampceilingfix-blue-down-north-raised"),
+            ["wall lamp"] = Named("oillampwallfix-blue-north"),
         };
 
         var expected = new Dictionary<string, bool>
@@ -50,6 +55,9 @@ public class IsHangerTests
             ["two-way chandelier"] = true,
             ["falling sand"] = false,
             ["plain block"] = false,
+            ["ceiling lamp"] = true,
+            ["raised ceiling lamp"] = true,
+            ["wall lamp"] = false,
         };
 
         var actual = new Dictionary<string, bool>();

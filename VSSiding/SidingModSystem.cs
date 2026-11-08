@@ -197,7 +197,9 @@ public class SidingModSystem : ModSystem
         }
 
         // BlockOilLamp sets its own basePos instead of calling base, so its flame needs its own patch.
-        foreach (var particleBlock in new[] { typeof(Block), typeof(BlockOilLamp) })
+        // Oil Lamps Anywhere's ceiling lamp overrides it again without calling base.
+        var particleBlocks = new[] { typeof(Block), typeof(BlockOilLamp), AccessTools.TypeByName("OilLampCeilingFix.BlockCeilingLamp") };
+        foreach (var particleBlock in particleBlocks.Where(t => t != null))
         {
             try
             {
@@ -710,8 +712,10 @@ public class SidingModSystem : ModSystem
         AccessTools.FieldRefAccess<BlockBehaviorUnstableFalling, BlockFacing[]?>("attachableFaces");
 
     // A lantern or oil lamp hangs as its "down" variant; a chandelier is unstable falling attached on UP.
+    // Oil Lamps Anywhere adds its ceiling lamp from code after JSON patches run, so only its code names it.
     internal static bool IsHanger(Block block)
-        => block.BlockBehaviors.Any(behavior => behavior switch
+        => block.Code is { Domain: "game" } code && code.Path.StartsWith("oillampceilingfix-")
+        || block.BlockBehaviors.Any(behavior => behavior switch
         {
             BlockBehaviorOmniAttachable omni => block.Variant[omni.facingCode] == "down",
             BlockBehaviorUnstableFalling falling => AttachableFacesRef(falling)?.Contains(BlockFacing.UP) == true,
