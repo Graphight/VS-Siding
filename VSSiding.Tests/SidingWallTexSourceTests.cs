@@ -155,6 +155,22 @@ public class SidingWallTexSourceTests
         }, actual);
     }
 
+    // A corner front's strip in the second face's plane shows that face's finish and style, or the front's while it is bare (decision 0090).
+    [Fact]
+    public void AFrontEdgeShowsTheSecondFrontOrTheFrontWhileItIsBare()
+    {
+        var actual = new (string Front, string? SecondFront)[] { ("shakes", "planks"), ("shakes", null), ("planks", "shakes") }
+            .Select(c => SidingWallTexSource.ResolveTexture("frontedge", "oak", "wattle", c.Front, c.SecondFront, null, Framings, Infills, Finishes,
+                frontStyle: c.Front == "shakes" ? "logs" : null, secondFrontStyle: c.SecondFront == "shakes" ? "logs" : null)!.Base);
+
+        Assert.Equal(new[]
+        {
+            new AssetLocation("game:block/wood/planks/aged1"),
+            new AssetLocation("game:block/wood/debarked/oak"),
+            new AssetLocation("game:block/wood/debarked/oak"),
+        }, actual);
+    }
+
     [Fact]
     public void ExplicitStyleOverridesTheDefaultOnEachSlot()
     {

@@ -440,7 +440,14 @@ public class SidingWallEntity : BlockEntity
         bool OnLeg(string part, string otherLeg, bool tee) => !part.EndsWith(otherLeg) && !(part == "" && tee);
         if (front != null) AddFinish(FinishElement(finishes, front, "front", styles.front), cornerout ? part => OnLeg(part, "-left", tees.right) : null);
         if (secondFront != null)
-            AddFinish("second" + FinishElement(finishes, secondFront, "front", styles.secondFront), cornerout ? part => OnLeg(part, "-right", tees.left) : null);
+        {
+            string group = "second" + FinishElement(finishes, secondFront, "front", styles.secondFront);
+            AddFinish(group, cornerout ? part => OnLeg(part, "-right", tees.left) : null);
+            // A bare front leaves the outside corner's column open, and the second front carries on over it, where no facing
+            // front's infill fills it (decisions 0083, 0090). Its glazed rim is the corner post's piece alone.
+            if (cornerout && front == null && !(closed.front && infill != null && !glazed))
+                AddFinish(group + "-corner", part => part is "" or "-tee-left" && OnLeg(part, "-right", tees.left));
+        }
         if (framing != null) names.AddRange(parts.Select(part => member + part));
         if (infill != null)
         {

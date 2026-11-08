@@ -37,7 +37,8 @@ public record Element(
     double RotationY = 0,
     (double X, double Y, double Z)? RotationOrigin = null,
     (double X, double Y, double Z) Offset = default,
-    Dictionary<string, FaceUv>? Explicit = null);
+    Dictionary<string, FaceUv>? Explicit = null,
+    Dictionary<string, string>? FaceSlots = null);
 
 // A face's uv rect and rotation exactly as a vanilla shape writes them, for the step sets copied from vanilla's stairs.
 public record FaceUv(double U0, double V0, double U1, double V1, int Rotation = 0);
@@ -769,7 +770,7 @@ public static class WallShapeGen
         ];
     }
 
-    private static readonly Element[] CornerOutElements = SecondBackOnLegTwo(
+    private static readonly Element[] CornerOutElements = SecondFrontCorners(SecondBackOnLegTwo(
     [
         new("front", (0, 0, 0), (1, 16, 16), "front", UvRule.Flat, Explicit: Only("north", F(15, 0, 16, 16))),
         new("framing-top", (1, 15, 3), (3, 16, 15), "framing", UvRule.Flat),
@@ -920,12 +921,31 @@ public static class WallShapeGen
         .. RubbleGrid("secondfront-rubble", "secondfront", 'z', 0, 1, 1, 16),
         .. RubbleGrid("back-rubble", "back", 'x', 4, 3, 4, 16),
         .. RubbleGrid("back-rubble", "back", 'z', 4, 3, 3, 16),
-    ]);
+    ]));
 
     // A corner's room side is two faces, leg 1 and leg 2, and the inner corner's column goes with leg 2 (decision 0090).
     // The shapes are built as one back and split here, so every style keeps its two legs' look and only the name differs.
     private static Element[] SecondBackOnLegTwo(Element[] elements)
         => [.. elements.Select(e => e.Slot == "back" && e.From.Z < 4 ? e with { Name = "second" + e.Name, Slot = "secondback" } : e)];
+
+    // The outside corner's column is the front's, and `G-corner` carries each second front group G on over it for a bare
+    // front (decision 0090): its boxes against the column, moved into it. A group running along x samples its own place on
+    // the run already; the rest keep their slab's texture going, through the column the front's sliver samples.
+    private static Element[] SecondFrontCorners(Element[] elements)
+        => [.. elements, .. elements.Where(e => e.Slot == "secondfront" && e.From.X == 1).Select(e => e with
+        {
+            Name = e.Name + "-corner",
+            From = e.From with { X = 0 },
+            To = e.To with { X = 1 },
+            Faces = [.. (e.Faces ?? AllFaces).Where(face => face != "east")],
+            ClippedFrom = e.RunAxis == 'x' ? null : e with { From = e.From with { X = 0 } },
+        })];
+
+    // The column's north side lies in the second face's plane, so the front draws it in `frontedge`, which shows the second
+    // face's finish, or the front's while that face is bare (decision 0090). Run after the rims are cut, so a cut face
+    // looking north onto the glass keeps the front's.
+    private static Element[] FrontEdgeOnSecondFace(Element[] elements)
+        => [.. elements.Select(e => e.Slot == "front" && e.From.Z < 1 ? e with { FaceSlots = new() { ["north"] = "frontedge" } } : e)];
 
     private static readonly (string Slot, string Texture)[] WallTextures =
     [
@@ -947,6 +967,7 @@ public static class WallShapeGen
         ("infill", "game:block/wood/planks/aged/aged1"),
         ("front", "game:block/wood/planks/aged/aged1"),
         ("secondfront", "game:block/wood/planks/aged/aged1"),
+        ("frontedge", "game:block/wood/planks/aged/aged1"),
         ("back", "game:block/wood/planks/aged/aged1"),
         ("secondback", "game:block/wood/planks/aged/aged1"),
         ("deck", "game:block/wood/planks/aged/aged1"),
@@ -1447,7 +1468,7 @@ public static class WallShapeGen
         "wall" => Emit([.. WithDeck([.. WallElements, .. RimPieces(WallElements)], ((4, 12, 0), (16, 16, 16))), .. CapGroups(((0, 15, 0), (4, 16, 16)))], WallTextures),
         "floor" => Emit(FloorShape, FloorTextures),
         "cornerout" => Emit(
-            [.. WithDeck([.. CornerOutElements, .. CornerRimPieces(CornerOutElements)], ((4, 12, 4), (16, 16, 16))),
+            [.. WithDeck(FrontEdgeOnSecondFace([.. CornerOutElements, .. CornerRimPieces(CornerOutElements)]), ((4, 12, 4), (16, 16, 16))),
              .. CapGroups(((0, 15, 0), (4, 16, 16)), ((4, 15, 0), (16, 16, 4)))], CornerOutTextures),
         "diagonal" => Rounded(Emit([.. DiagonalElements, .. DeckGroups("deck", DiagonalDeckStrips())], DiagonalTextures)),
         "cornerin" => Emit([.. CornerInElements, .. DeckGroups("deck", PostDeckStrips()), .. CapGroups(((0, 15, 0), (4, 16, 4)))], CornerInTextures),
@@ -1530,12 +1551,14 @@ public static class WallShapeGen
                 && Axis(other.To, a) >= Axis(element.To, a)));
     }
 
+    private static string SlotOf(Element element, string face) => "#" + (element.FaceSlots?.GetValueOrDefault(face) ?? element.Slot);
+
     private static JObject EmitFace(Element element, string face)
     {
         if (element.Explicit is { } explicitFaces && explicitFaces.TryGetValue(face, out var vanilla))
         {
             var (e0, e1, e2, e3) = element.ClippedFrom is { } from ? ClippedUv(from, element, face) : (vanilla.U0, vanilla.V0, vanilla.U1, vanilla.V1);
-            var explicitFace = new JObject { ["texture"] = "#" + element.Slot, ["uv"] = new JArray(e0, e1, e2, e3) };
+            var explicitFace = new JObject { ["texture"] = SlotOf(element, face), ["uv"] = new JArray(e0, e1, e2, e3) };
             if (vanilla.Rotation != 0) explicitFace["rotation"] = vanilla.Rotation;
             return explicitFace;
         }
@@ -1571,7 +1594,7 @@ public static class WallShapeGen
 
         var result = new JObject
         {
-            ["texture"] = "#" + element.Slot,
+            ["texture"] = SlotOf(element, face),
             ["uv"] = new JArray(u0, v0, u1, v1),
         };
         // A face rotation turns the texture the opposite way to a texture's own rotation, so 270 on a side

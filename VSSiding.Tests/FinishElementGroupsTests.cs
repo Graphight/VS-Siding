@@ -455,7 +455,60 @@ public class FinishElementGroupsTests
         Assert.Equal([], offenders);
     }
 
-    private static readonly string[] PlankFinishes = ["planks", "planks-aged", "planks-veryaged", "planks-{wood}", "stained-{stain}-{wood}", "dyed-{color}-{wood}"];
+    // A corner's outside corner is the front's column, and each side of it shows the finish of the face it lies in: the
+    // west the front's, the north the second front's through `frontedge`. A bare front leaves the column to the second
+    // front, which reaches over it, glazed or not, in every pair of looks (decision 0090).
+    [Fact]
+    public void EachOuterFaceOfACornerShowsItsOwnFinishToTheOutsideCorner()
+    {
+        var entries = FinishEntries();
+        var finishes = new JsonObject(new JObject(entries.Select(e => new JProperty(e.Name, e.Value))));
+        var elements = WallShapeGen.Generate("cornerout")["elements"]!.Cast<JObject>().ToArray();
+        static double At(JObject element, string corner, int axis) => (double)element[corner]![axis]!;
+        (string? Name, string? Style)[] looks =
+        [
+            (null, null),
+            .. from entry in entries
+               from style in new string?[] { null }.Concat(entry.Value["Styles"]?.Select(t => (string)t!) ?? [])
+               select ((string?)entry.Name, style),
+        ];
+        var corners = (
+            from a in looks
+            from b in looks
+            from glazed in new[] { false, true }
+            select (Drawn: SidingWallEntity.SelectiveElements("cornerout", "oak", glazed ? "glass" : "wattle", a.Name, b.Name, null, finishes,
+                (false, false, false, false), glazed, styles: (a.Style, b.Style, null)), A: a.Name != null, B: b.Name != null))
+            .DistinctBy(corner => string.Join(",", corner.Drawn));
+
+        var offenders = new List<string>();
+        foreach (var (drawn, a, b) in corners)
+        {
+            var column = (
+                from element in elements
+                where drawn.Contains((string)element["name"]!) && At(element, "from", 0) < 1 && At(element, "from", 2) < 1
+                from face in ((JObject)element["faces"]!).Properties()
+                where face.Name is "west" or "north"
+                select (Element: element, Face: face.Name, Texture: (string)face.Value["texture"]!)).ToArray();
+            string Own(string outward) => a ? (outward == "west" ? "#front" : "#frontedge") : "#secondfront";
+            offenders.AddRange(column.Where(f => !(a || b) || f.Texture != Own(f.Face))
+                .Select(f => $"{string.Join(",", drawn)}: {f.Element["name"]} shows {f.Texture} on the {f.Face} side"));
+            if (a || !b) continue;
+
+            var uncovered = (
+                from x in Enumerable.Range(0, 4)
+                from y in Enumerable.Range(0, 64)
+                let point = (X: x / 4.0 + 0.125, Y: y / 4.0 + 0.125)
+                where !column.Any(f => f.Face == "north"
+                    && At(f.Element, "from", 0) <= point.X && point.X <= At(f.Element, "to", 0)
+                    && At(f.Element, "from", 1) <= point.Y && point.Y <= At(f.Element, "to", 1))
+                select point).FirstOrDefault();
+            if (uncovered != default) offenders.Add($"{string.Join(",", drawn)}: the outside corner shows nothing north at {uncovered}");
+        }
+
+        Assert.Equal([], offenders);
+    }
+
+    private static readonly string[] PlankFinishes =["planks", "planks-aged", "planks-veryaged", "planks-{wood}", "stained-{stain}-{wood}", "dyed-{color}-{wood}"];
 
     // The rim names glazed cells ask for, over every finish, each of its styles and none, and every set of joins.
     private static List<string> RimsEveryGlazedCellAsksFor(

@@ -145,6 +145,19 @@ public class SidingWallEntityTests
                 Elements("cornerout", "wattle", null, null, (true, true)) });
     }
 
+    // A bare front's column is the second front's to reach over, unless a facing front's infill already fills it (decisions 0083, 0090).
+    [Fact]
+    public void ACornersSecondFrontReachesOverTheBareFrontsColumnWhereNoInfillFillsIt()
+    {
+        string[] Corner(string? front, (bool front, bool second) closed) => SidingWallEntity.SelectiveElements(
+                "cornerout", "oak", "wattle", front, "daub", null, Dict("""{ "daub": {} }"""), (false, false, false, false), glazed: false, closed: closed)
+            .Where(name => name.StartsWith("secondfront")).ToArray();
+
+        Assert.Equal(
+            new string[][] { ["secondfront", "secondfront-corner"], ["secondfront"], ["secondfront"] },
+            new[] { Corner(null, (false, false)), Corner(null, (true, false)), Corner("daub", (false, false)) });
+    }
+
     private static string[] Elements(string layout, string? infill, string? front, string? secondFront, (bool front, bool second) closed)
         => SidingWallEntity.SelectiveElements(layout, "oak", infill, front, secondFront, null, Dict("""{ "daub": { "Elements": { "front": "front" } } }"""),
             (false, false, false, false), glazed: false, closed: closed)
