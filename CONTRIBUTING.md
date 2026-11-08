@@ -52,6 +52,7 @@ To try the branch in game, `just deploy` (or plain `just`) builds and swaps the 
 Changed `WallShapeGen`? Run `just shapes` (without `just`, `SIDING_REGEN=1 dotnet test VSSiding.Tests`) to rewrite the committed shape JSON from it (decision 0021).
 
 Changed a Harmony patch, a block entity or saved state? Run `just e2e` too (without `just`, `./build.sh` first, then `dotnet test VSSiding.E2E.Tests`), which boots the built mod headless.
+New scenarios use `[AtlasScenario(RollbackWorld = true, StrictIsolation = true)]`, so a class restores one world instead of booting one per scenario; a class that needs `FreshWorld` (a restart, say) carries a comment naming why (decision 0091).
 
 Check the real exit status: a truncated or piped log can look reassuring and still exit non-zero.
 
