@@ -423,17 +423,21 @@ public class FinishElementGroupsTests
     [Fact]
     public void EveryStyledFinishOffersItsWholePickerRow()
     {
-        var entries = FinishEntries();
-        string[] Row(string key) => SidingModePicker.Rows.Single(r => r.Key == key).Options;
-        var finishesByRow = new (string Row, string[] Finishes)[] { ("vssidingBoards", PlankFinishes), ("vssidingLogs", ["shakes-{wood}"]) };
-        string[] plaster = ["plaster-diagonal: hboards, boards", "plaster-stripes: hboards, boards"];
+        string Row(string key) => string.Join(", ", SidingModePicker.Rows.Single(r => r.Key == key).Options);
+        string[] expected =
+        [
+            .. PlankFinishes.Select(name => $"{name}: {Row("vssidingBoards")}"),
+            "plaster-diagonal: hboards, boards",
+            "plaster-stripes: hboards, boards",
+            $"shakes-{{wood}}: {Row("vssidingLogs")}",
+        ];
 
         Assert.Equal(
-            finishesByRow.SelectMany(row => row.Finishes.Select(name => $"{name}: {string.Join(", ", Row(row.Row))}"))
-                .Take(3).Concat(plaster).Concat(finishesByRow.SelectMany(row => row.Finishes.Select(name => $"{name}: {string.Join(", ", Row(row.Row))}")).Skip(3)),
-            finishesByRow.SelectMany(row => entries
-                .Where(e => e.Value["Styles"]?.Any(t => Row(row.Row).Contains((string)t!)) ?? false)
-                .Select(e => $"{e.Name}: {string.Join(", ", e.Value["Styles"]!.Select(t => (string)t!))}")));
+            expected.Order(),
+            FinishEntries()
+                .Where(e => e.Value["Styles"] != null)
+                .Select(e => $"{e.Name}: {string.Join(", ", e.Value["Styles"]!.Select(t => (string)t!))}")
+                .Order());
     }
 
     // A style a wall takes and a floor face refuses falls back to that face's default with no error,
