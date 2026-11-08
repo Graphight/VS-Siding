@@ -52,12 +52,33 @@ internal static class WallBuilder
         return guest == null ? null : LayersOf(guest);
     }
 
+    // deck, deckinfill, deckfront, deckback as the wall's entity saves them.
+    internal static (string? Deck, string? Infill, string? Front, string? Back) DeckLayers(IWorldSession world, BlockPos cell)
+    {
+        var read = Reader(world.BlockEntityAt<BlockEntity>(cell)!);
+        return (read("deck"), read("deckinfill"), read("deckfront"), read("deckback"));
+    }
+
     private static (string? Framing, string? Infill, string? Front, string? SecondFront, string? Back) LayersOf(BlockEntity entity)
+    {
+        var read = Reader(entity);
+        return (read("framing"), read("infill"), read("front"), read("secondfront"), read("back"));
+    }
+
+    private static System.Func<string, string?> Reader(BlockEntity entity)
     {
         var tree = new TreeAttribute();
         entity.ToTreeAttributes(tree);
-        string? Read(string key) => tree.GetString(key) is { Length: > 0 } value ? value : null;
-        return (Read("framing"), Read("infill"), Read("front"), Read("secondfront"), Read("back"));
+        return key => tree.GetString(key) is { Length: > 0 } value ? value : null;
+    }
+
+    // The horizontal face the player looks toward, the way a floor run walks (SidingFloorBlock.Ahead).
+    internal static BlockFacing Ahead(ITestPlayer player)
+    {
+        Vec3f view = player.Entity.SidedPos.GetViewVector();
+        return Math.Abs(view.X) >= Math.Abs(view.Z)
+            ? (view.X > 0 ? BlockFacing.EAST : BlockFacing.WEST)
+            : (view.Z > 0 ? BlockFacing.SOUTH : BlockFacing.NORTH);
     }
 
     // The player stands outside the cell looking in, as a builder does: the wall then claims the face towards the room.

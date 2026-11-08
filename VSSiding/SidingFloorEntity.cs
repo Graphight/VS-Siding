@@ -75,7 +75,8 @@ public class SidingFloorEntity : BlockEntity
         int alternate = SidingWallEntity.CellAlternate(Block.Attributes, SidingWallTexSource.Alternate(Pos), Framing, null, [Infill], [Front, Back]);
         string[] innerCorners = SidingFloorBlock.InnerCorners(Api.World.BlockAccessor, Pos, glazed, joins);
         string[] selectiveElements = SelectiveElements(Framing, Infill, Front, Back, Block.Attributes["Finishes"], joins, (FrontStyle, BackStyle), glazed,
-            SidingWallEntity.FrameElements(Block.Attributes["Framings"], Framing, alternate), innerCorners);
+            SidingWallEntity.FrameElements(Block.Attributes["Framings"], Framing, alternate), innerCorners,
+            SidingWallEntity.InfillElements(Block.Attributes["Infills"], Infill));
         if (selectiveElements.Length == 0) return false;
 
         string cacheKey = CacheKey(Framing, Infill, Front, Back, (FrontStyle, BackStyle), joins, alternate, innerCorners);
@@ -114,9 +115,9 @@ public class SidingFloorEntity : BlockEntity
     internal static string[] SelectiveElements(
         string? framing, string? infill, string? front, string? back, JsonObject finishes,
         (bool above, bool below, bool left, bool right) joins, (string? front, string? back) styles = default, bool glazed = false, string frame = "framing",
-        string[]? innerCorners = null)
+        string[]? innerCorners = null, string fill = "infill")
     {
-        var names = SidingWallEntity.SelectiveElements("wall", framing, infill, null, null, null, finishes, joins, glazed, frame: frame, innerCorners: innerCorners).ToList();
+        var names = SidingWallEntity.SelectiveElements("wall", framing, infill, null, null, null, finishes, joins, glazed, frame: frame, innerCorners: innerCorners, fill: fill).ToList();
         var parts = SidingWallEntity.FrameParts("wall", joins, glazed, innerCorners);
         IEnumerable<string> Finish(string key, string face, string? style)
         {

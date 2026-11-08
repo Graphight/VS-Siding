@@ -26,6 +26,13 @@
 			BlockMaterial: "Other",
 			Consumes: { type: "item", code: "game:bone", quantity: 2 },
 			Drops: [ { type: "item", code: "game:bone", quantity: { avg: 2, var: 0 } } ]
+		},
+		"bamboo": {
+			DisplayName: "vssiding:framing-bamboo",
+			Texture: "game:block/wood/planks/bamboo-side",
+			Elements: "poles",
+			Consumes: { type: "item", code: "game:bamboostakes", quantity: 2 },
+			Drops: [ { type: "item", code: "game:bamboostakes", quantity: { avg: 2, var: 0 } } ]
 		}
 	},
 	FramingFamilies: {
@@ -45,6 +52,15 @@
 			Porous: true,
 			Consumes: { type: "item", code: "game:stick", quantity: 4 },
 			Drops: [ { type: "item", code: "game:stick", quantity: { avg: 4, var: 0 } } ]
+		},
+		"bamboopoles": {
+			DisplayName: "vssiding:infill-bamboopoles",
+			Texture: "game:block/wood/planks/bamboo-side",
+			Elements: "stems",
+			BlockMaterial: "Wood",
+			Porous: true,
+			Consumes: { type: "item", code: "game:bamboostakes", quantity: 2 },
+			Drops: [ { type: "item", code: "game:bamboostakes", quantity: { avg: 2, var: 0 } } ]
 		},
 		"straw": {
 			DisplayName: "vssiding:infill-straw",

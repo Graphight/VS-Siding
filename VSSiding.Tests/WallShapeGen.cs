@@ -292,6 +292,49 @@ public static class WallShapeGen
         .. WallPoleElements.Where(e => e.Name is "poles-top" or "poles-bottom").Select(e => e with { Name = e.Name.Replace("poles", "poles2") }),
     ];
 
+    // Bamboo poles standing side by side, two voxels wide on the odd voxels from z 1, in the wall's frame: a core in the
+    // infill's depth, a ridge down each face so the seams read, and two nodes a pole at heights staggered pole to pole.
+    // Ridges and nodes sit at 1.3, 1.15, 2.7 and 2.85, off the planes of the pole frames' stubs, lashings and joists. The
+    // poles are cut to z runLo..runHi and y y0..y1, which is how a join's sliver and a corner's leg take their part.
+    private static IEnumerable<Element> Stems(string name, double runLo, double runHi, double y0, double y1)
+    {
+        for (int k = (int)Math.Floor((runLo - 1) / 2); 1 + 2 * k < runHi; k++)
+        {
+            double z = 1 + 2 * k;
+            var (low, high) = StemNodes[((k % 8) + 8) % 8];
+            (double X1, double Y1, double Z1, double X2, double Y2, double Z2)[] boxes =
+            [
+                (1.5, 0, z, 2.5, 16, z + 2),
+                (1.3, 0, z + 0.4, 1.5, 16, z + 1.6),
+                (2.5, 0, z + 0.4, 2.7, 16, z + 1.6),
+                .. new[] { low, high }.SelectMany(n => new[] { (1.15, n, z + 0.2, 1.5, n + 0.5, z + 1.8), (2.5, n, z + 0.2, 2.85, n + 0.5, z + 1.8) }),
+            ];
+            foreach (var b in boxes)
+            {
+                double lo = Math.Max(b.Z1, runLo), hi = Math.Min(b.Z2, runHi), bottom = Math.Max(b.Y1, y0), top = Math.Min(b.Y2, y1);
+                if (hi > lo && top > bottom)
+                    yield return new Element(name, (b.X1, bottom, lo), (b.X2, top, hi), "infill", UvRule.Flat, RunAxis: 'z');
+            }
+        }
+    }
+
+    // The nodes of pole k mod 8, a quarter voxel off the grid: no plane of a node meets a frame's or a floor joist's.
+    private static readonly (double Low, double High)[] StemNodes =
+        [(3.75, 9.25), (6.25, 11.75), (2.25, 7.75), (9.75, 13.25), (3.75, 11.25), (7.75, 13.25), (2.25, 9.75), (6.25, 11.25)];
+
+    // A wall's stems at the infill's three heights, the join slivers above and below the panel.
+    private static IEnumerable<Element> StemBands(double runLo, double runHi)
+        => [.. Stems("stems-top", runLo, runHi, 15, 16), .. Stems("stems", runLo, runHi, 1, 15), .. Stems("stems-bottom", runLo, runHi, 0, 1)];
+
+    // A corner's second leg runs along x with its depth on z.
+    private static Element SwapXZ(Element e)
+        => e with { From = (e.From.Z, e.From.Y, e.From.X), To = (e.To.Z, e.To.Y, e.To.X), RunAxis = 'x' };
+
+    // A floor lays the wall's stems flat: the wall's depth is the floor's height and its height the floor's x, so the
+    // poles lie east-west across the joists; the top and underside turn the texture to run along them.
+    private static Element OnFloor(Element e)
+        => e with { From = (e.From.Y, e.From.X + 12, e.From.Z), To = (e.To.Y, e.To.X + 12, e.To.Z), RotatedFaces = ["up", "down"] };
+
     // Bark is the flat slab horizontal boards are, and its two styles differ in texture alone
     // (decision 0063), so their groups are the hboards rows under other names.
     private static IEnumerable<Element> WithBark(params Element[] hboards)
@@ -396,6 +439,7 @@ public static class WallShapeGen
         new("infill-top", (1.5, 15, 1), (2.5, 16, 15), "infill", UvRule.Positional),
         new("infill", (1.5, 1, 1), (2.5, 15, 15), "infill", UvRule.Positional),
         new("infill-bottom", (1.5, 0, 1), (2.5, 1, 15), "infill", UvRule.Positional),
+        .. StemBands(1, 15),
         new("infill-pane", (2, 0, 0), (2, 16, 16), "infill", UvRule.Flat, Faces: ["west", "east"]),
         // A bare front facing another wall's front is closed in the infill (decision 0083).
         new("infill-front", (0, 0, 0), (1, 16, 16), "infill", UvRule.Positional),
@@ -737,6 +781,7 @@ public static class WallShapeGen
         new("infill-top", (1.5, 15, 3), (2.5, 16, 15), "infill", UvRule.Positional),
         new("infill", (1.5, 1, 3), (2.5, 15, 15), "infill", UvRule.Positional),
         new("infill-bottom", (1.5, 0, 3), (2.5, 1, 15), "infill", UvRule.Positional),
+        .. StemBands(3, 15),
         new("framing", (1, 0, 15), (3, 16, 16), "framing", UvRule.Flat),
         new("back", (3, 0, 4), (4, 16, 16), "back", UvRule.Flat),
         new("secondfront", (1, 0, 0), (16, 16, 1), "secondfront", UvRule.Flat),
@@ -748,6 +793,7 @@ public static class WallShapeGen
         new("infill-top", (3, 15, 1.5), (15, 16, 2.5), "infill", UvRule.Positional),
         new("infill", (3, 1, 1.5), (15, 15, 2.5), "infill", UvRule.Positional),
         new("infill-bottom", (3, 0, 1.5), (15, 1, 2.5), "infill", UvRule.Positional),
+        .. StemBands(3, 15).Select(SwapXZ),
         new("infill-pane", (2, 0, 3), (2, 16, 16), "infill", UvRule.Flat, Faces: ["west", "east"]),
         new("infill-pane", (3, 0, 2), (16, 16, 2), "infill", UvRule.Flat, Faces: ["north", "south"]),
         new("framing", (15, 0, 1), (16, 16, 3), "framing", UvRule.Flat),
@@ -955,6 +1001,16 @@ public static class WallShapeGen
            where hi > lo
            select OnDiagonal(e with { From = (e.From.X, e.From.Y, lo), To = (e.To.X, e.To.Y, hi), ClippedFrom = e }, suffix, shift);
 
+    // The stems over a run, laid on the cell's 0..16 and repeated along it as DiagonalFinish lays a finish, so the poles keep
+    // their spacing and nodes through the run's ends instead of stretching as DiagonalRun stretches a slab.
+    private static IEnumerable<Element> DiagonalStems(double runLo, double runHi, string suffix = "")
+        => from shift in new[] { -16, 0, 16 }
+           from e in StemBands(0, 16)
+           let lo = Math.Max(e.From.Z, 8 + runLo - shift)
+           let hi = Math.Min(e.To.Z, 8 + runHi - shift)
+           where hi > lo
+           select OnDiagonal(e with { From = (e.From.X, e.From.Y, lo), To = (e.To.X, e.To.Y, hi) }, suffix, shift);
+
     // A finish's pieces over a run cut to each rail's height, or with `post`, where the half post stays, one piece over the
     // post's whole height: `G-rim-join-left` and `-right`.
     private static IEnumerable<Element> DiagonalRims(double runLo, double runHi, string suffix = "", bool post = false)
@@ -979,6 +1035,9 @@ public static class WallShapeGen
             DiagonalRun(e, 1 - DiagonalCorner, -DiagonalEnd, "-left"),
             DiagonalRun(e, DiagonalEnd, DiagonalCorner - 1, "-right"),
         }),
+        .. DiagonalStems(-DiagonalEnd, DiagonalEnd),
+        .. DiagonalStems(1 - DiagonalCorner, -DiagonalEnd, "-left"),
+        .. DiagonalStems(DiagonalEnd, DiagonalCorner - 1, "-right"),
         .. DiagonalFinish(-DiagonalEnd, DiagonalEnd),
         .. DiagonalFinish(-DiagonalCorner, -DiagonalEnd, "-left"),
         .. DiagonalFinish(DiagonalEnd, DiagonalCorner, "-right"),
@@ -1095,6 +1154,9 @@ public static class WallShapeGen
         new("infill-top", (0, 13.5, 0), (16, 14.5, 1), "infill", UvRule.Flat, RunAxis: 'z'),
         new("infill", (0, 13.5, 1), (16, 14.5, 15), "infill", UvRule.Flat, RunAxis: 'z'),
         new("infill-bottom", (0, 13.5, 15), (16, 14.5, 16), "infill", UvRule.Flat, RunAxis: 'z'),
+        // Joined floors make one pole of their two halves over the seam.
+        .. new (string Name, double Lo, double Hi)[] { ("stems-top", 0, 1), ("stems", 1, 15), ("stems-bottom", 15, 16) }
+            .SelectMany(band => Stems(band.Name, band.Lo, band.Hi, 0, 16).Select(OnFloor)),
         new("back", (0, 12, 0), (16, 13, 16), "back", UvRule.Flat),
         new("infill-pane", (0, 14, 0), (16, 14, 16), "infill", UvRule.Flat, Faces: ["up", "down"]),
         // The wall's glazing frame laid flat, with no joists: stiles on the west and east edges, rails

@@ -197,6 +197,26 @@ public class SidingFloorTests
     }
 
     [Fact]
+    public void AnInfillsOwnGroupsTakeThePlainOnesPlaceInAFloorAndADeck()
+    {
+        Assert.Equal(
+            new string[][]
+            {
+                ["framing-left", "framing-right", "stems", "stems-top", "stems-bottom"],
+                ["framing-left", "framing-right", "infill", "infill-top", "infill-bottom"],
+                ["deck-west-framing-left", "deck-west-framing-right", "deck-west-stems", "deck-west-stems-top", "deck-west-stems-bottom",
+                    "ledge-west-framing-left", "ledge-west-framing-right", "ledge-west-stems", "ledge-west-stems-top", "ledge-west-stems-bottom"],
+            },
+            new[]
+            {
+                SidingFloorEntity.SelectiveElements("oak", "bamboopoles", null, null, Finishes, (true, true, false, false), fill: "stems"),
+                SidingFloorEntity.SelectiveElements("oak", "bamboopoles", null, null, Finishes, (true, true, false, false)),
+                SidingWallEntity.DeckElements("west", "oak", "bamboopoles", null, null, Finishes, (true, true, false, false), default, false,
+                    ledges: ["ledge"], fill: "stems"),
+            });
+    }
+
+    [Fact]
     public void ANeighbourContinuesJoistsOnFramingAndGlazingOnTransparentInfill()
     {
         JsonObject infills = SidingWallEntityTests.Dict("""{ "glass": { "Transparent": true }, "wattle": {} }""");
