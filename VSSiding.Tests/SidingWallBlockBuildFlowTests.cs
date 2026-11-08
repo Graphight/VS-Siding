@@ -260,6 +260,33 @@ public class SidingWallBlockBuildFlowTests
         Assert.Equal(expected, SidingWallBlock.HostsClick(layout, side, BlockFacing.FromCode(clicked)));
     }
 
+    // Diagonal plaster laid across a corner's edge from itself takes the other turn; stripes, another finish, a face
+    // that is not the partner and a post keep the picked style, which a null answer leaves in place (decision 0090).
+    [Theory]
+    [InlineData("cornerout", "secondfront", "plaster-diagonal", "front", "plaster-diagonal", "boards", "hboards")]
+    [InlineData("cornerout", "front", "plaster-diagonal", "secondfront", "plaster-diagonal", "hboards", "boards")]
+    [InlineData("cornerout", "secondback", "plaster-diagonal", "back", "plaster-diagonal", null, "boards")]
+    [InlineData("cornerout", "back", "plaster-diagonal", "secondback", "plaster-diagonal", "boards", "hboards")]
+    [InlineData("cornerout", "secondfront", "plaster-diagonal", "back", "plaster-diagonal", "boards", null)]
+    [InlineData("cornerout", "secondfront", "plaster-diagonal", "front", "plaster-stripes", "boards", null)]
+    [InlineData("cornerout", "secondfront", "plaster-stripes", "front", "plaster-stripes", "boards", null)]
+    [InlineData("cornerin", "secondfront", "plaster-diagonal", "front", "plaster-diagonal", "boards", null)]
+    public void MirroredStyleTurnsDiagonalPlasterAgainstItsPartnerAcrossACorner(
+        string layout, string face, string finishKey, string onFace, string onKey, string? onStyle, string? expected)
+    {
+        var finishes = new JsonObject(MaterialTextureOpacityTests.BlockAttributes("wall.json")["Finishes"]!);
+        var entity = new SidingWallEntity();
+        switch (onFace)
+        {
+            case "front": (entity.Front, entity.FrontStyle) = (onKey, onStyle); break;
+            case "secondfront": (entity.SecondFront, entity.SecondFrontStyle) = (onKey, onStyle); break;
+            case "back": (entity.Back, entity.BackStyle) = (onKey, onStyle); break;
+            case "secondback": (entity.SecondBack, entity.SecondBackStyle) = (onKey, onStyle); break;
+        }
+
+        Assert.Equal(expected, SidingWallBlock.MirroredStyle(layout, face, entity, finishes, finishKey));
+    }
+
     // Every wall is one leg of two possible corners, and the click picks which by which end of
     // the run it landed nearer. The run's axis and its direction both change with `side`, so all
     // four sides are here at both ends: a fixed "coordinate below 0.5" gets east and south wrong.

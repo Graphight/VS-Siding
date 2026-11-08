@@ -693,7 +693,7 @@ public class SidingWallBlock : Block
         }
 
         string? currentKey = FinishOn(entity, face);
-        string? currentStyle = face switch { "front" => entity.FrontStyle, "secondfront" => entity.SecondFrontStyle, "secondback" => entity.SecondBackStyle, _ => entity.BackStyle };
+        string? currentStyle = StyleOn(entity, face);
         if (currentKey != null)
         {
             // Restyling the same material is free: only the profile changes, so there is nothing
@@ -725,7 +725,7 @@ public class SidingWallBlock : Block
         if (parts > 1) finishConsumes = ShareConsumes(finishConsumes, parts);
         if (!TryAffordOrError(byPlayer, isCreative, slot.StackSize, finishConsumes)) return true;
 
-        SetFinish(world, entity, blockSel.Position, face, finishKey, style);
+        SetFinish(world, entity, blockSel.Position, face, finishKey, MirroredStyle(Variant["layout"], face, entity, Attributes["Finishes"], finishKey) ?? style);
         ConsumeHeld(slot, finishConsumes, isCreative);
         return true;
     }
@@ -1857,6 +1857,18 @@ public class SidingWallBlock : Block
 
     internal static string? FinishOn(SidingWallEntity entity, string face)
         => face switch { "front" => entity.Front, "secondfront" => entity.SecondFront, "secondback" => entity.SecondBack, _ => entity.Back };
+
+    internal static string? StyleOn(SidingWallEntity entity, string face)
+        => face switch { "front" => entity.FrontStyle, "secondfront" => entity.SecondFrontStyle, "secondback" => entity.SecondBackStyle, _ => entity.BackStyle };
+
+    // A finish that mirrors on corners, laid beside itself across a corner's edge, takes the turn its partner face has not, whatever
+    // is picked (decision 0090): boards draws the pattern a quarter turn, and hboards or no style draws it as it lies (decision 0086).
+    internal static string? MirroredStyle(string layout, string face, SidingWallEntity entity, JsonObject finishes, string finishKey)
+    {
+        string partner = face.StartsWith("second") ? face["second".Length..] : "second" + face;
+        if (layout != "cornerout" || !finishes[finishKey]["MirrorsOnCorners"].AsBool() || FinishOn(entity, partner) != finishKey) return null;
+        return StyleOn(entity, partner) == "boards" ? "hboards" : "boards";
+    }
 
     // The two faces a post stands against; it claims none, but a hosted block shifts away from both.
     internal static string[] PostFaces(string side) => [side, CorneroutSecondFace[side]];

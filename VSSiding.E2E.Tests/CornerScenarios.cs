@@ -23,12 +23,7 @@ public class CornerScenarios : AtlasScenarioBase
     [AtlasScenario(FreshWorld = true)]
     public async Task Corner_Should_TakeAFinishOnEachInnerFaceForOnePlankAndRefundThemAll_When_PlanksAreBuiltAndPeeled()
     {
-        BlockPos cell = World.Spawn.Offset(1, 2, 0);
-        World.SetBlock("game:planks-aged-ud", cell.DownCopy());
-        ITestPlayer player = await WallBuilder.JoinBuilder(World);
-        await WallBuilder.Raise(World, player, cell, cell.WestCopy(), "game:plank-oak", "game:clay-blue");
-        player.Entity.WatchedAttributes.SetString("vssidingFraming", "corner");
-        await WallBuilder.Press(World, player, cell, "game:stick", BlockFacing.WEST, NorthEnd);
+        (BlockPos cell, ITestPlayer player) = await RaiseCorner();
 
         // Away from the corner, so the planks it gives back stay on the ground to be counted.
         await player.TeleportTo(cell.EastCopy(6).Up());
@@ -74,5 +69,48 @@ public class CornerScenarios : AtlasScenarioBase
                 "air", 6
             ),
             (held, built, peeled, World.BlockAt(cell).Code.Path, refunded));
+    }
+
+    // Diagonal plaster laid beside itself round the corner takes the other turn whatever is picked, and a second press
+    // restyles it to the picked one; stripes plaster takes the picked turn on both faces (decision 0090).
+    [AtlasScenario(FreshWorld = true)]
+    public async Task Corner_Should_MirrorDiagonalPlasterUntilPressedAgain_When_PlasterIsLaidOnBothFacesOfAnEdgeWithBoardsPicked()
+    {
+        (BlockPos cell, ITestPlayer player) = await RaiseCorner();
+        player.Entity.WatchedAttributes.SetString("vssidingBoards", "boards");
+        (string?, string?) Read(string first, string second)
+        {
+            var read = WallBuilder.Reader(World.BlockEntityAt<BlockEntity>(cell)!);
+            return (read(first), read(second));
+        }
+
+        await WallBuilder.Press(World, player, cell, "game:plaster-diagonal-ud", BlockFacing.WEST, Middle);
+        await WallBuilder.Press(World, player, cell, "game:plaster-diagonal-ud", BlockFacing.NORTH, Middle);
+        var mirrored = Read("frontstyle", "secondfrontstyle");
+        await WallBuilder.Press(World, player, cell, "game:plaster-diagonal-ud", BlockFacing.NORTH, Middle);
+        var restyled = Read("frontstyle", "secondfrontstyle");
+        await WallBuilder.Press(World, player, cell, "game:plaster-stripes-ud", BlockFacing.EAST, Middle);
+        await WallBuilder.Press(World, player, cell, "game:plaster-stripes-ud", BlockFacing.SOUTH, Middle);
+
+        Assert.Equal(
+            (
+                (("boards", "hboards"), ("boards", "boards")),
+                (("plaster-diagonal", "plaster-diagonal"), ("plaster-stripes", "plaster-stripes"), ("boards", "boards"))
+            ),
+            (
+                (mirrored, restyled),
+                (Read("front", "secondfront"), Read("back", "secondback"), Read("backstyle", "secondbackstyle"))
+            ));
+    }
+
+    private async Task<(BlockPos Cell, ITestPlayer Player)> RaiseCorner()
+    {
+        BlockPos cell = World.Spawn.Offset(1, 2, 0);
+        World.SetBlock("game:planks-aged-ud", cell.DownCopy());
+        ITestPlayer player = await WallBuilder.JoinBuilder(World);
+        await WallBuilder.Raise(World, player, cell, cell.WestCopy(), "game:plank-oak", "game:clay-blue");
+        player.Entity.WatchedAttributes.SetString("vssidingFraming", "corner");
+        await WallBuilder.Press(World, player, cell, "game:stick", BlockFacing.WEST, NorthEnd);
+        return (cell, player);
     }
 }
