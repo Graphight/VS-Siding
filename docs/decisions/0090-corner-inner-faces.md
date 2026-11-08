@@ -74,6 +74,8 @@ A bare front leaves the column open, so each `secondfront` group has a `-corner`
 - **Keep one shared back.** Leaves diagonal plaster unable to mirror, which is what issue #154 asked for.
 - **Leave an old corner's second inner face bare, as decision 0009 did for `SecondFront`.** That migration was accepted before release; this one would strip half of every finished room-side corner in released worlds.
 - **A full wall's cost per inner face.** Doubles what a finished corner's room side costs, and the copy onto an old corner would refund twice what was paid.
+- **An exact split, the first inner face rounding up and the second down.** Keeps every corner's room side at one wall's cost, but a one-item finish's second inner face would cost and refund nothing.
+- **The upgrade copying the back onto both inner legs.** The upgrade is free and repeatable, so a one-item back laid on a wall would refund 2 from the corner it becomes.
 - **Mirroring every finish that turns.** Planks and stripes plaster have no lean to mirror; their quarter turn is a different pattern, which the picker already chooses.
 - **Mirroring left to the picker.** Every corner would need the Boards row changed between its two faces.
 - **The inner column on leg 1, or in a group of its own.** Leg 2 already owns it in the weatherboard, log, shake and masonry groups, so moving it there keeps every style's split alike.
