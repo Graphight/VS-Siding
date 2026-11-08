@@ -384,7 +384,22 @@ public class SidingWallEntityTests
                 ],
             },
             joins.ToDictionary(j => j, j => SidingWallEntity.SelectiveElements(
-                "cornerout", "oak", "glass", "planks", "daub", "planks", finishes, j, glazed: true)));
+                "cornerout", "oak", "glass", "planks", "daub", "planks", finishes, j, glazed: true, secondBack: "planks")));
+    }
+
+    // A corner's two inner faces each draw their own finish in their own style, and a bare one draws nothing (decision 0088).
+    [Fact]
+    public void ACornersInnerFacesEachDrawTheirOwnFinish()
+    {
+        var finishes = Dict("""{ "daub": {}, "planks": { "Elements": { "back": "back-boards" } } }""");
+        string[] Backs(string? back, string? backStyle, string? secondBack, string? secondBackStyle) => [.. SidingWallEntity.SelectiveElements(
+                "cornerout", "oak", "wattle", null, null, back, finishes, (false, false, false, false), glazed: false,
+                styles: (null, null, backStyle), secondBack: secondBack, secondBackStyle: secondBackStyle)
+            .Where(name => name.Contains("back"))];
+
+        Assert.Equal(
+            new string[][] { ["back-boards"], ["secondback"], ["back-hboards", "secondback-boards"], ["back", "secondback-hboards"] },
+            new[] { Backs("planks", null, null, null), Backs(null, null, "daub", null), Backs("planks", "hboards", "planks", null), Backs("daub", null, "planks", "hboards") });
     }
 
     // The top of the room side's rim lies in a deck's height. Under a deck it is left out, fillers and all,
@@ -418,7 +433,7 @@ public class SidingWallEntityTests
             {
                 SidingWallEntity.SelectiveElements("wall", "oak", "glass", "daub", null, "daub", finishes, (false, false, false, false), glazed: true, decked: true),
                 SidingWallEntity.SelectiveElements("wall", "oak", "glass", "daub", null, "daub", finishes, (false, false, true, false), glazed: true, decked: true),
-                SidingWallEntity.SelectiveElements("cornerout", "oak", "glass", "daub", null, "daub", finishes, (false, false, false, false), glazed: true, decked: true),
+                SidingWallEntity.SelectiveElements("cornerout", "oak", "glass", "daub", null, "daub", finishes, (false, false, false, false), glazed: true, decked: true, secondBack: "daub"),
                 SidingWallEntity.SelectiveElements("wall", "oak", "wattle", null, null, "daub", finishes, (false, false, false, false), glazed: false, decked: true),
             });
     }
@@ -498,7 +513,7 @@ public class SidingWallEntityTests
             {
                 ["ledge"], ["ledge"], [],
                 ["ledgetop"], ["ledgetop", "ledgetopleft"], ["ledgetop", "ledgetopright"], ["ledgetop", "ledgetopleft", "ledgetopright"],
-                ["ledgetop", "ledgesecondtop"], [], [], [], [],
+                ["ledgetop", "ledgesecondtop"], ["ledge", "ledgesecondtop"], ["ledgesecond"], [], [], [], [],
             },
             new[]
             {
@@ -510,6 +525,8 @@ public class SidingWallEntityTests
                 SidingWallEntity.Ledges("wall", roomSideBare: false, glazed: true, (true, false, false, true)),
                 SidingWallEntity.Ledges("wall", roomSideBare: false, glazed: true, (true, true, true, true)),
                 SidingWallEntity.Ledges("cornerout", roomSideBare: false, glazed: true, (true, false, false, false)),
+                SidingWallEntity.Ledges("cornerout", roomSideBare: true, glazed: true, (true, false, false, false)),
+                SidingWallEntity.Ledges("cornerout", roomSideBare: false, glazed: false, unjoined, secondRoomSideBare: true),
                 SidingWallEntity.Ledges("diagonal", roomSideBare: true, glazed: false, unjoined),
                 SidingWallEntity.Ledges("diagonal", roomSideBare: true, glazed: true, unjoined),
                 SidingWallEntity.Ledges("cornerin", roomSideBare: true, glazed: false, unjoined),

@@ -38,17 +38,20 @@ public class FarFaceScenarios : AtlasScenarioBase
         Assert.Equal(("oak", "clay", "planks", null, "planks-birch"), WallBuilder.Layers(World, cell));
     }
 
+    // The corner claims west and north, so its back is east and its second back south (decision 0088).
     [AtlasScenario(FreshWorld = true)]
     public async Task Corner_Should_ReachItsFrontAndSecondFront_When_DaubIsPressedOnItsTwoFinishedBacks()
     {
-        (BlockPos cell, ITestPlayer player) = await RaiseWall();
+        (BlockPos cell, ITestPlayer player) = await RaiseWall(back: null);
         player.Entity.WatchedAttributes.SetString("vssidingFraming", "corner");
         await WallBuilder.Press(World, player, cell, "game:stick", BlockFacing.WEST, NorthEnd);
+        await WallBuilder.Press(World, player, cell, "game:plank-birch", BlockFacing.EAST, Middle);
+        await WallBuilder.Press(World, player, cell, "game:plank-birch", BlockFacing.SOUTH, Middle);
 
         await WallBuilder.Press(World, player, cell, "game:daubraw-browngolden", BlockFacing.EAST, Middle);
         await WallBuilder.Press(World, player, cell, "game:daubraw-browngolden", BlockFacing.SOUTH, Middle);
 
-        Assert.Equal(("oak", "clay", "daub", "daub", "planks-birch"), WallBuilder.Layers(World, cell));
+        Assert.Equal((("oak", "clay", "daub", "daub", "planks-birch"), "planks-birch"), (WallBuilder.Layers(World, cell), Read(cell, "secondback")));
     }
 
     [AtlasScenario(FreshWorld = true)]

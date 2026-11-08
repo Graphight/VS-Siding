@@ -476,7 +476,7 @@ public class WallShapeGenTests
             {
                 var names = SidingWallEntity.SelectiveElements(
                     layout, "oak", infill, front, layout == "cornerout" ? secondFront : null, back,
-                    finishes, joins, glazed);
+                    finishes, joins, glazed, secondBack: layout == "cornerout" ? back : null);
                 actual[$"{layout} {state}"] = names.Sum(n => quads[n]);
             }
 
@@ -1345,7 +1345,8 @@ public class WallShapeGenTests
             return SharedPlaneOffenders(layout,
             [
                 .. SidingWallEntity.SelectiveElements(
-                    layout, "oak", "glass", "daub", layout == "cornerout" ? "daub" : null, "daub", finishes, joins, glazed: true, decked: true),
+                    layout, "oak", "glass", "daub", layout == "cornerout" ? "daub" : null, "daub", finishes, joins, glazed: true, decked: true,
+                    secondBack: layout == "cornerout" ? "daub" : null),
                 .. SidingWallEntity.DeckElements("west", "oak", "wattle", "daub", "daub", finishes, default, default, false, ledges: ledges),
             ], between: (a, b) => a.Contains("-west-") != b.Contains("-west-"));
         }).Distinct());
@@ -1429,7 +1430,7 @@ public class WallShapeGenTests
         var finishes = new Vintagestory.API.Datastructures.JsonObject(JObject.Parse("""{ "daub": {} }"""));
         string? daub = finished ? "daub" : null;
         return SidingWallEntity.SelectiveElements(layout, "oak", glazed ? "glass" : "wattle", daub, layout == "cornerout" ? daub : null, daub, finishes, joins,
-            glazed: glazed, frame: frame, innerCorners: innerCorners, glassRunsOn: glassRunsOn, tees: tees);
+            glazed: glazed, frame: frame, innerCorners: innerCorners, glassRunsOn: glassRunsOn, tees: tees, secondBack: layout == "cornerout" ? daub : null);
     }
 
     // Each pair of faces, one from each cell, that point the same way on the same plane and overlap there.

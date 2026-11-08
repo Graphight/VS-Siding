@@ -121,8 +121,9 @@ public class SidingWallTexSourceTests
     [Fact]
     public void EachSlotResolvesFromItsOwnDictionary()
     {
-        var actual = new[] { "framing", "infill", "front", "secondfront", "back" }
-            .Select(slot => SidingWallTexSource.ResolveTexture(slot, "oak", "wattle", "daub", "planks", "brick", Framings, Infills, Finishes)!.Base);
+        var actual = new[] { "framing", "infill", "front", "secondfront", "back", "secondback" }
+            .Select(slot => SidingWallTexSource.ResolveTexture(slot, "oak", "wattle", "daub", "planks", "brick", Framings, Infills, Finishes,
+                secondBack: "blended-clay")!.Base);
 
         Assert.Equal(new[]
         {
@@ -131,20 +132,26 @@ public class SidingWallTexSourceTests
             new AssetLocation("game:block/clay/daub/browngolden/normal1"),
             new AssetLocation("game:block/wood/planks/aged1"),
             new AssetLocation("game:block/clay/brick/four/running/red1"),
+            new AssetLocation("game:block/clay/blueclay"),
         }, actual);
     }
 
+    // A corner's second back takes the back's default, and a post's backs the front's (decisions 0082, 0088).
     [Fact]
     public void StyleTexturesFollowEachSlotsDefaultStyle()
     {
-        var actual = new[] { "front", "secondfront", "back" }
-            .Select(slot => SidingWallTexSource.ResolveTexture(slot, "oak", "wattle", "shakes", "shakes", "shakes", Framings, Infills, Finishes)!.Base);
+        CompositeTexture Resolve(string slot, bool post = false) => SidingWallTexSource.ResolveTexture(
+            slot, "oak", "wattle", "shakes", "shakes", "shakes", Framings, Infills, Finishes, secondBack: "shakes", post: post)!;
+        var actual = new[] { Resolve("front"), Resolve("secondfront"), Resolve("back"), Resolve("secondback"), Resolve("secondback", post: true) }
+            .Select(texture => texture.Base);
 
         Assert.Equal(new[]
         {
             new AssetLocation("game:block/wood/shingles/oak-top"),
             new AssetLocation("game:block/wood/shingles/oak-top"),
             new AssetLocation("game:block/wood/debarked/oak"),
+            new AssetLocation("game:block/wood/debarked/oak"),
+            new AssetLocation("game:block/wood/shingles/oak-top"),
         }, actual);
     }
 

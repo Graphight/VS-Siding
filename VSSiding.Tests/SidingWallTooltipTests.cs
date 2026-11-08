@@ -55,7 +55,7 @@ public class SidingWallTooltipTests
     };
 
     // Every wall here hugs "west", so "west" is the front face and "east" the back; a cornerout
-    // adds "north" as its second front, leaving "south" as that leg's share of the same back.
+    // adds "north" as its second front, leaving "south" as its second back.
     private static string Describe(
         string? framing = "oak", string? infill = "wattle", string? deck = null, string layout = "wall",
         string? front = null, string? secondFront = null, string? back = null, string? stepName = null,
@@ -195,11 +195,19 @@ public class SidingWallTooltipTests
     // The back layer is shared by both legs, so its two directions have to land on one line
     // even though the second leg's front sits between them in build order.
     [Fact]
-    public void CorneroutSharesOneBackLineAcrossBothLegs()
+    public void CorneroutNamesEachInnerFaceAndSharesALineWhereTheyMatch()
     {
         Assert.Equal(
-            "\n  Oak Framing\n  Wattle Infill\n  West: Daub Finish\n  East, South: Planks Finish\n  North: unfinished\n  Seals the room\n",
-            Describe(layout: "cornerout", front: "daub", back: "planks"));
+            new[]
+            {
+                "\n  Oak Framing\n  Wattle Infill\n  West: Daub Finish\n  East, South: Planks Finish\n  North: unfinished\n  Seals the room\n",
+                "\n  Oak Framing\n  Wattle Infill\n  West: Daub Finish\n  East: Planks Finish\n  North, South: unfinished\n  Seals the room\n",
+            },
+            new[]
+            {
+                Describe(layout: "cornerout", front: "daub", back: "planks", secondBack: "planks"),
+                Describe(layout: "cornerout", front: "daub", back: "planks"),
+            });
     }
 
     // A post hugs "west" and "north" like a cornerout: its fronts look the other way and its backs into the corner,
