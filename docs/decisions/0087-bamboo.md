@@ -60,7 +60,6 @@ Light is read from the entry's flag, not the shape.
 Stakes are a framing and an infill at once, as sticks are framing and wattle.
 `MatchFraming` already handles it: a plain stake click on a bare frame fills it with bamboo poles, and a sneak-click reaches `PlaceWallFrame`, which stacks or extends.
 A stake deck then needs a filled wall, as a stick one does.
-Stakes are not a finish, so a stake never matches all three layers.
 
 **Stilts.**
 A column of bamboo posts placed in Post mode, each click on the post below, and a bamboo floor run laid onto the top post's cell, which decks it (0084).
@@ -76,7 +75,6 @@ The Floor-mode guard keeps stakes in step with planks there: with Floor picked a
 ## Alternatives considered
 - **A woven bamboo infill.** Vanilla's `bamboowoven` texture on the plain slab, the issue's "maybe also", taken first because the texture was ready; after playing #152 the author chose real poles. Two infills cannot share stakes as `Consumes`, so the woven one went entirely.
 - **A stacked bamboo finish.** A flat slab of `bamboo-side` over a face; it would hide the poles, and a framed pole wall is complete without it.
-- **Stakes as the finish too.** A stake would then match the framing, the infill and a finish, and `MatchFraming` settles only two.
 - **Treating a post as filled inside `MatchFraming`.** `MatchFraming` is static and takes the filled flag from its callers, so the post check went into the three callers that compute it.
 - **MightyBamboo's green stakes and stacked blocks.** Out of scope; a family could pick them up when the mod is present.
 
@@ -84,5 +82,6 @@ The Floor-mode guard keeps stakes in step with planks there: with Floor picked a
 - A bamboo frame and pole infill burn, and the pole infill does not cool a cellar.
 - A stick post takes a deck and a floor where it did not before.
 - A pole wall cell hands the tesselator 264 quads against a wattle wall's 30, a `cornerout` 454 and a floor 306 (`EachBuiltCellHandsTheTesselatorThisManyQuads`).
+- Every deck and ledge copy carries the poles too, so the five generated shape files grew from 9.1 MB to 11.3 MB; each is parsed once and kept (`ParsedShape`).
 - Any later infill can name its own groups with `Elements`; the groups have to be generated into every shape, which the infill test enforces.
 - The frame, decks, corners and posts were played in #152; the pole infill not yet.
