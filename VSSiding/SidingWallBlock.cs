@@ -570,7 +570,7 @@ public class SidingWallBlock : Block
 
         // With floor picked, planks frame a floor beside the wall (PlaceWallFrame) rather than work on it.
         // A filled deck's top or underside still takes them as floorboards or a ceiling, as a floor's does,
-        // and sticks still fill the bare wall or deck they hit (MatchFraming).
+        // and sticks still fill the bare wall or deck face they hit (MatchFraming, FramesOnFrom).
         bool deckHit = entity != null && IsDeckHit(world.BlockAccessor, blockSel, entity);
         bool hitFilled = deckHit ? entity!.DeckInfill != null : entity != null && FramesAsFilled(entity);
         if (SidingModePicker.Layout(byPlayer) == "floor" && MatchFraming(heldCode, hitFilled, Attributes["Framings"], Attributes["Infills"]) != null
@@ -796,7 +796,7 @@ public class SidingWallBlock : Block
     }
 
     // The deck takes layers the way a floor does (SidingFloorBlock.OnBlockInteractStart): infill on any
-    // face, then a finish on the top or the underside. Anything unclaimed falls through, so planks on a
+    // face, a frame-and-fill item's on the top or underside only, then a finish on the top or the underside. Anything unclaimed falls through, so planks on a
     // bare deck's top still reach PlaceWallFrame.
     private bool LayerDeck(
         IWorldAccessor world, IPlayer byPlayer, BlockSelection blockSel, SidingWallEntity entity,

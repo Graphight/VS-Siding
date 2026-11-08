@@ -29,7 +29,7 @@ Carrying a run on from the top still takes a sneak, which matters over water.
 
 **Tooltip.** With the build signal on and a frame-and-fill item in the main hand, a cell missing its infill says which faces fill and which frame on (`FillHintKey`).
 
-**Unchanged.** Sneak-clicking works as before, and the corner upgrade (0026) stays out of reach with sticks on a bare frame, since its finish face now fills.
+**Unchanged.** Sneak-clicking works as before, and the corner upgrade (0026) stays out of reach with sticks on a bare frame: `TryUpgradeLayout` runs before the fill and `MatchFraming` reads sticks on a bare frame as infill, as it did under 0058.
 
 ## Alternatives considered
 - **A new key combination.** The playtester asked for none, and the clicked face already tells the two apart.
