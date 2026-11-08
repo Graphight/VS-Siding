@@ -10,7 +10,7 @@ Stacking or extending a run of bare frames then took a sneak-click on every cell
 Now the clicked face decides: a face that takes a finish fills, any other face frames on, as it does for planks.
 
 ## Context
-Issue #155 asked for a way to build a stick or bamboo run without sneaking on each cell.
+Playtesting bamboo framing (#152) found that placing many frames with a material that also fills was a chore, and the playtester did not want another key combination (issue #155).
 Decision 0058 made a plain click fill a bare frame and a sneak-click frame on; 0088 gave stakes the same rule.
 
 ## Design
@@ -24,18 +24,19 @@ A post takes no infill and is unchanged.
 
 **Floors and decks.** A bare floor or deck fills from its top and underside (`SidingFloorBlock.FinishFace`); an edge click frames on.
 Carrying a run on from the top still takes a sneak, which matters over water.
-Sticks on a bare wall's end frame the next cell, decked; a stick deck in place still needs a filled wall.
+
+**Decks on a bare wall.** With the deck lit, sticks on a bare wall's end frame the next cell, decked, where planks deck the clicked cell in place; a stick deck in place still needs a filled wall, as 0058 says.
 
 **Tooltip.** With the build signal on and a frame-and-fill item in the main hand, a cell missing its infill says which faces fill and which frame on (`FillHintKey`).
 
 **Unchanged.** Sneak-clicking works as before, and the corner upgrade (0026) stays out of reach with sticks on a bare frame, since its finish face now fills.
 
 ## Alternatives considered
-- **A new key combination.** Rejected: the face already says which is meant.
-- **Fill a floor from its underside only.** Rejected: the top is the natural face to fill.
-- **Keep the sneak on floors.** Rejected: it is the same chore on every cell of a run.
-- **Deck in place like planks.** Rejected: 0058 keeps a stick deck for a filled wall.
+- **A new key combination.** The playtester asked for none, and the clicked face already tells the two apart.
+- **Fill a floor from its underside only, so a plain top click carries the run on.** A floor laid out over water has an underside nobody can reach, so it could never be filled.
+- **Keep every face of a floor filling.** A run laid from its edges would still take a sneak on every cell.
+- **Sticks deck a bare wall in place, as planks do.** 0058 keeps a stick deck for a filled wall, and an end click framing on is the rule everywhere else.
 
 ## Consequences & open questions
 - Supersedes only the plain-click fill from any face in 0058 and 0088.
-- A stick player who wants to fill a wall from its end must now sneak.
+- A bare wall now fills from its faces only: an end click frames on, and a sneak-click frames on too, so a wall with both faces out of reach takes no stick infill.
