@@ -152,13 +152,12 @@ public class MaterialTextureOpacityTests
             var file = ResolveTextureFile(vintageStoryPath, textureCode);
             if (!mustBeOpaque || NearOpaque.Contains(textureCode)) continue;
             var bytes = File.ReadAllBytes(file);
-            using var data = SKData.CreateCopy(bytes);
-            using var codec = SKCodec.Create(data);
-            // SKBitmap.Decode(byte[]) throws on a null codec, where Decode(string) returns null.
+            using var codec = SKCodec.Create(new MemoryStream(bytes), out var created);
             using var bitmap = codec == null ? null : SKBitmap.Decode(codec);
             if (bitmap == null)
             {
-                offenders.Add($"{textureCode} ({file}, {bytes.Length} bytes, did not decode)");
+                var step = codec == null ? $"no codec: {created}" : "pixels did not decode";
+                offenders.Add($"{textureCode} ({file}, {bytes.Length} bytes, {step})");
                 continue;
             }
             int partial = bitmap.Pixels.Count(p => p.Alpha != 0 && p.Alpha != 255);
