@@ -181,10 +181,14 @@ public class WallShapeGenTests
                 where lo[axis] > hi[axis]
                 select $"{layout} '{name}' inverts on axis {axis}: {lo[axis]} > {hi[axis]}");
             // A turned element's plan is measured after the turn (TheDiagonalRunsCornerToCornerWithItsFrontToTheNorthWest).
+            // A bamboo ring stands a quarter voxel past the block's side into the next (decision 0092), never its top or bottom.
+            double reach = name.StartsWith("bamboo") ? 0.25 : 0;
             offenders.AddRange(
-                from v in element["rotationY"] == null ? lo.Concat(hi) : [lo[1], hi[1]]
+                from axis in element["rotationY"] == null ? new[] { 0, 1, 2 } : [1]
+                let slack = axis == 1 ? 0 : reach
+                from v in new[] { lo[axis], hi[axis] }
                 // A cap stands a hair above the block's top so its face wins over the slabs' and the frame's at the same height.
-                where v < 0 || v > (name.StartsWith("cap-") && v == hi[1] ? 16.05 : 16)
+                where v < -slack || v > (name.StartsWith("cap-") && axis == 1 && v == hi[1] ? 16.05 : 16 + slack)
                 select $"{layout} '{name}' leaves the block: {v}");
         }
 
@@ -1225,18 +1229,9 @@ public class WallShapeGenTests
                 {
                     int[] across = [.. Enumerable.Range(0, 3).Where(axis => axis != depth)];
                     var cover = poles.Where(b => b.Lo[depth] < mid && b.Hi[depth] > mid).ToArray();
-                    // A bamboo pole steps in a quarter voxel on a narrow side lying on the cell's edge, so its rings can go
-                    // round it without reaching the next cell (decision 0092); there the member is covered from a quarter in.
-                    double[] l = [.. lo], h = [.. hi];
-                    if (prefix.StartsWith("bamboo"))
-                    {
-                        int side = across.MinBy(axis => h[axis] - l[axis]);
-                        if (l[side] == 0) l[side] += 0.25;
-                        if (h[side] == 16) h[side] -= 0.25;
-                    }
                     // The pole edges inside the member cut it into rectangles, each covered whole or open whole.
                     double[] Cuts(int axis) => cover.SelectMany(b => new[] { b.Lo[axis], b.Hi[axis] })
-                        .Where(c => c > l[axis] && c < h[axis]).Append(l[axis]).Append(h[axis]).Distinct().Order().ToArray();
+                        .Where(c => c > lo[axis] && c < hi[axis]).Append(lo[axis]).Append(hi[axis]).Distinct().Order().ToArray();
                     var (firsts, seconds) = (Cuts(across[0]), Cuts(across[1]));
                     for (int i = 0; i < firsts.Length - 1; i++)
                     {
@@ -1252,6 +1247,27 @@ public class WallShapeGenTests
         }
 
         Assert.Equal([], offenders);
+    }
+
+    // A bamboo ring stands a quarter voxel past its cell's side into the next (decision 0092), where the member the next cell
+    // puts against this one rings from its own table. Rings from two tables that can meet so never take one place, or their
+    // faces fight. A wall's uprights meet any upright, and a floor's north rim a south rim. Rings are the boxes reaching
+    // past the cell on `across`; their places run along `along`.
+    [Theory]
+    [InlineData("wall", 2, 1, new[] { "bamboo-left", "bamboo2-left", "bamboo-right", "bamboo2-right" }, new[] { "bamboo-left", "bamboo2-left", "bamboo-right", "bamboo2-right" })]
+    [InlineData("floor", 2, 0, new[] { "bamboo-top", "bamboo2-top" }, new[] { "bamboo-bottom", "bamboo2-bottom" })]
+    public void NoTwoBambooRingsThatMeetAcrossACellEdgeTakeOnePlace(string layout, int across, int along, string[] these, string[] those)
+    {
+        var rings = WallShapeGen.Generate(layout)["elements"]!.Select(e => (Name: (string)e["name"]!, Box: Box(e)))
+            .Where(e => e.Box.Lo[across] < 0 || e.Box.Hi[across] > 16).ToArray();
+        var offenders =
+            from a in rings.Where(r => these.Contains(r.Name))
+            from b in rings.Where(r => those.Contains(r.Name) && r.Name != a.Name)
+            where a.Box.Lo[along] < b.Box.Hi[along] && b.Box.Lo[along] < a.Box.Hi[along]
+            select $"{a.Name} at {a.Box.Lo[along]} and {b.Name} at {b.Box.Lo[along]}";
+
+        Assert.Equal(these.Concat(those).Distinct().Order(), rings.Select(r => r.Name).Where(these.Concat(those).Contains).Distinct().Order());
+        Assert.Equal([], offenders.Distinct());
     }
 
     // The ledge is the deck's reach into the slot a wall's room-side finish takes. Every ledge box has to

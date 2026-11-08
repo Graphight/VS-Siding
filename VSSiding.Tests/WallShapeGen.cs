@@ -295,13 +295,14 @@ public static class WallShapeGen
 
     // A bamboo pole standing in for a plain member's box: a core a quarter voxel inside it across `depth`, a ridge down
     // each of its two depth faces so the seam reads, and a thin ring all round it at each of `rings` along `run`. Across, the
-    // ring stands a quarter voxel proud of the member's box, except on a side lying on one of `cellEdges`, where the core
-    // steps in instead so no ring reaches into the next cell. On depth everything stays inside the box, so a finish still
-    // covers it. The ridge stands at 0.1, off the ring's plane; the ring tables keep off the lashings and the stems, which
-    // the plane tests check.
+    // ring stands a quarter voxel proud of the member's box, into the next cell where the member lies on the cell's side, so
+    // the core reaches the edge and meets the next cell's member with no gap. A ring never reaches through the cell's top or
+    // bottom, where a deck's cap or the next wall up sits flush. On depth everything stays inside the box, so a finish still
+    // covers it. The ridge stands at 0.1, off the ring's plane; the ring tables keep off the lashings, the stems and each
+    // other, which the plane and ring tests check.
     private static IEnumerable<Element> BambooPole(
         string name, (double X, double Y, double Z) from, (double X, double Y, double Z) to, char depth, char run, double[] rings,
-        string[]? coreFaces = null, double ridgeInset = 0.25, double[]? cellEdges = null)
+        string[]? coreFaces = null, double ridgeInset = 0.25)
     {
         double[] lo = [from.X, from.Y, from.Z], hi = [to.X, to.Y, to.Z];
         int d = depth - 'x', r = run - 'x', o = 3 - d - r;
@@ -312,24 +313,26 @@ public static class WallShapeGen
             return new Element(name, (a[0], a[1], a[2]), (b[0], b[1], b[2]), "framing", UvRule.Flat, Faces: faces);
         }
 
-        cellEdges ??= [0, 16];
-        double acrossLo = lo[o] + (cellEdges.Contains(lo[o]) ? 0.25 : 0), acrossHi = hi[o] - (cellEdges.Contains(hi[o]) ? 0.25 : 0);
-
-        yield return Box(lo[d] + 0.25, hi[d] - 0.25, lo[r], hi[r], acrossLo, acrossHi, coreFaces);
+        yield return Box(lo[d] + 0.25, hi[d] - 0.25, lo[r], hi[r], lo[o], hi[o], coreFaces);
         foreach (var (near, far) in new[] { (lo[d] + 0.1, lo[d] + 0.25), (hi[d] - 0.25, hi[d] - 0.1) })
-            yield return Box(near, far, lo[r], hi[r], acrossLo + ridgeInset, acrossHi - ridgeInset);
+            yield return Box(near, far, lo[r], hi[r], lo[o] + ridgeInset, hi[o] - ridgeInset);
+        // A hair short of the cell's top or bottom, so the ring never shares the plane of the core reaching it.
+        bool vertical = o == 1;
+        double ringLo = vertical && lo[o] == 0 ? 0.01 : lo[o] - 0.25, ringHi = vertical && hi[o] == 16 ? 15.99 : hi[o] + 0.25;
         foreach (double ring in rings)
-            yield return Box(lo[d], hi[d], ring, ring + 0.5, acrossLo - 0.25, acrossHi + 0.25);
+            yield return Box(lo[d], hi[d], ring, ring + 0.5, ringLo, ringHi);
     }
 
     // Where each variant rings its members: the uprights' heights, clear of the plates and lashings, the plates' places
     // along the run, which start past a corner's post at 3, and the post's heights. Even cells take `bamboo`, odd `bamboo2`.
+    // An upright's ring reaches into the next cell, where that cell's upright may ring the same height, so the four upright
+    // tables keep half a voxel apart.
     private record BambooRings(string Prefix, double[] Left, double[] Right, double[] Top, double[] Bottom, double[] Post);
 
     private static readonly BambooRings[] BambooVariants =
     [
-        new("bamboo", [5.25, 10.75], [4.75, 11.25], [3.25, 7.75, 12.25], [3.75, 6.75, 11.25], [4.25, 10.25]),
-        new("bamboo2", [4.75, 12.25], [5.75, 10.75], [3.75, 8.25, 13.25], [3.75, 9.25, 13.75], [6.75, 12.25]),
+        new("bamboo", [5.25, 11.25], [4.25, 10.75], [3.25, 7.75, 12.25], [3.75, 6.75, 11.25], [4.25, 10.25]),
+        new("bamboo2", [6.25, 12.25], [7.25, 12.75], [3.75, 8.25, 13.25], [3.75, 9.25, 13.75], [6.75, 12.25]),
     ];
 
     private static readonly string[] BambooPlateFaces = ["west", "east", "up", "down"];
@@ -1162,12 +1165,9 @@ public static class WallShapeGen
         .. DiagonalBambooPlates(v, DiagonalEnd, DiagonalCorner - 1, "-right"),
         .. BambooPole($"{v.Prefix}-left", (16 - DiagonalFiller, 0.01, 0), (16, 15.99, DiagonalFiller), 'x', 'y', v.Left),
         .. BambooPole($"{v.Prefix}-right", (0, 0.01, 16 - DiagonalFiller), (DiagonalFiller, 15.99, 16), 'z', 'y', v.Right),
-        .. BambooPole($"{v.Prefix}-join-left", (1, 0, 8 - DiagonalCorner), (3, 16, 9 - DiagonalCorner), 'x', 'y', v.Left, cellEdges: DiagonalSeams).Select(e => OnDiagonal(e)),
-        .. BambooPole($"{v.Prefix}-join-right", (1, 0, 7 + DiagonalCorner), (3, 16, 8 + DiagonalCorner), 'x', 'y', v.Right, cellEdges: DiagonalSeams).Select(e => OnDiagonal(e)),
+        .. BambooPole($"{v.Prefix}-join-left", (1, 0, 8 - DiagonalCorner), (3, 16, 9 - DiagonalCorner), 'x', 'y', v.Left).Select(e => OnDiagonal(e)),
+        .. BambooPole($"{v.Prefix}-join-right", (1, 0, 7 + DiagonalCorner), (3, 16, 8 + DiagonalCorner), 'x', 'y', v.Right).Select(e => OnDiagonal(e)),
     ];
-
-    // Where a half post meets the next cell's along the run, which a ring must not cross.
-    private static readonly double[] DiagonalSeams = [8 - DiagonalCorner, 8 + DiagonalCorner];
 
     private static readonly Element[] DiagonalElements =
     [
@@ -1285,8 +1285,9 @@ public static class WallShapeGen
 
     // The floor's frame in bamboo: ringed joists in the plain joists' boxes and ringed rim lengths between them, with the rough
     // frame's lashings where a rim meets a joist. Rings keep to z 2.75..13.25 on a joist, clear of those lashings,
-    // and sit off the planes of the floor's stems.
-    private static IEnumerable<Element> BambooFloor(string prefix, double[][] joists, double[][] rims)
+    // and sit off the planes of the floor's stems. A rim's rings reach into the next cell, where its rim on the other edge
+    // may stand, so every north rim's table keeps half a voxel from every south rim's.
+    private static IEnumerable<Element> BambooFloor(string prefix, double[][] joists, double[][] topRims, double[][] bottomRims)
     {
         (double Lo, double Hi)[] rimX = [(0, 2), (3, 7.5), (8.5, 13), (14, 16)];
         IEnumerable<Element> Joists(string name, double[] rings, (double Lo, double Hi) x) => BambooPole(name, (x.Lo, 13, 0), (x.Hi, 15, 16), 'y', 'z', rings, ridgeInset: 0.1);
@@ -1299,15 +1300,15 @@ public static class WallShapeGen
             .. Joists($"{prefix}-left", joists[0], (2, 3)),
             .. Joists($"{prefix}-left", joists[1], (7.5, 8.5)),
             .. Joists($"{prefix}-right", joists[2], (13, 14)),
-            .. Rims($"{prefix}-top", 0, 1, rims),
-            .. Rims($"{prefix}-bottom", 15, 16, rims),
+            .. Rims($"{prefix}-top", 0, 1, topRims),
+            .. Rims($"{prefix}-bottom", 15, 16, bottomRims),
         ];
     }
 
     private static readonly Element[] FloorBambooElements =
     [
-        .. BambooFloor("bamboo", [[3.25, 8.25, 12.25], [4.75, 10.25], [3.75, 9.75]], [[0.25], [4.75], [10.5], [14.75]]),
-        .. BambooFloor("bamboo2", [[4.75, 10.75], [3.25, 8.75, 12.75], [5.25, 11.25]], [[1.25], [6.5], [9.5], [15.25]]),
+        .. BambooFloor("bamboo", [[3.25, 8.25, 12.25], [4.75, 10.25], [3.75, 9.75]], [[0.25], [4.75], [10.5], [14.75]], [[0.75], [3.75], [11.5], [14.25]]),
+        .. BambooFloor("bamboo2", [[4.75, 10.75], [3.25, 8.75, 12.75], [5.25, 11.25]], [[1.25], [6.5], [9.5], [15.25]], [[0.75], [5.5], [12.25], [14.25]]),
     ];
 
     // The wall's layers laid flat: top finish, joists with infill between, underside, filling y 12..16
