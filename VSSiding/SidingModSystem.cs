@@ -1594,11 +1594,10 @@ public class SidingModSystem : ModSystem
         {
             SidingWallBlock.ServerBreakSelection = blockSel;
 
-            // Creative breaks skip OnGettingBroken entirely, so a panel hit is caught here too -
-            // the only hook that sees both the BlockSelection (for IsPanelHit) and a handling flag
-            // that can prevent the break outright.
+            // A panel break reaches the host (decision 0092), except a support beam's, which reads the
+            // selection index unchecked. Creative breaks skip OnGettingBroken, so it is caught here too.
             Block host = api.World.BlockAccessor.GetBlock(blockSel.Position);
-            if (GapShiftCollisionPatches.IsPanelHit(host, api.World.BlockAccessor, blockSel))
+            if (GapShiftCollisionPatches.SwallowsPanelBreak(host, api.World.BlockAccessor, blockSel))
                 handling = EnumHandling.PreventDefault;
         };
 

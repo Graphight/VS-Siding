@@ -3,8 +3,9 @@ using Vintagestory.API.Common;
 
 namespace VSSiding;
 
-// A click or mining on a hosted cell's panel reaches nothing (decision 0035). A creative break is
-// swallowed in the server's BreakBlock handler (SidingModSystem.StartServerSide) instead.
+// A click on a hosted cell's panel reaches nothing (decision 0035). A break aimed at the panel reaches
+// the host (decision 0092), except a support beam's, swallowed here and in the server's BreakBlock
+// handler (SidingModSystem.StartServerSide).
 internal static class PanelInteractionPatches
 {
     internal static void PatchAll(Harmony harmony, ICoreAPI api)
@@ -30,11 +31,11 @@ internal static class PanelInteractionPatches
         return false;
     }
 
-    // Mining a panel hit never advances. Idempotent, so no depth guard.
+    // Mining a support beam's panel hit never advances. Idempotent, so no depth guard.
     private static void GettingBrokenPostfix(Block __instance, object[] __args, ref float __result)
     {
         if (__args[0] is not IPlayer player || __args[1] is not BlockSelection blockSel || __args[3] is not float remainingResistance) return;
-        if (!GapShiftCollisionPatches.IsPanelHit(__instance, player.Entity.World.BlockAccessor, blockSel)) return;
+        if (!GapShiftCollisionPatches.SwallowsPanelBreak(__instance, player.Entity.World.BlockAccessor, blockSel)) return;
 
         __result = remainingResistance;
     }

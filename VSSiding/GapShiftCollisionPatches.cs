@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using HarmonyLib;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
+using Vintagestory.GameContent;
 
 namespace VSSiding;
 
@@ -145,6 +146,10 @@ internal static class GapShiftCollisionPatches
         return boxes != null && sel.SelectionBoxIndex >= 0 && sel.SelectionBoxIndex < boxes.Length
             && boxes[sel.SelectionBoxIndex] is PanelSelectionBox;
     }
+
+    // BlockSupportBeam.OnBlockBroken indexes its beams by SelectionBoxIndex unchecked, so a panel index would overrun.
+    internal static bool SwallowsPanelBreak(Block host, IBlockAccessor accessor, BlockSelection sel) =>
+        host is BlockSupportBeam && IsPanelHit(host, accessor, sel);
 }
 
 // A selection box on the guest wall's panel, told apart from the host's own boxes by type.
