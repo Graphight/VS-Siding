@@ -186,6 +186,33 @@ public class SidingWallBlockBuildFlowTests
         Assert.Equal(expected, SidingWallBlock.FramesOnFrom(new AssetLocation(held), finishFace, framings));
     }
 
+    [Theory]
+    [InlineData("wall", "game:stick", "vssiding:tooltip-fill-hint-wall")]
+    [InlineData("cornerout", "game:stick", "vssiding:tooltip-fill-hint-corner")]
+    [InlineData("diagonal", "game:stick", "vssiding:tooltip-fill-hint-corner")]
+    [InlineData("floor", "game:stick", "vssiding:tooltip-fill-hint-floor")]
+    [InlineData("cornerin", "game:stick", null)]
+    [InlineData("wall", "game:plank-oak", null)]
+    [InlineData("wall", "game:clay-blue", null)]
+    [InlineData("wall", null, null)]
+    public void FillHintKeyNamesTheRuleForAFrameAndFillItemOnly(string layout, string? held, string? expected)
+    {
+        JsonObject framings = Dict("""
+        {
+            "oak": { "Consumes": { "type": "item", "code": "game:plank-oak", "quantity": 2 } },
+            "sticks": { "Consumes": { "type": "item", "code": "game:stick", "quantity": 4 } }
+        }
+        """);
+        JsonObject infills = Dict("""
+        {
+            "clay": { "Consumes": { "type": "item", "code": "game:clay-blue", "quantity": 2 } },
+            "wattle": { "Consumes": { "type": "item", "code": "game:stick", "quantity": 4 } }
+        }
+        """);
+
+        Assert.Equal(expected, SidingWallBlock.FillHintKey(layout, held == null ? null : new AssetLocation(held), framings, infills));
+    }
+
     private static readonly JsonObject Finishes = Dict("""
     {
         "daub": { "Consumes": { "type": "item", "code": "game:clay-blue", "quantity": 2 } }

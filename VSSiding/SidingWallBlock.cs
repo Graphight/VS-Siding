@@ -1741,6 +1741,23 @@ public class SidingWallBlock : Block
     internal static bool FramesOnFrom(AssetLocation heldCode, bool finishFace, JsonObject framings)
         => !finishFace && MatchConsumes(heldCode, framings) != null;
 
+    // The lang key for the line telling which faces fill a bare frame and which frame on, for an item that does both (decision 0088).
+    internal static string? FillHintKey(string layout, AssetLocation? held, JsonObject framings, JsonObject infills)
+        => held == null || MatchConsumes(held, framings) == null || MatchConsumes(held, infills) == null ? null : layout switch
+        {
+            "wall" => "vssiding:tooltip-fill-hint-wall",
+            "cornerout" or "diagonal" => "vssiding:tooltip-fill-hint-corner",
+            "floor" => "vssiding:tooltip-fill-hint-floor",
+            _ => null
+        };
+
+    internal static void AppendFillHint(StringBuilder dsc, IPlayer forPlayer, string layout, JsonObject framings, JsonObject infills)
+    {
+        if (!HasBuildSignal(forPlayer)) return;
+        string? key = FillHintKey(layout, forPlayer.InventoryManager.ActiveHotbarSlot?.Itemstack?.Collectible.Code, framings, infills);
+        if (key != null) dsc.AppendLine("  " + Translate(key, LangEntry));
+    }
+
     // Finds the material dictionary entry whose Consumes.code matches the held item, so a
     // build-flow behavior can turn "the player right-clicked with plank-oak" into "oak". An entry
     // with Consumes.attributes also needs the held stack to carry them, which is what tells one
