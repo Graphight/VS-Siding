@@ -227,6 +227,7 @@
 		"plaster-square": {
 			DisplayName: "vssiding:finish-plaster-square",
 			Texture: "game:block/stone/plaster/square",
+			WholeOnCorners: true,
 			BlockMaterial: "Stone",
 			Consumes: { type: "block", code: "game:plaster-square", quantity: 1 },
 			Drops: [ { type: "block", code: "game:plaster-square", quantity: { avg: 1, var: 0 } } ]
@@ -234,6 +235,12 @@
 		"plaster-diagonal": {
 			DisplayName: "vssiding:finish-plaster-diagonal",
 			Texture: "game:block/stone/plaster/diagonal",
+			WholeOnCorners: true,
+			FloorElements: {
+				front: { hboards: "front-hboards", boards: "front-boards" },
+				back: { hboards: "back-hboards", boards: "back-boards" }
+			},
+			Styles: ["hboards", "boards"],
 			BlockMaterial: "Stone",
 			Consumes: { type: "block", code: "game:plaster-diagonal-ud", quantity: 1 },
 			Drops: [ { type: "block", code: "game:plaster-diagonal-ud", quantity: { avg: 1, var: 0 } } ]
@@ -241,6 +248,12 @@
 		"plaster-stripes": {
 			DisplayName: "vssiding:finish-plaster-stripes",
 			Texture: "game:block/stone/plaster/stripes",
+			WholeOnCorners: true,
+			FloorElements: {
+				front: { hboards: "front-hboards", boards: "front-boards" },
+				back: { hboards: "back-hboards", boards: "back-boards" }
+			},
+			Styles: ["hboards", "boards"],
 			BlockMaterial: "Stone",
 			Consumes: { type: "block", code: "game:plaster-stripes-ud", quantity: 1 },
 			Drops: [ { type: "block", code: "game:plaster-stripes-ud", quantity: { avg: 1, var: 0 } } ]

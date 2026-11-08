@@ -436,8 +436,13 @@ public class SidingWallEntity : BlockEntity
             }
         }
         // The top of the room side's rim lies in a deck's height, where the deck's ledge takes its place (Ledges), and a T's
-        // piece lies in a front slot, clear of it.
-        if (back != null) AddFinish(FinishElement(finishes, back, "back", styles.back), part => !part.StartsWith("-tee") && !(decked && part.StartsWith("-top")));
+        // piece lies in a front slot, clear of it. A framed pattern takes a corner's `-whole` copy, which fits its border onto
+        // each 12-voxel leg (decision 0086).
+        if (back != null)
+        {
+            string whole = cornerout && finishes[back]["WholeOnCorners"].AsBool() ? "-whole" : "";
+            AddFinish(FinishElement(finishes, back, "back", styles.back) + whole, part => !part.StartsWith("-tee") && !(decked && part.StartsWith("-top")));
+        }
         // A diagonal's end is the filler in its corner, or, where the next cell carries the run on,
         // each group's own piece out to the corner and half a post there.
         if (diagonal)
