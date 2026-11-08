@@ -710,10 +710,23 @@ public static class WallShapeGen
         new($"{group}-tee-right", (0, 0, 1), (1, 16, 3), "framing", UvRule.Flat, Faces: ["west", "north", "south", "up", "down"]),
     ];
 
-    // A corner's finish shows the whole texture (decision 0086): the sliver on the front leg's end samples the column
-    // the second leg leaves (15..16), and each inner leg squeezes its 12 voxels onto 0..16. The inner corner's column
-    // is a box of its own, so neither leg's box runs on behind the other's.
+    // A corner's outer side samples the whole texture across its two legs: the sliver on the front leg's end takes the
+    // column the second leg leaves (15..16). Its room side keeps one texel per voxel on the grid, so tiling finishes meet
+    // the walls each leg runs into, and the inner corner's column is a box of its own (decision 0086).
     private static Dictionary<string, FaceUv> Only(string face, FaceUv uv) => new() { [face] = uv };
+
+    // The `-whole` copy of a corner's room-side group squeezes the whole texture onto each leg's 12 voxels, for a framed
+    // pattern such as plaster, whose border a grid uv would cut off (decision 0086).
+    private static Element[] WholeCornerBack(string name, bool turned)
+    {
+        int rotation = turned ? 270 : 0;
+        return
+        [
+            new($"{name}-whole", (3, 0, 4), (4, 16, 16), "back", UvRule.Flat, RotatedFaces: turned ? ["east"] : null, Explicit: Only("east", F(0, 0, 16, 16, rotation))),
+            new($"{name}-whole", (3, 0, 3), (4, 16, 4), "back", UvRule.Flat, RotatedFaces: turned ? ["south"] : null, RunAxis: 'x'),
+            new($"{name}-whole", (4, 0, 3), (16, 16, 4), "back", UvRule.Flat, RotatedFaces: turned ? ["south"] : null, Explicit: Only("south", F(0, 0, 16, 16, rotation))),
+        ];
+    }
 
     private static readonly Element[] CornerOutElements =
     [
@@ -725,7 +738,7 @@ public static class WallShapeGen
         new("infill", (1.5, 1, 3), (2.5, 15, 15), "infill", UvRule.Positional),
         new("infill-bottom", (1.5, 0, 3), (2.5, 1, 15), "infill", UvRule.Positional),
         new("framing", (1, 0, 15), (3, 16, 16), "framing", UvRule.Flat),
-        new("back", (3, 0, 4), (4, 16, 16), "back", UvRule.Flat, Explicit: Only("east", F(0, 0, 16, 16))),
+        new("back", (3, 0, 4), (4, 16, 16), "back", UvRule.Flat),
         new("secondfront", (1, 0, 0), (16, 16, 1), "secondfront", UvRule.Flat),
         new("infill-front", (0, 0, 0), (1, 16, 16), "infill", UvRule.Positional),
         new("infill-secondfront", (1, 0, 0), (16, 16, 1), "infill", UvRule.Positional),
@@ -757,8 +770,8 @@ public static class WallShapeGen
         new("glazing-bottom", (4, 0, 1), (14, 2, 3), "framing", UvRule.Flat, Faces: ["north", "south", "up", "down"]),
         .. CornerPoleElements,
         .. CornerPole2Elements,
-        new("back", (3, 0, 3), (4, 16, 4), "back", UvRule.Flat),
-        new("back", (4, 0, 3), (16, 16, 4), "back", UvRule.Flat, Explicit: Only("south", F(0, 0, 16, 16))),
+        new("back", (3, 0, 3), (4, 16, 4), "back", UvRule.Flat, RunAxis: 'x'),
+        new("back", (4, 0, 3), (16, 16, 4), "back", UvRule.Flat, RunAxis: 'x'),
         new("front-weatherboard", (0, 0, 0), (1, 1, 16), "front", UvRule.Positional),
         new("front-weatherboard", (0.25, 1, 0.5), (1, 2, 16), "front", UvRule.Positional),
         new("front-weatherboard", (0.5, 2, 0.5), (1, 3, 16), "front", UvRule.Positional),
@@ -791,15 +804,18 @@ public static class WallShapeGen
         new("secondfront-weatherboard", (1, 13, 0.25), (16, 14, 1), "secondfront", UvRule.Positional),
         new("secondfront-weatherboard", (1, 14, 0.5), (16, 15, 1), "secondfront", UvRule.Positional),
         new("secondfront-weatherboard", (1, 15, 0.75), (16, 16, 1), "secondfront", UvRule.Positional),
-        new("back-boards", (3, 0, 4), (4, 16, 16), "back", UvRule.Flat, RotatedFaces: ["east"], Explicit: Only("east", F(0, 0, 16, 16, 270))),
-        new("back-boards", (3, 0, 3), (4, 16, 4), "back", UvRule.Flat, RotatedFaces: ["south"]),
-        new("back-boards", (4, 0, 3), (16, 16, 4), "back", UvRule.Flat, RotatedFaces: ["south"], Explicit: Only("south", F(0, 0, 16, 16, 270))),
+        new("back-boards", (3, 0, 4), (4, 16, 16), "back", UvRule.Flat, RotatedFaces: ["east"]),
+        new("back-boards", (3, 0, 3), (4, 16, 4), "back", UvRule.Flat, RotatedFaces: ["south"], RunAxis: 'x'),
+        new("back-boards", (4, 0, 3), (16, 16, 4), "back", UvRule.Flat, RotatedFaces: ["south"], RunAxis: 'x'),
+        .. WholeCornerBack("back", turned: false),
+        .. WholeCornerBack("back-boards", turned: true),
+        .. WholeCornerBack("back-hboards", turned: false),
         new("front-boards", (0, 0, 0), (1, 16, 16), "front", UvRule.Flat, RotatedFaces: ["west", "north"], Explicit: Only("north", F(0, 15, 16, 16, 270))),
         new("secondfront-boards", (1, 0, 0), (16, 16, 1), "secondfront", UvRule.Flat, null, null, ["north"]),
         .. WithBark(
-            new("back-hboards", (3, 0, 4), (4, 16, 16), "back", UvRule.Flat, Explicit: Only("east", F(0, 0, 16, 16))),
-            new("back-hboards", (3, 0, 3), (4, 16, 4), "back", UvRule.Flat),
-            new("back-hboards", (4, 0, 3), (16, 16, 4), "back", UvRule.Flat, Explicit: Only("south", F(0, 0, 16, 16))),
+            new("back-hboards", (3, 0, 4), (4, 16, 16), "back", UvRule.Flat),
+            new("back-hboards", (3, 0, 3), (4, 16, 4), "back", UvRule.Flat, RunAxis: 'x'),
+            new("back-hboards", (4, 0, 3), (16, 16, 4), "back", UvRule.Flat, RunAxis: 'x'),
             new("front-hboards", (0, 0, 0), (1, 16, 16), "front", UvRule.Flat, Explicit: Only("north", F(15, 0, 16, 16))),
             new("secondfront-hboards", (1, 0, 0), (16, 16, 1), "secondfront", UvRule.Flat)),
         new("back-weatherboard", (3, 0, 4), (4, 1, 16), "back", UvRule.Positional),

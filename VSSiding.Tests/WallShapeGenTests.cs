@@ -45,30 +45,35 @@ public class WallShapeGenTests
     [InlineData("-hboards")]
     [InlineData("-bark")]
     [InlineData("-hbark")]
-    public void ACornersFlatFinishShowsTheWholeTextureOnEachVisibleSide(string style)
+    public void ACornersFlatFinishMeetsItselfOutsideAndTheGridInside(string style)
     {
-        var elements = (JArray)WallShapeGen.Generate("cornerout")["elements"]!;
-        double[] Uv(string name, double fromX, double fromZ, string face)
-        {
-            var element = elements.Single(e => (string)e["name"]! == name && (double)e["from"]![0]! == fromX && (double)e["from"]![2]! == fromZ);
-            return element["faces"]![face]!["uv"]!.Select(v => (double)v!).ToArray();
-        }
+        // The outer side: the sliver samples the column the second leg leaves, and the two meet. The room side: each
+        // leg samples where it lies on the grid, as the wall it runs into does.
+        var expected = new[] { (15.0, 16.0), (0.0, 15.0), (0.0, 12.0), (4.0, 16.0) };
 
-        // A turned face (boards) lays its run along v instead of u.
+        Assert.Equal(expected, CornerRuns(style, "", ("front", 0, 0, "north"), ("secondfront", 1, 0, "north"), ("back", 3, 4, "east"), ("back", 4, 3, "south")));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("-boards")]
+    [InlineData("-hboards")]
+    public void ACornersWholeCopyFitsTheWholeTextureOntoEachInnerLeg(string style)
+    {
+        Assert.Equal(new[] { (0.0, 16.0), (0.0, 16.0) }, CornerRuns(style, "-whole", ("back", 3, 4, "east"), ("back", 4, 3, "south")));
+    }
+
+    // The texture span along the run of each named corner face, read from u, or from v on a turned (boards) face.
+    private static (double, double)[] CornerRuns(string style, string suffix, params (string Slot, double FromX, double FromZ, string Face)[] faces)
+    {
+        var elements = WallShapeGen.Generate("cornerout")["elements"]!;
         int run = style == "-boards" ? 1 : 0;
-
-        // The outer side: the sliver samples the column the second leg leaves, and the two meet. The inner legs:
-        // each one's 12 voxels map onto 0..16.
-        var expected = new[] { (15.0, 16.0), (0.0, 15.0), (0.0, 16.0), (0.0, 16.0) };
-        var actual = new[]
+        return faces.Select(f =>
         {
-            Uv("front" + style, 0, 0, "north"),
-            Uv("secondfront" + style, 1, 0, "north"),
-            Uv("back" + style, 3, 4, "east"),
-            Uv("back" + style, 4, 3, "south"),
-        }.Select(uv => (uv[run], uv[run + 2])).ToArray();
-
-        Assert.Equal(expected, actual);
+            var element = elements.Single(e => (string)e["name"]! == f.Slot + style + suffix && (double)e["from"]![0]! == f.FromX && (double)e["from"]![2]! == f.FromZ);
+            var uv = element["faces"]![f.Face]!["uv"]!.Select(v => (double)v!).ToArray();
+            return (uv[run], uv[run + 2]);
+        }).ToArray();
     }
 
     [Fact]
@@ -615,10 +620,10 @@ public class WallShapeGenTests
             ("cornerout", "front-weatherboard-rim-top", [0.5, 14, 4], "west", [3.5, 1, 13.5, 2]),
             ("cornerout", "secondfront-rim-top", [4, 14, 0], "north", [2, 0, 12, 2]),
             ("cornerout", "secondfront-rim-left", [14, 0, 0], "north", [0, 0, 2, 16]),
-            ("cornerout", "back-rim-right", [3, 0, 14], "east", [0, 0, 2.666666666666668, 16]),
+            ("cornerout", "back-rim-right", [3, 0, 14], "east", [0, 0, 2, 16]),
             ("cornerout", "front-rim-top-right", [0, 14, 14], "west", [14, 0, 16, 2]),
             ("cornerout", "secondfront-rim-bottom-left", [14, 0, 0], "north", [0, 14, 2, 16]),
-            ("cornerout", "back-rim-top", [4, 14, 3], "south", [0, 0, 13.333333333333332, 2]),
+            ("cornerout", "back-rim-top", [4, 14, 3], "south", [4, 0, 14, 2]),
             ("floor", "front-rim-left", [0, 15, 0], "up", [0, 0, 2, 16]),
             ("floor", "front-rim-top", [2, 15, 0], "up", [2, 0, 14, 2]),
             ("floor", "front-rim-bottom-right", [14, 15, 14], "up", [14, 14, 16, 16]),
@@ -737,8 +742,8 @@ public class WallShapeGenTests
                 foreach (var next in new[] { corners[1], corners[3] })
                 {
                     double voxels = Length(corners[0].Xyz, next.Xyz), texels = Length(corners[0].Uv, next.Uv);
-                    // A corner's inner legs squeeze the whole texture onto their 12 visible voxels (decision 0086).
-                    bool squeezed = layout == "cornerout" && ((string)element["name"]!).StartsWith("back") && face is "east" or "south"
+                    // A corner's `-whole` copies squeeze the whole texture onto their 12-voxel inner legs (decision 0086).
+                    bool squeezed = layout == "cornerout" && ((string)element["name"]!).Contains("-whole") && face is "east" or "south"
                         && Math.Abs(voxels * 4 / 3 - texels) < 0.001;
                     if (!squeezed && Math.Abs(voxels - texels) > 0.001)
                         offenders.Add($"{element["name"]} {face}: {texels} texels over {voxels} voxels");
