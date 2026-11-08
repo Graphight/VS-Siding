@@ -507,14 +507,15 @@ public class SidingWallBlock : Block
     public override bool IsReplacableBy(Block block)
         => (SidingModSystem.IsHostableId(block.BlockId) && Variant["layout"] != "diagonal") || base.IsReplacableBy(block);
 
+    // The placement failure code keeping a block out of the wall's cell: a step takes nothing, a deck
+    // takes only a block that fits under it (decision 0092).
+    internal static string? OpenPartRefusal(SidingWallEntity? entity, bool underDeck = false)
+        => entity?.Deck != null && !underDeck ? "vssiding-decked" : entity?.Step != null ? "vssiding-stepped" : null;
+
     // Right-click on the wall's open side with a hostable block and no saw places that block in the
     // wall's own cell, where vanilla would put it in the cell in front. The client only reports the
     // interaction handled - TryPlaceBlock must run once, on the server, or the client would place
     // the held block into the front cell itself before the server ever gets to swap the wall out.
-    // A block that stands against a wall face or hangs may take a decked cell and sits under the deck (decision 0092); a step takes nothing.
-    internal static string? OpenPartRefusal(SidingWallEntity? entity, bool underDeck = false)
-        => entity?.Deck != null && !underDeck ? "vssiding-decked" : entity?.Step != null ? "vssiding-stepped" : null;
-
     private bool TryHost(IWorldAccessor world, IPlayer byPlayer, BlockSelection blockSel)
     {
         ItemSlot slot = byPlayer.InventoryManager.ActiveHotbarSlot;
@@ -526,10 +527,10 @@ public class SidingWallBlock : Block
         // which hands the click to vanilla and hosts anyway. Other ways in drop it
         // (HostChangePrefix).
         var hostEntity = world.BlockAccessor.GetBlockEntity<SidingWallEntity>(blockSel.Position);
-        if (OpenPartRefusal(hostEntity, SidingModSystem.IsUnderDeckId(heldBlock.BlockId)) is { } refusal)
+        bool underDeck = SidingModSystem.IsUnderDeckId(SidingModSystem.PlacedVariant(world.BlockAccessor, heldBlock, blockSel.Face).BlockId);
+        if (OpenPartRefusal(hostEntity, underDeck) is { } refusal)
         {
-            string kind = refusal["vssiding-".Length..];
-            (byPlayer as IServerPlayer)?.SendIngameError("vssiding:" + kind, Lang.Get("vssiding:build-" + kind));
+            (byPlayer as IServerPlayer)?.SendIngameError(refusal, Lang.Get("placefailure-" + refusal));
             return true;
         }
 

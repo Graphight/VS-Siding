@@ -24,20 +24,28 @@ public class SidingWallBlockRetentionTests
     """);
 
     [Fact]
-    public void OpenPartRefusalNamesDeckOrStep()
+    public void OpenPartRefusalNamesADeckOnlyToABlockThatDoesNotFitAndAStepAlways()
     {
-        Assert.Null(SidingWallBlock.OpenPartRefusal(null));
-        Assert.Null(SidingWallBlock.OpenPartRefusal(new SidingWallEntity()));
-        Assert.Equal("vssiding-decked", SidingWallBlock.OpenPartRefusal(new SidingWallEntity { Deck = "oak" }));
-        Assert.Equal("vssiding-stepped", SidingWallBlock.OpenPartRefusal(new SidingWallEntity { Step = "game:plankstairs-oak-up-north-free" }));
-    }
+        const string step = "game:plankstairs-oak-up-north-free";
+        var actual = new Dictionary<string, string?>
+        {
+            ["no wall"] = SidingWallBlock.OpenPartRefusal(null),
+            ["open"] = SidingWallBlock.OpenPartRefusal(new SidingWallEntity()),
+            ["decked"] = SidingWallBlock.OpenPartRefusal(new SidingWallEntity { Deck = "oak" }),
+            ["decked, block fits"] = SidingWallBlock.OpenPartRefusal(new SidingWallEntity { Deck = "oak" }, underDeck: true),
+            ["stepped"] = SidingWallBlock.OpenPartRefusal(new SidingWallEntity { Step = step }),
+            ["stepped, block fits"] = SidingWallBlock.OpenPartRefusal(new SidingWallEntity { Step = step }, underDeck: true),
+        };
 
-    [Fact]
-    public void UnderDeckBlockTakesADeckButNeverAStep()
-    {
-        Assert.Null(SidingWallBlock.OpenPartRefusal(new SidingWallEntity { Deck = "oak" }, underDeck: true));
-        Assert.Equal("vssiding-stepped", SidingWallBlock.OpenPartRefusal(new SidingWallEntity { Step = "game:plankstairs-oak-up-north-free" }, underDeck: true));
-        Assert.Equal("vssiding-decked", SidingWallBlock.OpenPartRefusal(new SidingWallEntity { Deck = "oak" }, underDeck: false));
+        Assert.Equal(new Dictionary<string, string?>
+        {
+            ["no wall"] = null,
+            ["open"] = null,
+            ["decked"] = "vssiding-decked",
+            ["decked, block fits"] = null,
+            ["stepped"] = "vssiding-stepped",
+            ["stepped, block fits"] = "vssiding-stepped",
+        }, actual);
     }
 
     [Fact]

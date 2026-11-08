@@ -96,33 +96,43 @@ public class IsHostableTests
         Assert.Equal(expected, actual);
     }
 
-    [Fact]
-    public void OnlyHostableWallHungAndHungBlocksHostUnderADeck()
+    private static Block Boxed(float y1, float y2, bool open = true, bool? declared = null)
     {
-        var wallHook = Open(new Block());
-        wallHook.BlockBehaviors = new BlockBehavior[] { new BlockBehaviorHorizontalAttachable(wallHook) };
-        var ceilingHook = Open(new Block());
-        ceilingHook.Attributes = new JsonObject(new JObject { ["vssidingHanger"] = true });
-        var solidWallHook = new Block();
-        solidWallHook.BlockBehaviors = new BlockBehavior[] { new BlockBehaviorHorizontalAttachable(solidWallHook) };
+        var block = new Block { SelectionBoxes = new[] { new Cuboidf(0.25f, y1, 0.25f, 0.75f, y2, 0.75f) } };
+        if (declared != null) block.Attributes = new JsonObject(new JObject { ["vssidingUnderDeck"] = declared.Value });
+        return open ? Open(block) : block;
+    }
 
+    [Fact]
+    public void ABlockFitsUnderADeckWhenItsBoxesSpanTwelveSixteenthsAndDropsToTouchIt()
+    {
         var blocks = new Dictionary<string, Block>
         {
-            ["wall hook"] = wallHook,
-            ["ceiling hook"] = ceilingHook,
-            ["chest"] = Open(new Block()),
-            ["unhostable wall hook"] = solidWallHook,
+            ["torch holder"] = Boxed(0.125f, 0.875f),
+            ["small lantern on a wall"] = Boxed(0.25f, 0.875f),
+            ["standing lantern"] = Boxed(0, 0.75f),
+            ["oil lamp on the floor"] = Boxed(0, 0.125f),
+            ["large lantern on a wall"] = Boxed(0, 0.875f),
+            ["shelf"] = Boxed(0, 1),
+            ["declared hook"] = Boxed(0, 1, declared: true),
+            ["declared out"] = Boxed(0, 0.5f, declared: false),
+            ["unhostable"] = Boxed(0, 0.5f, open: false),
         };
 
-        var actual = new Dictionary<string, bool>();
-        foreach (var (name, block) in blocks) actual[name] = SidingModSystem.HostsUnderDeck(block);
+        var actual = new Dictionary<string, double?>();
+        foreach (var (name, block) in blocks) actual[name] = SidingModSystem.UnderDeckDropFor(block);
 
-        Assert.Equal(new Dictionary<string, bool>
+        Assert.Equal(new Dictionary<string, double?>
         {
-            ["wall hook"] = true,
-            ["ceiling hook"] = true,
-            ["chest"] = false,
-            ["unhostable wall hook"] = false,
+            ["torch holder"] = 0.125,
+            ["small lantern on a wall"] = 0.125,
+            ["standing lantern"] = 0,
+            ["oil lamp on the floor"] = 0,
+            ["large lantern on a wall"] = null,
+            ["shelf"] = null,
+            ["declared hook"] = 0.25,
+            ["declared out"] = null,
+            ["unhostable"] = null,
         }, actual);
     }
 

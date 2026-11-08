@@ -706,13 +706,34 @@ public class SidingModSystem : ModSystem
 
     internal static bool IsHangerId(int blockId) => Hangers is { } hangers && blockId < hangers.Length && hangers[blockId];
 
-    // Indexed by BlockId: hostable blocks that stand against a wall face or hang, which a decked cell may host (decision 0092).
-    internal static bool[]? UnderDeck;
+    // Indexed by BlockId: how far a block hosted in a decked cell drops so its top meets the deck's underside,
+    // null for one that does not fit there (decision 0092).
+    internal static double?[]? UnderDeckDrop;
 
-    internal static bool IsUnderDeckId(int blockId) => UnderDeck is { } underDeck && blockId < underDeck.Length && underDeck[blockId];
+    internal static bool IsUnderDeckId(int blockId) => UnderDeckDrop is { } drops && blockId < drops.Length && drops[blockId] != null;
 
-    internal static bool HostsUnderDeck(Block block)
-        => IsHostable(block) && (IsHanger(block) || block.BlockBehaviors.Any(behavior => behavior is BlockBehaviorHorizontalAttachable));
+    // A hostable block fits under a deck when its boxes span no more than the 12/16 below it; vssidingUnderDeck
+    // overrides that for a block whose boxes overstate its shape, such as Butchering's hooks.
+    internal static double? UnderDeckDropFor(Block block)
+    {
+        if (!IsHostable(block)) return null;
+
+        const double room = 1 - PanelThickness;
+        var boxes = block.SelectionBoxes ?? block.CollisionBoxes;
+        double bottom = boxes is { Length: > 0 } ? boxes.Min(box => box.Y1) : 0;
+        double top = boxes is { Length: > 0 } ? boxes.Max(box => box.Y2) : 1;
+        bool fits = block.Attributes?["vssidingUnderDeck"] is { Exists: true } declared ? declared.AsBool() : top - bottom <= room + 1e-6;
+        return fits ? Math.Max(0, top - room) : null;
+    }
+
+    // The variant a click on face places, which is the one a decked cell judges: a torch, lantern or oil lamp
+    // is held standing, and first tries the variant for the clicked face.
+    internal static Block PlacedVariant(IBlockAccessor accessor, Block held, BlockFacing face)
+    {
+        string? key = held is BlockGroundAndSideAttachable ? "orientation" : held.BlockBehaviors.OfType<BlockBehaviorOmniAttachable>().FirstOrDefault()?.facingCode;
+        if (key == null || !held.Variant.ContainsKey(key)) return held;
+        return accessor.GetBlock(held.CodeWithVariant(key, face.Code)) is { BlockId: not 0 } placed ? placed : held;
+    }
 
     internal static readonly AccessTools.FieldRef<BlockBehaviorUnstableFalling, BlockFacing[]?> AttachableFacesRef =
         AccessTools.FieldRefAccess<BlockBehaviorUnstableFalling, BlockFacing[]?>("attachableFaces");
@@ -727,17 +748,18 @@ public class SidingModSystem : ModSystem
             _ => false,
         });
 
-    // How far a hung block at pos rises to meet the underside of the thin floor above; zero for anything else.
+    // How far the block at pos moves up: a hung block rises to the underside of the thin floor or deck above (0054),
+    // and a block hosted in a decked cell drops by its UnderDeckDrop (0092). Zero for anything else.
     internal static double HangShiftAt(BlockPos pos, Block block)
     {
         bool hanger = IsHangerId(block.BlockId);
-        if (!hanger && !IsUnderDeckId(block.BlockId)) return 0;
+        double? drop = UnderDeckDrop is { } drops && block.BlockId < drops.Length ? drops[block.BlockId] : null;
+        if (!hanger && drop == null) return 0;
 
         ICoreAPI? api = ApiRef(block);
         if (api == null) return 0;
 
-        // Hosted in a decked cell, the block is drawn below the deck's top instead of rising to its underside.
-        if (IsUnderDeckId(block.BlockId) && GuestWalls.GuestAt(api, pos) is { Deck: not null }) return -PanelThickness;
+        if (drop != null && GuestWalls.GuestAt(api, pos) is { Deck: not null }) return -drop.Value;
 
         return hanger ? HangShift(api.World.BlockAccessor, pos, block) : 0;
     }
@@ -786,7 +808,7 @@ public class SidingModSystem : ModSystem
         var hostable = new bool[maxId + 1];
         var faceShift = new double[maxId + 1][];
         var hangers = new bool[maxId + 1];
-        var underDeck = new bool[maxId + 1];
+        var underDeckDrop = new double?[maxId + 1];
         var mainPos = new PropertyInfo?[maxId + 1];
 
         foreach (var block in api.World.Blocks)
@@ -794,7 +816,7 @@ public class SidingModSystem : ModSystem
             if (block == null) continue;
             hostable[block.BlockId] = IsHostable(block);
             hangers[block.BlockId] = IsHanger(block);
-            underDeck[block.BlockId] = HostsUnderDeck(block);
+            underDeckDrop[block.BlockId] = UnderDeckDropFor(block);
             if (!hostable[block.BlockId]) continue;
 
             faceShift[block.BlockId] = FaceShifts(block);
@@ -804,7 +826,7 @@ public class SidingModSystem : ModSystem
 
         Hostable = hostable;
         Hangers = hangers;
-        UnderDeck = underDeck;
+        UnderDeckDrop = underDeckDrop;
         FaceShiftByBlock = faceShift;
         MainPosByBlock = mainPos;
     }
@@ -1076,10 +1098,13 @@ public class SidingModSystem : ModSystem
     // in view. IsHostable admits no Multiblock block but a trunk or one declaring vssidingHostable with a
     // side variant, so ordinary multiblocks pass untouched.
     // IsReplacableBy lets any hostable block take a wall's cell but has no position to see a deck
-    // or step, so the placement check refuses it here. Positional arguments, since overrides rename them.
+    // or step, so the placement check refuses it here, unless the block fits under the deck (decision 0092).
+    // Positional arguments, since overrides rename them.
     internal static void DeckedCellPostfix(Block __instance, IWorldAccessor __0, BlockSelection __2, ref string __3, ref bool __result)
     {
-        if (!__result || SidingWallBlock.OpenPartRefusal(__0.BlockAccessor.GetBlockEntity<SidingWallEntity>(__2.Position), IsUnderDeckId(__instance.BlockId)) is not { } refusal) return;
+        if (!__result || __0.BlockAccessor.GetBlockEntity<SidingWallEntity>(__2.Position) is not { OpenPartFilled: true } entity) return;
+        bool underDeck = IsUnderDeckId(PlacedVariant(__0.BlockAccessor, __instance, __2.Face).BlockId);
+        if (SidingWallBlock.OpenPartRefusal(entity, underDeck) is not { } refusal) return;
         __result = false;
         __3 = refusal;
     }
@@ -1287,12 +1312,11 @@ public class SidingModSystem : ModSystem
             // them all through). The wall's entity is still in place here, since its OnBlockRemoved
             // only runs after this prefix, so its state becomes the guest's.
             if (__instance.GetLocalBlockEntityAtBlockPos(pos) is SidingWallEntity wall
-                && IsHostableId(world.BlockAccessor.GetBlock(pos, BlockLayersAccess.Solid).BlockId))
+                && world.BlockAccessor.GetBlock(pos, BlockLayersAccess.Solid).BlockId is var hostId && IsHostableId(hostId))
             {
-                // A step, or a deck under a block that is not under-deck, is never kept. TryHost and DeckedCellPostfix
+                // A step is never kept, nor a deck over a block that does not fit under it. TryHost and DeckedCellPostfix
                 // refuse every placement path we know of; anything else that gets here drops it rather than losing it.
-                bool underDeck = IsUnderDeckId(world.BlockAccessor.GetBlock(pos, BlockLayersAccess.Solid).BlockId);
-                if ((wall.Step != null || (wall.Deck != null && !underDeck)) && wall.Block is SidingWallBlock decked)
+                if ((wall.Step != null || (wall.Deck != null && !IsUnderDeckId(hostId))) && wall.Block is SidingWallBlock decked)
                 {
                     var openPartDrops = SidingWallBlock.ComputeDrops(
                         null, null, null, null, null, wall.Deck,

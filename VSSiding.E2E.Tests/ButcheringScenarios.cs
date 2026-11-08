@@ -9,21 +9,21 @@ using Xunit;
 
 namespace VSSiding.E2E.Tests;
 
-// Runs with `just probe butchering`, the only run that loads Butchering. Its ceiling hook declares vssidingHanger,
-// so it rides up to the underside of the thin floor above it (#133).
+// Runs with `just probe butchering`, the only run that loads Butchering (#133). Its ceiling hook declares vssidingHanger,
+// so it rides up to the underside of a thin floor or deck above it, and both hooks declare vssidingUnderDeck, so a
+// decked cell takes them although their boxes are a full cell high.
 [Trait("Category", "Probe")]
 [AtlasWorld(Mods = new[] { "../../../../compat/mods/slot0.zip", "../../../../compat/mods/slot1.zip", "../../../../compat/mods/slot2.zip", "../../../../compat/mods/slot3.zip", "../../../../compat/mods/slot4.zip", "../../../../compat/mods/slot5.zip" })]
 public class ButcheringScenarios : AtlasScenarioBase
 {
     private static bool ButcheringLoaded => Environment.GetEnvironmentVariable("SIDING_PROBE") == "butchering";
 
-    // The builder's picks are player data, which the world rollback leaves as the last scenario set them.
-    private async Task<ITestPlayer> Join()
+    private async Task Deck(ITestPlayer player, BlockPos cell)
     {
-        ITestPlayer player = await WallBuilder.JoinBuilder(World);
-        player.Entity.WatchedAttributes.SetString("vssidingFraming", "wall");
-        player.Entity.WatchedAttributes.SetString("vssidingDeck", "");
-        return player;
+        player.Entity.WatchedAttributes.SetString("vssidingDeck", "deck");
+        await player.GiveItem("game:plank-oak", 2);
+        var sideSel = new BlockSelection { Position = cell.Copy(), Face = BlockFacing.EAST, HitPosition = new Vec3d(1, 0.5, 0.5) };
+        Assert.True(World.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, sideSel));
     }
 
     [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
@@ -34,20 +34,16 @@ public class ButcheringScenarios : AtlasScenarioBase
         BlockPos hook = World.Spawn.Offset(1, 2, 0);
         BlockPos floor = hook.UpCopy();
         World.SetBlock("game:planks-aged-ud", hook);
-        ITestPlayer player = await Join();
+        ITestPlayer player = await WallBuilder.JoinBuilder(World);
         try
         {
             player.Entity.WatchedAttributes.SetString("vssidingFraming", "floor");
             await WallBuilder.Raise(World, player, floor, floor.WestCopy(), "game:plank-oak", null);
             World.SetBlock("butchering:butcherhookceiling-iron-north", hook);
 
-            Block hookBlock = World.BlockAt(hook);
-            Type modSystem = World.Api.ModLoader.GetModSystem("VSSiding.SidingModSystem").GetType();
-            var shift = (double)modSystem.GetMethod("HangShiftAt", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public)!
-                .Invoke(null, new object[] { hook, hookBlock })!;
             Cuboidf[] boxes = World.BlockAt(floor).GetSelectionBoxes(World.Api.World.BlockAccessor, floor);
 
-            Assert.Equal((0.75, true), (shift, boxes.Any(box => box.GetType().Name == "DecorSelectionBox")));
+            Assert.Equal((0.75, true), (WallBuilder.HangShiftAt(World, hook), boxes.Any(box => box.GetType().Name == "DecorSelectionBox")));
         }
         finally
         {
@@ -63,21 +59,16 @@ public class ButcheringScenarios : AtlasScenarioBase
 
         BlockPos cell = World.Spawn.Offset(1, 2, 0);
         World.SetBlock("game:planks-aged-ud", cell.DownCopy());
-        ITestPlayer player = await Join();
+        ITestPlayer player = await WallBuilder.JoinBuilder(World);
         try
         {
             await WallBuilder.Raise(World, player, cell, cell.WestCopy(), "game:plank-oak", "game:clay-blue");
-            player.Entity.WatchedAttributes.SetString("vssidingDeck", "deck");
-            await player.GiveItem("game:plank-oak", 2);
-            var sideSel = new BlockSelection { Position = cell.Copy(), Face = BlockFacing.EAST, HitPosition = new Vec3d(1, 0.5, 0.5) };
-            Assert.True(World.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, sideSel));
+            await Deck(player, cell);
             var deck = ("oak", (string?)null, (string?)null, (string?)null);
             Assert.Equal(deck, WallBuilder.DeckLayers(World, cell));
 
             World.SetBlock("butchering:butcherhook-iron-west", cell);
-            Type modSystem = World.Api.ModLoader.GetModSystem("VSSiding.SidingModSystem").GetType();
-            var shift = (double)modSystem.GetMethod("HangShiftAt", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public)!
-                .Invoke(null, new object[] { cell, World.BlockAt(cell) })!;
+            double shift = WallBuilder.HangShiftAt(World, cell);
             var hosted = WallBuilder.GuestDeckLayers(World, cell);
 
             World.Api.World.BlockAccessor.BreakBlock(cell, player.Player);
@@ -100,23 +91,53 @@ public class ButcheringScenarios : AtlasScenarioBase
         BlockPos cell = World.Spawn.Offset(1, 3, 0);
         BlockPos hook = cell.DownCopy();
         World.SetBlock("game:planks-aged-ud", hook.DownCopy());
-        ITestPlayer player = await Join();
+        ITestPlayer player = await WallBuilder.JoinBuilder(World);
         try
         {
             await WallBuilder.Raise(World, player, hook, hook.WestCopy(), "game:plank-oak", "game:clay-blue", "game:plank-oak");
             await WallBuilder.Raise(World, player, cell, cell.WestCopy(), "game:plank-oak", "game:clay-blue");
-            player.Entity.WatchedAttributes.SetString("vssidingDeck", "deck");
-            await player.GiveItem("game:plank-oak", 2);
-            var sideSel = new BlockSelection { Position = cell.Copy(), Face = BlockFacing.EAST, HitPosition = new Vec3d(1, 0.5, 0.5) };
-            Assert.True(World.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, sideSel));
+            await Deck(player, cell);
             World.SetBlock("butchering:butcherhookceiling-iron-north", hook);
 
-            Type modSystem = World.Api.ModLoader.GetModSystem("VSSiding.SidingModSystem").GetType();
-            var shift = (double)modSystem.GetMethod("HangShiftAt", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public)!
-                .Invoke(null, new object[] { hook, World.BlockAt(hook) })!;
             Cuboidf[] boxes = World.BlockAt(cell).GetSelectionBoxes(World.Api.World.BlockAccessor, cell);
 
-            Assert.Equal((0.75, true), (shift, boxes.Any(box => box.GetType().Name == "DecorSelectionBox")));
+            Assert.Equal((0.75, true), (WallBuilder.HangShiftAt(World, hook), boxes.Any(box => box.GetType().Name == "DecorSelectionBox")));
+        }
+        finally
+        {
+            player.Player.Disconnect();
+            await World.Until(() => !player.IsConnected);
+        }
+    }
+
+    // The footprint postfix asks every cell the table takes, not only the one clicked, so a deck on its middle wall refuses it.
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
+    public async Task Table_Should_BeRefused_When_AWallInItsFootprintIsDecked()
+    {
+        if (!ButcheringLoaded) return;
+
+        BlockPos cell = World.Spawn.Offset(1, 2, 0);
+        BlockPos[] run = { cell, cell.NorthCopy(), cell.NorthCopy(2) };
+        ITestPlayer player = await WallBuilder.JoinBuilder(World);
+        try
+        {
+            foreach (BlockPos column in run)
+            {
+                World.SetBlock("game:planks-aged-ud", column.DownCopy());
+                await WallBuilder.Raise(World, player, column, column.WestCopy(), "game:plank-oak", "game:clay-blue");
+            }
+            await Deck(player, run[1]);
+
+            // Standing east of the run facing west, as CompatProbeScenarios.Host does: the table runs north along it.
+            player.Entity.LeftHandItemSlot.Itemstack = null;
+            player.Entity.Pos.SetPos(cell.X + 2.5, cell.Y, cell.Z + 0.5);
+            player.Entity.Pos.Yaw = 3 * GameMath.PIHALF;
+            var stack = new ItemStack(World.Api.World.GetBlock(new AssetLocation("butchering:butchertable-simple-north")));
+            var selection = new BlockSelection { Position = cell.Copy(), Face = BlockFacing.EAST, HitPosition = new Vec3d(1, 0.5, 0.5) };
+            string failureCode = "";
+            bool placed = stack.Block.TryPlaceBlock(player.Entity.World, player.Player, stack, selection, ref failureCode);
+
+            Assert.Equal((false, "vssiding-decked", true), (placed, failureCode, run.All(column => World.BlockAt(column).Code.Domain == "vssiding")));
         }
         finally
         {
