@@ -31,6 +31,37 @@ public class SidingWallEntityTests
                 .Select(c => SidingWallEntity.FrameElements(framings, c.Item1, c.Item2)));
     }
 
+    [Fact]
+    public void AnInfillNamesItsGroupsOrFallsBackToThePlainOnes()
+    {
+        var infills = Dict("""{ "wattle": {}, "bamboopoles": { "Elements": "stems" } }""");
+
+        Assert.Equal(
+            new[] { "infill", "stems", "infill" },
+            new[] { "wattle", "bamboopoles", null }.Select(infill => SidingWallEntity.InfillElements(infills, infill)));
+    }
+
+    [Fact]
+    public void AnInfillsOwnGroupsTakeThePlainOnesPlaceInAWallAndADiagonal()
+    {
+        string[] Wall(string layout, (bool, bool, bool, bool) joins, string fill = "infill")
+            => SidingWallEntity.SelectiveElements(layout, "oak", "bamboopoles", null, null, null, NoElementFinishes, joins, glazed: false, fill: fill);
+
+        Assert.Equal(
+            new string[][]
+            {
+                ["framing-left", "framing-right", "stems", "stems-top", "stems-bottom"],
+                ["framing-left", "framing-right", "infill", "infill-top", "infill-bottom"],
+                ["framing-top", "framing-bottom", "stems", "framing-top-left", "framing-bottom-left", "stems-left", "framing-join-left", "framing-right"],
+            },
+            new[]
+            {
+                Wall("wall", (true, true, false, false), "stems"),
+                Wall("wall", (true, true, false, false)),
+                Wall("diagonal", (false, false, true, false), "stems"),
+            });
+    }
+
     // A stick wall of packed dirt once took the pole variant's parity as its dirt texture's variant too.
     [Fact]
     public void ACellKeepsTheWholeHashWhileAnyLayersTextureVaries()

@@ -190,7 +190,7 @@ public class SidingWallEntity : BlockEntity
         var closed = (front: frontDirections.Length > 0 && FrontClosed(frontDirections[0]), second: frontDirections.Length > 1 && FrontClosed(frontDirections[1]));
         string[] selectiveElements = SelectiveElements(layout, Framing, Infill, Front, SecondFront, Back, Block.Attributes["Finishes"], joins, glazed, Styles,
             frame: FrameElements(Block.Attributes["Framings"], Framing, alternate), decked: Deck != null, innerCorners: innerCorners, glassRunsOn: glassRunsOn, tees: tees, closed: closed,
-            secondBack: SecondBack, secondBackStyle: SecondBackStyle);
+            secondBack: SecondBack, secondBackStyle: SecondBackStyle, fill: InfillElements(Block.Attributes["Infills"], Infill));
 
         // The deck is laid like a floor, in world directions, so its groups are tesselated unrotated.
         bool deckGlazed = SidingWallBlock.IsTransparent(DeckInfill, Block.Attributes["Infills"]);
@@ -198,7 +198,8 @@ public class SidingWallEntity : BlockEntity
         string[] deckInnerCorners = SidingFloorBlock.InnerCorners(Api.World.BlockAccessor, Pos, deckGlazed, deckJoins);
         bool capped = Capped(layout, DeckFront, SidingWallBlock.FreeAbove(Api.World.BlockAccessor, Pos));
         string[] deckElements = DeckElements(side, Deck, DeckInfill, DeckFront, DeckBack, Block.Attributes["Finishes"], deckJoins, (DeckFrontStyle, DeckBackStyle), deckGlazed,
-            FrameElements(Block.Attributes["Framings"], Deck, alternate), Ledges(layout, Back == null, glazed, joins), deckInnerCorners, capped);
+            FrameElements(Block.Attributes["Framings"], Deck, alternate), Ledges(layout, Back == null, glazed, joins), deckInnerCorners, capped,
+            InfillElements(Block.Attributes["Infills"], DeckInfill));
         if (selectiveElements.Length == 0 && deckElements.Length == 0 && stepElements.Length == 0) return false;
 
         string cacheKey = CacheKey(layout, side, Framing, Infill, Front, SecondFront, Back, joins, Styles, Deck, Step, StepOrientation,
@@ -246,6 +247,10 @@ public class SidingWallEntity : BlockEntity
         string frame = framing == null ? "framing" : framings[framing]["Elements"].AsString("framing");
         return frame != "framing" && alternate % 2 == 1 ? frame + "2" : frame;
     }
+
+    // The shape-group prefix an infill entry draws with, as a framing's Elements names its frame's.
+    internal static string InfillElements(JsonObject infills, string? infill)
+        => infill == null ? "infill" : infills[infill]["Elements"].AsString("infill");
 
     private static IEnumerable<MeshData> Meshes(
         ITesselatorAPI tesselator, Shape shape, ITexPositionSource texSource, Vec3f rotation, string[] elements, bool glazed)
@@ -308,10 +313,10 @@ public class SidingWallEntity : BlockEntity
     internal static string[] DeckElements(
         string side, string? deck, string? infill, string? front, string? back, JsonObject finishes,
         (bool above, bool below, bool left, bool right) joins, (string? front, string? back) styles, bool glazed,
-        string frame = "framing", string[]? ledges = null, string[]? innerCorners = null, bool capped = false)
+        string frame = "framing", string[]? ledges = null, string[]? innerCorners = null, bool capped = false, string fill = "infill")
     {
         if (deck == null) return [];
-        string[] names = SidingFloorEntity.SelectiveElements(deck, infill, front, back, finishes, joins, styles, glazed, frame, innerCorners);
+        string[] names = SidingFloorEntity.SelectiveElements(deck, infill, front, back, finishes, joins, styles, glazed, frame, innerCorners, fill);
         string[] copies = ["deck", .. ledges ?? []];
         // The top finish is the first name, and a glazed deck's is a rim round the glass, which has no top to lay over the wall.
         string[] cap = capped && front != null && !glazed ? [$"cap-{side}-{names[0]}"] : [];
@@ -380,7 +385,7 @@ public class SidingWallEntity : BlockEntity
         (bool above, bool below, bool left, bool right) joins, bool glazed,
         (string? front, string? secondFront, string? back) styles = default, string frame = "framing", bool decked = false,
         string[]? innerCorners = null, (bool left, bool right) glassRunsOn = default, (bool left, bool right) tees = default,
-        (bool front, bool second) closed = default, string? secondBack = null, string? secondBackStyle = null)
+        (bool front, bool second) closed = default, string? secondBack = null, string? secondBackStyle = null, string fill = "infill")
     {
         if (layout == "cornerin") return PostElements(framing, finishes, [(front, styles.front), (secondFront, styles.secondFront), (back, styles.back), (secondBack, secondBackStyle)]);
         var names = new List<string>();
@@ -430,9 +435,9 @@ public class SidingWallEntity : BlockEntity
             if (glazed) names.Add("infill-pane");
             else
             {
-                names.Add("infill");
-                if (joins.above) names.Add("infill-top");
-                if (joins.below) names.Add("infill-bottom");
+                names.Add(fill);
+                if (joins.above) names.Add($"{fill}-top");
+                if (joins.below) names.Add($"{fill}-bottom");
             }
         }
         // The top of the room side's rim lies in a deck's height, where the deck's ledge takes its place (Ledges), and a T's
