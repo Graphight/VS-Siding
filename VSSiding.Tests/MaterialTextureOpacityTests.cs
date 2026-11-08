@@ -165,6 +165,7 @@ public class MaterialTextureOpacityTests
                 offenders.Add($"{textureCode} ({partial} pixels with partial alpha)");
         }
 
-        Assert.Equal(Array.Empty<string>(), offenders);
+        // Not Assert.Equal: its collection diff cuts each string at 50 characters, past the code.
+        Assert.True(offenders.Count == 0, string.Join(Environment.NewLine, offenders));
     }
 }
