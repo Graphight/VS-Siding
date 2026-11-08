@@ -165,12 +165,15 @@ public class SidingFloorBlock : Block
     // Shared with a decked wall (decision 0092), which also answers for the hanger in the cell below.
     internal static Cuboidf[] WithHangerBelow(IBlockAccessor blockAccessor, BlockPos pos, Cuboidf[] ownBoxes)
     {
-        if (DecorSelectionBoxConstructor == null || PosAdjustField == null) return ownBoxes;
-
         var belowPos = pos.DownCopy();
         var below = blockAccessor.GetBlock(belowPos);
-        var shift = SidingModSystem.HangShiftAt(belowPos, below);
-        if (shift == 0) return ownBoxes;
+        return WithHanger(blockAccessor, belowPos, below, SidingModSystem.HangShiftAt(belowPos, below), ownBoxes);
+    }
+
+    // Only a raised hanger reaches this cell; a block lowered under a deck (a negative shift) stays in its own.
+    internal static Cuboidf[] WithHanger(IBlockAccessor blockAccessor, BlockPos belowPos, Block below, double shift, Cuboidf[] ownBoxes)
+    {
+        if (shift <= 0 || DecorSelectionBoxConstructor == null || PosAdjustField == null) return ownBoxes;
 
         var hangerBoxes = GapShiftCollisionPatches.UnshiftedSelectionBoxes(below, blockAccessor, belowPos);
         if (hangerBoxes is not { Length: > 0 }) return ownBoxes;
@@ -195,10 +198,7 @@ public class SidingFloorBlock : Block
 
     // The hanger's boxes in this cell's coordinates: the hanger's cell is one below, and the shift
     // lifts them to the underside, so each moves by shift - 1.
-    internal static Cuboidf[] WithHangerBoxes(Cuboidf[]? floorBoxes, Cuboidf[] hangerBoxes, double dx, double shift, double dz)
-        => (floorBoxes ?? Array.Empty<Cuboidf>()).Concat(HangerDecorBoxes(hangerBoxes, dx, shift, dz)).ToArray();
-
-    private static Cuboidf[] HangerDecorBoxes(Cuboidf[] hangerBoxes, double dx, double shift, double dz)
+    internal static Cuboidf[] HangerDecorBoxes(Cuboidf[] hangerBoxes, double dx, double shift, double dz)
         => hangerBoxes.Select(box =>
         {
             var moved = box.OffsetCopy((float)dx, (float)(shift - 1), (float)dz);
