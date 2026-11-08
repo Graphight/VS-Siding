@@ -1135,8 +1135,36 @@ public static class WallShapeGen
            from rim in RimPiece(e, rail.Part, ('z', 8 + runLo - shift, 8 + runHi - shift), ('y', rail.Lo, rail.Hi))
            select OnDiagonal(rim, suffix, shift);
 
+    // The plates of a bamboo frame over a run, laid on the cell's 0..16 and repeated along it as DiagonalStems repeats the
+    // stems, so the rings keep their spacing through the run's ends.
+    private static IEnumerable<Element> DiagonalBambooPlates(string prefix, double[] top, double[] bottom, double runLo, double runHi, string suffix = "")
+    {
+        string[] plate = ["west", "east", "up", "down"];
+        return from shift in new[] { -16, 0, 16 }
+               from e in BambooPole($"{prefix}-top", (1, 15, 0), (3, 16, 16), 'x', 'z', top, plate)
+                   .Concat(BambooPole($"{prefix}-bottom", (1, 0, 0), (3, 1, 16), 'x', 'z', bottom, plate))
+               let lo = Math.Max(e.From.Z, 8 + runLo - shift)
+               let hi = Math.Min(e.To.Z, 8 + runHi - shift)
+               where hi > lo
+               select OnDiagonal(e with { From = (e.From.X, e.From.Y, lo), To = (e.To.X, e.To.Y, hi) }, suffix, shift);
+    }
+
+    // A diagonal's frame in bamboo: the plates over the run and its two ends, and the corner fillers and half posts as ringed uprights.
+    private static IEnumerable<Element> DiagonalBamboo(string prefix, double[] top, double[] bottom, double[] left, double[] right) =>
+    [
+        .. DiagonalBambooPlates(prefix, top, bottom, -DiagonalEnd, DiagonalEnd),
+        .. DiagonalBambooPlates(prefix, top, bottom, 1 - DiagonalCorner, -DiagonalEnd, "-left"),
+        .. DiagonalBambooPlates(prefix, top, bottom, DiagonalEnd, DiagonalCorner - 1, "-right"),
+        .. BambooPole($"{prefix}-left", (16 - DiagonalFiller, 0.01, 0), (16, 15.99, DiagonalFiller), 'x', 'y', left),
+        .. BambooPole($"{prefix}-right", (0, 0.01, 16 - DiagonalFiller), (DiagonalFiller, 15.99, 16), 'z', 'y', right),
+        .. BambooPole($"{prefix}-join-left", (1, 0, 8 - DiagonalCorner), (3, 16, 9 - DiagonalCorner), 'x', 'y', left).Select(e => OnDiagonal(e)),
+        .. BambooPole($"{prefix}-join-right", (1, 0, 7 + DiagonalCorner), (3, 16, 8 + DiagonalCorner), 'x', 'y', right).Select(e => OnDiagonal(e)),
+    ];
+
     private static readonly Element[] DiagonalElements =
     [
+        .. DiagonalBamboo("bamboo", [3.25, 7.75, 12.25], [2.25, 6.75, 11.25], [0.25, 5.25, 15.25], [0.25, 4.75, 15.25]),
+        .. DiagonalBamboo("bamboo2", [2.75, 8.25, 13.25], [3.75, 9.25, 13.75], [4.75, 15.25], [5.25, 0.25]),
         // A hair short of the cell's height, so a cap never shares a plane with the plate lying over it.
         new("framing-left", (16 - DiagonalFiller, 0.01, 0), (16, 15.99, DiagonalFiller), "framing", UvRule.Flat),
         new("framing-right", (0, 0.01, 16 - DiagonalFiller), (DiagonalFiller, 15.99, 16), "framing", UvRule.Flat),

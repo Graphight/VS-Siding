@@ -14,6 +14,9870 @@
   },
   "elements": [
     {
+      "name": "bamboo-top",
+      "from": [
+        7.25,
+        15.0,
+        -1.3137
+      ],
+      "to": [
+        8.75,
+        16.0,
+        0.0
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.3137,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.3137,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.5,
+            1.3137
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.5,
+            1.3137
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-top",
+      "from": [
+        7.1,
+        15.25,
+        -1.3137
+      ],
+      "to": [
+        7.25,
+        15.75,
+        0.0
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.3137,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            1.3137
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            1.3137
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-top",
+      "from": [
+        8.75,
+        15.25,
+        -1.3137
+      ],
+      "to": [
+        8.9,
+        15.75,
+        0.0
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.3137,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            1.3137
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            1.3137
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-bottom",
+      "from": [
+        7.25,
+        0.0,
+        -1.3137
+      ],
+      "to": [
+        8.75,
+        1.0,
+        0.0
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.3137,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.3137,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.5,
+            1.3137
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.5,
+            1.3137
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-bottom",
+      "from": [
+        7.1,
+        0.25,
+        -1.3137
+      ],
+      "to": [
+        7.25,
+        0.75,
+        0.0
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.3137,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            1.3137
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            1.3137
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-bottom",
+      "from": [
+        8.75,
+        0.25,
+        -1.3137
+      ],
+      "to": [
+        8.9,
+        0.75,
+        0.0
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.3137,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            1.3137
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            1.3137
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-top",
+      "from": [
+        7.25,
+        15.0,
+        0.0
+      ],
+      "to": [
+        8.75,
+        16.0,
+        16.0
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.5,
+            16.0
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.5,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-top",
+      "from": [
+        7.1,
+        15.25,
+        0.0
+      ],
+      "to": [
+        7.25,
+        15.75,
+        16.0
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            16.0
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-top",
+      "from": [
+        8.75,
+        15.25,
+        0.0
+      ],
+      "to": [
+        8.9,
+        15.75,
+        16.0
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            16.0
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-top",
+      "from": [
+        7.0,
+        15.0,
+        3.25
+      ],
+      "to": [
+        7.25,
+        16.0,
+        3.75
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-top",
+      "from": [
+        8.75,
+        15.0,
+        3.25
+      ],
+      "to": [
+        9.0,
+        16.0,
+        3.75
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-top",
+      "from": [
+        7.0,
+        15.0,
+        7.75
+      ],
+      "to": [
+        7.25,
+        16.0,
+        8.25
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-top",
+      "from": [
+        8.75,
+        15.0,
+        7.75
+      ],
+      "to": [
+        9.0,
+        16.0,
+        8.25
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-top",
+      "from": [
+        7.0,
+        15.0,
+        12.25
+      ],
+      "to": [
+        7.25,
+        16.0,
+        12.75
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-top",
+      "from": [
+        8.75,
+        15.0,
+        12.25
+      ],
+      "to": [
+        9.0,
+        16.0,
+        12.75
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-bottom",
+      "from": [
+        7.25,
+        0.0,
+        0.0
+      ],
+      "to": [
+        8.75,
+        1.0,
+        16.0
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.5,
+            16.0
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.5,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-bottom",
+      "from": [
+        7.1,
+        0.25,
+        0.0
+      ],
+      "to": [
+        7.25,
+        0.75,
+        16.0
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            16.0
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-bottom",
+      "from": [
+        8.75,
+        0.25,
+        0.0
+      ],
+      "to": [
+        8.9,
+        0.75,
+        16.0
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            16.0
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-bottom",
+      "from": [
+        7.0,
+        0.0,
+        2.25
+      ],
+      "to": [
+        7.25,
+        1.0,
+        2.75
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-bottom",
+      "from": [
+        8.75,
+        0.0,
+        2.25
+      ],
+      "to": [
+        9.0,
+        1.0,
+        2.75
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-bottom",
+      "from": [
+        7.0,
+        0.0,
+        6.75
+      ],
+      "to": [
+        7.25,
+        1.0,
+        7.25
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-bottom",
+      "from": [
+        8.75,
+        0.0,
+        6.75
+      ],
+      "to": [
+        9.0,
+        1.0,
+        7.25
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-bottom",
+      "from": [
+        7.0,
+        0.0,
+        11.25
+      ],
+      "to": [
+        7.25,
+        1.0,
+        11.75
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-bottom",
+      "from": [
+        8.75,
+        0.0,
+        11.25
+      ],
+      "to": [
+        9.0,
+        1.0,
+        11.75
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-top",
+      "from": [
+        7.25,
+        15.0,
+        16.0
+      ],
+      "to": [
+        8.75,
+        16.0,
+        17.3137
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.3137,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.3137,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.5,
+            1.3137
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.5,
+            1.3137
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-top",
+      "from": [
+        7.1,
+        15.25,
+        16.0
+      ],
+      "to": [
+        7.25,
+        15.75,
+        17.3137
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.3137,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            1.3137
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            1.3137
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-top",
+      "from": [
+        8.75,
+        15.25,
+        16.0
+      ],
+      "to": [
+        8.9,
+        15.75,
+        17.3137
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.3137,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            1.3137
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            1.3137
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-bottom",
+      "from": [
+        7.25,
+        0.0,
+        16.0
+      ],
+      "to": [
+        8.75,
+        1.0,
+        17.3137
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.3137,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.3137,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.5,
+            1.3137
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.5,
+            1.3137
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-bottom",
+      "from": [
+        7.1,
+        0.25,
+        16.0
+      ],
+      "to": [
+        7.25,
+        0.75,
+        17.3137
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.3137,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            1.3137
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            1.3137
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-bottom",
+      "from": [
+        8.75,
+        0.25,
+        16.0
+      ],
+      "to": [
+        8.9,
+        0.75,
+        17.3137
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.3137,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            1.3137
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            1.3137
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-top-left",
+      "from": [
+        7.25,
+        15.0,
+        -2.3137
+      ],
+      "to": [
+        8.75,
+        16.0,
+        -1.3137
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.5,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.5,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-top-left",
+      "from": [
+        7.1,
+        15.25,
+        -2.3137
+      ],
+      "to": [
+        7.25,
+        15.75,
+        -1.3137
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-top-left",
+      "from": [
+        8.75,
+        15.25,
+        -2.3137
+      ],
+      "to": [
+        8.9,
+        15.75,
+        -1.3137
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-bottom-left",
+      "from": [
+        7.25,
+        0.0,
+        -2.3137
+      ],
+      "to": [
+        8.75,
+        1.0,
+        -1.3137
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.5,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.5,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-bottom-left",
+      "from": [
+        7.1,
+        0.25,
+        -2.3137
+      ],
+      "to": [
+        7.25,
+        0.75,
+        -1.3137
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-bottom-left",
+      "from": [
+        8.75,
+        0.25,
+        -2.3137
+      ],
+      "to": [
+        8.9,
+        0.75,
+        -1.3137
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-top-right",
+      "from": [
+        7.25,
+        15.0,
+        17.3137
+      ],
+      "to": [
+        8.75,
+        16.0,
+        18.3137
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.5,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.5,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-top-right",
+      "from": [
+        7.1,
+        15.25,
+        17.3137
+      ],
+      "to": [
+        7.25,
+        15.75,
+        18.3137
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-top-right",
+      "from": [
+        8.75,
+        15.25,
+        17.3137
+      ],
+      "to": [
+        8.9,
+        15.75,
+        18.3137
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-bottom-right",
+      "from": [
+        7.25,
+        0.0,
+        17.3137
+      ],
+      "to": [
+        8.75,
+        1.0,
+        18.3137
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.5,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.5,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-bottom-right",
+      "from": [
+        7.1,
+        0.25,
+        17.3137
+      ],
+      "to": [
+        7.25,
+        0.75,
+        18.3137
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-bottom-right",
+      "from": [
+        8.75,
+        0.25,
+        17.3137
+      ],
+      "to": [
+        8.9,
+        0.75,
+        18.3137
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-bottom-right",
+      "from": [
+        7.0,
+        0.0,
+        18.25
+      ],
+      "to": [
+        7.25,
+        1.0,
+        18.3137
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.0637,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.0637
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.0637
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-bottom-right",
+      "from": [
+        8.75,
+        0.0,
+        18.25
+      ],
+      "to": [
+        9.0,
+        1.0,
+        18.3137
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.0637,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.0637
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.0637
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-left",
+      "from": [
+        13.4216,
+        0.01,
+        0.0
+      ],
+      "to": [
+        15.75,
+        15.99,
+        2.8284
+      ],
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.3284,
+            15.98
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.8284,
+            15.98
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.3284,
+            15.98
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.8284,
+            15.98
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.3284,
+            2.8284
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.3284,
+            2.8284
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-left",
+      "from": [
+        13.2716,
+        0.01,
+        0.25
+      ],
+      "to": [
+        13.4216,
+        15.99,
+        2.5784
+      ],
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            15.98
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            15.98
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.3284,
+            15.98
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            2.3284
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            2.3284
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-left",
+      "from": [
+        15.75,
+        0.01,
+        0.25
+      ],
+      "to": [
+        15.9,
+        15.99,
+        2.5784
+      ],
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            15.98
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.3284,
+            15.98
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            15.98
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            2.3284
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            2.3284
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-left",
+      "from": [
+        13.1716,
+        0.25,
+        0.0
+      ],
+      "to": [
+        13.4216,
+        0.75,
+        2.8284
+      ],
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.8284,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            2.8284
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            2.8284
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-left",
+      "from": [
+        15.75,
+        0.25,
+        0.0
+      ],
+      "to": [
+        16.0,
+        0.75,
+        2.8284
+      ],
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.8284,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            2.8284
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            2.8284
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-left",
+      "from": [
+        13.1716,
+        5.25,
+        0.0
+      ],
+      "to": [
+        13.4216,
+        5.75,
+        2.8284
+      ],
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.8284,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            2.8284
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            2.8284
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-left",
+      "from": [
+        15.75,
+        5.25,
+        0.0
+      ],
+      "to": [
+        16.0,
+        5.75,
+        2.8284
+      ],
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.8284,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            2.8284
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            2.8284
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-left",
+      "from": [
+        13.1716,
+        15.25,
+        0.0
+      ],
+      "to": [
+        13.4216,
+        15.75,
+        2.8284
+      ],
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.8284,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            2.8284
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            2.8284
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-left",
+      "from": [
+        15.75,
+        15.25,
+        0.0
+      ],
+      "to": [
+        16.0,
+        15.75,
+        2.8284
+      ],
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.8284,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            2.8284
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            2.8284
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-right",
+      "from": [
+        0.0,
+        0.01,
+        13.4216
+      ],
+      "to": [
+        2.8284,
+        15.99,
+        15.75
+      ],
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.8284,
+            15.98
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.3284,
+            15.98
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.8284,
+            15.98
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.3284,
+            15.98
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.8284,
+            2.3284
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.8284,
+            2.3284
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-right",
+      "from": [
+        0.25,
+        0.01,
+        13.2716
+      ],
+      "to": [
+        2.5784,
+        15.99,
+        13.4216
+      ],
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.3284,
+            15.98
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            15.98
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            15.98
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.3284,
+            0.15
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.3284,
+            0.15
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-right",
+      "from": [
+        0.25,
+        0.01,
+        15.75
+      ],
+      "to": [
+        2.5784,
+        15.99,
+        15.9
+      ],
+      "faces": {
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            15.98
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.3284,
+            15.98
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            15.98
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.3284,
+            0.15
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.3284,
+            0.15
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-right",
+      "from": [
+        0.0,
+        0.25,
+        13.1716
+      ],
+      "to": [
+        2.8284,
+        0.75,
+        13.4216
+      ],
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.8284,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.8284,
+            0.25
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.8284,
+            0.25
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-right",
+      "from": [
+        0.0,
+        0.25,
+        15.75
+      ],
+      "to": [
+        2.8284,
+        0.75,
+        16.0
+      ],
+      "faces": {
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.8284,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.8284,
+            0.25
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.8284,
+            0.25
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-right",
+      "from": [
+        0.0,
+        4.75,
+        13.1716
+      ],
+      "to": [
+        2.8284,
+        5.25,
+        13.4216
+      ],
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.8284,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.8284,
+            0.25
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.8284,
+            0.25
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-right",
+      "from": [
+        0.0,
+        4.75,
+        15.75
+      ],
+      "to": [
+        2.8284,
+        5.25,
+        16.0
+      ],
+      "faces": {
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.8284,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.8284,
+            0.25
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.8284,
+            0.25
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-right",
+      "from": [
+        0.0,
+        15.25,
+        13.1716
+      ],
+      "to": [
+        2.8284,
+        15.75,
+        13.4216
+      ],
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.8284,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.8284,
+            0.25
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.8284,
+            0.25
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-right",
+      "from": [
+        0.0,
+        15.25,
+        15.75
+      ],
+      "to": [
+        2.8284,
+        15.75,
+        16.0
+      ],
+      "faces": {
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.8284,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.8284,
+            0.25
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.8284,
+            0.25
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-join-left",
+      "from": [
+        7.25,
+        0.0,
+        -3.3137
+      ],
+      "to": [
+        8.75,
+        16.0,
+        -2.3137
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.5,
+            16.0
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            16.0
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.5,
+            16.0
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            16.0
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.5,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.5,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-join-left",
+      "from": [
+        7.1,
+        0.0,
+        -3.0637
+      ],
+      "to": [
+        7.25,
+        16.0,
+        -2.5637
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            16.0
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            16.0
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            16.0
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-join-left",
+      "from": [
+        8.75,
+        0.0,
+        -3.0637
+      ],
+      "to": [
+        8.9,
+        16.0,
+        -2.5637
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            16.0
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            16.0
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            16.0
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-join-left",
+      "from": [
+        7.0,
+        0.25,
+        -3.3137
+      ],
+      "to": [
+        7.25,
+        0.75,
+        -2.3137
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-join-left",
+      "from": [
+        8.75,
+        0.25,
+        -3.3137
+      ],
+      "to": [
+        9.0,
+        0.75,
+        -2.3137
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-join-left",
+      "from": [
+        7.0,
+        5.25,
+        -3.3137
+      ],
+      "to": [
+        7.25,
+        5.75,
+        -2.3137
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-join-left",
+      "from": [
+        8.75,
+        5.25,
+        -3.3137
+      ],
+      "to": [
+        9.0,
+        5.75,
+        -2.3137
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-join-left",
+      "from": [
+        7.0,
+        15.25,
+        -3.3137
+      ],
+      "to": [
+        7.25,
+        15.75,
+        -2.3137
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-join-left",
+      "from": [
+        8.75,
+        15.25,
+        -3.3137
+      ],
+      "to": [
+        9.0,
+        15.75,
+        -2.3137
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-join-right",
+      "from": [
+        7.25,
+        0.0,
+        18.3137
+      ],
+      "to": [
+        8.75,
+        16.0,
+        19.3137
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.5,
+            16.0
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            16.0
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.5,
+            16.0
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            16.0
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.5,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.5,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-join-right",
+      "from": [
+        7.1,
+        0.0,
+        18.5637
+      ],
+      "to": [
+        7.25,
+        16.0,
+        19.0637
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            16.0
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            16.0
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            16.0
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-join-right",
+      "from": [
+        8.75,
+        0.0,
+        18.5637
+      ],
+      "to": [
+        8.9,
+        16.0,
+        19.0637
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            16.0
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            16.0
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            16.0
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-join-right",
+      "from": [
+        7.0,
+        0.25,
+        18.3137
+      ],
+      "to": [
+        7.25,
+        0.75,
+        19.3137
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-join-right",
+      "from": [
+        8.75,
+        0.25,
+        18.3137
+      ],
+      "to": [
+        9.0,
+        0.75,
+        19.3137
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-join-right",
+      "from": [
+        7.0,
+        4.75,
+        18.3137
+      ],
+      "to": [
+        7.25,
+        5.25,
+        19.3137
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-join-right",
+      "from": [
+        8.75,
+        4.75,
+        18.3137
+      ],
+      "to": [
+        9.0,
+        5.25,
+        19.3137
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-join-right",
+      "from": [
+        7.0,
+        15.25,
+        18.3137
+      ],
+      "to": [
+        7.25,
+        15.75,
+        19.3137
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-join-right",
+      "from": [
+        8.75,
+        15.25,
+        18.3137
+      ],
+      "to": [
+        9.0,
+        15.75,
+        19.3137
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-top",
+      "from": [
+        7.25,
+        15.0,
+        -1.3137
+      ],
+      "to": [
+        8.75,
+        16.0,
+        0.0
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.3137,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.3137,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.5,
+            1.3137
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.5,
+            1.3137
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-top",
+      "from": [
+        7.1,
+        15.25,
+        -1.3137
+      ],
+      "to": [
+        7.25,
+        15.75,
+        0.0
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.3137,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            1.3137
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            1.3137
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-top",
+      "from": [
+        8.75,
+        15.25,
+        -1.3137
+      ],
+      "to": [
+        8.9,
+        15.75,
+        0.0
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.3137,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            1.3137
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            1.3137
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-bottom",
+      "from": [
+        7.25,
+        0.0,
+        -1.3137
+      ],
+      "to": [
+        8.75,
+        1.0,
+        0.0
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.3137,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.3137,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.5,
+            1.3137
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.5,
+            1.3137
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-bottom",
+      "from": [
+        7.1,
+        0.25,
+        -1.3137
+      ],
+      "to": [
+        7.25,
+        0.75,
+        0.0
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.3137,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            1.3137
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            1.3137
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-bottom",
+      "from": [
+        8.75,
+        0.25,
+        -1.3137
+      ],
+      "to": [
+        8.9,
+        0.75,
+        0.0
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.3137,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            1.3137
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            1.3137
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-top",
+      "from": [
+        7.25,
+        15.0,
+        0.0
+      ],
+      "to": [
+        8.75,
+        16.0,
+        16.0
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.5,
+            16.0
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.5,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-top",
+      "from": [
+        7.1,
+        15.25,
+        0.0
+      ],
+      "to": [
+        7.25,
+        15.75,
+        16.0
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            16.0
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-top",
+      "from": [
+        8.75,
+        15.25,
+        0.0
+      ],
+      "to": [
+        8.9,
+        15.75,
+        16.0
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            16.0
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-top",
+      "from": [
+        7.0,
+        15.0,
+        2.75
+      ],
+      "to": [
+        7.25,
+        16.0,
+        3.25
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-top",
+      "from": [
+        8.75,
+        15.0,
+        2.75
+      ],
+      "to": [
+        9.0,
+        16.0,
+        3.25
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-top",
+      "from": [
+        7.0,
+        15.0,
+        8.25
+      ],
+      "to": [
+        7.25,
+        16.0,
+        8.75
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-top",
+      "from": [
+        8.75,
+        15.0,
+        8.25
+      ],
+      "to": [
+        9.0,
+        16.0,
+        8.75
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-top",
+      "from": [
+        7.0,
+        15.0,
+        13.25
+      ],
+      "to": [
+        7.25,
+        16.0,
+        13.75
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-top",
+      "from": [
+        8.75,
+        15.0,
+        13.25
+      ],
+      "to": [
+        9.0,
+        16.0,
+        13.75
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-bottom",
+      "from": [
+        7.25,
+        0.0,
+        0.0
+      ],
+      "to": [
+        8.75,
+        1.0,
+        16.0
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.5,
+            16.0
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.5,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-bottom",
+      "from": [
+        7.1,
+        0.25,
+        0.0
+      ],
+      "to": [
+        7.25,
+        0.75,
+        16.0
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            16.0
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-bottom",
+      "from": [
+        8.75,
+        0.25,
+        0.0
+      ],
+      "to": [
+        8.9,
+        0.75,
+        16.0
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            16.0
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-bottom",
+      "from": [
+        7.0,
+        0.0,
+        3.75
+      ],
+      "to": [
+        7.25,
+        1.0,
+        4.25
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-bottom",
+      "from": [
+        8.75,
+        0.0,
+        3.75
+      ],
+      "to": [
+        9.0,
+        1.0,
+        4.25
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-bottom",
+      "from": [
+        7.0,
+        0.0,
+        9.25
+      ],
+      "to": [
+        7.25,
+        1.0,
+        9.75
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-bottom",
+      "from": [
+        8.75,
+        0.0,
+        9.25
+      ],
+      "to": [
+        9.0,
+        1.0,
+        9.75
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-bottom",
+      "from": [
+        7.0,
+        0.0,
+        13.75
+      ],
+      "to": [
+        7.25,
+        1.0,
+        14.25
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-bottom",
+      "from": [
+        8.75,
+        0.0,
+        13.75
+      ],
+      "to": [
+        9.0,
+        1.0,
+        14.25
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-top",
+      "from": [
+        7.25,
+        15.0,
+        16.0
+      ],
+      "to": [
+        8.75,
+        16.0,
+        17.3137
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.3137,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.3137,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.5,
+            1.3137
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.5,
+            1.3137
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-top",
+      "from": [
+        7.1,
+        15.25,
+        16.0
+      ],
+      "to": [
+        7.25,
+        15.75,
+        17.3137
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.3137,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            1.3137
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            1.3137
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-top",
+      "from": [
+        8.75,
+        15.25,
+        16.0
+      ],
+      "to": [
+        8.9,
+        15.75,
+        17.3137
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.3137,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            1.3137
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            1.3137
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-bottom",
+      "from": [
+        7.25,
+        0.0,
+        16.0
+      ],
+      "to": [
+        8.75,
+        1.0,
+        17.3137
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.3137,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.3137,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.5,
+            1.3137
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.5,
+            1.3137
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-bottom",
+      "from": [
+        7.1,
+        0.25,
+        16.0
+      ],
+      "to": [
+        7.25,
+        0.75,
+        17.3137
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.3137,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            1.3137
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            1.3137
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-bottom",
+      "from": [
+        8.75,
+        0.25,
+        16.0
+      ],
+      "to": [
+        8.9,
+        0.75,
+        17.3137
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.3137,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            1.3137
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            1.3137
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-top-left",
+      "from": [
+        7.25,
+        15.0,
+        -2.3137
+      ],
+      "to": [
+        8.75,
+        16.0,
+        -1.3137
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.5,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.5,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-top-left",
+      "from": [
+        7.1,
+        15.25,
+        -2.3137
+      ],
+      "to": [
+        7.25,
+        15.75,
+        -1.3137
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-top-left",
+      "from": [
+        8.75,
+        15.25,
+        -2.3137
+      ],
+      "to": [
+        8.9,
+        15.75,
+        -1.3137
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-top-left",
+      "from": [
+        7.0,
+        15.0,
+        -2.3137
+      ],
+      "to": [
+        7.25,
+        16.0,
+        -2.25
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.0637,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.0637
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.0637
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-top-left",
+      "from": [
+        8.75,
+        15.0,
+        -2.3137
+      ],
+      "to": [
+        9.0,
+        16.0,
+        -2.25
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.0637,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.0637
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.0637
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-bottom-left",
+      "from": [
+        7.25,
+        0.0,
+        -2.3137
+      ],
+      "to": [
+        8.75,
+        1.0,
+        -1.3137
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.5,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.5,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-bottom-left",
+      "from": [
+        7.1,
+        0.25,
+        -2.3137
+      ],
+      "to": [
+        7.25,
+        0.75,
+        -1.3137
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-bottom-left",
+      "from": [
+        8.75,
+        0.25,
+        -2.3137
+      ],
+      "to": [
+        8.9,
+        0.75,
+        -1.3137
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-bottom-left",
+      "from": [
+        7.0,
+        0.0,
+        -2.25
+      ],
+      "to": [
+        7.25,
+        1.0,
+        -1.75
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-bottom-left",
+      "from": [
+        8.75,
+        0.0,
+        -2.25
+      ],
+      "to": [
+        9.0,
+        1.0,
+        -1.75
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-top-right",
+      "from": [
+        7.25,
+        15.0,
+        17.3137
+      ],
+      "to": [
+        8.75,
+        16.0,
+        18.3137
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.5,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.5,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-top-right",
+      "from": [
+        7.1,
+        15.25,
+        17.3137
+      ],
+      "to": [
+        7.25,
+        15.75,
+        18.3137
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-top-right",
+      "from": [
+        8.75,
+        15.25,
+        17.3137
+      ],
+      "to": [
+        8.9,
+        15.75,
+        18.3137
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-bottom-right",
+      "from": [
+        7.25,
+        0.0,
+        17.3137
+      ],
+      "to": [
+        8.75,
+        1.0,
+        18.3137
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.5,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.5,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-bottom-right",
+      "from": [
+        7.1,
+        0.25,
+        17.3137
+      ],
+      "to": [
+        7.25,
+        0.75,
+        18.3137
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-bottom-right",
+      "from": [
+        8.75,
+        0.25,
+        17.3137
+      ],
+      "to": [
+        8.9,
+        0.75,
+        18.3137
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-left",
+      "from": [
+        13.4216,
+        0.01,
+        0.0
+      ],
+      "to": [
+        15.75,
+        15.99,
+        2.8284
+      ],
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.3284,
+            15.98
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.8284,
+            15.98
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.3284,
+            15.98
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.8284,
+            15.98
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.3284,
+            2.8284
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.3284,
+            2.8284
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-left",
+      "from": [
+        13.2716,
+        0.01,
+        0.25
+      ],
+      "to": [
+        13.4216,
+        15.99,
+        2.5784
+      ],
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            15.98
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            15.98
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.3284,
+            15.98
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            2.3284
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            2.3284
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-left",
+      "from": [
+        15.75,
+        0.01,
+        0.25
+      ],
+      "to": [
+        15.9,
+        15.99,
+        2.5784
+      ],
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            15.98
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.3284,
+            15.98
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            15.98
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            2.3284
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            2.3284
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-left",
+      "from": [
+        13.1716,
+        4.75,
+        0.0
+      ],
+      "to": [
+        13.4216,
+        5.25,
+        2.8284
+      ],
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.8284,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            2.8284
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            2.8284
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-left",
+      "from": [
+        15.75,
+        4.75,
+        0.0
+      ],
+      "to": [
+        16.0,
+        5.25,
+        2.8284
+      ],
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.8284,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            2.8284
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            2.8284
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-left",
+      "from": [
+        13.1716,
+        15.25,
+        0.0
+      ],
+      "to": [
+        13.4216,
+        15.75,
+        2.8284
+      ],
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.8284,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            2.8284
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            2.8284
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-left",
+      "from": [
+        15.75,
+        15.25,
+        0.0
+      ],
+      "to": [
+        16.0,
+        15.75,
+        2.8284
+      ],
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.8284,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            2.8284
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            2.8284
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-right",
+      "from": [
+        0.0,
+        0.01,
+        13.4216
+      ],
+      "to": [
+        2.8284,
+        15.99,
+        15.75
+      ],
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.8284,
+            15.98
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.3284,
+            15.98
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.8284,
+            15.98
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.3284,
+            15.98
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.8284,
+            2.3284
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.8284,
+            2.3284
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-right",
+      "from": [
+        0.25,
+        0.01,
+        13.2716
+      ],
+      "to": [
+        2.5784,
+        15.99,
+        13.4216
+      ],
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.3284,
+            15.98
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            15.98
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            15.98
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.3284,
+            0.15
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.3284,
+            0.15
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-right",
+      "from": [
+        0.25,
+        0.01,
+        15.75
+      ],
+      "to": [
+        2.5784,
+        15.99,
+        15.9
+      ],
+      "faces": {
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            15.98
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.3284,
+            15.98
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            15.98
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.3284,
+            0.15
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.3284,
+            0.15
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-right",
+      "from": [
+        0.0,
+        5.25,
+        13.1716
+      ],
+      "to": [
+        2.8284,
+        5.75,
+        13.4216
+      ],
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.8284,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.8284,
+            0.25
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.8284,
+            0.25
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-right",
+      "from": [
+        0.0,
+        5.25,
+        15.75
+      ],
+      "to": [
+        2.8284,
+        5.75,
+        16.0
+      ],
+      "faces": {
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.8284,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.8284,
+            0.25
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.8284,
+            0.25
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-right",
+      "from": [
+        0.0,
+        0.25,
+        13.1716
+      ],
+      "to": [
+        2.8284,
+        0.75,
+        13.4216
+      ],
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.8284,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.8284,
+            0.25
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.8284,
+            0.25
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-right",
+      "from": [
+        0.0,
+        0.25,
+        15.75
+      ],
+      "to": [
+        2.8284,
+        0.75,
+        16.0
+      ],
+      "faces": {
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.8284,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.8284,
+            0.25
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.8284,
+            0.25
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-join-left",
+      "from": [
+        7.25,
+        0.0,
+        -3.3137
+      ],
+      "to": [
+        8.75,
+        16.0,
+        -2.3137
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.5,
+            16.0
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            16.0
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.5,
+            16.0
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            16.0
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.5,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.5,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-join-left",
+      "from": [
+        7.1,
+        0.0,
+        -3.0637
+      ],
+      "to": [
+        7.25,
+        16.0,
+        -2.5637
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            16.0
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            16.0
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            16.0
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-join-left",
+      "from": [
+        8.75,
+        0.0,
+        -3.0637
+      ],
+      "to": [
+        8.9,
+        16.0,
+        -2.5637
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            16.0
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            16.0
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            16.0
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-join-left",
+      "from": [
+        7.0,
+        4.75,
+        -3.3137
+      ],
+      "to": [
+        7.25,
+        5.25,
+        -2.3137
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-join-left",
+      "from": [
+        8.75,
+        4.75,
+        -3.3137
+      ],
+      "to": [
+        9.0,
+        5.25,
+        -2.3137
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-join-left",
+      "from": [
+        7.0,
+        15.25,
+        -3.3137
+      ],
+      "to": [
+        7.25,
+        15.75,
+        -2.3137
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-join-left",
+      "from": [
+        8.75,
+        15.25,
+        -3.3137
+      ],
+      "to": [
+        9.0,
+        15.75,
+        -2.3137
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-join-right",
+      "from": [
+        7.25,
+        0.0,
+        18.3137
+      ],
+      "to": [
+        8.75,
+        16.0,
+        19.3137
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.5,
+            16.0
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            16.0
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.5,
+            16.0
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            16.0
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.5,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.5,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-join-right",
+      "from": [
+        7.1,
+        0.0,
+        18.5637
+      ],
+      "to": [
+        7.25,
+        16.0,
+        19.0637
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            16.0
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            16.0
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            16.0
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-join-right",
+      "from": [
+        8.75,
+        0.0,
+        18.5637
+      ],
+      "to": [
+        8.9,
+        16.0,
+        19.0637
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            16.0
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.5,
+            16.0
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            16.0
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.15,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-join-right",
+      "from": [
+        7.0,
+        5.25,
+        18.3137
+      ],
+      "to": [
+        7.25,
+        5.75,
+        19.3137
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-join-right",
+      "from": [
+        8.75,
+        5.25,
+        18.3137
+      ],
+      "to": [
+        9.0,
+        5.75,
+        19.3137
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-join-right",
+      "from": [
+        7.0,
+        0.25,
+        18.3137
+      ],
+      "to": [
+        7.25,
+        0.75,
+        19.3137
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-join-right",
+      "from": [
+        8.75,
+        0.25,
+        18.3137
+      ],
+      "to": [
+        9.0,
+        0.75,
+        19.3137
+      ],
+      "rotationOrigin": [
+        8.0,
+        0.0,
+        8.0
+      ],
+      "rotationY": -45.0,
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            0.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        }
+      }
+    },
+    {
       "name": "framing-left",
       "from": [
         13.1716,

@@ -408,10 +408,10 @@ public class SidingWallEntity : BlockEntity
     {
         if (layout == "cornerin") return PostElements(framing, finishes, [(front, styles.front), (secondFront, styles.secondFront), (back, styles.back), (secondBack, secondBackStyle)]);
         var names = new List<string>();
-        // A diagonal's shape has no rough frame groups, so it draws the plain ones whatever the
-        // framing's Elements say (decision 0066).
+        // A diagonal's shape has no rough frame groups, so it draws the plain ones whatever a poles
+        // framing's Elements say (decision 0066); bamboo's ringed groups it does have.
         bool diagonal = layout == "diagonal";
-        if (diagonal || layout == "cornerin") frame = "framing";
+        if ((diagonal && !frame.StartsWith("bamboo")) || layout == "cornerin") frame = "framing";
         string member = glazed ? "glazing" : frame;
         var parts = FrameParts(layout, joins, glazed, innerCorners);
         // A corner's post stands a finish slot in from the cell's edge, so at a T it fills the slot the run crosses: its
@@ -496,7 +496,7 @@ public class SidingWallEntity : BlockEntity
                 }
                 // A glazed diagonal's rims also cover the half post's front, full height as a wall's stile rim does.
                 if (runsOn) names.AddRange(rims.Select(rim => $"{rim.group}-rim-join-{end}"));
-                if (framing != null) names.Add(runsOn ? $"framing-join-{end}" : $"framing-{end}");
+                if (framing != null) names.Add(runsOn ? $"{frame}-join-{end}" : $"{frame}-{end}");
             }
         }
         return names.ToArray();

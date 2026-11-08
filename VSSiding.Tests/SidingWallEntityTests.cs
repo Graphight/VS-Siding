@@ -681,6 +681,18 @@ public class SidingWallEntityTests
         Assert.Equal(expected, [Elements((false, false, false, false)), Elements((false, false, true, false))]);
     }
 
+    // A bamboo diagonal draws its own ringed groups, its fillers and half posts too, where a poles one draws the plain frame.
+    [Fact]
+    public void ABambooDiagonalDrawsItsRingedFrameAndASticksOneDoesNot()
+    {
+        string[] Elements(string frame, bool runsOn) => SidingWallEntity.SelectiveElements(
+            "diagonal", "bamboo", null, null, null, null, NoElementFinishes, (false, false, runsOn, false), glazed: false, frame: frame);
+
+        Assert.Equal(["bamboo-top", "bamboo-bottom", "bamboo-left", "bamboo-right"], Elements("bamboo", false));
+        Assert.Equal(["bamboo2-top", "bamboo2-bottom", "bamboo2-top-left", "bamboo2-bottom-left", "bamboo2-join-left", "bamboo2-right"], Elements("bamboo2", true));
+        Assert.Equal(["framing-top", "framing-bottom", "framing-left", "framing-right"], Elements("poles", false));
+    }
+
     [Fact]
     public void UnsetKeySurvivesByteRoundTripAsNullNotEmptyString()
     {

@@ -1069,6 +1069,20 @@ public class WallShapeGenTests
         Assert.Equal(expected, actual);
     }
 
+    // A bamboo diagonal's turned pieces stay inside the plain frame's thickness, x 7..9 with the run's offset of 6.
+    [Theory]
+    [InlineData("bamboo")]
+    [InlineData("bamboo2")]
+    public void ABambooDiagonalDrawsEveryGroupTheFrameNames(string prefix)
+    {
+        var elements = WallShapeGen.Generate("diagonal")["elements"]!.ToArray();
+        string[] groups = [.. new[] { "-top", "-bottom", "-top-left", "-bottom-left", "-top-right", "-bottom-right", "-left", "-right", "-join-left", "-join-right" }.Select(s => prefix + s)];
+
+        Assert.Equal([], groups.Where(g => !elements.Any(e => (string)e["name"]! == g)));
+        Assert.Equal([], elements.Where(e => groups.Contains((string)e["name"]!) && e["rotationY"] != null && (Box(e).Lo[0] < 7 || Box(e).Hi[0] > 9))
+            .Select(e => (string)e["name"]!));
+    }
+
     // Each group of one pole variant beside the plain group it stands in for.
     private static (string Pole, string Plain)[] PolesOf(string layout, string prefix)
         => (layout != "cornerout" ? new[] { "-left", "-right", "-top", "-bottom" } : ["", "-top", "-bottom"])
