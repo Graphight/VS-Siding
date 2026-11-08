@@ -1064,9 +1064,9 @@ public class SidingModSystem : ModSystem
     // or step, so the placement check refuses it here. Positional arguments, since overrides rename them.
     internal static void DeckedCellPostfix(IWorldAccessor __0, BlockSelection __2, ref string __3, ref bool __result)
     {
-        if (!__result || __0.BlockAccessor.GetBlockEntity<SidingWallEntity>(__2.Position)?.OpenPartFilled != true) return;
+        if (!__result || SidingWallBlock.OpenPartRefusal(__0.BlockAccessor.GetBlockEntity<SidingWallEntity>(__2.Position)) is not { } refusal) return;
         __result = false;
-        __3 = "notreplaceable";
+        __3 = refusal;
     }
 
     internal static void MultiblockFootprintPostfix(BlockBehaviorMultiblock __instance, IWorldAccessor world,

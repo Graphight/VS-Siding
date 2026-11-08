@@ -511,6 +511,9 @@ public class SidingWallBlock : Block
     // wall's own cell, where vanilla would put it in the cell in front. The client only reports the
     // interaction handled - TryPlaceBlock must run once, on the server, or the client would place
     // the held block into the front cell itself before the server ever gets to swap the wall out.
+    internal static string? OpenPartRefusal(SidingWallEntity? entity)
+        => entity?.Deck != null ? "vssiding-decked" : entity?.Step != null ? "vssiding-stepped" : null;
+
     private bool TryHost(IWorldAccessor world, IPlayer byPlayer, BlockSelection blockSel)
     {
         ItemSlot slot = byPlayer.InventoryManager.ActiveHotbarSlot;
@@ -522,12 +525,10 @@ public class SidingWallBlock : Block
         // which hands the click to vanilla and hosts anyway. Other ways in drop it
         // (HostChangePrefix).
         var hostEntity = world.BlockAccessor.GetBlockEntity<SidingWallEntity>(blockSel.Position);
-        if (hostEntity != null && hostEntity.OpenPartFilled)
+        if (OpenPartRefusal(hostEntity) is { } refusal)
         {
-            bool decked = hostEntity.Deck != null;
-            (byPlayer as IServerPlayer)?.SendIngameError(
-                decked ? "vssiding:decked" : "vssiding:stepped",
-                Lang.Get(decked ? "vssiding:build-decked" : "vssiding:build-stepped"));
+            string kind = refusal["vssiding-".Length..];
+            (byPlayer as IServerPlayer)?.SendIngameError("vssiding:" + kind, Lang.Get("vssiding:build-" + kind));
             return true;
         }
 

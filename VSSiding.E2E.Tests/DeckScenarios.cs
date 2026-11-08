@@ -69,7 +69,7 @@ public class DeckScenarios : AtlasScenarioBase
         string failureCode = "";
         bool placed = stack.Block.TryPlaceBlock(player.Entity.World, player.Player, stack, floorSel, ref failureCode);
 
-        Assert.Equal((false, "notreplaceable"), (placed, failureCode));
+        Assert.Equal((false, "vssiding-decked"), (placed, failureCode));
         Assert.Equal(("oak", null, null, null), DeckLayers(cell));
     }
 
