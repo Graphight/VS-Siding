@@ -711,7 +711,8 @@ public class SidingModSystem : ModSystem
 
     // A lantern or oil lamp hangs as its "down" variant; a chandelier is unstable falling attached on UP.
     internal static bool IsHanger(Block block)
-        => block.BlockBehaviors.Any(behavior => behavior switch
+        => block.Attributes?["vssidingHanger"] is { Exists: true } declared ? declared.AsBool()
+        : block.BlockBehaviors.Any(behavior => behavior switch
         {
             BlockBehaviorOmniAttachable omni => block.Variant[omni.facingCode] == "down",
             BlockBehaviorUnstableFalling falling => AttachableFacesRef(falling)?.Contains(BlockFacing.UP) == true,

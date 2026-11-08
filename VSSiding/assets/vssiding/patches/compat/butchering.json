@@ -1,0 +1,9 @@
+[
+	{
+		"op": "addmerge",
+		"file": "butchering:blocktypes/butcherhookceiling.json",
+		"path": "/attributes",
+		"value": { "vssidingHanger": true },
+		"dependsOn": [{ "modid": "butchering" }]
+	}
+]

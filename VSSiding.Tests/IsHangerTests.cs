@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Newtonsoft.Json.Linq;
 using Vintagestory.API.Common;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
@@ -29,6 +30,12 @@ public class IsHangerTests
         return chandelier;
     }
 
+    private static Block Declared(Block block, bool hanger)
+    {
+        block.Attributes = new JsonObject(JObject.Parse("{ \"vssidingHanger\": " + (hanger ? "true" : "false") + " }"));
+        return block;
+    }
+
     [Fact]
     public void OnlyBlocksAttachedToTheirTopAreHangers()
     {
@@ -40,10 +47,14 @@ public class IsHangerTests
             ["two-way chandelier"] = Chandelier(BlockFacing.UP, BlockFacing.DOWN),
             ["falling sand"] = Chandelier(BlockFacing.DOWN),
             ["plain block"] = new Block(),
+            ["declared hanger"] = Declared(new Block(), true),
+            ["declared non-hanger lantern"] = Declared(Lantern("down"), false),
         };
 
         var expected = new Dictionary<string, bool>
         {
+            ["declared hanger"] = true,
+            ["declared non-hanger lantern"] = false,
             ["hanging lantern"] = true,
             ["standing lantern"] = false,
             ["chandelier"] = true,
