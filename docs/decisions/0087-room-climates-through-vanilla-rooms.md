@@ -1,4 +1,4 @@
-# 0086 — Room Climates through vanilla rooms
+# 0087 — Room Climates through vanilla rooms
 
 - Status: Accepted
 - Created: 2026-11-07
