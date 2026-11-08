@@ -73,6 +73,28 @@ public class FarFaceScenarios : AtlasScenarioBase
     }
 
     [AtlasScenario(FreshWorld = true)]
+    public async Task Wall_Should_StoreTheBoardsStyle_When_StripesPlasterIsPressedOnItsBareBackWithBoardsPicked()
+    {
+        (BlockPos cell, ITestPlayer player) = await RaiseWall(back: null);
+        player.Entity.WatchedAttributes.SetString("vssidingBoards", "boards");
+
+        await WallBuilder.Press(World, player, cell, "game:plaster-stripes-ud", BlockFacing.EAST, Middle);
+
+        Assert.Equal((("oak", "clay", null, null, "plaster-stripes"), "boards"), (WallBuilder.Layers(World, cell), Read(cell, "backstyle")));
+    }
+
+    [AtlasScenario(FreshWorld = true)]
+    public async Task Floor_Should_StoreTheBoardsStyle_When_DiagonalPlasterIsPressedOnItsBareTopWithBoardsPicked()
+    {
+        (BlockPos cell, ITestPlayer player) = await RaiseFloor(top: null);
+        player.Entity.WatchedAttributes.SetString("vssidingBoards", "boards");
+
+        await WallBuilder.Press(World, player, cell, "game:plaster-diagonal-ud", BlockFacing.UP, TopHit);
+
+        Assert.Equal((("oak", "clay", "plaster-diagonal", null, null), "boards"), (WallBuilder.Layers(World, cell), Read(cell, "frontstyle")));
+    }
+
+    [AtlasScenario(FreshWorld = true)]
     public async Task Diagonal_Should_TakeDaubOnItsFront_When_DaubIsPressedOnItsFinishedBack()
     {
         (BlockPos cell, ITestPlayer player) = await RaiseWall(layout: "diagonal");

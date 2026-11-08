@@ -419,16 +419,18 @@ public class FinishElementGroupsTests
     }
 
     // A finish missing one of its row's styles falls back to its default look when that style is
-    // picked, with no error.
+    // picked, with no error. Plaster turns but has no weatherboard (decision 0086).
     [Fact]
     public void EveryStyledFinishOffersItsWholePickerRow()
     {
         var entries = FinishEntries();
         string[] Row(string key) => SidingModePicker.Rows.Single(r => r.Key == key).Options;
         var finishesByRow = new (string Row, string[] Finishes)[] { ("vssidingBoards", PlankFinishes), ("vssidingLogs", ["shakes-{wood}"]) };
+        string[] plaster = ["plaster-diagonal: hboards, boards", "plaster-stripes: hboards, boards"];
 
         Assert.Equal(
-            finishesByRow.SelectMany(row => row.Finishes.Select(name => $"{name}: {string.Join(", ", Row(row.Row))}")),
+            finishesByRow.SelectMany(row => row.Finishes.Select(name => $"{name}: {string.Join(", ", Row(row.Row))}"))
+                .Take(3).Concat(plaster).Concat(finishesByRow.SelectMany(row => row.Finishes.Select(name => $"{name}: {string.Join(", ", Row(row.Row))}")).Skip(3)),
             finishesByRow.SelectMany(row => entries
                 .Where(e => e.Value["Styles"]?.Any(t => Row(row.Row).Contains((string)t!)) ?? false)
                 .Select(e => $"{e.Name}: {string.Join(", ", e.Value["Styles"]!.Select(t => (string)t!))}")));
