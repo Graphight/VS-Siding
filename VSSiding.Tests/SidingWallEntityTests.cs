@@ -333,7 +333,7 @@ public class SidingWallEntityTests
     // A glazed corner's finishes are rims too, on both legs: the corner post's piece always, the end post's piece
     // (or the fillers' once it drops), and the pieces over and under the opening for as long as the rails are
     // drawn. The front rims leg 1, whose end post is its right; the second front leg 2, whose is its left; the
-    // back both.
+    // back leg 1, and the second back leg 2.
     [Fact]
     public void GlazedCorneroutDrawsEachFacesFinishAsARimOfTheFramesParts()
     {
@@ -354,7 +354,8 @@ public class SidingWallEntityTests
                     "front-weatherboard-rim", "front-weatherboard-rim-right", "front-weatherboard-rim-top", "front-weatherboard-rim-bottom",
                     "secondfront-rim", "secondfront-rim-left", "secondfront-rim-top", "secondfront-rim-bottom",
                     "glazing", "glazing-left", "glazing-right", "glazing-top", "glazing-bottom", "infill-pane",
-                    "back-boards-rim", "back-boards-rim-left", "back-boards-rim-right", "back-boards-rim-top", "back-boards-rim-bottom",
+                    "back-boards-rim-right", "back-boards-rim-top", "back-boards-rim-bottom",
+                    "secondback-boards-rim", "secondback-boards-rim-left", "secondback-boards-rim-top", "secondback-boards-rim-bottom",
                 ],
                 [(false, false, true, true)] =
                 [
@@ -364,21 +365,22 @@ public class SidingWallEntityTests
                     "secondfront-rim-bottom", "secondfront-rim-bottom-left",
                     "glazing", "glazing-top", "glazing-top-left", "glazing-top-right",
                     "glazing-bottom", "glazing-bottom-left", "glazing-bottom-right", "infill-pane",
-                    "back-boards-rim", "back-boards-rim-top", "back-boards-rim-top-left", "back-boards-rim-top-right",
-                    "back-boards-rim-bottom", "back-boards-rim-bottom-left", "back-boards-rim-bottom-right",
+                    "back-boards-rim-top", "back-boards-rim-top-right", "back-boards-rim-bottom", "back-boards-rim-bottom-right",
+                    "secondback-boards-rim", "secondback-boards-rim-top", "secondback-boards-rim-top-left", "secondback-boards-rim-bottom", "secondback-boards-rim-bottom-left",
                 ],
                 [(true, false, false, false)] =
                 [
                     "front-weatherboard-rim", "front-weatherboard-rim-right", "front-weatherboard-rim-bottom",
                     "secondfront-rim", "secondfront-rim-left", "secondfront-rim-bottom",
                     "glazing", "glazing-left", "glazing-right", "glazing-bottom", "infill-pane",
-                    "back-boards-rim", "back-boards-rim-left", "back-boards-rim-right", "back-boards-rim-bottom",
+                    "back-boards-rim-right", "back-boards-rim-bottom",
+                    "secondback-boards-rim", "secondback-boards-rim-left", "secondback-boards-rim-bottom",
                 ],
                 [(true, true, false, false)] =
                 [
                     "front-weatherboard-rim", "front-weatherboard-rim-right", "secondfront-rim", "secondfront-rim-left",
                     "glazing", "glazing-left", "glazing-right", "infill-pane",
-                    "back-boards-rim", "back-boards-rim-left", "back-boards-rim-right",
+                    "back-boards-rim-right", "secondback-boards-rim", "secondback-boards-rim-left",
                 ],
             },
             joins.ToDictionary(j => j, j => SidingWallEntity.SelectiveElements(
@@ -408,7 +410,7 @@ public class SidingWallEntityTests
                 [
                     "front-rim", "front-rim-right", "front-rim-top", "front-rim-bottom",
                     "glazing", "glazing-left", "glazing-right", "glazing-top", "glazing-bottom", "infill-pane",
-                    "back-rim", "back-rim-left", "back-rim-right", "back-rim-bottom",
+                    "back-rim-right", "back-rim-bottom", "secondback-rim", "secondback-rim-left", "secondback-rim-bottom",
                 ],
                 ["framing-left", "framing-right", "framing-top", "framing-bottom", "infill", "back"],
             },
@@ -496,7 +498,7 @@ public class SidingWallEntityTests
             {
                 ["ledge"], ["ledge"], [],
                 ["ledgetop"], ["ledgetop", "ledgetopleft"], ["ledgetop", "ledgetopright"], ["ledgetop", "ledgetopleft", "ledgetopright"],
-                ["ledgetop"], [], [], [], [],
+                ["ledgetop", "ledgesecondtop"], [], [], [], [],
             },
             new[]
             {

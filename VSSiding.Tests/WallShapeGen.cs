@@ -537,17 +537,14 @@ public static class WallShapeGen
     // A corner's rims, cut round each leg's opening, which is read off the leg's own rails: `G-rim` is the
     // corner post's side of it and `G-rim-right` (leg 1) or `G-rim-left` (leg 2) the end post's, both full
     // height, `G-rim-top` and `G-rim-bottom` the parts over and under it, and `G-rim-top-right` and the like
-    // the parts over and under the end post, which its fillers take once it drops. A front group belongs to
-    // leg 1, a second front group to leg 2, and a back box to leg 1 where leg 1's back slab holds it and to leg 2
-    // otherwise, the inner corner's column included. A T's piece lies in a front or second front slot only, so only
+    // the parts over and under the end post, which its fillers take once it drops. A front or back group belongs to
+    // leg 1, a second front or second back group to leg 2. A T's piece lies in a front or second front slot only, so only
     // those groups give way to it.
     internal static IEnumerable<Element> CornerRimPieces(IEnumerable<Element> elements)
     {
         Element[] all = [.. elements];
         double none = double.NegativeInfinity, any = double.PositiveInfinity;
         static double Length(Element e, char axis) => Axis(e.To, axis) - Axis(e.From, axis);
-        Element legOneSlab = all.Single(e => e.Name == "back" && Length(e, 'z') > Length(e, 'x'));
-        bool OnLegOne(Element e) => "xyz".All(a => Axis(e.From, a) >= Axis(legOneSlab.From, a) && Axis(e.To, a) <= Axis(legOneSlab.To, a));
         foreach (char run in "zx")
         {
             char across = run == 'z' ? 'x' : 'z';
@@ -566,8 +563,8 @@ public static class WallShapeGen
                 ("-bottom" + end, beyond, (none, bottom.To.Y)),
             ];
 
-            string front = run == 'z' ? "front" : "secondfront";
-            foreach (var e in all.Where(e => e.Name.StartsWith(front) || (e.Name.StartsWith("back") && OnLegOne(e) == (run == 'z'))))
+            string front = run == 'z' ? "front" : "secondfront", back = run == 'z' ? "back" : "secondback";
+            foreach (var e in all.Where(e => e.Name.StartsWith(front) || e.Name.StartsWith(back)))
             foreach (var (part, range, y) in parts)
             foreach (var rim in RimPiece(e, part, (run, range.Lo, range.Hi), ('y', y.Lo, y.Hi)))
                 yield return rim;
@@ -772,7 +769,7 @@ public static class WallShapeGen
         ];
     }
 
-    private static readonly Element[] CornerOutElements =
+    private static readonly Element[] CornerOutElements = SecondBackOnLegTwo(
     [
         new("front", (0, 0, 0), (1, 16, 16), "front", UvRule.Flat, Explicit: Only("north", F(15, 0, 16, 16))),
         new("framing-top", (1, 15, 3), (3, 16, 15), "framing", UvRule.Flat),
@@ -923,7 +920,12 @@ public static class WallShapeGen
         .. RubbleGrid("secondfront-rubble", "secondfront", 'z', 0, 1, 1, 16),
         .. RubbleGrid("back-rubble", "back", 'x', 4, 3, 4, 16),
         .. RubbleGrid("back-rubble", "back", 'z', 4, 3, 3, 16),
-    ];
+    ]);
+
+    // A corner's room side is two faces, leg 1 and leg 2, and the inner corner's column goes with leg 2 (decision 0088).
+    // The shapes are built as one back and split here, so every style keeps its two legs' look and only the name differs.
+    private static Element[] SecondBackOnLegTwo(Element[] elements)
+        => [.. elements.Select(e => e.Slot == "back" && e.From.Z < 4 ? e with { Name = "second" + e.Name, Slot = "secondback" } : e)];
 
     private static readonly (string Slot, string Texture)[] WallTextures =
     [
@@ -946,6 +948,7 @@ public static class WallShapeGen
         ("front", "game:block/wood/planks/aged/aged1"),
         ("secondfront", "game:block/wood/planks/aged/aged1"),
         ("back", "game:block/wood/planks/aged/aged1"),
+        ("secondback", "game:block/wood/planks/aged/aged1"),
         ("deck", "game:block/wood/planks/aged/aged1"),
         ("deckinfill", "game:block/wood/planks/aged/aged1"),
         ("deckfront", "game:block/wood/planks/aged/aged1"),
@@ -1249,16 +1252,16 @@ public static class WallShapeGen
 
     // The deck fills the cell's open part. The ledge is the same copy for the slot between the deck and
     // the frame, where a wall's room-side finish goes; the deck reaches into it until that finish is laid.
-    private static ((double X, double Y, double Z) From, (double X, double Y, double Z) To)[] Ledge(Element[] elements)
-        => elements.Where(e => e.Name == "back").Select(e => ((e.From.X, 12.0, e.From.Z), (e.To.X, 16.0, e.To.Z))).ToArray();
+    private static ((double X, double Y, double Z) From, (double X, double Y, double Z) To)[] Ledge(Element[] elements, string back = "back")
+        => elements.Where(e => e.Name == back).Select(e => ((e.From.X, 12.0, e.From.Z), (e.To.X, 16.0, e.To.Z))).ToArray();
 
     // A glazed wall's room-side finish is a rim, and the top of it lies in the deck's height. The ledge takes
     // that part's place across the opening: a copy under each top piece of the rim, carried down to the
     // deck's underside, so it meets the rim's stiles edge to edge and overlaps none of it.
-    private static IEnumerable<Element> RimLedges(Element[] elements)
+    private static IEnumerable<Element> RimLedges(Element[] elements, string back = "back", string prefix = "ledge")
         => new[] { "top", "top-left", "top-right" }.SelectMany(part => DeckGroups(
-            "ledge" + part.Replace("-", ""),
-            [.. elements.Where(e => e.Name == "back-rim-" + part).Select(e => ((e.From.X, 12.0, e.From.Z), e.To))]));
+            prefix + part.Replace("-", ""),
+            [.. elements.Where(e => e.Name == $"{back}-rim-{part}").Select(e => ((e.From.X, 12.0, e.From.Z), e.To))]));
 
     private static IEnumerable<Element> DeckGroups(
         string prefix, params ((double X, double Y, double Z) From, (double X, double Y, double Z) To)[] boxes)
@@ -1436,7 +1439,8 @@ public static class WallShapeGen
 
     // A wall's or corner's own pieces, then its deck's: the deck in its box, and each of its ledges.
     private static Element[] WithDeck(Element[] elements, ((double X, double Y, double Z) From, (double X, double Y, double Z) To) deck)
-        => [.. elements, .. DeckGroups("deck", deck), .. DeckGroups("ledge", Ledge(elements)), .. RimLedges(elements)];
+        => [.. elements, .. DeckGroups("deck", deck), .. DeckGroups("ledge", Ledge(elements)), .. RimLedges(elements),
+            .. DeckGroups("ledgesecond", Ledge(elements, "secondback")), .. RimLedges(elements, "secondback", "ledgesecond")];
 
     public static JObject Generate(string layout) => layout switch
     {

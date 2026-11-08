@@ -340,11 +340,16 @@ public class SidingWallEntity : BlockEntity
     internal static string[] Ledges(string layout, bool roomSideBare, bool glazed, (bool above, bool below, bool left, bool right) joins)
     {
         if (layout is "diagonal" or "cornerin") return [];
-        if (roomSideBare) return ["ledge"];
-        if (!glazed) return [];
-        var ledges = new List<string> { "ledgetop" };
-        if (joins.left) ledges.Add("ledgetopleft");
-        if (joins.right) ledges.Add("ledgetopright");
+        var ledges = new List<string>();
+        if (roomSideBare) ledges.Add("ledge");
+        else if (glazed)
+        {
+            ledges.Add("ledgetop");
+            if (joins.left) ledges.Add("ledgetopleft");
+            if (joins.right) ledges.Add("ledgetopright");
+        }
+        // A corner's second inner leg has ledge copies of its own (decision 0088).
+        if (layout == "cornerout") ledges.AddRange(ledges.Select(ledge => "ledgesecond" + ledge["ledge".Length..]).ToArray());
         return ledges.ToArray();
     }
 
@@ -451,7 +456,9 @@ public class SidingWallEntity : BlockEntity
         if (back != null)
         {
             string whole = cornerout && finishes[back]["WholeOnCorners"].AsBool() ? "-whole" : "";
-            AddFinish(FinishElement(finishes, back, "back", styles.back) + whole, part => !part.StartsWith("-tee") && !(decked && part.StartsWith("-top")));
+            bool Keeps(string part) => !part.StartsWith("-tee") && !(decked && part.StartsWith("-top"));
+            AddFinish(FinishElement(finishes, back, "back", styles.back) + whole, cornerout ? part => Keeps(part) && part != "" && !part.EndsWith("-left") : Keeps);
+            if (cornerout) AddFinish("second" + FinishElement(finishes, back, "back", styles.back) + whole, part => Keeps(part) && !part.EndsWith("-right"));
         }
         // A diagonal's end is the filler in its corner, or, where the next cell carries the run on,
         // each group's own piece out to the corner and half a post there.
