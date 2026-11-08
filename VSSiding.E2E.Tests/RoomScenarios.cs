@@ -39,6 +39,15 @@ public class RoomScenarios : AtlasScenarioBase
         Assert.Equal((4, 2, 0), Measure(inside));
     }
 
+    // Room Climates' well-built cellar is vanilla's count: only cooling walls and no skylight (issue #137).
+    [AtlasScenario(FreshWorld = true)]
+    public async Task Room_Should_HaveOnlyCoolingWalls_When_ClayWallsStandOnAndUnderStone()
+    {
+        (BlockPos inside, _) = await WallBuilder.BuildRoom(World, "game:clay-blue", BlockFacing.HORIZONTALS, ground: "game:rock-granite");
+        var room = World.Api.ModLoader.GetModSystem<RoomRegistry>().GetRoomForPosition(inside);
+        Assert.Equal((0, 0, 0), (room.NonCoolingWallCount, room.SkylightCount, room.ExitCount));
+    }
+
     [AtlasScenario(FreshWorld = true)]
     public async Task Room_Should_Leak_When_AWallIsFramedButNotFilled()
     {
@@ -98,6 +107,39 @@ public class RoomScenarios : AtlasScenarioBase
         await player.GiveItem("game:clay-blue", 4);
         Assert.True(wall.OnBlockInteractStart(player.Entity.World, player.Player, deckSel));
         return inside;
+    }
+
+    // Room Climates reads rooms as adjacent when one's Location grown by 1 touches the other's (issue #137).
+    // B's walk takes in the shared wall's cell, whose open half faces it, so A grown by 1 overlaps B.
+    [AtlasScenario(FreshWorld = true)]
+    public async Task Rooms_Should_BeAdjacent_When_TheyShareOneWall()
+    {
+        BlockPos a = World.Spawn.Offset(0, 2, 0);
+        BlockPos b = a.EastCopy(2);
+        for (int dx = -1; dx <= 3; dx++)
+            for (int dz = -1; dz <= 1; dz++)
+                World.SetBlock("game:planks-aged-ud", a.Offset(dx, -1, dz));
+
+        ITestPlayer player = await WallBuilder.JoinBuilder(World);
+        await WallBuilder.Raise(World, player, a.EastCopy(), a, "game:plank-oak", "game:clay-blue");
+        foreach (BlockFacing side in new[] { BlockFacing.NORTH, BlockFacing.SOUTH, BlockFacing.WEST })
+            await WallBuilder.Raise(World, player, a.AddCopy(side), a, "game:plank-oak", "game:clay-blue");
+        foreach (BlockFacing side in new[] { BlockFacing.NORTH, BlockFacing.SOUTH, BlockFacing.EAST })
+            await WallBuilder.Raise(World, player, b.AddCopy(side), b, "game:plank-oak", "game:clay-blue");
+
+        for (int dx = -1; dx <= 3; dx++)
+            for (int dz = -1; dz <= 1; dz++)
+                World.SetBlock("game:planks-aged-ud", a.Offset(dx, 1, dz));
+        // The side runs carry on past the shared wall; without these, B leaks out through the shared wall's open half, which faces it.
+        await WallBuilder.Raise(World, player, a.Offset(1, 0, -1), a.EastCopy(), "game:plank-oak", "game:clay-blue");
+        await WallBuilder.Raise(World, player, a.Offset(1, 0, 1), a.EastCopy(), "game:plank-oak", "game:clay-blue");
+
+        var registry = World.Api.ModLoader.GetModSystem<RoomRegistry>();
+        Room roomA = registry.GetRoomForPosition(a);
+        Room roomB = registry.GetRoomForPosition(b);
+        Assert.Equal(
+            (0, 0, false, true),
+            (roomA.ExitCount, roomB.ExitCount, ReferenceEquals(roomA, roomB), roomA.Location.Clone().GrowBy(1, 1, 1).IntersectsOrTouches(roomB.Location)));
     }
 
     private (int Cooling, int Warm, int Exits) Measure(BlockPos inside)
