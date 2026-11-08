@@ -17,7 +17,7 @@ public class JunctionScenarios : AtlasScenarioBase
     private static readonly Vec3d SouthEnd = new(0, 0.5, 0.8);
     private static readonly Vec3d NorthEnd = new(0, 0.5, 0.2);
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task FilledWall_Should_BecomeACornerMovingItsFrontFinishToTheSecondFace_When_ItsFinishedFrontIsPressedAtTheRightEnd()
     {
         (BlockPos cell, ITestPlayer player) = await RaiseFinishedDeckedWall();
@@ -27,7 +27,7 @@ public class JunctionScenarios : AtlasScenarioBase
         Assert.Equal((("cornerout", "south,west", "oak", ("oak", "clay", null, "planks-birch", null)), "planks-birch"), (Describe(cell), Read(cell, "secondback")));
     }
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task FilledWall_Should_BecomeACornerKeepingItsFrontFinish_When_ItsFinishedFrontIsPressedAtTheLeftEnd()
     {
         (BlockPos cell, ITestPlayer player) = await RaiseFinishedDeckedWall();
@@ -38,7 +38,7 @@ public class JunctionScenarios : AtlasScenarioBase
     }
 
     // The wall passes this press on, so vanilla repeats it through the held planks, which frame nothing on a repeat.
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task FilledWall_Should_BecomeACornerAndFrameNothingBeside_When_ThePressOnItsFinishedFrontIsHeld()
     {
         (BlockPos cell, ITestPlayer player) = await RaiseFinishedDeckedWall();
@@ -48,7 +48,7 @@ public class JunctionScenarios : AtlasScenarioBase
         Assert.Equal(("cornerout", "air"), (World.BlockAt(cell).Variant["layout"], World.BlockAt(cell.WestCopy()).Code.Path));
     }
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task FilledWall_Should_BecomeACorner_When_SticksArePressedOnItsUnfinishedFront()
     {
         (BlockPos cell, ITestPlayer player) = await RaiseWall("game:clay-blue");
@@ -58,7 +58,7 @@ public class JunctionScenarios : AtlasScenarioBase
         Assert.Equal(("cornerout", "north,west", null, ("oak", "clay", null, null, null)), Describe(cell));
     }
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task GlazedWall_Should_TakePlanksAsItsFrontFinishKeepingItsGlass_When_PlanksArePressedOnItsFront()
     {
         (BlockPos cell, ITestPlayer player) = await RaiseWall(infill: null);
@@ -69,7 +69,7 @@ public class JunctionScenarios : AtlasScenarioBase
         Assert.Equal(("wall", "west", null, ("oak", "glass-plain", "planks", null, null)), Describe(cell));
     }
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task GlazedWall_Should_BecomeACornerKeepingItsGlassAndFinish_When_ItsFinishedFrontIsPressedAtTheLeftEnd()
     {
         (BlockPos cell, ITestPlayer player) = await RaiseWall(infill: null);
@@ -82,7 +82,7 @@ public class JunctionScenarios : AtlasScenarioBase
     }
 
     // Vanilla repeats a held right-click, and the repeat of the press that boarded the face finds it finished.
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task FilledWall_Should_StayAWall_When_ThePressThatBoardsItsFaceIsHeld()
     {
         (BlockPos cell, ITestPlayer player) = await RaiseWall("game:clay-blue");
@@ -92,7 +92,7 @@ public class JunctionScenarios : AtlasScenarioBase
         Assert.Equal(("wall", "west", null, ("oak", "clay", null, null, "planks")), Describe(cell));
     }
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task BareFrame_Should_StayAWall_When_ThePressThatFillsItWithSticksIsHeld()
     {
         (BlockPos cell, ITestPlayer player) = await RaiseWall(infill: null);
@@ -103,7 +103,7 @@ public class JunctionScenarios : AtlasScenarioBase
     }
 
     // Sneaking skips the wall's own interaction, and still frames the next cell (decision 0058).
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task FilledWall_Should_StayAWallBesideANewCorner_When_ItsFinishedFrontIsSneakPressed()
     {
         (BlockPos cell, ITestPlayer player) = await RaiseFinishedDeckedWall();
@@ -114,7 +114,7 @@ public class JunctionScenarios : AtlasScenarioBase
         Assert.Equal(("wall", "cornerout"), (World.BlockAt(cell).Variant["layout"], World.BlockAt(cell.WestCopy()).Variant["layout"]));
     }
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task FilledWall_Should_StayAWall_When_ItsBareDeckIsPressedWithPlanks()
     {
         (BlockPos cell, ITestPlayer player) = await RaiseFinishedDeckedWall();
@@ -124,7 +124,7 @@ public class JunctionScenarios : AtlasScenarioBase
         Assert.Equal("wall", World.BlockAt(cell).Variant["layout"]);
     }
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task FilledWall_Should_StayAWall_When_ItCarriesAStep()
     {
         (BlockPos cell, ITestPlayer player) = await RaiseWall("game:clay-blue", back: "game:plank-birch");
@@ -136,7 +136,7 @@ public class JunctionScenarios : AtlasScenarioBase
     }
 
     // The corner's west leg is clicked from the west and takes the stair standing east of the cell.
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Corner_Should_TakeAStepFromTheStairBesideItsWestLeg_When_AStairIsPressedOnThatLeg()
     {
         (BlockPos cell, ITestPlayer player) = await RaiseCorner();
@@ -150,7 +150,7 @@ public class JunctionScenarios : AtlasScenarioBase
     }
 
     // The corner's north leg is clicked from the north and takes the stair standing south of the cell.
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Corner_Should_TakeAStepFromTheStairBesideItsNorthLeg_When_AStairIsPressedOnThatLeg()
     {
         (BlockPos cell, ITestPlayer player) = await RaiseCorner();
@@ -171,7 +171,7 @@ public class JunctionScenarios : AtlasScenarioBase
         return (cell, player);
     }
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task FilledWall_Should_StayAWall_When_AnAnimalStandsWhereTheNewLegGoes()
     {
         (BlockPos cell, ITestPlayer player) = await RaiseWall("game:clay-blue", back: "game:plank-birch");

@@ -11,12 +11,12 @@ namespace VSSiding.E2E.Tests;
 [AtlasWorld(StrictBootDiagnostics = true)]
 public class DeckScenarios : AtlasScenarioBase
 {
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Deck_Should_TakeFloorboards_When_PlanksFinishItWithFloorPicked()
         => Assert.Equal(("oak", "clay", "planks", null), await FloorboardedDeck("game:clay-blue", 4));
 
     // A glass deck takes a finish like any other, drawn as a rim round the glass (decision 0071).
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Deck_Should_TakeFloorboardsKeepingItsGlass_When_ItIsGlazed()
         => Assert.Equal(("oak", "glass-plain", "planks", null), await FloorboardedDeck("game:glass-plain", 1));
 
@@ -51,7 +51,7 @@ public class DeckScenarios : AtlasScenarioBase
     }
 
     // A lantern places through its own behaviour, which reaches the decked cell check only by asking CanPlaceBlock.
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Deck_Should_StayOnItsWall_When_ALanternIsPlacedIntoItsCell()
     {
         BlockPos cell = World.Spawn.Offset(1, 2, 0);

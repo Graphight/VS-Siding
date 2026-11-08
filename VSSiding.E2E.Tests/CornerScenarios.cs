@@ -19,7 +19,7 @@ public class CornerScenarios : AtlasScenarioBase
 
     // Each inner face costs one of a finish's two planks and the front the full two; peeling every layer and then the
     // frame hands back what was paid.
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Corner_Should_TakeAFinishOnEachInnerFaceForOnePlankAndRefundThemAll_When_PlanksAreBuiltAndPeeled()
     {
         (BlockPos cell, ITestPlayer player) = await RaiseCorner();
@@ -70,7 +70,7 @@ public class CornerScenarios : AtlasScenarioBase
 
     // Diagonal plaster laid beside itself round the corner takes the other turn whatever is picked, and a second press
     // restyles it to the picked one; stripes plaster takes the picked turn on both faces (decision 0090).
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Corner_Should_MirrorDiagonalPlasterUntilPressedAgain_When_PlasterIsLaidOnBothFacesOfAnEdgeWithBoardsPicked()
     {
         (BlockPos cell, ITestPlayer player) = await RaiseCorner();

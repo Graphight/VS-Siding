@@ -11,7 +11,7 @@ namespace VSSiding.E2E.Tests;
 [AtlasWorld(StrictBootDiagnostics = true)]
 public class AnimalScenarios : AtlasScenarioBase
 {
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Sheep_Should_StayOnTheGround_When_PushedIntoAWall()
     {
         BlockPos cell = World.Spawn.Offset(1, 2, 0);

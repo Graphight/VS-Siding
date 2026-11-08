@@ -18,7 +18,7 @@ public class FarFaceScenarios : AtlasScenarioBase
     private static readonly Vec3d TopHit = new(0.5, 1, 0.5);
     private static readonly Vec3d NorthEnd = new(0, 0.5, 0.2);
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Wall_Should_TakeDaubOnItsFront_When_DaubIsPressedOnItsFinishedBack()
     {
         (BlockPos cell, ITestPlayer player) = await RaiseWall();
@@ -28,7 +28,7 @@ public class FarFaceScenarios : AtlasScenarioBase
         Assert.Equal(("oak", "clay", "daub", null, "planks-birch"), WallBuilder.Layers(World, cell));
     }
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Wall_Should_TakePlanksOnItsFront_When_PlanksArePressedOnItsFinishedBackWithWallPicked()
     {
         (BlockPos cell, ITestPlayer player) = await RaiseWall();
@@ -39,7 +39,7 @@ public class FarFaceScenarios : AtlasScenarioBase
     }
 
     // The corner claims west and north, so its back is east and its second back south (decision 0090).
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Corner_Should_ReachItsFrontAndSecondFront_When_DaubIsPressedOnItsTwoFinishedBacks()
     {
         (BlockPos cell, ITestPlayer player) = await RaiseWall(back: null);
@@ -54,7 +54,7 @@ public class FarFaceScenarios : AtlasScenarioBase
         Assert.Equal((("oak", "clay", "daub", "daub", "planks-birch"), "planks-birch"), (WallBuilder.Layers(World, cell), Read(cell, "secondback")));
     }
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Wall_Should_FinishOnlyTheClickedFace_When_PlanksAreHeldOnItsBareFace()
     {
         (BlockPos cell, ITestPlayer player) = await RaiseWall(back: null);
@@ -64,7 +64,7 @@ public class FarFaceScenarios : AtlasScenarioBase
         Assert.Equal(("oak", "clay", null, null, "planks"), WallBuilder.Layers(World, cell));
     }
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Wall_Should_RestyleItsBackAndLeaveItsFrontBare_When_ItsOwnPlanksArePressedWithAnotherStylePicked()
     {
         (BlockPos cell, ITestPlayer player) = await RaiseWall(back: "game:plank-oak");
@@ -75,7 +75,7 @@ public class FarFaceScenarios : AtlasScenarioBase
         Assert.Equal((("oak", "clay", null, null, "planks"), "boards"), (WallBuilder.Layers(World, cell), Read(cell, "backstyle")));
     }
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Wall_Should_StoreTheBoardsStyle_When_StripesPlasterIsPressedOnItsBareBackWithBoardsPicked()
     {
         (BlockPos cell, ITestPlayer player) = await RaiseWall(back: null);
@@ -86,7 +86,7 @@ public class FarFaceScenarios : AtlasScenarioBase
         Assert.Equal((("oak", "clay", null, null, "plaster-stripes"), "boards"), (WallBuilder.Layers(World, cell), Read(cell, "backstyle")));
     }
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Floor_Should_StoreTheBoardsStyle_When_DiagonalPlasterIsPressedOnItsBareTopWithBoardsPicked()
     {
         (BlockPos cell, ITestPlayer player) = await RaiseFloor(top: null);
@@ -97,7 +97,7 @@ public class FarFaceScenarios : AtlasScenarioBase
         Assert.Equal((("oak", "clay", "plaster-diagonal", null, null), "boards"), (WallBuilder.Layers(World, cell), Read(cell, "frontstyle")));
     }
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Diagonal_Should_TakeDaubOnItsFront_When_DaubIsPressedOnItsFinishedBack()
     {
         (BlockPos cell, ITestPlayer player) = await RaiseWall(layout: "diagonal");
@@ -109,7 +109,7 @@ public class FarFaceScenarios : AtlasScenarioBase
             (World.BlockAt(cell).Variant["layout"], WallBuilder.Layers(World, cell)));
     }
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Floor_Should_FinishOnlyItsTop_When_DaubIsHeldOnItsBareTop()
     {
         (BlockPos cell, ITestPlayer player) = await RaiseFloor(top: null);
@@ -119,7 +119,7 @@ public class FarFaceScenarios : AtlasScenarioBase
         Assert.Equal(("oak", "clay", "daub", null, null), WallBuilder.Layers(World, cell));
     }
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Floor_Should_TakeDaubOnItsUnderside_When_DaubIsPressedOnItsBoardedTop()
     {
         (BlockPos cell, ITestPlayer player) = await RaiseFloor();
@@ -129,7 +129,7 @@ public class FarFaceScenarios : AtlasScenarioBase
         Assert.Equal(("oak", "clay", "planks", null, "daub"), WallBuilder.Layers(World, cell));
     }
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Floor_Should_ExtendItsRunAndLeaveItsUndersideBare_When_PlanksArePressedOnItsBoardedTop()
     {
         (BlockPos cell, ITestPlayer player) = await RaiseFloor();
@@ -140,7 +140,7 @@ public class FarFaceScenarios : AtlasScenarioBase
         Assert.Equal((("oak", "clay", "planks", null, (string?)null), 1), (WallBuilder.Layers(World, cell), floorsBeside));
     }
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Floor_Should_TakePlanksOnItsUnderside_When_PlanksArePressedOnItsBoardedTopAndItsRunCannotExtend()
     {
         (BlockPos cell, ITestPlayer player) = await RaiseFloor();
@@ -151,7 +151,7 @@ public class FarFaceScenarios : AtlasScenarioBase
         Assert.Equal(("oak", "clay", "planks", null, "planks"), WallBuilder.Layers(World, cell));
     }
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Deck_Should_TakeDaubOnItsUnderside_When_DaubIsPressedOnItsBoardedTop()
     {
         (BlockPos cell, ITestPlayer player) = await RaiseBoardedDeck();
@@ -161,7 +161,7 @@ public class FarFaceScenarios : AtlasScenarioBase
         Assert.Equal(("planks", "daub"), (Read(cell, "deckfront"), Read(cell, "deckback")));
     }
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Deck_Should_TakePlanksOnItsUnderside_When_PlanksArePressedOnItsBoardedTopWithFloorPicked()
     {
         (BlockPos cell, ITestPlayer player) = await RaiseBoardedDeck();
@@ -172,7 +172,7 @@ public class FarFaceScenarios : AtlasScenarioBase
     }
 
     // A player working on walls has Wall or Corner picked, not Floor.
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Deck_Should_TakePlanksOnItsUnderside_When_PlanksArePressedOnItsBoardedTopWithWallPicked()
     {
         (BlockPos cell, ITestPlayer player) = await RaiseBoardedDeck();
@@ -185,7 +185,7 @@ public class FarFaceScenarios : AtlasScenarioBase
             (Read(cell, "deckfront"), Read(cell, "deckback"), World.BlockAt(cell.UpCopy()).Code.Path));
     }
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Deck_Should_CarryAWallAbove_When_PlanksArePressedOnItsTopWithBothFacesBoarded()
     {
         (BlockPos cell, ITestPlayer player) = await RaiseBoardedDeck();
@@ -199,7 +199,7 @@ public class FarFaceScenarios : AtlasScenarioBase
             (Read(cell, "deckfront"), Read(cell, "deckback"), World.BlockAt(cell.UpCopy()).Variant["layout"]));
     }
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Wall_Should_FinishItsHiddenFront_When_PlanksArePressedOnItsEndAgainstAFacingWall()
     {
         (BlockPos cell, ITestPlayer player) = await RaiseWall(back: null);
@@ -214,7 +214,7 @@ public class FarFaceScenarios : AtlasScenarioBase
             (WallBuilder.Layers(World, cell), player.Player.InventoryManager.ActiveHotbarSlot.Itemstack?.StackSize ?? 0, World.BlockAt(cell.NorthCopy()).Code.Path));
     }
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Wall_Should_ExtendItsRun_When_PlanksArePressedOnItsEndWithNoFacingWall()
     {
         (BlockPos cell, ITestPlayer player) = await RaiseWall(back: null);

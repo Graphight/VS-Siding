@@ -17,7 +17,7 @@ public class CelticBedScenarios : AtlasScenarioBase
 {
     private static bool KevinsLoaded => Environment.GetEnvironmentVariable("SIDING_PROBE") == "kevinsfurniture";
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task CelticBed_Should_ShiftByItsFillersWalls_When_OnlyItsFillerRowIsInTheWall()
     {
         if (!KevinsLoaded) return;
@@ -47,7 +47,7 @@ public class CelticBedScenarios : AtlasScenarioBase
         }
     }
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task CelticBed_Should_HostItsHeadAndFeet_When_ItsBedRowIsInTheWall()
     {
         if (!KevinsLoaded) return;

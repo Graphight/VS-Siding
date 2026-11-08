@@ -14,7 +14,7 @@ namespace VSSiding.E2E.Tests;
 [AtlasWorld(StrictBootDiagnostics = true)]
 public class HandbookScenarios : AtlasScenarioBase
 {
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public Task ItemstackTags_Should_NameRealItemsAndBlocks()
     {
         List<(string Type, string Code)> codes = Lang.GetAllEntries()

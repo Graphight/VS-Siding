@@ -19,7 +19,7 @@ public class DiagonalScenarios : AtlasScenarioBase
         ["west"] = "north", ["south"] = "west", ["east"] = "south", ["north"] = "east",
     };
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Wall_Should_RetainOnItsTwoClaimedFaces_When_FramedAndFilledAsADiagonal()
     {
         (BlockPos cell, _) = await RaiseFrame("diagonal", deck: false, infill: "game:clay-blue");
@@ -36,7 +36,7 @@ public class DiagonalScenarios : AtlasScenarioBase
     }
 
     // A frame and a deck are two charges of planks.
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Frame_Should_StoreTheDeck_When_DeckIsLitAndADiagonalIsPicked()
     {
         (BlockPos cell, _) = await RaiseFrame("diagonal", deck: true, framingCost: 4);
@@ -44,7 +44,7 @@ public class DiagonalScenarios : AtlasScenarioBase
         Assert.Equal((("oak", null, null, null, null), "oak"), (WallBuilder.Layers(World, cell), Deck(cell)));
     }
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Diagonal_Should_TakeADeckInPlace_When_ItsSideIsClickedWithTheDeckLit()
     {
         (BlockPos cell, ITestPlayer player) = await RaiseFrame("diagonal", deck: false);
@@ -56,7 +56,7 @@ public class DiagonalScenarios : AtlasScenarioBase
         Assert.Equal(("oak", null), (Deck(cell), player.Player.InventoryManager.ActiveHotbarSlot.Itemstack));
     }
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Deck_Should_RetainUpward_When_ItsInfillIsLaidOnADiagonal()
     {
         (BlockPos cell, ITestPlayer player) = await RaiseFrame("diagonal", deck: true, framingCost: 4);
@@ -75,7 +75,7 @@ public class DiagonalScenarios : AtlasScenarioBase
     }
 
     // A glazed diagonal takes a finish like any glazed cell, as a rim round the glass.
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Diagonal_Should_TakeTheFinish_When_ItIsGlazedAndPlanksArePressedOnItsFront()
     {
         (BlockPos cell, ITestPlayer player) = await RaiseFrame("diagonal", deck: false);
@@ -91,7 +91,7 @@ public class DiagonalScenarios : AtlasScenarioBase
     }
 
     // With no saw held the wall's click hosts or hands the click on; vanilla's placement asks IsReplacableBy.
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Diagonal_Should_StayInItsCell_When_AChestIsPlacedThere()
     {
         (BlockPos cell, ITestPlayer player) = await RaiseFrame("diagonal", deck: false, infill: "game:clay-blue");
@@ -107,7 +107,7 @@ public class DiagonalScenarios : AtlasScenarioBase
     }
 
     // The in-place upgrade keeps the block entity, so the deck rides over to the diagonal.
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Frame_Should_BecomeADiagonalKeepingItsDeck_When_ADeckedFrameIsClickedWithADiagonalPicked()
     {
         (BlockPos cell, ITestPlayer player) = await RaiseFrame("wall", deck: true, framingCost: 4);

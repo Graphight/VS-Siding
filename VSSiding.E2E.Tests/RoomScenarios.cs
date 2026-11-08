@@ -11,7 +11,7 @@ namespace VSSiding.E2E.Tests;
 [AtlasWorld(StrictBootDiagnostics = true)]
 public class RoomScenarios : AtlasScenarioBase
 {
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Room_Should_BeSealedAndWarm_When_WallsAreFramedAndFilledWithWattle()
     {
         (BlockPos inside, _) = await WallBuilder.BuildRoom(World, "game:stick", BlockFacing.HORIZONTALS);
@@ -19,7 +19,7 @@ public class RoomScenarios : AtlasScenarioBase
     }
 
     // Sticks are wattle's item too, so the second click on each bare stick frame has to fill it, not frame again.
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Room_Should_BeSealedAndWarm_When_BuiltFromSticksWithAStoneInTheOffHand()
     {
         (BlockPos inside, _) = await WallBuilder.BuildRoom(
@@ -32,7 +32,7 @@ public class RoomScenarios : AtlasScenarioBase
             (Measure(inside), WallBuilder.Layers(World, inside.NorthCopy()), stone.StorageFlags, saw.StorageFlags));
     }
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Room_Should_BeACellar_When_WallsAreFilledWithClay()
     {
         (BlockPos inside, _) = await WallBuilder.BuildRoom(World, "game:clay-blue", BlockFacing.HORIZONTALS);
@@ -40,7 +40,7 @@ public class RoomScenarios : AtlasScenarioBase
     }
 
     // Room Climates' well-built cellar is vanilla's count: only cooling walls and no skylight (issue #137).
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Room_Should_HaveOnlyCoolingWalls_When_ClayWallsStandOnAndUnderStone()
     {
         (BlockPos inside, _) = await WallBuilder.BuildRoom(World, "game:clay-blue", BlockFacing.HORIZONTALS, ground: "game:rock-granite");
@@ -48,20 +48,20 @@ public class RoomScenarios : AtlasScenarioBase
         Assert.Equal((0, 0, 0), (room.NonCoolingWallCount, room.SkylightCount, room.ExitCount));
     }
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Room_Should_Leak_When_AWallIsFramedButNotFilled()
     {
         (BlockPos inside, _) = await WallBuilder.BuildRoom(World, "game:clay-blue", new[] { BlockFacing.NORTH, BlockFacing.EAST, BlockFacing.SOUTH });
         Assert.NotEqual(0, Measure(inside).Exits);
     }
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Room_Should_LeakUpward_When_TheDeckOfADiagonalInItsWallLineIsBare()
     {
         Assert.NotEqual(0, Measure(await BuildRoomUnderADiagonal(fillDeck: false)).Exits);
     }
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Room_Should_SealUpward_When_TheDeckOfADiagonalInItsWallLineIsFilled()
     {
         Assert.Equal(0, Measure(await BuildRoomUnderADiagonal(fillDeck: true)).Exits);
@@ -111,7 +111,7 @@ public class RoomScenarios : AtlasScenarioBase
 
     // Room Climates reads rooms as adjacent when one's Location grown by 1 touches the other's (issue #137).
     // B's walk takes in the shared wall's cell, whose open half faces it, so A grown by 1 overlaps B.
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Rooms_Should_BeAdjacent_When_TheyShareOneWall()
     {
         BlockPos a = World.Spawn.Offset(0, 2, 0);

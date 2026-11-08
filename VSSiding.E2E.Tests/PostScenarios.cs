@@ -15,7 +15,7 @@ namespace VSSiding.E2E.Tests;
 [AtlasWorld(StrictBootDiagnostics = true)]
 public class PostScenarios : AtlasScenarioBase
 {
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Post_Should_StandInTheNearestCornerForOnePlank_When_PlanksArePressedInPostMode()
     {
         (BlockPos cell, ITestPlayer player, ItemSlot slot, EnumHandHandling handling) = await PlacePost(planks: 3);
@@ -30,7 +30,7 @@ public class PostScenarios : AtlasScenarioBase
 
     // The post's frame costs a quarter, its deck the full two planks; the deck takes infill and floorboards like a wall's,
     // and breaking the post hands back the quarter plus every deck layer in full.
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Post_Should_TakeADeckAtFullCostAndRefundItInFull_When_TheDeckToggleIsLit()
     {
         (BlockPos cell, ITestPlayer player, ItemSlot slot, _) = await PlacePost(planks: 3, deck: true);
@@ -65,7 +65,7 @@ public class PostScenarios : AtlasScenarioBase
     }
 
     // A post already standing takes the deck from a click on its side with the toggle lit, for the full two planks.
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Post_Should_TakeADeckInPlaceForTwoPlanks_When_PlanksAreClickedWithTheDeckToggleLit()
     {
         (BlockPos cell, ITestPlayer player, ItemSlot slot, _) = await PlacePost(planks: 1);
@@ -79,7 +79,7 @@ public class PostScenarios : AtlasScenarioBase
     }
 
     // A click on either of a post's two faces hosts a table in its cell and the post becomes the guest; breaking the table brings it back.
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Post_Should_BecomeAGuestAndComeBack_When_AFurnitureBlockIsHostedOnEitherFaceAndBroken()
     {
         (BlockPos cell, ITestPlayer player, ItemSlot slot, _) = await PlacePost(planks: 1);
@@ -112,7 +112,7 @@ public class PostScenarios : AtlasScenarioBase
     }
 
     // Each finish costs a quarter of its two planks, and peeling all four finishes and then the frame hands back what was paid.
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Post_Should_TakeAFinishOnEachFaceForOnePlankAndRefundThemAll_When_PlanksAreBuiltAndPeeled()
     {
         (BlockPos cell, ITestPlayer player, ItemSlot slot, _) = await PlacePost(planks: 1);

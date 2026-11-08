@@ -16,10 +16,10 @@ public class ScrollRackScenarios : AtlasScenarioBase
     // Left slots, by index into the rack's slotsHitBoxes.
     private static readonly int[] LeftSlots = [2, 7];
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public Task Racks_Should_Join_When_HostedFacingNorth() => AssertRacksJoin(BlockFacing.NORTH);
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public Task Racks_Should_Join_When_HostedFacingSouth() => AssertRacksJoin(BlockFacing.SOUTH);
 
     // outward is the wall's open side, where the racks go and the player stands, at the seam between the two cells.
