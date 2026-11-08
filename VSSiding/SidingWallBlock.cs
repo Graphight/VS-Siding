@@ -1051,8 +1051,10 @@ public class SidingWallBlock : Block
         => layout != "cornerin" && (faceCode == side || (ClaimsTwoFaces(layout) && faceCode == CorneroutSecondFace[side]));
 
     public override int GetRetention(BlockPos pos, BlockFacing facing, EnumRetentionType type)
+        => RetentionOf(api.World.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos), facing);
+
+    internal int RetentionOf(SidingWallEntity? entity, BlockFacing facing)
     {
-        var entity = api.World.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos);
         if (facing == BlockFacing.UP) return ComputeDeckRetention(entity?.Deck, entity?.DeckInfill, entity?.LegacyDeck ?? false, Attributes["Framings"], Attributes["Infills"]);
         return ComputeRetention(ClaimsFace(facing), entity?.Framing, entity?.Infill, Attributes["Framings"], Attributes["Infills"]);
     }

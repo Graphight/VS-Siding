@@ -96,6 +96,36 @@ public class IsHostableTests
         Assert.Equal(expected, actual);
     }
 
+    [Fact]
+    public void OnlyHostableWallHungAndHungBlocksHostUnderADeck()
+    {
+        var wallHook = Open(new Block());
+        wallHook.BlockBehaviors = new BlockBehavior[] { new BlockBehaviorHorizontalAttachable(wallHook) };
+        var ceilingHook = Open(new Block());
+        ceilingHook.Attributes = new JsonObject(new JObject { ["vssidingHanger"] = true });
+        var solidWallHook = new Block();
+        solidWallHook.BlockBehaviors = new BlockBehavior[] { new BlockBehaviorHorizontalAttachable(solidWallHook) };
+
+        var blocks = new Dictionary<string, Block>
+        {
+            ["wall hook"] = wallHook,
+            ["ceiling hook"] = ceilingHook,
+            ["chest"] = Open(new Block()),
+            ["unhostable wall hook"] = solidWallHook,
+        };
+
+        var actual = new Dictionary<string, bool>();
+        foreach (var (name, block) in blocks) actual[name] = SidingModSystem.HostsUnderDeck(block);
+
+        Assert.Equal(new Dictionary<string, bool>
+        {
+            ["wall hook"] = true,
+            ["ceiling hook"] = true,
+            ["chest"] = false,
+            ["unhostable wall hook"] = false,
+        }, actual);
+    }
+
     private static T Declared<T>(T block, bool hostable) where T : Block
     {
         block.Attributes = new JsonObject(new JObject { ["vssidingHostable"] = hostable });

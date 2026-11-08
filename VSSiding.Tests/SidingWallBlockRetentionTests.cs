@@ -207,6 +207,20 @@ public class SidingWallBlockRetentionTests
     }
 
     [Fact]
+    public void RetentionOfAskedUpAnswersTheDeckAndAHorizontalFaceTheWall()
+    {
+        var wall = new SidingWallBlock { Attributes = new JsonObject(JToken.Parse("""{ "Framings": { "oak": {} }, "Infills": { "wattle": { "BlockMaterial": "Wood" } } }""")) };
+        wall.VariantStrict["layout"] = "wall";
+        wall.VariantStrict["side"] = "north";
+        var entity = new SidingWallEntity { Framing = "oak", Infill = "wattle", Deck = "oak", DeckInfill = "wattle" };
+
+        var actual = new[] { BlockFacing.UP, BlockFacing.NORTH, BlockFacing.SOUTH }.Select(f => wall.RetentionOf(entity, f));
+
+        Assert.Equal(new[] { 1, 1, 0 }, actual);
+        Assert.Equal(0, wall.RetentionOf(new SidingWallEntity { Framing = "oak", Infill = "wattle" }, BlockFacing.UP));
+    }
+
+    [Fact]
     public void OnlyADeckedNonDiagonalWallTakesAHangerOnItsUnderside()
     {
         var actual = new (string Layout, string? Deck)[] { ("wall", "oak"), ("cornerout", "oak"), ("cornerin", "oak"), ("wall", null), ("diagonal", "oak") }.Select(c =>

@@ -251,9 +251,9 @@ public class SidingFloorBlock : Block
         BlockPos neighbourPos = pos.AddCopy(direction);
         if (accessor.GetBlockEntity<SidingFloorEntity>(neighbourPos) is { } floor)
             return Continues(glazing, floor.Framing, floor.Infill, floor.Block.Attributes["Infills"]);
-        return accessor.GetBlockEntity<SidingWallEntity>(neighbourPos) is { } wall
-            && DeckReaches(wall.Block.Variant["layout"], wall.Block.Variant["side"], direction)
-            && Continues(glazing, wall.Deck, wall.DeckInfill, wall.Block.Attributes["Infills"]);
+        return SidingWallBlock.WallAt(accessor, neighbourPos) is var (wallBlock, wall)
+            && DeckReaches(wallBlock.Variant["layout"], wallBlock.Variant["side"], direction)
+            && Continues(glazing, wall.Deck, wall.DeckInfill, wallBlock.Attributes["Infills"]);
     }
 
     // As a wall's (SidingWallBlock.InnerCorners). The cell diagonally across is asked from both of the

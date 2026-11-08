@@ -64,7 +64,7 @@ internal static class GapShiftCollisionPatches
 
     // Outermost only, so an override reading base's boxes never sees null.
     private static bool IsHung(Block instance, object[] args)
-        => depth == 1 && args[1] is BlockPos pos && SidingModSystem.HangShiftAt(pos, instance) != 0;
+        => depth == 1 && args[1] is BlockPos pos && SidingModSystem.HangShiftAt(pos, instance) > 0;
 
     private static void PostfixParticleCollision(Block __instance, ref Cuboidf[] __result, object[] __args)
         => __result = ShiftAndAppendPanel(__instance, __result, __args, wall => wall.ParticleCollisionBoxes ?? wall.CollisionBoxes, clampToCell: true);

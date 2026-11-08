@@ -706,6 +706,14 @@ public class SidingModSystem : ModSystem
 
     internal static bool IsHangerId(int blockId) => Hangers is { } hangers && blockId < hangers.Length && hangers[blockId];
 
+    // Indexed by BlockId: hostable blocks that stand against a wall face or hang, which a decked cell may host (decision 0092).
+    internal static bool[]? UnderDeck;
+
+    internal static bool IsUnderDeckId(int blockId) => UnderDeck is { } underDeck && blockId < underDeck.Length && underDeck[blockId];
+
+    internal static bool HostsUnderDeck(Block block)
+        => IsHostable(block) && (IsHanger(block) || block.BlockBehaviors.Any(behavior => behavior is BlockBehaviorHorizontalAttachable));
+
     internal static readonly AccessTools.FieldRef<BlockBehaviorUnstableFalling, BlockFacing[]?> AttachableFacesRef =
         AccessTools.FieldRefAccess<BlockBehaviorUnstableFalling, BlockFacing[]?>("attachableFaces");
 
@@ -722,12 +730,16 @@ public class SidingModSystem : ModSystem
     // How far a hung block at pos rises to meet the underside of the thin floor above; zero for anything else.
     internal static double HangShiftAt(BlockPos pos, Block block)
     {
-        if (!IsHangerId(block.BlockId)) return 0;
+        bool hanger = IsHangerId(block.BlockId);
+        if (!hanger && !IsUnderDeckId(block.BlockId)) return 0;
 
         ICoreAPI? api = ApiRef(block);
         if (api == null) return 0;
 
-        return HangShift(api.World.BlockAccessor, pos, block);
+        // Hosted in a decked cell, the block is drawn below the deck's top instead of rising to its underside.
+        if (IsUnderDeckId(block.BlockId) && GuestWalls.GuestAt(api, pos) is { Deck: not null }) return -PanelThickness;
+
+        return hanger ? HangShift(api.World.BlockAccessor, pos, block) : 0;
     }
 
     // A chandelier attaches on DOWN as well as UP, so one the cell below holds up is standing, not hung.
@@ -774,6 +786,7 @@ public class SidingModSystem : ModSystem
         var hostable = new bool[maxId + 1];
         var faceShift = new double[maxId + 1][];
         var hangers = new bool[maxId + 1];
+        var underDeck = new bool[maxId + 1];
         var mainPos = new PropertyInfo?[maxId + 1];
 
         foreach (var block in api.World.Blocks)
@@ -781,6 +794,7 @@ public class SidingModSystem : ModSystem
             if (block == null) continue;
             hostable[block.BlockId] = IsHostable(block);
             hangers[block.BlockId] = IsHanger(block);
+            underDeck[block.BlockId] = HostsUnderDeck(block);
             if (!hostable[block.BlockId]) continue;
 
             faceShift[block.BlockId] = FaceShifts(block);
@@ -790,6 +804,7 @@ public class SidingModSystem : ModSystem
 
         Hostable = hostable;
         Hangers = hangers;
+        UnderDeck = underDeck;
         FaceShiftByBlock = faceShift;
         MainPosByBlock = mainPos;
     }
