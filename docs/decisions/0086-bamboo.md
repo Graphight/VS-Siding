@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Created: 2026-11-07
-- Reflects: issue #136 and mod page comment https://mods.vintagestory.at/vssiding#cmt-251694; branch `136-bamboo`; `config/materials.json` (`bamboo`, `bamboowoven`, `stackedbamboo`), `patches/bamboo-frame-behavior.json`, `SidingWallBlock.FramesAsFilled`/`MatchFraming`/`CanTakeDeck`/`TryAddDeck`, `lang/en.json`; `VSSiding.E2E.Tests/BambooScenarios.cs`, `SidingWallBlockRetentionTests`, `SidingWallBlockDropsTests`, `FinishElementGroupsTests.EveryStyledFinishOffersItsWholePickerRow`; vanilla 1.22 `bamboostakes.json`, `stackedbamboo.json`, `recipes/grid/stackedbamboo.json` and the textures `block/wood/planks/bamboo-side`, `block/plant/bamboo/bamboowoven`, `stem-brown`, `stem-green`; decisions 0007, 0043, 0051, 0058, 0060, 0061, 0074, 0082, 0084; unit tests pass
+- Reflects: issue #136 and mod page comment https://mods.vintagestory.at/vssiding#cmt-251694; branch `136-bamboo`; `config/materials.json` (`bamboo`, `bamboowoven`, `stackedbamboo`), `patches/bamboo-frame-behavior.json`, `SidingWallBlock.FramesAsFilled`/`MatchFraming`/`CanTakeDeck`/`TryAddDeck`, `lang/en.json`; `VSSiding.E2E.Tests/BambooScenarios.cs`, `SidingWallBlockRetentionTests`, `SidingWallBlockDropsTests`, `FinishElementGroupsTests.EveryStyledFinishOffersItsWholePickerRow`; vanilla 1.22 `bamboostakes.json`, `stackedbamboo.json`, `recipes/grid/stackedbamboo.json` and the textures `block/wood/planks/bamboo-side`, `block/plant/bamboo/bamboowoven`, `stem-brown`, `stem-green`; decisions 0007, 0043, 0051, 0058, 0060, 0061, 0074, 0082, 0084; unit and end-to-end tests pass
 
 ## Summary
 A player asked for bamboo, "to hold a house above a swamp".
@@ -23,7 +23,8 @@ The entry names no `BlockMaterial`, so it falls back to `Wood` and burns (0043).
 
 **The texture is `bamboo-side`.**
 It is the side of vanilla's stacked bamboo block, the block the stakes craft into, with the stems upright.
-The issue suggested the plant's `stem-brown` and `stem-green`, but both carry transparent pixels (219 and 255 of 1024), and `MaterialTextureOpacityTests` holds every texture but glazing's to opaque (decision 0007); `bamboo-side` has none.
+The issue suggested the plant's `stem-brown` and `stem-green`, but both are sprite sheets for the plant's shape with empty regions (219 and 255 of 1024 pixels at alpha 0), so a pole face whose UVs landed on an empty region would draw a hole.
+`MaterialTextureOpacityTests` would not catch it, since it flags only partial alpha; `bamboo-side` is opaque throughout.
 
 **A woven bamboo infill.**
 A `bamboowoven` entry in `Infills`, textured `block/plant/bamboo/bamboowoven`, consuming and dropping 2 stakes.
@@ -57,6 +58,7 @@ That scenario found that a floor run never decked a bamboo post.
 A post takes no infill, so `MatchFraming` read stakes on it as woven bamboo for the bare post and matched no framing, and `CanTakeDeck` refused.
 `SidingWallBlock.FramesAsFilled` counts a `cornerin` as filled, and `CanTakeDeck`, `TryAddDeck` and the Floor-mode guard in `OnBlockInteractStart` read it in place of the infill check.
 Sticks had the same gap since decision 0082, so a stick post now takes a stick deck and lays a floor too.
+The Floor-mode guard keeps stakes in step with planks there: with Floor picked and the deck lit, stakes on a post's side lay a floor in the next cell rather than deck the post, and `BambooScenarios` checks that too.
 
 ## Alternatives considered
 - **Stakes as the finish too.** A stake would then match the framing, the infill and a finish, and `MatchFraming` settles only two.
@@ -64,7 +66,6 @@ Sticks had the same gap since decision 0082, so a stick post now takes a stick d
 - **New upright and lying shape groups for bamboo.** The board row's two styles already differ by a quarter turn.
 - **The log row's styles.** Its groups never turn the texture.
 - **Treating a post as filled inside `MatchFraming`.** `MatchFraming` is static and takes the filled flag from its callers, so the post check went into the three callers that compute it.
-- **Dropping the stilts scenario.** It would have left a bamboo floor unable to deck a bamboo post, which is the build the player asked for.
 - **MightyBamboo's green stakes and stacked blocks.** Out of scope; a family could pick them up when the mod is present.
 
 ## Consequences & open questions
