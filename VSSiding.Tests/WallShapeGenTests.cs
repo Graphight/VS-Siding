@@ -319,9 +319,9 @@ public class WallShapeGenTests
             .Select(b => $"{b.Name} {string.Join(",", b.Box.Lo)} to {string.Join(",", b.Box.Hi)}"));
     }
 
-    // A bare bamboo post's core and four slices together are one notched pole, 3 voxels across with a half voxel square down
-    // each vertical edge, and at each ring the same outline a quarter voxel out all round, so no slice stands proud of its
-    // neighbour at a corner and every ring stands out of the pole on every side. Read on a quarter-voxel grid.
+    // A bare bamboo post's core and four slices together are one notched pole, its rings filling the 4 by 4 less a half voxel
+    // square down each vertical edge and the pole between them the same outline a quarter voxel in, so no slice stands proud
+    // of its neighbour at a corner and every ring stands out of the pole on every side. Read on a quarter-voxel grid.
     [Theory]
     [InlineData("bamboo")]
     [InlineData("bamboo2")]
@@ -339,7 +339,7 @@ public class WallShapeGenTests
 
         Assert.NotEmpty(ringMids);
         Assert.Equal(
-            ringMids.Select(_ => Outline(0.25, 3.75).ToArray()).Prepend(Outline(0.5, 3.5).ToArray()).ToArray(),
+            ringMids.Select(_ => Outline(0, 4).ToArray()).Prepend(Outline(0.25, 3.75).ToArray()).ToArray(),
             ringMids.Select(m => Covered(m).ToArray()).Prepend(Covered(between).ToArray()).ToArray());
     }
 

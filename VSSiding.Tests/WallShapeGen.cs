@@ -1487,9 +1487,11 @@ public static class WallShapeGen
         .. PostLayer("secondback", 'z', 0, "north", ownsHigh: true),
     ];
 
-    // A bare post in bamboo: a notched pole 3 voxels across in the middle of the 4 by 4, each ring the same outline a quarter
-    // voxel out all round, all of it cut into a core and a slice in each layer's owned body (see PostLayer), so a finished
-    // face drops its slice alone. The rings reach no further than 3.75, inside the layer a finish lays.
+    // A bare post in bamboo: rings filling the 4 by 4, notched a half voxel down each vertical edge so they read round, and
+    // between them the same pole a quarter voxel in all round, as a wall's pole stands inside its rings. The rings meet the
+    // walls behind and a floor round the post edge to edge, and one closes the post's top, so a floor laid onto it leaves no
+    // groove to see down. All of it is cut into a core and a slice in each layer's owned body (see PostLayer), so a
+    // finished face drops its slice alone.
     private static IEnumerable<Element> BambooFatPost(BambooRings v)
     {
         (string Name, double X1, double Z1, double X2, double Z2)[] bodies =
@@ -1497,7 +1499,7 @@ public static class WallShapeGen
             (v.Prefix, 1, 1, 3, 3), ($"{v.Prefix}-front", 3, 1, 4, 4), ($"{v.Prefix}-secondfront", 0, 3, 3, 4),
             ($"{v.Prefix}-back", 0, 0, 1, 3), ($"{v.Prefix}-secondback", 1, 0, 4, 1),
         ];
-        return from e in NotchedSquare(v.Prefix, 0.5, 3.5, 0.5, 0, 16).Concat(v.Post.SelectMany(ring => FatPostRing(v.Prefix, ring, ring + 0.5)))
+        return from e in NotchedSquare(v.Prefix, 0.25, 3.75, 0.5, 0, 16).Concat(v.Post.Append(15.5).SelectMany(ring => FatPostRing(v.Prefix, ring, ring + 0.5)))
                from body in bodies
                let lo = (X: Math.Max(e.From.X, body.X1), Z: Math.Max(e.From.Z, body.Z1))
                let hi = (X: Math.Min(e.To.X, body.X2), Z: Math.Min(e.To.Z, body.Z2))
@@ -1509,8 +1511,8 @@ public static class WallShapeGen
     // into the slices: a strip along each flat, and an L in each notch, the north-west one mirrored to the other three.
     private static IEnumerable<Element> FatPostRing(string name, double y1, double y2)
     {
-        (double X1, double Z1, double X2, double Z2)[] strips = [(0.75, 0.25, 3.25, 0.5), (0.75, 3.5, 3.25, 3.75), (0.25, 0.75, 0.5, 3.25), (3.5, 0.75, 3.75, 3.25)];
-        (double X1, double Z1, double X2, double Z2)[] notch = [(0.5, 0.75, 1, 1), (0.75, 0.5, 1, 0.75)];
+        (double X1, double Z1, double X2, double Z2)[] strips = [(0.5, 0, 3.5, 0.25), (0.5, 3.75, 3.5, 4), (0, 0.5, 0.25, 3.5), (3.75, 0.5, 4, 3.5)];
+        (double X1, double Z1, double X2, double Z2)[] notch = [(0.25, 0.5, 0.75, 0.75), (0.5, 0.25, 0.75, 0.5)];
         var corners = from n in notch
                       from mirror in new[] { (X: false, Z: false), (X: true, Z: false), (X: false, Z: true), (X: true, Z: true) }
                       select (mirror.X ? 4 - n.X2 : n.X1, mirror.Z ? 4 - n.Z2 : n.Z1, mirror.X ? 4 - n.X1 : n.X2, mirror.Z ? 4 - n.Z1 : n.Z2);
