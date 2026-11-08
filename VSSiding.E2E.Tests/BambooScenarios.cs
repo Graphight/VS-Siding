@@ -79,6 +79,26 @@ public class BambooScenarios : AtlasScenarioBase
             (Post(bottom), Post(bottom.UpCopy()), Post(top), WallBuilder.Layers(World, floor), WallBuilder.DeckLayers(World, top)));
     }
 
+    // A post is no bare frame for stakes to fill, so with Floor picked they lay a floor beside it as planks do, deck lit or not.
+    [AtlasScenario(FreshWorld = true)]
+    public async Task Post_Should_LayAFloorBesideIt_When_StakesClickItsSideWithFloorPickedAndTheDeckLit()
+    {
+        BlockPos post = World.Spawn.Offset(1, 2, 0);
+        World.SetBlock("game:planks-aged-ud", post.DownCopy());
+        ITestPlayer player = await WallBuilder.JoinBuilder(World, "game:stone-granite");
+        await player.TeleportTo(post.WestCopy());
+        player.Entity.WatchedAttributes.SetString("vssidingFraming", "post");
+        await WallBuilder.Press(World, player, post.DownCopy(), "game:bamboostakes", BlockFacing.UP, new Vec3d(0.2, 1, 0.8));
+
+        player.Entity.WatchedAttributes.SetString("vssidingFraming", "floor");
+        player.Entity.WatchedAttributes.SetString("vssidingDeck", "deck");
+        await WallBuilder.Press(World, player, post, "game:bamboostakes", BlockFacing.EAST, new Vec3d(1, 0.5, 0.5));
+
+        Assert.Equal(
+            ("floor", ((string?)null, (string?)null, (string?)null, (string?)null)),
+            (World.BlockAt(post.EastCopy()).Code.Path, WallBuilder.DeckLayers(World, post)));
+    }
+
     // A bare bamboo frame, then a plain stake click on its side with Floor picked, which fills it rather than laying a floor.
     private async Task<(BlockPos Cell, ITestPlayer Player, BlockSelection SideSel)> FillWithStakes()
     {
