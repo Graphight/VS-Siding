@@ -319,6 +319,40 @@ public class WallShapeGenTests
             .Select(b => $"{b.Name} {string.Join(",", b.Box.Lo)} to {string.Join(",", b.Box.Hi)}"));
     }
 
+    // Between its rings a bare bamboo post's core and four slices together are one notched pole: the 4 by 4 less a half voxel
+    // square down each vertical edge, so no slice stands proud of its neighbour at a corner. Read on a quarter-voxel grid.
+    [Theory]
+    [InlineData("bamboo")]
+    [InlineData("bamboo2")]
+    public void ABareBambooPostIsOneNotchedPoleAcrossItsSlices(string prefix)
+    {
+        var fullHeight = WallShapeGen.Generate("cornerin")["elements"]!
+            .Where(e => (string)e["name"]! == prefix || ((string)e["name"]!).StartsWith(prefix + "-"))
+            .Select(Box).Where(b => b.Lo[1] == 0 && b.Hi[1] == 16).ToArray();
+        var points = (from i in Enumerable.Range(0, 16) from j in Enumerable.Range(0, 16) select (X: i * 0.25 + 0.125, Z: j * 0.25 + 0.125)).ToArray();
+        static bool Notched(double v) => v < 0.5 || v > 3.5;
+
+        Assert.Equal(
+            points.Where(p => !(Notched(p.X) && Notched(p.Z))),
+            points.Where(p => fullHeight.Any(b => b.Lo[0] < p.X && p.X < b.Hi[0] && b.Lo[2] < p.Z && p.Z < b.Hi[2])));
+    }
+
+    // A bamboo post with any of its faces finished, the rest bare, draws no two faces on one plane.
+    [Theory]
+    [InlineData("bamboo")]
+    [InlineData("bamboo2")]
+    public void NoTwoFacesOfABambooPostShareAPlaneWhateverItsFacesCarry(string prefix)
+    {
+        var finishes = new Vintagestory.API.Datastructures.JsonObject(JObject.Parse("""{ "daub": {} }"""));
+        string?[] either = [null, "daub"];
+
+        Assert.Equal([], (
+            from front in either from secondFront in either from back in either from secondBack in either
+            let names = SidingWallEntity.PostElements("bamboo", finishes, [(front, null), (secondFront, null), (back, null), (secondBack, null)], prefix)
+            from offender in SharedPlaneOffenders("cornerin", names)
+            select offender).Distinct());
+    }
+
     // A glazed floor's finish is its group cut to each of the frame's eight footprints on x and z, keeping
     // its own y: the top boards at y 15 to 16, and a batten of the daub's lath, which the north rail
     // reaches and the south rail does not.
@@ -1097,14 +1131,13 @@ public class WallShapeGenTests
     [Theory]
     [InlineData("bamboo")]
     [InlineData("bamboo2")]
-    public void ABambooDiagonalDrawsEveryGroupTheFrameNames(string prefix)
+    public void EveryTurnedPieceOfABambooDiagonalStaysInsideTheFramesThickness(string prefix)
     {
-        var elements = WallShapeGen.Generate("diagonal")["elements"]!.ToArray();
-        string[] groups = [.. new[] { "-top", "-bottom", "-top-left", "-bottom-left", "-top-right", "-bottom-right", "-left", "-right", "-join-left", "-join-right" }.Select(s => prefix + s)];
+        var turned = WallShapeGen.Generate("diagonal")["elements"]!
+            .Where(e => ((string)e["name"]!).StartsWith(prefix + "-") && e["rotationY"] != null).ToArray();
 
-        Assert.Equal([], groups.Where(g => !elements.Any(e => (string)e["name"]! == g)));
-        Assert.Equal([], elements.Where(e => groups.Contains((string)e["name"]!) && e["rotationY"] != null && (Box(e).Lo[0] < 7 || Box(e).Hi[0] > 9))
-            .Select(e => (string)e["name"]!));
+        Assert.NotEmpty(turned);
+        Assert.Equal([], turned.Where(e => Box(e).Lo[0] < 7 || Box(e).Hi[0] > 9).Select(e => (string)e["name"]!));
     }
 
     // Each group of one pole variant beside the plain group it stands in for.
@@ -1350,7 +1383,7 @@ public class WallShapeGenTests
         bool[] either = [false, true];
         Assert.Equal([], (
             from glazed in either
-            from frame in glazed ? ["framing"] : new[] { "framing", "poles", "poles2" }
+            from frame in glazed ? ["framing"] : new[] { "framing", "poles", "poles2", "bamboo", "bamboo2" }
             from above in either
             from below in either
             from left in either
