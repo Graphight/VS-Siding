@@ -35,7 +35,7 @@ public class PostScenarios : AtlasScenarioBase
     {
         (BlockPos cell, ITestPlayer player, ItemSlot slot, _) = await PlacePost(planks: 3, deck: true);
         int planksLeft = slot.Itemstack?.StackSize ?? 0;
-        var placed = (World.BlockAt(cell).Code.Path, planksLeft, DeckLayers(cell));
+        var placed = (World.BlockAt(cell).Code.Path, planksLeft, DeckLayers(World, cell));
 
         player.Entity.WatchedAttributes.SetString("vssidingDeck", "");
         var deckTopSel = new BlockSelection
@@ -48,7 +48,7 @@ public class PostScenarios : AtlasScenarioBase
         player.Entity.WatchedAttributes.SetString("vssidingFraming", "floor");
         await player.GiveItem("game:plank-oak", 2);
         World.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, deckTopSel);
-        var layered = DeckLayers(cell);
+        var layered = DeckLayers(World, cell);
 
         var drops = World.BlockAt(cell).GetDrops(player.Entity.World, cell, player.Player, 1)
             .GroupBy(stack => stack.Collectible.Code.ToString()).OrderBy(group => group.Key)
@@ -75,7 +75,7 @@ public class PostScenarios : AtlasScenarioBase
         var sideSel = new BlockSelection { Position = cell.Copy(), Face = BlockFacing.EAST, HitPosition = new Vec3d(1, 0.5, 0.5) };
         bool handled = World.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, sideSel);
 
-        Assert.Equal((true, null, ("oak", null, null, null)), (handled, slot.Itemstack, DeckLayers(cell)));
+        Assert.Equal((true, null, ("oak", null, null, null)), (handled, slot.Itemstack, DeckLayers(World, cell)));
     }
 
     // A click on either of a post's two faces hosts a table in its cell and the post becomes the guest; breaking the table brings it back.
@@ -192,10 +192,10 @@ public class PostScenarios : AtlasScenarioBase
         return (cell, player, slot, handling);
     }
 
-    private (string? Deck, string? Infill, string? Front, string? Back) DeckLayers(BlockPos cell)
+    internal static (string? Deck, string? Infill, string? Front, string? Back) DeckLayers(IWorldSession world, BlockPos cell)
     {
         var tree = new TreeAttribute();
-        World.BlockEntityAt<BlockEntity>(cell)!.ToTreeAttributes(tree);
+        world.BlockEntityAt<BlockEntity>(cell)!.ToTreeAttributes(tree);
         string? Read(string key) => tree.GetString(key) is { Length: > 0 } value ? value : null;
         return (Read("deck"), Read("deckinfill"), Read("deckfront"), Read("deckback"));
     }
