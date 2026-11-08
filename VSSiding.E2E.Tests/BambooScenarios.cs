@@ -14,7 +14,7 @@ public class BambooScenarios : AtlasScenarioBase
     [AtlasScenario(FreshWorld = true)]
     public async Task Wall_Should_FillWithWovenBamboo_When_StakesClickABareBambooFrameWithFloorPicked()
     {
-        (BlockPos cell, _, _) = await FillWithStakes();
+        BlockPos cell = await FillWithStakes();
 
         Assert.Equal(("bamboo", "bamboowoven", null, null, null), WallBuilder.Layers(World, cell));
     }
@@ -31,17 +31,6 @@ public class BambooScenarios : AtlasScenarioBase
         Assert.Equal(
             (EnumHandHandling.PreventDefault, ("bamboo", null, null, null, null), ("bamboo", null, null, null, null)),
             (handling, WallBuilder.Layers(World, cell), WallBuilder.Layers(World, cell.UpCopy())));
-    }
-
-    [AtlasScenario(FreshWorld = true)]
-    public async Task Wall_Should_TakeStackedBambooFinish_When_ABlockClicksAWovenFace()
-    {
-        (BlockPos cell, ITestPlayer player, BlockSelection sideSel) = await FillWithStakes();
-
-        await player.GiveItem("game:stackedbamboo-ns", 2);
-        Assert.True(World.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, sideSel));
-
-        Assert.Equal(("bamboo", "bamboowoven", null, null, "stackedbamboo"), WallBuilder.Layers(World, cell));
     }
 
     // Stilts: three bamboo posts stacked in one corner, each pressed on the one below, then a floor laid beside the top
@@ -100,14 +89,14 @@ public class BambooScenarios : AtlasScenarioBase
     }
 
     // A bare bamboo frame, then a plain stake click on its side with Floor picked, which fills it rather than laying a floor.
-    private async Task<(BlockPos Cell, ITestPlayer Player, BlockSelection SideSel)> FillWithStakes()
+    private async Task<BlockPos> FillWithStakes()
     {
         (BlockPos cell, ITestPlayer player) = await RaiseBareFrame();
         player.Entity.WatchedAttributes.SetString("vssidingFraming", "floor");
         await player.GiveItem("game:bamboostakes", 4);
         var sideSel = new BlockSelection { Position = cell.Copy(), Face = BlockFacing.EAST, HitPosition = new Vec3d(0.5, 0.5, 0.5) };
         Assert.True(World.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, sideSel));
-        return (cell, player, sideSel);
+        return cell;
     }
 
     private async Task<(BlockPos Cell, ITestPlayer Player)> RaiseBareFrame()

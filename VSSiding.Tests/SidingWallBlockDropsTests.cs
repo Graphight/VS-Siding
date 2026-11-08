@@ -132,7 +132,7 @@ public class SidingWallBlockDropsTests
     }
 
     // A layer gives back what it took, or peeling one is a recipe. A stained plank goes on in
-    // any orientation and comes back as its ns block; stacked bamboo likewise as its ud block.
+    // any orientation and comes back as its ns block.
     [Fact]
     public void EveryShippedMaterialDropsWhatItConsumes()
     {
@@ -153,7 +153,6 @@ public class SidingWallBlockDropsTests
         Assert.Equal(
             new Dictionary<string, string>
             {
-                ["Finishes.stackedbamboo"] = """[{"type":"block","code":"game:stackedbamboo-ud","quantity":{"avg":1,"var":0}}]""",
                 ["FinishFamilies.stained-{stain}-{wood}"] = """[{"type":"block","code":"woodstain:stainedplanks-{stain}-{wood}-ns","quantity":{"avg":1,"var":0}}]""",
             },
             differing);

@@ -2,15 +2,15 @@
 
 - Status: Accepted
 - Created: 2026-11-07
-- Reflects: issue #136 and mod page comment https://mods.vintagestory.at/vssiding#cmt-251694; branch `136-bamboo`; `config/materials.json` (`bamboo`, `bamboowoven`, `stackedbamboo`), `patches/bamboo-frame-behavior.json`, `SidingWallBlock.FramesAsFilled`/`MatchFraming`/`CanTakeDeck`/`TryAddDeck`, `lang/en.json`; `VSSiding.E2E.Tests/BambooScenarios.cs`, `SidingWallBlockRetentionTests`, `SidingWallBlockDropsTests`, `FinishElementGroupsTests.EveryStyledFinishOffersItsWholePickerRow`; vanilla 1.22 `bamboostakes.json`, `stackedbamboo.json`, `recipes/grid/stackedbamboo.json` and the textures `block/wood/planks/bamboo-side`, `block/plant/bamboo/bamboowoven`, `stem-brown`, `stem-green`; decisions 0007, 0043, 0051, 0058, 0060, 0061, 0074, 0082, 0084; unit and end-to-end tests pass
+- Reflects: issue #136 and mod page comment https://mods.vintagestory.at/vssiding#cmt-251694; branch `136-bamboo`; `config/materials.json` (`bamboo`, `bamboowoven`), `patches/bamboo-frame-behavior.json`, `SidingWallBlock.FramesAsFilled`/`MatchFraming`/`CanTakeDeck`/`TryAddDeck`, `lang/en.json`; `VSSiding.E2E.Tests/BambooScenarios.cs`, `SidingWallBlockRetentionTests`; vanilla 1.22 `bamboostakes.json`, `stackedbamboo.json`, `recipes/grid/stackedbamboo.json` and the textures `block/wood/planks/bamboo-side`, `block/plant/bamboo/bamboowoven`, `stem-brown`, `stem-green`; decisions 0043, 0058, 0060, 0061, 0074, 0082, 0084; unit and end-to-end tests pass
 
 ## Summary
 A player asked for bamboo, "to hold a house above a swamp".
-This adds a bamboo framing and a woven bamboo infill, both from vanilla's bamboo stakes, and a stacked bamboo finish that lays its stems upright or lying.
+This adds a bamboo framing and a woven bamboo infill, both from vanilla's bamboo stakes.
 Bamboo posts stacked in a corner, with a floor laid onto the top one, are the stilts, and a fix lets a post take a deck from stakes or sticks.
 
 ## Context
-Vanilla 1.22 ships everything needed: `game:bamboostakes`, an item with a `behaviors` array as sticks have, `game:stackedbamboo-{ud,ns,we}`, crafted from four stakes with no tool, and the textures.
+Vanilla 1.22 ships everything needed: `game:bamboostakes`, an item with a `behaviors` array as sticks have, and the textures.
 Bamboo slots in as sticks (0058) and bone (0060) did: material entries, lang keys and a `PlaceWallFrame` patch.
 Posts (0082) and a floor that decks a wall (0084) take any framing, so stilts needed no block of their own.
 
@@ -36,19 +36,6 @@ Stakes are a framing and an infill at once, as sticks are framing and wattle.
 A stake deck then needs a filled wall, as a stick one does.
 Stakes are not a finish, so a stake never matches all three layers.
 
-**A stacked bamboo finish.**
-A `stackedbamboo` entry in `Finishes`, consuming one stacked bamboo block of any orientation (`game:stackedbamboo-*`) and dropping `game:stackedbamboo-ud`, the block the recipe makes.
-It takes the board row's styles, `boards` and `hboards`, with the plank entry's `Elements` and `FloorElements`, so floor and deck faces take both too (0051).
-It has no weatherboard; its default is `boards`.
-
-**Upright or lying through a turned texture.**
-The `boards` groups turn their outward face a quarter (rotation 270), because oak's grain ships horizontal, and the `hboards` groups draw the texture as shipped.
-`bamboo-side` ships upright, so drawn as shipped "Vertical boards" laid the stems flat and "Horizontal boards" stood them up.
-The finish's texture is `{ base: bamboo-side, rotation: 90 }`: the atlas bakes the turn (`CompositeTexture.Bake` appends `@90` and `TextureAtlasManager.LoadCompositeBitmap` turns the pixels), so the stored texture lies and `boards` stands it back up.
-Vanilla's own `stackedbamboo-ns` turns `bamboo-side` the same way on its east and west faces.
-No PNG is copied, and no shape group or code is added.
-The log row would not do: its groups never turn the texture, so both its styles would draw the stems one way.
-
 **Stilts.**
 A column of bamboo posts placed in Post mode, each click on the post below, and a bamboo floor run laid onto the top post's cell, which decks it (0084).
 `BambooScenarios` builds three posts and the floor and checks the top post's deck is `bamboo`.
@@ -62,14 +49,10 @@ The Floor-mode guard keeps stakes in step with planks there: with Floor picked a
 
 ## Alternatives considered
 - **Stakes as the finish too.** A stake would then match the framing, the infill and a finish, and `MatchFraming` settles only two.
-- **A copied PNG turned a quarter.** The atlas already bakes a rotation from the texture entry.
-- **New upright and lying shape groups for bamboo.** The board row's two styles already differ by a quarter turn.
-- **The log row's styles.** Its groups never turn the texture.
 - **Treating a post as filled inside `MatchFraming`.** `MatchFraming` is static and takes the filled flag from its callers, so the post check went into the three callers that compute it.
 - **MightyBamboo's green stakes and stacked blocks.** Out of scope; a family could pick them up when the mod is present.
 
 ## Consequences & open questions
 - A bamboo frame and woven bamboo infill burn, and woven bamboo does not cool a cellar.
-- Stacked bamboo comes back as its `ud` block whatever orientation went on.
 - A stick post takes a deck and a floor where it did not before.
 - Not yet played.

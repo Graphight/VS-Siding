@@ -419,7 +419,7 @@ public class FinishElementGroupsTests
     }
 
     // A finish missing one of its row's styles falls back to its default look when that style is
-    // picked, with no error. Stacked bamboo has no weatherboard on purpose: it draws as boards.
+    // picked, with no error.
     [Fact]
     public void EveryStyledFinishOffersItsWholePickerRow()
     {
@@ -428,11 +428,10 @@ public class FinishElementGroupsTests
         var finishesByRow = new (string Row, string[] Finishes)[] { ("vssidingBoards", PlankFinishes), ("vssidingLogs", ["shakes-{wood}"]) };
 
         Assert.Equal(
-            finishesByRow.SelectMany(row => row.Finishes.Select(name => $"{name}: {string.Join(", ", Row(row.Row))}"))
-                .Append("stackedbamboo: boards, hboards").Order(),
+            finishesByRow.SelectMany(row => row.Finishes.Select(name => $"{name}: {string.Join(", ", Row(row.Row))}")),
             finishesByRow.SelectMany(row => entries
                 .Where(e => e.Value["Styles"]?.Any(t => Row(row.Row).Contains((string)t!)) ?? false)
-                .Select(e => $"{e.Name}: {string.Join(", ", e.Value["Styles"]!.Select(t => (string)t!))}")).Order());
+                .Select(e => $"{e.Name}: {string.Join(", ", e.Value["Styles"]!.Select(t => (string)t!))}")));
     }
 
     // A style a wall takes and a floor face refuses falls back to that face's default with no error,
