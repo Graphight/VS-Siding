@@ -132,6 +132,13 @@ public class SidingWallBlockBuildFlowTests
             });
     }
 
+    private static readonly JsonObject StickFramings = Dict("""
+    {
+        "oak": { "Consumes": { "type": "item", "code": "game:plank-oak", "quantity": 2 } },
+        "sticks": { "Consumes": { "type": "item", "code": "game:stick", "quantity": 4 } }
+    }
+    """);
+
     private static readonly JsonObject Infills = Dict("""
     {
         "wattle": { "Consumes": { "type": "item", "code": "game:stick", "quantity": 4 } }
@@ -159,14 +166,7 @@ public class SidingWallBlockBuildFlowTests
     [InlineData("game:plank-oak", true, "oak")]
     public void AnItemThatIsAlsoAnInfillFramesOnlyAFilledWall(string held, bool filled, string? expected)
     {
-        JsonObject framings = Dict("""
-        {
-            "oak": { "Consumes": { "type": "item", "code": "game:plank-oak", "quantity": 2 } },
-            "sticks": { "Consumes": { "type": "item", "code": "game:stick", "quantity": 4 } }
-        }
-        """);
-
-        Assert.Equal(expected, SidingWallBlock.MatchFraming(new AssetLocation(held), filled, framings, Infills));
+        Assert.Equal(expected, SidingWallBlock.MatchFraming(new AssetLocation(held), filled, StickFramings, Infills));
     }
 
     [Theory]
@@ -176,14 +176,7 @@ public class SidingWallBlockBuildFlowTests
     [InlineData("game:plank-oak", false, true)]
     public void AFrameAndFillItemFramesOnFromAFaceThatTakesNoFinish(string held, bool finishFace, bool expected)
     {
-        JsonObject framings = Dict("""
-        {
-            "oak": { "Consumes": { "type": "item", "code": "game:plank-oak", "quantity": 2 } },
-            "sticks": { "Consumes": { "type": "item", "code": "game:stick", "quantity": 4 } }
-        }
-        """);
-
-        Assert.Equal(expected, SidingWallBlock.FramesOnFrom(new AssetLocation(held), finishFace, framings));
+        Assert.Equal(expected, SidingWallBlock.FramesOnFrom(new AssetLocation(held), finishFace, StickFramings));
     }
 
     [Theory]
@@ -197,20 +190,7 @@ public class SidingWallBlockBuildFlowTests
     [InlineData("wall", null, null)]
     public void FillHintKeyNamesTheRuleForAFrameAndFillItemOnly(string layout, string? held, string? expected)
     {
-        JsonObject framings = Dict("""
-        {
-            "oak": { "Consumes": { "type": "item", "code": "game:plank-oak", "quantity": 2 } },
-            "sticks": { "Consumes": { "type": "item", "code": "game:stick", "quantity": 4 } }
-        }
-        """);
-        JsonObject infills = Dict("""
-        {
-            "clay": { "Consumes": { "type": "item", "code": "game:clay-blue", "quantity": 2 } },
-            "wattle": { "Consumes": { "type": "item", "code": "game:stick", "quantity": 4 } }
-        }
-        """);
-
-        Assert.Equal(expected, SidingWallBlock.FillHintKey(layout, held == null ? null : new AssetLocation(held), framings, infills));
+        Assert.Equal(expected, SidingWallBlock.FillHintKey(layout, held == null ? null : new AssetLocation(held), StickFramings, Infills));
     }
 
     private static readonly JsonObject Finishes = Dict("""

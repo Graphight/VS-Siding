@@ -1737,7 +1737,7 @@ public class SidingWallBlock : Block
     internal static string? MatchFraming(AssetLocation heldCode, bool filled, JsonObject framings, JsonObject infills)
         => !filled && MatchConsumes(heldCode, infills) != null ? null : MatchConsumes(heldCode, framings);
 
-    // An item that frames and fills frames on from a face that takes no finish, and fills from one that does (decision 0089).
+    // A frame-and-fill item fills a bare cell only from a face that takes a finish; any other face frames on (decision 0089).
     internal static bool FramesOnFrom(AssetLocation heldCode, bool finishFace, JsonObject framings)
         => !finishFace && MatchConsumes(heldCode, framings) != null;
 

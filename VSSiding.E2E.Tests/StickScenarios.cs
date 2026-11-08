@@ -108,7 +108,7 @@ public class StickScenarios : AtlasScenarioBase
         WallBuilder.ClickTop(player, cell.DownCopy());
 
         await WallBuilder.Press(World, player, cell, "game:stick", BlockFacing.NORTH, new Vec3d(0.5, 0.9, 0));
-        (string? Framing, string? Infill, string? Front, string? SecondFront, string? Back) afterEdge = WallBuilder.Layers(World, cell);
+        var afterEdge = WallBuilder.Layers(World, cell);
         BlockPos next = cell.NorthCopy();
         var nextLayers = World.BlockEntityAt<BlockEntity>(next) == null ? default : WallBuilder.Layers(World, next);
         await WallBuilder.Press(World, player, cell, "game:stick", BlockFacing.UP, new Vec3d(0.5, 1, 0.5));
