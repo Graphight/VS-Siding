@@ -1,6 +1,6 @@
 # 0069 — Wall junctions
 
-- Status: Accepted
+- Status: Accepted; the back charged once for both legs superseded by 0090
 - Created: 2026-10-10
 - Reflects: branch `wall-junctions`; `SidingWallBlock.TryUpgradeLayout` and `FrontMovesToSecondFace`; `PlaceWallFrame.OnHeldInteractStart`; the review of PR #113; `VSSiding.E2E.Tests/JunctionScenarios.cs`; the "Corners and junctions" paragraph and the Framing bullet in `gamemechanicinfo-siding-text` in `lang/en.json`; a creative build of the crossing on 2026-10-04; mod page comments https://mods.vintagestory.at/vssiding#cmt-243545, #cmt-243968, #cmt-243661 with its second screenshot, #cmt-244456, #cmt-245074, #cmt-245199 with its first screenshot and #cmt-245197 with both screenshots; vanilla `player.json`; decisions 0002, 0026, 0042, 0058; the `wall-junctions` proposal; none of the players' own builds reproduced
 
