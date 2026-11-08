@@ -11,7 +11,7 @@ namespace VSSiding.E2E.Tests;
 [AtlasWorld(StrictBootDiagnostics = true)]
 public class FireScenarios : AtlasScenarioBase
 {
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Wall_Should_StandWithItsClay_When_FireBurnsOffItsPlankFinish()
     {
         BlockPos cell = World.Spawn.Offset(1, 2, 0);

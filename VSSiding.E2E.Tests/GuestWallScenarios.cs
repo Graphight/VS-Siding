@@ -19,7 +19,7 @@ public class GuestWallScenarios : AtlasScenarioBase
 
     private BlockPos Cell => World.Spawn.Offset(1, 2, 0);
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task C_Wall_Should_BecomeAGuest_When_ALanternIsClickedOntoIt()
     {
         BlockPos cell = Cell;
@@ -50,7 +50,7 @@ public class GuestWallScenarios : AtlasScenarioBase
         }
     }
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task D_Wall_Should_BecomeAGuest_When_ALanternIsPlacedOnTheFloorOfItsCell()
     {
         BlockPos cell = Cell;
@@ -80,7 +80,7 @@ public class GuestWallScenarios : AtlasScenarioBase
     }
 
     // A bare frame holds nothing up, so the lantern takes the next face that does: the floor of the wall's cell.
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task E_Lantern_Should_StandOnTheFloorOfTheCell_When_ClickedOntoABareFrame()
     {
         BlockPos cell = Cell;
@@ -109,7 +109,7 @@ public class GuestWallScenarios : AtlasScenarioBase
     }
 
     // Asserted with no tick between: a wall that came back a tick late was sent to clients as an empty cell first.
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task F_Wall_Should_ComeBackAtOnce_When_ItsLanternIsPickedUp()
     {
         BlockPos cell = Cell;
@@ -139,7 +139,7 @@ public class GuestWallScenarios : AtlasScenarioBase
         }
     }
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task G_Wall_Should_BecomeAGuest_When_ATableIsPlacedInItsCell()
     {
         BlockPos cell = Cell;

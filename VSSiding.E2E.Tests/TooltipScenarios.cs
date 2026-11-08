@@ -16,7 +16,7 @@ public class TooltipScenarios : AtlasScenarioBase
 {
     private static string Lines(params string[] lines) => string.Concat(Array.ConvertAll(lines, line => line + Environment.NewLine));
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Wall_Should_ShowLayersAndHandbookSentence_OnlyWithTheSaw()
     {
         BlockPos cell = World.Spawn.Offset(1, 2, 0);
@@ -43,7 +43,7 @@ public class TooltipScenarios : AtlasScenarioBase
             (withSaw, withoutSaw));
     }
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Wall_Should_LeaveOutItsUnfinishedFront_When_ItLiesAgainstASolidBlock()
     {
         BlockPos cell = World.Spawn.Offset(1, 2, 0);
@@ -67,7 +67,7 @@ public class TooltipScenarios : AtlasScenarioBase
     }
 
     // The floor's code has no variant, so lang's blockdesc-floor-* never matches it and base appends no sentence.
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Floor_Should_ShowLayers_OnlyWithTheSaw()
     {
         (BlockPos cell, ITestPlayer player) = await RaiseFilledFloor();
@@ -93,7 +93,7 @@ public class TooltipScenarios : AtlasScenarioBase
 
     // The Top and Underside lines carry a {0} the mod fills itself. Read through Lang's own formatting with
     // no arguments, each one logged a format exception on every draw of the tooltip.
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Floor_Should_LogNothing_When_ItsLayersAreRead()
     {
         (BlockPos cell, ITestPlayer player) = await RaiseFilledFloor();

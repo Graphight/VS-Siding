@@ -15,7 +15,7 @@ public class ImmersiveWoodworkingScenarios : AtlasScenarioBase
 {
     private static bool WoodworkingLoaded => Environment.GetEnvironmentVariable("SIDING_PROBE") == "immersivewoodworking";
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Frame_Should_RaiseWithoutASawhorse_When_SticksClickTheGroundWithASawInTheOffHand()
     {
         if (!WoodworkingLoaded) return;
@@ -33,7 +33,7 @@ public class ImmersiveWoodworkingScenarios : AtlasScenarioBase
         }
     }
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Cell_Should_StayEmpty_When_TooFewSticksClickTheGroundWithASawInTheOffHand()
     {
         if (!WoodworkingLoaded) return;
@@ -51,7 +51,7 @@ public class ImmersiveWoodworkingScenarios : AtlasScenarioBase
         }
     }
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Sawhorse_Should_Build_When_SticksClickTheGroundWithAnEmptyOffHand()
     {
         if (!WoodworkingLoaded) return;

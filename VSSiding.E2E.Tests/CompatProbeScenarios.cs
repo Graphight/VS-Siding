@@ -19,7 +19,7 @@ namespace VSSiding.E2E.Tests;
 [AtlasWorld(Mods = new[] { "../../../../compat/mods/slot0.zip", "../../../../compat/mods/slot1.zip", "../../../../compat/mods/slot2.zip", "../../../../compat/mods/slot3.zip", "../../../../compat/mods/slot4.zip", "../../../../compat/mods/slot5.zip" })]
 public class CompatProbeScenarios : AtlasScenarioBase
 {
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Probe_Should_ReportEveryBlockTypeOfTheMod()
     {
         string? modid = Environment.GetEnvironmentVariable("SIDING_PROBE");

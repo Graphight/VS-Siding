@@ -12,7 +12,7 @@ namespace VSSiding.E2E.Tests;
 [AtlasWorld(StrictBootDiagnostics = true)]
 public class StickScenarios : AtlasScenarioBase
 {
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Wall_Should_FillWithWattle_When_SticksClickABareFrameWithFloorPicked()
     {
         (BlockPos cell, ITestPlayer player) = await RaiseBareStickFrame();
@@ -25,7 +25,7 @@ public class StickScenarios : AtlasScenarioBase
         Assert.Equal(("sticks", "wattle", null, null, null), WallBuilder.Layers(World, cell));
     }
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Wall_Should_FillWithWattle_When_SticksClickABareFramesFace()
     {
         (BlockPos cell, ITestPlayer player) = await RaiseBareStickFrame();
@@ -35,7 +35,7 @@ public class StickScenarios : AtlasScenarioBase
         Assert.Equal(("sticks", "wattle", null, null, null), WallBuilder.Layers(World, cell));
     }
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Frame_Should_StackOnABareStickFrame_When_SticksClickItsTopWithoutSneaking()
     {
         (BlockPos cell, ITestPlayer player) = await RaiseBareStickFrame();
@@ -47,7 +47,7 @@ public class StickScenarios : AtlasScenarioBase
             (WallBuilder.Layers(World, cell), WallBuilder.Layers(World, cell.UpCopy())));
     }
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Frame_Should_ExtendABareStickFrame_When_SticksClickItsEnd()
     {
         (BlockPos cell, ITestPlayer player) = await RaiseBareStickFrame();
@@ -60,7 +60,7 @@ public class StickScenarios : AtlasScenarioBase
     }
 
     // Vanilla's GroundStorable sits ahead of PlaceWallFrame on sticks and answers a sneak-click first.
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Frame_Should_StackOnABareStickFrame_When_SticksSneakClickItsTop()
     {
         (BlockPos cell, ITestPlayer player) = await RaiseBareStickFrame();
@@ -72,7 +72,7 @@ public class StickScenarios : AtlasScenarioBase
             (WallBuilder.Layers(World, cell), WallBuilder.Layers(World, cell.UpCopy())));
     }
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Floor_Should_CarryOn_When_SticksSneakClickABareStickFloorsTop()
     {
         BlockPos cell = World.Spawn.Offset(1, 2, 0);
@@ -96,7 +96,7 @@ public class StickScenarios : AtlasScenarioBase
                 .Single()));
     }
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Floor_Should_FrameOnFromItsEdgeAndFillFromItsTop_When_SticksClickABareStickFloor()
     {
         BlockPos cell = World.Spawn.Offset(1, 2, 0);
@@ -118,7 +118,7 @@ public class StickScenarios : AtlasScenarioBase
             (afterEdge, nextLayers, WallBuilder.Layers(World, cell)));
     }
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Deck_Should_FrameOnFromItsEdgeAndFillFromItsTop_When_SticksClickABareDeck()
     {
         BlockPos cell = World.Spawn.Offset(1, 2, 0);
@@ -141,7 +141,7 @@ public class StickScenarios : AtlasScenarioBase
     }
 
     // A frame the sticks cannot pay for still claims the click, so a later stick behavior never runs in its place (#143).
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Click_Should_StayHandled_When_TooFewSticksForAFrame()
     {
         BlockPos cell = World.Spawn.Offset(1, 2, 0);

@@ -11,7 +11,7 @@ namespace VSSiding.E2E.Tests;
 [AtlasWorld(StrictBootDiagnostics = true)]
 public class BambooScenarios : AtlasScenarioBase
 {
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Wall_Should_FillWithBambooPoles_When_StakesClickABareBambooFrameWithFloorPicked()
     {
         BlockPos cell = await FillWithStakes();
@@ -19,7 +19,7 @@ public class BambooScenarios : AtlasScenarioBase
         Assert.Equal(("bamboo", "bamboopoles", null, null, null), WallBuilder.Layers(World, cell));
     }
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Frame_Should_StackOnABareBambooFrame_When_StakesSneakClickItsTop()
     {
         (BlockPos cell, ITestPlayer player) = await RaiseBareFrame();
@@ -35,7 +35,7 @@ public class BambooScenarios : AtlasScenarioBase
 
     // Stilts: three bamboo posts stacked in one corner, each pressed on the one below, then a floor laid beside the top
     // post, filled, and extended onto the post's cell, which a floor run reaching a post decks (decision 0084).
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Posts_Should_CarryABambooFloorAsStilts_When_AFloorRunReachesTheTopPost()
     {
         BlockPos bottom = World.Spawn.Offset(1, 2, 0);
@@ -68,7 +68,7 @@ public class BambooScenarios : AtlasScenarioBase
     }
 
     // A post is no bare frame for stakes to fill, so with Floor picked they lay a floor beside it as planks do, deck lit or not.
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Post_Should_LayAFloorBesideIt_When_StakesClickItsSideWithFloorPickedAndTheDeckLit()
     {
         BlockPos post = World.Spawn.Offset(1, 2, 0);

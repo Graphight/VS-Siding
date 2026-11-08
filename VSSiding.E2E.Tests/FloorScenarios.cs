@@ -12,7 +12,7 @@ namespace VSSiding.E2E.Tests;
 public class FloorScenarios : AtlasScenarioBase
 {
     // A glass floor takes a finish on its top like any other, drawn as a rim round the glass.
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Floor_Should_TakeFloorboardsOnItsTopKeepingItsGlass_When_ItIsGlazed()
     {
         BlockPos cell = World.Spawn.Offset(1, 2, 0);
@@ -35,7 +35,7 @@ public class FloorScenarios : AtlasScenarioBase
 
     // A log finish has no floor shapes of its own, so a picked style reaches a floor only as the stored
     // style its texture is read by.
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Floor_Should_KeepThePickedLogStyle_When_ALogFinishesEachFace()
     {
         BlockPos cell = World.Spawn.Offset(1, 2, 0);
@@ -91,7 +91,7 @@ public class FloorScenarios : AtlasScenarioBase
 
     private static int Held(ITestPlayer player) => player.Player.InventoryManager.ActiveHotbarSlot.Itemstack?.StackSize ?? 0;
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Wall_Should_TakeADeck_When_PlanksArePressedOnTheSideOfABlockBesideIt()
     {
         (BlockPos beside, BlockPos wall, BlockFacing ahead, ITestPlayer player) = await RaiseWallAhead();
@@ -102,7 +102,7 @@ public class FloorScenarios : AtlasScenarioBase
         Assert.Equal(("oak", 1), (DeckOf(wall), Held(player)));
     }
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Wall_Should_TakeADeck_When_AFloorRunIsExtendedTowardIt()
     {
         (BlockPos beside, BlockPos wall, _, ITestPlayer player) = await RaiseFloorBesideWall();
@@ -112,7 +112,7 @@ public class FloorScenarios : AtlasScenarioBase
         Assert.Equal((("oak", "clay", "planks", null, (string?)null), "oak", 1), (WallBuilder.Layers(World, beside), DeckOf(wall), Held(player)));
     }
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Floor_Should_TakePlanksOnItsUnderside_When_TheWallAtTheEndOfItsRunHasADeck()
     {
         (BlockPos beside, BlockPos wall, _, ITestPlayer player) = await RaiseFloorBesideWall();
@@ -124,7 +124,7 @@ public class FloorScenarios : AtlasScenarioBase
         Assert.Equal((("oak", "clay", "planks", null, "planks"), "oak"), (WallBuilder.Layers(World, beside), DeckOf(wall)));
     }
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Floor_Should_BeLaidBesideTheWall_When_PlanksArePressedOnTheWallItself()
     {
         (BlockPos beside, BlockPos wall, BlockFacing ahead, ITestPlayer player) = await RaiseWallAhead();

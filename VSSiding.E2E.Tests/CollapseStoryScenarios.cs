@@ -11,6 +11,7 @@ namespace VSSiding.E2E.Tests;
 
 // Runs with `just probe collapsestory`, the only run that loads CollapseStory 0.8.9 and its Expanded Matter dependency (#110).
 // Each scenario records what CollapseStory does to Siding's blocks; the assertions pin what was observed.
+// Stays on a fresh world: under rollback four scenarios fail in WallBuilder.Raise (the infill click on a framed wall is not answered true) once collapsestory is loaded.
 [Trait("Category", "Probe")]
 [AtlasWorld(Mods = new[] { "../../../../compat/mods/slot0.zip", "../../../../compat/mods/slot1.zip", "../../../../compat/mods/slot2.zip", "../../../../compat/mods/slot3.zip", "../../../../compat/mods/slot4.zip", "../../../../compat/mods/slot5.zip" })]
 public class CollapseStoryScenarios : AtlasScenarioBase

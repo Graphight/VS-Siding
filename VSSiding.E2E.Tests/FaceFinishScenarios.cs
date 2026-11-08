@@ -16,7 +16,7 @@ public class FaceFinishScenarios : AtlasScenarioBase
     private static readonly Vec3d TopHit = new(0.5, 1, 0.5);
     private static readonly Vec3d Middle = new(0.5, 0.5, 0.5);
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Log_Should_TakeAFaceFinishOnItsTop_When_PlanksArePressedWithFacePicked()
     {
         (BlockPos cell, ITestPlayer player) = await RaiseLog();
@@ -27,7 +27,7 @@ public class FaceFinishScenarios : AtlasScenarioBase
     }
 
     // A wall finished on both faces passes a plank press on to PlaceWallFrame, which leaves the wall alone.
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Wall_Should_TakeNoFaceFinishAndSpendNothing_When_PlanksArePressedOnItsFinishedFaceWithFacePicked()
     {
         BlockPos cell = World.Spawn.Offset(1, 2, 0);
@@ -42,7 +42,7 @@ public class FaceFinishScenarios : AtlasScenarioBase
         Assert.Equal(("", 4), (Decors(cell, BlockFacing.WEST), HeldPlanks(player)));
     }
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Log_Should_SwapItsFaceFinishAndDropTheOldPlanks_When_AnotherWoodIsPressedOnItsSkinnedTop()
     {
         (BlockPos cell, ITestPlayer player) = await RaiseLog();
@@ -54,7 +54,7 @@ public class FaceFinishScenarios : AtlasScenarioBase
         Assert.Equal(("vssiding:facefinish-planks-birch@0", 2, 2), (Decors(cell), HeldPlanks(player), GroundPlanks(cell, "game:plank-oak")));
     }
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Log_Should_TurnItsFaceFinishForFree_When_ItsOwnWoodIsPressedWithAnotherBoardsPicked()
     {
         (BlockPos cell, ITestPlayer player) = await RaiseLog();
@@ -67,7 +67,7 @@ public class FaceFinishScenarios : AtlasScenarioBase
         Assert.Equal(("vssiding:facefinish-planks-oak@1", 4, 0), (Decors(cell), HeldPlanks(player), GroundPlanks(cell, "game:plank-oak")));
     }
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Log_Should_KeepItsFaceFinishAndSpendNothing_When_ItsOwnWoodIsPressedWithTheSameBoards()
     {
         (BlockPos cell, ITestPlayer player) = await RaiseLog();
@@ -78,7 +78,7 @@ public class FaceFinishScenarios : AtlasScenarioBase
         Assert.Equal(("vssiding:facefinish-planks-oak@0", 4), (Decors(cell), HeldPlanks(player)));
     }
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Log_Should_KeepItsWallpaperAndSpendNothing_When_PlanksArePressedOnIt()
     {
         (BlockPos cell, ITestPlayer player) = await RaiseLog();
@@ -90,7 +90,7 @@ public class FaceFinishScenarios : AtlasScenarioBase
     }
 
     // Very aged is a state of the plank item only, not a wood in the world property.
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Log_Should_TakeAVeryAgedFaceFinish_When_VeryAgedPlanksArePressedWithFacePicked()
     {
         (BlockPos cell, ITestPlayer player) = await RaiseLog();
@@ -100,7 +100,7 @@ public class FaceFinishScenarios : AtlasScenarioBase
         Assert.Equal(("vssiding:facefinish-planks-veryaged@0", 2), (Decors(cell), HeldPlanks(player)));
     }
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Log_Should_TakeNoFaceFinish_When_SticksArePressedWithFacePicked()
     {
         (BlockPos cell, ITestPlayer player) = await RaiseLog();

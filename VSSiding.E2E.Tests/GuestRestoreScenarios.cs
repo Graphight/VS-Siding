@@ -17,7 +17,7 @@ public class GuestRestoreScenarios : AtlasScenarioBase
 
     private BlockPos Cell => World.Spawn.Offset(1, 2, 0);
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Wall_Should_ComeBack_When_APlayerBreaksItsChest()
     {
         var (cell, player) = await HostChest();

@@ -12,7 +12,7 @@ namespace VSSiding.E2E.Tests;
 [AtlasWorld(StrictBootDiagnostics = true)]
 public class TentScenarios : AtlasScenarioBase
 {
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Wall_Should_StandOnItsBoneFrame_When_FireBurnsOffItsPelt()
     {
         (BlockPos cell, ITestPlayer player) = await RaiseBoneFrame();
@@ -32,7 +32,7 @@ public class TentScenarios : AtlasScenarioBase
         Assert.Equal(wall, World.BlockAt(cell));
     }
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Wall_Should_LoseItsPelt_When_FireBurnsItUnderABoneDeck()
     {
         (BlockPos cell, ITestPlayer player) = await RaiseBoneFrame();
@@ -49,7 +49,7 @@ public class TentScenarios : AtlasScenarioBase
         Assert.Equal((("bone", null, null, null, null), "bone"), (WallBuilder.Layers(World, cell), Deck(cell)));
     }
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Floor_Should_StandOnItsBoneJoists_When_AFireBurnsOutOnThem()
     {
         BlockPos cell = World.Spawn.Offset(1, 2, 0);
@@ -66,7 +66,7 @@ public class TentScenarios : AtlasScenarioBase
         Assert.Equal(floor, World.BlockAt(cell));
     }
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Wall_Should_TakeCloth_When_BlueClothClicksTheBoneFrame()
     {
         (BlockPos cell, ITestPlayer player) = await RaiseBoneFrame();

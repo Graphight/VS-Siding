@@ -11,7 +11,7 @@ namespace VSSiding.E2E.Tests;
 public class EarthScenarios : AtlasScenarioBase
 {
     // WallBuilder.Raise gives four of an infill and two of a finish; an earth layer costs one block.
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Wall_Should_TakePackedAndRammedEarth_When_EachBlockClicksTheFrame()
     {
         BlockPos cell = World.Spawn.Offset(1, 2, 0);
@@ -32,7 +32,7 @@ public class EarthScenarios : AtlasScenarioBase
         Assert.Equal(("oak", "packeddirt", null, null, "rammed-thinlight"), WallBuilder.Layers(World, cell));
     }
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Wall_Should_TakeRammedEarthAsInfillAndPackedDirtAsFinish_When_EachBlockClicksTheFrame()
     {
         BlockPos cell = World.Spawn.Offset(1, 2, 0);
@@ -53,7 +53,7 @@ public class EarthScenarios : AtlasScenarioBase
         Assert.Equal(("oak", "rammed-plain", null, null, "packeddirt"), WallBuilder.Layers(World, cell));
     }
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Wall_Should_TakeGlassSlabAsInfill_When_TheSlabClicksTheFrame()
     {
         BlockPos cell = World.Spawn.Offset(1, 2, 0);
@@ -70,7 +70,7 @@ public class EarthScenarios : AtlasScenarioBase
         Assert.Equal(("oak", "glassslab-plain", null, null, null), WallBuilder.Layers(World, cell));
     }
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Wall_Should_TakeLeadedGlassPaneAsInfill_When_ThePaneClicksTheFrame()
     {
         BlockPos cell = World.Spawn.Offset(1, 2, 0);

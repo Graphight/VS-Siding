@@ -12,7 +12,7 @@ public class LightScenarios : AtlasScenarioBase
 {
     private static readonly (string?, string?, string?, string?, string?) Expected = ("oak", "clay", null, null, null);
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task HostedTorch_Should_LightTheRoomThenGoDark_When_ItBurnsOut()
     {
         (BlockPos cell, BlockPos inside) = await HostLitTorch();
@@ -24,7 +24,7 @@ public class LightScenarios : AtlasScenarioBase
         Assert.Equal(Expected, WallBuilder.GuestLayers(World, cell));
     }
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task HostedTorch_Should_LightTheRoomThenGoDark_When_ItIsBroken()
     {
         (BlockPos cell, BlockPos inside) = await HostLitTorch();
@@ -36,7 +36,7 @@ public class LightScenarios : AtlasScenarioBase
         Assert.Equal(Expected, WallBuilder.Layers(World, cell));
     }
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task RoomLight_Should_StopAtAFrameOnceItIsFilled_And_PassAgainOnceItIsEmptied()
     {
         (BlockPos inside, ITestPlayer player) = await WallBuilder.BuildRoom(World, "game:clay-blue", [BlockFacing.NORTH, BlockFacing.SOUTH, BlockFacing.WEST]);
@@ -57,7 +57,7 @@ public class LightScenarios : AtlasScenarioBase
         await World.Until(() => BlockLight(outside) > 0, 100);
     }
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task HostedLantern_Should_LightASealedRoomButLetNoSunlightIn()
     {
         (BlockPos inside, ITestPlayer player) = await WallBuilder.BuildRoom(World, "game:clay-blue", BlockFacing.HORIZONTALS);
@@ -75,11 +75,11 @@ public class LightScenarios : AtlasScenarioBase
         Assert.Equal(0, World.Api.World.BlockAccessor.GetLightLevel(inside, EnumLightLevelType.OnlySunLight));
     }
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task HostedTorch_Should_LightBothSides_When_TheWallIsBareWattle()
         => await HostLitTorch("game:stick", "wattle", passesLight: true);
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task BareWattle_Should_PassRoomLightUntilAFaceIsFinished()
     {
         (BlockPos inside, ITestPlayer player) = await WallBuilder.BuildRoom(World, "game:clay-blue", [BlockFacing.NORTH, BlockFacing.SOUTH, BlockFacing.WEST]);
@@ -102,12 +102,12 @@ public class LightScenarios : AtlasScenarioBase
         Assert.Equal(("oak", "wattle", null, null, null), WallBuilder.Layers(World, cell));
     }
 
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task HostedTorch_Should_StayOnItsSide_When_TheWallRunsEastToWest()
         => await HostLitTorch(open: BlockFacing.NORTH);
 
     // The corner claims its north and west faces, so its open side is the south-east.
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task HostedTorch_Should_LightNeitherCellBehindACorner()
     {
         BlockPos cell = World.Spawn.Offset(1, 2, 0);
@@ -127,7 +127,7 @@ public class LightScenarios : AtlasScenarioBase
     }
 
     // A corner's two outer faces are separate layers, so the one finish a wall brings leaves it unfinished (decision 0074).
-    [AtlasScenario(FreshWorld = true)]
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task DaubedWattle_Should_PassRoomLightAgain_When_ItTurnsIntoACorner()
     {
         (BlockPos inside, ITestPlayer player) = await WallBuilder.BuildRoom(World, "game:clay-blue", [BlockFacing.NORTH, BlockFacing.SOUTH, BlockFacing.WEST]);
