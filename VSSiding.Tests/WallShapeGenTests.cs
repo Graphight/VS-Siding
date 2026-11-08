@@ -1097,6 +1097,8 @@ public class WallShapeGenTests
     [InlineData("wall", "bamboo2")]
     [InlineData("cornerout", "poles")]
     [InlineData("cornerout", "poles2")]
+    [InlineData("cornerout", "bamboo")]
+    [InlineData("cornerout", "bamboo2")]
     [InlineData("floor", "poles")]
     [InlineData("floor", "poles2")]
     public void EveryPoleBoxLiesInsideTheFramesThickness(string layout, string prefix)
@@ -1123,6 +1125,8 @@ public class WallShapeGenTests
     [InlineData("wall", "bamboo2")]
     [InlineData("cornerout", "poles")]
     [InlineData("cornerout", "poles2")]
+    [InlineData("cornerout", "bamboo")]
+    [InlineData("cornerout", "bamboo2")]
     [InlineData("floor", "poles")]
     [InlineData("floor", "poles2")]
     public void EveryPoleGroupCoversTheMidPlaneOfThePlainMemberItReplaces(string layout, string prefix)
@@ -1231,6 +1235,8 @@ public class WallShapeGenTests
     [InlineData("wall", "bamboo2")]
     [InlineData("cornerout", "poles")]
     [InlineData("cornerout", "poles2")]
+    [InlineData("cornerout", "bamboo")]
+    [InlineData("cornerout", "bamboo2")]
     [InlineData("floor", "poles")]
     [InlineData("floor", "poles2")]
     public void NoTwoEmittedFacesOfGroupsDrawnTogetherShareAPlaneAndOverlap(string layout, string prefix)
@@ -1250,6 +1256,8 @@ public class WallShapeGenTests
     [InlineData("cornerout", "framing")]
     [InlineData("cornerout", "poles")]
     [InlineData("cornerout", "poles2")]
+    [InlineData("cornerout", "bamboo")]
+    [InlineData("cornerout", "bamboo2")]
     [InlineData("floor", "framing")]
     [InlineData("floor", "poles")]
     [InlineData("floor", "poles2")]

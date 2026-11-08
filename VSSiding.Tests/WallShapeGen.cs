@@ -792,6 +792,47 @@ public static class WallShapeGen
         .. CornerTees("poles2"),
     ];
 
+    // The corner post in bamboo: a plus of five boxes, the core and a wing on each side, so the post covers the plain post's
+    // mid-plane both ways, and its rings fill the four corner voxels the plus leaves.
+    private static IEnumerable<Element> BambooPost(string name, double[] rings)
+    {
+        Element Box(double x1, double z1, double x2, double z2, double y1, double y2) => new(name, (x1, y1, z1), (x2, y2, z2), "framing", UvRule.Flat);
+
+        yield return Box(1.25, 1.25, 2.75, 2.75, 0, 16);
+        yield return Box(1, 1.25, 1.25, 2.75, 0, 16);
+        yield return Box(2.75, 1.25, 3, 2.75, 0, 16);
+        yield return Box(1.25, 1, 2.75, 1.25, 0, 16);
+        yield return Box(1.25, 2.75, 2.75, 3, 0, 16);
+        foreach (double ring in rings)
+            foreach (var (x, z) in new[] { (1.0, 1.0), (2.75, 1.0), (1.0, 2.75), (2.75, 2.75) })
+                yield return Box(x, z, x + 0.25, z + 0.25, ring, ring + 0.5);
+    }
+
+    // The corner's frame in bamboo: the post and the two end posts, a plate along each leg, the rough frame's lashings, and
+    // the tees. A leg's plates start at the post's wings, which fill the first quarter voxel of its depth.
+    private static IEnumerable<Element> BambooCorner(string prefix, double[] post, double[] end1, double[] end2, double[] top, double[] bottom)
+    {
+        string[] leg1 = ["west", "east", "up", "down"], leg2 = ["north", "south", "up", "down"];
+        return
+        [
+            .. BambooPost(prefix, post),
+            .. BambooPole(prefix, (1, 0, 15), (3, 16, 16), 'x', 'y', end1),
+            .. BambooPole(prefix, (15, 0, 1), (16, 16, 3), 'z', 'y', end2),
+            .. BambooPole($"{prefix}-top", (1, 15, 3), (3, 16, 15), 'x', 'z', top, leg1),
+            .. BambooPole($"{prefix}-top", (3, 15, 1), (15, 16, 3), 'z', 'x', top, leg2),
+            .. BambooPole($"{prefix}-bottom", (1, 0, 3), (3, 1, 15), 'x', 'z', bottom, leg1),
+            .. BambooPole($"{prefix}-bottom", (3, 0, 1), (15, 1, 3), 'z', 'x', bottom, leg2),
+            .. CornerPoleElements.Where(e => e.Slot == "lashing").Select(e => e with { Name = e.Name.Replace("poles", prefix) }),
+            .. CornerTees(prefix),
+        ];
+    }
+
+    private static readonly Element[] CornerBambooElements =
+    [
+        .. BambooCorner("bamboo", [4.25, 10.25], [0.25, 4.75, 15.25], [0.25, 5.25, 15.25], [3.25, 7.75, 12.25], [3.75, 6.75, 11.25]),
+        .. BambooCorner("bamboo2", [6.75, 12.25], [5.25, 0.25], [4.75, 15.25], [3.75, 8.25, 13.25], [3.75, 9.25, 13.75]),
+    ];
+
     // Every frame's corner post stands a finish slot in from the cell's edge on each face, so at a T it fills the slot
     // the run crosses: the left leg's, where leg 1's line runs on past it, or the right leg's, where leg 2's does.
     private static Element[] CornerTees(string group) =>
@@ -862,6 +903,7 @@ public static class WallShapeGen
         new("glazing-bottom", (4, 0, 1), (14, 2, 3), "framing", UvRule.Flat, Faces: ["north", "south", "up", "down"]),
         .. CornerPoleElements,
         .. CornerPole2Elements,
+        .. CornerBambooElements,
         new("back", (3, 0, 3), (4, 16, 4), "back", UvRule.Flat, RunAxis: 'x'),
         new("back", (4, 0, 3), (16, 16, 4), "back", UvRule.Flat, RunAxis: 'x'),
         new("front-weatherboard", (0, 0, 0), (1, 1, 16), "front", UvRule.Positional),
