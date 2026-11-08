@@ -8,7 +8,7 @@ using Xunit;
 
 namespace VSSiding.E2E.Tests;
 
-// Sticks are a framing and the wattle infill at once (decision 0058): a plain click on a bare frame fills it.
+// Sticks are a framing and the wattle infill at once (decision 0058): a plain click on a bare frame's face fills it, and on its top or an end frames on (decision 0088).
 [AtlasWorld(StrictBootDiagnostics = true)]
 public class StickScenarios : AtlasScenarioBase
 {
@@ -23,6 +23,40 @@ public class StickScenarios : AtlasScenarioBase
         Assert.True(World.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, sideSel));
 
         Assert.Equal(("sticks", "wattle", null, null, null), WallBuilder.Layers(World, cell));
+    }
+
+    [AtlasScenario(FreshWorld = true)]
+    public async Task Wall_Should_FillWithWattle_When_SticksClickABareFramesFace()
+    {
+        (BlockPos cell, ITestPlayer player) = await RaiseBareStickFrame();
+
+        await WallBuilder.Press(World, player, cell, "game:stick", BlockFacing.EAST, new Vec3d(1, 0.5, 0.5));
+
+        Assert.Equal(("sticks", "wattle", null, null, null), WallBuilder.Layers(World, cell));
+    }
+
+    [AtlasScenario(FreshWorld = true)]
+    public async Task Frame_Should_StackOnABareStickFrame_When_SticksClickItsTopWithoutSneaking()
+    {
+        (BlockPos cell, ITestPlayer player) = await RaiseBareStickFrame();
+
+        await WallBuilder.Press(World, player, cell, "game:stick", BlockFacing.UP, new Vec3d(0.5, 1, 0.5));
+
+        Assert.Equal(
+            (("sticks", null, null, null, null), ("sticks", null, null, null, null)),
+            (WallBuilder.Layers(World, cell), WallBuilder.Layers(World, cell.UpCopy())));
+    }
+
+    [AtlasScenario(FreshWorld = true)]
+    public async Task Frame_Should_ExtendABareStickFrame_When_SticksClickItsEnd()
+    {
+        (BlockPos cell, ITestPlayer player) = await RaiseBareStickFrame();
+
+        await WallBuilder.Press(World, player, cell, "game:stick", BlockFacing.NORTH, new Vec3d(0.5, 0.5, 0));
+
+        Assert.Equal(
+            (("sticks", null, null, null, null), ("sticks", null, null, null, null)),
+            (WallBuilder.Layers(World, cell), WallBuilder.Layers(World, cell.NorthCopy())));
     }
 
     // Vanilla's GroundStorable sits ahead of PlaceWallFrame on sticks and answers a sneak-click first.

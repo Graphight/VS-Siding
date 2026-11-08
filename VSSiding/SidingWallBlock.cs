@@ -651,6 +651,8 @@ public class SidingWallBlock : Block
 
             string? infillKey = MatchConsumes(heldCode, Attributes["Infills"]);
             if (infillKey == null) return base.OnBlockInteractStart(world, byPlayer, blockSel);
+            if (FramesOnFrom(heldCode, ResolveFinishFace(Variant["layout"], Variant["side"], blockSel.Face) != null, Attributes["Framings"]))
+                return base.OnBlockInteractStart(world, byPlayer, blockSel);
 
             // The full slab, not the open frame's collision: infill would seal in anyone standing in it.
             var occupants = world.GetIntersectingEntities(blockSel.Position, base.GetCollisionBoxes(world.BlockAccessor, blockSel.Position), e => e.IsInteractable);
@@ -1732,6 +1734,10 @@ public class SidingWallBlock : Block
     // decking or cornering it; a filled wall has no infill left to take, so there it frames.
     internal static string? MatchFraming(AssetLocation heldCode, bool filled, JsonObject framings, JsonObject infills)
         => !filled && MatchConsumes(heldCode, infills) != null ? null : MatchConsumes(heldCode, framings);
+
+    // An item that frames and fills frames on from a face that takes no finish, and fills from one that does (decision 0088).
+    internal static bool FramesOnFrom(AssetLocation heldCode, bool finishFace, JsonObject framings)
+        => !finishFace && MatchConsumes(heldCode, framings) != null;
 
     // Finds the material dictionary entry whose Consumes.code matches the held item, so a
     // build-flow behavior can turn "the player right-clicked with plank-oak" into "oak". An entry
