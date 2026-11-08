@@ -50,7 +50,7 @@ public class IndustrialStoryScenarios : AtlasScenarioBase
 
         World.BlockAt(cell).OnBlockBroken(player.Entity.World, cell, player.Player);
         await World.Ticks(2);
-        // The builder stands beside the cell, so the refund lands in the hotbar rather than staying on the ground.
+        // The peeled pane drops as an item entity the builder beside the cell may already have picked up.
         int refunded = player.Player.InventoryManager.GetHotbarInventory().Where(slot => slot.Itemstack?.Collectible.Code.ToString() == held).Sum(slot => slot.StackSize)
             + World.Api.World.GetEntitiesAround(cell.ToVec3d().Add(0.5, 0.5, 0.5), 3, 3, entity => entity is EntityItem)
                 .Cast<EntityItem>().Where(item => item.Itemstack.Collectible.Code.ToString() == held).Sum(item => item.Itemstack.StackSize);
