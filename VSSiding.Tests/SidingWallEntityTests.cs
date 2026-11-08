@@ -22,16 +22,6 @@ public class SidingWallEntityTests
     """);
 
     [Fact]
-    public void BambooDrawsItsRingedPolesAndAlternatesOnOddCells()
-    {
-        var framings = Dict("""{ "bamboo": { "Elements": "bamboo" } }""");
-
-        Assert.Equal(
-            new[] { "bamboo", "bamboo2" },
-            new[] { 0, 1 }.Select(alternate => SidingWallEntity.FrameElements(framings, "bamboo", alternate)));
-    }
-
-    [Fact]
     public void AFramingNamesItsGroupsOrFallsBackToThePlainOnes()
     {
         var framings = Dict("""{ "oak": {}, "sticks": { "Elements": "poles" } }""");
@@ -681,16 +671,23 @@ public class SidingWallEntityTests
         Assert.Equal(expected, [Elements((false, false, false, false)), Elements((false, false, true, false))]);
     }
 
-    // A bamboo diagonal draws its own ringed groups, its fillers and half posts too, where a poles one draws the plain frame.
+    // A bamboo diagonal draws its own ringed groups, its fillers and half posts too, where a poles one draws the plain frame,
+    // and a glazed one the glazing's rails with the plain frame's ends.
     [Fact]
-    public void ABambooDiagonalDrawsItsRingedFrameAndASticksOneDoesNot()
+    public void ABambooDiagonalDrawsItsRingedFrameAndASticksOrGlazedOneDoesNot()
     {
-        string[] Elements(string frame, bool runsOn) => SidingWallEntity.SelectiveElements(
-            "diagonal", "bamboo", null, null, null, null, NoElementFinishes, (false, false, runsOn, false), glazed: false, frame: frame);
+        string[] Elements(string frame, bool runsOn, bool glazed = false) => SidingWallEntity.SelectiveElements(
+            "diagonal", "bamboo", null, null, null, null, NoElementFinishes, (false, false, runsOn, false), glazed: glazed, frame: frame);
 
-        Assert.Equal(["bamboo-top", "bamboo-bottom", "bamboo-left", "bamboo-right"], Elements("bamboo", false));
-        Assert.Equal(["bamboo2-top", "bamboo2-bottom", "bamboo2-top-left", "bamboo2-bottom-left", "bamboo2-join-left", "bamboo2-right"], Elements("bamboo2", true));
-        Assert.Equal(["framing-top", "framing-bottom", "framing-left", "framing-right"], Elements("poles", false));
+        Assert.Equal(
+            new string[][]
+            {
+                ["bamboo-top", "bamboo-bottom", "bamboo-left", "bamboo-right"],
+                ["bamboo2-top", "bamboo2-bottom", "bamboo2-top-left", "bamboo2-bottom-left", "bamboo2-join-left", "bamboo2-right"],
+                ["framing-top", "framing-bottom", "framing-left", "framing-right"],
+                ["glazing-top", "glazing-bottom", "glazing-top-left", "glazing-bottom-left", "framing-join-left", "framing-right"],
+            },
+            new[] { Elements("bamboo", false), Elements("bamboo2", true), Elements("poles", false), Elements("bamboo", true, glazed: true) });
     }
 
     // A bare bamboo face draws its slice of the pole with no mitre; a finished face keeps its mitre only where the previous
