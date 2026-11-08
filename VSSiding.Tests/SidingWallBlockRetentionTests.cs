@@ -142,24 +142,26 @@ public class SidingWallBlockRetentionTests
         Assert.Equal(new[] { 0, 0, 0, 99, 0, 0 }, actual);
     }
 
-    // Back covers the whole inner side; a cornerout's two outer faces are separate layers.
+    // A wall's back or front covers its whole side; a cornerout's two outer faces and its two inner faces are separate
+    // layers, so it takes both of either pair (decision 0090).
     [Fact]
     public void AWallIsFinishedOnceItsBackOrItsOuterFacesAreCovered()
     {
-        var faces = new (string? Front, string? SecondFront, string? Back)[]
+        var faces = new (string? Front, string? SecondFront, string? Back, string? SecondBack)[]
         {
-            (null, null, null), ("daub", null, null), (null, "daub", null), ("daub", "daub", null), (null, null, "daub"),
+            (null, null, null, null), ("daub", null, null, null), (null, "daub", null, null), ("daub", "daub", null, null),
+            (null, null, "daub", null), (null, null, null, "daub"), (null, null, "daub", "daub"), ("daub", null, null, "daub"),
         };
 
         var actual = new[] { "wall", "cornerout", "diagonal" }
-            .SelectMany(layout => faces.Select(f => SidingWallBlock.IsFinished(layout, f.Front, f.SecondFront, f.Back)));
+            .SelectMany(layout => faces.Select(f => SidingWallBlock.IsFinished(layout, f.Front, f.SecondFront, f.Back, f.SecondBack)));
 
         Assert.Equal(
             new[]
             {
-                false, true, false, true, true,
-                false, false, false, true, true,
-                false, true, false, true, true,
+                false, true, false, true, true, false, true, true,
+                false, false, false, true, false, false, true, false,
+                false, true, false, true, true, false, true, true,
             },
             actual);
     }

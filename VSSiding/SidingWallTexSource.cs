@@ -136,9 +136,12 @@ public class SidingWallTexSource : ITexPositionSource
             // style falls back the same way.
             "front" => (front, finishes, "front", frontStyle),
             "secondfront" => (secondFront, finishes, "front", secondFrontStyle),
+            // The front's strip on a corner's outside corner lies in the second face's plane (decision 0090).
+            "frontedge" => secondFront != null ? (secondFront, finishes, "front", secondFrontStyle) : (front, finishes, "front", frontStyle),
             // A post's four faces all take the front's groups (decision 0082).
             "back" => (back, finishes, post ? "front" : "back", backStyle),
-            "secondback" => (secondBack, finishes, "front", secondBackStyle),
+            // A corner's second inner leg takes the back's groups (decision 0090).
+            "secondback" => (secondBack, finishes, post ? "front" : "back", secondBackStyle),
             _ => (null, finishes, slotCode, null),
         };
         if (key == null) return null;

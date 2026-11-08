@@ -1,6 +1,6 @@
 # 0074 — Porous infill
 
-- Status: Accepted
+- Status: Accepted; a corner finished by its back alone superseded by 0090
 - Created: 2026-10-12
 - Reflects: branch `hosted-light-and-wattle`; mod page comment https://mods.vintagestory.at/vssiding#cmt-243541; `SidingWallBlock.ComputeLightAbsorption`/`IsPorous`/`IsFinished`/`AbsorptionOf`, `SidingWallEntity.FromTreeAttributes`, the wattle entry of `config/materials.json`; `SidingWallBlockRetentionTests.AnUnfinishedPorousWallPassesLightAndNothingElseChanges` and `AWallIsFinishedOnceItsBackOrItsOuterFacesAreCovered`; `LightScenarios.BareWattle_Should_PassRoomLightUntilAFaceIsFinished` and `HostedTorch_Should_LightBothSides_When_TheWallIsBareWattle`; decisions 0015, 0018, 0019, 0034, 0072, 0073; vanilla 1.22 `ChunkIlluminator`, `ServerSystemRelight`, `ClientSystemRelight`, `WorldChunk` (decompiled); played on 2026-10-12
 

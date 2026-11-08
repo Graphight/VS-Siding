@@ -221,10 +221,10 @@ public class SidingWallBlockBuildFlowTests
     [InlineData("cornerout", "west", "west", "front")]
     [InlineData("cornerout", "west", "east", "back")]
     [InlineData("cornerout", "west", "north", "secondfront")]
-    [InlineData("cornerout", "west", "south", "back")]
+    [InlineData("cornerout", "west", "south", "secondback")]
     [InlineData("cornerout", "west", "up", null)]
     [InlineData("cornerout", "north", "east", "secondfront")]
-    [InlineData("cornerout", "north", "west", "back")]
+    [InlineData("cornerout", "north", "west", "secondback")]
     [InlineData("diagonal", "west", "west", "front")]
     [InlineData("diagonal", "west", "north", "front")]
     [InlineData("diagonal", "west", "east", "back")]
@@ -248,6 +248,8 @@ public class SidingWallBlockBuildFlowTests
     [InlineData("wall", "west", "east", true)]
     [InlineData("wall", "west", "west", false)]
     [InlineData("cornerout", "west", "north", false)]
+    [InlineData("cornerout", "west", "east", true)]
+    [InlineData("cornerout", "west", "south", true)]
     [InlineData("cornerin", "west", "east", true)]
     [InlineData("cornerin", "west", "south", true)]
     [InlineData("cornerin", "west", "west", false)]
@@ -256,6 +258,33 @@ public class SidingWallBlockBuildFlowTests
     public void HostsClickTakesAWallsBackOrEitherOfAPostsFaces(string layout, string side, string clicked, bool expected)
     {
         Assert.Equal(expected, SidingWallBlock.HostsClick(layout, side, BlockFacing.FromCode(clicked)));
+    }
+
+    // Diagonal plaster laid across a corner's edge from itself takes the other turn; stripes, another finish, a face
+    // that is not the partner and a post keep the picked style, which a null answer leaves in place (decision 0090).
+    [Theory]
+    [InlineData("cornerout", "secondfront", "plaster-diagonal", "front", "plaster-diagonal", "boards", "hboards")]
+    [InlineData("cornerout", "front", "plaster-diagonal", "secondfront", "plaster-diagonal", "hboards", "boards")]
+    [InlineData("cornerout", "secondback", "plaster-diagonal", "back", "plaster-diagonal", null, "boards")]
+    [InlineData("cornerout", "back", "plaster-diagonal", "secondback", "plaster-diagonal", "boards", "hboards")]
+    [InlineData("cornerout", "secondfront", "plaster-diagonal", "back", "plaster-diagonal", "boards", null)]
+    [InlineData("cornerout", "secondfront", "plaster-diagonal", "front", "plaster-stripes", "boards", null)]
+    [InlineData("cornerout", "secondfront", "plaster-stripes", "front", "plaster-stripes", "boards", null)]
+    [InlineData("cornerin", "secondfront", "plaster-diagonal", "front", "plaster-diagonal", "boards", null)]
+    public void MirroredStyleTurnsDiagonalPlasterAgainstItsPartnerAcrossACorner(
+        string layout, string face, string finishKey, string onFace, string onKey, string? onStyle, string? expected)
+    {
+        var finishes = new JsonObject(MaterialTextureOpacityTests.BlockAttributes("wall.json")["Finishes"]!);
+        var entity = new SidingWallEntity();
+        switch (onFace)
+        {
+            case "front": (entity.Front, entity.FrontStyle) = (onKey, onStyle); break;
+            case "secondfront": (entity.SecondFront, entity.SecondFrontStyle) = (onKey, onStyle); break;
+            case "back": (entity.Back, entity.BackStyle) = (onKey, onStyle); break;
+            case "secondback": (entity.SecondBack, entity.SecondBackStyle) = (onKey, onStyle); break;
+        }
+
+        Assert.Equal(expected, SidingWallBlock.MirroredStyle(layout, face, entity, finishes, finishKey));
     }
 
     // Every wall is one leg of two possible corners, and the click picks which by which end of

@@ -51,7 +51,7 @@ public class WallShapeGenTests
         // leg samples where it lies on the grid, as the wall it runs into does.
         var expected = new[] { (15.0, 16.0), (0.0, 15.0), (0.0, 12.0), (4.0, 16.0) };
 
-        Assert.Equal(expected, CornerRuns(style, "", ("front", 0, 0, "north"), ("secondfront", 1, 0, "north"), ("back", 3, 4, "east"), ("back", 4, 3, "south")));
+        Assert.Equal(expected, CornerRuns(style, "", ("front", 0, 0, "north"), ("secondfront", 1, 0, "north"), ("back", 3, 4, "east"), ("secondback", 4, 3, "south")));
     }
 
     [Theory]
@@ -60,7 +60,7 @@ public class WallShapeGenTests
     [InlineData("-hboards")]
     public void ACornersWholeCopyFitsTheWholeTextureOntoEachInnerLeg(string style)
     {
-        Assert.Equal(new[] { (0.0, 16.0), (0.0, 16.0) }, CornerRuns(style, "-whole", ("back", 3, 4, "east"), ("back", 4, 3, "south")));
+        Assert.Equal(new[] { (0.0, 16.0), (0.0, 16.0) }, CornerRuns(style, "-whole", ("back", 3, 4, "east"), ("secondback", 4, 3, "south")));
     }
 
     // The texture span along the run of each named corner face, read from u, or from v on a turned (boards) face.
@@ -398,9 +398,10 @@ public class WallShapeGenTests
             ["cornerout second pole frame"] = 158,
             ["cornerout wattle"] = 54,
             ["cornerout wattle, mid-stack"] = 54,
-            ["cornerout daub both faces"] = 80,
-            ["cornerout weatherboard both faces"] = 230,
-            ["cornerout shakes both faces"] = 400,
+            // A corner's leg 1 and leg 2 backs are separate groups, so the seam between them no longer buries two faces (decision 0090).
+            ["cornerout daub both faces"] = 82,
+            ["cornerout weatherboard both faces"] = 232,
+            ["cornerout shakes both faces"] = 404,
             ["cornerout glazed"] = 43,
             // A corner's left end post gives way to two fillers: 43 - 6 + 2 * 6 = 49.
             ["cornerout glazed, merged left"] = 49,
@@ -415,15 +416,15 @@ public class WallShapeGenTests
             ["cornerout glazed, daub both faces, merged all round"] = 33,
             ["cornerout glazed, merged all round"] = 15,
             ["wall shakes front, daub elsewhere"] = 185,
-            ["cornerout shakes front, daub elsewhere"] = 223,
+            ["cornerout shakes front, daub elsewhere"] = 225,
             ["wall weatherboard front, shakes back"] = 137,
-            ["cornerout weatherboard front, shakes back"] = 332,
+            ["cornerout weatherboard front, shakes back"] = 336,
             ["wall brick both faces"] = 142,
             ["wall ashlar both faces"] = 72,
             ["wall rubble both faces"] = 198,
-            ["cornerout brick both faces"] = 256,
-            ["cornerout ashlar both faces"] = 136,
-            ["cornerout rubble both faces"] = 371,
+            ["cornerout brick both faces"] = 258,
+            ["cornerout ashlar both faces"] = 138,
+            ["cornerout rubble both faces"] = 372,
         };
 
         var finishes = SidingWallEntityTests.Dict("""
@@ -475,7 +476,7 @@ public class WallShapeGenTests
             {
                 var names = SidingWallEntity.SelectiveElements(
                     layout, "oak", infill, front, layout == "cornerout" ? secondFront : null, back,
-                    finishes, joins, glazed);
+                    finishes, joins, glazed, secondBack: layout == "cornerout" ? back : null);
                 actual[$"{layout} {state}"] = names.Sum(n => quads[n]);
             }
 
@@ -658,7 +659,7 @@ public class WallShapeGenTests
             ("cornerout", "back-rim-right", [3, 0, 14], "east", [0, 0, 2, 16]),
             ("cornerout", "front-rim-top-right", [0, 14, 14], "west", [14, 0, 16, 2]),
             ("cornerout", "secondfront-rim-bottom-left", [14, 0, 0], "north", [0, 14, 2, 16]),
-            ("cornerout", "back-rim-top", [4, 14, 3], "south", [4, 0, 14, 2]),
+            ("cornerout", "secondback-rim-top", [4, 14, 3], "south", [4, 0, 14, 2]),
             ("floor", "front-rim-left", [0, 15, 0], "up", [0, 0, 2, 16]),
             ("floor", "front-rim-top", [2, 15, 0], "up", [2, 0, 14, 2]),
             ("floor", "front-rim-bottom-right", [14, 15, 14], "up", [14, 14, 16, 16]),
@@ -1164,7 +1165,7 @@ public class WallShapeGenTests
     public void EveryLedgeBoxLiesInTheSlotOfTheRoomSideFinish(string layout)
     {
         var elements = WallShapeGen.Generate(layout)["elements"]!.ToArray();
-        var backs = elements.Where(e => (string)e["name"]! == "back").Select(Box).ToArray();
+        var backs = elements.Where(e => (string)e["name"]! is "back" or "secondback").Select(Box).ToArray();
         var offenders = new List<string>();
         foreach (string side in Sides)
         {
@@ -1273,7 +1274,7 @@ public class WallShapeGenTests
 
         Assert.Equal([], frames.SelectMany(frame =>
         {
-            string[] groups = layout == "cornerout" ? ["front", "secondfront", "back"] : ["front", "back"];
+            string[] groups = layout == "cornerout" ? ["front", "secondfront", "back", "secondback"] : ["front", "back"];
             string[] rims = [.. frame.SelectMany(part => groups.Select(group => group + "-rim" + part["glazing".Length..]))];
             return SharedPlaneOffenders(layout, [.. frame, "infill-pane", .. rims]);
         }).Distinct());
@@ -1344,7 +1345,8 @@ public class WallShapeGenTests
             return SharedPlaneOffenders(layout,
             [
                 .. SidingWallEntity.SelectiveElements(
-                    layout, "oak", "glass", "daub", layout == "cornerout" ? "daub" : null, "daub", finishes, joins, glazed: true, decked: true),
+                    layout, "oak", "glass", "daub", layout == "cornerout" ? "daub" : null, "daub", finishes, joins, glazed: true, decked: true,
+                    secondBack: layout == "cornerout" ? "daub" : null),
                 .. SidingWallEntity.DeckElements("west", "oak", "wattle", "daub", "daub", finishes, default, default, false, ledges: ledges),
             ], between: (a, b) => a.Contains("-west-") != b.Contains("-west-"));
         }).Distinct());
@@ -1428,7 +1430,7 @@ public class WallShapeGenTests
         var finishes = new Vintagestory.API.Datastructures.JsonObject(JObject.Parse("""{ "daub": {} }"""));
         string? daub = finished ? "daub" : null;
         return SidingWallEntity.SelectiveElements(layout, "oak", glazed ? "glass" : "wattle", daub, layout == "cornerout" ? daub : null, daub, finishes, joins,
-            glazed: glazed, frame: frame, innerCorners: innerCorners, glassRunsOn: glassRunsOn, tees: tees);
+            glazed: glazed, frame: frame, innerCorners: innerCorners, glassRunsOn: glassRunsOn, tees: tees, secondBack: layout == "cornerout" ? daub : null);
     }
 
     // Each pair of faces, one from each cell, that point the same way on the same plane and overlap there.
@@ -1622,8 +1624,12 @@ public class WallShapeGenTests
         var toward = BlockFacing.FromCode(towards);
         int plane = toward == BlockFacing.NORTH || toward == BlockFacing.WEST ? 0 : 16;
 
-        string[] Expected(bool finished, string dropped, string otherLayout)
-            => otherLayout == "diagonal" && finished ? [$"back-rim-bottom-{dropped}", $"back-rim-top-{dropped}"] : [];
+        // A corner's left end is leg 2's, whose room side is the second back.
+        string[] Expected(bool finished, string dropped, string ownLayout, string otherLayout)
+        {
+            string back = ownLayout == "cornerout" && dropped == "left" ? "secondback" : "back";
+            return otherLayout == "diagonal" && finished ? [$"{back}-rim-bottom-{dropped}", $"{back}-rim-top-{dropped}"] : [];
+        }
 
         var actual = new List<string>();
         var expected = new List<string>();
@@ -1640,7 +1646,7 @@ public class WallShapeGenTests
                 if (!joins.left && !joins.right) continue;
                 string cell = $"{own.Layout}-{own.Side} {finished}";
                 actual.AddRange(Uncovered(faces, beyond, facing, plane).Select(name => $"{cell} {name}"));
-                expected.AddRange(Expected(finished, joins.left ? "left" : "right", other.Layout).Select(name => $"{cell} {name}"));
+                expected.AddRange(Expected(finished, joins.left ? "left" : "right", own.Layout, other.Layout).Select(name => $"{cell} {name}"));
             }
         }
 

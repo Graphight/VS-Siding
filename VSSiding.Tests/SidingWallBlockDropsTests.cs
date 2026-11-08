@@ -63,16 +63,26 @@ public class SidingWallBlockDropsTests
     [Fact]
     public void PostRefundsAQuarterOfItsFraming()
     {
-        var drops = SidingWallBlock.ComputeDrops("oak", null, null, null, null, null, Framings, Infills, Finishes, post: true);
+        var drops = SidingWallBlock.ComputeDrops("oak", null, null, null, null, null, Framings, Infills, Finishes, layout: "cornerin");
         Assert.Equal(new[] { ("game:plank-oak", 1f) }, drops.ConvertAll(d => (d.Code!.ToString(), d.Quantity.avg)));
     }
 
     [Fact]
     public void PostRefundsAQuarterOfEachFinishToo()
     {
-        var drops = SidingWallBlock.ComputeDrops("oak", null, "daub", "brick", null, null, Framings, Infills, Finishes, post: true);
+        var drops = SidingWallBlock.ComputeDrops("oak", null, "daub", "brick", null, null, Framings, Infills, Finishes, layout: "cornerin");
         Assert.Equal(
             new[] { ("game:plank-oak", 1f), ("game:clay-blue", 1f), ("game:burnedbrick-red", 1f) },
+            drops.ConvertAll(d => (d.Code!.ToString(), d.Quantity.avg)));
+    }
+
+    // A corner's inner faces each refund half a wall's finish; its frame, infill and outer faces refund in full (decision 0090).
+    [Fact]
+    public void CornerRefundsHalfOfEachInnerFace()
+    {
+        var drops = SidingWallBlock.ComputeDrops("oak", "wattle", "daub", "planks", "brick", null, Framings, Infills, Finishes, layout: "cornerout", secondBack: "daub");
+        Assert.Equal(
+            new[] { ("game:plank-oak", 2f), ("game:stick", 4f), ("game:clay-blue", 2f), ("game:plank-oak", 2f), ("game:burnedbrick-red", 1f), ("game:clay-blue", 1f) },
             drops.ConvertAll(d => (d.Code!.ToString(), d.Quantity.avg)));
     }
 

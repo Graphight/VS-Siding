@@ -65,7 +65,7 @@ internal static class WallBuilder
         return (read("framing"), read("infill"), read("front"), read("secondfront"), read("back"));
     }
 
-    private static System.Func<string, string?> Reader(BlockEntity entity)
+    internal static System.Func<string, string?> Reader(BlockEntity entity)
     {
         var tree = new TreeAttribute();
         entity.ToTreeAttributes(tree);

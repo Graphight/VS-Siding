@@ -54,6 +54,7 @@ public class SidingWallEntity : BlockEntity
         tree.SetString("secondfrontstyle", SecondFrontStyle);
         tree.SetString("backstyle", BackStyle);
         tree.SetString("secondbackstyle", SecondBackStyle);
+        tree.SetBool("splitback", true);
         tree.SetString("deck", Deck);
         tree.SetString("deckinfill", DeckInfill);
         tree.SetString("deckfront", DeckFront);
@@ -89,12 +90,13 @@ public class SidingWallEntity : BlockEntity
         SecondFront = NullIfEmpty(tree.GetString("secondfront", null));
         Back = NullIfEmpty(tree.GetString("back", null));
         SecondBack = NullIfEmpty(tree.GetString("secondback", null));
-        if (oldAbsorption is int old && Block is SidingWallBlock wall && wall.AbsorptionOf(this) != old)
-            wall.MarkAbsorptionChanged(worldAccessForResolve.BlockAccessor, Pos, old);
         FrontStyle = NullIfEmpty(tree.GetString("frontstyle", null));
         SecondFrontStyle = NullIfEmpty(tree.GetString("secondfrontstyle", null));
         BackStyle = NullIfEmpty(tree.GetString("backstyle", null));
         SecondBackStyle = NullIfEmpty(tree.GetString("secondbackstyle", null));
+        if (SharesLegacyBack(tree, Block?.Variant["layout"])) (SecondBack, SecondBackStyle) = (Back, BackStyle);
+        if (oldAbsorption is int old && Block is SidingWallBlock wall && wall.AbsorptionOf(this) != old)
+            wall.MarkAbsorptionChanged(worldAccessForResolve.BlockAccessor, Pos, old);
         Deck = NullIfEmpty(tree.GetString("deck", null));
         DeckInfill = NullIfEmpty(tree.GetString("deckinfill", null));
         DeckFront = NullIfEmpty(tree.GetString("deckfront", null));
@@ -119,6 +121,12 @@ public class SidingWallEntity : BlockEntity
     // The flag is keyed rather than deckinfill, which a null string never stores.
     internal static bool ReadLegacyDeck(ITreeAttribute tree, string? deck)
         => tree.HasAttribute("legacydeck") ? tree.GetBool("legacydeck") : deck != null;
+
+    // A corner saved before its inner faces split laid one back across both legs (decision 0090). Every load path
+    // sets Block before this runs (CreateBehaviors, GuestWalls.Decode); a plain wall or post never gets the copy,
+    // since ComputeDrops refunds SecondBack on every layout.
+    internal static bool SharesLegacyBack(ITreeAttribute tree, string? layout)
+        => layout == "cornerout" && !tree.HasAttribute("splitback");
 
     // Block.GetPlacedBlockInfo calls this inside a try/catch and appends the blockdesc- line
     // after it; SidingWallBlock's override takes that line back off without the build signal.
@@ -165,8 +173,8 @@ public class SidingWallEntity : BlockEntity
     // "wall", "cornerout" and "diagonal" each have their own layered shape file (same four element
     // names - front/framing/infill/back - so selectiveElements works identically on
     // any). A cornerout wraps both claimed faces (decision 0002's CorneroutSecondFace)
-    // with a shared Framing/Infill/Back but its own SecondFront (decision 0009) - the
-    // second leg's front faces a different room, so it finishes independently.
+    // with a shared Framing/Infill but its own SecondFront (decision 0009) and SecondBack
+    // (decision 0090) - each leg's faces finish independently.
     public override bool OnTesselation(ITerrainMeshPool mesher, ITesselatorAPI tesselator)
     {
         string layout = Block.Variant["layout"];
@@ -203,7 +211,7 @@ public class SidingWallEntity : BlockEntity
         string[] deckInnerCorners = SidingFloorBlock.InnerCorners(Api.World.BlockAccessor, Pos, deckGlazed, deckJoins);
         bool capped = Capped(layout, DeckFront, SidingWallBlock.FreeAbove(Api.World.BlockAccessor, Pos));
         string[] deckElements = DeckElements(side, Deck, DeckInfill, DeckFront, DeckBack, Block.Attributes["Finishes"], deckJoins, (DeckFrontStyle, DeckBackStyle), deckGlazed,
-            FrameElements(Block.Attributes["Framings"], Deck, alternate), Ledges(layout, Back == null, glazed, joins), deckInnerCorners, capped,
+            FrameElements(Block.Attributes["Framings"], Deck, alternate), Ledges(layout, Back == null, glazed, joins, SecondBack == null), deckInnerCorners, capped,
             InfillElements(Block.Attributes["Infills"], DeckInfill));
         if (selectiveElements.Length == 0 && deckElements.Length == 0 && stepElements.Length == 0) return false;
 
@@ -336,16 +344,22 @@ public class SidingWallEntity : BlockEntity
     // is bare the whole slot is open, and the deck draws its ledge. A finish fills the slot, but a glazed
     // wall's is only a rim, which leaves the slot open across the glass, so there the ledge carries on in
     // the place of the rim's top: between the stiles, and out to the cell's edge where a stile has merged
-    // away. A diagonal's deck draws none (0067).
-    internal static string[] Ledges(string layout, bool roomSideBare, bool glazed, (bool above, bool below, bool left, bool right) joins)
+    // away. A diagonal's deck draws none (0067). A corner's second inner leg has ledge copies of its own, which
+    // follow its own face (decision 0090).
+    internal static string[] Ledges(
+        string layout, bool roomSideBare, bool glazed, (bool above, bool below, bool left, bool right) joins, bool secondRoomSideBare = false)
     {
         if (layout is "diagonal" or "cornerin") return [];
-        if (roomSideBare) return ["ledge"];
-        if (!glazed) return [];
-        var ledges = new List<string> { "ledgetop" };
-        if (joins.left) ledges.Add("ledgetopleft");
-        if (joins.right) ledges.Add("ledgetopright");
-        return ledges.ToArray();
+        List<string> Leg(string prefix, bool bare)
+        {
+            if (bare) return [prefix];
+            if (!glazed) return [];
+            var copies = new List<string> { prefix + "top" };
+            if (joins.left) copies.Add(prefix + "topleft");
+            if (joins.right) copies.Add(prefix + "topright");
+            return copies;
+        }
+        return [.. Leg("ledge", roomSideBare), .. layout == "cornerout" ? Leg("ledgesecond", secondRoomSideBare) : []];
     }
 
     // The suffixes of the frame pieces a cell draws, which a glazed face's rims follow part for part.
@@ -426,7 +440,14 @@ public class SidingWallEntity : BlockEntity
         bool OnLeg(string part, string otherLeg, bool tee) => !part.EndsWith(otherLeg) && !(part == "" && tee);
         if (front != null) AddFinish(FinishElement(finishes, front, "front", styles.front), cornerout ? part => OnLeg(part, "-left", tees.right) : null);
         if (secondFront != null)
-            AddFinish("second" + FinishElement(finishes, secondFront, "front", styles.secondFront), cornerout ? part => OnLeg(part, "-right", tees.left) : null);
+        {
+            string group = "second" + FinishElement(finishes, secondFront, "front", styles.secondFront);
+            AddFinish(group, cornerout ? part => OnLeg(part, "-right", tees.left) : null);
+            // A bare front leaves the outside corner's column open, and the second front carries on over it, where no facing
+            // front's infill fills it (decisions 0083, 0090). Its glazed rim is the corner post's piece alone.
+            if (cornerout && front == null && !(closed.front && infill != null && !glazed))
+                AddFinish(group + "-corner", part => part is "" or "-tee-left" && OnLeg(part, "-right", tees.left));
+        }
         if (framing != null) names.AddRange(parts.Select(part => member + part));
         if (infill != null)
         {
@@ -447,12 +468,14 @@ public class SidingWallEntity : BlockEntity
         }
         // The top of the room side's rim lies in a deck's height, where the deck's ledge takes its place (Ledges), and a T's
         // piece lies in a front slot, clear of it. A framed pattern takes a corner's `-whole` copy, which fits its border onto
-        // each 12-voxel leg (decision 0086).
+        // each 12-voxel leg (decision 0086). A corner's back rims leg 1 and its second back leg 2, the corner post's
+        // piece included (decision 0090).
+        bool Keeps(string part) => !part.StartsWith("-tee") && !(decked && part.StartsWith("-top"));
+        string Whole(string key) => cornerout && finishes[key]["WholeOnCorners"].AsBool() ? "-whole" : "";
         if (back != null)
-        {
-            string whole = cornerout && finishes[back]["WholeOnCorners"].AsBool() ? "-whole" : "";
-            AddFinish(FinishElement(finishes, back, "back", styles.back) + whole, part => !part.StartsWith("-tee") && !(decked && part.StartsWith("-top")));
-        }
+            AddFinish(FinishElement(finishes, back, "back", styles.back) + Whole(back), cornerout ? part => Keeps(part) && part != "" && !part.EndsWith("-left") : Keeps);
+        if (cornerout && secondBack != null)
+            AddFinish("second" + FinishElement(finishes, secondBack, "back", secondBackStyle) + Whole(secondBack), part => Keeps(part) && !part.EndsWith("-right"));
         // A diagonal's end is the filler in its corner, or, where the next cell carries the run on,
         // each group's own piece out to the corner and half a post there.
         if (diagonal)

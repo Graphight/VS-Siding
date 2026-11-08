@@ -24,7 +24,7 @@ public class JunctionScenarios : AtlasScenarioBase
 
         await WallBuilder.Press(World, player, cell, "game:plank-oak", BlockFacing.WEST, SouthEnd);
 
-        Assert.Equal(("cornerout", "south,west", "oak", ("oak", "clay", null, "planks-birch", "planks-birch")), Describe(cell));
+        Assert.Equal((("cornerout", "south,west", "oak", ("oak", "clay", null, "planks-birch", null)), "planks-birch"), (Describe(cell), Read(cell, "secondback")));
     }
 
     [AtlasScenario(FreshWorld = true)]
@@ -34,7 +34,7 @@ public class JunctionScenarios : AtlasScenarioBase
 
         await WallBuilder.Press(World, player, cell, "game:plank-oak", BlockFacing.WEST, NorthEnd);
 
-        Assert.Equal(("cornerout", "north,west", "oak", ("oak", "clay", "planks-birch", null, "planks-birch")), Describe(cell));
+        Assert.Equal((("cornerout", "north,west", "oak", ("oak", "clay", "planks-birch", null, "planks-birch")), (string?)null), (Describe(cell), Read(cell, "secondback")));
     }
 
     // The wall passes this press on, so vanilla repeats it through the held planks, which frame nothing on a repeat.

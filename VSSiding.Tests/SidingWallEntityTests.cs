@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json.Linq;
+using Vintagestory.API.Common;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Xunit;
@@ -142,6 +143,19 @@ public class SidingWallEntityTests
                 Elements("wall", null, null, null, (true, false)),
                 Elements("wall", "wattle", null, null, (false, false)),
                 Elements("cornerout", "wattle", null, null, (true, true)) });
+    }
+
+    // A bare front's column is the second front's to reach over, unless a facing front's infill already fills it (decisions 0083, 0090).
+    [Fact]
+    public void ACornersSecondFrontReachesOverTheBareFrontsColumnWhereNoInfillFillsIt()
+    {
+        string[] Corner(string? front, (bool front, bool second) closed) => SidingWallEntity.SelectiveElements(
+                "cornerout", "oak", "wattle", front, "daub", null, Dict("""{ "daub": {} }"""), (false, false, false, false), glazed: false, closed: closed)
+            .Where(name => name.StartsWith("secondfront")).ToArray();
+
+        Assert.Equal(
+            new string[][] { ["secondfront", "secondfront-corner"], ["secondfront"], ["secondfront"] },
+            new[] { Corner(null, (false, false)), Corner(null, (true, false)), Corner("daub", (false, false)) });
     }
 
     private static string[] Elements(string layout, string? infill, string? front, string? secondFront, (bool front, bool second) closed)
@@ -333,7 +347,7 @@ public class SidingWallEntityTests
     // A glazed corner's finishes are rims too, on both legs: the corner post's piece always, the end post's piece
     // (or the fillers' once it drops), and the pieces over and under the opening for as long as the rails are
     // drawn. The front rims leg 1, whose end post is its right; the second front leg 2, whose is its left; the
-    // back both.
+    // back leg 1, and the second back leg 2.
     [Fact]
     public void GlazedCorneroutDrawsEachFacesFinishAsARimOfTheFramesParts()
     {
@@ -354,7 +368,8 @@ public class SidingWallEntityTests
                     "front-weatherboard-rim", "front-weatherboard-rim-right", "front-weatherboard-rim-top", "front-weatherboard-rim-bottom",
                     "secondfront-rim", "secondfront-rim-left", "secondfront-rim-top", "secondfront-rim-bottom",
                     "glazing", "glazing-left", "glazing-right", "glazing-top", "glazing-bottom", "infill-pane",
-                    "back-boards-rim", "back-boards-rim-left", "back-boards-rim-right", "back-boards-rim-top", "back-boards-rim-bottom",
+                    "back-boards-rim-right", "back-boards-rim-top", "back-boards-rim-bottom",
+                    "secondback-boards-rim", "secondback-boards-rim-left", "secondback-boards-rim-top", "secondback-boards-rim-bottom",
                 ],
                 [(false, false, true, true)] =
                 [
@@ -364,25 +379,41 @@ public class SidingWallEntityTests
                     "secondfront-rim-bottom", "secondfront-rim-bottom-left",
                     "glazing", "glazing-top", "glazing-top-left", "glazing-top-right",
                     "glazing-bottom", "glazing-bottom-left", "glazing-bottom-right", "infill-pane",
-                    "back-boards-rim", "back-boards-rim-top", "back-boards-rim-top-left", "back-boards-rim-top-right",
-                    "back-boards-rim-bottom", "back-boards-rim-bottom-left", "back-boards-rim-bottom-right",
+                    "back-boards-rim-top", "back-boards-rim-top-right", "back-boards-rim-bottom", "back-boards-rim-bottom-right",
+                    "secondback-boards-rim", "secondback-boards-rim-top", "secondback-boards-rim-top-left", "secondback-boards-rim-bottom", "secondback-boards-rim-bottom-left",
                 ],
                 [(true, false, false, false)] =
                 [
                     "front-weatherboard-rim", "front-weatherboard-rim-right", "front-weatherboard-rim-bottom",
                     "secondfront-rim", "secondfront-rim-left", "secondfront-rim-bottom",
                     "glazing", "glazing-left", "glazing-right", "glazing-bottom", "infill-pane",
-                    "back-boards-rim", "back-boards-rim-left", "back-boards-rim-right", "back-boards-rim-bottom",
+                    "back-boards-rim-right", "back-boards-rim-bottom",
+                    "secondback-boards-rim", "secondback-boards-rim-left", "secondback-boards-rim-bottom",
                 ],
                 [(true, true, false, false)] =
                 [
                     "front-weatherboard-rim", "front-weatherboard-rim-right", "secondfront-rim", "secondfront-rim-left",
                     "glazing", "glazing-left", "glazing-right", "infill-pane",
-                    "back-boards-rim", "back-boards-rim-left", "back-boards-rim-right",
+                    "back-boards-rim-right", "secondback-boards-rim", "secondback-boards-rim-left",
                 ],
             },
             joins.ToDictionary(j => j, j => SidingWallEntity.SelectiveElements(
-                "cornerout", "oak", "glass", "planks", "daub", "planks", finishes, j, glazed: true)));
+                "cornerout", "oak", "glass", "planks", "daub", "planks", finishes, j, glazed: true, secondBack: "planks")));
+    }
+
+    // A corner's two inner faces each draw their own finish in their own style, and a bare one draws nothing (decision 0090).
+    [Fact]
+    public void ACornersInnerFacesEachDrawTheirOwnFinish()
+    {
+        var finishes = Dict("""{ "daub": {}, "planks": { "Elements": { "back": "back-boards" } } }""");
+        string[] Backs(string? back, string? backStyle, string? secondBack, string? secondBackStyle) => [.. SidingWallEntity.SelectiveElements(
+                "cornerout", "oak", "wattle", null, null, back, finishes, (false, false, false, false), glazed: false,
+                styles: (null, null, backStyle), secondBack: secondBack, secondBackStyle: secondBackStyle)
+            .Where(name => name.Contains("back"))];
+
+        Assert.Equal(
+            new string[][] { ["back-boards"], ["secondback"], ["back-hboards", "secondback-boards"], ["back", "secondback-hboards"] },
+            new[] { Backs("planks", null, null, null), Backs(null, null, "daub", null), Backs("planks", "hboards", "planks", null), Backs("daub", null, "planks", "hboards") });
     }
 
     // The top of the room side's rim lies in a deck's height. Under a deck it is left out, fillers and all,
@@ -408,7 +439,7 @@ public class SidingWallEntityTests
                 [
                     "front-rim", "front-rim-right", "front-rim-top", "front-rim-bottom",
                     "glazing", "glazing-left", "glazing-right", "glazing-top", "glazing-bottom", "infill-pane",
-                    "back-rim", "back-rim-left", "back-rim-right", "back-rim-bottom",
+                    "back-rim-right", "back-rim-bottom", "secondback-rim", "secondback-rim-left", "secondback-rim-bottom",
                 ],
                 ["framing-left", "framing-right", "framing-top", "framing-bottom", "infill", "back"],
             },
@@ -416,7 +447,7 @@ public class SidingWallEntityTests
             {
                 SidingWallEntity.SelectiveElements("wall", "oak", "glass", "daub", null, "daub", finishes, (false, false, false, false), glazed: true, decked: true),
                 SidingWallEntity.SelectiveElements("wall", "oak", "glass", "daub", null, "daub", finishes, (false, false, true, false), glazed: true, decked: true),
-                SidingWallEntity.SelectiveElements("cornerout", "oak", "glass", "daub", null, "daub", finishes, (false, false, false, false), glazed: true, decked: true),
+                SidingWallEntity.SelectiveElements("cornerout", "oak", "glass", "daub", null, "daub", finishes, (false, false, false, false), glazed: true, decked: true, secondBack: "daub"),
                 SidingWallEntity.SelectiveElements("wall", "oak", "wattle", null, null, "daub", finishes, (false, false, false, false), glazed: false, decked: true),
             });
     }
@@ -496,7 +527,7 @@ public class SidingWallEntityTests
             {
                 ["ledge"], ["ledge"], [],
                 ["ledgetop"], ["ledgetop", "ledgetopleft"], ["ledgetop", "ledgetopright"], ["ledgetop", "ledgetopleft", "ledgetopright"],
-                ["ledgetop"], [], [], [], [],
+                ["ledgetop", "ledgesecondtop"], ["ledge", "ledgesecondtop"], ["ledgesecond"], [], [], [], [],
             },
             new[]
             {
@@ -508,6 +539,8 @@ public class SidingWallEntityTests
                 SidingWallEntity.Ledges("wall", roomSideBare: false, glazed: true, (true, false, false, true)),
                 SidingWallEntity.Ledges("wall", roomSideBare: false, glazed: true, (true, true, true, true)),
                 SidingWallEntity.Ledges("cornerout", roomSideBare: false, glazed: true, (true, false, false, false)),
+                SidingWallEntity.Ledges("cornerout", roomSideBare: true, glazed: true, (true, false, false, false)),
+                SidingWallEntity.Ledges("cornerout", roomSideBare: false, glazed: false, unjoined, secondRoomSideBare: true),
                 SidingWallEntity.Ledges("diagonal", roomSideBare: true, glazed: false, unjoined),
                 SidingWallEntity.Ledges("diagonal", roomSideBare: true, glazed: true, unjoined),
                 SidingWallEntity.Ledges("cornerin", roomSideBare: true, glazed: false, unjoined),
@@ -707,6 +740,28 @@ public class SidingWallEntityTests
         reloaded.FromBytes(tree.ToBytes());
 
         Assert.False(SidingWallEntity.ReadLegacyDeck(reloaded, "oak"));
+    }
+
+    // A corner saved before its inner faces split laid one back across both legs, and loads with it on each (decision 0090).
+    [Theory]
+    [InlineData("cornerout", false, "daub", "coursed")]
+    [InlineData("cornerout", true, null, null)]
+    [InlineData("wall", false, null, null)]
+    [InlineData("cornerin", false, null, null)]
+    public void ALoadedCornerCopiesItsBackOntoItsSecondInnerFaceOnlyWhenSavedBeforeTheSplit(
+        string layout, bool savedSinceSplit, string? secondBack, string? secondBackStyle)
+    {
+        var block = new Block { Code = new AssetLocation("vssiding", $"wall-{layout}-west") };
+        block.VariantStrict["layout"] = layout;
+        var saved = new SidingWallEntity { Block = block, Pos = new BlockPos(0, 0, 0, 0), Framing = "oak", Infill = "wattle", Back = "daub", BackStyle = "coursed" };
+        var tree = new TreeAttribute();
+        saved.ToTreeAttributes(tree);
+        if (!savedSinceSplit) tree.RemoveAttribute("splitback");
+
+        var loaded = new SidingWallEntity { Block = block };
+        loaded.FromTreeAttributes(tree, GuestWallsTests.World);
+
+        Assert.Equal((secondBack, secondBackStyle), (loaded.SecondBack, loaded.SecondBackStyle));
     }
 
     [Fact]

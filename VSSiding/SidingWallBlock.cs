@@ -693,7 +693,7 @@ public class SidingWallBlock : Block
         }
 
         string? currentKey = FinishOn(entity, face);
-        string? currentStyle = face switch { "front" => entity.FrontStyle, "secondfront" => entity.SecondFrontStyle, "secondback" => entity.SecondBackStyle, _ => entity.BackStyle };
+        string? currentStyle = StyleOn(entity, face);
         if (currentKey != null)
         {
             // Restyling the same material is free: only the profile changes, so there is nothing
@@ -721,10 +721,11 @@ public class SidingWallBlock : Block
         }
 
         var finishConsumes = Attributes["Finishes"][finishKey]["Consumes"];
-        if (post) finishConsumes = PostConsumes(finishConsumes);
+        int parts = LayerParts(Variant["layout"], face);
+        if (parts > 1) finishConsumes = ShareConsumes(finishConsumes, parts);
         if (!TryAffordOrError(byPlayer, isCreative, slot.StackSize, finishConsumes)) return true;
 
-        SetFinish(world, entity, blockSel.Position, face, finishKey, style);
+        SetFinish(world, entity, blockSel.Position, face, finishKey, MirroredStyle(Variant["layout"], face, entity, Attributes["Finishes"], finishKey) ?? style);
         ConsumeHeld(slot, finishConsumes, isCreative);
         return true;
     }
@@ -772,6 +773,8 @@ public class SidingWallBlock : Block
                 entity.SecondFrontStyle = entity.FrontStyle;
                 entity.Front = null;
                 entity.FrontStyle = null;
+                // The old wall's room side goes with it, moved rather than copied, since the upgrade is free (decision 0090).
+                (entity.SecondBack, entity.SecondBackStyle, entity.Back, entity.BackStyle) = (entity.Back, entity.BackStyle, null, null);
             }
 
             // The new leg changes retention, light and the liquid barrier. On the target, since
@@ -1203,9 +1206,9 @@ public class SidingWallBlock : Block
         };
 
     // Faces are named by the direction they point - the only vocabulary that covers a cornerout's
-    // three finishable faces without inventing words for them. Both of its legs share one Back
-    // layer, so two directions carry the same finish; grouping by first appearance is what puts
-    // them on one line even with a SecondFront direction between them. A diagonal's two claimed
+    // four finishable faces without inventing words for them. Directions carrying the same finish
+    // share a line, grouped by first appearance, so a corner whose two backs match names them on
+    // one line even with a SecondFront direction between them (decision 0090). A diagonal's two claimed
     // faces are one front, so its four directions come out as two lines. An unfinished front
     // flush against a solid block (buried) cannot be seen, so it is left out (decision 0075).
     private static IEnumerable<string> DescribeFaces(
@@ -1232,7 +1235,7 @@ public class SidingWallBlock : Block
         {
             string secondSide = CorneroutSecondFace[side];
             directions.Add((secondSide, layout == "diagonal" ? builtFront : Installed(secondFront, finishes)));
-            directions.Add((Opposite(secondSide), builtBack));
+            directions.Add((Opposite(secondSide), layout == "diagonal" ? builtBack : Installed(secondBack, finishes)));
             fronts.Add(secondSide);
         }
 
@@ -1290,11 +1293,14 @@ public class SidingWallBlock : Block
 
     internal int AbsorptionOf(SidingWallEntity? entity)
         => ComputeLightAbsorption(entity?.Framing, entity?.Infill, Attributes["Framings"], Attributes["Infills"],
-            IsFinished(Variant["layout"], entity?.Front, entity?.SecondFront, entity?.Back));
+            IsFinished(Variant["layout"], entity?.Front, entity?.SecondFront, entity?.Back, entity?.SecondBack));
 
-    // Back covers the whole inner side; a cornerout's two outer faces are separate layers.
-    internal static bool IsFinished(string layout, string? front, string? secondFront, string? back)
-        => back != null || (front != null && (layout != "cornerout" || secondFront != null));
+    // A wall's back or front covers its whole side; a cornerout's two outer faces and its two inner faces are
+    // separate layers, so it takes both of either pair (decisions 0074, 0090).
+    internal static bool IsFinished(string layout, string? front, string? secondFront, string? back, string? secondBack)
+        => layout == "cornerout"
+            ? (back != null && secondBack != null) || (front != null && secondFront != null)
+            : back != null || front != null;
 
     // Sealing a room and blocking light are separate questions: glazing does the first and must
     // not do the second. An infill marked Transparent absorbs nothing, which also takes its cell
@@ -1543,7 +1549,7 @@ public class SidingWallBlock : Block
             else
             {
                 AddDrops(drops, key, Attributes[layer switch { "infill" or "deckinfill" => "Infills", "deck" => "Framings", _ => "Finishes" }],
-                    Variant["layout"] == "cornerin" && layer?.StartsWith("deck") != true);
+                    LayerParts(Variant["layout"], layer));
             }
             foreach (var stack in ResolveDrops(world, drops, dropQuantityMultiplier)) world.SpawnItemEntity(stack, pos);
 
@@ -1610,7 +1616,7 @@ public class SidingWallBlock : Block
         var drops = ComputeDrops(
             entity?.Framing, entity?.Infill, entity?.Front, entity?.SecondFront, entity?.Back, entity?.Deck,
             Attributes["Framings"], Attributes["Infills"], Attributes["Finishes"], entity?.Step,
-            entity?.DeckInfill, entity?.DeckFront, entity?.DeckBack, Variant["layout"] == "cornerin", entity?.SecondBack);
+            entity?.DeckInfill, entity?.DeckFront, entity?.DeckBack, Variant["layout"], entity?.SecondBack);
 
         // Nothing built yet - fall back to the base drops so HorizontalOrientable still
         // hands back the placed block.
@@ -1637,15 +1643,15 @@ public class SidingWallBlock : Block
     internal static List<BlockDropItemStack> ComputeDrops(
         string? framing, string? infill, string? front, string? secondFront, string? back, string? deck,
         JsonObject framings, JsonObject infills, JsonObject finishes, string? step = null,
-        string? deckInfill = null, string? deckFront = null, string? deckBack = null, bool post = false, string? secondBack = null)
+        string? deckInfill = null, string? deckFront = null, string? deckBack = null, string? layout = null, string? secondBack = null)
     {
         var drops = new List<BlockDropItemStack>();
-        AddDrops(drops, framing, framings, post);
+        AddDrops(drops, framing, framings, LayerParts(layout, "framing"));
         AddDrops(drops, infill, infills);
-        AddDrops(drops, front, finishes, post);
-        AddDrops(drops, secondFront, finishes, post);
-        AddDrops(drops, back, finishes, post);
-        AddDrops(drops, secondBack, finishes, post);
+        AddDrops(drops, front, finishes, LayerParts(layout, "front"));
+        AddDrops(drops, secondFront, finishes, LayerParts(layout, "secondfront"));
+        AddDrops(drops, back, finishes, LayerParts(layout, "back"));
+        AddDrops(drops, secondBack, finishes, LayerParts(layout, "secondback"));
         AddDrops(drops, deck, framings);
         AddDrops(drops, deckInfill, infills);
         AddDrops(drops, deckFront, finishes);
@@ -1655,7 +1661,7 @@ public class SidingWallBlock : Block
         return drops;
     }
 
-    internal static void AddDrops(List<BlockDropItemStack> drops, string? key, JsonObject dictionary, bool quarter = false)
+    internal static void AddDrops(List<BlockDropItemStack> drops, string? key, JsonObject dictionary, int parts = 1)
     {
         if (key == null) return;
         var entry = dictionary[key];
@@ -1664,7 +1670,7 @@ public class SidingWallBlock : Block
         foreach (var drop in entry["Drops"].AsObject(Array.Empty<BlockDropItemStack>()))
         {
             if (drop.Code == null) continue;
-            if (quarter) drop.Quantity = NatFloat.createUniform(PostQuarter((int)drop.Quantity.avg), 0);
+            if (parts > 1) drop.Quantity = NatFloat.createUniform(Share((int)drop.Quantity.avg, parts), 0);
             drops.Add(drop);
         }
     }
@@ -1703,10 +1709,10 @@ public class SidingWallBlock : Block
 
     // Reverse build order: the hit face's finish, then any finish, then infill; null leaves only
     // the frame. The deck or step is outermost on the room side, so a back or end hit takes it first,
-    // and otherwise it goes after the front finishes and before the back one.
+    // and otherwise it goes after the front finishes and before the backs.
     internal static string? PeelLayer(string? face, string? infill, string? front, string? secondFront, string? back, string? deck, string? step = null, string? secondBack = null)
     {
-        if ((deck != null || step != null) && face is null or "back") return deck != null ? "deck" : "step";
+        if ((deck != null || step != null) && face is null or "back" or "secondback") return deck != null ? "deck" : "step";
         string? hit = face switch { "front" => front, "secondfront" => secondFront, "back" => back, "secondback" => secondBack, _ => null };
         if (hit != null) return face;
         if (front != null) return "front";
@@ -1805,16 +1811,28 @@ public class SidingWallBlock : Block
 
     internal static int ConsumeQuantity(JsonObject consumes) => consumes["quantity"].AsInt(1);
 
-    // A post is a quarter of a wall's cross-section, so it costs and refunds a quarter of the full amount.
-    internal static int PostQuarter(int quantity) => Math.Max(1, (quantity + 3) / 4);
+    // A post is a quarter of a wall's cross-section and a corner's inner face about half a wall's run, so each
+    // costs and refunds that share of the full amount, rounded up (decisions 0082, 0090).
+    internal static int Share(int quantity, int parts) => Math.Max(1, (quantity + parts - 1) / parts);
 
-    internal static JsonObject PostConsumes(JsonObject consumes)
-        => new(new JObject { ["quantity"] = PostQuarter(ConsumeQuantity(consumes)) });
+    internal static int PostQuarter(int quantity) => Share(quantity, 4);
+
+    // How many parts of a wall's amount a layer costs and refunds one of; a deck is always laid in full.
+    internal static int LayerParts(string? layout, string? layer) => (layout, layer) switch
+    {
+        (_, not null) when layer.StartsWith("deck") => 1,
+        ("cornerin", _) => 4,
+        ("cornerout", "back" or "secondback") => 2,
+        _ => 1,
+    };
+
+    internal static JsonObject ShareConsumes(JsonObject consumes, int parts)
+        => new(new JObject { ["quantity"] = Share(ConsumeQuantity(consumes), parts) });
 
     // Which finish layer a build-flow click's clicked face targets - the hugged side is
     // "front", the opposite side is "back", an end/top/bottom face is neither. A cornerout's
-    // second leg has its own hugged-side layer, "secondfront", but still shares "back" with
-    // the first leg. A diagonal's second claimed face is the same "front": the panel has one outer face.
+    // second leg has its own layers on both sides, "secondfront" and "secondback" (decision 0090).
+    // A diagonal's second claimed face is the same "front": the panel has one outer face.
     internal static string? ResolveFinishFace(string layout, string side, BlockFacing clickedFace)
     {
         // A post's two fronts look away from the corner it fills, and its two backs into it (decision 0082).
@@ -1828,23 +1846,36 @@ public class SidingWallBlock : Block
         }
         if (FinishFaceFor(side, clickedFace, "front") is string face) return face;
         if (!ClaimsTwoFaces(layout)) return null;
-        return FinishFaceFor(CorneroutSecondFace[side], clickedFace, layout == "diagonal" ? "front" : "secondfront");
+        bool diagonal = layout == "diagonal";
+        return FinishFaceFor(CorneroutSecondFace[side], clickedFace, diagonal ? "front" : "secondfront", diagonal ? "back" : "secondback");
     }
 
-    // A click hosts furniture on a wall's open side, "back"; a post's open side is its cell, which either front faces.
+    // A click hosts furniture on a wall's open side, which a corner's two backs face; a post's open side is its cell, which either front faces.
     internal static bool HostsClick(string layout, string side, BlockFacing clickedFace)
-        => ResolveFinishFace(layout, side, clickedFace) is { } face && (layout == "cornerin" ? face is "front" or "secondfront" : face == "back");
+        => ResolveFinishFace(layout, side, clickedFace) is { } face && (layout == "cornerin" ? face is "front" or "secondfront" : face is "back" or "secondback");
 
     internal static string? FinishOn(SidingWallEntity entity, string face)
         => face switch { "front" => entity.Front, "secondfront" => entity.SecondFront, "secondback" => entity.SecondBack, _ => entity.Back };
 
+    internal static string? StyleOn(SidingWallEntity entity, string face)
+        => face switch { "front" => entity.FrontStyle, "secondfront" => entity.SecondFrontStyle, "secondback" => entity.SecondBackStyle, _ => entity.BackStyle };
+
+    // A finish that mirrors on corners, laid beside itself across a corner's edge, takes the turn its partner face has not, whatever
+    // is picked (decision 0090): boards draws the pattern a quarter turn, and hboards or no style draws it as it lies (decision 0086).
+    internal static string? MirroredStyle(string layout, string face, SidingWallEntity entity, JsonObject finishes, string finishKey)
+    {
+        string partner = face.StartsWith("second") ? face["second".Length..] : "second" + face;
+        if (layout != "cornerout" || !finishes[finishKey]["MirrorsOnCorners"].AsBool() || FinishOn(entity, partner) != finishKey) return null;
+        return StyleOn(entity, partner) == "boards" ? "hboards" : "boards";
+    }
+
     // The two faces a post stands against; it claims none, but a hosted block shifts away from both.
     internal static string[] PostFaces(string side) => [side, CorneroutSecondFace[side]];
 
-    private static string? FinishFaceFor(string side, BlockFacing clickedFace, string frontLayer)
+    private static string? FinishFaceFor(string side, BlockFacing clickedFace, string frontLayer, string backLayer = "back")
     {
         if (clickedFace.Code == side) return frontLayer;
-        if (clickedFace == BlockFacing.FromCode(side).Opposite) return "back";
+        if (clickedFace == BlockFacing.FromCode(side).Opposite) return backLayer;
         return null;
     }
 }

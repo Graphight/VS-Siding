@@ -1,6 +1,6 @@
 # Cornerout second front
 
-- Status: Accepted
+- Status: Accepted; the shared back and the parked corner strip superseded by 0090
 - Created: 2026-09-16
 - Reflects: planning session on `docs/plan-later-proposals`, reading `SidingWallBlock.ResolveFinishFace` and `shapes/block/wall/cornerout.json` as of 71c1d9c; graduated on branch `cornerout-second-front`
 
