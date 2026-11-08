@@ -48,6 +48,41 @@ public class ButcheringScenarios : AtlasScenarioBase
     }
 
     [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
+    public async Task WallHook_Should_HangUnderTheDeckOfItsCellAndLeaveTheDeckOnTheWallWhenBroken()
+    {
+        if (!ButcheringLoaded) return;
+
+        BlockPos cell = World.Spawn.Offset(1, 2, 0);
+        World.SetBlock("game:planks-aged-ud", cell.DownCopy());
+        ITestPlayer player = await WallBuilder.JoinBuilder(World);
+        try
+        {
+            await WallBuilder.Raise(World, player, cell, cell.WestCopy(), "game:plank-oak", "game:clay-blue");
+            player.Entity.WatchedAttributes.SetString("vssidingDeck", "deck");
+            await player.GiveItem("game:plank-oak", 2);
+            var sideSel = new BlockSelection { Position = cell.Copy(), Face = BlockFacing.EAST, HitPosition = new Vec3d(1, 0.5, 0.5) };
+            Assert.True(World.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, sideSel));
+            var deck = ("oak", (string?)null, (string?)null, (string?)null);
+            Assert.Equal(deck, WallBuilder.DeckLayers(World, cell));
+
+            World.SetBlock("butchering:butcherhook-iron-west", cell);
+            Type modSystem = World.Api.ModLoader.GetModSystem("VSSiding.SidingModSystem").GetType();
+            var shift = (double)modSystem.GetMethod("HangShiftAt", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public)!
+                .Invoke(null, new object[] { cell, World.BlockAt(cell) })!;
+            var hosted = WallBuilder.GuestDeckLayers(World, cell);
+
+            World.Api.World.BlockAccessor.BreakBlock(cell, player.Player);
+
+            Assert.Equal((-0.25, deck, deck), (shift, hosted, WallBuilder.DeckLayers(World, cell)));
+        }
+        finally
+        {
+            player.Player.Disconnect();
+            await World.Until(() => !player.IsConnected);
+        }
+    }
+
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task CeilingHook_Should_RiseToTheUndersideOfADeckedWall()
     {
         if (!ButcheringLoaded) return;

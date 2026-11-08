@@ -33,6 +33,18 @@ public class SidingWallBlockDropsTests
         drops.ConvertAll(d => d.Code!.ToString()).ToArray();
 
     [Fact]
+    public void DropsOfCarriesEveryDeckLayer()
+    {
+        var wall = new SidingWallBlock
+        {
+            Attributes = new JsonObject(JToken.Parse("""{ "Framings": { "oak": { "Drops": [ { "type": "item", "code": "game:plank-oak" } ] } }, "Infills": { "wattle": { "Drops": [ { "type": "item", "code": "game:stick" } ] } }, "Finishes": { "daub": { "Drops": [ { "type": "item", "code": "game:clay-blue" } ] }, "brick": { "Drops": [ { "type": "item", "code": "game:burnedbrick-red" } ] } } }""")),
+        };
+        wall.VariantStrict["layout"] = "wall";
+        var entity = new SidingWallEntity { Deck = "oak", DeckInfill = "wattle", DeckFront = "daub", DeckBack = "brick" };
+        Assert.Equal(new[] { "game:plank-oak", "game:stick", "game:clay-blue", "game:burnedbrick-red" }, Codes(wall.DropsOf(entity)));
+    }
+
+    [Fact]
     public void NoPartsBuiltDropsNothing()
     {
         var drops = SidingWallBlock.ComputeDrops(null, null, null, null, null, null, Framings, Infills, Finishes);

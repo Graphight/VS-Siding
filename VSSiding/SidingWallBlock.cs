@@ -511,8 +511,9 @@ public class SidingWallBlock : Block
     // wall's own cell, where vanilla would put it in the cell in front. The client only reports the
     // interaction handled - TryPlaceBlock must run once, on the server, or the client would place
     // the held block into the front cell itself before the server ever gets to swap the wall out.
-    internal static string? OpenPartRefusal(SidingWallEntity? entity)
-        => entity?.Deck != null ? "vssiding-decked" : entity?.Step != null ? "vssiding-stepped" : null;
+    // A block that stands against a wall face or hangs may take a decked cell and sits under the deck (decision 0092); a step takes nothing.
+    internal static string? OpenPartRefusal(SidingWallEntity? entity, bool underDeck = false)
+        => entity?.Deck != null && !underDeck ? "vssiding-decked" : entity?.Step != null ? "vssiding-stepped" : null;
 
     private bool TryHost(IWorldAccessor world, IPlayer byPlayer, BlockSelection blockSel)
     {
@@ -525,7 +526,7 @@ public class SidingWallBlock : Block
         // which hands the click to vanilla and hosts anyway. Other ways in drop it
         // (HostChangePrefix).
         var hostEntity = world.BlockAccessor.GetBlockEntity<SidingWallEntity>(blockSel.Position);
-        if (OpenPartRefusal(hostEntity) is { } refusal)
+        if (OpenPartRefusal(hostEntity, SidingModSystem.IsUnderDeckId(heldBlock.BlockId)) is { } refusal)
         {
             string kind = refusal["vssiding-".Length..];
             (byPlayer as IServerPlayer)?.SendIngameError("vssiding:" + kind, Lang.Get("vssiding:build-" + kind));
@@ -1620,11 +1621,7 @@ public class SidingWallBlock : Block
 
     public override ItemStack[] GetDrops(IWorldAccessor world, BlockPos pos, IPlayer byPlayer, float dropQuantityMultiplier)
     {
-        var entity = world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos);
-        var drops = ComputeDrops(
-            entity?.Framing, entity?.Infill, entity?.Front, entity?.SecondFront, entity?.Back, entity?.Deck,
-            Attributes["Framings"], Attributes["Infills"], Attributes["Finishes"], entity?.Step,
-            entity?.DeckInfill, entity?.DeckFront, entity?.DeckBack, Variant["layout"], entity?.SecondBack);
+        var drops = DropsOf(world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos));
 
         // Nothing built yet - fall back to the base drops so HorizontalOrientable still
         // hands back the placed block.
@@ -1632,6 +1629,11 @@ public class SidingWallBlock : Block
 
         return ResolveDrops(world, drops, dropQuantityMultiplier);
     }
+
+    internal List<BlockDropItemStack> DropsOf(SidingWallEntity? entity) => ComputeDrops(
+        entity?.Framing, entity?.Infill, entity?.Front, entity?.SecondFront, entity?.Back, entity?.Deck,
+        Attributes["Framings"], Attributes["Infills"], Attributes["Finishes"], entity?.Step,
+        entity?.DeckInfill, entity?.DeckFront, entity?.DeckBack, Variant["layout"], entity?.SecondBack);
 
     internal ItemStack[] ResolveDrops(IWorldAccessor world, List<BlockDropItemStack> drops, float dropQuantityMultiplier)
         => ResolveDrops(world, drops, dropQuantityMultiplier, Code);

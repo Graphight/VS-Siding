@@ -33,6 +33,14 @@ public class SidingWallBlockRetentionTests
     }
 
     [Fact]
+    public void UnderDeckBlockTakesADeckButNeverAStep()
+    {
+        Assert.Null(SidingWallBlock.OpenPartRefusal(new SidingWallEntity { Deck = "oak" }, underDeck: true));
+        Assert.Equal("vssiding-stepped", SidingWallBlock.OpenPartRefusal(new SidingWallEntity { Step = "game:plankstairs-oak-up-north-free" }, underDeck: true));
+        Assert.Equal("vssiding-decked", SidingWallBlock.OpenPartRefusal(new SidingWallEntity { Deck = "oak" }, underDeck: false));
+    }
+
+    [Fact]
     public void NotClaimedIsZeroEvenWhenBothBuilt()
     {
         Assert.Equal(0, SidingWallBlock.ComputeRetention(false, "oak", "wattle", Framings, Infills));

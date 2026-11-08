@@ -52,6 +52,16 @@ internal static class WallBuilder
         return guest == null ? null : LayersOf(guest);
     }
 
+    // The same four deck layers read off the guest store's record; null when the cell holds no guest.
+    internal static (string? Deck, string? Infill, string? Front, string? Back)? GuestDeckLayers(IWorldSession world, BlockPos cell)
+    {
+        Type guestWalls = world.Api.ModLoader.GetModSystem("VSSiding.SidingModSystem").GetType().Assembly.GetType("VSSiding.GuestWalls")!;
+        var guest = (BlockEntity?)guestWalls.GetMethod("GuestAt", new[] { typeof(ICoreAPI), typeof(BlockPos) })!.Invoke(null, new object[] { world.Api, cell });
+        if (guest == null) return null;
+        var read = Reader(guest);
+        return (read("deck"), read("deckinfill"), read("deckfront"), read("deckback"));
+    }
+
     // deck, deckinfill, deckfront, deckback as the wall's entity saves them.
     internal static (string? Deck, string? Infill, string? Front, string? Back) DeckLayers(IWorldSession world, BlockPos cell)
     {

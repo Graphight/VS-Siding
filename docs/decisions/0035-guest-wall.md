@@ -1,6 +1,6 @@
 # 0035 — Guest wall
 
-- Status: Accepted
+- Status: Accepted; a decked cell now hosts wall-hung and hung blocks, see 0092
 - Created: 2026-09-20
 - Reflects: branch `furniture-against-thin-walls` (PR #41); vanilla 1.22 decompiled source
 

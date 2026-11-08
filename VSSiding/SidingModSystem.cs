@@ -1077,9 +1077,9 @@ public class SidingModSystem : ModSystem
     // side variant, so ordinary multiblocks pass untouched.
     // IsReplacableBy lets any hostable block take a wall's cell but has no position to see a deck
     // or step, so the placement check refuses it here. Positional arguments, since overrides rename them.
-    internal static void DeckedCellPostfix(IWorldAccessor __0, BlockSelection __2, ref string __3, ref bool __result)
+    internal static void DeckedCellPostfix(Block __instance, IWorldAccessor __0, BlockSelection __2, ref string __3, ref bool __result)
     {
-        if (!__result || SidingWallBlock.OpenPartRefusal(__0.BlockAccessor.GetBlockEntity<SidingWallEntity>(__2.Position)) is not { } refusal) return;
+        if (!__result || SidingWallBlock.OpenPartRefusal(__0.BlockAccessor.GetBlockEntity<SidingWallEntity>(__2.Position), IsUnderDeckId(__instance.BlockId)) is not { } refusal) return;
         __result = false;
         __3 = refusal;
     }
@@ -1289,9 +1289,10 @@ public class SidingModSystem : ModSystem
             if (__instance.GetLocalBlockEntityAtBlockPos(pos) is SidingWallEntity wall
                 && IsHostableId(world.BlockAccessor.GetBlock(pos, BlockLayersAccess.Solid).BlockId))
             {
-                // A guest record has no deck or step. TryHost and DeckedCellPostfix refuse every
-                // placement path we know of; anything else that gets here drops it rather than losing it.
-                if ((wall.Deck != null || wall.Step != null) && wall.Block is SidingWallBlock decked)
+                // A step, or a deck under a block that is not under-deck, is never kept. TryHost and DeckedCellPostfix
+                // refuse every placement path we know of; anything else that gets here drops it rather than losing it.
+                bool underDeck = IsUnderDeckId(world.BlockAccessor.GetBlock(pos, BlockLayersAccess.Solid).BlockId);
+                if ((wall.Step != null || (wall.Deck != null && !underDeck)) && wall.Block is SidingWallBlock decked)
                 {
                     var openPartDrops = SidingWallBlock.ComputeDrops(
                         null, null, null, null, null, wall.Deck,
@@ -1329,10 +1330,7 @@ public class SidingModSystem : ModSystem
             case HostChange.Drop:
                 if (guest.Block is SidingWallBlock guestWall)
                 {
-                    var drops = SidingWallBlock.ComputeDrops(
-                        guest.Framing, guest.Infill, guest.Front, guest.SecondFront, guest.Back, guest.Deck,
-                        guestWall.Attributes["Framings"], guestWall.Attributes["Infills"], guestWall.Attributes["Finishes"], guest.Step, layout: guestWall.Variant["layout"], secondBack: guest.SecondBack);
-                    foreach (var stack in guestWall.ResolveDrops(world, drops, 1f)) world.SpawnItemEntity(stack, pos);
+                    foreach (var stack in guestWall.ResolveDrops(world, guestWall.DropsOf(guest), 1f)) world.SpawnItemEntity(stack, pos);
                 }
                 GuestWalls.Set(world, __instance, pos, null);
                 break;
