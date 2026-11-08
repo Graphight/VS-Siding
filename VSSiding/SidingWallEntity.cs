@@ -133,10 +133,11 @@ public class SidingWallEntity : BlockEntity
             Block.Variant["layout"], Block.Variant["side"], Front, SecondFront, Back, Block.Attributes["Finishes"],
             SidingWallBlock.LangEntry, stepName, DeckInfill, DeckFront, DeckBack,
             SidingWallBlock.HasBuildSignal(forPlayer), Api != null && Pos != null ? Buried : null, SecondBack));
-        if (Infill == null)
-            SidingWallBlock.AppendFillHint(dsc, forPlayer, Block.Variant["layout"], Block.Attributes["Framings"], Block.Attributes["Infills"]);
-        else if (Deck != null && DeckInfill == null)
+        // A bare deck answers a click on the top, so its hint wins over the wall's.
+        if (Deck != null && DeckInfill == null)
             SidingWallBlock.AppendFillHint(dsc, forPlayer, "floor", Block.Attributes["Framings"], Block.Attributes["Infills"]);
+        else if (Infill == null)
+            SidingWallBlock.AppendFillHint(dsc, forPlayer, Block.Variant["layout"], Block.Attributes["Framings"], Block.Attributes["Infills"]);
     }
 
     private bool Buried(string direction)
