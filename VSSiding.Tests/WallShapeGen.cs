@@ -1155,8 +1155,8 @@ public static class WallShapeGen
         new("infill", (0, 13.5, 1), (16, 14.5, 15), "infill", UvRule.Flat, RunAxis: 'z'),
         new("infill-bottom", (0, 13.5, 15), (16, 14.5, 16), "infill", UvRule.Flat, RunAxis: 'z'),
         // Joined floors make one pole of their two halves over the seam.
-        .. new[] { ("stems-top", 0.0, 1.0), ("stems", 1.0, 15.0), ("stems-bottom", 15.0, 16.0) }
-            .SelectMany(band => Stems(band.Item1, band.Item2, band.Item3, 0, 16).Select(OnFloor)),
+        .. new (string Name, double Lo, double Hi)[] { ("stems-top", 0, 1), ("stems", 1, 15), ("stems-bottom", 15, 16) }
+            .SelectMany(band => Stems(band.Name, band.Lo, band.Hi, 0, 16).Select(OnFloor)),
         new("back", (0, 12, 0), (16, 13, 16), "back", UvRule.Flat),
         new("infill-pane", (0, 14, 0), (16, 14, 16), "infill", UvRule.Flat, Faces: ["up", "down"]),
         // The wall's glazing frame laid flat, with no joists: stiles on the west and east edges, rails

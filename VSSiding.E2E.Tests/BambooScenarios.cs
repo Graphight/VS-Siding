@@ -39,8 +39,7 @@ public class BambooScenarios : AtlasScenarioBase
     public async Task Posts_Should_CarryABambooFloorAsStilts_When_AFloorRunReachesTheTopPost()
     {
         BlockPos bottom = World.Spawn.Offset(1, 2, 0);
-        World.SetBlock("game:planks-aged-ud", bottom.DownCopy());
-        ITestPlayer player = await WallBuilder.JoinBuilder(World, "game:stone-granite");
+        ITestPlayer player = await BuilderOnPlanks(bottom);
         await player.TeleportTo(bottom.WestCopy(2));
         player.Entity.Pos.Yaw = 0;
         player.Entity.Pos.Pitch = 0;
@@ -73,8 +72,7 @@ public class BambooScenarios : AtlasScenarioBase
     public async Task Post_Should_LayAFloorBesideIt_When_StakesClickItsSideWithFloorPickedAndTheDeckLit()
     {
         BlockPos post = World.Spawn.Offset(1, 2, 0);
-        World.SetBlock("game:planks-aged-ud", post.DownCopy());
-        ITestPlayer player = await WallBuilder.JoinBuilder(World, "game:stone-granite");
+        ITestPlayer player = await BuilderOnPlanks(post);
         await player.TeleportTo(post.WestCopy());
         player.Entity.WatchedAttributes.SetString("vssidingFraming", "post");
         await WallBuilder.Press(World, player, post.DownCopy(), "game:bamboostakes", BlockFacing.UP, new Vec3d(0.2, 1, 0.8));
@@ -102,9 +100,15 @@ public class BambooScenarios : AtlasScenarioBase
     private async Task<(BlockPos Cell, ITestPlayer Player)> RaiseBareFrame()
     {
         BlockPos cell = World.Spawn.Offset(1, 2, 0);
-        World.SetBlock("game:planks-aged-ud", cell.DownCopy());
-        ITestPlayer player = await WallBuilder.JoinBuilder(World, "game:stone-granite");
+        ITestPlayer player = await BuilderOnPlanks(cell);
         await WallBuilder.Raise(World, player, cell, cell.WestCopy(), "game:bamboostakes", null);
         return (cell, player);
+    }
+
+    // Planks under the cell to build on, and a builder with a stone, not a saw, in the off hand.
+    private async Task<ITestPlayer> BuilderOnPlanks(BlockPos cell)
+    {
+        World.SetBlock("game:planks-aged-ud", cell.DownCopy());
+        return await WallBuilder.JoinBuilder(World, "game:stone-granite");
     }
 }
