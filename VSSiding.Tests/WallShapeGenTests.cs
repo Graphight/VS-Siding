@@ -382,9 +382,13 @@ public class WallShapeGenTests
             ["wall bare frame"] = 24,
             ["wall pole frame"] = 144,
             ["wall second pole frame"] = 144,
+            ["wall bamboo frame"] = 228,
+            ["wall second bamboo frame"] = 208,
             ["floor bare frame"] = 66,
             ["floor pole frame"] = 240,
             ["floor second pole frame"] = 240,
+            ["floor bamboo frame"] = 398,
+            ["floor second bamboo frame"] = 398,
             // Bamboo poles, a plain frame round them: seven poles of core, two ridges and four nodes, faces shared between
             // touching poles and against a core pruned, 240 quads; a corner's legs take six apiece, a floor its seven.
             ["wall bamboo poles"] = 264,
@@ -414,6 +418,8 @@ public class WallShapeGenTests
             ["cornerout bare frame"] = 42,
             ["cornerout pole frame"] = 158,
             ["cornerout second pole frame"] = 158,
+            ["cornerout bamboo frame"] = 370,
+            ["cornerout second bamboo frame"] = 350,
             ["cornerout wattle"] = 54,
             ["cornerout wattle, mid-stack"] = 54,
             // A corner's leg 1 and leg 2 backs are separate groups, so the seam between them no longer buries two faces (decision 0090).
@@ -498,7 +504,7 @@ public class WallShapeGenTests
                 actual[$"{layout} {state}"] = names.Sum(n => quads[n]);
             }
 
-            foreach (var (state, frame) in new[] { ("pole frame", "poles"), ("second pole frame", "poles2") })
+            foreach (var (state, frame) in new[] { ("pole frame", "poles"), ("second pole frame", "poles2"), ("bamboo frame", "bamboo"), ("second bamboo frame", "bamboo2") })
             {
                 actual[$"{layout} {state}"] = SidingWallEntity.SelectiveElements(
                     layout, "sticks", null, null, null, null, finishes, (false, false, false, false), false, frame: frame)
@@ -511,7 +517,7 @@ public class WallShapeGenTests
         }
 
         var floorQuads = Quads("floor");
-        foreach (var (state, framing, frame) in new[] { ("bare frame", "oak", "framing"), ("pole frame", "sticks", "poles"), ("second pole frame", "sticks", "poles2") })
+        foreach (var (state, framing, frame) in new[] { ("bare frame", "oak", "framing"), ("pole frame", "sticks", "poles"), ("second pole frame", "sticks", "poles2"), ("bamboo frame", "bamboo", "bamboo"), ("second bamboo frame", "bamboo", "bamboo2") })
         {
             actual[$"floor {state}"] = SidingFloorEntity.SelectiveElements(
                 framing, null, null, null, finishes, (false, false, false, false), frame: frame)

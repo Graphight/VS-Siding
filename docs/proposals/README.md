@@ -8,8 +8,6 @@ An idea that's been thought through but not acted on. Mutable: edit freely, argu
 
 ## Open
 
-- `bamboo-frames`: a bamboo frame draws the stick frame's crooked poles in a bamboo texture (0088), and a bamboo diagonal and post draw the plain frame.
-The proposal gives bamboo straight poles with node rings on every pole, in two patterns by cell parity, on walls, corners, floors, decks, diagonals and posts, a bare post being one fat ringed pole.
 - `tile-finishes`: a player asked for ceramic tiles as a finish.
 The proposal lays vanilla's fired tiles one at a time, four slots to a face cut on the cell's grid, any colour in each, on walls, corners, floors and decks.
 Decision 0075 (issue #108) changed which face a finish click lands on, and a tile follows it: a click on a finished face puts the finish on the face behind it while that face is bare.

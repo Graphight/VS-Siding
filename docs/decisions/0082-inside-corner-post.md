@@ -1,6 +1,6 @@
 # 0082 — Inside corner post
 
-- Status: Accepted
+- Status: Accepted; a bare bamboo post's flat faces superseded by 0092
 - Created: 2026-11-01
 - Reflects: branch `inside-corner-post`; `blocktypes/wall.json`'s `cornerin` layout, `shapes/block/wall/cornerin.json`, `SidingWallBlock.PostQuarter`/`PostConsumes`/`PostFaces`/`HostsClick`, `PlaceWallFrame.PostSide`, `SidingModePicker`'s `post` mode, `VSSiding.Tests/WallShapeGen` (`PostDeckStrips`), `VSSiding.E2E.Tests/PostScenarios.cs`; decisions 0002, 0035, 0042, 0053, 0066, 0069, 0071; the mod page comments listed in the retired `inside-corner-post` proposal (#cmt-243545, #cmt-243968, #cmt-243661, #cmt-244456, #cmt-245074, #cmt-245199, #cmt-245197, #cmt-249019); played in creative on 2026-11-02
 
