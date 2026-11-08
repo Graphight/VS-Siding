@@ -570,7 +570,7 @@ public class SidingWallBlock : Block
 
         // With floor picked, planks frame a floor beside the wall (PlaceWallFrame) rather than work on it.
         // A filled deck's top or underside still takes them as floorboards or a ceiling, as a floor's does,
-        // and sticks still fill the bare wall or deck they hit (MatchFraming).
+        // and sticks still fill the bare wall or deck face they hit (MatchFraming, FramesOnFrom).
         bool deckHit = entity != null && IsDeckHit(world.BlockAccessor, blockSel, entity);
         bool hitFilled = deckHit ? entity!.DeckInfill != null : entity != null && FramesAsFilled(entity);
         if (SidingModePicker.Layout(byPlayer) == "floor" && MatchFraming(heldCode, hitFilled, Attributes["Framings"], Attributes["Infills"]) != null
@@ -651,6 +651,8 @@ public class SidingWallBlock : Block
 
             string? infillKey = MatchConsumes(heldCode, Attributes["Infills"]);
             if (infillKey == null) return base.OnBlockInteractStart(world, byPlayer, blockSel);
+            if (FramesOnFrom(heldCode, ResolveFinishFace(Variant["layout"], Variant["side"], blockSel.Face) != null, Attributes["Framings"]))
+                return base.OnBlockInteractStart(world, byPlayer, blockSel);
 
             // The full slab, not the open frame's collision: infill would seal in anyone standing in it.
             var occupants = world.GetIntersectingEntities(blockSel.Position, base.GetCollisionBoxes(world.BlockAccessor, blockSel.Position), e => e.IsInteractable);
@@ -794,7 +796,7 @@ public class SidingWallBlock : Block
     }
 
     // The deck takes layers the way a floor does (SidingFloorBlock.OnBlockInteractStart): infill on any
-    // face, then a finish on the top or the underside. Anything unclaimed falls through, so planks on a
+    // face, a frame-and-fill item's on the top or underside only, then a finish on the top or the underside. Anything unclaimed falls through, so planks on a
     // bare deck's top still reach PlaceWallFrame.
     private bool LayerDeck(
         IWorldAccessor world, IPlayer byPlayer, BlockSelection blockSel, SidingWallEntity entity,
@@ -804,6 +806,8 @@ public class SidingWallBlock : Block
         {
             string? infillKey = MatchConsumes(heldCode, Attributes["Infills"]);
             if (infillKey == null) return base.OnBlockInteractStart(world, byPlayer, blockSel);
+            if (FramesOnFrom(heldCode, SidingFloorBlock.FinishFace(blockSel.Face) != null, Attributes["Framings"]))
+                return base.OnBlockInteractStart(world, byPlayer, blockSel);
 
             var consumes = Attributes["Infills"][infillKey]["Consumes"];
             if (!TryAffordOrError(byPlayer, isCreative, slot.StackSize, consumes)) return true;
@@ -1732,6 +1736,27 @@ public class SidingWallBlock : Block
     // decking or cornering it; a filled wall has no infill left to take, so there it frames.
     internal static string? MatchFraming(AssetLocation heldCode, bool filled, JsonObject framings, JsonObject infills)
         => !filled && MatchConsumes(heldCode, infills) != null ? null : MatchConsumes(heldCode, framings);
+
+    // A frame-and-fill item fills a bare cell only from a face that takes a finish; any other face frames on (decision 0089).
+    internal static bool FramesOnFrom(AssetLocation heldCode, bool finishFace, JsonObject framings)
+        => !finishFace && MatchConsumes(heldCode, framings) != null;
+
+    // The lang key for the line telling which faces fill a bare frame and which frame on, for an item that does both (decision 0089).
+    internal static string? FillHintKey(string layout, AssetLocation? held, JsonObject framings, JsonObject infills)
+        => held == null || MatchConsumes(held, framings) == null || MatchConsumes(held, infills) == null ? null : layout switch
+        {
+            "wall" => "vssiding:tooltip-fill-hint-wall",
+            "cornerout" or "diagonal" => "vssiding:tooltip-fill-hint-corner",
+            "floor" => "vssiding:tooltip-fill-hint-floor",
+            _ => null
+        };
+
+    internal static void AppendFillHint(StringBuilder dsc, IPlayer forPlayer, string layout, JsonObject framings, JsonObject infills)
+    {
+        if (!HasBuildSignal(forPlayer)) return;
+        string? key = FillHintKey(layout, forPlayer.InventoryManager.ActiveHotbarSlot?.Itemstack?.Collectible.Code, framings, infills);
+        if (key != null) dsc.AppendLine("  " + Translate(key, LangEntry));
+    }
 
     // Finds the material dictionary entry whose Consumes.code matches the held item, so a
     // build-flow behavior can turn "the player right-clicked with plank-oak" into "oak". An entry

@@ -132,6 +132,13 @@ public class SidingWallBlockBuildFlowTests
             });
     }
 
+    private static readonly JsonObject StickFramings = Dict("""
+    {
+        "oak": { "Consumes": { "type": "item", "code": "game:plank-oak", "quantity": 2 } },
+        "sticks": { "Consumes": { "type": "item", "code": "game:stick", "quantity": 4 } }
+    }
+    """);
+
     private static readonly JsonObject Infills = Dict("""
     {
         "wattle": { "Consumes": { "type": "item", "code": "game:stick", "quantity": 4 } }
@@ -159,14 +166,31 @@ public class SidingWallBlockBuildFlowTests
     [InlineData("game:plank-oak", true, "oak")]
     public void AnItemThatIsAlsoAnInfillFramesOnlyAFilledWall(string held, bool filled, string? expected)
     {
-        JsonObject framings = Dict("""
-        {
-            "oak": { "Consumes": { "type": "item", "code": "game:plank-oak", "quantity": 2 } },
-            "sticks": { "Consumes": { "type": "item", "code": "game:stick", "quantity": 4 } }
-        }
-        """);
+        Assert.Equal(expected, SidingWallBlock.MatchFraming(new AssetLocation(held), filled, StickFramings, Infills));
+    }
 
-        Assert.Equal(expected, SidingWallBlock.MatchFraming(new AssetLocation(held), filled, framings, Infills));
+    [Theory]
+    [InlineData("game:stick", false, true)]
+    [InlineData("game:stick", true, false)]
+    [InlineData("game:clay-blue", false, false)]
+    [InlineData("game:plank-oak", false, true)]
+    public void AFrameAndFillItemFramesOnFromAFaceThatTakesNoFinish(string held, bool finishFace, bool expected)
+    {
+        Assert.Equal(expected, SidingWallBlock.FramesOnFrom(new AssetLocation(held), finishFace, StickFramings));
+    }
+
+    [Theory]
+    [InlineData("wall", "game:stick", "vssiding:tooltip-fill-hint-wall")]
+    [InlineData("cornerout", "game:stick", "vssiding:tooltip-fill-hint-corner")]
+    [InlineData("diagonal", "game:stick", "vssiding:tooltip-fill-hint-corner")]
+    [InlineData("floor", "game:stick", "vssiding:tooltip-fill-hint-floor")]
+    [InlineData("cornerin", "game:stick", null)]
+    [InlineData("wall", "game:plank-oak", null)]
+    [InlineData("wall", "game:clay-blue", null)]
+    [InlineData("wall", null, null)]
+    public void FillHintKeyNamesTheRuleForAFrameAndFillItemOnly(string layout, string? held, string? expected)
+    {
+        Assert.Equal(expected, SidingWallBlock.FillHintKey(layout, held == null ? null : new AssetLocation(held), StickFramings, Infills));
     }
 
     private static readonly JsonObject Finishes = Dict("""

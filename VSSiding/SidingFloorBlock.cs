@@ -30,8 +30,9 @@ public class SidingFloorBlock : Block
     // True keeps a held click one interaction, as on a wall (decision 0075).
     public override bool OnBlockInteractStep(float secondsUsed, IWorldAccessor world, IPlayer byPlayer, BlockSelection blockSel) => true;
 
-    // The wall's build flow laid flat: infill on any face of a framed floor, then a finish on the
-    // top or the underside. Anything unclaimed falls through, so planks still extend the run (PlaceWallFrame).
+    // The wall's build flow laid flat: infill on any face of a framed floor (a frame-and-fill item's on the top or
+    // underside only), then a finish on the top or the underside. Anything unclaimed falls through, so planks still
+    // extend the run (PlaceWallFrame).
     public override bool OnBlockInteractStart(IWorldAccessor world, IPlayer byPlayer, BlockSelection blockSel)
     {
         if (!SidingWallBlock.HasBuildSignal(byPlayer)) return base.OnBlockInteractStart(world, byPlayer, blockSel);
@@ -47,6 +48,8 @@ public class SidingFloorBlock : Block
         {
             string? infillKey = SidingWallBlock.MatchConsumes(heldCode, Attributes["Infills"]);
             if (infillKey == null) return base.OnBlockInteractStart(world, byPlayer, blockSel);
+            if (SidingWallBlock.FramesOnFrom(heldCode, FinishFace(blockSel.Face) != null, Attributes["Framings"]))
+                return base.OnBlockInteractStart(world, byPlayer, blockSel);
 
             var consumes = Attributes["Infills"][infillKey]["Consumes"];
             if (!SidingWallBlock.TryAffordOrError(byPlayer, isCreative, slot.StackSize, consumes)) return true;

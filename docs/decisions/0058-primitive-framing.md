@@ -1,6 +1,6 @@
 # 0058 — Primitive framing
 
-- Status: Accepted
+- Status: Accepted; a plain stick click on a bare frame always filling it superseded by 0089
 - Created: 2026-09-30
 - Reflects: mod page comments https://mods.vintagestory.at/vssiding#cmt-242349 and #cmt-242478; One-Roof 1.12.0's assets; branch `feat/primitive-framing`; `SidingWallBlock.HasBuildSignal`/`IsBuildSignal`/`MatchFraming`, `PlaceWallFrame`, `SidingFloorBlock.OnBlockInteractStart`, `config/materials.json`, `patches/stone-offhand.json`, `patches/stick-frame-behavior.json`; `RoomScenarios`; vanilla 1.22 `stone.json`, `stick.json` and `CollectibleBehaviorGroundStorable` (decompiled); decisions 0001, 0005, 0006, 0026, 0050; split on 2026-10-04 into this, `primitive-earth-layers` and `tent-walls`; unit and end-to-end tests pass; played on 2026-10-05
 
