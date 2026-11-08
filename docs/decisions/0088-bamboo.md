@@ -1,8 +1,8 @@
-# 0087 — Bamboo
+# 0088 — Bamboo
 
 - Status: Accepted
 - Created: 2026-11-07
-- Reflects: issue #136 and mod page comment https://mods.vintagestory.at/vssiding#cmt-251694; branch `136-bamboo`, PR #152 and its playtest; `config/materials.json` (`bamboo`, `bamboopoles`), `patches/bamboo-frame-behavior.json`, `SidingWallBlock.FramesAsFilled`/`MatchFraming`/`CanTakeDeck`/`TryAddDeck`, `SidingWallEntity.InfillElements`/`SelectiveElements`/`DeckElements`, `SidingFloorEntity.SelectiveElements`, `WallShapeGen.Stems`/`StemBands`/`DiagonalStems`/`OnFloor` and the shapes it writes (`wall`, `cornerout`, `diagonal`, `floor`), `lang/en.json`; `VSSiding.E2E.Tests/BambooScenarios.cs`, `SidingWallBlockRetentionTests`, `WallShapeGenTests`, `FinishElementGroupsTests`, `SidingWallEntityTests`, `SidingFloorTests`, `SidingWallTexSourceTests`; vanilla 1.22 `bamboostakes.json`, `stackedbamboo.json`, `recipes/grid/stackedbamboo.json` and the textures `block/wood/planks/bamboo-side`, `block/plant/bamboo/bamboowoven`, `stem-brown`, `stem-green`; decisions 0021, 0043, 0058, 0060, 0061, 0066, 0074, 0082, 0083, 0084; unit and end-to-end tests pass
+- Reflects: issue #136 and mod page comment https://mods.vintagestory.at/vssiding#cmt-251694; branch `136-bamboo`, PR #152 and its playtest; `config/materials.json` (`bamboo`, `bamboopoles`), `patches/bamboo-frame-behavior.json`, `SidingWallBlock.FramesAsFilled`/`MatchFraming`/`CanTakeDeck`/`TryAddDeck`, `SidingWallEntity.InfillElements`/`SelectiveElements`/`DeckElements`, `SidingFloorEntity.SelectiveElements`, `WallShapeGen.Stems`/`StemBands`/`DiagonalStems`/`OnFloor` and the shapes it writes (`wall`, `cornerout`, `diagonal`, `floor`), `lang/en.json`; `VSSiding.E2E.Tests/BambooScenarios.cs`, `SidingWallBlockRetentionTests`, `WallShapeGenTests`, `FinishElementGroupsTests`, `SidingWallEntityTests`, `SidingFloorTests`, `SidingWallTexSourceTests`; vanilla 1.22 `bamboostakes.json`, `stackedbamboo.json`, `recipes/grid/stackedbamboo.json` and the textures `block/wood/planks/bamboo-side`, `block/plant/bamboo/bamboowoven`, `stem-brown`, `stem-green`; decisions 0021, 0043, 0058, 0060, 0061, 0066, 0074, 0082, 0083, 0084; unit and end-to-end tests pass; played on 2026-11-07 and 2026-11-08
 
 ## Summary
 A player asked for bamboo, "to hold a house above a swamp".
@@ -84,4 +84,4 @@ The Floor-mode guard keeps stakes in step with planks there: with Floor picked a
 - A pole wall cell hands the tesselator 264 quads against a wattle wall's 30, a `cornerout` 454 and a floor 306 (`EachBuiltCellHandsTheTesselatorThisManyQuads`).
 - Every deck and ledge copy carries the poles too, so the five generated shape files grew from 9.1 MB to 11.3 MB; each is parsed once and kept (`ParsedShape`).
 - Any later infill can name its own groups with `Elements`; the groups have to be generated into every shape, which the infill test enforces.
-- The frame, decks, corners and posts were played in #152; the pole infill not yet.
+- The frame, decks, corners, posts, stilts and the pole infill were played in #152 and worked as designed.
