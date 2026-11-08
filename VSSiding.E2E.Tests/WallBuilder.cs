@@ -119,7 +119,7 @@ internal static class WallBuilder
         }
     }
 
-    // A one-cell room on a plank floor under a plank roof, walled with the framing on every side and the infill on the filled ones.
+    // A one-cell room with a floor and roof of `ground` (planks unless given), walled with the framing on every side and the infill on the filled ones.
     internal static async Task<(BlockPos Inside, ITestPlayer Player)> BuildRoom(
         IWorldSession world, string infill, BlockFacing[] filled, string framing = "game:plank-oak", int framingCost = 2, string offhand = "game:saw-copper", string ground = "game:planks-aged-ud")
     {

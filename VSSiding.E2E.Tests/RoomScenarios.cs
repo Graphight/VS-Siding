@@ -110,6 +110,7 @@ public class RoomScenarios : AtlasScenarioBase
     }
 
     // Room Climates reads rooms as adjacent when one's Location grown by 1 touches the other's (issue #137).
+    // B's walk takes in the shared wall's cell, whose open half faces it, so A grown by 1 overlaps B.
     [AtlasScenario(FreshWorld = true)]
     public async Task Rooms_Should_BeAdjacent_When_TheyShareOneWall()
     {
@@ -129,9 +130,9 @@ public class RoomScenarios : AtlasScenarioBase
         for (int dx = -1; dx <= 3; dx++)
             for (int dz = -1; dz <= 1; dz++)
                 World.SetBlock("game:planks-aged-ud", a.Offset(dx, 1, dz));
-        // Where the shared wall meets the side walls; left open, B leaks and A does not.
-        World.SetBlock("game:planks-aged-ud", a.Offset(1, 0, -1));
-        World.SetBlock("game:planks-aged-ud", a.Offset(1, 0, 1));
+        // The side runs carry on past the shared wall; without these, B leaks out through the shared wall's open half, which faces it.
+        await WallBuilder.Raise(World, player, a.Offset(1, 0, -1), a.EastCopy(), "game:plank-oak", "game:clay-blue");
+        await WallBuilder.Raise(World, player, a.Offset(1, 0, 1), a.EastCopy(), "game:plank-oak", "game:clay-blue");
 
         var registry = World.Api.ModLoader.GetModSystem<RoomRegistry>();
         Room roomA = registry.GetRoomForPosition(a);
