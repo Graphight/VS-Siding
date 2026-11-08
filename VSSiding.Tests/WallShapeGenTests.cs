@@ -416,13 +416,13 @@ public class WallShapeGenTests
             ["wall bare frame"] = 24,
             ["wall pole frame"] = 144,
             ["wall second pole frame"] = 144,
-            ["wall bamboo frame"] = 228,
-            ["wall second bamboo frame"] = 208,
+            ["wall bamboo frame"] = 168,
+            ["wall second bamboo frame"] = 168,
             ["floor bare frame"] = 66,
             ["floor pole frame"] = 240,
             ["floor second pole frame"] = 240,
-            ["floor bamboo frame"] = 398,
-            ["floor second bamboo frame"] = 398,
+            ["floor bamboo frame"] = 338,
+            ["floor second bamboo frame"] = 338,
             // Bamboo poles, a plain frame round them: seven poles of core, two ridges and four nodes, faces shared between
             // touching poles and against a core pruned, 240 quads; a corner's legs take six apiece, a floor its seven.
             ["wall bamboo poles"] = 264,
@@ -452,8 +452,8 @@ public class WallShapeGenTests
             ["cornerout bare frame"] = 42,
             ["cornerout pole frame"] = 158,
             ["cornerout second pole frame"] = 158,
-            ["cornerout bamboo frame"] = 370,
-            ["cornerout second bamboo frame"] = 350,
+            ["cornerout bamboo frame"] = 286,
+            ["cornerout second bamboo frame"] = 286,
             ["cornerout wattle"] = 54,
             ["cornerout wattle, mid-stack"] = 54,
             // A corner's leg 1 and leg 2 backs are separate groups, so the seam between them no longer buries two faces (decision 0090).
@@ -1219,9 +1219,18 @@ public class WallShapeGenTests
                 {
                     int[] across = [.. Enumerable.Range(0, 3).Where(axis => axis != depth)];
                     var cover = poles.Where(b => b.Lo[depth] < mid && b.Hi[depth] > mid).ToArray();
+                    // A bamboo pole steps in a quarter voxel on a narrow side lying on the cell's edge, so its rings can go
+                    // round it without reaching the next cell (decision 0092); there the member is covered from a quarter in.
+                    double[] l = [.. lo], h = [.. hi];
+                    if (prefix.StartsWith("bamboo"))
+                    {
+                        int side = across.MinBy(axis => h[axis] - l[axis]);
+                        if (l[side] == 0) l[side] += 0.25;
+                        if (h[side] == 16) h[side] -= 0.25;
+                    }
                     // The pole edges inside the member cut it into rectangles, each covered whole or open whole.
                     double[] Cuts(int axis) => cover.SelectMany(b => new[] { b.Lo[axis], b.Hi[axis] })
-                        .Where(c => c > lo[axis] && c < hi[axis]).Append(lo[axis]).Append(hi[axis]).Distinct().Order().ToArray();
+                        .Where(c => c > l[axis] && c < h[axis]).Append(l[axis]).Append(h[axis]).Distinct().Order().ToArray();
                     var (firsts, seconds) = (Cuts(across[0]), Cuts(across[1]));
                     for (int i = 0; i < firsts.Length - 1; i++)
                     {
