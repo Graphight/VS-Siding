@@ -572,7 +572,7 @@ public class SidingWallBlock : Block
         // A filled deck's top or underside still takes them as floorboards or a ceiling, as a floor's does,
         // and sticks still fill the bare wall or deck they hit (MatchFraming).
         bool deckHit = entity != null && IsDeckHit(world.BlockAccessor, blockSel, entity);
-        bool hitFilled = (deckHit ? entity!.DeckInfill : entity?.Infill) != null;
+        bool hitFilled = deckHit ? entity!.DeckInfill != null : entity != null && FramesAsFilled(entity);
         if (SidingModePicker.Layout(byPlayer) == "floor" && MatchFraming(heldCode, hitFilled, Attributes["Framings"], Attributes["Infills"]) != null
             && !(deckHit && hitFilled && SidingFloorBlock.FinishFace(blockSel.Face) != null))
             return base.OnBlockInteractStart(world, byPlayer, blockSel);
@@ -1105,13 +1105,13 @@ public class SidingWallBlock : Block
     // Whether the held framing could give this wall a deck now: used where a refusal must stay quiet (a floor run's end).
     internal bool CanTakeDeck(IWorldAccessor world, BlockPos pos, SidingWallEntity entity, AssetLocation heldCode)
         => entity.Framing != null && entity.Deck == null && entity.Step == null && !DeckOccupied(world, pos)
-            && MatchFraming(heldCode, entity.Infill != null, Attributes["Framings"], Attributes["Infills"]) != null;
+            && MatchFraming(heldCode, FramesAsFilled(entity), Attributes["Framings"], Attributes["Infills"]) != null;
 
     // Adds a deck from the held framing, shared by a plank click on a side face and a floor laid up to the cell.
     // False when the wall has a deck or the held item is no framing for it; true once handled, refused or done.
     internal bool TryAddDeck(IWorldAccessor world, IPlayer byPlayer, BlockPos pos, SidingWallEntity entity, ItemSlot slot, AssetLocation heldCode, bool isCreative)
     {
-        if (entity.Deck != null || MatchFraming(heldCode, entity.Infill != null, Attributes["Framings"], Attributes["Infills"]) is not { } deckKey) return false;
+        if (entity.Deck != null || MatchFraming(heldCode, FramesAsFilled(entity), Attributes["Framings"], Attributes["Infills"]) is not { } deckKey) return false;
 
         if (entity.Step != null)
         {
@@ -1724,6 +1724,9 @@ public class SidingWallBlock : Block
             "infill" => "deckinfill",
             _ => "deck",
         };
+
+    // A post takes no infill, so an item that is both a framing and an infill frames it as it would a filled wall.
+    private bool FramesAsFilled(SidingWallEntity entity) => entity.Infill != null || Variant["layout"] == "cornerin";
 
     // An item that is both a framing and an infill, as sticks are, fills a bare frame rather than
     // decking or cornering it; a filled wall has no infill left to take, so there it frames.
