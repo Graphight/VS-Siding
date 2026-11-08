@@ -806,6 +806,8 @@ public class SidingWallBlock : Block
         {
             string? infillKey = MatchConsumes(heldCode, Attributes["Infills"]);
             if (infillKey == null) return base.OnBlockInteractStart(world, byPlayer, blockSel);
+            if (FramesOnFrom(heldCode, SidingFloorBlock.FinishFace(blockSel.Face) != null, Attributes["Framings"]))
+                return base.OnBlockInteractStart(world, byPlayer, blockSel);
 
             var consumes = Attributes["Infills"][infillKey]["Consumes"];
             if (!TryAffordOrError(byPlayer, isCreative, slot.StackSize, consumes)) return true;
