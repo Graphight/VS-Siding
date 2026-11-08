@@ -1624,8 +1624,12 @@ public class WallShapeGenTests
         var toward = BlockFacing.FromCode(towards);
         int plane = toward == BlockFacing.NORTH || toward == BlockFacing.WEST ? 0 : 16;
 
+        // A corner's left end is leg 2's, whose room side is the second back.
         string[] Expected(bool finished, string dropped, string ownLayout, string otherLayout)
-            => otherLayout == "diagonal" && finished ? [$"{(ownLayout == "cornerout" && dropped == "left" ? "secondback" : "back")}-rim-bottom-{dropped}", $"{(ownLayout == "cornerout" && dropped == "left" ? "secondback" : "back")}-rim-top-{dropped}"] : [];
+        {
+            string back = ownLayout == "cornerout" && dropped == "left" ? "secondback" : "back";
+            return otherLayout == "diagonal" && finished ? [$"{back}-rim-bottom-{dropped}", $"{back}-rim-top-{dropped}"] : [];
+        }
 
         var actual = new List<string>();
         var expected = new List<string>();

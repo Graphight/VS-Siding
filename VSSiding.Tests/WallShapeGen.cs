@@ -901,7 +901,7 @@ public static class WallShapeGen
         // courses.
         .. CornerFrontShakesLeg1,
         .. CornerSecondFrontShakesLeg2,
-        // A back group covers both legs, as back-brick does below.
+        // A back group is built across both legs, as back-brick is below; SecondBackOnLegTwo splits leg 2 off.
         .. Logs("back-logs", "back", 'x', 4, 3, "east", 4, 16),
         .. Logs("front-logs", "front", 'x', 0, 1, "west", 0, 16),
         .. Logs("back-logs", "back", 'z', 4, 3, "south", 3, 16),
@@ -912,7 +912,7 @@ public static class WallShapeGen
         .. RunningBond("secondfront-brick", "secondfront", 4, 8, 'z', 0, 1, 1, 16),
         .. RunningBond("front-ashlar", "front", 8, 16, 'x', 0, 1, 0, 16, flipBond: true),
         .. RunningBond("secondfront-ashlar", "secondfront", 8, 16, 'z', 0, 1, 1, 16, flipBond: true),
-        // A back group covers both legs, the way back-logs does.
+        // A back group is built across both legs, the way back-logs is; SecondBackOnLegTwo splits leg 2 off.
         .. RunningBond("back-brick", "back", 4, 8, 'x', 4, 3, 4, 16),
         .. RunningBond("back-brick", "back", 4, 8, 'z', 4, 3, 3, 16),
         .. RunningBond("back-ashlar", "back", 8, 16, 'x', 4, 3, 4, 16, flipBond: true),

@@ -1297,7 +1297,7 @@ public class SidingWallBlock : Block
 
     // A wall's back or front covers its whole side; a cornerout's two outer faces and its two inner faces are
     // separate layers, so it takes both of either pair (decisions 0074, 0090).
-    internal static bool IsFinished(string layout, string? front, string? secondFront, string? back, string? secondBack = null)
+    internal static bool IsFinished(string layout, string? front, string? secondFront, string? back, string? secondBack)
         => layout == "cornerout"
             ? (back != null && secondBack != null) || (front != null && secondFront != null)
             : back != null || front != null;

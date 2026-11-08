@@ -4,7 +4,6 @@ using Atlas.Api;
 using Atlas.XUnit;
 using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
-using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Xunit;
 
@@ -36,10 +35,8 @@ public class CornerScenarios : AtlasScenarioBase
 
         (string?, string?, string?, string?) Layers()
         {
-            var tree = new TreeAttribute();
-            World.BlockEntityAt<BlockEntity>(cell)!.ToTreeAttributes(tree);
-            string? Read(string key) => tree.GetString(key) is { Length: > 0 } value ? value : null;
-            return (Read("infill"), Read("front"), Read("back"), Read("secondback"));
+            var read = WallBuilder.Reader(World.BlockEntityAt<BlockEntity>(cell)!);
+            return (read("infill"), read("front"), read("back"), read("secondback"));
         }
         var held = (await Finish(BlockFacing.EAST), await Finish(BlockFacing.SOUTH), await Finish(BlockFacing.WEST));
         var built = (World.BlockAt(cell).Variant["layout"], Layers());
