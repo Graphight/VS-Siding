@@ -28,10 +28,14 @@ public class FinishElementGroupsTests
             .Concat(styles.Select(style => "front-" + style)).Distinct().ToList();
         var backs = entries.Select(e => (string?)e.Value["Elements"]?["back"]).OfType<string>()
             .Concat(styles.Select(style => "back-" + style)).Distinct().ToList();
+        // A framed pattern draws a corner's room side from each of its groups' `-whole` copies (decision 0086).
+        var wholeBacks = entries.Where(e => (bool?)e.Value["WholeOnCorners"] == true)
+            .SelectMany(e => (e.Value["Styles"]?.Select(t => "back-" + (string)t!) ?? []).Append((string?)e.Value["Elements"]?["back"] ?? "back"))
+            .Select(group => group + "-whole").Distinct();
         var groupsByShape = new Dictionary<string, List<string>>
         {
             ["block/wall/wall"] = fronts.Concat(backs).ToList(),
-            ["block/wall/cornerout"] = fronts.Concat(fronts.Select(f => "second" + f)).Concat(backs).ToList(),
+            ["block/wall/cornerout"] = fronts.Concat(fronts.Select(f => "second" + f)).Concat(backs).Concat(wholeBacks).ToList(),
             ["block/wall/cornerin"] = [.. new[] { "front", "secondfront", "back", "secondback" }.SelectMany(slot => fronts.Select(f => slot + f["front".Length..]))
                 .SelectMany(group => new[] { group, group + "-mitre" })],
         };
@@ -327,6 +331,17 @@ public class FinishElementGroupsTests
         Assert.Equal([], asked.Distinct().Where(name => !names.Contains(name)).ToArray());
     }
 
+    // Only a finish flagged WholeOnCorners draws a corner's room side from the `-whole` copy; a wall has none (decision 0086).
+    [Fact]
+    public void OnlyAFramedPatternTakesACornersWholeCopy()
+    {
+        var finishes = new JsonObject(JObject.Parse("""{ "daub": {}, "plaster-square": { "WholeOnCorners": true } }"""));
+        string Back(string layout, string finish) => SidingWallEntity.SelectiveElements(
+            layout, "oak", "clay", null, null, finish, finishes, (false, false, false, false), glazed: false).Single(name => name.StartsWith("back"));
+
+        Assert.Equal(new[] { "back-whole", "back", "back" }, new[] { Back("cornerout", "plaster-square"), Back("cornerout", "daub"), Back("wall", "plaster-square") });
+    }
+
     // A post shows each face's own finish, or the framing while that face is bare, across its whole width, both corners
     // included, and nothing of its neighbours', in every pair of looks round its four faces (decision 0082).
     [Fact]
@@ -419,19 +434,25 @@ public class FinishElementGroupsTests
     }
 
     // A finish missing one of its row's styles falls back to its default look when that style is
-    // picked, with no error.
+    // picked, with no error. Plaster turns but has no weatherboard (decision 0086).
     [Fact]
     public void EveryStyledFinishOffersItsWholePickerRow()
     {
-        var entries = FinishEntries();
-        string[] Row(string key) => SidingModePicker.Rows.Single(r => r.Key == key).Options;
-        var finishesByRow = new (string Row, string[] Finishes)[] { ("vssidingBoards", PlankFinishes), ("vssidingLogs", ["shakes-{wood}"]) };
+        string Row(string key) => string.Join(", ", SidingModePicker.Rows.Single(r => r.Key == key).Options);
+        string[] expected =
+        [
+            .. PlankFinishes.Select(name => $"{name}: {Row("vssidingBoards")}"),
+            "plaster-diagonal: hboards, boards",
+            "plaster-stripes: hboards, boards",
+            $"shakes-{{wood}}: {Row("vssidingLogs")}",
+        ];
 
         Assert.Equal(
-            finishesByRow.SelectMany(row => row.Finishes.Select(name => $"{name}: {string.Join(", ", Row(row.Row))}")),
-            finishesByRow.SelectMany(row => entries
-                .Where(e => e.Value["Styles"]?.Any(t => Row(row.Row).Contains((string)t!)) ?? false)
-                .Select(e => $"{e.Name}: {string.Join(", ", e.Value["Styles"]!.Select(t => (string)t!))}")));
+            expected.Order(),
+            FinishEntries()
+                .Where(e => e.Value["Styles"] != null)
+                .Select(e => $"{e.Name}: {string.Join(", ", e.Value["Styles"]!.Select(t => (string)t!))}")
+                .Order());
     }
 
     // A style a wall takes and a floor face refuses falls back to that face's default with no error,

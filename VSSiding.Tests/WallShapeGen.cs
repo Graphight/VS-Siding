@@ -494,18 +494,21 @@ public static class WallShapeGen
     // corner post's side of it and `G-rim-right` (leg 1) or `G-rim-left` (leg 2) the end post's, both full
     // height, `G-rim-top` and `G-rim-bottom` the parts over and under it, and `G-rim-top-right` and the like
     // the parts over and under the end post, which its fillers take once it drops. A front group belongs to
-    // leg 1, a second front group to leg 2, and a back box to the leg whose back slab holds it. A T's piece lies in
-    // a front or second front slot only, so only those groups give way to it.
+    // leg 1, a second front group to leg 2, and a back box to leg 1 where leg 1's back slab holds it and to leg 2
+    // otherwise, the inner corner's column included. A T's piece lies in a front or second front slot only, so only
+    // those groups give way to it.
     internal static IEnumerable<Element> CornerRimPieces(IEnumerable<Element> elements)
     {
         Element[] all = [.. elements];
         double none = double.NegativeInfinity, any = double.PositiveInfinity;
+        static double Length(Element e, char axis) => Axis(e.To, axis) - Axis(e.From, axis);
+        Element legOneSlab = all.Single(e => e.Name == "back" && Length(e, 'z') > Length(e, 'x'));
+        bool OnLegOne(Element e) => "xyz".All(a => Axis(e.From, a) >= Axis(legOneSlab.From, a) && Axis(e.To, a) <= Axis(legOneSlab.To, a));
         foreach (char run in "zx")
         {
             char across = run == 'z' ? 'x' : 'z';
-            double Length(Element e, char axis) => Axis(e.To, axis) - Axis(e.From, axis);
             Element OnLeg(string name) => all.Single(e => e.Name == name && Length(e, run) > Length(e, across));
-            Element top = OnLeg("glazing-top"), bottom = OnLeg("glazing-bottom"), slab = OnLeg("back");
+            Element top = OnLeg("glazing-top"), bottom = OnLeg("glazing-bottom");
             var opening = (Lo: Axis(top.From, run), Hi: Axis(top.To, run));
             string end = run == 'z' ? "-right" : "-left";
             var beyond = (opening.Hi, any);
@@ -520,8 +523,7 @@ public static class WallShapeGen
             ];
 
             string front = run == 'z' ? "front" : "secondfront";
-            bool InSlab(Element e) => "xyz".All(a => Axis(e.From, a) >= Axis(slab.From, a) && Axis(e.To, a) <= Axis(slab.To, a));
-            foreach (var e in all.Where(e => e.Name.StartsWith(front) || (e.Name.StartsWith("back") && InSlab(e))))
+            foreach (var e in all.Where(e => e.Name.StartsWith(front) || (e.Name.StartsWith("back") && OnLegOne(e) == (run == 'z'))))
             foreach (var (part, range, y) in parts)
             foreach (var rim in RimPiece(e, part, (run, range.Lo, range.Hi), ('y', y.Lo, y.Hi)))
                 yield return rim;
@@ -708,9 +710,27 @@ public static class WallShapeGen
         new($"{group}-tee-right", (0, 0, 1), (1, 16, 3), "framing", UvRule.Flat, Faces: ["west", "north", "south", "up", "down"]),
     ];
 
+    // A corner's outer side samples the whole texture across its two legs: the sliver on the front leg's end takes the
+    // column the second leg leaves (15..16). Its room side keeps one texel per voxel on the grid, so tiling finishes meet
+    // the walls each leg runs into, and the inner corner's column is a box of its own (decision 0086).
+    private static Dictionary<string, FaceUv> Only(string face, FaceUv uv) => new() { [face] = uv };
+
+    // The `-whole` copy of a corner's room-side group squeezes the whole texture onto each leg's 12 voxels, for a framed
+    // pattern such as plaster, whose border a grid uv would cut off (decision 0086).
+    private static Element[] WholeCornerBack(string name, bool turned)
+    {
+        int rotation = turned ? 270 : 0;
+        return
+        [
+            new($"{name}-whole", (3, 0, 4), (4, 16, 16), "back", UvRule.Flat, RotatedFaces: turned ? ["east"] : null, Explicit: Only("east", F(0, 0, 16, 16, rotation))),
+            new($"{name}-whole", (3, 0, 3), (4, 16, 4), "back", UvRule.Flat, RotatedFaces: turned ? ["south"] : null, RunAxis: 'x'),
+            new($"{name}-whole", (4, 0, 3), (16, 16, 4), "back", UvRule.Flat, RotatedFaces: turned ? ["south"] : null, Explicit: Only("south", F(0, 0, 16, 16, rotation))),
+        ];
+    }
+
     private static readonly Element[] CornerOutElements =
     [
-        new("front", (0, 0, 0), (1, 16, 16), "front", UvRule.Flat),
+        new("front", (0, 0, 0), (1, 16, 16), "front", UvRule.Flat, Explicit: Only("north", F(15, 0, 16, 16))),
         new("framing-top", (1, 15, 3), (3, 16, 15), "framing", UvRule.Flat),
         new("framing-bottom", (1, 0, 3), (3, 1, 15), "framing", UvRule.Flat),
         new("framing", (1, 0, 1), (3, 16, 3), "framing", UvRule.Flat),
@@ -750,7 +770,8 @@ public static class WallShapeGen
         new("glazing-bottom", (4, 0, 1), (14, 2, 3), "framing", UvRule.Flat, Faces: ["north", "south", "up", "down"]),
         .. CornerPoleElements,
         .. CornerPole2Elements,
-        new("back", (3, 0, 3), (16, 16, 4), "back", UvRule.Flat),
+        new("back", (3, 0, 3), (4, 16, 4), "back", UvRule.Flat, RunAxis: 'x'),
+        new("back", (4, 0, 3), (16, 16, 4), "back", UvRule.Flat, RunAxis: 'x'),
         new("front-weatherboard", (0, 0, 0), (1, 1, 16), "front", UvRule.Positional),
         new("front-weatherboard", (0.25, 1, 0.5), (1, 2, 16), "front", UvRule.Positional),
         new("front-weatherboard", (0.5, 2, 0.5), (1, 3, 16), "front", UvRule.Positional),
@@ -784,13 +805,18 @@ public static class WallShapeGen
         new("secondfront-weatherboard", (1, 14, 0.5), (16, 15, 1), "secondfront", UvRule.Positional),
         new("secondfront-weatherboard", (1, 15, 0.75), (16, 16, 1), "secondfront", UvRule.Positional),
         new("back-boards", (3, 0, 4), (4, 16, 16), "back", UvRule.Flat, RotatedFaces: ["east"]),
-        new("back-boards", (3, 0, 3), (16, 16, 4), "back", UvRule.Flat, null, null, ["south"]),
-        new("front-boards", (0, 0, 0), (1, 16, 16), "front", UvRule.Flat, RotatedFaces: ["west"]),
+        new("back-boards", (3, 0, 3), (4, 16, 4), "back", UvRule.Flat, RotatedFaces: ["south"], RunAxis: 'x'),
+        new("back-boards", (4, 0, 3), (16, 16, 4), "back", UvRule.Flat, RotatedFaces: ["south"], RunAxis: 'x'),
+        .. WholeCornerBack("back", turned: false),
+        .. WholeCornerBack("back-boards", turned: true),
+        .. WholeCornerBack("back-hboards", turned: false),
+        new("front-boards", (0, 0, 0), (1, 16, 16), "front", UvRule.Flat, RotatedFaces: ["west", "north"], Explicit: Only("north", F(0, 15, 16, 16, 270))),
         new("secondfront-boards", (1, 0, 0), (16, 16, 1), "secondfront", UvRule.Flat, null, null, ["north"]),
         .. WithBark(
             new("back-hboards", (3, 0, 4), (4, 16, 16), "back", UvRule.Flat),
-            new("back-hboards", (3, 0, 3), (16, 16, 4), "back", UvRule.Flat),
-            new("front-hboards", (0, 0, 0), (1, 16, 16), "front", UvRule.Flat),
+            new("back-hboards", (3, 0, 3), (4, 16, 4), "back", UvRule.Flat, RunAxis: 'x'),
+            new("back-hboards", (4, 0, 3), (16, 16, 4), "back", UvRule.Flat, RunAxis: 'x'),
+            new("front-hboards", (0, 0, 0), (1, 16, 16), "front", UvRule.Flat, Explicit: Only("north", F(15, 0, 16, 16))),
             new("secondfront-hboards", (1, 0, 0), (16, 16, 1), "secondfront", UvRule.Flat)),
         new("back-weatherboard", (3, 0, 4), (4, 1, 16), "back", UvRule.Positional),
         new("back-weatherboard", (3, 0, 3), (16, 1, 4), "back", UvRule.Positional),
@@ -1440,7 +1466,7 @@ public static class WallShapeGen
 
     private static JObject EmitFace(Element element, string face)
     {
-        if (element.Explicit?[face] is { } vanilla)
+        if (element.Explicit is { } explicitFaces && explicitFaces.TryGetValue(face, out var vanilla))
         {
             var (e0, e1, e2, e3) = element.ClippedFrom is { } from ? ClippedUv(from, element, face) : (vanilla.U0, vanilla.V0, vanilla.U1, vanilla.V1);
             var explicitFace = new JObject { ["texture"] = "#" + element.Slot, ["uv"] = new JArray(e0, e1, e2, e3) };
@@ -1516,7 +1542,7 @@ public static class WallShapeGen
         var sourceUv = EmitFace(source, face)["uv"]!.Select(v => (double)v!).ToArray();
         var (uAxis, uSign, vAxis, vSign) = UvLayout(face, clipped.RotatedFaces?.Contains(face) ?? false);
         // A vanilla 180 turns the rect half way round, so both axes run against the face's own.
-        if (source.Explicit?[face].Rotation == 180) (uSign, vSign) = (-uSign, -vSign);
+        if (source.Explicit?.GetValueOrDefault(face)?.Rotation == 180) (uSign, vSign) = (-uSign, -vSign);
 
         (double, double) Sub(double s0, double s1, char axis, int sign)
         {

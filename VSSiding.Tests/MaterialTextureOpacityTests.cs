@@ -151,12 +151,21 @@ public class MaterialTextureOpacityTests
         {
             var file = ResolveTextureFile(vintageStoryPath, textureCode);
             if (!mustBeOpaque || NearOpaque.Contains(textureCode)) continue;
-            using var bitmap = SKBitmap.Decode(file);
+            var bytes = File.ReadAllBytes(file);
+            using var codec = SKCodec.Create(new MemoryStream(bytes), out var created);
+            using var bitmap = codec == null ? null : SKBitmap.Decode(codec);
+            if (bitmap == null)
+            {
+                var step = codec == null ? $"no codec: {created}" : "pixels did not decode";
+                offenders.Add($"{textureCode} ({file}, {bytes.Length} bytes, {step})");
+                continue;
+            }
             int partial = bitmap.Pixels.Count(p => p.Alpha != 0 && p.Alpha != 255);
             if (partial > 0)
                 offenders.Add($"{textureCode} ({partial} pixels with partial alpha)");
         }
 
-        Assert.Equal(Array.Empty<string>(), offenders);
+        // Not Assert.Equal: its collection diff cuts each string at 50 characters, past the code.
+        Assert.True(offenders.Count == 0, string.Join(Environment.NewLine, offenders));
     }
 }
