@@ -319,22 +319,28 @@ public class WallShapeGenTests
             .Select(b => $"{b.Name} {string.Join(",", b.Box.Lo)} to {string.Join(",", b.Box.Hi)}"));
     }
 
-    // Between its rings a bare bamboo post's core and four slices together are one notched pole: the 4 by 4 less a half voxel
-    // square down each vertical edge, so no slice stands proud of its neighbour at a corner. Read on a quarter-voxel grid.
+    // A bare bamboo post's core and four slices together are one notched pole, 3 voxels across with a half voxel square down
+    // each vertical edge, and at each ring the same outline a quarter voxel out all round, so no slice stands proud of its
+    // neighbour at a corner and every ring stands out of the pole on every side. Read on a quarter-voxel grid.
     [Theory]
     [InlineData("bamboo")]
     [InlineData("bamboo2")]
-    public void ABareBambooPostIsOneNotchedPoleAcrossItsSlices(string prefix)
+    public void ABareBambooPostIsOneNotchedPoleRingedAllRoundAcrossItsSlices(string prefix)
     {
-        var fullHeight = WallShapeGen.Generate("cornerin")["elements"]!
-            .Where(e => (string)e["name"]! == prefix || ((string)e["name"]!).StartsWith(prefix + "-"))
-            .Select(Box).Where(b => b.Lo[1] == 0 && b.Hi[1] == 16).ToArray();
+        var boxes = WallShapeGen.Generate("cornerin")["elements"]!
+            .Where(e => (string)e["name"]! == prefix || ((string)e["name"]!).StartsWith(prefix + "-")).Select(Box).ToArray();
         var points = (from i in Enumerable.Range(0, 16) from j in Enumerable.Range(0, 16) select (X: i * 0.25 + 0.125, Z: j * 0.25 + 0.125)).ToArray();
-        static bool Notched(double v) => v < 0.5 || v > 3.5;
+        IEnumerable<(double X, double Z)> Outline(double lo, double hi) => points.Where(p =>
+            lo < p.X && p.X < hi && lo < p.Z && p.Z < hi && !((p.X < lo + 0.5 || p.X > hi - 0.5) && (p.Z < lo + 0.5 || p.Z > hi - 0.5)));
+        IEnumerable<(double X, double Z)> Covered(double y) => points.Where(p =>
+            boxes.Any(b => b.Lo[1] < y && y < b.Hi[1] && b.Lo[0] < p.X && p.X < b.Hi[0] && b.Lo[2] < p.Z && p.Z < b.Hi[2]));
+        double[] ringMids = [.. boxes.Where(b => b.Hi[1] - b.Lo[1] < 16).Select(b => (b.Lo[1] + b.Hi[1]) / 2).Distinct()];
+        double between = Enumerable.Range(0, 64).Select(k => k * 0.25 + 0.125).First(y => ringMids.All(m => Math.Abs(m - y) >= 0.25));
 
+        Assert.NotEmpty(ringMids);
         Assert.Equal(
-            points.Where(p => !(Notched(p.X) && Notched(p.Z))),
-            points.Where(p => fullHeight.Any(b => b.Lo[0] < p.X && p.X < b.Hi[0] && b.Lo[2] < p.Z && p.Z < b.Hi[2])));
+            ringMids.Select(_ => Outline(0.25, 3.75).ToArray()).Prepend(Outline(0.5, 3.5).ToArray()).ToArray(),
+            ringMids.Select(m => Covered(m).ToArray()).Prepend(Covered(between).ToArray()).ToArray());
     }
 
     // A bamboo post with any of its faces finished, the rest bare, draws no two faces on one plane.
