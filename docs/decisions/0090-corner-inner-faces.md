@@ -49,11 +49,11 @@ A corner saved before this change laid one back across both legs.
 A flag is needed because, as decision 0009 noted, an old corner cannot be told from a new one left with a bare second back.
 Every load path sets `Block` before `FromTreeAttributes` runs (`CreateBehaviors`, `GuestWalls.Decode`), so the layout is known when the flag is read.
 The copy is made on a `cornerout` only: `ComputeDrops` refunds `SecondBack` on every layout, so a copy onto a plain wall or a post would hand out a finish nobody laid.
-At half cost per leg, peeling both inner faces refunds what was paid for the shared back.
+At half cost per leg, peeling both inner faces refunds what was paid for the shared back, or one item more for a finish whose wall quantity is odd.
 
 **Upgrading a filled wall.**
-A wall turned into a corner in place (decision 0069) puts its back on both inner legs, since a wall's back covered the whole room side.
-The upgrade stays free.
+A wall turned into a corner in place (decision 0069) keeps its back on the first inner leg, and the second inner face is bare.
+The upgrade stays free, so it copies no finish: a copy would refund two halves rounded up for one back laid, and the upgrade can be repeated.
 
 **Diagonal plaster mirrors.**
 `plaster-diagonal` sets `MirrorsOnCorners`.
@@ -83,7 +83,7 @@ A bare front leaves the column open, so each `secondfront` group has a `-corner`
 - A finished corner draws 1 to 4 more quads, since leg 1's and leg 2's faces at the seam belong to differently named groups and `IsBuried` culls only against boxes of the same name.
 - `cornerout.json` grows by about 5%, from 3.21 MB to 3.37 MB.
 - A finish whose wall quantity is one item (plaster, shakes, cobblestone, polished stone, packed or rammed earth, metal plate, stained or dyed planks) costs 2 for both inner faces where the shared back cost 1.
-  An old corner, or a filled wall upgraded in place, laid in one refunds 2 when both inner faces are peeled.
-  Open: the upgrade is free and can be repeated, so laying such a back on a wall, turning it into a corner and peeling it gains one item each time.
+  An old corner laid in one refunds 2 when both inner faces are peeled, one item gained once per corner from before the split.
+- A filled wall upgraded to a corner peels its back for half a wall's cost rounded up, which is less than its back cost for a wall quantity of 2 or more.
 - A future finish with a leaning pattern sets `MirrorsOnCorners` to mirror.
 - To confirm in game: the outer edge where two different finishes meet, and diagonal plaster mirrored on both the inner and the outer pair.

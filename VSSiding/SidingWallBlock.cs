@@ -775,9 +775,6 @@ public class SidingWallBlock : Block
                 entity.FrontStyle = null;
             }
 
-            // A wall's back covers the room side, which is both of the corner's inner legs (decision 0090).
-            (entity.SecondBack, entity.SecondBackStyle) = (entity.Back, entity.BackStyle);
-
             // The new leg changes retention, light and the liquid barrier. On the target, since
             // OnInfillChanged exchanges the block for its own Id.
             target.OnInfillChanged(world, entity, blockSel.Position, oldAbsorption);
