@@ -130,7 +130,7 @@
 			Drops: [ { type: "item", code: "industrialstory:glass-pane-lead", quantity: { avg: 1, var: 0 } } ]
 		},
 		"glass-pane-{type}": {
-			Match: { type: "item", code: "industrialstory:@glass-pane-(?!unannealed-).*", variant: "type" },
+			Match: { type: "item", code: "industrialstory:glass-pane-*", variant: "type" },
 			DisplayName: "vssiding:infill-glass-{type}",
 			Texture: "game:block/glass/{type}",
 			BlockMaterial: "Glass",

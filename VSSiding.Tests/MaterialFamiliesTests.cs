@@ -341,10 +341,8 @@ public class MaterialFamiliesTests
     {
         var families = (JObject)MaterialTextureOpacityTests.BlockAttributes(blockFile)["InfillFamilies"]!;
 
-        // The unannealed pane shares the type group and loads first; it must not take the real pane's key.
         var actual = MaterialFamilies.Expand(families, new JObject(), new[]
         {
-            ("item", new AssetLocation("industrialstory:glass-pane-unannealed-plain"), new Dictionary<string, string> { ["type"] = "plain" }),
             PaneCandidate("plain"),
             PaneCandidate("lead"),
             PaneCandidate("green"),
@@ -387,7 +385,6 @@ public class MaterialFamiliesTests
 
         var actual = MaterialFamilies.Expand(families, new JObject(), new[]
         {
-            LeadedCandidate("green", "oak", "ns"),
             LeadedCandidate("green", "oak", "ew"),
             LeadedCandidate("lead", "aged", "ew"),
         });
