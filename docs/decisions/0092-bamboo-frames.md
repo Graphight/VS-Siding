@@ -50,7 +50,8 @@ No face shares a plane with a frame, finish or infill drawn beside it; the pole 
 A corner's tees reuse `CornerTees("bamboo")`.
 The corner post (`BambooPost`) stands a quarter voxel back from both fronts, notched at its outer corner, and runs full to the room sides, where the legs' plates end on it.
 Its rings fill the 2 by 2 and reach a quarter voxel into each leg's bay, as an upright's do, stopping short of the inner corner's finish.
-At a T the tee in a front's slot draws the face it puts against the post, which the other frames' tees leave out.
+At a T the tee in a front's slot draws the face it puts against the post, which the other frames' tees leave out, and between the post's rings fills the step behind it (`ABambooCornersTeesFillThePostsStepBehindThem`).
+Without that fill the step was a slot through the T from one leg's outside to the other's, which the author saw as a sliver of light in play.
 The first cut notched the 2 by 2 a quarter voxel down each vertical edge with rings filling the notches back to the square, so they read flush; the author asked for them to stand out as the bare post's do.
 A floor's ridges sit 0.1 in from the joist's edge rather than a quarter voxel, and a floor's rims drop the cheeks the skin of a wall's plates carries.
 
@@ -86,7 +87,7 @@ The shapes grew as follows, in bytes:
 | Shape | At `47e49a3` | Now |
 |-------|-------------:|----:|
 | `wall.json` | 2,481,733 | 3,050,690 |
-| `cornerout.json` | 3,369,514 | 3,900,440 |
+| `cornerout.json` | 3,369,514 | 3,912,450 |
 | `diagonal.json` | 3,644,906 | 4,261,661 |
 | `cornerin.json` | 1,613,453 | 2,235,940 |
 | `floor.json` | 327,721 | 462,729 |
