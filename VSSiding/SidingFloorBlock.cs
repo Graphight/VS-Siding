@@ -155,6 +155,16 @@ public class SidingFloorBlock : Block
     internal static bool CanAttach(BlockFacing facing, string? framing, string? infill, JsonObject attributes)
         => facing == BlockFacing.DOWN ? framing != null : ComputeRetention(facing, framing, infill, attributes) != 0;
 
+    // Once the block this floor raised is gone, the next one placed below sits at its own height (decision 0092).
+    public override void OnNeighbourBlockChange(IWorldAccessor world, BlockPos pos, BlockPos neibpos)
+    {
+        base.OnNeighbourBlockChange(world, pos, neibpos);
+        if (!neibpos.Equals(pos.DownCopy()) || world.BlockAccessor.GetBlockEntity<SidingFloorEntity>(pos) is not { RaisedBelow: true } entity
+            || SidingModSystem.IsUnderDeckId(world.BlockAccessor.GetBlock(neibpos).BlockId)) return;
+        entity.RaisedBelow = false;
+        entity.MarkDirty(true);
+    }
+
     // A hanger rides up into this cell's underside (decision 0054), and the raytrace only tests the cell
     // the ray is in, so the floor answers for it with boxes whose hit selects the cell below (PosAdjust).
     // The floor's own boxes come first: vanilla lets a later decor box replace an earlier hit only when

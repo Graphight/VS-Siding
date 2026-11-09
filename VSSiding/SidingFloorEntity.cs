@@ -20,6 +20,8 @@ public class SidingFloorEntity : BlockEntity
     public string? Back;
     public string? FrontStyle;
     public string? BackStyle;
+    // The block in the cell below went on a wall face through this floor's cell, and rises to its underside (decision 0092).
+    public bool RaisedBelow;
 
     public override void ToTreeAttributes(ITreeAttribute tree)
     {
@@ -30,6 +32,7 @@ public class SidingFloorEntity : BlockEntity
         tree.SetString("back", Back);
         tree.SetString("frontstyle", FrontStyle);
         tree.SetString("backstyle", BackStyle);
+        tree.SetBool("raisedbelow", RaisedBelow);
     }
 
     public override void FromTreeAttributes(ITreeAttribute tree, IWorldAccessor worldAccessForResolve)
@@ -48,6 +51,9 @@ public class SidingFloorEntity : BlockEntity
         Back = SidingWallEntity.NullIfEmpty(tree.GetString("back", null));
         FrontStyle = SidingWallEntity.NullIfEmpty(tree.GetString("frontstyle", null));
         BackStyle = SidingWallEntity.NullIfEmpty(tree.GetString("backstyle", null));
+        bool wasRaised = RaisedBelow;
+        RaisedBelow = tree.GetBool("raisedbelow");
+        if (Api?.Side == EnumAppSide.Client && RaisedBelow != wasRaised) worldAccessForResolve.BlockAccessor.MarkBlockDirty(Pos.DownCopy());
 
         // As on the wall: a chunk meshed before its block entities arrive keeps the default shape until redrawn.
         if (Api?.Side == EnumAppSide.Client && MeshState != oldMesh)

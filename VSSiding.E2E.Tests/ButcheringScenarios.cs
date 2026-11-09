@@ -83,6 +83,26 @@ public class ButcheringScenarios : AtlasScenarioBase
         }
     }
 
+    // On the wall's outer face beside a thin floor, the hook goes into the cell below and rises to the floor's underside (decision 0092).
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
+    public async Task WallHook_Should_RiseUnderAThinFloor_When_ClickedOntoTheWallFaceBesideIt()
+    {
+        if (!ButcheringLoaded) return;
+
+        (BlockPos wall, BlockPos floor, BlockPos below, ITestPlayer player) = await WallBuilder.FloorBesideWall(World);
+        try
+        {
+            await WallBuilder.Press(World, player, wall, "butchering:butcherhook-iron-north", BlockFacing.WEST, new Vec3d(0, 0.5, 0.5), quantity: 1);
+
+            Assert.Equal(("butcherhook-iron-east", 0.75, true), (World.BlockAt(below).Code.Path, WallBuilder.HangShiftAt(World, below), WallBuilder.RaisedBelow(World, floor)));
+        }
+        finally
+        {
+            player.Player.Disconnect();
+            await World.Until(() => !player.IsConnected);
+        }
+    }
+
     [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task CeilingHook_Should_RiseToTheUndersideOfADeckedWall()
     {

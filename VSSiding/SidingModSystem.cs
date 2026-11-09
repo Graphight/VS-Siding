@@ -729,11 +729,18 @@ public class SidingModSystem : ModSystem
     // The variant a click on face places, which is the one a decked cell judges: a torch, lantern or oil lamp
     // is held standing, and first tries the variant for the clicked face.
     internal static Block PlacedVariant(IBlockAccessor accessor, Block held, BlockFacing face)
+        => FacingKey(held) is { } key && accessor.GetBlock(held.CodeWithVariant(key, face.Code)) is { BlockId: not 0 } placed ? placed : held;
+
+    private static string? FacingKey(Block block)
     {
-        string? key = held is BlockGroundAndSideAttachable ? "orientation" : held.BlockBehaviors.OfType<BlockBehaviorOmniAttachable>().FirstOrDefault()?.facingCode;
-        if (key == null || !held.Variant.ContainsKey(key)) return held;
-        return accessor.GetBlock(held.CodeWithVariant(key, face.Code)) is { BlockId: not 0 } placed ? placed : held;
+        string? key = block is BlockGroundAndSideAttachable ? "orientation" : block.BlockBehaviors.OfType<BlockBehaviorOmniAttachable>().FirstOrDefault()?.facingCode;
+        return key != null && block.Variant.ContainsKey(key) ? key : null;
     }
+
+    // Hung on a wall's face: a torch, lantern or oil lamp in a side variant, or a horizontal attachable such as a torch holder.
+    internal static bool HangsOnSide(Block block)
+        => block.BlockBehaviors.OfType<BlockBehaviorHorizontalAttachable>().Any()
+            || (FacingKey(block) is { } key && BlockFacing.FromCode(block.Variant[key])?.IsHorizontal == true);
 
     internal static readonly AccessTools.FieldRef<BlockBehaviorUnstableFalling, BlockFacing[]?> AttachableFacesRef =
         AccessTools.FieldRefAccess<BlockBehaviorUnstableFalling, BlockFacing[]?>("attachableFaces");
@@ -749,7 +756,8 @@ public class SidingModSystem : ModSystem
         });
 
     // How far the block at pos moves up: a hung block rises to the underside of the thin floor or deck above (0054),
-    // and a block hosted in a decked cell drops by its UnderDeckDrop (0092). Zero for anything else.
+    // a block hosted in a decked cell drops by its UnderDeckDrop, and one the floor above raised (SidingWallBlock.TryRaise)
+    // rises a cell less that drop, as if under a deck in the floor's cell (0092). Zero for anything else.
     internal static double HangShiftAt(BlockPos pos, Block block)
     {
         bool hanger = IsHangerId(block.BlockId);
@@ -760,6 +768,7 @@ public class SidingModSystem : ModSystem
         if (api == null) return 0;
 
         if (drop != null && GuestWalls.GuestAt(api, pos) is { Deck: not null }) return -drop.Value;
+        if (drop != null && api.World.BlockAccessor.GetBlockEntity<SidingFloorEntity>(pos.UpCopy()) is { RaisedBelow: true }) return 1 - drop.Value;
 
         return hanger ? HangShift(api.World.BlockAccessor, pos, block) : 0;
     }

@@ -2,11 +2,12 @@
 
 - Status: Accepted
 - Created: 2026-11-08
-- Reflects: issues #133 and #164; branch `133-butchering`; `SidingWallBlock.CanAttachOf`/`GetSelectionBoxes`/`OpenPartRefusal`/`TryHost`/`DropsOf`/`RetentionOf`; `SidingModSystem.HangShift`/`HangShiftAt`/`UnderDeckDropFor`/`PlacedVariant`/`DeckedCellPostfix`/`MultiblockFootprintPostfix`/`HostChangePrefix`; `SidingFloorBlock.WithHangerBelow`/`WithHanger`; `GapShiftCollisionPatches.UnshiftedSelectionBoxes`; `GuestSealingPatches`; `patches/compat/butchering.json`; decisions 0035, 0042, 0054; vanilla's `BlockGroundAndSideAttachable` and `BlockBehaviorOmniAttachable` read from decompiled 1.22 `VSSurvivalMod`
+- Reflects: issues #133 and #164; branch `133-butchering`; `SidingWallBlock.CanAttachOf`/`GetSelectionBoxes`/`OpenPartRefusal`/`TryHost`/`TryRaise`/`DropsOf`/`RetentionOf`; `SidingModSystem.HangShift`/`HangShiftAt`/`UnderDeckDropFor`/`PlacedVariant`/`HangsOnSide`/`DeckedCellPostfix`/`MultiblockFootprintPostfix`/`HostChangePrefix`; `SidingFloorBlock.WithHangerBelow`/`WithHanger`/`OnNeighbourBlockChange`; `SidingFloorEntity.RaisedBelow`; `GapShiftCollisionPatches.UnshiftedSelectionBoxes`; `GuestSealingPatches`; `patches/compat/butchering.json`; decisions 0035, 0042, 0054; vanilla's `BlockGroundAndSideAttachable` and `BlockBehaviorOmniAttachable` read from decompiled 1.22 `VSSurvivalMod`
 
 ## Summary
 A deck's underside works like a thin floor's: a hanger in the cell below rises to it.
 A decked wall's cell also hosts any block small enough to fit under its deck, which keeps the deck, drawn, sealing and walkable.
+The same blocks go on a wall's outer face just under a thin floor beside it, from the cell below the floor.
 This changes decision 0054, which said a deck needs no lift, and decision 0042, under which a decked cell hosted nothing.
 
 ## Context
@@ -50,6 +51,16 @@ A torch (`BlockGroundAndSideAttachable`), lantern or oil lamp (`BlockBehaviorOmn
 The guest's collision boxes carry the deck through `PanelCollisionBoxes`, as the wall's do, so it stays walkable.
 A hosted deck cannot be peeled or changed until the hosted block is removed.
 
+**Under a thin floor beside the wall.**
+Past a wall's outer face the next cell can hold a thin floor, whose slab is that cell's top 4/16 but whose block fills the cell, so a torch clicked onto the wall there has nowhere to go.
+`SidingWallBlock.TryRaise` takes that click on a horizontal face `HostsClick` leaves alone, when the held block's `PlacedVariant` fits under a deck and hangs on a side (`HangsOnSide`), the cell below the floor is free and not a wall, and the wall below the clicked cell takes it on that face.
+It places the block in the cell below the floor, on that lower wall, and sets `SidingFloorEntity.RaisedBelow`, which saves and reaches clients with the floor's block entity.
+`HangShiftAt` lifts a fitting block under a floor carrying the flag by `1 - UnderDeckDrop`: where a decked cell would hold it, one cell up, its top meeting the floor's underside.
+The floor's `WithHangerBelow` makes it selectable, as it does a hanger.
+The flag marks the one block placed this way rather than a rule of the geometry, so a torch already on the wall below a floor keeps its height.
+The floor clears it in `OnNeighbourBlockChange` once the cell below holds nothing that fits under a deck, and it goes with the floor; either way the next block there sits at its own height.
+`TryRaise` runs ahead of the build-signal check, so a saw in the off hand changes nothing, and places only on the server, as `TryHost` does.
+
 ## Known limits
 - A rug on a deck drops when something is hosted under it, and again when the wall returns (`BreakAllDecorFast`).
 - A declared block's boxes reach below its cell after the drop (Butchering's hooks by 4/16), and a ray crossing only the cell below misses them.
@@ -57,3 +68,7 @@ A hosted deck cannot be peeled or changed until the hosted block is removed.
 - A torch, lantern or oil lamp that cannot attach on the clicked face tries the others; if the variant it lands on does not fit, the deck drops with it.
 - Particles a block entity spawns itself (the hooks' blood) and a block drawn by its own renderer do not follow the drop.
 - Walking on a hosted deck rests on reading the code; no scenario walks on one.
+- A block raised under a thin floor takes the cell below the floor, which holds nothing else, and its light starts in that cell.
+- A raised block hangs on the wall below the one clicked: breaking that wall drops it, breaking the clicked one leaves it in place.
+- Only a siding wall's outer face sends a click below; a stone or plank wall beside a thin floor does not.
+- An edit that skips neighbour updates leaves `RaisedBelow` set, and the next fitting block placed below rises.

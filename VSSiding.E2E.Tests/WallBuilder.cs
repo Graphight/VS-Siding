@@ -131,6 +131,32 @@ internal static class WallBuilder
         Assert.Null(slot.Itemstack);
     }
 
+    // A filled wall two high, its panel facing west, and a thin floor beside its top cell on that side over an empty cell.
+    // The player is left in floor mode, west of the floor.
+    internal static async Task<(BlockPos Wall, BlockPos Floor, BlockPos Below, ITestPlayer Player)> FloorBesideWall(IWorldSession world)
+    {
+        BlockPos wall = world.Spawn.Offset(1, 3, 0);
+        BlockPos floor = wall.WestCopy();
+        BlockPos below = floor.DownCopy();
+        world.SetBlock("game:planks-aged-ud", wall.DownCopy(2));
+        ITestPlayer player = await JoinBuilder(world);
+        await Raise(world, player, wall.DownCopy(), wall.DownCopy().WestCopy(), "game:plank-oak", "game:clay-blue", "game:plank-oak");
+        await Raise(world, player, wall, floor, "game:plank-oak", "game:clay-blue");
+
+        world.SetBlock("game:planks-aged-ud", below);
+        player.Entity.WatchedAttributes.SetString("vssidingFraming", "floor");
+        await Raise(world, player, floor, wall, "game:plank-oak", null);
+        world.Api.World.BlockAccessor.SetBlock(0, below);
+        return (wall, floor, below, player);
+    }
+
+    internal static bool RaisedBelow(IWorldSession world, BlockPos floor)
+    {
+        var tree = new TreeAttribute();
+        world.BlockEntityAt<BlockEntity>(floor)!.ToTreeAttributes(tree);
+        return tree.GetBool("raisedbelow");
+    }
+
     // A right-click as vanilla sends it: the wall answers first unless the player sneaks, and the held item only
     // when the wall passes the click on. A held button sends the click again with firstEvent false, unless
     // the wall claimed the press and its OnBlockInteractStep keeps the interaction going.

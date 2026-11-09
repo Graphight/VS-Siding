@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading.Tasks;
 using Atlas.Api;
 using Atlas.XUnit;
@@ -134,6 +135,29 @@ public class FloorScenarios : AtlasScenarioBase
         await WallBuilder.Press(World, player, wall, "game:plank-oak", ahead, Middle, quantity: 3);
 
         Assert.Equal((null, "floor"), (DeckOf(wall), World.BlockAt(wall.AddCopy(ahead)).Code.Path));
+    }
+
+    // A torch clicked onto a wall's outer face, where a thin floor fills the cell beyond, goes into the cell below on the
+    // wall there and rises until its top meets the floor's underside, selectable through the floor. Once it is gone the
+    // floor forgets it, so a torch put on the wall below sits at its own height (decision 0092).
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
+    public async Task Torch_Should_RiseUnderAThinFloor_When_ClickedOntoTheWallFaceBesideIt()
+    {
+        (BlockPos wall, BlockPos floor, BlockPos below, ITestPlayer player) = await WallBuilder.FloorBesideWall(World);
+
+        await WallBuilder.Press(World, player, wall, "game:torch-basic-lit-up", BlockFacing.WEST, new Vec3d(0, 0.5, 0.5), quantity: 1);
+        var raised = (World.BlockAt(below).Code.Path, System.Math.Round(WallBuilder.HangShiftAt(World, below), 3), WallBuilder.RaisedBelow(World, floor),
+            World.BlockAt(floor).GetSelectionBoxes(World.Api.World.BlockAccessor, floor).Any(box => box.GetType().Name == "DecorSelectionBox"));
+
+        World.Api.World.BlockAccessor.BreakBlock(below, player.Player);
+        await World.Until(() => !WallBuilder.RaisedBelow(World, floor), 100);
+        var stack = new ItemStack(World.Api.World.GetBlock(new AssetLocation("game:torch-basic-lit-up")));
+        var besideLower = new BlockSelection { Position = below.Copy(), Face = BlockFacing.WEST, HitPosition = new Vec3d(0, 0.5, 0.5) };
+        string failureCode = "";
+        stack.Block.TryPlaceBlock(player.Entity.World, player.Player, stack, besideLower, ref failureCode);
+
+        Assert.Equal((("torch-basic-lit-west", 0.85, true, true), ("torch-basic-lit-west", 0.0, false)),
+            (raised, (World.BlockAt(below).Code.Path, WallBuilder.HangShiftAt(World, below), WallBuilder.RaisedBelow(World, floor))));
     }
 
     // A boarded floor beside the wall, the run ending at it.

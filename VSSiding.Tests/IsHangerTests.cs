@@ -36,6 +36,40 @@ public class IsHangerTests
         return block;
     }
 
+    // Only a block hung on the wall face it was clicked on rises under a thin floor beside the wall (decision 0092).
+    [Fact]
+    public void ABlockHangsOnASideInAWallVariantOrAsAHorizontalAttachable()
+    {
+        Block Torch(string orientation)
+        {
+            var torch = new BlockGroundAndSideAttachable();
+            torch.VariantStrict["orientation"] = orientation;
+            return torch;
+        }
+        var holder = new Block();
+        holder.BlockBehaviors = new BlockBehavior[] { new BlockBehaviorHorizontalAttachable(holder) };
+
+        var blocks = new Dictionary<string, Block>
+        {
+            ["wall torch"] = Torch("east"),
+            ["standing torch"] = Torch("up"),
+            ["wall lantern"] = Lantern("north"),
+            ["hanging lantern"] = Lantern("down"),
+            ["torch holder"] = holder,
+            ["plain block"] = new Block(),
+        };
+
+        Assert.Equal(new Dictionary<string, bool>
+        {
+            ["wall torch"] = true,
+            ["standing torch"] = false,
+            ["wall lantern"] = true,
+            ["hanging lantern"] = false,
+            ["torch holder"] = true,
+            ["plain block"] = false,
+        }, blocks.ToDictionary(pair => pair.Key, pair => SidingModSystem.HangsOnSide(pair.Value)));
+    }
+
     [Fact]
     public void OnlyBlocksAttachedToTheirTopAreHangers()
     {

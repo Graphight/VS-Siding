@@ -536,18 +536,53 @@ public class SidingWallBlock : Block
 
         if (world.Side == EnumAppSide.Client) return true;
 
+        PlaceHeld(world, byPlayer, slot, heldBlock, blockSel);
+        return true;
+    }
+
+    // A click on the outer face, where a thin floor fills the cell beyond, would place into the floor's cell, which takes
+    // nothing. A block that hangs on a wall face and fits under a deck goes into the cell below instead, on the wall
+    // there, and the floor raises it to its underside (decision 0092). It places on the server only, as TryHost does.
+    private bool TryRaise(IWorldAccessor world, IPlayer byPlayer, BlockSelection blockSel)
+    {
+        ItemSlot slot = byPlayer.InventoryManager.ActiveHotbarSlot;
+        Block? heldBlock = slot.Itemstack?.Block;
+        if (heldBlock == null || !blockSel.Face.IsHorizontal || HostsClick(Variant["layout"], Variant["side"], blockSel.Face)) return false;
+
+        var accessor = world.BlockAccessor;
+        var floorPos = blockSel.Position.AddCopy(blockSel.Face);
+        if (accessor.GetBlockEntity<SidingFloorEntity>(floorPos) is not { } floor) return false;
+        Block placed = SidingModSystem.PlacedVariant(accessor, heldBlock, blockSel.Face);
+        if (!SidingModSystem.IsUnderDeckId(placed.BlockId) || !SidingModSystem.HangsOnSide(placed)) return false;
+
+        var target = floorPos.DownCopy();
+        var wallBelow = blockSel.Position.DownCopy();
+        if (accessor.GetBlock(target) is SidingWallBlock || !accessor.GetBlock(target).IsReplacableBy(heldBlock)
+            || !accessor.GetBlock(wallBelow).CanAttachBlockAt(accessor, placed, wallBelow, blockSel.Face)) return false;
+
+        if (world.Side == EnumAppSide.Client) return true;
+
+        var below = blockSel.Clone();
+        below.Position = target;
+        if (!PlaceHeld(world, byPlayer, slot, heldBlock, below) || !SidingModSystem.IsUnderDeckId(accessor.GetBlock(target).BlockId)) return true;
+        floor.RaisedBelow = true;
+        floor.MarkDirty(true);
+        return true;
+    }
+
+    private static bool PlaceHeld(IWorldAccessor world, IPlayer byPlayer, ItemSlot slot, Block heldBlock, BlockSelection blockSel)
+    {
         string failureCode = "";
         if (!heldBlock.TryPlaceBlock(world, byPlayer, slot.Itemstack!, blockSel, ref failureCode))
         {
             (byPlayer as IServerPlayer)?.SendIngameError(failureCode, Lang.Get("placefailure-" + failureCode));
-            return true;
+            return false;
         }
 
         bool isCreative = byPlayer.WorldData.CurrentGameMode == EnumGameMode.Creative;
         if (!isCreative) slot.TakeOut(1);
         slot.MarkDirty();
         if (heldBlock.Sounds != null) world.PlaySoundAt(heldBlock.Sounds.Place, blockSel.Position, -0.5, byPlayer);
-
         return true;
     }
 
@@ -560,6 +595,7 @@ public class SidingWallBlock : Block
     // doesn't also fire. Plain right-click, not shift - see decision 0006.
     public override bool OnBlockInteractStart(IWorldAccessor world, IPlayer byPlayer, BlockSelection blockSel)
     {
+        if (TryRaise(world, byPlayer, blockSel)) return true;
         if (!HasBuildSignal(byPlayer))
         {
             if (TryHost(world, byPlayer, blockSel)) return true;
