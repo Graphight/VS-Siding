@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Created: 2026-11-08
-- Reflects: branch `bamboo-frames`, from `47e49a3`; `config/materials.json` (`bamboo`, `bamboopoles`), `WallShapeGen` (`WallPoleElements`, `WallPole2Elements`, `CornerPoleElements`, `FloorPoleElements`, `DiagonalElements`, `Stems`, `StemNodes`, `CornerInElements`, `PostLayer`, `BambooRings`/`BambooVariants`, `BambooPole`, `BambooPost`, `NotchedSquare`, `BambooFatPost`, `FatPostRing`, `DeckGroups`), `SidingWallEntity.FrameElements`/`SelectiveElements`/`PostElements`, `WallShapeGenTests`, `SidingWallEntityTests`; decisions 0061, 0062, 0066, 0082, 0088; the author's playtest of #157; PR #161 and its review; unit tests pass (`just test`) and the end-to-end suite passed at `e9a07ad` and again after the review's fixes (`just e2e`, 121); played cut by cut on 2026-11-08, the corner's post standing inside its rings not yet
+- Reflects: branch `bamboo-frames`, from `47e49a3`; `config/materials.json` (`bamboo`, `bamboopoles`), `WallShapeGen` (`WallPoleElements`, `WallPole2Elements`, `CornerPoleElements`, `FloorPoleElements`, `DiagonalElements`, `Stems`, `StemNodes`, `CornerInElements`, `PostLayer`, `BambooRings`/`BambooVariants`, `BambooPole`, `BambooPost`, `NotchedSquare`, `BambooFatPost`, `FatPostRing`, `DeckGroups`), `SidingWallEntity.FrameElements`/`SelectiveElements`/`PostElements`, `WallShapeGenTests`, `SidingWallEntityTests`; decisions 0061, 0062, 0066, 0082, 0088; the author's playtest of #157; PR #161 and its review; unit tests pass (`just test`) and the end-to-end suite passed at `e9a07ad` and again after the review's fixes (`just e2e`, 121); played cut by cut on 2026-11-08, the last with the corner's post inside its rings, the tee's step filled and the rings short of the frame's faces
 
 ## Summary
 A bamboo frame draws straight poles with node rings, in place of the stick frame's crooked poles in a bamboo texture.
@@ -105,8 +105,8 @@ The shapes grew as follows, in bytes:
 
 ## Consequences & open questions
 - The author played each cut on 2026-11-08: the walls' and floors' rings and lashing read well from the first, and the rings on two sides, the 4 by 4 post with flush rings, the 3-wide post, the stepped-in edges and the corner's post with flush rings were each redrawn as above.
-The rings reaching into the next cell, the diagonal and the full-width post read well in the last play.
-The corner's post standing inside its rings is judged from unit tests on outline, planes, thickness and the tees' faces until the next play.
+The rings reaching into the next cell, the diagonal and the full-width post read well in play.
+The corner's post inside its rings left a slot behind a T's tee, and the rings flickered on the tee's faces; the author played both fixes and the flicker was gone.
 - A bamboo wall costs 168 quads against the pole frame's 144, a corner 291 against 158, and the shapes are 13.9 MB together; a large bamboo build is the case to watch.
 - A bamboo post's finished face beside a bare one meets the round pole at a plain edge, with no mitre; whether that reads as a seam is for play to say.
 - Nothing stored changes, so there is no new end-to-end scenario; the existing suite passed once before the push.
