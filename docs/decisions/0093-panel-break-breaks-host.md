@@ -29,4 +29,4 @@ This holds for every hosted block, chests and tables included: a player who mine
 
 ## Consequences & open questions
 - Mining a wall in front of a chest breaks the chest; the wall comes back.
-- Played in survival and creative: not yet recorded.
+- Played on 2026-11-08: a panel break breaks the hosted block and the wall comes back, as described.
