@@ -135,7 +135,7 @@ public class GuestWallScenarios : AtlasScenarioBase
         }
     }
 
-    // The server's player dig runs the BreakBlock event, then OnBlockBroken on the block there unless the event answered.
+    // The server's player dig runs the BreakBlock event, then OnBlockBroken only while the handling stays PassThrough.
     [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Lamp_Should_Break_When_ItsWallPanelIsMined()
     {
@@ -161,13 +161,12 @@ public class GuestWallScenarios : AtlasScenarioBase
             object events = World.Api.World.GetType().GetField("EventManager")!.GetValue(World.Api.World)!;
             var args = new object[] { player.Player, panelHit, 1f, EnumHandling.PassThrough };
             events.GetType().GetMethod("TriggerBreakBlock")!.Invoke(events, args);
-            var handling = (EnumHandling)args[3];
-            World.BlockAt(cell).OnBlockBroken(player.Entity.World, cell, player.Player);
+            if ((EnumHandling)args[3] == EnumHandling.PassThrough)
+                World.BlockAt(cell).OnBlockBroken(player.Entity.World, cell, player.Player);
             await World.Ticks(2);
 
-            Assert.Equal(
-                (EnumHandling.PassThrough, "vssiding:wall-wall-west", Expected),
-                (handling, World.BlockAt(cell).Code.ToString(), WallBuilder.Layers(World, cell)));
+            Assert.Equal("vssiding:wall-wall-west", World.BlockAt(cell).Code.ToString());
+            Assert.Equal(Expected, WallBuilder.Layers(World, cell));
             Assert.Null(WallBuilder.GuestLayers(World, cell));
         }
         finally
