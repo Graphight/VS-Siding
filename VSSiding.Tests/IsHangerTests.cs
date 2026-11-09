@@ -21,6 +21,8 @@ public class IsHangerTests
         return lantern;
     }
 
+    private static Block Named(string path) => new() { Code = new AssetLocation("game", path) };
+
     private static Block Chandelier(params BlockFacing[] attachableFaces)
     {
         var chandelier = new Block();
@@ -36,7 +38,7 @@ public class IsHangerTests
         return block;
     }
 
-    // Only a block hung on the wall face it was clicked on rises under a thin floor beside the wall (decision 0092).
+    // Only a block hung on the wall face it was clicked on rises under a thin floor beside the wall (decision 0094).
     [Fact]
     public void ABlockHangsOnASideInAWallVariantOrAsAHorizontalAttachable()
     {
@@ -83,6 +85,9 @@ public class IsHangerTests
             ["plain block"] = new Block(),
             ["declared hanger"] = Declared(new Block(), true),
             ["declared non-hanger lantern"] = Declared(Lantern("down"), false),
+            ["ceiling lamp"] = Named("oillampceilingfix-blue-down-north-normal"),
+            ["raised ceiling lamp"] = Named("oillampceilingfix-blue-down-north-raised"),
+            ["wall lamp"] = Named("oillampwallfix-blue-north"),
         };
 
         var expected = new Dictionary<string, bool>
@@ -95,6 +100,9 @@ public class IsHangerTests
             ["two-way chandelier"] = true,
             ["falling sand"] = false,
             ["plain block"] = false,
+            ["ceiling lamp"] = true,
+            ["raised ceiling lamp"] = true,
+            ["wall lamp"] = false,
         };
 
         var actual = new Dictionary<string, bool>();

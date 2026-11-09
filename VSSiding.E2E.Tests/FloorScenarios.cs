@@ -139,7 +139,7 @@ public class FloorScenarios : AtlasScenarioBase
 
     // A torch clicked onto a wall's outer face, where a thin floor fills the cell beyond, goes into the cell below on the
     // wall there and rises until its top meets the floor's underside, selectable through the floor. Once it is gone the
-    // floor forgets it, so a torch put on the wall below sits at its own height (decision 0092).
+    // floor forgets it, so a torch put on the wall below sits at its own height (decision 0094).
     [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Torch_Should_RiseUnderAThinFloor_When_ClickedOntoTheWallFaceBesideIt()
     {

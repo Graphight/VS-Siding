@@ -20,7 +20,7 @@ public class SidingFloorEntity : BlockEntity
     public string? Back;
     public string? FrontStyle;
     public string? BackStyle;
-    // The block in the cell below went on a wall face through this floor's cell, and rises to its underside (decision 0092).
+    // The block in the cell below went on a wall face through this floor's cell, and rises to its underside (decision 0094).
     public bool RaisedBelow;
 
     public override void ToTreeAttributes(ITreeAttribute tree)

@@ -330,4 +330,75 @@ public class MaterialFamiliesTests
         }
         """), (JObject)actual["dyed-red-oak"]!);
     }
+
+    private static (string, AssetLocation, IDictionary<string, string>) PaneCandidate(string type)
+        => ("item", new AssetLocation($"industrialstory:glass-pane-{type}"), new Dictionary<string, string> { ["type"] = type });
+
+    [Theory]
+    [InlineData("wall.json")]
+    [InlineData("floor.json")]
+    public void ShippedIndustrialStoryPaneTemplatesExpandOneEntryPerType(string blockFile)
+    {
+        var families = (JObject)MaterialTextureOpacityTests.BlockAttributes(blockFile)["InfillFamilies"]!;
+
+        var actual = MaterialFamilies.Expand(families, new JObject(), new[]
+        {
+            PaneCandidate("plain"),
+            PaneCandidate("lead"),
+            PaneCandidate("green"),
+        });
+
+        Assert.Equal(new[] { "glass-pane-lead", "glass-pane-plain", "glass-pane-green" },
+            actual.Properties().Select(p => p.Name));
+        AssertJson(JObject.Parse("""
+        {
+            "DisplayName": "vssiding:infill-glass-lead",
+            "Texture": "game:block/glass/plain",
+            "BlockMaterial": "Glass",
+            "Transparent": true,
+            "Consumes": { "type": "item", "code": "industrialstory:glass-pane-lead", "quantity": 1 },
+            "Drops": [ { "type": "item", "code": "industrialstory:glass-pane-lead", "quantity": { "avg": 1, "var": 0 } } ]
+        }
+        """), (JObject)actual["glass-pane-lead"]!);
+        AssertJson(JObject.Parse("""
+        {
+            "DisplayName": "vssiding:infill-glass-green",
+            "Texture": "game:block/glass/green",
+            "BlockMaterial": "Glass",
+            "Transparent": true,
+            "Consumes": { "type": "item", "code": "industrialstory:glass-pane-green", "quantity": 1 },
+            "Drops": [ { "type": "item", "code": "industrialstory:glass-pane-green", "quantity": { "avg": 1, "var": 0 } } ]
+        }
+        """), (JObject)actual["glass-pane-green"]!);
+    }
+
+    private static (string, AssetLocation, IDictionary<string, string>) LeadedCandidate(string glass, string wood, string type)
+        => ("block", new AssetLocation($"industrialstory:leadedglasspane-{glass}-{wood}-{type}"),
+            new Dictionary<string, string> { ["glass"] = glass, ["wood"] = wood, ["type"] = type });
+
+    [Theory]
+    [InlineData("wall.json")]
+    [InlineData("floor.json")]
+    public void ShippedIndustrialStoryLeadedTemplateExpandsOneEntryPerGlassAndWood(string blockFile)
+    {
+        var families = (JObject)MaterialTextureOpacityTests.BlockAttributes(blockFile)["InfillFamilies"]!;
+
+        var actual = MaterialFamilies.Expand(families, new JObject(), new[]
+        {
+            LeadedCandidate("green", "oak", "ew"),
+            LeadedCandidate("lead", "aged", "ew"),
+        });
+
+        Assert.Equal(new[] { "leadedglasspane-green-oak", "leadedglasspane-lead-aged" }, actual.Properties().Select(p => p.Name));
+        AssertJson(JObject.Parse("""
+        {
+            "DisplayName": "vssiding:infill-glass-leaded-green",
+            "Texture": "industrialstory:block/glass/green-leaded",
+            "BlockMaterial": "Glass",
+            "Transparent": true,
+            "Consumes": { "type": "block", "code": "industrialstory:leadedglasspane-green-oak-ew", "quantity": 1 },
+            "Drops": [ { "type": "block", "code": "industrialstory:leadedglasspane-green-oak-ew", "quantity": { "avg": 1, "var": 0 } } ]
+        }
+        """), (JObject)actual["leadedglasspane-green-oak"]!);
+    }
 }

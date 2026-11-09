@@ -508,7 +508,7 @@ public class SidingWallBlock : Block
         => (SidingModSystem.IsHostableId(block.BlockId) && Variant["layout"] != "diagonal") || base.IsReplacableBy(block);
 
     // The placement failure code keeping a block out of the wall's cell: a step takes nothing, a deck
-    // takes only a block that fits under it (decision 0092).
+    // takes only a block that fits under it (decision 0094).
     internal static string? OpenPartRefusal(SidingWallEntity? entity, bool underDeck = false)
         => entity?.Deck != null && !underDeck ? "vssiding-decked" : entity?.Step != null ? "vssiding-stepped" : null;
 
@@ -542,7 +542,7 @@ public class SidingWallBlock : Block
 
     // A click on the outer face, where a thin floor fills the cell beyond, would place into the floor's cell, which takes
     // nothing. A block that hangs on a wall face and fits under a deck goes into the cell below instead, on the wall
-    // there, and the floor raises it to its underside (decision 0092). It places on the server only, as TryHost does.
+    // there, and the floor raises it to its underside (decision 0094). It places on the server only, as TryHost does.
     private bool TryRaise(IWorldAccessor world, IPlayer byPlayer, BlockSelection blockSel)
     {
         ItemSlot slot = byPlayer.InventoryManager.ActiveHotbarSlot;
@@ -1119,7 +1119,7 @@ public class SidingWallBlock : Block
     public override bool CanAttachBlockAt(IBlockAccessor blockAccessor, Block block, BlockPos pos, BlockFacing blockFace, Cuboidi? attachmentArea = null)
         => CanAttachOf(blockAccessor.GetBlockEntity<SidingWallEntity>(pos), blockFace);
 
-    // A deck's underside takes hangers (decision 0092); a diagonal's deck covers half the cell, so it has none.
+    // A deck's underside takes hangers (decision 0094); a diagonal's deck covers half the cell, so it has none.
     internal bool CanAttachOf(SidingWallEntity? entity, BlockFacing blockFace)
     {
         if (blockFace == BlockFacing.UP) return ComputeDeckRetention(entity?.Deck, entity?.DeckInfill, entity?.LegacyDeck ?? false, Attributes["Framings"], Attributes["Infills"]) != 0;

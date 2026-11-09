@@ -197,7 +197,9 @@ public class SidingModSystem : ModSystem
         }
 
         // BlockOilLamp sets its own basePos instead of calling base, so its flame needs its own patch.
-        foreach (var particleBlock in new[] { typeof(Block), typeof(BlockOilLamp) })
+        // Oil Lamps Anywhere's ceiling lamp overrides it again without calling base.
+        var particleBlocks = new[] { typeof(Block), typeof(BlockOilLamp), AccessTools.TypeByName("OilLampCeilingFix.BlockCeilingLamp") };
+        foreach (var particleBlock in particleBlocks.Where(t => t != null))
         {
             try
             {
@@ -707,7 +709,7 @@ public class SidingModSystem : ModSystem
     internal static bool IsHangerId(int blockId) => Hangers is { } hangers && blockId < hangers.Length && hangers[blockId];
 
     // Indexed by BlockId: how far a block hosted in a decked cell drops so its top meets the deck's underside,
-    // null for one that does not fit there (decision 0092).
+    // null for one that does not fit there (decision 0094).
     internal static double?[]? UnderDeckDrop;
 
     internal static bool IsUnderDeckId(int blockId) => UnderDeckDrop is { } drops && blockId < drops.Length && drops[blockId] != null;
@@ -746,9 +748,11 @@ public class SidingModSystem : ModSystem
         AccessTools.FieldRefAccess<BlockBehaviorUnstableFalling, BlockFacing[]?>("attachableFaces");
 
     // A lantern or oil lamp hangs as its "down" variant; a chandelier is unstable falling attached on UP.
+    // Oil Lamps Anywhere adds its ceiling lamp from code after JSON patches run, so only its code names it.
     internal static bool IsHanger(Block block)
         => block.Attributes?["vssidingHanger"] is { Exists: true } declared ? declared.AsBool()
-        : block.BlockBehaviors.Any(behavior => behavior switch
+        : (block.Code is { Domain: "game" } code && code.Path.StartsWith("oillampceilingfix-"))
+        || block.BlockBehaviors.Any(behavior => behavior switch
         {
             BlockBehaviorOmniAttachable omni => block.Variant[omni.facingCode] == "down",
             BlockBehaviorUnstableFalling falling => AttachableFacesRef(falling)?.Contains(BlockFacing.UP) == true,
@@ -757,7 +761,7 @@ public class SidingModSystem : ModSystem
 
     // How far the block at pos moves up: a hung block rises to the underside of the thin floor or deck above (0054),
     // a block hosted in a decked cell drops by its UnderDeckDrop, and one the floor above raised (SidingWallBlock.TryRaise)
-    // rises a cell less that drop, as if under a deck in the floor's cell (0092). Zero for anything else.
+    // rises a cell less that drop, as if under a deck in the floor's cell (0094). Zero for anything else.
     internal static double HangShiftAt(BlockPos pos, Block block)
     {
         bool hanger = IsHangerId(block.BlockId);
@@ -1107,7 +1111,7 @@ public class SidingModSystem : ModSystem
     // in view. IsHostable admits no Multiblock block but a trunk or one declaring vssidingHostable with a
     // side variant, so ordinary multiblocks pass untouched.
     // IsReplacableBy lets any hostable block take a wall's cell but has no position to see a deck
-    // or step, so the placement check refuses it here, unless the block fits under the deck (decision 0092).
+    // or step, so the placement check refuses it here, unless the block fits under the deck (decision 0094).
     // Positional arguments, since overrides rename them.
     internal static void DeckedCellPostfix(Block __instance, IWorldAccessor __0, BlockSelection __2, ref string __3, ref bool __result)
     {

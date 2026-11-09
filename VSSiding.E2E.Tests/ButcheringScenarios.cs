@@ -83,7 +83,7 @@ public class ButcheringScenarios : AtlasScenarioBase
         }
     }
 
-    // On the wall's outer face beside a thin floor, the hook goes into the cell below and rises to the floor's underside (decision 0092).
+    // On the wall's outer face beside a thin floor, the hook goes into the cell below and rises to the floor's underside (decision 0094).
     [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task WallHook_Should_RiseUnderAThinFloor_When_ClickedOntoTheWallFaceBesideIt()
     {

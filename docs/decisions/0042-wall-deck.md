@@ -1,6 +1,6 @@
 # 0042 — Wall deck
 
-- Status: Accepted; a decked cell now hosts a block that fits under the deck, see 0092
+- Status: Accepted; a decked cell now hosts a block that fits under the deck, see 0094
 - Created: 2026-09-25
 - Reflects: branch `wall-deck` (PR #52); `SidingWallEntity.Deck`; `SidingWallBlock.AddDeckBox`/`GetSelectionBoxes`/`ComputeDeckRetention`/`PeelLayer`/`OnBlockInteractStart`; `SidingModSystem.DeckedCellPostfix`/`HostChangePrefix`; `SidingModePicker.Rows`; decompiled `RoomRegistry.FindRoomForPosition` (1.22.2); decisions 0002, 0008, 0013, 0020, 0026, 0035, 0040; a player report; played
 

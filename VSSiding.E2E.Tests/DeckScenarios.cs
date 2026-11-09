@@ -65,7 +65,7 @@ public class DeckScenarios : AtlasScenarioBase
     }
 
     // A lantern places through its own behaviour, which reaches the decked cell check only by asking CanPlaceBlock, for
-    // the lantern as held. On the wall face a large lantern is 14/16 tall, too tall to fit under the deck (decision 0092).
+    // the lantern as held. On the wall face a large lantern is 14/16 tall, too tall to fit under the deck (decision 0094).
     [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Deck_Should_StayOnItsWall_When_ALargeLanternIsHungOnTheWallFace()
     {
@@ -108,7 +108,7 @@ public class DeckScenarios : AtlasScenarioBase
             (World.BlockAt(cell).Code.Path, WallBuilder.GuestDeckLayers(World, cell), System.Math.Round(WallBuilder.HangShiftAt(World, cell), 3)));
     }
 
-    // A torch holder stands against a wall face, so the decked cell hosts it under the deck (decision 0092): the deck stays, still seals its top, and comes back with the wall.
+    // A torch holder stands against a wall face, so the decked cell hosts it under the deck (decision 0094): the deck stays, still seals its top, and comes back with the wall.
     [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Deck_Should_StayAndSealItsTop_When_ATorchHolderIsHostedUnderIt()
     {

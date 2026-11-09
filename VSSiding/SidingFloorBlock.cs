@@ -155,7 +155,7 @@ public class SidingFloorBlock : Block
     internal static bool CanAttach(BlockFacing facing, string? framing, string? infill, JsonObject attributes)
         => facing == BlockFacing.DOWN ? framing != null : ComputeRetention(facing, framing, infill, attributes) != 0;
 
-    // Once the block this floor raised is gone, the next one placed below sits at its own height (decision 0092).
+    // Once the block this floor raised is gone, the next one placed below sits at its own height (decision 0094).
     public override void OnNeighbourBlockChange(IWorldAccessor world, BlockPos pos, BlockPos neibpos)
     {
         base.OnNeighbourBlockChange(world, pos, neibpos);
@@ -172,7 +172,7 @@ public class SidingFloorBlock : Block
     public override Cuboidf[] GetSelectionBoxes(IBlockAccessor blockAccessor, BlockPos pos)
         => WithHangerBelow(blockAccessor, pos, base.GetSelectionBoxes(blockAccessor, pos));
 
-    // Shared with a decked wall (decision 0092), which also answers for the hanger in the cell below.
+    // Shared with a decked wall (decision 0094), which also answers for the hanger in the cell below.
     internal static Cuboidf[] WithHangerBelow(IBlockAccessor blockAccessor, BlockPos pos, Cuboidf[] ownBoxes)
     {
         var belowPos = pos.DownCopy();

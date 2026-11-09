@@ -30,7 +30,7 @@
 		"bamboo": {
 			DisplayName: "vssiding:framing-bamboo",
 			Texture: "game:block/wood/planks/bamboo-side",
-			Elements: "poles",
+			Elements: "bamboo",
 			Consumes: { type: "item", code: "game:bamboostakes", quantity: 2 },
 			Drops: [ { type: "item", code: "game:bamboostakes", quantity: { avg: 2, var: 0 } } ]
 		}
@@ -119,6 +119,33 @@
 			Transparent: true,
 			Consumes: { type: "block", code: "game:glasspane-leaded-{wood}-ew", quantity: 1 },
 			Drops: [ { type: "block", code: "game:glasspane-leaded-{wood}-ew", quantity: { avg: 1, var: 0 } } ]
+		},
+		"glass-pane-lead": {
+			Match: { type: "item", code: "industrialstory:glass-pane-lead", variant: "type" },
+			DisplayName: "vssiding:infill-glass-lead",
+			Texture: "game:block/glass/plain",
+			BlockMaterial: "Glass",
+			Transparent: true,
+			Consumes: { type: "item", code: "industrialstory:glass-pane-lead", quantity: 1 },
+			Drops: [ { type: "item", code: "industrialstory:glass-pane-lead", quantity: { avg: 1, var: 0 } } ]
+		},
+		"glass-pane-{type}": {
+			Match: { type: "item", code: "industrialstory:glass-pane-*", variant: "type" },
+			DisplayName: "vssiding:infill-glass-{type}",
+			Texture: "game:block/glass/{type}",
+			BlockMaterial: "Glass",
+			Transparent: true,
+			Consumes: { type: "item", code: "industrialstory:glass-pane-{type}", quantity: 1 },
+			Drops: [ { type: "item", code: "industrialstory:glass-pane-{type}", quantity: { avg: 1, var: 0 } } ]
+		},
+		"leadedglasspane-{glass}-{wood}": {
+			Match: { type: "block", code: "industrialstory:leadedglasspane-*-*-ew", variant: ["glass", "wood"] },
+			DisplayName: "vssiding:infill-glass-leaded-{glass}",
+			Texture: "industrialstory:block/glass/{glass}-leaded",
+			BlockMaterial: "Glass",
+			Transparent: true,
+			Consumes: { type: "block", code: "industrialstory:leadedglasspane-{glass}-{wood}-ew", quantity: 1 },
+			Drops: [ { type: "block", code: "industrialstory:leadedglasspane-{glass}-{wood}-ew", quantity: { avg: 1, var: 0 } } ]
 		},
 		"pelt-{size}": {
 			Match: { type: "item", code: "game:hide-pelt-*", variant: "size" },

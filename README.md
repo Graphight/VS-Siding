@@ -21,7 +21,7 @@ The in-game handbook has the whole thing: start at *VS Siding Mod: Guide*, which
 ## What a wall is made of
 
 - **Framing**: planks, in any wood the game or another mod adds, sticks, bones, or bamboo stakes. Bone does not burn.
-- **Infill**: wattle, bamboo poles, straw, clay, packed earth, rammed earth, pelt, cloth, rubble stone, glass or leaded glass.
+- **Infill**: wattle, bamboo poles, straw, clay, packed earth, rammed earth, pelt, cloth, rubble stone, glass, leaded glass or a glass pane from IndustrialStory.
 - **Finish**: appearance only, per face, in wood, clay, packed earth, rammed earth, brick, stone, or metal.
 
 Framing plus infill is a complete wall, and seals a room the way solid blocks do.
