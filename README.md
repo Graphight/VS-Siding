@@ -15,7 +15,7 @@ A stone works from the first day: it is never used up, and sticks build the fram
 Sticks are also the wattle infill, so right-click a face of a bare stick frame to fill it, and its top or an end to stack or extend it.
 Bones build a frame too, two to a frame, and a pelt or a cloth fills one.
 
-The saw or stone carries a tool mode picker, and the mode decides what you build: a flat **wall**, an outside **corner**, a **diagonal** across the block or a thin **floor**, and whether plank and log finishes go on as weatherboard, boards, shakes, logs or bark.
+The saw or stone carries a tool mode picker, and the mode decides what you build: a flat **wall**, an outside **corner**, a **diagonal** across the block, a **post** in one corner of the block, a thin **floor**, or a plank finish on one **face** of any solid block, and whether plank and log finishes go on as weatherboard, boards, shakes, logs or bark.
 The in-game handbook has the whole thing: start at *VS Siding Mod: Guide*, which links to a page for each topic.
 
 ## What a wall is made of
@@ -25,7 +25,7 @@ The in-game handbook has the whole thing: start at *VS Siding Mod: Guide*, which
 - **Finish**: appearance only, per face, in wood, clay, packed earth, rammed earth, brick, stone, or metal.
 
 Framing plus infill is a complete wall, and seals a room the way solid blocks do.
-The infill decides whether it counts as a cooling (cellar) wall: rubble stone, clay, packed earth and rammed earth do, wattle, straw, pelt and cloth do not.
+The infill decides whether it counts as a cooling (cellar) wall: rubble stone, clay, packed earth and rammed earth do, wattle, bamboo poles, straw, pelt and cloth do not.
 Glass seals the same way but lets daylight through.
 
 ## Floors
@@ -55,6 +55,19 @@ Stick and bone frames, and a bone and pelt tent:
 
 ![primitive-siding](docs/screenshots/PrimitiveSiding.jpg)
 ![primitive-tent](docs/screenshots/PrimitiveTent.jpg)
+
+Posts, at the end of a wall and in the inner corner of an L, and a corner with a different finish on each inner face:
+
+![corner-post-finished](docs/screenshots/CornerPostFinished.jpg)
+![corners-with-post](docs/screenshots/CornersWithPost.jpg)
+
+Bamboo frames and pole infill on bamboo stilts:
+
+![bamboo-stilts](docs/screenshots/BambooStilts.jpg)
+
+A stairwell with capped wall tops and steps that line up:
+
+![stair-hosting](docs/screenshots/StairHosting.jpg)
 
 Floors, from above and below:
 
