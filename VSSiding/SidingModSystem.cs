@@ -1592,7 +1592,9 @@ public class SidingModSystem : ModSystem
 
         api.Event.BreakBlock += (IServerPlayer _, BlockSelection blockSel, ref float _, ref EnumHandling _) =>
         {
-            SidingWallBlock.ServerBreakSelection = blockSel;
+            // Only a siding block's OnBlockBroken clears it, so set for any other block it outlives the break.
+            if (api.World.BlockAccessor.GetBlock(blockSel.Position) is SidingWallBlock or SidingFloorBlock)
+                SidingWallBlock.ServerBreakSelection = blockSel;
         };
 
         api.ChatCommands.Create("sidingroom")

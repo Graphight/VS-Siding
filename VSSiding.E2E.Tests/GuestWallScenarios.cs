@@ -158,16 +158,34 @@ public class GuestWallScenarios : AtlasScenarioBase
                 Position = cell.Copy(), Face = BlockFacing.EAST, HitPosition = new Vec3d(0.5, 0.5, 0.5),
                 SelectionBoxIndex = World.BlockAt(cell).SelectionBoxes.Length,
             };
-            object events = World.Api.World.GetType().GetField("EventManager")!.GetValue(World.Api.World)!;
-            var args = new object[] { player.Player, panelHit, 1f, EnumHandling.PassThrough };
-            events.GetType().GetMethod("TriggerBreakBlock")!.Invoke(events, args);
-            if ((EnumHandling)args[3] == EnumHandling.PassThrough)
+            if (WallBuilder.TriggerBreakBlock(World, player, panelHit) == EnumHandling.PassThrough)
                 World.BlockAt(cell).OnBlockBroken(player.Entity.World, cell, player.Player);
             await World.Ticks(2);
 
             Assert.Equal("vssiding:wall-wall-west", World.BlockAt(cell).Code.ToString());
             Assert.Equal(Expected, WallBuilder.Layers(World, cell));
             Assert.Null(WallBuilder.GuestLayers(World, cell));
+        }
+        finally
+        {
+            player.Player.Disconnect();
+            await World.Until(() => !player.IsConnected);
+        }
+    }
+
+    // Only a siding block's OnBlockBroken clears the selection; left set by a lamp's break, it peeled the wrong face of the next wall broken in that cell.
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
+    public async Task BreakSelection_Should_StayUnset_When_ABlockThatIsNotSidingIsBroken()
+    {
+        BlockPos cell = Cell;
+        World.SetBlock("game:planks-aged-ud", cell);
+
+        ITestPlayer player = await WallBuilder.JoinBuilder(World);
+        try
+        {
+            WallBuilder.TriggerBreakBlock(World, player, new BlockSelection { Position = cell.Copy(), Face = BlockFacing.EAST, HitPosition = new Vec3d(0.5, 0.5, 0.5) });
+
+            Assert.Null(WallBuilder.ServerBreakSelection(World));
         }
         finally
         {

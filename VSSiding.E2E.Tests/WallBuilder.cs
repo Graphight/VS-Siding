@@ -52,6 +52,20 @@ internal static class WallBuilder
         return guest == null ? null : LayersOf(guest);
     }
 
+    // The BreakBlock event a player's dig fires before OnBlockBroken, reached by name because the server's event manager is internal; returns the handling its handlers leave.
+    internal static EnumHandling TriggerBreakBlock(IWorldSession world, ITestPlayer player, BlockSelection selection)
+    {
+        object events = world.Api.World.GetType().GetField("EventManager")!.GetValue(world.Api.World)!;
+        var args = new object[] { player.Player, selection, 1f, EnumHandling.PassThrough };
+        events.GetType().GetMethod("TriggerBreakBlock")!.Invoke(events, args);
+        return (EnumHandling)args[3];
+    }
+
+    // The selection the mod's BreakBlock handler hands to the next siding OnBlockBroken.
+    internal static BlockSelection? ServerBreakSelection(IWorldSession world)
+        => (BlockSelection?)world.Api.ModLoader.GetModSystem("VSSiding.SidingModSystem").GetType().Assembly.GetType("VSSiding.SidingWallBlock")!
+            .GetField("ServerBreakSelection", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)!.GetValue(null);
+
     // deck, deckinfill, deckfront, deckback as the wall's entity saves them.
     internal static (string? Deck, string? Infill, string? Front, string? Back) DeckLayers(IWorldSession world, BlockPos cell)
     {
