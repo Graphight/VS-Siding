@@ -802,15 +802,24 @@ public static class WallShapeGen
         .. CornerTees("poles2"),
     ];
 
-    // A square bamboo post over lo..hi on x and z, its four vertical edges notched `notch` deep so it reads round: a core and a
-    // wing on each side, with rings filling the notches back to the square.
-    private static IEnumerable<Element> BambooPost(string name, double lo, double hi, double notch, double[] rings)
+    // A corner's bamboo post: a pole a quarter voxel back from both fronts, as every member's core stands behind its front,
+    // notched at the outer corner so it reads round, and full to the room sides, where the legs' plates end on it. Its rings
+    // fill the 2 by 2 and reach a quarter voxel into each leg's bay, as an upright's do. A ring box against the pole or the
+    // infill there lies flush on one pole box, so that face is buried rather than drawn on the infill's plane.
+    private static IEnumerable<Element> BambooPost(string name, double[] rings)
     {
-        double b = hi - notch;
-        foreach (var box in NotchedSquare(name, lo, hi, notch, 0, 16)) yield return box;
-        foreach (double ring in rings)
-            foreach (var (x, z) in new[] { (lo, lo), (b, lo), (lo, b), (b, b) })
-                yield return new Element(name, (x, ring, z), (x + notch, ring + 0.5, z + notch), "framing", UvRule.Flat);
+        Element Box(double x1, double y1, double z1, double x2, double y2, double z2) => new(name, (x1, y1, z1), (x2, y2, z2), "framing", UvRule.Flat);
+        yield return Box(1.5, 0, 1.25, 3, 16, 3);
+        yield return Box(1.25, 0, 1.5, 1.5, 16, 3);
+        foreach (double y in rings)
+        {
+            yield return Box(1, y, 1, 1.25, y + 0.5, 3.25);
+            yield return Box(1.25, y, 1, 3.25, y + 0.5, 1.25);
+            yield return Box(1.25, y, 1.25, 1.5, y + 0.5, 1.5);
+            yield return Box(3, y, 1.25, 3.25, y + 0.5, 3);
+            yield return Box(1.25, y, 3, 1.5, y + 0.5, 3.25);
+            yield return Box(1.5, y, 3, 3, y + 0.5, 3.25);
+        }
     }
 
     // The square lo..hi on x and z over y1..y2, its four vertical edges notched `notch` deep: a core and a wing on each side.
@@ -829,7 +838,7 @@ public static class WallShapeGen
         string[] leg2 = ["north", "south", "up", "down"];
         return
         [
-            .. BambooPost(v.Prefix, 1, 3, 0.25, v.Post),
+            .. BambooPost(v.Prefix, v.Post),
             .. BambooPole(v.Prefix, (1, 0, 15), (3, 16, 16), 'x', 'y', v.Right),
             .. BambooPole(v.Prefix, (15, 0, 1), (16, 16, 3), 'z', 'y', v.Left),
             .. BambooPole($"{v.Prefix}-top", (1, 15, 3), (3, 16, 15), 'x', 'z', v.Top, BambooPlateFaces),
@@ -837,7 +846,8 @@ public static class WallShapeGen
             .. BambooPole($"{v.Prefix}-bottom", (1, 0, 3), (3, 1, 15), 'x', 'z', v.Bottom, BambooPlateFaces),
             .. BambooPole($"{v.Prefix}-bottom", (3, 0, 1), (15, 1, 3), 'z', 'x', v.Bottom, leg2),
             .. CornerPoleElements.Where(e => e.Slot == "lashing").Select(e => e with { Name = e.Name.Replace("poles", v.Prefix) }),
-            .. CornerTees(v.Prefix),
+            // The post stands back from its fronts, so a tee draws the face it puts against the post.
+            .. CornerTees(v.Prefix).Select(e => e with { Faces = null }),
         ];
     }
 

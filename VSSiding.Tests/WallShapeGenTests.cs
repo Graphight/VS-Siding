@@ -347,6 +347,43 @@ public class WallShapeGenTests
             ringMids.Select(m => Covered(m).ToArray()).Prepend(Covered(between).ToArray()).ToArray());
     }
 
+    // A corner's bamboo post stands a quarter voxel back from both fronts, notched at its outer corner, and its rings fill the
+    // 2 by 2 and reach a quarter voxel into each leg's bay, short of the inner corner's finish, so every ring stands out of
+    // the pole. Read on a quarter-voxel grid.
+    [Theory]
+    [InlineData("bamboo")]
+    [InlineData("bamboo2")]
+    public void ACornersBambooPostStandsInsideRingsReachingIntoBothBays(string prefix)
+    {
+        var boxes = WallShapeGen.Generate("cornerout")["elements"]!
+            .Where(e => (string)e["name"]! == prefix).Select(Box).Where(b => b.Hi[0] <= 4 && b.Hi[2] <= 4).ToArray();
+        var points = (from i in Enumerable.Range(0, 16) from j in Enumerable.Range(0, 16) select (X: i * 0.25 + 0.125, Z: j * 0.25 + 0.125)).ToArray();
+        var pole = points.Where(p => 1.25 < p.X && p.X < 3 && 1.25 < p.Z && p.Z < 3 && !(p.X < 1.5 && p.Z < 1.5)).ToArray();
+        var ring = points.Where(p => 1 < p.X && p.X < 3.25 && 1 < p.Z && p.Z < 3.25 && !(p.X > 3 && p.Z > 3)).ToArray();
+        IEnumerable<(double X, double Z)> Covered(double y) => points.Where(p =>
+            boxes.Any(b => b.Lo[1] < y && y < b.Hi[1] && b.Lo[0] < p.X && p.X < b.Hi[0] && b.Lo[2] < p.Z && p.Z < b.Hi[2]));
+        double[] ringMids = [.. boxes.Where(b => b.Hi[1] - b.Lo[1] < 16).Select(b => (b.Lo[1] + b.Hi[1]) / 2).Distinct()];
+        double between = Enumerable.Range(0, 64).Select(k => k * 0.25 + 0.125).First(y => ringMids.All(m => Math.Abs(m - y) >= 0.25));
+
+        Assert.NotEmpty(ringMids);
+        Assert.Equal(
+            ringMids.Select(_ => ring).Prepend(pole).ToArray(),
+            ringMids.Select(m => Covered(m).ToArray()).Prepend(Covered(between).ToArray()).ToArray());
+    }
+
+    // A bamboo corner's post stands back from its fronts, so at a T a tee in a front's slot closes the step with the face it
+    // puts against the post, which the plain and rough frames' tees leave out against a post that meets them.
+    [Fact]
+    public void ABambooCornersTeesDrawTheFaceTheyPutAgainstThePost()
+    {
+        string[] all = ["down", "east", "north", "south", "up", "west"];
+        Assert.Equal(
+            new[] { "bamboo-tee-left", "bamboo-tee-right", "bamboo2-tee-left", "bamboo2-tee-right" }.ToDictionary(name => name, _ => all),
+            WallShapeGen.Generate("cornerout")["elements"]!
+                .Where(e => ((string)e["name"]!).StartsWith("bamboo") && ((string)e["name"]!).Contains("-tee-"))
+                .ToDictionary(e => (string)e["name"]!, e => ((JObject)e["faces"]!).Properties().Select(p => p.Name).Order().ToArray()));
+    }
+
     // A bamboo post with any of its faces finished, the rest bare, draws no two faces on one plane.
     [Theory]
     [InlineData("bamboo")]
@@ -462,8 +499,8 @@ public class WallShapeGenTests
             ["cornerout bare frame"] = 42,
             ["cornerout pole frame"] = 158,
             ["cornerout second pole frame"] = 158,
-            ["cornerout bamboo frame"] = 286,
-            ["cornerout second bamboo frame"] = 286,
+            ["cornerout bamboo frame"] = 291,
+            ["cornerout second bamboo frame"] = 291,
             ["cornerout wattle"] = 54,
             ["cornerout wattle, mid-stack"] = 54,
             // A corner's leg 1 and leg 2 backs are separate groups, so the seam between them no longer buries two faces (decision 0090).
@@ -1229,9 +1266,13 @@ public class WallShapeGenTests
                 {
                     int[] across = [.. Enumerable.Range(0, 3).Where(axis => axis != depth)];
                     var cover = poles.Where(b => b.Lo[depth] < mid && b.Hi[depth] > mid).ToArray();
+                    // A corner's post is thick on both legs, so on one leg's mid-plane it may stand back from the other
+                    // leg's front by the quarter voxel any member's core stands behind its own front; at a T the tee
+                    // there draws the face it puts against the post.
+                    double[] from = [.. lo.Select((l, axis) => axis != depth && frame.Axes.Contains(axis) && Thick(lo, hi, axis, frame) ? l + 0.25 : l)];
                     // The pole edges inside the member cut it into rectangles, each covered whole or open whole.
                     double[] Cuts(int axis) => cover.SelectMany(b => new[] { b.Lo[axis], b.Hi[axis] })
-                        .Where(c => c > lo[axis] && c < hi[axis]).Append(lo[axis]).Append(hi[axis]).Distinct().Order().ToArray();
+                        .Where(c => c > from[axis] && c < hi[axis]).Append(from[axis]).Append(hi[axis]).Distinct().Order().ToArray();
                     var (firsts, seconds) = (Cuts(across[0]), Cuts(across[1]));
                     for (int i = 0; i < firsts.Length - 1; i++)
                     {
