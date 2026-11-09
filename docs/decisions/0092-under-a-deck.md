@@ -60,6 +60,7 @@ The floor's `WithHangerBelow` makes it selectable, as it does a hanger.
 The flag marks the one block placed this way rather than a rule of the geometry, so a torch already on the wall below a floor keeps its height.
 The floor clears it in `OnNeighbourBlockChange` once the cell below holds nothing that fits under a deck, and it goes with the floor; either way the next block there sits at its own height.
 `TryRaise` runs ahead of the build-signal check, so a saw in the off hand changes nothing, and places only on the server, as `TryHost` does.
+The server sends each tick's block changes before its block entities, so the clicking client sets the flag itself as it answers the click, and draws the block raised from its first frame; the server sends the floor back whether the placement took or not.
 
 ## Known limits
 - A rug on a deck drops when something is hosted under it, and again when the wall returns (`BreakAllDecorFast`).
@@ -72,3 +73,4 @@ The floor clears it in `OnNeighbourBlockChange` once the cell below holds nothin
 - A raised block hangs on the wall below the one clicked: breaking that wall drops it, breaking the clicked one leaves it in place.
 - Only a siding wall's outer face sends a click below; a stone or plank wall beside a thin floor does not.
 - An edit that skips neighbour updates leaves `RaisedBelow` set, and the next fitting block placed below rises.
+- Another player's client gets the raised block before the floor's flag, and draws it in the cell below for a frame or two.

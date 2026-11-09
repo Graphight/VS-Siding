@@ -560,12 +560,14 @@ public class SidingWallBlock : Block
         if (accessor.GetBlock(target) is SidingWallBlock || !accessor.GetBlock(target).IsReplacableBy(heldBlock)
             || !accessor.GetBlock(wallBelow).CanAttachBlockAt(accessor, placed, wallBelow, blockSel.Face)) return false;
 
+        // The server sends a tick's block changes before its block entities, so the clicking client sets the flag itself,
+        // or it would draw the block low for a frame. The server sends the floor back either way, correcting a refusal.
+        floor.RaisedBelow = true;
         if (world.Side == EnumAppSide.Client) return true;
 
         var below = blockSel.Clone();
         below.Position = target;
-        if (!PlaceHeld(world, byPlayer, slot, heldBlock, below) || !SidingModSystem.IsUnderDeckId(accessor.GetBlock(target).BlockId)) return true;
-        floor.RaisedBelow = true;
+        floor.RaisedBelow = PlaceHeld(world, byPlayer, slot, heldBlock, below) && SidingModSystem.IsUnderDeckId(accessor.GetBlock(target).BlockId);
         floor.MarkDirty(true);
         return true;
     }
