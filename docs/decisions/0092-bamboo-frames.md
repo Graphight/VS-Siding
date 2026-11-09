@@ -22,7 +22,8 @@ Sticks and bone keep `poles`; `materials.json` switches `bamboo` to `Elements: "
 
 **Rings all the way round.**
 A ring is one box round the pole.
-On depth it reaches the member's box, as the core's quarter-voxel inset leaves room for.
+On depth it stops a hundredth of a voxel inside the member's box, as the core's quarter-voxel inset leaves room for.
+Where it reaches into the next cell it lies over whatever that cell draws there, and a plain or rough member, a corner's tee or a finish has its faces on the box's planes, so a ring on them would fight theirs (`EveryBambooBoxReachingIntoTheNextCellStopsShortOfTheFramesFaces`).
 Across, it stands a quarter voxel past the member's box, and where the member lies on the cell's side it reaches a quarter voxel into the next cell, so the core still meets the next cell's member edge to edge.
 It never reaches through the cell's top or bottom, where a decked wall's cap or the next wall up sits flush; there it stops a hair short, off the plane of the core.
 The first cut ringed the depth faces alone; the author played it and asked for rings all round, accepting the proud rings' break in the frame's outline.
@@ -86,11 +87,11 @@ The shapes grew as follows, in bytes:
 
 | Shape | At `47e49a3` | Now |
 |-------|-------------:|----:|
-| `wall.json` | 2,481,733 | 3,050,690 |
-| `cornerout.json` | 3,369,514 | 3,912,450 |
-| `diagonal.json` | 3,644,906 | 4,261,661 |
-| `cornerin.json` | 1,613,453 | 2,235,940 |
-| `floor.json` | 327,721 | 462,729 |
+| `wall.json` | 2,481,733 | 3,057,696 |
+| `cornerout.json` | 3,369,514 | 3,918,774 |
+| `diagonal.json` | 3,644,906 | 4,262,261 |
+| `cornerin.json` | 1,613,453 | 2,242,730 |
+| `floor.json` | 327,721 | 464,589 |
 
 ## Alternatives considered
 - **Keep the stick frame in bamboo texture.** What 0088 shipped; after playing it the author wants bamboo to look like bamboo.
