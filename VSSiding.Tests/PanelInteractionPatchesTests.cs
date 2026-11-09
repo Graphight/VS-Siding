@@ -19,15 +19,4 @@ public class PanelInteractionPatchesTests
         Assert.NotNull(typeof(BlockCrate).GetMethod(nameof(Block.OnBlockInteractStart),
             BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly, null, signature, null));
     }
-
-    [Fact]
-    public void OnGettingBrokenTargetsStillExistOnBlockAndAKnownVanillaOverride()
-    {
-        var signature = new[] { typeof(IPlayer), typeof(BlockSelection), typeof(ItemSlot), typeof(float), typeof(float), typeof(int) };
-        Assert.NotNull(typeof(Block).GetMethod(nameof(Block.OnGettingBroken),
-            BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly, null, signature, null));
-
-        Assert.NotNull(typeof(BlockSupportBeam).GetMethod(nameof(Block.OnGettingBroken),
-            BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly, null, signature, null));
-    }
 }

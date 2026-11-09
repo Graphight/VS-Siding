@@ -1590,15 +1590,9 @@ public class SidingModSystem : ModSystem
                     api.World.RegisterCallback(_ => RestoreGuestWall(api.World, pos), 0);
         };
 
-        api.Event.BreakBlock += (IServerPlayer _, BlockSelection blockSel, ref float _, ref EnumHandling handling) =>
+        api.Event.BreakBlock += (IServerPlayer _, BlockSelection blockSel, ref float _, ref EnumHandling _) =>
         {
             SidingWallBlock.ServerBreakSelection = blockSel;
-
-            // A panel break reaches the host (decision 0093), except a support beam's, which reads the
-            // selection index unchecked. Creative breaks skip OnGettingBroken, so it is caught here too.
-            Block host = api.World.BlockAccessor.GetBlock(blockSel.Position);
-            if (GapShiftCollisionPatches.SwallowsPanelBreak(host, api.World.BlockAccessor, blockSel))
-                handling = EnumHandling.PreventDefault;
         };
 
         api.ChatCommands.Create("sidingroom")
