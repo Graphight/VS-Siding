@@ -4,6 +4,7 @@ using System.Linq;
 using Newtonsoft.Json.Linq;
 using Vintagestory.API.Common;
 using Vintagestory.API.Datastructures;
+using Vintagestory.API.MathTools;
 using Xunit;
 
 namespace VSSiding.Tests;
@@ -21,6 +22,31 @@ public class SidingWallBlockRetentionTests
         "glass": { "BlockMaterial": "Glass", "Transparent": true }
     }
     """);
+
+    [Fact]
+    public void OpenPartRefusalNamesADeckOnlyToABlockThatDoesNotFitAndAStepAlways()
+    {
+        const string step = "game:plankstairs-oak-up-north-free";
+        var actual = new Dictionary<string, string?>
+        {
+            ["no wall"] = SidingWallBlock.OpenPartRefusal(null),
+            ["open"] = SidingWallBlock.OpenPartRefusal(new SidingWallEntity()),
+            ["decked"] = SidingWallBlock.OpenPartRefusal(new SidingWallEntity { Deck = "oak" }),
+            ["decked, block fits"] = SidingWallBlock.OpenPartRefusal(new SidingWallEntity { Deck = "oak" }, underDeck: true),
+            ["stepped"] = SidingWallBlock.OpenPartRefusal(new SidingWallEntity { Step = step }),
+            ["stepped, block fits"] = SidingWallBlock.OpenPartRefusal(new SidingWallEntity { Step = step }, underDeck: true),
+        };
+
+        Assert.Equal(new Dictionary<string, string?>
+        {
+            ["no wall"] = null,
+            ["open"] = null,
+            ["decked"] = "vssiding-decked",
+            ["decked, block fits"] = null,
+            ["stepped"] = "vssiding-stepped",
+            ["stepped, block fits"] = "vssiding-stepped",
+        }, actual);
+    }
 
     [Fact]
     public void NotClaimedIsZeroEvenWhenBothBuilt()
@@ -194,5 +220,33 @@ public class SidingWallBlockRetentionTests
             .Select(d => SidingWallBlock.ComputeDeckRetention(d.Deck, d.DeckInfill, true, Framings, Infills));
 
         Assert.Equal(new[] { 1, -1 }, actual);
+    }
+
+    [Fact]
+    public void RetentionOfAskedUpAnswersTheDeckAndAHorizontalFaceTheWall()
+    {
+        var wall = new SidingWallBlock { Attributes = new JsonObject(JToken.Parse("""{ "Framings": { "oak": {} }, "Infills": { "wattle": { "BlockMaterial": "Wood" } } }""")) };
+        wall.VariantStrict["layout"] = "wall";
+        wall.VariantStrict["side"] = "north";
+        var entity = new SidingWallEntity { Framing = "oak", Infill = "wattle", Deck = "oak", DeckInfill = "wattle" };
+
+        var actual = new[] { BlockFacing.UP, BlockFacing.NORTH, BlockFacing.SOUTH }.Select(f => wall.RetentionOf(entity, f));
+
+        Assert.Equal(new[] { 1, 1, 0 }, actual);
+        Assert.Equal(0, wall.RetentionOf(new SidingWallEntity { Framing = "oak", Infill = "wattle" }, BlockFacing.UP));
+    }
+
+    [Fact]
+    public void OnlyADeckedNonDiagonalWallTakesAHangerOnItsUnderside()
+    {
+        var actual = new (string Layout, string? Deck)[] { ("wall", "oak"), ("cornerout", "oak"), ("cornerin", "oak"), ("wall", null), ("diagonal", "oak") }.Select(c =>
+        {
+            var wall = new SidingWallBlock { Attributes = new JsonObject(JToken.Parse("""{ "Framings": {}, "Infills": {} }""")) };
+            wall.VariantStrict["layout"] = c.Layout;
+            wall.VariantStrict["side"] = "north";
+            return wall.CanAttachOf(new SidingWallEntity { Deck = c.Deck }, BlockFacing.DOWN);
+        });
+
+        Assert.Equal(new[] { true, true, true, false, false }, actual);
     }
 }

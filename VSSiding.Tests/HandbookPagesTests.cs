@@ -17,6 +17,14 @@ public class HandbookPagesTests
 
     record Page(string PageCode, string Title, string Text);
 
+    [Fact]
+    public void PlaceFailureKeysExistForDeckAndStep()
+    {
+        var lang = (JObject)JToken.Parse(File.ReadAllText(Path.Combine(AssetsRoot, "lang", "en.json")));
+        Assert.NotNull(lang["game:placefailure-vssiding-decked"]);
+        Assert.NotNull(lang["game:placefailure-vssiding-stepped"]);
+    }
+
     static (List<Page> Pages, List<string> MissingKeys) Load()
     {
         var lang = (JObject)JToken.Parse(File.ReadAllText(Path.Combine(AssetsRoot, "lang", "en.json")));

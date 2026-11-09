@@ -406,12 +406,12 @@ public class SidingWallEntity : BlockEntity
         string[]? innerCorners = null, (bool left, bool right) glassRunsOn = default, (bool left, bool right) tees = default,
         (bool front, bool second) closed = default, string? secondBack = null, string? secondBackStyle = null, string fill = "infill")
     {
-        if (layout == "cornerin") return PostElements(framing, finishes, [(front, styles.front), (secondFront, styles.secondFront), (back, styles.back), (secondBack, secondBackStyle)]);
+        if (layout == "cornerin") return PostElements(framing, finishes, [(front, styles.front), (secondFront, styles.secondFront), (back, styles.back), (secondBack, secondBackStyle)], frame);
         var names = new List<string>();
-        // A diagonal's shape has no rough frame groups, so it draws the plain ones whatever the
-        // framing's Elements say (decision 0066).
+        // A diagonal's shape has bamboo's ringed groups but no rough frame's, so any other framing draws the plain ones
+        // (decisions 0066, 0092).
         bool diagonal = layout == "diagonal";
-        if (diagonal || layout == "cornerin") frame = "framing";
+        if (diagonal && !frame.StartsWith("bamboo")) frame = "framing";
         string member = glazed ? "glazing" : frame;
         var parts = FrameParts(layout, joins, glazed, innerCorners);
         // A corner's post stands a finish slot in from the cell's edge, so at a T it fills the slot the run crosses: its
@@ -481,6 +481,8 @@ public class SidingWallEntity : BlockEntity
         if (diagonal)
         {
             string[] panel = names.ToArray();
+            // A glazed diagonal's rails are the glazing's, so its ends stay the plain frame's whatever the framing.
+            string post = glazed ? "framing" : frame;
             foreach (var (runsOn, glassOn, end) in new[] { (joins.left, glassRunsOn.left, "left"), (joins.right, glassRunsOn.right, "right") })
             {
                 if (runsOn) names.AddRange(panel.Select(name => $"{name}-{end}"));
@@ -496,7 +498,7 @@ public class SidingWallEntity : BlockEntity
                 }
                 // A glazed diagonal's rims also cover the half post's front, full height as a wall's stile rim does.
                 if (runsOn) names.AddRange(rims.Select(rim => $"{rim.group}-rim-join-{end}"));
-                if (framing != null) names.Add(runsOn ? $"framing-join-{end}" : $"framing-{end}");
+                if (framing != null) names.Add(runsOn ? $"{post}-join-{end}" : $"{post}-{end}");
             }
         }
         return names.ToArray();
@@ -504,16 +506,21 @@ public class SidingWallEntity : BlockEntity
 
     // A post's core, and on each face, front, secondfront, back and secondback, its finish's layer or, bare, the framing's,
     // with the mitre piece each layer meets the next with (decision 0082). Every face takes the front's groups.
-    internal static string[] PostElements(string? framing, JsonObject finishes, (string? key, string? style)[] faces)
+    // A bamboo post is one round pole, so a bare face has no mitre, and a finished face's mitre lies over the previous
+    // face's body, where it would float over the pole while that face is bare.
+    internal static string[] PostElements(string? framing, JsonObject finishes, (string? key, string? style)[] faces, string frame = "framing")
     {
         if (framing == null) return [];
         string[] slots = ["front", "secondfront", "back", "secondback"];
-        var names = new List<string> { "framing" };
-        foreach (var (slot, (key, style)) in slots.Zip(faces))
+        bool bamboo = frame.StartsWith("bamboo");
+        string member = bamboo ? frame : "framing";
+        var names = new List<string> { member };
+        for (int i = 0; i < slots.Length; i++)
         {
-            string group = key == null ? $"framing-{slot}" : slot + FinishElement(finishes, key, "front", style)["front".Length..];
+            var (key, style) = faces[i];
+            string group = key == null ? $"{member}-{slots[i]}" : slots[i] + FinishElement(finishes, key, "front", style)["front".Length..];
             names.Add(group);
-            names.Add(group + "-mitre");
+            if (!bamboo || (key != null && faces[(i + 3) % 4].key != null)) names.Add(group + "-mitre");
         }
         return [.. names];
     }

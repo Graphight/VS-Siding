@@ -215,8 +215,9 @@ public class SidingWallBlock : Block
     {
         var boxes = base.GetSelectionBoxes(blockAccessor, pos);
         var entity = blockAccessor.GetBlockEntity<SidingWallEntity>(pos);
-        return entity == null ? boxes : AddOpenPartBoxes(
+        var own = entity == null ? boxes : AddOpenPartBoxes(
             boxes, Variant["layout"], Variant["side"], entity.Deck, entity.Step == null ? null : entity.StepOrientation);
+        return SidingFloorBlock.WithHangerBelow(blockAccessor, pos, own);
     }
 
     public override Cuboidf[] GetCollisionBoxes(IBlockAccessor blockAccessor, BlockPos pos)
@@ -506,6 +507,11 @@ public class SidingWallBlock : Block
     public override bool IsReplacableBy(Block block)
         => (SidingModSystem.IsHostableId(block.BlockId) && Variant["layout"] != "diagonal") || base.IsReplacableBy(block);
 
+    // The placement failure code keeping a block out of the wall's cell: a step takes nothing, a deck
+    // takes only a block that fits under it (decision 0094).
+    internal static string? OpenPartRefusal(SidingWallEntity? entity, bool underDeck = false)
+        => entity?.Deck != null && !underDeck ? "vssiding-decked" : entity?.Step != null ? "vssiding-stepped" : null;
+
     // Right-click on the wall's open side with a hostable block and no saw places that block in the
     // wall's own cell, where vanilla would put it in the cell in front. The client only reports the
     // interaction handled - TryPlaceBlock must run once, on the server, or the client would place
@@ -521,29 +527,64 @@ public class SidingWallBlock : Block
         // which hands the click to vanilla and hosts anyway. Other ways in drop it
         // (HostChangePrefix).
         var hostEntity = world.BlockAccessor.GetBlockEntity<SidingWallEntity>(blockSel.Position);
-        if (hostEntity != null && hostEntity.OpenPartFilled)
+        bool underDeck = SidingModSystem.IsUnderDeckId(SidingModSystem.PlacedVariant(world.BlockAccessor, heldBlock, blockSel.Face).BlockId);
+        if (OpenPartRefusal(hostEntity, underDeck) is { } refusal)
         {
-            bool decked = hostEntity.Deck != null;
-            (byPlayer as IServerPlayer)?.SendIngameError(
-                decked ? "vssiding:decked" : "vssiding:stepped",
-                Lang.Get(decked ? "vssiding:build-decked" : "vssiding:build-stepped"));
+            (byPlayer as IServerPlayer)?.SendIngameError(refusal, Lang.Get("placefailure-" + refusal));
             return true;
         }
 
         if (world.Side == EnumAppSide.Client) return true;
 
+        PlaceHeld(world, byPlayer, slot, heldBlock, blockSel);
+        return true;
+    }
+
+    // A click on the outer face, where a thin floor fills the cell beyond, would place into the floor's cell, which takes
+    // nothing. A block that hangs on a wall face and fits under a deck goes into the cell below instead, on the wall
+    // there, and the floor raises it to its underside (decision 0094). It places on the server only, as TryHost does.
+    private bool TryRaise(IWorldAccessor world, IPlayer byPlayer, BlockSelection blockSel)
+    {
+        ItemSlot slot = byPlayer.InventoryManager.ActiveHotbarSlot;
+        Block? heldBlock = slot.Itemstack?.Block;
+        if (heldBlock == null || !blockSel.Face.IsHorizontal || HostsClick(Variant["layout"], Variant["side"], blockSel.Face)) return false;
+
+        var accessor = world.BlockAccessor;
+        var floorPos = blockSel.Position.AddCopy(blockSel.Face);
+        if (accessor.GetBlockEntity<SidingFloorEntity>(floorPos) is not { } floor) return false;
+        Block placed = SidingModSystem.PlacedVariant(accessor, heldBlock, blockSel.Face);
+        if (!SidingModSystem.IsUnderDeckId(placed.BlockId) || !SidingModSystem.HangsOnSide(placed)) return false;
+
+        var target = floorPos.DownCopy();
+        var wallBelow = blockSel.Position.DownCopy();
+        if (accessor.GetBlock(target) is SidingWallBlock || !accessor.GetBlock(target).IsReplacableBy(heldBlock)
+            || !accessor.GetBlock(wallBelow).CanAttachBlockAt(accessor, placed, wallBelow, blockSel.Face)) return false;
+
+        // The server sends a tick's block changes before its block entities, so the clicking client sets the flag itself,
+        // or it would draw the block low for a frame. The server sends the floor back either way, correcting a refusal.
+        floor.RaisedBelow = true;
+        if (world.Side == EnumAppSide.Client) return true;
+
+        var below = blockSel.Clone();
+        below.Position = target;
+        floor.RaisedBelow = PlaceHeld(world, byPlayer, slot, heldBlock, below) && SidingModSystem.IsUnderDeckId(accessor.GetBlock(target).BlockId);
+        floor.MarkDirty(true);
+        return true;
+    }
+
+    private static bool PlaceHeld(IWorldAccessor world, IPlayer byPlayer, ItemSlot slot, Block heldBlock, BlockSelection blockSel)
+    {
         string failureCode = "";
         if (!heldBlock.TryPlaceBlock(world, byPlayer, slot.Itemstack!, blockSel, ref failureCode))
         {
             (byPlayer as IServerPlayer)?.SendIngameError(failureCode, Lang.Get("placefailure-" + failureCode));
-            return true;
+            return false;
         }
 
         bool isCreative = byPlayer.WorldData.CurrentGameMode == EnumGameMode.Creative;
         if (!isCreative) slot.TakeOut(1);
         slot.MarkDirty();
         if (heldBlock.Sounds != null) world.PlaySoundAt(heldBlock.Sounds.Place, blockSel.Position, -0.5, byPlayer);
-
         return true;
     }
 
@@ -556,6 +597,7 @@ public class SidingWallBlock : Block
     // doesn't also fire. Plain right-click, not shift - see decision 0006.
     public override bool OnBlockInteractStart(IWorldAccessor world, IPlayer byPlayer, BlockSelection blockSel)
     {
+        if (TryRaise(world, byPlayer, blockSel)) return true;
         if (!HasBuildSignal(byPlayer))
         {
             if (TryHost(world, byPlayer, blockSel)) return true;
@@ -1049,8 +1091,10 @@ public class SidingWallBlock : Block
         => layout != "cornerin" && (faceCode == side || (ClaimsTwoFaces(layout) && faceCode == CorneroutSecondFace[side]));
 
     public override int GetRetention(BlockPos pos, BlockFacing facing, EnumRetentionType type)
+        => RetentionOf(api.World.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos), facing);
+
+    internal int RetentionOf(SidingWallEntity? entity, BlockFacing facing)
     {
-        var entity = api.World.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos);
         if (facing == BlockFacing.UP) return ComputeDeckRetention(entity?.Deck, entity?.DeckInfill, entity?.LegacyDeck ?? false, Attributes["Framings"], Attributes["Infills"]);
         return ComputeRetention(ClaimsFace(facing), entity?.Framing, entity?.Infill, Attributes["Framings"], Attributes["Infills"]);
     }
@@ -1073,9 +1117,13 @@ public class SidingWallBlock : Block
     // Another SideSolid consumer (decision 0020): with sidesolid off, nothing could be hung on any
     // siding wall. attachmentArea is ignored - a sealed face is solid across its whole 16x16.
     public override bool CanAttachBlockAt(IBlockAccessor blockAccessor, Block block, BlockPos pos, BlockFacing blockFace, Cuboidi? attachmentArea = null)
+        => CanAttachOf(blockAccessor.GetBlockEntity<SidingWallEntity>(pos), blockFace);
+
+    // A deck's underside takes hangers (decision 0094); a diagonal's deck covers half the cell, so it has none.
+    internal bool CanAttachOf(SidingWallEntity? entity, BlockFacing blockFace)
     {
-        var entity = blockAccessor.GetBlockEntity<SidingWallEntity>(pos);
         if (blockFace == BlockFacing.UP) return ComputeDeckRetention(entity?.Deck, entity?.DeckInfill, entity?.LegacyDeck ?? false, Attributes["Framings"], Attributes["Infills"]) != 0;
+        if (blockFace == BlockFacing.DOWN && entity?.Deck != null) return Variant["layout"] != "diagonal";
         return ComputeRetention(ClaimsFace(blockFace), entity?.Framing, entity?.Infill, Attributes["Framings"], Attributes["Infills"]) != 0;
     }
 
@@ -1612,11 +1660,7 @@ public class SidingWallBlock : Block
 
     public override ItemStack[] GetDrops(IWorldAccessor world, BlockPos pos, IPlayer byPlayer, float dropQuantityMultiplier)
     {
-        var entity = world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos);
-        var drops = ComputeDrops(
-            entity?.Framing, entity?.Infill, entity?.Front, entity?.SecondFront, entity?.Back, entity?.Deck,
-            Attributes["Framings"], Attributes["Infills"], Attributes["Finishes"], entity?.Step,
-            entity?.DeckInfill, entity?.DeckFront, entity?.DeckBack, Variant["layout"], entity?.SecondBack);
+        var drops = DropsOf(world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos));
 
         // Nothing built yet - fall back to the base drops so HorizontalOrientable still
         // hands back the placed block.
@@ -1624,6 +1668,11 @@ public class SidingWallBlock : Block
 
         return ResolveDrops(world, drops, dropQuantityMultiplier);
     }
+
+    internal List<BlockDropItemStack> DropsOf(SidingWallEntity? entity) => ComputeDrops(
+        entity?.Framing, entity?.Infill, entity?.Front, entity?.SecondFront, entity?.Back, entity?.Deck,
+        Attributes["Framings"], Attributes["Infills"], Attributes["Finishes"], entity?.Step,
+        entity?.DeckInfill, entity?.DeckFront, entity?.DeckBack, Variant["layout"], entity?.SecondBack);
 
     internal ItemStack[] ResolveDrops(IWorldAccessor world, List<BlockDropItemStack> drops, float dropQuantityMultiplier)
         => ResolveDrops(world, drops, dropQuantityMultiplier, Code);

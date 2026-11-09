@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Vintagestory.API.Common;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Xunit;
@@ -468,16 +469,31 @@ public class SidingFloorTests
         Assert.Equal(typeof(Vec3i), SidingFloorBlock.PosAdjustField!.FieldType);
     }
 
-    [Fact]
-    public void AHangersBoxesFollowTheFloorsMovedIntoItsCellAndSelectTheCellBelow()
-    {
-        var floor = new Cuboidf(0, 0.75f, 0, 1, 1, 1);
-        var boxes = SidingFloorBlock.WithHangerBoxes(new[] { floor }, new[] { new Cuboidf(0.25f, 0, 0.25f, 0.75f, 0.5f, 0.75f) }, 0.125, 0.75, 0);
+    private static string[] Describe(Cuboidf[] boxes) => boxes.Select(box => $"{box.X1} {box.Y1} {box.Z1} {box.X2} {box.Y2} {box.Z2} "
+        + (SidingFloorBlock.PosAdjustField!.DeclaringType!.IsInstanceOfType(box) ? ((Vec3i)SidingFloorBlock.PosAdjustField.GetValue(box)!).ToString() : "-")).ToArray();
 
-        Assert.Equal(
-            new[] { "0 0.75 0 1 1 1 -", "0.375 -0.25 0.25 0.875 0.25 0.75 X=0,Y=-1,Z=0" },
-            boxes.Select(box => $"{box.X1} {box.Y1} {box.Z1} {box.X2} {box.Y2} {box.Z2} "
-                + (SidingFloorBlock.PosAdjustField!.DeclaringType!.IsInstanceOfType(box)
-                    ? ((Vec3i)SidingFloorBlock.PosAdjustField.GetValue(box)!).ToString() : "-")));
+    [Fact]
+    public void AHangersBoxesMoveIntoTheCellAboveAndSelectTheCellBelow()
+    {
+        var boxes = SidingFloorBlock.HangerDecorBoxes(new[] { new Cuboidf(0.25f, 0, 0.25f, 0.75f, 0.5f, 0.75f) }, 0.125, 0.75, 0);
+
+        Assert.Equal(new[] { "0.375 -0.25 0.25 0.875 0.25 0.75 X=0,Y=-1,Z=0" }, Describe(boxes));
+    }
+
+    [Fact]
+    public void ARaisedHangerFollowsTheFloorsOwnBoxesAndALoweredBlockAddsNone()
+    {
+        var floor = new[] { new Cuboidf(0, 0.75f, 0, 1, 1, 1) };
+        var below = new BoxedBlock(new Cuboidf(0.25f, 0, 0.25f, 0.75f, 0.5f, 0.75f));
+        var pos = new BlockPos(5, 60, 9, 0);
+
+        Assert.Equal(new[] { "0 0.75 0 1 1 1 -", "0.25 -0.25 0.25 0.75 0.25 0.75 X=0,Y=-1,Z=0" },
+            Describe(SidingFloorBlock.WithHanger(null!, pos, below, 0.75, floor)));
+        Assert.Same(floor, SidingFloorBlock.WithHanger(null!, pos, below, -0.25, floor));
+    }
+
+    private class BoxedBlock(params Cuboidf[] boxes) : Block
+    {
+        public override Cuboidf[] GetSelectionBoxes(IBlockAccessor blockAccessor, BlockPos pos) => boxes;
     }
 }

@@ -1,0 +1,23 @@
+[
+	{
+		"op": "addmerge",
+		"file": "butchering:blocktypes/butcherhookceiling.json",
+		"path": "/attributes",
+		"value": { "vssidingHanger": true, "vssidingUnderDeck": true },
+		"dependsOn": [{ "modid": "butchering" }]
+	},
+	{
+		"op": "addmerge",
+		"file": "butchering:blocktypes/butcherhook.json",
+		"path": "/attributes",
+		"value": { "vssidingUnderDeck": true },
+		"dependsOn": [{ "modid": "butchering" }]
+	},
+	{
+		"op": "addmerge",
+		"file": "butchering:blocktypes/butchertable.json",
+		"path": "/attributes",
+		"value": { "vssidingHostable": true },
+		"dependsOn": [{ "modid": "butchering" }]
+	}
+]

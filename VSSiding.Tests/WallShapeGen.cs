@@ -293,6 +293,64 @@ public static class WallShapeGen
         .. WallPoleElements.Where(e => e.Name is "poles-top" or "poles-bottom").Select(e => e with { Name = e.Name.Replace("poles", "poles2") }),
     ];
 
+    // A bamboo pole standing in for a plain member's box: a core a quarter voxel inside it across `depth`, a ridge down
+    // each of its two depth faces so the seam reads, and a thin ring all round it at each of `rings` along `run`. Across, the
+    // ring stands a quarter voxel proud of the member's box, into the next cell where the member lies on the cell's side, so
+    // the core reaches the edge and meets the next cell's member with no gap. A ring never reaches through the cell's top or
+    // bottom, where a deck's cap or the next wall up sits flush. On depth everything stays inside the box, so a finish still
+    // covers it, and a ring stops a hair inside, off the planes of a plain member, tee or finish the next cell draws where
+    // the ring reaches. The ridge stands at 0.1, off the ring's plane; the ring tables keep off the lashings, the stems and
+    // each other, which the plane and ring tests check.
+    private static IEnumerable<Element> BambooPole(
+        string name, (double X, double Y, double Z) from, (double X, double Y, double Z) to, char depth, char run, double[] rings,
+        string[]? coreFaces = null, double ridgeInset = 0.25)
+    {
+        double[] lo = [from.X, from.Y, from.Z], hi = [to.X, to.Y, to.Z];
+        int d = depth - 'x', r = run - 'x', o = 3 - d - r;
+        Element Box(double depthLo, double depthHi, double runLo, double runHi, double acrossLo, double acrossHi, string[]? faces = null)
+        {
+            double[] a = new double[3], b = new double[3];
+            (a[d], b[d], a[r], b[r], a[o], b[o]) = (depthLo, depthHi, runLo, runHi, acrossLo, acrossHi);
+            return new Element(name, (a[0], a[1], a[2]), (b[0], b[1], b[2]), "framing", UvRule.Flat, Faces: faces);
+        }
+
+        yield return Box(lo[d] + 0.25, hi[d] - 0.25, lo[r], hi[r], lo[o], hi[o], coreFaces);
+        foreach (var (near, far) in new[] { (lo[d] + 0.1, lo[d] + 0.25), (hi[d] - 0.25, hi[d] - 0.1) })
+            yield return Box(near, far, lo[r], hi[r], lo[o] + ridgeInset, hi[o] - ridgeInset);
+        // A hair short of the cell's top or bottom, so the ring never shares the plane of the core reaching it.
+        bool vertical = o == 1;
+        double ringLo = vertical && lo[o] == 0 ? 0.01 : lo[o] - 0.25, ringHi = vertical && hi[o] == 16 ? 15.99 : hi[o] + 0.25;
+        foreach (double ring in rings)
+            yield return Box(lo[d] + 0.01, hi[d] - 0.01, ring, ring + 0.5, ringLo, ringHi);
+    }
+
+    // Where each variant rings its members: the uprights' heights, clear of the plates and lashings, the plates' places
+    // along the run, which start past a corner's post at 3, and the post's heights. Even cells take `bamboo`, odd `bamboo2`.
+    // An upright's ring reaches into the next cell, where that cell's upright may ring the same height, so the four upright
+    // tables keep half a voxel apart.
+    private record BambooRings(string Prefix, double[] Left, double[] Right, double[] Top, double[] Bottom, double[] Post);
+
+    private static readonly BambooRings[] BambooVariants =
+    [
+        new("bamboo", [5.25, 11.25], [4.25, 10.75], [3.25, 7.75, 12.25], [3.75, 6.75, 11.25], [4.25, 10.25]),
+        new("bamboo2", [6.25, 12.25], [7.25, 12.75], [3.75, 8.25, 13.25], [3.75, 9.25, 13.75], [6.75, 12.25]),
+    ];
+
+    private static readonly string[] BambooPlateFaces = ["west", "east", "up", "down"];
+
+    // The wall's frame in bamboo: posts left and right, plates top and bottom, and the rough frame's lashings where a plate
+    // crosses an upright.
+    private static IEnumerable<Element> BambooWall(BambooRings v) =>
+    [
+        .. BambooPole($"{v.Prefix}-left", (1, 0, 0), (3, 16, 1), 'x', 'y', v.Left),
+        .. BambooPole($"{v.Prefix}-right", (1, 0, 15), (3, 16, 16), 'x', 'y', v.Right),
+        .. BambooPole($"{v.Prefix}-top", (1, 15, 1), (3, 16, 15), 'x', 'z', v.Top, BambooPlateFaces),
+        .. BambooPole($"{v.Prefix}-bottom", (1, 0, 1), (3, 1, 15), 'x', 'z', v.Bottom, BambooPlateFaces),
+        .. WallPoleElements.Where(e => e.Slot == "lashing").Select(e => e with { Name = e.Name.Replace("poles", v.Prefix) }),
+    ];
+
+    private static readonly Element[] WallBambooElements = [.. BambooVariants.SelectMany(BambooWall)];
+
     // Bamboo poles standing side by side, two voxels wide on the odd voxels from z 1, in the wall's frame: a core in the
     // infill's depth, a ridge down each face so the seams read, and two nodes a pole at heights staggered pole to pole.
     // Ridges and nodes sit at 1.3, 1.15, 2.7 and 2.85, off the planes of the pole frames' stubs, lashings and joists. The
@@ -437,6 +495,7 @@ public static class WallShapeGen
         new("framing-right", (1, 0, 15), (3, 16, 16), "framing", UvRule.Flat),
         .. WallPoleElements,
         .. WallPole2Elements,
+        .. WallBambooElements,
         new("infill-top", (1.5, 15, 1), (2.5, 16, 15), "infill", UvRule.Positional),
         new("infill", (1.5, 1, 1), (2.5, 15, 15), "infill", UvRule.Positional),
         new("infill-bottom", (1.5, 0, 1), (2.5, 1, 15), "infill", UvRule.Positional),
@@ -744,6 +803,66 @@ public static class WallShapeGen
         .. CornerTees("poles2"),
     ];
 
+    // A corner's bamboo post: a pole a quarter voxel back from both fronts, as every member's core stands behind its front,
+    // notched at the outer corner so it reads round, and full to the room sides, where the legs' plates end on it. Its rings
+    // fill the 2 by 2 and reach a quarter voxel into each leg's bay, as an upright's do. A ring box against the pole or the
+    // infill there lies flush on one pole box, so that face is buried rather than drawn on the infill's plane.
+    private static IEnumerable<Element> BambooPost(string name, double[] rings)
+    {
+        Element Box(double x1, double y1, double z1, double x2, double y2, double z2) => new(name, (x1, y1, z1), (x2, y2, z2), "framing", UvRule.Flat);
+        yield return Box(1.5, 0, 1.25, 3, 16, 3);
+        yield return Box(1.25, 0, 1.5, 1.5, 16, 3);
+        foreach (double y in rings)
+        {
+            yield return Box(1, y, 1, 1.25, y + 0.5, 3.25);
+            yield return Box(1.25, y, 1, 3.25, y + 0.5, 1.25);
+            yield return Box(1.25, y, 1.25, 1.5, y + 0.5, 1.5);
+            yield return Box(3, y, 1.25, 3.25, y + 0.5, 3);
+            yield return Box(1.25, y, 3, 1.5, y + 0.5, 3.25);
+            yield return Box(1.5, y, 3, 3, y + 0.5, 3.25);
+        }
+    }
+
+    // The square lo..hi on x and z over y1..y2, its four vertical edges notched `notch` deep: a core and a wing on each side.
+    private static Element[] NotchedSquare(string name, double lo, double hi, double notch, double y1, double y2)
+    {
+        Element Box(double x1, double z1, double x2, double z2) => new(name, (x1, y1, z1), (x2, y2, z2), "framing", UvRule.Flat);
+        double a = lo + notch, b = hi - notch;
+        return [Box(a, a, b, b), Box(lo, a, a, b), Box(b, a, hi, b), Box(a, lo, b, a), Box(a, b, b, hi)];
+    }
+
+    // The corner's frame in bamboo: the post and the two end posts, a plate along each leg, the rough frame's lashings, and
+    // the tees. A leg's plates start at the post's wings, which fill the first quarter voxel of its depth. Leg 1's end post
+    // takes the wall's right upright's rings and leg 2's its left's.
+    private static IEnumerable<Element> BambooCorner(BambooRings v)
+    {
+        string[] leg2 = ["north", "south", "up", "down"];
+        return
+        [
+            .. BambooPost(v.Prefix, v.Post),
+            .. BambooPole(v.Prefix, (1, 0, 15), (3, 16, 16), 'x', 'y', v.Right),
+            .. BambooPole(v.Prefix, (15, 0, 1), (16, 16, 3), 'z', 'y', v.Left),
+            .. BambooPole($"{v.Prefix}-top", (1, 15, 3), (3, 16, 15), 'x', 'z', v.Top, BambooPlateFaces),
+            .. BambooPole($"{v.Prefix}-top", (3, 15, 1), (15, 16, 3), 'z', 'x', v.Top, leg2),
+            .. BambooPole($"{v.Prefix}-bottom", (1, 0, 3), (3, 1, 15), 'x', 'z', v.Bottom, BambooPlateFaces),
+            .. BambooPole($"{v.Prefix}-bottom", (3, 0, 1), (15, 1, 3), 'z', 'x', v.Bottom, leg2),
+            .. CornerPoleElements.Where(e => e.Slot == "lashing").Select(e => e with { Name = e.Name.Replace("poles", v.Prefix) }),
+            // The post stands back from its fronts, so a tee draws the face it puts against the post, and between the post's
+            // rings fills the step behind it, which would be a slot through the T from one leg's outside to the other's. The
+            // left tee's step takes the corner square; with the right tee alone that square opens onto leg 2's front only.
+            .. CornerTees(v.Prefix).Select(e => e with { Faces = null }),
+            .. from gap in v.Post.Select(ring => ring + 0.5).Prepend(0.0).Zip(v.Post.Append(16.0))
+               from step in new Element[]
+               {
+                   new($"{v.Prefix}-tee-left", (1, gap.First, 1), (3, gap.Second, 1.25), "framing", UvRule.Flat),
+                   new($"{v.Prefix}-tee-right", (1, gap.First, 1.25), (1.25, gap.Second, 3), "framing", UvRule.Flat),
+               }
+               select step,
+        ];
+    }
+
+    private static readonly Element[] CornerBambooElements = [.. BambooVariants.SelectMany(BambooCorner)];
+
     // Every frame's corner post stands a finish slot in from the cell's edge on each face, so at a T it fills the slot
     // the run crosses: the left leg's, where leg 1's line runs on past it, or the right leg's, where leg 2's does.
     private static Element[] CornerTees(string group) =>
@@ -814,6 +933,7 @@ public static class WallShapeGen
         new("glazing-bottom", (4, 0, 1), (14, 2, 3), "framing", UvRule.Flat, Faces: ["north", "south", "up", "down"]),
         .. CornerPoleElements,
         .. CornerPole2Elements,
+        .. CornerBambooElements,
         new("back", (3, 0, 3), (4, 16, 4), "back", UvRule.Flat, RunAxis: 'x'),
         new("back", (4, 0, 3), (16, 16, 4), "back", UvRule.Flat, RunAxis: 'x'),
         new("front-weatherboard", (0, 0, 0), (1, 1, 16), "front", UvRule.Positional),
@@ -1045,8 +1165,33 @@ public static class WallShapeGen
            from rim in RimPiece(e, rail.Part, ('z', 8 + runLo - shift, 8 + runHi - shift), ('y', rail.Lo, rail.Hi))
            select OnDiagonal(rim, suffix, shift);
 
+    // The plates of a bamboo frame over a run, laid on the cell's 0..16 and repeated along it as DiagonalStems repeats the
+    // stems, so the rings keep their spacing through the run's ends.
+    private static IEnumerable<Element> DiagonalBambooPlates(BambooRings v, double runLo, double runHi, string suffix = "")
+        => from shift in new[] { -16, 0, 16 }
+           from e in BambooPole($"{v.Prefix}-top", (1, 15, 0), (3, 16, 16), 'x', 'z', v.Top, BambooPlateFaces)
+               .Concat(BambooPole($"{v.Prefix}-bottom", (1, 0, 0), (3, 1, 16), 'x', 'z', v.Bottom, BambooPlateFaces))
+           let lo = Math.Max(e.From.Z, 8 + runLo - shift)
+           let hi = Math.Min(e.To.Z, 8 + runHi - shift)
+           where hi > lo
+           select OnDiagonal(e with { From = (e.From.X, e.From.Y, lo), To = (e.To.X, e.To.Y, hi) }, suffix, shift);
+
+    // A diagonal's frame in bamboo: the plates over the run and its two ends, and the corner fillers and half posts as ringed
+    // uprights, each filler's depth on the axis its mirror across the run puts it.
+    private static IEnumerable<Element> DiagonalBamboo(BambooRings v) =>
+    [
+        .. DiagonalBambooPlates(v, -DiagonalEnd, DiagonalEnd),
+        .. DiagonalBambooPlates(v, 1 - DiagonalCorner, -DiagonalEnd, "-left"),
+        .. DiagonalBambooPlates(v, DiagonalEnd, DiagonalCorner - 1, "-right"),
+        .. BambooPole($"{v.Prefix}-left", (16 - DiagonalFiller, 0.01, 0), (16, 15.99, DiagonalFiller), 'x', 'y', v.Left),
+        .. BambooPole($"{v.Prefix}-right", (0, 0.01, 16 - DiagonalFiller), (DiagonalFiller, 15.99, 16), 'z', 'y', v.Right),
+        .. BambooPole($"{v.Prefix}-join-left", (1, 0, 8 - DiagonalCorner), (3, 16, 9 - DiagonalCorner), 'x', 'y', v.Left).Select(e => OnDiagonal(e)),
+        .. BambooPole($"{v.Prefix}-join-right", (1, 0, 7 + DiagonalCorner), (3, 16, 8 + DiagonalCorner), 'x', 'y', v.Right).Select(e => OnDiagonal(e)),
+    ];
+
     private static readonly Element[] DiagonalElements =
     [
+        .. BambooVariants.SelectMany(DiagonalBamboo),
         // A hair short of the cell's height, so a cap never shares a plane with the plate lying over it.
         new("framing-left", (16 - DiagonalFiller, 0.01, 0), (16, 15.99, DiagonalFiller), "framing", UvRule.Flat),
         new("framing-right", (0, 0.01, 16 - DiagonalFiller), (DiagonalFiller, 15.99, 16), "framing", UvRule.Flat),
@@ -1158,6 +1303,34 @@ public static class WallShapeGen
         .. FloorPoleElements.Where(e => e.Name is "poles-top" or "poles-bottom").Select(e => e with { Name = e.Name.Replace("poles", "poles2") }),
     ];
 
+    // The floor's frame in bamboo: ringed joists in the plain joists' boxes and ringed rim lengths between them, with the rough
+    // frame's lashings where a rim meets a joist. Rings keep to z 2.75..13.25 on a joist, clear of those lashings,
+    // and sit off the planes of the floor's stems. A rim's rings reach into the next cell, where its rim on the other edge
+    // may stand, so every north rim's table keeps half a voxel from every south rim's.
+    private static IEnumerable<Element> BambooFloor(string prefix, double[][] joists, double[][] topRims, double[][] bottomRims)
+    {
+        (double Lo, double Hi)[] rimX = [(0, 2), (3, 7.5), (8.5, 13), (14, 16)];
+        IEnumerable<Element> Joists(string name, double[] rings, (double Lo, double Hi) x) => BambooPole(name, (x.Lo, 13, 0), (x.Hi, 15, 16), 'y', 'z', rings, ridgeInset: 0.1);
+        IEnumerable<Element> Rims(string name, double z1, double z2, double[][] rings) => rimX
+            .Select((x, i) => BambooPole(name, (x.Lo, 13, z1), (x.Hi, 15, z2), 'y', 'x', rings[i]).Select(e => e with { RunAxis = 'x' }))
+            .SelectMany(e => e)
+            .Concat(FloorPoleElements.Where(e => e.Name == "poles" + name[prefix.Length..] && e.Slot == "lashing").Select(e => e with { Name = name }));
+        return
+        [
+            .. Joists($"{prefix}-left", joists[0], (2, 3)),
+            .. Joists($"{prefix}-left", joists[1], (7.5, 8.5)),
+            .. Joists($"{prefix}-right", joists[2], (13, 14)),
+            .. Rims($"{prefix}-top", 0, 1, topRims),
+            .. Rims($"{prefix}-bottom", 15, 16, bottomRims),
+        ];
+    }
+
+    private static readonly Element[] FloorBambooElements =
+    [
+        .. BambooFloor("bamboo", [[3.25, 8.25, 12.25], [4.75, 10.25], [3.75, 9.75]], [[0.25], [4.75], [10.5], [14.75]], [[0.75], [3.75], [11.5], [14.25]]),
+        .. BambooFloor("bamboo2", [[4.75, 10.75], [3.25, 8.75, 12.75], [5.25, 11.25]], [[1.25], [6.5], [9.5], [15.25]], [[0.75], [5.5], [12.25], [14.25]]),
+    ];
+
     // The wall's layers laid flat: top finish, joists with infill between, underside, filling y 12..16
     // so the top sits where a plank block's would. Every floor's joists run north-south (along z) at
     // the same x, three to a cell and never more than 4.5 voxels apart, so they tile across any run
@@ -1175,6 +1348,7 @@ public static class WallShapeGen
         .. Rim("framing-bottom", 15, 16),
         .. FloorPoleElements,
         .. FloorPole2Elements,
+        .. FloorBambooElements,
         new("infill-top", (0, 13.5, 0), (16, 14.5, 1), "infill", UvRule.Flat, RunAxis: 'z'),
         new("infill", (0, 13.5, 1), (16, 14.5, 15), "infill", UvRule.Flat, RunAxis: 'z'),
         new("infill-bottom", (0, 13.5, 15), (16, 14.5, 16), "infill", UvRule.Flat, RunAxis: 'z'),
@@ -1303,7 +1477,7 @@ public static class WallShapeGen
                 // Only a rim runs across an edge. Any other pole piece an edge cuts is a sliver of a joist,
                 // or a stub, cheek or lashing whose joist is on the far side, so a box draws its part of one
                 // only along the lengths where the side's boxes together cover the piece's whole width.
-                var lengths = source.Name.StartsWith("poles") && source.RunAxis != 'x'
+                var lengths = (source.Name.StartsWith("poles") || source.Name.StartsWith("bamboo")) && source.RunAxis != 'x'
                     ? CoveredLengths(source, regions, lo.Z, hi.Z)
                     : [(lo.Z, hi.Z)];
                 foreach (var (z, z2) in lengths)
@@ -1333,6 +1507,38 @@ public static class WallShapeGen
         .. PostLayer("back", 'x', 0, "west", ownsHigh: false),
         .. PostLayer("secondback", 'z', 0, "north", ownsHigh: true),
     ];
+
+    // A bare post in bamboo: rings filling the 4 by 4, notched a half voxel down each vertical edge so they read round, and
+    // between them the same pole a quarter voxel in all round, as a wall's pole stands inside its rings. The rings meet the
+    // walls behind and a floor round the post edge to edge, and one closes the post's top, so a floor laid onto it leaves no
+    // groove to see down. All of it is cut into a core and a slice in each layer's owned body (see PostLayer), so a
+    // finished face drops its slice alone.
+    private static IEnumerable<Element> BambooFatPost(BambooRings v)
+    {
+        (string Name, double X1, double Z1, double X2, double Z2)[] bodies =
+        [
+            (v.Prefix, 1, 1, 3, 3), ($"{v.Prefix}-front", 3, 1, 4, 4), ($"{v.Prefix}-secondfront", 0, 3, 3, 4),
+            ($"{v.Prefix}-back", 0, 0, 1, 3), ($"{v.Prefix}-secondback", 1, 0, 4, 1),
+        ];
+        return from e in NotchedSquare(v.Prefix, 0.25, 3.75, 0.5, 0, 16).Concat(v.Post.Append(15.5).SelectMany(ring => FatPostRing(v.Prefix, ring, ring + 0.5)))
+               from body in bodies
+               let lo = (X: Math.Max(e.From.X, body.X1), Z: Math.Max(e.From.Z, body.Z1))
+               let hi = (X: Math.Min(e.To.X, body.X2), Z: Math.Min(e.To.Z, body.Z2))
+               where hi.X > lo.X && hi.Z > lo.Z
+               select e with { Name = body.Name, From = e.From with { X = lo.X, Z = lo.Z }, To = e.To with { X = hi.X, Z = hi.Z }, ClippedFrom = e };
+    }
+
+    // The part of a fat post's ring standing out of the pole, so no ring box lies over the pole's own faces once both are cut
+    // into the slices: a strip along each flat, and an L in each notch, the north-west one mirrored to the other three.
+    private static IEnumerable<Element> FatPostRing(string name, double y1, double y2)
+    {
+        (double X1, double Z1, double X2, double Z2)[] strips = [(0.5, 0, 3.5, 0.25), (0.5, 3.75, 3.5, 4), (0, 0.5, 0.25, 3.5), (3.75, 0.5, 4, 3.5)];
+        (double X1, double Z1, double X2, double Z2)[] notch = [(0.25, 0.5, 0.75, 0.75), (0.5, 0.25, 0.75, 0.5)];
+        var corners = from n in notch
+                      from mirror in new[] { (X: false, Z: false), (X: true, Z: false), (X: false, Z: true), (X: true, Z: true) }
+                      select (mirror.X ? 4 - n.X2 : n.X1, mirror.Z ? 4 - n.Z2 : n.Z1, mirror.X ? 4 - n.X1 : n.X2, mirror.Z ? 4 - n.Z1 : n.Z2);
+        return strips.Concat(corners).Select(b => new Element(name, (b.Item1, y1, b.Item2), (b.Item3, y2, b.Item4), "framing", UvRule.Flat));
+    }
 
     private static IEnumerable<Element> PostLayer(string slot, char depthAxis, double outer, string outwardFace, bool ownsHigh)
     {
@@ -1471,7 +1677,7 @@ public static class WallShapeGen
             [.. WithDeck(FrontEdgeOnSecondFace([.. CornerOutElements, .. CornerRimPieces(CornerOutElements)]), ((4, 12, 4), (16, 16, 16))),
              .. CapGroups(((0, 15, 0), (4, 16, 16)), ((4, 15, 0), (16, 16, 4)))], CornerOutTextures),
         "diagonal" => Rounded(Emit([.. DiagonalElements, .. DeckGroups("deck", DiagonalDeckStrips())], DiagonalTextures)),
-        "cornerin" => Emit([.. CornerInElements, .. DeckGroups("deck", PostDeckStrips()), .. CapGroups(((0, 15, 0), (4, 16, 4)))], CornerInTextures),
+        "cornerin" => Emit([.. CornerInElements, .. BambooVariants.SelectMany(BambooFatPost), .. DeckGroups("deck", PostDeckStrips()), .. CapGroups(((0, 15, 0), (4, 16, 4)))], CornerInTextures),
         _ => throw new KeyNotFoundException(layout),
     };
 

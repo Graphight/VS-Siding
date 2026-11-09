@@ -44,6 +44,20 @@ public class FootprintHostsTests
     }
 
     [Fact]
+    public void AThreeWallRunHostsOnlyAlongItsAxis()
+    {
+        Block[] Run(string side) => new Block[] { Wall("wall", side), Wall("wall", side), Wall("wall", side) };
+        var actual = new Dictionary<string, bool>
+        {
+            ["along the axis"] = SidingModSystem.FootprintHosts("east", Run("east")),
+            ["across the axis"] = SidingModSystem.FootprintHosts("east", Run("north")),
+            ["wall, cornerout, wall"] = SidingModSystem.FootprintHosts("east", new Block[] { Wall("wall", "east"), Wall("cornerout", "east"), Wall("wall", "east") }),
+        };
+
+        Assert.Equal(new Dictionary<string, bool> { ["along the axis"] = true, ["across the axis"] = false, ["wall, cornerout, wall"] = false }, actual);
+    }
+
+    [Fact]
     public void MixedFootprints()
     {
         var air = new Block();

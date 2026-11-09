@@ -96,6 +96,46 @@ public class IsHostableTests
         Assert.Equal(expected, actual);
     }
 
+    private static Block Boxed(float y1, float y2, bool open = true, bool? declared = null)
+    {
+        var block = new Block { SelectionBoxes = new[] { new Cuboidf(0.25f, y1, 0.25f, 0.75f, y2, 0.75f) } };
+        if (declared != null) block.Attributes = new JsonObject(new JObject { ["vssidingUnderDeck"] = declared.Value });
+        return open ? Open(block) : block;
+    }
+
+    [Fact]
+    public void ABlockFitsUnderADeckWhenItsBoxesSpanTwelveSixteenthsAndDropsToTouchIt()
+    {
+        var blocks = new Dictionary<string, Block>
+        {
+            ["torch holder"] = Boxed(0.125f, 0.875f),
+            ["small lantern on a wall"] = Boxed(0.25f, 0.875f),
+            ["standing lantern"] = Boxed(0, 0.75f),
+            ["oil lamp on the floor"] = Boxed(0, 0.125f),
+            ["large lantern on a wall"] = Boxed(0, 0.875f),
+            ["shelf"] = Boxed(0, 1),
+            ["declared hook"] = Boxed(0, 1, declared: true),
+            ["declared out"] = Boxed(0, 0.5f, declared: false),
+            ["unhostable"] = Boxed(0, 0.5f, open: false),
+        };
+
+        var actual = new Dictionary<string, double?>();
+        foreach (var (name, block) in blocks) actual[name] = SidingModSystem.UnderDeckDropFor(block);
+
+        Assert.Equal(new Dictionary<string, double?>
+        {
+            ["torch holder"] = 0.125,
+            ["small lantern on a wall"] = 0.125,
+            ["standing lantern"] = 0,
+            ["oil lamp on the floor"] = 0,
+            ["large lantern on a wall"] = null,
+            ["shelf"] = null,
+            ["declared hook"] = 0.25,
+            ["declared out"] = null,
+            ["unhostable"] = null,
+        }, actual);
+    }
+
     private static T Declared<T>(T block, bool hostable) where T : Block
     {
         block.Attributes = new JsonObject(new JObject { ["vssidingHostable"] = hostable });

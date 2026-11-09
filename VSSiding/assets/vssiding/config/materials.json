@@ -30,7 +30,7 @@
 		"bamboo": {
 			DisplayName: "vssiding:framing-bamboo",
 			Texture: "game:block/wood/planks/bamboo-side",
-			Elements: "poles",
+			Elements: "bamboo",
 			Consumes: { type: "item", code: "game:bamboostakes", quantity: 2 },
 			Drops: [ { type: "item", code: "game:bamboostakes", quantity: { avg: 2, var: 0 } } ]
 		}

@@ -12,12 +12,23 @@ namespace VSSiding.E2E.Tests;
 internal static class WallBuilder
 {
     // Atlas's default play style joins players in creative, which skips the mod's cost checks and consumption.
+    // The picks are player data, which a class's world rollback leaves as its last scenario set them.
     internal static async Task<ITestPlayer> JoinBuilder(IWorldSession world, string offhand = "game:saw-copper")
     {
         ITestPlayer player = await world.JoinPlayer("Builder");
         player.Player.WorldData.CurrentGameMode = EnumGameMode.Survival;
         player.Entity.LeftHandItemSlot.Itemstack = new ItemStack(player.Entity.World.GetItem(new AssetLocation(offhand)));
+        player.Entity.WatchedAttributes.SetString("vssidingFraming", "wall");
+        player.Entity.WatchedAttributes.SetString("vssidingDeck", "");
         return player;
+    }
+
+    // How far the mod moves the block at pos up: a hanger's lift, or a block's drop under a deck (negative).
+    internal static double HangShiftAt(IWorldSession world, BlockPos pos)
+    {
+        Type modSystem = world.Api.ModLoader.GetModSystem("VSSiding.SidingModSystem").GetType();
+        return (double)modSystem.GetMethod("HangShiftAt", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public)!
+            .Invoke(null, new object[] { pos, world.BlockAt(pos) })!;
     }
 
     // A click of the held stack on the top of the block at pos, run on the server; the hand handling it answers.
@@ -46,10 +57,16 @@ internal static class WallBuilder
 
     // The guest store's record for a cell, decoded the way the mod does; null when the cell holds no guest. GuestWalls is the mod's own static class, so it is reached by name.
     internal static (string? Framing, string? Infill, string? Front, string? SecondFront, string? Back)? GuestLayers(IWorldSession world, BlockPos cell)
+        => GuestAt(world, cell) is { } guest ? LayersOf(guest) : null;
+
+    // The same four deck layers read off the guest store's record; null when the cell holds no guest.
+    internal static (string? Deck, string? Infill, string? Front, string? Back)? GuestDeckLayers(IWorldSession world, BlockPos cell)
+        => GuestAt(world, cell) is { } guest ? DeckLayersOf(guest) : null;
+
+    private static BlockEntity? GuestAt(IWorldSession world, BlockPos cell)
     {
         Type guestWalls = world.Api.ModLoader.GetModSystem("VSSiding.SidingModSystem").GetType().Assembly.GetType("VSSiding.GuestWalls")!;
-        var guest = (BlockEntity?)guestWalls.GetMethod("GuestAt", new[] { typeof(ICoreAPI), typeof(BlockPos) })!.Invoke(null, new object[] { world.Api, cell });
-        return guest == null ? null : LayersOf(guest);
+        return (BlockEntity?)guestWalls.GetMethod("GuestAt", new[] { typeof(ICoreAPI), typeof(BlockPos) })!.Invoke(null, new object[] { world.Api, cell });
     }
 
     // The BreakBlock event a player's dig fires before OnBlockBroken, reached by name because the server's event manager is internal; returns the handling its handlers leave.
@@ -68,8 +85,11 @@ internal static class WallBuilder
 
     // deck, deckinfill, deckfront, deckback as the wall's entity saves them.
     internal static (string? Deck, string? Infill, string? Front, string? Back) DeckLayers(IWorldSession world, BlockPos cell)
+        => DeckLayersOf(world.BlockEntityAt<BlockEntity>(cell)!);
+
+    private static (string? Deck, string? Infill, string? Front, string? Back) DeckLayersOf(BlockEntity entity)
     {
-        var read = Reader(world.BlockEntityAt<BlockEntity>(cell)!);
+        var read = Reader(entity);
         return (read("deck"), read("deckinfill"), read("deckfront"), read("deckback"));
     }
 
@@ -123,6 +143,32 @@ internal static class WallBuilder
         await player.GiveItem(finish, 2);
         Assert.True(world.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, infillSel));
         Assert.Null(slot.Itemstack);
+    }
+
+    // A filled wall two high, its panel facing west, and a thin floor beside its top cell on that side over an empty cell.
+    // The player is left in floor mode, west of the floor.
+    internal static async Task<(BlockPos Wall, BlockPos Floor, BlockPos Below, ITestPlayer Player)> FloorBesideWall(IWorldSession world)
+    {
+        BlockPos wall = world.Spawn.Offset(1, 3, 0);
+        BlockPos floor = wall.WestCopy();
+        BlockPos below = floor.DownCopy();
+        world.SetBlock("game:planks-aged-ud", wall.DownCopy(2));
+        ITestPlayer player = await JoinBuilder(world);
+        await Raise(world, player, wall.DownCopy(), wall.DownCopy().WestCopy(), "game:plank-oak", "game:clay-blue", "game:plank-oak");
+        await Raise(world, player, wall, floor, "game:plank-oak", "game:clay-blue");
+
+        world.SetBlock("game:planks-aged-ud", below);
+        player.Entity.WatchedAttributes.SetString("vssidingFraming", "floor");
+        await Raise(world, player, floor, wall, "game:plank-oak", null);
+        world.Api.World.BlockAccessor.SetBlock(0, below);
+        return (wall, floor, below, player);
+    }
+
+    internal static bool RaisedBelow(IWorldSession world, BlockPos floor)
+    {
+        var tree = new TreeAttribute();
+        world.BlockEntityAt<BlockEntity>(floor)!.ToTreeAttributes(tree);
+        return tree.GetBool("raisedbelow");
     }
 
     // A right-click as vanilla sends it: the wall answers first unless the player sneaks, and the held item only

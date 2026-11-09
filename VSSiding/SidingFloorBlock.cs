@@ -155,32 +155,48 @@ public class SidingFloorBlock : Block
     internal static bool CanAttach(BlockFacing facing, string? framing, string? infill, JsonObject attributes)
         => facing == BlockFacing.DOWN ? framing != null : ComputeRetention(facing, framing, infill, attributes) != 0;
 
+    // Once the block this floor raised is gone, the next one placed below sits at its own height (decision 0094).
+    public override void OnNeighbourBlockChange(IWorldAccessor world, BlockPos pos, BlockPos neibpos)
+    {
+        base.OnNeighbourBlockChange(world, pos, neibpos);
+        if (!neibpos.Equals(pos.DownCopy()) || world.BlockAccessor.GetBlockEntity<SidingFloorEntity>(pos) is not { RaisedBelow: true } entity
+            || SidingModSystem.IsUnderDeckId(world.BlockAccessor.GetBlock(neibpos).BlockId)) return;
+        entity.RaisedBelow = false;
+        entity.MarkDirty(true);
+    }
+
     // A hanger rides up into this cell's underside (decision 0054), and the raytrace only tests the cell
     // the ray is in, so the floor answers for it with boxes whose hit selects the cell below (PosAdjust).
     // The floor's own boxes come first: vanilla lets a later decor box replace an earlier hit only when
     // it is nearer, while any ordinary box replaces a decor hit, so this order lets the nearer one win.
     public override Cuboidf[] GetSelectionBoxes(IBlockAccessor blockAccessor, BlockPos pos)
-    {
-        var floorBoxes = base.GetSelectionBoxes(blockAccessor, pos);
-        if (DecorSelectionBoxConstructor == null || PosAdjustField == null) return floorBoxes;
+        => WithHangerBelow(blockAccessor, pos, base.GetSelectionBoxes(blockAccessor, pos));
 
+    // Shared with a decked wall (decision 0094), which also answers for the hanger in the cell below.
+    internal static Cuboidf[] WithHangerBelow(IBlockAccessor blockAccessor, BlockPos pos, Cuboidf[] ownBoxes)
+    {
         var belowPos = pos.DownCopy();
         var below = blockAccessor.GetBlock(belowPos);
-        var shift = SidingModSystem.HangShiftAt(belowPos, below);
-        if (shift == 0) return floorBoxes;
+        return WithHanger(blockAccessor, belowPos, below, SidingModSystem.HangShiftAt(belowPos, below), ownBoxes);
+    }
 
-        // Called from inside this override, so the hanger's own patch sees depth 2 and leaves them unshifted.
-        var hangerBoxes = below.GetSelectionBoxes(blockAccessor, belowPos);
-        if (hangerBoxes is not { Length: > 0 }) return floorBoxes;
+    // Only a raised hanger reaches this cell; a block lowered under a deck (a negative shift) stays in its own.
+    internal static Cuboidf[] WithHanger(IBlockAccessor blockAccessor, BlockPos belowPos, Block below, double shift, Cuboidf[] ownBoxes)
+    {
+        if (shift <= 0 || DecorSelectionBoxConstructor == null || PosAdjustField == null) return ownBoxes;
+
+        var hangerBoxes = GapShiftCollisionPatches.UnshiftedSelectionBoxes(below, blockAccessor, belowPos);
+        if (hangerBoxes is not { Length: > 0 }) return ownBoxes;
 
         // A hanger hosted in a guest wall's cell also sits off the panel.
         var (dx, dz) = SidingModSystem.GapShiftAt(belowPos, below);
-        return HangerSelectionCache.GetValue(hangerBoxes, _ => new ConcurrentDictionary<(Cuboidf[]?, double, double), Cuboidf[]>())
-            .GetOrAdd((floorBoxes, dx, dz), _ => WithHangerBoxes(floorBoxes, hangerBoxes, dx, shift, dz));
+        var decor = HangerSelectionCache.GetValue(hangerBoxes, _ => new ConcurrentDictionary<(double, double, double), Cuboidf[]>())
+            .GetOrAdd((dx, shift, dz), _ => HangerDecorBoxes(hangerBoxes, dx, shift, dz));
+        return ownBoxes.Concat(decor).ToArray();
     }
 
-    // Per (hanger array, floor array, off-panel shift): raytraces run every frame on several threads.
-    private static readonly ConditionalWeakTable<Cuboidf[], ConcurrentDictionary<(Cuboidf[]?, double, double), Cuboidf[]>> HangerSelectionCache = new();
+    // Per (hanger array, off-panel shift): raytraces run every frame on several threads.
+    private static readonly ConditionalWeakTable<Cuboidf[], ConcurrentDictionary<(double, double, double), Cuboidf[]>> HangerSelectionCache = new();
 
     // DecorSelectionBox is internal to the API, so it is built by reflection; SidingModSystem.Start
     // warns once if a game update moves it, and the floor then answers with its own boxes alone.
@@ -192,17 +208,14 @@ public class SidingFloorBlock : Block
 
     // The hanger's boxes in this cell's coordinates: the hanger's cell is one below, and the shift
     // lifts them to the underside, so each moves by shift - 1.
-    internal static Cuboidf[] WithHangerBoxes(Cuboidf[]? floorBoxes, Cuboidf[] hangerBoxes, double dx, double shift, double dz)
-    {
-        var hanger = hangerBoxes.Select(box =>
+    internal static Cuboidf[] HangerDecorBoxes(Cuboidf[] hangerBoxes, double dx, double shift, double dz)
+        => hangerBoxes.Select(box =>
         {
             var moved = box.OffsetCopy((float)dx, (float)(shift - 1), (float)dz);
             var decor = (Cuboidf)DecorSelectionBoxConstructor!.Invoke(new object[] { moved.X1, moved.Y1, moved.Z1, moved.X2, moved.Y2, moved.Z2 });
             PosAdjustField!.SetValue(decor, new Vec3i(0, -1, 0));
             return decor;
-        });
-        return (floorBoxes ?? Array.Empty<Cuboidf>()).Concat(hanger).ToArray();
-    }
+        }).ToArray();
 
     public override int GetLightAbsorption(IBlockAccessor blockAccessor, BlockPos pos)
         => GetLightAbsorption(blockAccessor.GetChunkAtBlockPos(pos), pos);
@@ -248,9 +261,9 @@ public class SidingFloorBlock : Block
         BlockPos neighbourPos = pos.AddCopy(direction);
         if (accessor.GetBlockEntity<SidingFloorEntity>(neighbourPos) is { } floor)
             return Continues(glazing, floor.Framing, floor.Infill, floor.Block.Attributes["Infills"]);
-        return accessor.GetBlockEntity<SidingWallEntity>(neighbourPos) is { } wall
-            && DeckReaches(wall.Block.Variant["layout"], wall.Block.Variant["side"], direction)
-            && Continues(glazing, wall.Deck, wall.DeckInfill, wall.Block.Attributes["Infills"]);
+        return SidingWallBlock.WallAt(accessor, neighbourPos) is var (wallBlock, wall)
+            && DeckReaches(wallBlock.Variant["layout"], wallBlock.Variant["side"], direction)
+            && Continues(glazing, wall.Deck, wall.DeckInfill, wallBlock.Attributes["Infills"]);
     }
 
     // As a wall's (SidingWallBlock.InnerCorners). The cell diagonally across is asked from both of the

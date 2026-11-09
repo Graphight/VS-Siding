@@ -1,6 +1,6 @@
 # 0054 — Hanging under thin floors
 
-- Status: Accepted
+- Status: Accepted; a deck now lifts hangers too, see 0094
 - Created: 2026-09-30
 - Reflects: branch `hanging-under-thin-floors`; `SidingFloorBlock.CanAttachBlockAt`/`CanAttach`/`GetSelectionBoxes`/`WithHangerBoxes`; `SidingModSystem.IsHanger`/`HangShift`/`ShiftTowardWall`/`SpawnShifted`/`DecalTesselationShifted`; `GapShiftCollisionPatches`; decisions 0034, 0035, 0050; vanilla's `AABBIntersectionTest`, `DecorSelectionBox`, `BlockOilLamp` and `SystemSelectedBlockOutline` read from decompiled 1.22 `VintagestoryAPI`, `VSSurvivalMod` and `VintagestoryLib`; a self-review; played once, the rest not yet
 
