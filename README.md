@@ -56,6 +56,19 @@ Stick and bone frames, and a bone and pelt tent:
 ![primitive-siding](docs/screenshots/PrimitiveSiding.jpg)
 ![primitive-tent](docs/screenshots/PrimitiveTent.jpg)
 
+Posts, at the end of a wall and in the inner corner of an L, and a corner with a different finish on each inner face:
+
+![corner-post-finished](docs/screenshots/CornerPostFinished.jpg)
+![corners-with-post](docs/screenshots/CornersWithPost.jpg)
+
+Bamboo frames and pole infill on bamboo stilts:
+
+![bamboo-stilts](docs/screenshots/BambooStilts.jpg)
+
+A stairwell with capped wall tops and steps that line up:
+
+![stair-hosting](docs/screenshots/StairHosting.jpg)
+
 Floors, from above and below:
 
 ![floors-above](docs/screenshots/FloorsAbove.jpg)
