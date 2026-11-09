@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Created: 2026-11-08
-- Reflects: branch `bamboo-frames`, from `47e49a3`; `config/materials.json` (`bamboo`, `bamboopoles`), `WallShapeGen` (`WallPoleElements`, `WallPole2Elements`, `CornerPoleElements`, `FloorPoleElements`, `DiagonalElements`, `Stems`, `StemNodes`, `CornerInElements`, `PostLayer`, `BambooRings`/`BambooVariants`, `BambooPole`, `BambooPost`, `NotchedSquare`, `BambooFatPost`, `FatPostRing`, `DeckGroups`), `SidingWallEntity.FrameElements`/`SelectiveElements`/`PostElements`, `WallShapeGenTests`, `SidingWallEntityTests`; decisions 0061, 0062, 0066, 0082, 0088; the author's playtest of #157; PR #161 and its review; unit tests pass (`just test`) and the end-to-end suite passed at `e9a07ad` and again after the review's fixes (`just e2e`, 121); played cut by cut on 2026-11-08, the rings reaching into the next cell and the full-width post not yet
+- Reflects: branch `bamboo-frames`, from `47e49a3`; `config/materials.json` (`bamboo`, `bamboopoles`), `WallShapeGen` (`WallPoleElements`, `WallPole2Elements`, `CornerPoleElements`, `FloorPoleElements`, `DiagonalElements`, `Stems`, `StemNodes`, `CornerInElements`, `PostLayer`, `BambooRings`/`BambooVariants`, `BambooPole`, `BambooPost`, `NotchedSquare`, `BambooFatPost`, `FatPostRing`, `DeckGroups`), `SidingWallEntity.FrameElements`/`SelectiveElements`/`PostElements`, `WallShapeGenTests`, `SidingWallEntityTests`; decisions 0061, 0062, 0066, 0082, 0088; the author's playtest of #157; PR #161 and its review; unit tests pass (`just test`) and the end-to-end suite passed at `e9a07ad` and again after the review's fixes (`just e2e`, 121); played cut by cut on 2026-11-08, the corner's post standing inside its rings not yet
 
 ## Summary
 A bamboo frame draws straight poles with node rings, in place of the stick frame's crooked poles in a bamboo texture.
@@ -42,12 +42,16 @@ Rope lashing stays where plates cross uprights (wall, corner) and where rims cro
 **Inside the frame's thickness.**
 Every box stays within the frame's thickness (x 1 to 3 on a wall, y 13 to 15 on a floor, the post's 4 by 4), so any finish still covers it; only a ring's reach across, along the frame, leaves the plain member's box, and on a cell's side the cell.
 No face shares a plane with a frame, finish or infill drawn beside it; the pole tests extend the stems' thickness and plane checks to `bamboo` and `bamboo2`, and `EveryGeneratedBoxIsNonDegenerateAndInsideTheBlock` lets a bamboo box reach a quarter voxel past the block's sides alone.
+`EveryPoleGroupCoversTheMidPlaneOfThePlainMemberItReplaces` lets a corner's post, a member of both legs, stand a quarter voxel back from the other leg's front on each leg's mid-plane, as any member's core stands behind its own front.
 
 **Walls, corners, floors and decks.**
 `wall`, `cornerout`, the floor and every deck and ledge copy draw the new poles.
 `DeckGroups`' `CoveredLengths` rule, which read `StartsWith("poles")`, covers `bamboo` too.
 A corner's tees reuse `CornerTees("bamboo")`.
-The corner post (`BambooPost`) is its 2 by 2 square with a quarter voxel notched down each vertical edge, and rings filling the notches back to the square, not the single pole the wall's uprights are.
+The corner post (`BambooPost`) stands a quarter voxel back from both fronts, notched at its outer corner, and runs full to the room sides, where the legs' plates end on it.
+Its rings fill the 2 by 2 and reach a quarter voxel into each leg's bay, as an upright's do, stopping short of the inner corner's finish.
+At a T the tee in a front's slot draws the face it puts against the post, which the other frames' tees leave out.
+The first cut notched the 2 by 2 a quarter voxel down each vertical edge with rings filling the notches back to the square, so they read flush; the author asked for them to stand out as the bare post's do.
 A floor's ridges sit 0.1 in from the joist's edge rather than a quarter voxel, and a floor's rims drop the cheeks the skin of a wall's plates carries.
 
 **Diagonals.**
@@ -74,7 +78,7 @@ Its `-mitre` piece lies in the previous slot's body (front, secondfront, back, s
 | Cell | Pole frame | Bamboo frame | Bamboo frame, odd cell |
 |------|-----------:|-------------:|-----------------------:|
 | `wall` | 144 | 168 | 168 |
-| `cornerout` | 158 | 286 | 286 |
+| `cornerout` | 158 | 291 | 291 |
 | `floor` | 240 | 338 | 338 |
 
 The shapes grew as follows, in bytes:
@@ -82,7 +86,7 @@ The shapes grew as follows, in bytes:
 | Shape | At `47e49a3` | Now |
 |-------|-------------:|----:|
 | `wall.json` | 2,481,733 | 3,050,690 |
-| `cornerout.json` | 3,369,514 | 3,897,833 |
+| `cornerout.json` | 3,369,514 | 3,900,440 |
 | `diagonal.json` | 3,644,906 | 4,261,661 |
 | `cornerin.json` | 1,613,453 | 2,235,940 |
 | `floor.json` | 327,721 | 462,729 |
@@ -98,8 +102,9 @@ The shapes grew as follows, in bytes:
 - **A square fat post.** Each slice inset a quarter voxel all round, the review's first suggestion: the smallest fix for the fins the first cut left at the corners, but square where the post should read round.
 
 ## Consequences & open questions
-- The author played each cut on 2026-11-08: the walls' and floors' rings and lashing read well from the first, and the rings on two sides, the 4 by 4 post with flush rings, the 3-wide post and the stepped-in edges were each redrawn as above.
-The rings reaching into the next cell and the full-width post are judged from unit tests on thickness, planes, outline, ring places and group names until the next play.
-- A bamboo wall costs 168 quads against the pole frame's 144, a corner 286 against 158, and the shapes are 13.9 MB together; a large bamboo build is the case to watch.
+- The author played each cut on 2026-11-08: the walls' and floors' rings and lashing read well from the first, and the rings on two sides, the 4 by 4 post with flush rings, the 3-wide post, the stepped-in edges and the corner's post with flush rings were each redrawn as above.
+The rings reaching into the next cell, the diagonal and the full-width post read well in the last play.
+The corner's post standing inside its rings is judged from unit tests on outline, planes, thickness and the tees' faces until the next play.
+- A bamboo wall costs 168 quads against the pole frame's 144, a corner 291 against 158, and the shapes are 13.9 MB together; a large bamboo build is the case to watch.
 - A bamboo post's finished face beside a bare one meets the round pole at a plain edge, with no mitre; whether that reads as a seam is for play to say.
 - Nothing stored changes, so there is no new end-to-end scenario; the existing suite passed once before the push.
