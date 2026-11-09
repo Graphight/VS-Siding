@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Newtonsoft.Json.Linq;
 using Vintagestory.API.Common;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
@@ -31,6 +32,46 @@ public class IsHangerTests
         return chandelier;
     }
 
+    private static Block Declared(Block block, bool hanger)
+    {
+        block.Attributes = new JsonObject(new JObject { ["vssidingHanger"] = hanger });
+        return block;
+    }
+
+    // Only a block hung on the wall face it was clicked on rises under a thin floor beside the wall (decision 0094).
+    [Fact]
+    public void ABlockHangsOnASideInAWallVariantOrAsAHorizontalAttachable()
+    {
+        Block Torch(string orientation)
+        {
+            var torch = new BlockGroundAndSideAttachable();
+            torch.VariantStrict["orientation"] = orientation;
+            return torch;
+        }
+        var holder = new Block();
+        holder.BlockBehaviors = new BlockBehavior[] { new BlockBehaviorHorizontalAttachable(holder) };
+
+        var blocks = new Dictionary<string, Block>
+        {
+            ["wall torch"] = Torch("east"),
+            ["standing torch"] = Torch("up"),
+            ["wall lantern"] = Lantern("north"),
+            ["hanging lantern"] = Lantern("down"),
+            ["torch holder"] = holder,
+            ["plain block"] = new Block(),
+        };
+
+        Assert.Equal(new Dictionary<string, bool>
+        {
+            ["wall torch"] = true,
+            ["standing torch"] = false,
+            ["wall lantern"] = true,
+            ["hanging lantern"] = false,
+            ["torch holder"] = true,
+            ["plain block"] = false,
+        }, blocks.ToDictionary(pair => pair.Key, pair => SidingModSystem.HangsOnSide(pair.Value)));
+    }
+
     [Fact]
     public void OnlyBlocksAttachedToTheirTopAreHangers()
     {
@@ -42,6 +83,8 @@ public class IsHangerTests
             ["two-way chandelier"] = Chandelier(BlockFacing.UP, BlockFacing.DOWN),
             ["falling sand"] = Chandelier(BlockFacing.DOWN),
             ["plain block"] = new Block(),
+            ["declared hanger"] = Declared(new Block(), true),
+            ["declared non-hanger lantern"] = Declared(Lantern("down"), false),
             ["ceiling lamp"] = Named("oillampceilingfix-blue-down-north-normal"),
             ["raised ceiling lamp"] = Named("oillampceilingfix-blue-down-north-raised"),
             ["wall lamp"] = Named("oillampwallfix-blue-north"),
@@ -49,6 +92,8 @@ public class IsHangerTests
 
         var expected = new Dictionary<string, bool>
         {
+            ["declared hanger"] = true,
+            ["declared non-hanger lantern"] = false,
             ["hanging lantern"] = true,
             ["standing lantern"] = false,
             ["chandelier"] = true,
@@ -71,9 +116,11 @@ public class IsHangerTests
     {
         internal Block Above = null!, Below = null!;
         internal int HangerY;
+        internal BlockEntity? AboveEntity;
 
         protected override object? Invoke(MethodInfo? targetMethod, object?[]? args)
         {
+            if (targetMethod?.Name == nameof(IBlockAccessor.GetBlockEntity) && args?.Length == 1) return AboveEntity;
             if (targetMethod?.Name != nameof(IBlockAccessor.GetBlock) || args?.Length != 1)
                 throw new System.NotSupportedException($"{targetMethod?.Name} is not stubbed");
             return ((BlockPos)args[0]!).Y > HangerY ? Above : Below;
@@ -115,5 +162,39 @@ public class IsHangerTests
         });
 
         Assert.Equal(expected, actual);
+    }
+
+    private static SidingWallBlock Wall(string layout)
+    {
+        var wall = new SidingWallBlock { Attributes = new JsonObject(JObject.Parse("{ \"Framings\": {}, \"Infills\": {} }")) };
+        wall.VariantStrict["layout"] = layout;
+        wall.VariantStrict["side"] = "north";
+        return wall;
+    }
+
+    [Fact]
+    public void AHangerRisesUnderADeckedWallButNotABareOrDiagonalOne()
+    {
+        var pos = new BlockPos(5, 60, 9, 0);
+        var cases = new Dictionary<string, (string layout, string? deck)>
+        {
+            ["decked wall"] = ("wall", "oak"),
+            ["decked cornerout"] = ("cornerout", "oak"),
+            ["bare wall"] = ("wall", null),
+            ["decked diagonal"] = ("diagonal", "oak"),
+        };
+
+        var actual = cases.ToDictionary(kv => kv.Key, kv =>
+        {
+            var accessor = DispatchProxy.Create<IBlockAccessor, ColumnAccessor>();
+            var column = (ColumnAccessor)(object)accessor;
+            column.Above = Wall(kv.Value.layout);
+            column.Below = new Block();
+            column.HangerY = pos.Y;
+            column.AboveEntity = new SidingWallEntity { Deck = kv.Value.deck };
+            return SidingModSystem.HangShift(accessor, pos, Lantern("down"));
+        });
+
+        Assert.Equal(new Dictionary<string, double> { ["decked wall"] = 0.75, ["decked cornerout"] = 0.75, ["bare wall"] = 0, ["decked diagonal"] = 0 }, actual);
     }
 }

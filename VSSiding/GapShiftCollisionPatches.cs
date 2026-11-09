@@ -46,6 +46,14 @@ internal static class GapShiftCollisionPatches
 
     private static void Prefix() => depth++;
 
+    // The boxes as the block itself answers, for a caller that moves them on its own (a floor or deck over a hanger).
+    internal static Cuboidf[] UnshiftedSelectionBoxes(Block block, IBlockAccessor accessor, BlockPos pos)
+    {
+        depth++;
+        try { return block.GetSelectionBoxes(accessor, pos); }
+        finally { depth--; }
+    }
+
     private static void Finalizer() => depth--;
 
     // Each passes the full boxes the wall's own override would start from.
@@ -56,7 +64,7 @@ internal static class GapShiftCollisionPatches
 
     // Outermost only, so an override reading base's boxes never sees null.
     private static bool IsHung(Block instance, object[] args)
-        => depth == 1 && args[1] is BlockPos pos && SidingModSystem.HangShiftAt(pos, instance) != 0;
+        => depth == 1 && args[1] is BlockPos pos && SidingModSystem.HangShiftAt(pos, instance) > 0;
 
     private static void PostfixParticleCollision(Block __instance, ref Cuboidf[] __result, object[] __args)
         => __result = ShiftAndAppendPanel(__instance, __result, __args, wall => wall.ParticleCollisionBoxes ?? wall.CollisionBoxes, clampToCell: true);

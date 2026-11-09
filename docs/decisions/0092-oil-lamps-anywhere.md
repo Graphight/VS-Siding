@@ -1,6 +1,6 @@
 # 0092 — Oil Lamps Anywhere's ceiling lamp
 
-- Status: Accepted
+- Status: Accepted; a decked cell now takes a block that fits under the deck, and a deck lifts hangers, see 0094
 - Created: 2026-11-08
 - Reflects: issue #134 and mod page comment https://mods.vintagestory.at/vssiding#cmt-250046; branch `134-oil-lamps-anywhere`; `SidingModSystem.IsHanger` and the particle-patch loop in `SidingModSystem.Start`, `IsHangerTests`; Oil Lamps Anywhere 1.1.0's decompiled DLL (`CeilingAssets`, `BlockCeilingLamp`, `CeilingPlacementPatch`, `CeilingSupport`); vanilla 1.22 `BlockGroundAndSideAttachable.TryPlaceBlock`; decision 0054; unit tests pass; played on 2026-11-08
 

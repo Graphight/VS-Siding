@@ -40,14 +40,21 @@ internal static class GuestSealingPatches
     // Null unless the host holds a guest that claims faceCode.
     private static SidingWallEntity? ClaimingGuestAt(Block host, BlockPos pos, string faceCode, bool restorePending = false)
     {
+        SidingWallEntity? entity = GuestAtHost(host, pos, restorePending);
+        return entity?.Block is SidingWallBlock wall && SidingWallBlock.ClaimsFace(wall.Variant["layout"], wall.Variant["side"], faceCode)
+            ? entity : null;
+    }
+
+    // Null unless the host holds a guest whose wall carries a deck: the deck seals and takes attachments on its own faces.
+    private static SidingWallEntity? DeckedGuestAt(Block host, BlockPos pos, bool restorePending = false)
+        => GuestAtHost(host, pos, restorePending) is { Deck: not null } entity && entity.Block is SidingWallBlock ? entity : null;
+
+    private static SidingWallEntity? GuestAtHost(Block host, BlockPos pos, bool restorePending)
+    {
         if (!MayHoldGuest(host, SidingModSystem.Hostable, restorePending)) return null;
 
         ICoreAPI? api = SidingModSystem.ApiRef(host);
-        if (api == null) return null;
-
-        SidingWallEntity? entity = GuestWalls.GuestAt(api, pos);
-        return entity?.Block is SidingWallBlock wall && SidingWallBlock.ClaimsFace(wall.Variant["layout"], wall.Variant["side"], faceCode)
-            ? entity : null;
+        return api == null ? null : GuestWalls.GuestAt(api, pos);
     }
 
     // A hosted block holds a guest, and so does the air a broken host leaves until the deferred
@@ -61,11 +68,10 @@ internal static class GuestSealingPatches
     {
         if (depth != 1 || __args[0] is not BlockPos pos || __args[1] is not BlockFacing facing) return;
 
-        SidingWallEntity? entity = ClaimingGuestAt(__instance, pos, facing.Code);
+        SidingWallEntity? entity = facing == BlockFacing.UP ? DeckedGuestAt(__instance, pos) : ClaimingGuestAt(__instance, pos, facing.Code);
         if (entity == null) return;
 
-        var wall = (SidingWallBlock)entity.Block;
-        __result = SidingWallBlock.ComputeRetention(true, entity.Framing, entity.Infill, wall.Attributes["Framings"], wall.Attributes["Infills"]);
+        __result = ((SidingWallBlock)entity.Block).RetentionOf(entity, facing);
     }
 
     private static void LiquidBarrierPostfix(Block __instance, object[] __args, ref float __result)
@@ -87,12 +93,17 @@ internal static class GuestSealingPatches
             return;
         }
 
-        SidingWallEntity? entity = ClaimingGuestAt(__instance, pos, blockFace.Code, restorePending: true);
-        if (entity == null && !__result) entity = GuestAcrossFace(blockAccessor, pos, blockFace);
+        bool vertical = !blockFace.IsHorizontal;
+        SidingWallEntity? entity = vertical
+            ? DeckedGuestAt(__instance, pos, restorePending: true)
+            : ClaimingGuestAt(__instance, pos, blockFace.Code, restorePending: true);
+        if (entity == null && !__result && !vertical) entity = GuestAcrossFace(blockAccessor, pos, blockFace);
         if (entity == null) return;
 
         var wall = (SidingWallBlock)entity.Block;
-        __result = SidingWallBlock.ComputeRetention(true, entity.Framing, entity.Infill, wall.Attributes["Framings"], wall.Attributes["Infills"]) != 0;
+        __result = vertical
+            ? wall.CanAttachOf(entity, blockFace)
+            : SidingWallBlock.ComputeRetention(true, entity.Framing, entity.Infill, wall.Attributes["Framings"], wall.Attributes["Infills"]) != 0;
     }
 
     // A torch or sign placed on the panel's inner face asks the cell past the panel (pos, often air)
