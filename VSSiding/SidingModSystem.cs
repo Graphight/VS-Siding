@@ -1642,16 +1642,11 @@ public class SidingModSystem : ModSystem
                     api.World.RegisterCallback(_ => RestoreGuestWall(api.World, pos), 0);
         };
 
-        api.Event.BreakBlock += (IServerPlayer _, BlockSelection blockSel, ref float _, ref EnumHandling handling) =>
+        api.Event.BreakBlock += (IServerPlayer _, BlockSelection blockSel, ref float _, ref EnumHandling _) =>
         {
-            SidingWallBlock.ServerBreakSelection = blockSel;
-
-            // Creative breaks skip OnGettingBroken entirely, so a panel hit is caught here too -
-            // the only hook that sees both the BlockSelection (for IsPanelHit) and a handling flag
-            // that can prevent the break outright.
-            Block host = api.World.BlockAccessor.GetBlock(blockSel.Position);
-            if (GapShiftCollisionPatches.IsPanelHit(host, api.World.BlockAccessor, blockSel))
-                handling = EnumHandling.PreventDefault;
+            // Only a siding block's OnBlockBroken clears it, so set for any other block it outlives the break.
+            if (api.World.BlockAccessor.GetBlock(blockSel.Position) is SidingWallBlock or SidingFloorBlock)
+                SidingWallBlock.ServerBreakSelection = blockSel;
         };
 
         api.ChatCommands.Create("sidingroom")
