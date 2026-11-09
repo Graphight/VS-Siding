@@ -369,7 +369,7 @@ public class FinishElementGroupsTests
             from glassRight in either.Where(glass => !glass || (transparent && right))
             from teeLeft in either.Where(tee => !tee || layout == "cornerout")
             from teeRight in either.Where(tee => !tee || layout == "cornerout")
-            from frame in new[] { "framing", "poles", "poles2" }
+            from frame in new[] { "framing", "poles", "poles2", "bamboo", "bamboo2" }
             from fill in new[] { "infill", "stems" }
             from corners in innerCorners
             from name in SidingWallEntity.SelectiveElements(

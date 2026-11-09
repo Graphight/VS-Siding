@@ -181,10 +181,14 @@ public class WallShapeGenTests
                 where lo[axis] > hi[axis]
                 select $"{layout} '{name}' inverts on axis {axis}: {lo[axis]} > {hi[axis]}");
             // A turned element's plan is measured after the turn (TheDiagonalRunsCornerToCornerWithItsFrontToTheNorthWest).
+            // A bamboo ring stands a quarter voxel past the block's side into the next (decision 0092), never its top or bottom.
+            double reach = name.StartsWith("bamboo") ? 0.25 : 0;
             offenders.AddRange(
-                from v in element["rotationY"] == null ? lo.Concat(hi) : [lo[1], hi[1]]
+                from axis in element["rotationY"] == null ? new[] { 0, 1, 2 } : [1]
+                let slack = axis == 1 ? 0 : reach
+                from v in new[] { lo[axis], hi[axis] }
                 // A cap stands a hair above the block's top so its face wins over the slabs' and the frame's at the same height.
-                where v < 0 || v > (name.StartsWith("cap-") && v == hi[1] ? 16.05 : 16)
+                where v < -slack || v > (name.StartsWith("cap-") && axis == 1 && v == hi[1] ? 16.05 : 16 + slack)
                 select $"{layout} '{name}' leaves the block: {v}");
         }
 
@@ -274,7 +278,7 @@ public class WallShapeGenTests
             .. Enumerable.Range(0, 8).Select(i => $"back-lath-boards {2 * i + 0.5},12,0 {2 * i + 1.5},12.5,16"),
         ];
         Assert.Equal(expected, WallShapeGen.Generate("floor")["elements"]!
-            .Where(e => !((string)e["name"]!).StartsWith("poles") && !((string)e["name"]!).StartsWith("stems") && !((string)e["name"]!).Contains("-rim"))
+            .Where(e => !((string)e["name"]!).StartsWith("poles") && !((string)e["name"]!).StartsWith("bamboo") && !((string)e["name"]!).StartsWith("stems") && !((string)e["name"]!).Contains("-rim"))
             .Select(e => $"{e["name"]} {string.Join(",", e["from"]!.Select(v => (double)v!))} {string.Join(",", e["to"]!.Select(v => (double)v!))}")
             .ToArray());
     }
@@ -299,6 +303,123 @@ public class WallShapeGenTests
             "diagonal" => Inside(b.Lo, b.Hi, 0, 7, 9),
             _ => Inside(b.Lo, b.Hi, 1, 13, 15),
         })).Select(b => $"{string.Join(",", b.Lo)} to {string.Join(",", b.Hi)}"));
+    }
+
+    // A bare bamboo post's slices stay in the body their layer owns, so a finished face drops its slice and nothing else
+    // shows past it.
+    [Theory]
+    [InlineData("bamboo")]
+    [InlineData("bamboo2")]
+    public void EveryBambooPostSliceStaysInItsLayersBody(string prefix)
+    {
+        var bodies = new Dictionary<string, double[]>
+        {
+            ["front"] = [3, 1, 4, 4], ["secondfront"] = [0, 3, 3, 4], ["back"] = [0, 0, 1, 3], ["secondback"] = [1, 0, 4, 1],
+        };
+        var boxes = WallShapeGen.Generate("cornerin")["elements"]!.Where(e => ((string)e["name"]!).StartsWith(prefix + "-")).Select(e => (Name: ((string)e["name"]!)[(prefix.Length + 1)..], Box: Box(e)));
+
+        Assert.Equal(bodies.Keys.Order(), boxes.Select(b => b.Name).Distinct().Order());
+        Assert.Equal([], boxes.Where(b => b.Box.Lo[0] < bodies[b.Name][0] || b.Box.Lo[2] < bodies[b.Name][1] || b.Box.Hi[0] > bodies[b.Name][2] || b.Box.Hi[2] > bodies[b.Name][3])
+            .Select(b => $"{b.Name} {string.Join(",", b.Box.Lo)} to {string.Join(",", b.Box.Hi)}"));
+    }
+
+    // A bare bamboo post's core and four slices together are one notched pole, its rings filling the 4 by 4 less a half voxel
+    // square down each vertical edge and the pole between them the same outline a quarter voxel in, so no slice stands proud
+    // of its neighbour at a corner and every ring stands out of the pole on every side. Read on a quarter-voxel grid.
+    [Theory]
+    [InlineData("bamboo")]
+    [InlineData("bamboo2")]
+    public void ABareBambooPostIsOneNotchedPoleRingedAllRoundAcrossItsSlices(string prefix)
+    {
+        var boxes = WallShapeGen.Generate("cornerin")["elements"]!
+            .Where(e => (string)e["name"]! == prefix || ((string)e["name"]!).StartsWith(prefix + "-")).Select(Box).ToArray();
+        var points = (from i in Enumerable.Range(0, 16) from j in Enumerable.Range(0, 16) select (X: i * 0.25 + 0.125, Z: j * 0.25 + 0.125)).ToArray();
+        IEnumerable<(double X, double Z)> Outline(double lo, double hi) => points.Where(p =>
+            lo < p.X && p.X < hi && lo < p.Z && p.Z < hi && !((p.X < lo + 0.5 || p.X > hi - 0.5) && (p.Z < lo + 0.5 || p.Z > hi - 0.5)));
+        IEnumerable<(double X, double Z)> Covered(double y) => points.Where(p =>
+            boxes.Any(b => b.Lo[1] < y && y < b.Hi[1] && b.Lo[0] < p.X && p.X < b.Hi[0] && b.Lo[2] < p.Z && p.Z < b.Hi[2]));
+        double[] ringMids = [.. boxes.Where(b => b.Hi[1] - b.Lo[1] < 16).Select(b => (b.Lo[1] + b.Hi[1]) / 2).Distinct()];
+        double between = Enumerable.Range(0, 64).Select(k => k * 0.25 + 0.125).First(y => ringMids.All(m => Math.Abs(m - y) >= 0.25));
+
+        Assert.NotEmpty(ringMids);
+        Assert.Equal(
+            ringMids.Select(_ => Outline(0, 4).ToArray()).Prepend(Outline(0.25, 3.75).ToArray()).ToArray(),
+            ringMids.Select(m => Covered(m).ToArray()).Prepend(Covered(between).ToArray()).ToArray());
+    }
+
+    // A corner's bamboo post stands a quarter voxel back from both fronts, notched at its outer corner, and its rings fill the
+    // 2 by 2 and reach a quarter voxel into each leg's bay, short of the inner corner's finish, so every ring stands out of
+    // the pole. Read on a quarter-voxel grid.
+    [Theory]
+    [InlineData("bamboo")]
+    [InlineData("bamboo2")]
+    public void ACornersBambooPostStandsInsideRingsReachingIntoBothBays(string prefix)
+    {
+        var boxes = WallShapeGen.Generate("cornerout")["elements"]!
+            .Where(e => (string)e["name"]! == prefix).Select(Box).Where(b => b.Hi[0] <= 4 && b.Hi[2] <= 4).ToArray();
+        var points = (from i in Enumerable.Range(0, 16) from j in Enumerable.Range(0, 16) select (X: i * 0.25 + 0.125, Z: j * 0.25 + 0.125)).ToArray();
+        var pole = points.Where(p => 1.25 < p.X && p.X < 3 && 1.25 < p.Z && p.Z < 3 && !(p.X < 1.5 && p.Z < 1.5)).ToArray();
+        var ring = points.Where(p => 1 < p.X && p.X < 3.25 && 1 < p.Z && p.Z < 3.25 && !(p.X > 3 && p.Z > 3)).ToArray();
+        IEnumerable<(double X, double Z)> Covered(double y) => points.Where(p =>
+            boxes.Any(b => b.Lo[1] < y && y < b.Hi[1] && b.Lo[0] < p.X && p.X < b.Hi[0] && b.Lo[2] < p.Z && p.Z < b.Hi[2]));
+        double[] ringMids = [.. boxes.Where(b => b.Hi[1] - b.Lo[1] < 16).Select(b => (b.Lo[1] + b.Hi[1]) / 2).Distinct()];
+        double between = Enumerable.Range(0, 64).Select(k => k * 0.25 + 0.125).First(y => ringMids.All(m => Math.Abs(m - y) >= 0.25));
+
+        Assert.NotEmpty(ringMids);
+        Assert.Equal(
+            ringMids.Select(_ => ring).Prepend(pole).ToArray(),
+            ringMids.Select(m => Covered(m).ToArray()).Prepend(Covered(between).ToArray()).ToArray());
+    }
+
+    // A bamboo corner's post stands back from its fronts, so at a T a tee in a front's slot draws the face it puts against the
+    // post, which the plain and rough frames' tees leave out against a post that meets them.
+    [Fact]
+    public void ABambooCornersTeesDrawTheFaceTheyPutAgainstThePost()
+    {
+        string[] all = ["down", "east", "north", "south", "up", "west"];
+        Assert.Equal(
+            new[] { "bamboo-tee-left", "bamboo-tee-right", "bamboo2-tee-left", "bamboo2-tee-right" }.ToDictionary(name => name, _ => all),
+            WallShapeGen.Generate("cornerout")["elements"]!
+                .Where(e => ((string)e["name"]!).StartsWith("bamboo") && ((string)e["name"]!).Contains("-tee-") && Box(e) is var (lo, hi) && hi[1] - lo[1] == 16)
+                .ToDictionary(e => (string)e["name"]!, e => ((JObject)e["faces"]!).Properties().Select(p => p.Name).Order().ToArray()));
+    }
+
+    // Between the post's rings its step behind a tee would be a slot through the T from one leg's outside to the other's, so
+    // the tee fills it at every height: the left tee the step along leg 2's front, the right tee the step along leg 1's, short
+    // of the corner square the left tee's takes, which with the right tee alone opens onto leg 2's front only. Read on a
+    // quarter-voxel grid.
+    [Theory]
+    [InlineData("bamboo")]
+    [InlineData("bamboo2")]
+    public void ABambooCornersTeesFillThePostsStepBehindThem(string prefix)
+    {
+        var elements = WallShapeGen.Generate("cornerout")["elements"]!;
+        double[] Mids(double lo, double hi) => [.. Enumerable.Range(0, (int)((hi - lo) * 4)).Select(k => lo + k * 0.25 + 0.125)];
+        IEnumerable<string> Open(string tee, double x1, double z1, double x2, double z2)
+        {
+            var boxes = elements.Where(e => (string)e["name"]! == prefix || (string)e["name"]! == $"{prefix}-{tee}").Select(Box).ToArray();
+            return from x in Mids(x1, x2) from y in Mids(0, 16) from z in Mids(z1, z2)
+                   where !boxes.Any(b => b.Lo[0] < x && x < b.Hi[0] && b.Lo[1] < y && y < b.Hi[1] && b.Lo[2] < z && z < b.Hi[2])
+                   select $"{tee} leaves {x},{y},{z} open";
+        }
+
+        Assert.Equal([], Open("tee-left", 1, 1, 3, 1.25).Concat(Open("tee-right", 1, 1.25, 1.25, 3)).ToArray());
+    }
+
+    // A bamboo post with any of its faces finished, the rest bare, draws no two faces on one plane.
+    [Theory]
+    [InlineData("bamboo")]
+    [InlineData("bamboo2")]
+    public void NoTwoFacesOfABambooPostShareAPlaneWhateverItsFacesCarry(string prefix)
+    {
+        var finishes = new Vintagestory.API.Datastructures.JsonObject(JObject.Parse("""{ "daub": {} }"""));
+        string?[] either = [null, "daub"];
+
+        Assert.Equal([], (
+            from front in either from secondFront in either from back in either from secondBack in either
+            let names = SidingWallEntity.PostElements("bamboo", finishes, [(front, null), (secondFront, null), (back, null), (secondBack, null)], prefix)
+            from offender in SharedPlaneOffenders("cornerin", names)
+            select offender).Distinct());
     }
 
     // A glazed floor's finish is its group cut to each of the frame's eight footprints on x and z, keeping
@@ -364,9 +485,13 @@ public class WallShapeGenTests
             ["wall bare frame"] = 24,
             ["wall pole frame"] = 144,
             ["wall second pole frame"] = 144,
+            ["wall bamboo frame"] = 168,
+            ["wall second bamboo frame"] = 168,
             ["floor bare frame"] = 66,
             ["floor pole frame"] = 240,
             ["floor second pole frame"] = 240,
+            ["floor bamboo frame"] = 338,
+            ["floor second bamboo frame"] = 338,
             // Bamboo poles, a plain frame round them: seven poles of core, two ridges and four nodes, faces shared between
             // touching poles and against a core pruned, 240 quads; a corner's legs take six apiece, a floor its seven.
             ["wall bamboo poles"] = 264,
@@ -396,6 +521,8 @@ public class WallShapeGenTests
             ["cornerout bare frame"] = 42,
             ["cornerout pole frame"] = 158,
             ["cornerout second pole frame"] = 158,
+            ["cornerout bamboo frame"] = 291,
+            ["cornerout second bamboo frame"] = 291,
             ["cornerout wattle"] = 54,
             ["cornerout wattle, mid-stack"] = 54,
             // A corner's leg 1 and leg 2 backs are separate groups, so the seam between them no longer buries two faces (decision 0090).
@@ -480,7 +607,7 @@ public class WallShapeGenTests
                 actual[$"{layout} {state}"] = names.Sum(n => quads[n]);
             }
 
-            foreach (var (state, frame) in new[] { ("pole frame", "poles"), ("second pole frame", "poles2") })
+            foreach (var (state, frame) in new[] { ("pole frame", "poles"), ("second pole frame", "poles2"), ("bamboo frame", "bamboo"), ("second bamboo frame", "bamboo2") })
             {
                 actual[$"{layout} {state}"] = SidingWallEntity.SelectiveElements(
                     layout, "sticks", null, null, null, null, finishes, (false, false, false, false), false, frame: frame)
@@ -493,7 +620,7 @@ public class WallShapeGenTests
         }
 
         var floorQuads = Quads("floor");
-        foreach (var (state, framing, frame) in new[] { ("bare frame", "oak", "framing"), ("pole frame", "sticks", "poles"), ("second pole frame", "sticks", "poles2") })
+        foreach (var (state, framing, frame) in new[] { ("bare frame", "oak", "framing"), ("pole frame", "sticks", "poles"), ("second pole frame", "sticks", "poles2"), ("bamboo frame", "bamboo", "bamboo"), ("second bamboo frame", "bamboo", "bamboo2") })
         {
             actual[$"floor {state}"] = SidingFloorEntity.SelectiveElements(
                 framing, null, null, null, finishes, (false, false, false, false), frame: frame)
@@ -1069,6 +1196,19 @@ public class WallShapeGenTests
         Assert.Equal(expected, actual);
     }
 
+    // A bamboo diagonal's turned pieces stay inside the plain frame's thickness, x 7..9 with the run's offset of 6.
+    [Theory]
+    [InlineData("bamboo")]
+    [InlineData("bamboo2")]
+    public void EveryTurnedPieceOfABambooDiagonalStaysInsideTheFramesThickness(string prefix)
+    {
+        var turned = WallShapeGen.Generate("diagonal")["elements"]!
+            .Where(e => ((string)e["name"]!).StartsWith(prefix + "-") && e["rotationY"] != null).ToArray();
+
+        Assert.NotEmpty(turned);
+        Assert.Equal([], turned.Where(e => Box(e).Lo[0] < 7 || Box(e).Hi[0] > 9).Select(e => (string)e["name"]!));
+    }
+
     // Each group of one pole variant beside the plain group it stands in for.
     private static (string Pole, string Plain)[] PolesOf(string layout, string prefix)
         => (layout != "cornerout" ? new[] { "-left", "-right", "-top", "-bottom" } : ["", "-top", "-bottom"])
@@ -1093,10 +1233,16 @@ public class WallShapeGenTests
     [Theory]
     [InlineData("wall", "poles")]
     [InlineData("wall", "poles2")]
+    [InlineData("wall", "bamboo")]
+    [InlineData("wall", "bamboo2")]
     [InlineData("cornerout", "poles")]
     [InlineData("cornerout", "poles2")]
+    [InlineData("cornerout", "bamboo")]
+    [InlineData("cornerout", "bamboo2")]
     [InlineData("floor", "poles")]
     [InlineData("floor", "poles2")]
+    [InlineData("floor", "bamboo")]
+    [InlineData("floor", "bamboo2")]
     public void EveryPoleBoxLiesInsideTheFramesThickness(string layout, string prefix)
     {
         string[] groups = PolesOf(layout, prefix).Select(p => p.Pole).ToArray();
@@ -1117,10 +1263,16 @@ public class WallShapeGenTests
     [Theory]
     [InlineData("wall", "poles")]
     [InlineData("wall", "poles2")]
+    [InlineData("wall", "bamboo")]
+    [InlineData("wall", "bamboo2")]
     [InlineData("cornerout", "poles")]
     [InlineData("cornerout", "poles2")]
+    [InlineData("cornerout", "bamboo")]
+    [InlineData("cornerout", "bamboo2")]
     [InlineData("floor", "poles")]
     [InlineData("floor", "poles2")]
+    [InlineData("floor", "bamboo")]
+    [InlineData("floor", "bamboo2")]
     public void EveryPoleGroupCoversTheMidPlaneOfThePlainMemberItReplaces(string layout, string prefix)
     {
         var elements = WallShapeGen.Generate(layout)["elements"]!.ToArray();
@@ -1136,9 +1288,13 @@ public class WallShapeGenTests
                 {
                     int[] across = [.. Enumerable.Range(0, 3).Where(axis => axis != depth)];
                     var cover = poles.Where(b => b.Lo[depth] < mid && b.Hi[depth] > mid).ToArray();
+                    // A corner's post is thick on both legs, so on one leg's mid-plane it may stand back from the other
+                    // leg's front by the quarter voxel any member's core stands behind its own front; at a T the tee
+                    // there draws the face it puts against the post.
+                    double[] from = [.. lo.Select((l, axis) => axis != depth && frame.Axes.Contains(axis) && Thick(lo, hi, axis, frame) ? l + 0.25 : l)];
                     // The pole edges inside the member cut it into rectangles, each covered whole or open whole.
                     double[] Cuts(int axis) => cover.SelectMany(b => new[] { b.Lo[axis], b.Hi[axis] })
-                        .Where(c => c > lo[axis] && c < hi[axis]).Append(lo[axis]).Append(hi[axis]).Distinct().Order().ToArray();
+                        .Where(c => c > from[axis] && c < hi[axis]).Append(from[axis]).Append(hi[axis]).Distinct().Order().ToArray();
                     var (firsts, seconds) = (Cuts(across[0]), Cuts(across[1]));
                     for (int i = 0; i < firsts.Length - 1; i++)
                     {
@@ -1154,6 +1310,50 @@ public class WallShapeGenTests
         }
 
         Assert.Equal([], offenders);
+    }
+
+    // A bamboo ring reaching into the next cell lies over whatever that cell draws against this one: a plain or rough member,
+    // a corner's tee, a finish, each with its faces on the frame's thickness planes. So on depth the ring stops a hair inside
+    // them, or its faces fight theirs.
+    [Theory]
+    [InlineData("wall")]
+    [InlineData("cornerout")]
+    [InlineData("floor")]
+    public void EveryBambooBoxReachingIntoTheNextCellStopsShortOfTheFramesFaces(string layout)
+    {
+        var frame = Frame(layout);
+        var offenders =
+            from element in WallShapeGen.Generate(layout)["elements"]!
+            let name = (string)element["name"]!
+            where name.StartsWith("bamboo")
+            let box = Box(element)
+            from past in new[] { 0, 2 }.Where(axis => box.Lo[axis] < 0 || box.Hi[axis] > 16)
+            from depth in frame.Axes.Where(axis => axis != past)
+            where box.Lo[depth] <= frame.Lo || box.Hi[depth] >= frame.Hi
+            select $"{name} spans {string.Join(",", box.Lo)} to {string.Join(",", box.Hi)}";
+
+        Assert.Equal([], offenders.Distinct().ToArray());
+    }
+
+    // A bamboo ring stands a quarter voxel past its cell's side into the next (decision 0092), where the member the next cell
+    // puts against this one rings from its own table. Rings from two tables that can meet so never take one place, or their
+    // faces fight. A wall's uprights meet any upright, and a floor's north rim a south rim. Rings are the boxes reaching
+    // past the cell on `across`; their places run along `along`.
+    [Theory]
+    [InlineData("wall", 2, 1, new[] { "bamboo-left", "bamboo2-left", "bamboo-right", "bamboo2-right" }, new[] { "bamboo-left", "bamboo2-left", "bamboo-right", "bamboo2-right" })]
+    [InlineData("floor", 2, 0, new[] { "bamboo-top", "bamboo2-top" }, new[] { "bamboo-bottom", "bamboo2-bottom" })]
+    public void NoTwoBambooRingsThatMeetAcrossACellEdgeTakeOnePlace(string layout, int across, int along, string[] these, string[] those)
+    {
+        var rings = WallShapeGen.Generate(layout)["elements"]!.Select(e => (Name: (string)e["name"]!, Box: Box(e)))
+            .Where(e => e.Box.Lo[across] < 0 || e.Box.Hi[across] > 16).ToArray();
+        var offenders =
+            from a in rings.Where(r => these.Contains(r.Name))
+            from b in rings.Where(r => those.Contains(r.Name) && r.Name != a.Name)
+            where a.Box.Lo[along] < b.Box.Hi[along] && b.Box.Lo[along] < a.Box.Hi[along]
+            select $"{a.Name} at {a.Box.Lo[along]} and {b.Name} at {b.Box.Lo[along]}";
+
+        Assert.Equal(these.Concat(those).Distinct().Order(), rings.Select(r => r.Name).Where(these.Concat(those).Contains).Distinct().Order());
+        Assert.Equal([], offenders.Distinct());
     }
 
     // The ledge is the deck's reach into the slot a wall's room-side finish takes. Every ledge box has to
@@ -1197,7 +1397,7 @@ public class WallShapeGenTests
         double mid = (frame.Lo + frame.Hi) / 2;
         var groups = WallShapeGen.Generate(layout)["elements"]!
             .Where(e => layout == "floor" || ((string)e["name"]!).StartsWith("deck-") || ((string)e["name"]!).StartsWith("ledge"))
-            .Where(e => ((string)e["name"]!).Contains("poles"))
+            .Where(e => ((string)e["name"]!).Contains("poles") || ((string)e["name"]!).Contains("bamboo"))
             .GroupBy(e => (string)e["name"]!, Box);
         Assert.NotEmpty(groups);
 
@@ -1223,10 +1423,16 @@ public class WallShapeGenTests
     [Theory]
     [InlineData("wall", "poles")]
     [InlineData("wall", "poles2")]
+    [InlineData("wall", "bamboo")]
+    [InlineData("wall", "bamboo2")]
     [InlineData("cornerout", "poles")]
     [InlineData("cornerout", "poles2")]
+    [InlineData("cornerout", "bamboo")]
+    [InlineData("cornerout", "bamboo2")]
     [InlineData("floor", "poles")]
     [InlineData("floor", "poles2")]
+    [InlineData("floor", "bamboo")]
+    [InlineData("floor", "bamboo2")]
     public void NoTwoEmittedFacesOfGroupsDrawnTogetherShareAPlaneAndOverlap(string layout, string prefix)
     {
         string[] together = [.. PolesOf(layout, prefix).Select(p => p.Pole), "infill", "infill-pane", "front", "secondfront", "back"];
@@ -1239,12 +1445,18 @@ public class WallShapeGenTests
     [InlineData("wall", "framing")]
     [InlineData("wall", "poles")]
     [InlineData("wall", "poles2")]
+    [InlineData("wall", "bamboo")]
+    [InlineData("wall", "bamboo2")]
     [InlineData("cornerout", "framing")]
     [InlineData("cornerout", "poles")]
     [InlineData("cornerout", "poles2")]
+    [InlineData("cornerout", "bamboo")]
+    [InlineData("cornerout", "bamboo2")]
     [InlineData("floor", "framing")]
     [InlineData("floor", "poles")]
     [InlineData("floor", "poles2")]
+    [InlineData("floor", "bamboo")]
+    [InlineData("floor", "bamboo2")]
     public void NoFaceOfTheStemsSharesAPlaneWithItsFrameOrAFinishAndOverlaps(string layout, string prefix)
     {
         Assert.Equal([], SharedPlaneOffenders(layout, [.. PolesOf(layout, prefix).Select(p => p.Pole), "stems", "front", "secondfront", "back"]));
@@ -1288,7 +1500,7 @@ public class WallShapeGenTests
         bool[] either = [false, true];
         Assert.Equal([], (
             from glazed in either
-            from frame in glazed ? ["framing"] : new[] { "framing", "poles", "poles2" }
+            from frame in glazed ? ["framing"] : new[] { "framing", "poles", "poles2", "bamboo", "bamboo2" }
             from above in either
             from below in either
             from left in either
