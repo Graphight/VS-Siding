@@ -846,8 +846,17 @@ public static class WallShapeGen
             .. BambooPole($"{v.Prefix}-bottom", (1, 0, 3), (3, 1, 15), 'x', 'z', v.Bottom, BambooPlateFaces),
             .. BambooPole($"{v.Prefix}-bottom", (3, 0, 1), (15, 1, 3), 'z', 'x', v.Bottom, leg2),
             .. CornerPoleElements.Where(e => e.Slot == "lashing").Select(e => e with { Name = e.Name.Replace("poles", v.Prefix) }),
-            // The post stands back from its fronts, so a tee draws the face it puts against the post.
+            // The post stands back from its fronts, so a tee draws the face it puts against the post, and between the post's
+            // rings fills the step behind it, which would be a slot through the T from one leg's outside to the other's. The
+            // left tee's step takes the corner square; with the right tee alone that square opens onto leg 2's front only.
             .. CornerTees(v.Prefix).Select(e => e with { Faces = null }),
+            .. from gap in v.Post.Select(ring => ring + 0.5).Prepend(0.0).Zip(v.Post.Append(16.0))
+               from step in new Element[]
+               {
+                   new($"{v.Prefix}-tee-left", (1, gap.First, 1), (3, gap.Second, 1.25), "framing", UvRule.Flat),
+                   new($"{v.Prefix}-tee-right", (1, gap.First, 1.25), (1.25, gap.Second, 3), "framing", UvRule.Flat),
+               }
+               select step,
         ];
     }
 

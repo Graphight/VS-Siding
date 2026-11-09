@@ -371,8 +371,8 @@ public class WallShapeGenTests
             ringMids.Select(m => Covered(m).ToArray()).Prepend(Covered(between).ToArray()).ToArray());
     }
 
-    // A bamboo corner's post stands back from its fronts, so at a T a tee in a front's slot closes the step with the face it
-    // puts against the post, which the plain and rough frames' tees leave out against a post that meets them.
+    // A bamboo corner's post stands back from its fronts, so at a T a tee in a front's slot draws the face it puts against the
+    // post, which the plain and rough frames' tees leave out against a post that meets them.
     [Fact]
     public void ABambooCornersTeesDrawTheFaceTheyPutAgainstThePost()
     {
@@ -380,8 +380,30 @@ public class WallShapeGenTests
         Assert.Equal(
             new[] { "bamboo-tee-left", "bamboo-tee-right", "bamboo2-tee-left", "bamboo2-tee-right" }.ToDictionary(name => name, _ => all),
             WallShapeGen.Generate("cornerout")["elements"]!
-                .Where(e => ((string)e["name"]!).StartsWith("bamboo") && ((string)e["name"]!).Contains("-tee-"))
+                .Where(e => ((string)e["name"]!).StartsWith("bamboo") && ((string)e["name"]!).Contains("-tee-") && Box(e) is var (lo, hi) && hi[1] - lo[1] == 16)
                 .ToDictionary(e => (string)e["name"]!, e => ((JObject)e["faces"]!).Properties().Select(p => p.Name).Order().ToArray()));
+    }
+
+    // Between the post's rings its step behind a tee would be a slot through the T from one leg's outside to the other's, so
+    // the tee fills it at every height: the left tee the step along leg 2's front, the right tee the step along leg 1's, short
+    // of the corner square the left tee's takes, which with the right tee alone opens onto leg 2's front only. Read on a
+    // quarter-voxel grid.
+    [Theory]
+    [InlineData("bamboo")]
+    [InlineData("bamboo2")]
+    public void ABambooCornersTeesFillThePostsStepBehindThem(string prefix)
+    {
+        var elements = WallShapeGen.Generate("cornerout")["elements"]!;
+        double[] Mids(double lo, double hi) => [.. Enumerable.Range(0, (int)((hi - lo) * 4)).Select(k => lo + k * 0.25 + 0.125)];
+        IEnumerable<string> Open(string tee, double x1, double z1, double x2, double z2)
+        {
+            var boxes = elements.Where(e => (string)e["name"]! == prefix || (string)e["name"]! == $"{prefix}-{tee}").Select(Box).ToArray();
+            return from x in Mids(x1, x2) from y in Mids(0, 16) from z in Mids(z1, z2)
+                   where !boxes.Any(b => b.Lo[0] < x && x < b.Hi[0] && b.Lo[1] < y && y < b.Hi[1] && b.Lo[2] < z && z < b.Hi[2])
+                   select $"{tee} leaves {x},{y},{z} open";
+        }
+
+        Assert.Equal([], Open("tee-left", 1, 1, 3, 1.25).Concat(Open("tee-right", 1, 1.25, 1.25, 3)).ToArray());
     }
 
     // A bamboo post with any of its faces finished, the rest bare, draws no two faces on one plane.

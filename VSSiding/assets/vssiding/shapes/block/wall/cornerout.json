@@ -21700,6 +21700,366 @@
       }
     },
     {
+      "name": "bamboo-tee-left",
+      "from": [
+        1.0,
+        0.0,
+        1.0
+      ],
+      "to": [
+        3.0,
+        4.25,
+        1.25
+      ],
+      "faces": {
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            4.25
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.0,
+            4.25
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            4.25
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.0,
+            0.25
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.0,
+            0.25
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-tee-right",
+      "from": [
+        1.0,
+        0.0,
+        1.25
+      ],
+      "to": [
+        1.25,
+        4.25,
+        3.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            4.25
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.75,
+            4.25
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            4.25
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.75
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.75
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-tee-left",
+      "from": [
+        1.0,
+        4.75,
+        1.0
+      ],
+      "to": [
+        3.0,
+        10.25,
+        1.25
+      ],
+      "faces": {
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            5.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.0,
+            5.5
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            5.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.0,
+            0.25
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.0,
+            0.25
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-tee-right",
+      "from": [
+        1.0,
+        4.75,
+        1.25
+      ],
+      "to": [
+        1.25,
+        10.25,
+        3.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            5.5
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.75,
+            5.5
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            5.5
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.75
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.75
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-tee-left",
+      "from": [
+        1.0,
+        10.75,
+        1.0
+      ],
+      "to": [
+        3.0,
+        16.0,
+        1.25
+      ],
+      "faces": {
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            5.25
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.0,
+            5.25
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            5.25
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.0,
+            0.25
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.0,
+            0.25
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo-tee-right",
+      "from": [
+        1.0,
+        10.75,
+        1.25
+      ],
+      "to": [
+        1.25,
+        16.0,
+        3.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            5.25
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.75,
+            5.25
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            5.25
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.75
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.75
+          ]
+        }
+      }
+    },
+    {
       "name": "bamboo2",
       "from": [
         1.5,
@@ -25292,6 +25652,366 @@
             0.0,
             1.0,
             2.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-tee-left",
+      "from": [
+        1.0,
+        0.0,
+        1.0
+      ],
+      "to": [
+        3.0,
+        6.75,
+        1.25
+      ],
+      "faces": {
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            6.75
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.0,
+            6.75
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            6.75
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.0,
+            0.25
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.0,
+            0.25
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-tee-right",
+      "from": [
+        1.0,
+        0.0,
+        1.25
+      ],
+      "to": [
+        1.25,
+        6.75,
+        3.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            6.75
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.75,
+            6.75
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            6.75
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.75
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.75
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-tee-left",
+      "from": [
+        1.0,
+        7.25,
+        1.0
+      ],
+      "to": [
+        3.0,
+        12.25,
+        1.25
+      ],
+      "faces": {
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            5.0
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.0,
+            5.0
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            5.0
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.0,
+            0.25
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.0,
+            0.25
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-tee-right",
+      "from": [
+        1.0,
+        7.25,
+        1.25
+      ],
+      "to": [
+        1.25,
+        12.25,
+        3.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            5.0
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.75,
+            5.0
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            5.0
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.75
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.75
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-tee-left",
+      "from": [
+        1.0,
+        12.75,
+        1.0
+      ],
+      "to": [
+        3.0,
+        16.0,
+        1.25
+      ],
+      "faces": {
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            3.25
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.0,
+            3.25
+          ]
+        },
+        "west": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            3.25
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.0,
+            0.25
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            2.0,
+            0.25
+          ]
+        }
+      }
+    },
+    {
+      "name": "bamboo2-tee-right",
+      "from": [
+        1.0,
+        12.75,
+        1.25
+      ],
+      "to": [
+        1.25,
+        16.0,
+        3.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            3.25
+          ]
+        },
+        "east": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            1.75,
+            3.25
+          ]
+        },
+        "south": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            3.25
+          ]
+        },
+        "up": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.75
+          ]
+        },
+        "down": {
+          "texture": "#framing",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.75
           ]
         }
       }
