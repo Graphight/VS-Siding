@@ -298,8 +298,9 @@ public static class WallShapeGen
     // ring stands a quarter voxel proud of the member's box, into the next cell where the member lies on the cell's side, so
     // the core reaches the edge and meets the next cell's member with no gap. A ring never reaches through the cell's top or
     // bottom, where a deck's cap or the next wall up sits flush. On depth everything stays inside the box, so a finish still
-    // covers it. The ridge stands at 0.1, off the ring's plane; the ring tables keep off the lashings, the stems and each
-    // other, which the plane and ring tests check.
+    // covers it, and a ring stops a hair inside, off the planes of a plain member, tee or finish the next cell draws where
+    // the ring reaches. The ridge stands at 0.1, off the ring's plane; the ring tables keep off the lashings, the stems and
+    // each other, which the plane and ring tests check.
     private static IEnumerable<Element> BambooPole(
         string name, (double X, double Y, double Z) from, (double X, double Y, double Z) to, char depth, char run, double[] rings,
         string[]? coreFaces = null, double ridgeInset = 0.25)
@@ -320,7 +321,7 @@ public static class WallShapeGen
         bool vertical = o == 1;
         double ringLo = vertical && lo[o] == 0 ? 0.01 : lo[o] - 0.25, ringHi = vertical && hi[o] == 16 ? 15.99 : hi[o] + 0.25;
         foreach (double ring in rings)
-            yield return Box(lo[d], hi[d], ring, ring + 0.5, ringLo, ringHi);
+            yield return Box(lo[d] + 0.01, hi[d] - 0.01, ring, ring + 0.5, ringLo, ringHi);
     }
 
     // Where each variant rings its members: the uprights' heights, clear of the plates and lashings, the plates' places

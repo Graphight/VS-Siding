@@ -1312,6 +1312,29 @@ public class WallShapeGenTests
         Assert.Equal([], offenders);
     }
 
+    // A bamboo ring reaching into the next cell lies over whatever that cell draws against this one: a plain or rough member,
+    // a corner's tee, a finish, each with its faces on the frame's thickness planes. So on depth the ring stops a hair inside
+    // them, or its faces fight theirs.
+    [Theory]
+    [InlineData("wall")]
+    [InlineData("cornerout")]
+    [InlineData("floor")]
+    public void EveryBambooBoxReachingIntoTheNextCellStopsShortOfTheFramesFaces(string layout)
+    {
+        var frame = Frame(layout);
+        var offenders =
+            from element in WallShapeGen.Generate(layout)["elements"]!
+            let name = (string)element["name"]!
+            where name.StartsWith("bamboo")
+            let box = Box(element)
+            from past in new[] { 0, 2 }.Where(axis => box.Lo[axis] < 0 || box.Hi[axis] > 16)
+            from depth in frame.Axes.Where(axis => axis != past)
+            where box.Lo[depth] <= frame.Lo || box.Hi[depth] >= frame.Hi
+            select $"{name} spans {string.Join(",", box.Lo)} to {string.Join(",", box.Hi)}";
+
+        Assert.Equal([], offenders.Distinct().ToArray());
+    }
+
     // A bamboo ring stands a quarter voxel past its cell's side into the next (decision 0092), where the member the next cell
     // puts against this one rings from its own table. Rings from two tables that can meet so never take one place, or their
     // faces fight. A wall's uprights meet any upright, and a floor's north rim a south rim. Rings are the boxes reaching
