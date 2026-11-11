@@ -580,14 +580,13 @@ public static class WallShapeGen
     // A finish slab cut into the four slots a tile fills, each its own group `<slab>-tile<n>` in its own texture slot
     // `<slab slot>tile<n>`, n = row * 2 + col. Row 0 is the lower half on rowAxis and col 0 the lower on colAxis, cut at 8
     // in the cell whatever part of it the slab covers. ClippedFrom keeps each piece sampling its own part of the uv the
-    // slab would have across the whole cell, and a face that lies against the next tile is left out.
-    internal static IEnumerable<Element> TilePieces(Element slab, char rowAxis, char colAxis)
+    // slab would have across the whole cell, and a face that lies against the next tile is left out. A squeezed face, a
+    // post's 4 wide, samples a whole tile across the slab's own width instead of the part of one the grid gives it.
+    internal static IEnumerable<Element> TilePieces(Element slab, char rowAxis, char colAxis, string? squeezedFace = null)
     {
-        var cell = slab with
-        {
-            From = WithAxis(WithAxis(slab.From, rowAxis, 0), colAxis, 0),
-            To = WithAxis(WithAxis(slab.To, rowAxis, 16), colAxis, 16),
-        };
+        var cell = squeezedFace == null
+            ? slab with { From = WithAxis(WithAxis(slab.From, rowAxis, 0), colAxis, 0), To = WithAxis(WithAxis(slab.To, rowAxis, 16), colAxis, 16) }
+            : slab with { From = WithAxis(slab.From, rowAxis, 0), To = WithAxis(slab.To, rowAxis, 16), Explicit = Only(squeezedFace, F(0, 0, 8, 16)) };
         for (int row = 0; row < 2; row++)
         for (int col = 0; col < 2; col++)
         {
@@ -1620,7 +1619,7 @@ public static class WallShapeGen
             PostSlab(slot, slot, depthAxis, outer),
             PostSlab($"framing-{slot}", "framing", depthAxis, outer),
             .. PostFinishes(slot, slot, depthAxis, outer, outwardFace),
-            .. TilePieces(PostSlab(slot, slot, depthAxis, outer), 'y', runAxis),
+            .. TilePieces(PostSlab(slot, slot, depthAxis, outer), 'y', runAxis, outwardFace),
         ];
         foreach (var e in full)
         {

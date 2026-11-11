@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Newtonsoft.Json.Linq;
 using Vintagestory.API.Client;
 using Vintagestory.API.MathTools;
@@ -1031,7 +1032,10 @@ public class WallShapeGenTests
                     // A corner's `-whole` copies squeeze the whole texture onto their 12-voxel inner legs (decision 0086).
                     bool squeezed = layout == "cornerout" && ((string)element["name"]!).Contains("-whole") && face is "east" or "south"
                         && Math.Abs(voxels * 4 / 3 - texels) < 0.001;
-                    if (!squeezed && Math.Abs(voxels - texels) > 0.001)
+                    // A post's tiles squeeze a whole tile across its 4-voxel faces (decision 0095).
+                    bool postTile = layout == "cornerin" && Regex.IsMatch((string)element["name"]!, @"^(second)?(front|back)-tile\d(-mitre)?$")
+                        && Math.Abs(voxels * 2 - texels) < 0.001;
+                    if (!squeezed && !postTile && Math.Abs(voxels - texels) > 0.001)
                         offenders.Add($"{element["name"]} {face}: {texels} texels over {voxels} voxels");
                 }
             }
