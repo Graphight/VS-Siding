@@ -48,6 +48,7 @@ public class SidingModSystem : ModSystem
         api.RegisterBlockClass("SidingFloorBlock", typeof(SidingFloorBlock));
         api.RegisterBlockEntityClass("SidingFloorEntity", typeof(SidingFloorEntity));
         api.RegisterCollectibleBehaviorClass("vssiding.PlaceWallFrame", typeof(PlaceWallFrame));
+        api.RegisterCollectibleBehaviorClass("vssiding.TileFill", typeof(TileFill));
         GuestWalls.Start(api);
         SidingModePicker.Start(api);
 
