@@ -27,7 +27,10 @@ public class SidingWallTooltipTests
     private static readonly JsonObject Finishes = Dict("""
     {
         "daub": { "DisplayName": "vssiding:finish-daub" },
-        "planks": { "DisplayName": "vssiding:finish-planks" }
+        "planks": { "DisplayName": "vssiding:finish-planks" },
+        "tiles": { "DisplayName": "vssiding:finish-tiles" },
+        "tile-blue": { "Tile": true, "DisplayName": "vssiding:tile-blue" },
+        "tile-red": { "Tile": true, "DisplayName": "vssiding:tile-red" }
     }
     """);
 
@@ -38,6 +41,9 @@ public class SidingWallTooltipTests
         ["vssiding:infill-rubble"] = "Rubble Infill",
         ["vssiding:finish-daub"] = "Daub Finish",
         ["vssiding:finish-planks"] = "Planks Finish",
+        ["vssiding:finish-tiles"] = "Tile Finish",
+        ["vssiding:tile-blue"] = "Blue tiles",
+        ["vssiding:tile-red"] = "Red tile",
         ["vssiding:tooltip-no-framing"] = "No framing",
         ["vssiding:tooltip-no-infill"] = "No infill",
         ["vssiding:tooltip-deck"] = "Deck: {0}",
@@ -60,10 +66,35 @@ public class SidingWallTooltipTests
         string? framing = "oak", string? infill = "wattle", string? deck = null, string layout = "wall",
         string? front = null, string? secondFront = null, string? back = null, string? stepName = null,
         string? deckInfill = null, string? deckFront = null, string? deckBack = null, bool full = true,
-        System.Func<string, bool>? buried = null, string? secondBack = null)
+        System.Func<string, bool>? buried = null, string? secondBack = null,
+        string? frontStyle = null, string? secondFrontStyle = null, string? backStyle = null, string? deckFrontStyle = null)
         => SidingWallBlock.Describe(
             framing, infill, deck, Framings, Infills, layout, "west", front, secondFront, back, Finishes,
-            key => Lang.GetValueOrDefault(key), stepName, deckInfill, deckFront, deckBack, full, buried, secondBack);
+            key => Lang.GetValueOrDefault(key), stepName, deckInfill, deckFront, deckBack, full, buried, secondBack,
+            frontStyle, secondFrontStyle, backStyle, null, deckFrontStyle);
+
+    [Fact]
+    public void ATiledFaceCountsEachKindInSlotOrder()
+    {
+        Assert.Equal("\n  Oak Framing\n  Wattle Infill\n  West: 3 Blue tiles, 1 Red tile\n  East: unfinished\n  Seals the room\n",
+            Describe(front: "tiles", frontStyle: "tile-blue,tile-blue,tile-red,tile-blue"));
+    }
+
+    [Fact]
+    public void TiledFacesShareALineOnlyWhenTheirTilesMatch()
+    {
+        Assert.Equal("\n  Oak Framing\n  Wattle Infill\n  West: 1 Blue tiles\n  East: 1 Red tile\n  Seals the room\n",
+            Describe(front: "tiles", frontStyle: "tile-blue,,,", back: "tiles", backStyle: ",,,tile-red"));
+        Assert.Equal("\n  Oak Framing\n  Wattle Infill\n  West, East: 1 Blue tiles\n  Seals the room\n",
+            Describe(front: "tiles", frontStyle: "tile-blue,,,", back: "tiles", backStyle: "tile-blue,,,"));
+    }
+
+    [Fact]
+    public void ADeckNamesItsTiledTop()
+    {
+        Assert.Equal("\n  Oak Framing\n  Wattle Infill\n  Deck: Oak Framing\n    No infill\n    Top: 2 Red tile\n    Underside: unfinished\n  West, East: unfinished\n  Seals the room\n",
+            Describe(deck: "oak", deckFront: "tiles", deckFrontStyle: "tile-red,tile-red,,"));
+    }
 
     [Fact]
     public void BuiltFramingAndInfillNameTheirMaterials()

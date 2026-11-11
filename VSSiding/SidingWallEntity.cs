@@ -140,7 +140,8 @@ public class SidingWallEntity : BlockEntity
             Framing, Infill, Deck, Block.Attributes["Framings"], Block.Attributes["Infills"],
             Block.Variant["layout"], Block.Variant["side"], Front, SecondFront, Back, Block.Attributes["Finishes"],
             SidingWallBlock.LangEntry, stepName, DeckInfill, DeckFront, DeckBack,
-            SidingWallBlock.HasBuildSignal(forPlayer), Api != null && Pos != null ? Buried : null, SecondBack));
+            SidingWallBlock.HasBuildSignal(forPlayer), Api != null && Pos != null ? Buried : null, SecondBack,
+            FrontStyle, SecondFrontStyle, BackStyle, SecondBackStyle, DeckFrontStyle, DeckBackStyle));
         // A bare deck answers a click on the top, so its hint wins over the wall's.
         if (Deck != null && DeckInfill == null)
             SidingWallBlock.AppendFillHint(dsc, forPlayer, "floor", Block.Attributes["Framings"], Block.Attributes["Infills"]);

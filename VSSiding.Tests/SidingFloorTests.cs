@@ -416,6 +416,32 @@ public class SidingFloorTests
     }
 
     [Fact]
+    public void ATiledTopAndUndersideCountTheirTiles()
+    {
+        var attributes = SidingWallEntityTests.Dict("""
+        {
+            "Framings": { "oak": { "DisplayName": "Oak Framing" } },
+            "Infills": { "stone": { "DisplayName": "Stone Infill", "BlockMaterial": "Stone" } },
+            "Finishes": { "tiles": {}, "tile-blue": { "Tile": true, "DisplayName": "Blue tile" } }
+        }
+        """);
+        var lang = new Dictionary<string, string>
+        {
+            ["vssiding:tooltip-top"] = "Top: {0}",
+            ["vssiding:tooltip-underside"] = "Underside: {0}",
+            ["vssiding:tooltip-sealed-cool"] = "Seals the room and keeps it cool",
+            ["Blue tile"] = "Blue tile",
+            ["Oak Framing"] = "Oak Framing",
+            ["Stone Infill"] = "Stone Infill",
+        };
+
+        Assert.Equal(
+            "\n  Oak Framing\n  Stone Infill\n  Top: 2 Blue tile\n  Underside: 1 Blue tile\n  Seals the room and keeps it cool\n".Replace("\n", System.Environment.NewLine),
+            SidingFloorBlock.Describe("oak", "stone", "tiles", "tiles", attributes, key => lang.GetValueOrDefault(key),
+                frontStyle: "tile-blue,tile-blue,,", backStyle: ",,tile-blue,"));
+    }
+
+    [Fact]
     public void WithoutTheBuildSignalOnlyTheSealLineShows()
     {
         var attributes = SidingWallEntityTests.Dict("""

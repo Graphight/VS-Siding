@@ -67,7 +67,7 @@ public class SidingFloorEntity : BlockEntity
     {
         base.GetBlockInfo(forPlayer, dsc);
         dsc.Append(SidingFloorBlock.Describe(Framing, Infill, Front, Back, Block.Attributes, SidingWallBlock.LangEntry,
-            SidingWallBlock.HasBuildSignal(forPlayer)));
+            SidingWallBlock.HasBuildSignal(forPlayer), FrontStyle, BackStyle));
         if (Infill == null)
             SidingWallBlock.AppendFillHint(dsc, forPlayer, "floor", Block.Attributes["Framings"], Block.Attributes["Infills"]);
     }

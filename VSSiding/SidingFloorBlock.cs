@@ -479,7 +479,7 @@ public class SidingFloorBlock : Block
         return SidingWallBlock.ResolveDrops(world, drops, dropQuantityMultiplier, Code);
     }
 
-    internal static string Describe(string? framing, string? infill, string? front, string? back, JsonObject attributes, System.Func<string, string?> translate, bool full = true)
+    internal static string Describe(string? framing, string? infill, string? front, string? back, JsonObject attributes, System.Func<string, string?> translate, bool full = true, string? frontStyle = null, string? backStyle = null)
     {
         JsonObject framings = attributes["Framings"], infills = attributes["Infills"], finishes = attributes["Finishes"];
         string? builtFraming = SidingWallBlock.Installed(framing, framings);
@@ -493,9 +493,9 @@ public class SidingFloorBlock : Block
         sb.AppendLine("  " + SidingWallBlock.DescribeLayer(builtFraming, framings, "vssiding:tooltip-no-framing", translate));
         sb.AppendLine("  " + SidingWallBlock.DescribeLayer(builtInfill, infills, "vssiding:tooltip-no-infill", translate));
         sb.AppendLine("  " + string.Format(SidingWallBlock.Translate("vssiding:tooltip-top", translate),
-            SidingWallBlock.DescribeLayer(SidingWallBlock.Installed(front, finishes), finishes, "vssiding:tooltip-unfinished", translate)));
+            SidingWallBlock.DescribeLayer(SidingWallBlock.Installed(front, finishes), finishes, "vssiding:tooltip-unfinished", translate, frontStyle)));
         sb.AppendLine("  " + string.Format(SidingWallBlock.Translate("vssiding:tooltip-underside", translate),
-            SidingWallBlock.DescribeLayer(SidingWallBlock.Installed(back, finishes), finishes, "vssiding:tooltip-unfinished", translate)));
+            SidingWallBlock.DescribeLayer(SidingWallBlock.Installed(back, finishes), finishes, "vssiding:tooltip-unfinished", translate, backStyle)));
         sb.AppendLine("  " + SidingWallBlock.Translate(SidingWallBlock.SealKey(builtFraming, builtInfill, framings, infills), translate));
         return sb.ToString();
     }

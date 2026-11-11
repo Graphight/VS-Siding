@@ -1338,7 +1338,9 @@ public class SidingWallBlock : Block
         string layout, string side, string? front, string? secondFront, string? back, JsonObject finishes,
         System.Func<string, string?> translate, string? stepName = null,
         string? deckInfill = null, string? deckFront = null, string? deckBack = null, bool full = true,
-        System.Func<string, bool>? buried = null, string? secondBack = null)
+        System.Func<string, bool>? buried = null, string? secondBack = null,
+        string? frontStyle = null, string? secondFrontStyle = null, string? backStyle = null, string? secondBackStyle = null,
+        string? deckFrontStyle = null, string? deckBackStyle = null)
     {
         string? builtFraming = Installed(framing, framings);
         string? builtInfill = Installed(infill, infills);
@@ -1357,13 +1359,14 @@ public class SidingWallBlock : Block
             sb.AppendLine("  " + string.Format(Translate("vssiding:tooltip-deck", translate), DescribeLayer(builtDeck, framings, "", translate)));
             sb.AppendLine("    " + DescribeLayer(Installed(deckInfill, infills), infills, "vssiding:tooltip-no-infill", translate));
             sb.AppendLine("    " + string.Format(Translate("vssiding:tooltip-top", translate),
-                DescribeLayer(Installed(deckFront, finishes), finishes, "vssiding:tooltip-unfinished", translate)));
+                DescribeLayer(Installed(deckFront, finishes), finishes, "vssiding:tooltip-unfinished", translate, deckFrontStyle)));
             sb.AppendLine("    " + string.Format(Translate("vssiding:tooltip-underside", translate),
-                DescribeLayer(Installed(deckBack, finishes), finishes, "vssiding:tooltip-unfinished", translate)));
+                DescribeLayer(Installed(deckBack, finishes), finishes, "vssiding:tooltip-unfinished", translate, deckBackStyle)));
         }
         if (stepName != null)
             sb.AppendLine("  " + string.Format(Translate("vssiding:tooltip-step", translate), stepName));
-        foreach (string line in DescribeFaces(layout, side, front, secondFront, back, finishes, translate, buried, secondBack))
+        foreach (string line in DescribeFaces(layout, side, front, secondFront, back, finishes, translate, buried, secondBack,
+            frontStyle, secondFrontStyle, backStyle, secondBackStyle))
             sb.AppendLine("  " + line);
         sb.AppendLine("  " + Translate(SealKey(builtFraming, builtInfill, framings, infills), translate));
         return sb.ToString();
@@ -1387,39 +1390,40 @@ public class SidingWallBlock : Block
     // flush against a solid block (buried) cannot be seen, so it is left out (decision 0075).
     private static IEnumerable<string> DescribeFaces(
         string layout, string side, string? front, string? secondFront, string? back, JsonObject finishes,
-        System.Func<string, string?> translate, System.Func<string, bool>? buried = null, string? secondBack = null)
+        System.Func<string, string?> translate, System.Func<string, bool>? buried = null, string? secondBack = null,
+        string? frontStyle = null, string? secondFrontStyle = null, string? backStyle = null, string? secondBackStyle = null)
     {
         // A post's back faces look at the corner it stands in, so a bare one against a wall there is left out.
         if (layout == "cornerin")
         {
-            var faces = PostFaces(side).Select(Opposite).Zip(new[] { front, secondFront }).Select(face => (face.First, face.Second, back: false))
-                .Concat(PostFaces(side).Zip(new[] { back, secondBack }).Select(face => (face.First, face.Second, back: true)));
-            foreach (var (direction, key, isBack) in faces)
+            var faces = PostFaces(side).Select(Opposite).Zip(new[] { (front, frontStyle), (secondFront, secondFrontStyle) }).Select(face => (face.First, face.Second.Item1, face.Second.Item2, back: false))
+                .Concat(PostFaces(side).Zip(new[] { (back, backStyle), (secondBack, secondBackStyle) }).Select(face => (face.First, face.Second.Item1, face.Second.Item2, back: true)));
+            foreach (var (direction, key, style, isBack) in faces)
             {
                 if (isBack && key == null && buried?.Invoke(direction) == true) continue;
-                yield return $"{Translate($"game:facing-{direction}", translate)}: {DescribeLayer(Installed(key, finishes), finishes, "vssiding:tooltip-unfinished", translate)}";
+                yield return $"{Translate($"game:facing-{direction}", translate)}: {DescribeLayer(Installed(key, finishes), finishes, "vssiding:tooltip-unfinished", translate, style)}";
             }
             yield break;
         }
 
         string? builtFront = Installed(front, finishes), builtBack = Installed(back, finishes);
-        var directions = new List<(string direction, string? finish)> { (side, builtFront), (Opposite(side), builtBack) };
+        var directions = new List<(string direction, string? finish, string? style)> { (side, builtFront, frontStyle), (Opposite(side), builtBack, backStyle) };
         var fronts = new List<string> { side };
         if (ClaimsTwoFaces(layout))
         {
             string secondSide = CorneroutSecondFace[side];
-            directions.Add((secondSide, layout == "diagonal" ? builtFront : Installed(secondFront, finishes)));
-            directions.Add((Opposite(secondSide), layout == "diagonal" ? builtBack : Installed(secondBack, finishes)));
+            directions.Add((secondSide, layout == "diagonal" ? builtFront : Installed(secondFront, finishes), layout == "diagonal" ? frontStyle : secondFrontStyle));
+            directions.Add((Opposite(secondSide), layout == "diagonal" ? builtBack : Installed(secondBack, finishes), layout == "diagonal" ? backStyle : secondBackStyle));
             fronts.Add(secondSide);
         }
 
         if (buried != null)
             directions.RemoveAll(d => d.finish == null && fronts.Contains(d.direction) && buried(d.direction));
 
-        foreach (var group in directions.GroupBy(d => d.finish))
+        foreach (var group in directions.GroupBy(d => (d.finish, style: d.finish == SidingWallEntity.TilesKey ? d.style : null)))
         {
             string labels = string.Join(", ", group.Select(d => Translate($"game:facing-{d.direction}", translate)));
-            yield return $"{labels}: {DescribeLayer(group.Key, finishes, "vssiding:tooltip-unfinished", translate)}";
+            yield return $"{labels}: {DescribeLayer(group.Key.finish, finishes, "vssiding:tooltip-unfinished", translate, group.Key.style)}";
         }
     }
 
@@ -1433,9 +1437,16 @@ public class SidingWallBlock : Block
 
     // A gap prints the "no-x" line; a built layer resolves its DisplayName, falling back to a
     // title-cased material key when the entry has no DisplayName or the key has no translation.
-    internal static string DescribeLayer(string? key, JsonObject materials, string missingLangKey, System.Func<string, string?> translate)
+    // A tiled face names each kind it holds with a count, in slot order (decision 0095).
+    internal static string DescribeLayer(string? key, JsonObject materials, string missingLangKey, System.Func<string, string?> translate, string? style = null)
     {
         if (key == null) return Translate(missingLangKey, translate);
+        if (key == SidingWallEntity.TilesKey)
+        {
+            var counts = SidingWallEntity.TileSlots(style).Where(kind => kind != "").GroupBy(kind => kind).ToList();
+            if (counts.Count > 0)
+                return string.Join(", ", counts.Select(kind => $"{kind.Count()} {DescribeLayer(kind.Key, materials, missingLangKey, translate)}"));
+        }
 
         string? displayName = materials[key]["DisplayName"].AsString(null!);
         return (displayName != null ? translate(displayName) : null) ?? TitleCase(key);
