@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Created: 2026-11-11
-- Reflects: branch `tile-finishes`; the proposal of 2026-10-12 (mod page comments #cmt-247702 and #cmt-247707); `SidingWallBlock.TileSlot`/`TilesToLay`/`TileToBreak`/`FloorTileSlot`; `SidingWallEntity.TileSlots`/`TurnTiles`; `SidingWallTexSource.ResolveTexture`; `TileFill`; `WallShapeGen`; `config/materials.json`; vanilla 1.22 `claytile-fired-*` and `tile-stone-travertine`; decisions 0013, 0043, 0068, 0069, 0071, 0074, 0075, 0077, 0082, 0085 and 0090
+- Reflects: branch `tile-finishes`; the proposal of 2026-10-12 (mod page comments #cmt-247702 and #cmt-247707); `SidingWallBlock.TileSlot`/`TilesToLay`/`TileToBreak`/`FloorTileSlot`; `SidingWallEntity.TileSlots`/`TurnTiles`; `SidingWallTexSource.ResolveTexture`/`AtlasPosition`/`RollsRight`; `TileFill`; `WallShapeGen`; `config/materials.json`; vanilla 1.22 `claytile-fired-*` and `tile-stone-travertine`; decisions 0013, 0043, 0068, 0069, 0071, 0074, 0075, 0077, 0082, 0085 and 0090
 
 ## Summary
 Vanilla's fired tiles lay on a face one at a time, four slots to a face, each slot taking any tile, so a wall, corner, post, floor or deck carries a mosaic.
@@ -40,10 +40,18 @@ One `TileSlot` table maps side, face and hit position to a slot, pinned by a tes
 Each slot is its own group, `{face}-tile{n}`, with its own texture slot `{face}tile{n}`, cut from the plain finish slab with `ClippedFrom` so each piece samples its own quarter of the texture.
 The groups are left out of the rim pieces.
 Coverage is a wall's front and back, all four faces of a corner (0090), a post's four faces (0082, two slots visible on each), a floor's top and underside, and the deck of a wall, corner, post and diagonal (cut to its strips).
+A post's face is 4 voxels wide, half a tile, so its tiles squeeze a whole tile across it (`TilePieces`' squeezed face): grout on both sides, at two texels a voxel across.
 A diagonal's panel takes no tile.
 On a corner, `frontedge` takes the second front's tile in its slot, or the front's while the second front is bare.
 A capped deck (0085) draws the deck top's tiles over the wall's top, and an empty deck slot leaves the wall's own top showing.
 A corner upgrade (0069) swaps each tiled face's columns with `TurnTiles`, so the tiles stay where they were.
+
+**The joint.**
+Vanilla's clay tile textures paint each joint as a shadow texel and a grout texel, wholly left of the tile's edge across (columns 14-15 and 30-31) and straddling it down (rows 15|16 and 31|0).
+Cut on the 16-texel grid, each tile then showed its whole joint on the right and none on the left.
+`SidingWallTexSource.AtlasPosition` inserts each clay tile texture rolled one texel right (`RollsRight`, `RollRight`), under its own atlas name, so every tile shows a texel of joint on each side and the `center` diamond sits where four tiles meet.
+Travertine's joint already straddles the edge both ways, so it is not rolled.
+All 48 clay textures, every variant, share the layout; a test reads them from the game install.
 
 **Placing.**
 A tile clicked on a face goes into the slot under the crosshair, and the first one sets the key to `tiles`.
@@ -77,10 +85,13 @@ One tile counts as a finished face and stops the light, because `IsFinished` rea
 - **No `tiles` key, a face finished when its list is not empty.** Every reader of the key would need the second test.
 - **Raised tiles with a recessed joint.** The texture already paints the joint.
 - **Consuming the tile block.** A block is two tiles, and a slot is one.
+- **Mirroring the left column's uv** in place of the roll. The joints then alternate: two grout texels down a cell's middle and two shadow texels where cells meet, with no grey line there at all on dark tiles.
+- **Shipping shifted copies of vanilla's tile textures.** Simpler code, but it redistributes edited vanilla art.
+- **A post face showing the half of a tile the grid gives it, or a tile's middle slice.** The grid half was built first and looked odd in play; the squeezed whole tile was chosen over the slice.
 
 ## Consequences & open questions
 - Where the build diverged from the plan: the corner upgrade needed `TurnTiles`, which swaps each tiled face's columns; `TileFill` matches by code pattern and not `Tile: true`; and the tooltip uses vanilla's item names, so a count reads "3 Earthy brown ceramic tile (plain)" and not "3 Blue tiles".
 - A tile item added by another mod is not matched by `TileFill`, and takes `GroundStorable`'s sneak-click as vanilla does.
 - Each tile pattern on a face is a cached mesh. A cell's alternate enters the cache key when a slot's texture varies, so neighbouring cells do not all draw the same variant.
 - A deck draws its ledge only while the room side is bare, and a tiled room side counts as finished.
-- The texture variants (`red1` to `red4`) may move the grout, so neighbours may not meet.
+- A clay tile texture from another mod's own path is not rolled.
