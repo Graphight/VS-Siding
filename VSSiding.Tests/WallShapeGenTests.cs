@@ -276,6 +276,14 @@ public class WallShapeGenTests
             .. Enumerable.Range(0, 8).Select(i => $"back-lath-hboards 0,12,{2 * i + 0.5} 16,12.5,{2 * i + 1.5}"),
             "back-lath-boards 0,12.5,0 16,13,16",
             .. Enumerable.Range(0, 8).Select(i => $"back-lath-boards {2 * i + 0.5},12,0 {2 * i + 1.5},12.5,16"),
+            "front-tile0 0,15,0 8,16,8",
+            "front-tile1 8,15,0 16,16,8",
+            "front-tile2 0,15,8 8,16,16",
+            "front-tile3 8,15,8 16,16,16",
+            "back-tile0 0,12,0 8,13,8",
+            "back-tile1 8,12,0 16,13,8",
+            "back-tile2 0,12,8 8,13,16",
+            "back-tile3 8,12,8 16,13,16",
         ];
         Assert.Equal(expected, WallShapeGen.Generate("floor")["elements"]!
             .Where(e => !((string)e["name"]!).StartsWith("poles") && !((string)e["name"]!).StartsWith("bamboo") && !((string)e["name"]!).StartsWith("stems") && !((string)e["name"]!).Contains("-rim"))
@@ -680,7 +688,7 @@ public class WallShapeGenTests
                 .Select(e => (string)e["name"]!)
                 .ToArray();
             Assert.All(groups.SelectMany(g => ((JObject)g["faces"]!).Properties()),
-                p => Assert.Contains((string)p.Value["texture"]!, new[] { "#deck", "#deckinfill", "#deckfront", "#deckback", "#lashing" }));
+                p => Assert.Matches(@"^#(deck|deckinfill|deckfront|deckback|lashing|deck(front|back)tile[0-3])$", (string)p.Value["texture"]!));
         }
 
         Assert.Equal(expected, actual);
@@ -713,7 +721,7 @@ public class WallShapeGenTests
                 string name = (string)cap["name"]!;
                 if (!regions.Any(r => Inside(cap, [r.X, 15, r.Z, r.X2, 16.05, r.Z2]))) offenders.Add($"{layout} '{name}' leaves the wall's top");
                 string faces = string.Join(", ", ((JObject)cap["faces"]!).Properties().Select(p => $"{p.Name} {p.Value["texture"]}"));
-                if (faces != "up #deckfront") offenders.Add($"{layout} '{name}' draws {faces}");
+                if (!System.Text.RegularExpressions.Regex.IsMatch(faces, @"^up #deckfront(tile[0-3])?$")) offenders.Add($"{layout} '{name}' draws {faces}");
                 if (Math.Abs((double)cap["to"]![1]! - 16.05) > 1e-3) offenders.Add($"{layout} '{name}' tops out at {cap["to"]![1]}");
             }
         }
@@ -726,6 +734,48 @@ public class WallShapeGenTests
         var lo = element["from"]!.Select(v => (double)v!).ToArray();
         var hi = element["to"]!.Select(v => (double)v!).ToArray();
         return Enumerable.Range(0, 3).All(i => lo[i] >= box[i] && hi[i] <= box[i + 3]);
+    }
+
+    // The wall's plain front and back are cut at 8 into four tile groups, row 0 the lower half and col 0 the lower z,
+    // each in its own texture slot and sampling its own quarter of the face's uv.
+    [Fact]
+    public void WallTileGroupsCutEachFaceIntoItsFourQuartersOfTheTexture()
+    {
+        var expected = new[]
+        {
+            "front-tile0 0,0,0 1,8,8 #fronttile0 0,8,8,16",
+            "front-tile1 0,0,8 1,8,16 #fronttile1 8,8,16,16",
+            "front-tile2 0,8,0 1,16,8 #fronttile2 0,0,8,8",
+            "front-tile3 0,8,8 1,16,16 #fronttile3 8,0,16,8",
+            "back-tile0 3,0,0 4,8,8 #backtile0 8,8,16,16",
+            "back-tile1 3,0,8 4,8,16 #backtile1 0,8,8,16",
+            "back-tile2 3,8,0 4,16,8 #backtile2 8,0,16,8",
+            "back-tile3 3,8,8 4,16,16 #backtile3 0,0,8,8",
+        };
+        string Line(JToken e, string face)
+            => $"{e["name"]} {string.Join(",", e["from"]!.Select(v => (double)v!))} {string.Join(",", e["to"]!.Select(v => (double)v!))} "
+               + $"{e["faces"]![face]!["texture"]} {string.Join(",", e["faces"]![face]!["uv"]!.Select(v => (double)v!))}";
+
+        var actual = WallShapeGen.Generate("wall")["elements"]!
+            .Where(e => System.Text.RegularExpressions.Regex.IsMatch((string)e["name"]!, @"^(front|back)-tile\d$"))
+            .Select(e => Line(e, ((string)e["name"]!).StartsWith("front") ? "west" : "east"))
+            .ToArray();
+        Assert.Equal(expected, actual);
+    }
+
+    // The deck cuts its groups from the floor's tile pieces, so each lands in a deck tile slot and the cap draws them too.
+    [Fact]
+    public void DeckAndCapCarryTheTileGroupsInDeckSlots()
+    {
+        var elements = WallShapeGen.Generate("wall")["elements"]!;
+        string[] Slots(string prefix) => elements
+            .Where(e => ((string)e["name"]!).StartsWith(prefix))
+            .SelectMany(e => ((JObject)e["faces"]!).Properties().Select(p => (string)p.Value["texture"]!))
+            .Distinct().Order().ToArray();
+
+        Assert.Equal(["#deckfronttile0", "#deckfronttile1", "#deckfronttile2", "#deckfronttile3"], Slots("deck-west-front-tile"));
+        Assert.Equal(["#deckbacktile0", "#deckbacktile1", "#deckbacktile2", "#deckbacktile3"], Slots("deck-west-back-tile").Concat(Slots("ledge-west-back-tile")).Distinct().Order().ToArray());
+        Assert.Equal(["#deckfronttile0", "#deckfronttile2"], Slots("cap-west-front-tile"));
     }
 
     // A clipped face samples the texels the floor's whole face has there: a flat face reads its uv
