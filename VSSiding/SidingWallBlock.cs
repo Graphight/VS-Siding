@@ -805,7 +805,8 @@ public class SidingWallBlock : Block
 
         int tileSlot = TileSlot(layout, side, face, blockSel.HitPosition);
         string? style = StyleOn(entity, face);
-        if (currentKey != null && (currentKey != SidingWallEntity.TilesKey || SidingWallEntity.TileSlots(style)[tileSlot] != ""))
+        bool fill = byPlayer.Entity.Controls.ShiftKey;
+        if (currentKey != null && (currentKey != SidingWallEntity.TilesKey || TileSlotFull(style, tileSlot, fill)))
         {
             (byPlayer as IServerPlayer)?.SendIngameError("vssiding:alreadyfinished", Lang.Get("vssiding:build-already-finished"));
             return true;
@@ -813,11 +814,31 @@ public class SidingWallBlock : Block
 
         // A cut tile costs a whole one, so a tile ignores the layer's share (LayerParts).
         var consumes = Attributes["Finishes"][tileKey]["Consumes"];
-        if (!TryAffordOrError(byPlayer, isCreative, slot.StackSize, consumes)) return true;
+        var (laidStyle, count) = TilesToLay(style, tileSlot, tileKey, fill, slot.StackSize, isCreative);
+        if (!TryAffordOrError(byPlayer, isCreative, slot.StackSize, consumes, count)) return true;
 
-        SetFinish(world, entity, blockSel.Position, face, SidingWallEntity.TilesKey, SidingWallEntity.WithTile(style, tileSlot, tileKey));
-        ConsumeHeld(slot, consumes, isCreative);
+        SetFinish(world, entity, blockSel.Position, face, SidingWallEntity.TilesKey, laidStyle);
+        ConsumeHeld(slot, consumes, isCreative, count);
         return true;
+    }
+
+    // A sneak-click fills every empty slot on the face, so it is refused only once none is left (decision 0095).
+    internal static bool TileSlotFull(string? style, int slot, bool fill)
+        => fill ? SidingWallEntity.TileSlots(style).All(kind => kind != "") : SidingWallEntity.TileSlots(style)[slot] != "";
+
+    // The style a tile click leaves and how many tiles it takes: the one slot, or every empty one in slot order, as many as are held.
+    internal static (string Style, int Count) TilesToLay(string? style, int slot, string tileKey, bool fill, int held, bool isCreative)
+    {
+        if (!fill) return (SidingWallEntity.WithTile(style, slot, tileKey), 1);
+
+        int count = 0;
+        for (int i = 0; i < SidingWallEntity.TileSlots(style).Length && (isCreative || count < held); i++)
+        {
+            if (SidingWallEntity.TileSlots(style)[i] != "") continue;
+            style = SidingWallEntity.WithTile(style, i, tileKey);
+            count++;
+        }
+        return (style ?? "", count);
     }
 
     // Which of a face's four tile slots a hit lies in: row 0 the lower half, col 0 the lower coordinate along the face in
@@ -852,7 +873,7 @@ public class SidingWallBlock : Block
         }
 
         int slot = FloorTileSlot(blockSel.HitPosition);
-        if (error == null && keyOn(face!) != null && (keyOn(face!) != SidingWallEntity.TilesKey || SidingWallEntity.TileSlots(styleOn(face!))[slot] != ""))
+        if (error == null && keyOn(face!) != null && (keyOn(face!) != SidingWallEntity.TilesKey || TileSlotFull(styleOn(face!), slot, byPlayer.Entity.Controls.ShiftKey)))
             error = ("alreadyfinished", "build-already-finished");
 
         if (error is not { } refusal) return (face!, slot);
@@ -986,10 +1007,11 @@ public class SidingWallBlock : Block
 
             // A cut tile costs a whole one, so a tile ignores the layer's share.
             var tileConsumes = Attributes["Finishes"][tileKey]["Consumes"];
-            if (!TryAffordOrError(byPlayer, isCreative, slot.StackSize, tileConsumes)) return true;
+            var (laidStyle, count) = TilesToLay(DeckStyle(laid.Face), laid.Slot, tileKey, byPlayer.Entity.Controls.ShiftKey, slot.StackSize, isCreative);
+            if (!TryAffordOrError(byPlayer, isCreative, slot.StackSize, tileConsumes, count)) return true;
 
-            SetDeckFinish(entity, laid.Face, SidingWallEntity.TilesKey, SidingWallEntity.WithTile(DeckStyle(laid.Face), laid.Slot, tileKey));
-            ConsumeHeld(slot, tileConsumes, isCreative);
+            SetDeckFinish(entity, laid.Face, SidingWallEntity.TilesKey, laidStyle);
+            ConsumeHeld(slot, tileConsumes, isCreative, count);
             return true;
         }
 

@@ -68,10 +68,11 @@ public class SidingFloorBlock : Block
 
             // A cut tile costs a whole one.
             var tileConsumes = Attributes["Finishes"][tileKey]["Consumes"];
-            if (!SidingWallBlock.TryAffordOrError(byPlayer, isCreative, slot.StackSize, tileConsumes)) return true;
+            var (laidStyle, count) = SidingWallBlock.TilesToLay(FaceStyle(laid.Face), laid.Slot, tileKey, byPlayer.Entity.Controls.ShiftKey, slot.StackSize, isCreative);
+            if (!SidingWallBlock.TryAffordOrError(byPlayer, isCreative, slot.StackSize, tileConsumes, count)) return true;
 
-            SetFinish(entity, laid.Face, SidingWallEntity.TilesKey, SidingWallEntity.WithTile(FaceStyle(laid.Face), laid.Slot, tileKey));
-            SidingWallBlock.ConsumeHeld(slot, tileConsumes, isCreative);
+            SetFinish(entity, laid.Face, SidingWallEntity.TilesKey, laidStyle);
+            SidingWallBlock.ConsumeHeld(slot, tileConsumes, isCreative, count);
             return true;
         }
 

@@ -1670,6 +1670,9 @@ public class SidingModSystem : ModSystem
         base.AssetsFinalize(api);
         BuildHostableTable(api);
 
+        foreach (var item in api.World.Items.Where(i => TileFill.IsTile(i?.Code)))
+            item.CollectibleBehaviors = TileFill.BeforeGroundStorable(item.CollectibleBehaviors, item);
+
         // Server side only from here: the client receives the expanded block attributes with the block list (decision 0010).
         if (api.Side != EnumAppSide.Server) return;
 

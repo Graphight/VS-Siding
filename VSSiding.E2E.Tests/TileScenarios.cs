@@ -178,6 +178,30 @@ public class TileScenarios : AtlasScenarioBase
         Assert.Equal(((",tile-plain-blue,,", ",,,tile-center-red"), (string?)null, string.Join(" ", new[] { Blue }.Order())), (laid, Read(cell, "deckfront"), string.Join(" ", DroppedTiles(cell))));
     }
 
+    // A sneak-click goes past vanilla's ground storage and fills the empty slots in slot order, as many as are held.
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
+    public async Task Wall_Should_FillEmptySlotsInOrderUpToTheStack_When_ATileIsSneakPressed()
+    {
+        (BlockPos cell, ITestPlayer player) = await RaiseWall(back: null);
+        await WallBuilder.Press(World, player, cell, Red, BlockFacing.WEST, SouthLow);
+        player.Entity.Controls.ShiftKey = true;
+
+        await WallBuilder.Press(World, player, cell, Blue, BlockFacing.WEST, NorthHigh, quantity: 2);
+
+        Assert.Equal(("tile-plain-blue,tile-center-red,tile-plain-blue,", 0), (Read(cell, "frontstyle"), Held(player)));
+    }
+
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
+    public async Task Floor_Should_FillItsTopAndLeaveNoTilePile_When_ATileIsSneakPressedOnIt()
+    {
+        (BlockPos cell, ITestPlayer player) = await RaiseFloor();
+        player.Entity.Controls.ShiftKey = true;
+
+        await WallBuilder.Press(World, player, cell, Blue, BlockFacing.UP, new Vec3d(0.25, 1, 0.75));
+
+        Assert.Equal(("tile-plain-blue,tile-plain-blue,tile-plain-blue,tile-plain-blue", 0, 0), (Read(cell, "frontstyle"), Held(player), World.BlockAt(cell.UpCopy()).Id));
+    }
+
     private void BreakAt(BlockPos cell, BlockFacing face, Vec3d hit, ITestPlayer player, bool deck = false)
     {
         SetBreakSelection(new BlockSelection { Position = cell.Copy(), Face = face, HitPosition = hit, SelectionBoxIndex = deck ? World.BlockAt(cell).SelectionBoxes.Length : 0 });
