@@ -1824,6 +1824,7 @@ public class SidingWallBlock : Block
         foreach (var keyToken in materials)
         {
             string key = keyToken.AsString()!;
+            if (materials[key]["Tile"].AsBool()) continue;
             var consumes = materials[key]["Consumes"];
             if (!consumes.Exists) continue;
 

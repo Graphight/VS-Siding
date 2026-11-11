@@ -365,4 +365,40 @@ public class SidingWallTexSourceTests
             new[] { Texture("Finishes", "planks"), Texture("Finishes", "planks-veryaged"), Texture("FinishFamilies", "planks-{wood}") },
             new[] { Texture("Framings", "oak"), Texture("Framings", "veryaged"), Texture("FramingFamilies", "{wood}") });
     }
+
+    private static readonly JsonObject TileFinishes = Dict("""
+    {
+        "tiles": { },
+        "tile-a": { "Tile": true, "Texture": "game:block/clay/tile/2x2/plain/blue*" },
+        "tile-b": { "Tile": true, "Texture": "game:block/clay/tile/2x2/plain/red*" }
+    }
+    """);
+
+    private static string? Tile(string slot, string? front = "tiles", string? secondFront = null, string? frontStyle = "tile-a,,tile-b,", string? secondFrontStyle = null)
+        => SidingWallTexSource.ResolveTexture(slot, null, null, front, secondFront, null, Framings, Infills, TileFinishes,
+            frontStyle, secondFrontStyle)?.Base.ToString();
+
+    [Fact]
+    public void ATileSlotTakesTheTextureOfTheKindItHolds()
+    {
+        Assert.Equal(["game:block/clay/tile/2x2/plain/blue*", null, "game:block/clay/tile/2x2/plain/red*", null],
+            new[] { "fronttile0", "fronttile1", "fronttile2", "fronttile3" }.Select(slot => Tile(slot)));
+        Assert.Null(Tile("front"));
+    }
+
+    [Fact]
+    public void AFrontEdgeTileTakesTheSecondFrontsTileElseTheFronts()
+    {
+        Assert.Equal("game:block/clay/tile/2x2/plain/blue*", Tile("frontedgetile0"));
+        Assert.Equal("game:block/clay/tile/2x2/plain/red*", Tile("frontedgetile0", secondFront: "tiles", secondFrontStyle: "tile-b,,,"));
+    }
+
+    [Fact]
+    public void ATileKindsVaryingTextureVariesTheCell()
+    {
+        var attributes = Dict("""{ "Framings": {}, "Infills": {}, "Finishes": { "tiles": {}, "tile-a": { "Texture": "game:block/clay/tile/2x2/plain/blue*" } } }""");
+
+        Assert.Equal(77, SidingWallEntity.CellAlternate(attributes, 77, null, null, [], ["tiles"], styles: ["tile-a,,,"]));
+        Assert.Equal(0, SidingWallEntity.CellAlternate(attributes, 77, null, null, [], ["tiles"], styles: [",,,"]));
+    }
 }

@@ -181,6 +181,18 @@
 		}
 	},
 	Finishes: {
+		"tiles": {
+			DisplayName: "vssiding:finish-tiles",
+			BlockMaterial: "Ceramic"
+		},
+		"tile-stone-travertine": {
+			Tile: true,
+			DisplayName: "game:item-tile-stone-travertine",
+			Texture: "game:block/stone/tiles/travertine*",
+			BlockMaterial: "Stone",
+			Consumes: { type: "item", code: "game:tile-stone-travertine", quantity: 1 },
+			Drops: [ { type: "item", code: "game:tile-stone-travertine", quantity: { avg: 1, var: 0 } } ]
+		},
 		"daub": {
 			DisplayName: "vssiding:finish-daub",
 			Texture: "game:block/clay/daub/browngolden/normal1",
@@ -311,6 +323,15 @@
 		}
 	},
 	FinishFamilies: {
+		"tile-{pattern}-{color}": {
+			Match: { type: "item", code: "game:claytile-fired-*-*", variant: ["pattern", "color"] },
+			Tile: true,
+			DisplayName: "game:item-claytile-fired-{pattern}-{color}",
+			Texture: "game:block/clay/tile/2x2/{pattern}/{color}*",
+			BlockMaterial: "Ceramic",
+			Consumes: { type: "item", code: "game:claytile-fired-{pattern}-{color}", quantity: 1 },
+			Drops: [ { type: "item", code: "game:claytile-fired-{pattern}-{color}", quantity: { avg: 1, var: 0 } } ]
+		},
 		"planks-{wood}": {
 			Match: { type: "item", code: "*:plank-*", variant: "wood" },
 			DisplayName: "vssiding:finish-planks-{wood}",

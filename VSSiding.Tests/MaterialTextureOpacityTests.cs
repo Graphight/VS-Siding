@@ -47,6 +47,7 @@ public class MaterialTextureOpacityTests
         if (attributes[familiesName] is JObject families) dict = MaterialFamilies.Expand(families, dict, candidates);
         foreach (var entry in dict.Properties())
         {
+            if (entry.Name == SidingWallEntity.TilesKey) continue;
             bool opaque = (bool?)entry.Value["Transparent"] != true;
             if (entry.Value["StyleTextures"] is JObject styleTextures)
                 foreach (var styleTexture in styleTextures.Properties())
@@ -131,7 +132,20 @@ public class MaterialTextureOpacityTests
             .Concat(Candidates(vintageStoryPath, "block", "blocktypes/soil/rammed.json", 1, "{0}-light-{1}"))
             .Concat(Candidates(vintageStoryPath, "item", "itemtypes/resource/hide.json", 1, "{0}-pelt-{1}"))
             .Concat(Candidates(vintageStoryPath, "item", "itemtypes/resource/cloth.json"))
+            .Concat(ClayTiles(vintageStoryPath))
             .ToList();
+
+    // claytile-fired-{pattern}-{color}, which has two variant groups where Candidates reads one.
+    private static IEnumerable<(string, AssetLocation, IDictionary<string, string>)> ClayTiles(string vintageStoryPath)
+    {
+        var json = JToken.Parse(File.ReadAllText(Path.Combine(vintageStoryPath, "assets", "survival", "itemtypes", "resource", "tile-clay-fired.json")));
+        var allowed = json["allowedVariants"]!.Select(t => new AssetLocation("game", (string)t!)).ToList();
+        return from pattern in json["variantgroups"]![1]!["states"]!.Select(t => (string)t!)
+               from color in json["variantgroups"]![2]!["states"]!.Select(t => (string)t!)
+               let code = new AssetLocation("game", $"claytile-fired-{pattern}-{color}")
+               where allowed.Any(a => WildcardUtil.Match(a, code))
+               select ("item", code, (IDictionary<string, string>)new Dictionary<string, string> { ["pattern"] = pattern, ["color"] = color });
+    }
 
     [Fact]
     public void NoMaterialTextureHasPartialAlpha()

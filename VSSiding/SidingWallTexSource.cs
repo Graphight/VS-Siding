@@ -124,7 +124,11 @@ public class SidingWallTexSource : ITexPositionSource
     {
         if (slotCode == "lashing") return new CompositeTexture(new AssetLocation(LashingTexture));
 
-        (string? key, JsonObject dictionary, string face, string? style) = slotCode switch
+        // A tile slot, like fronttile2, answers with the kind its face keeps in that slot (decision 0095).
+        int tileAt = slotCode.Length > 5 && char.IsDigit(slotCode[^1]) && slotCode[^5..^1] == "tile" ? slotCode.Length - 5 : -1;
+        string faceSlot = tileAt < 0 ? slotCode : slotCode[..tileAt];
+
+        (string? key, JsonObject dictionary, string face, string? style) = faceSlot switch
         {
             "framing" => (framing, framings, "framing", null),
             "deck" => (deck, framings, "framing", null),
@@ -137,14 +141,22 @@ public class SidingWallTexSource : ITexPositionSource
             "front" => (front, finishes, "front", frontStyle),
             "secondfront" => (secondFront, finishes, "front", secondFrontStyle),
             // The front's strip on a corner's outside corner lies in the second face's plane (decision 0090).
-            "frontedge" => secondFront != null ? (secondFront, finishes, "front", secondFrontStyle) : (front, finishes, "front", frontStyle),
+            "frontedge" => secondFront != null && (tileAt >= 0 || secondFront != SidingWallEntity.TilesKey)
+                ? (secondFront, finishes, "front", secondFrontStyle) : (front, finishes, "front", frontStyle),
             // A post's four faces all take the front's groups (decision 0082).
             "back" => (back, finishes, post ? "front" : "back", backStyle),
             // A corner's second inner leg takes the back's groups (decision 0090).
             "secondback" => (secondBack, finishes, post ? "front" : "back", secondBackStyle),
-            _ => (null, finishes, slotCode, null),
+            _ => (null, finishes, faceSlot, null),
         };
         if (key == null) return null;
+        if (key == SidingWallEntity.TilesKey)
+        {
+            if (tileAt < 0) return null;
+            key = SidingWallEntity.TileSlots(style)[slotCode[^1] - '0'];
+            style = null;
+            if (key == "") return null;
+        }
 
         var entry = dictionary[key];
         if (!entry.Exists) return null;

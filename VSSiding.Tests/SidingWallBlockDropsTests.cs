@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Vintagestory.API.Common;
@@ -163,7 +164,7 @@ public class SidingWallBlockDropsTests
         var differing = new Dictionary<string, string>();
         foreach (string dictName in new[] { "Framings", "FramingFamilies", "Infills", "InfillFamilies", "Finishes", "FinishFamilies" })
         {
-            foreach (var entry in ((JObject)attributes[dictName]!).Properties())
+            foreach (var entry in ((JObject)attributes[dictName]!).Properties().Where(entry => entry.Name != SidingWallEntity.TilesKey))
             {
                 var returned = (JObject)entry.Value["Consumes"]!.DeepClone();
                 returned["quantity"] = new JObject { ["avg"] = returned["quantity"], ["var"] = 0 };
