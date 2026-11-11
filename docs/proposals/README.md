@@ -8,9 +8,6 @@ An idea that's been thought through but not acted on. Mutable: edit freely, argu
 
 ## Open
 
-- `tile-finishes`: a player asked for ceramic tiles as a finish.
-The proposal lays vanilla's fired tiles one at a time, four slots to a face cut on the cell's grid, any colour in each, on walls, corners, floors and decks.
-Decision 0075 (issue #108) changed which face a finish click lands on, and a tile follows it: a click on a finished face puts the finish on the face behind it while that face is bare.
 - `real-smoke-flues`: a player vents a kitchen through trellises, which costs the room its heat, and asks for a flue or a hearth in a wall.
 Real Smoke stops smoke at a face that dams liquid, which a filled wall already reports, so the proposal plays what reading cannot settle and adds a vented wall on that mod's chimney behaviour only if no vanilla block already serves.
 - `walls-under-roofing`: a flat-topped wall leaves a stepped triangle under a Roofing gable.
