@@ -120,6 +120,84 @@ public class TileScenarios : AtlasScenarioBase
             (World.BlockAt(cell).Variant["side"], Read(cell, "front"), Read(cell, "secondfront"), Read(cell, "secondfrontstyle")));
     }
 
+    // A floor's slots are the world grid: row 0 the lower z, col 0 the lower x, on the top and the underside alike.
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
+    public async Task Floor_Should_TileItsTopAndItsUndersideByTheWorldGrid_When_TilesArePressedOnThem()
+    {
+        (BlockPos cell, ITestPlayer player) = await RaiseFloor();
+
+        await WallBuilder.Press(World, player, cell, Blue, BlockFacing.UP, new Vec3d(0.25, 1, 0.75));
+        await WallBuilder.Press(World, player, cell, Red, BlockFacing.DOWN, new Vec3d(0.75, 0, 0.25));
+
+        Assert.Equal((",,tile-plain-blue,", ",tile-center-red,,", "tiles", "tiles"), (Read(cell, "frontstyle"), Read(cell, "backstyle"), Read(cell, "front"), Read(cell, "back")));
+    }
+
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
+    public async Task Floor_Should_RefuseTheTile_When_ItsSlotIsFull()
+    {
+        (BlockPos cell, ITestPlayer player) = await RaiseFloor();
+        await WallBuilder.Press(World, player, cell, Blue, BlockFacing.UP, new Vec3d(0.25, 1, 0.75));
+
+        await WallBuilder.Press(World, player, cell, Red, BlockFacing.UP, new Vec3d(0.25, 1, 0.75));
+
+        Assert.Equal((",,tile-plain-blue,", 4), (Read(cell, "frontstyle"), Held(player)));
+    }
+
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
+    public async Task Floor_Should_DropOneTilePerBreak_When_ItsTiledTopIsBroken()
+    {
+        (BlockPos cell, ITestPlayer player) = await RaiseFloor();
+        await WallBuilder.Press(World, player, cell, Blue, BlockFacing.UP, new Vec3d(0.25, 1, 0.75));
+        await WallBuilder.Press(World, player, cell, Red, BlockFacing.UP, new Vec3d(0.75, 1, 0.75));
+        await player.TeleportTo(cell.EastCopy(6).Up());
+
+        BreakAt(cell, BlockFacing.UP, new Vec3d(0.75, 1, 0.75), player);
+        string? underCrosshair = Read(cell, "frontstyle");
+        BreakAt(cell, BlockFacing.UP, new Vec3d(0.75, 1, 0.75), player);
+        await World.Ticks(2);
+
+        Assert.Equal((",,tile-plain-blue,", (string?)null, string.Join(" ", new[] { Red, Blue }.Order())), (underCrosshair, Read(cell, "front"), string.Join(" ", DroppedTiles(cell))));
+    }
+
+    // A wall's deck is a floor laid on its room half, with the same world-grid slots; a break on the deck's own box takes its tile.
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
+    public async Task Deck_Should_TakeAndGiveBackTiles_When_TilesAreLaidOnItsTop()
+    {
+        (BlockPos cell, ITestPlayer player) = await RaiseWall(back: null);
+        player.Entity.WatchedAttributes.SetString("vssidingDeck", "deck");
+        await WallBuilder.Press(World, player, cell, "game:plank-oak", BlockFacing.EAST, new Vec3d(1, 0.5, 0.5), quantity: 2);
+        await WallBuilder.Press(World, player, cell, "game:clay-blue", BlockFacing.UP, new Vec3d(0.5, 1, 0.5), onDeck: true);
+        await WallBuilder.Press(World, player, cell, Blue, BlockFacing.UP, new Vec3d(0.75, 1, 0.25), onDeck: true);
+        await WallBuilder.Press(World, player, cell, Red, BlockFacing.DOWN, new Vec3d(0.75, 0, 0.75), onDeck: true);
+        await player.TeleportTo(cell.EastCopy(6).Up());
+        var laid = (Read(cell, "deckfrontstyle"), Read(cell, "deckbackstyle"));
+
+        BreakAt(cell, BlockFacing.UP, new Vec3d(0.75, 1, 0.25), player, deck: true);
+        await World.Ticks(2);
+
+        Assert.Equal(((",tile-plain-blue,,", ",,,tile-center-red"), (string?)null, string.Join(" ", new[] { Blue }.Order())), (laid, Read(cell, "deckfront"), string.Join(" ", DroppedTiles(cell))));
+    }
+
+    private void BreakAt(BlockPos cell, BlockFacing face, Vec3d hit, ITestPlayer player, bool deck = false)
+    {
+        SetBreakSelection(new BlockSelection { Position = cell.Copy(), Face = face, HitPosition = hit, SelectionBoxIndex = deck ? World.BlockAt(cell).SelectionBoxes.Length : 0 });
+        World.BlockAt(cell).OnBlockBroken(player.Entity.World, cell, player.Player);
+    }
+
+    private System.Collections.Generic.List<string> DroppedTiles(BlockPos cell)
+        => World.Api.World.GetEntitiesAround(cell.ToVec3d().Add(0.5, 0.5, 0.5), 3, 3, entity => entity is EntityItem)
+            .Cast<EntityItem>().Select(item => item.Itemstack.Collectible.Code.ToString()).Where(code => code.Contains("claytile")).Order().ToList();
+
+    private async Task<(BlockPos Cell, ITestPlayer Player)> RaiseFloor()
+    {
+        BlockPos cell = World.Spawn.Offset(1, 2, 0);
+        World.SetBlock("game:planks-aged-ud", cell.DownCopy());
+        ITestPlayer player = await WallBuilder.JoinBuilder(World);
+        player.Entity.WatchedAttributes.SetString("vssidingFraming", "floor");
+        await WallBuilder.Raise(World, player, cell, cell.WestCopy(), "game:plank-oak", "game:clay-blue");
+        return (cell, player);
+    }
+
     private static int Held(ITestPlayer player) => player.Player.InventoryManager.ActiveHotbarSlot.Itemstack?.StackSize ?? 0;
 
     private void SetBreakSelection(BlockSelection selection)

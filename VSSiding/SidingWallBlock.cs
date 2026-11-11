@@ -833,6 +833,33 @@ public class SidingWallBlock : Block
         return row * 2 + ((face is "front" or "back" ? zu : xu) >= 0 ? 1 : 0);
     }
 
+    // A floor's or a deck's slots are the world grid, whatever the wall's side: row 0 the lower z, col 0 the lower x.
+    internal static int FloorTileSlot(Vec3d hit) => (hit.Z >= 0.5 ? 2 : 0) + (hit.X >= 0.5 ? 1 : 0);
+
+    // The face and slot a tile laid on a floor or a deck goes in, or null once a refusal has been sent: the clicked face while
+    // it takes tiles, else the bare face behind it (decision 0075); a full slot is the already-finished answer.
+    internal static (string Face, int Slot)? FlatTilePlacement(
+        IPlayer byPlayer, BlockSelection blockSel, string? infill, JsonObject infills, System.Func<string, string?> keyOn, System.Func<string, string?> styleOn)
+    {
+        (string Code, string Lang)? error = null;
+        string? face = SidingFloorBlock.FinishFace(blockSel.Face);
+        if (IsTransparent(infill, infills)) error = ("tileglazed", "build-tile-glazed");
+        else if (face == null) error = ("wrongface", "build-floor-wrong-face");
+        else if (keyOn(face) != null && keyOn(face) != SidingWallEntity.TilesKey)
+        {
+            string? farFace = SidingFloorBlock.FinishFace(blockSel.Face.Opposite);
+            if (farFace != null && keyOn(farFace) == null) face = farFace;
+        }
+
+        int slot = FloorTileSlot(blockSel.HitPosition);
+        if (error == null && keyOn(face!) != null && (keyOn(face!) != SidingWallEntity.TilesKey || SidingWallEntity.TileSlots(styleOn(face!))[slot] != ""))
+            error = ("alreadyfinished", "build-already-finished");
+
+        if (error is not { } refusal) return (face!, slot);
+        (byPlayer as IServerPlayer)?.SendIngameError($"vssiding:{refusal.Code}", Lang.Get($"vssiding:{refusal.Lang}"));
+        return null;
+    }
+
     // The slot a break takes: the one under the crosshair, else the first tile in the list, so infill never shows from behind a tile.
     internal static int TileToBreak(string? style, int hitSlot)
     {
@@ -843,14 +870,16 @@ public class SidingWallBlock : Block
     // The slot a break takes when the layer it peels is a tiled face, else -1.
     private int TileBreakSlot(SidingWallEntity entity, string layer, Vec3d? hit)
     {
-        if (layer is not ("front" or "secondfront" or "back" or "secondback") || KeyAt(layer, entity) != SidingWallEntity.TilesKey) return -1;
-        return TileToBreak(StyleOn(entity, layer), hit == null ? 0 : TileSlot(Variant["layout"], Variant["side"], layer, hit));
+        if (layer is not ("front" or "secondfront" or "back" or "secondback" or "deckfront" or "deckback") || KeyAt(layer, entity) != SidingWallEntity.TilesKey) return -1;
+        int hitSlot = hit == null ? 0 : layer.StartsWith("deck") ? FloorTileSlot(hit) : TileSlot(Variant["layout"], Variant["side"], layer, hit);
+        return TileToBreak(StyleOn(entity, layer), hitSlot);
     }
 
     private void RemoveTile(IWorldAccessor world, SidingWallEntity entity, BlockPos pos, string layer, int tileSlot)
     {
         string style = SidingWallEntity.WithTile(StyleOn(entity, layer), tileSlot, "");
         if (style.Trim(',').Length == 0) RemoveLayer(world, entity, pos, layer);
+        else if (layer.StartsWith("deck")) SetDeckFinish(entity, layer["deck".Length..], SidingWallEntity.TilesKey, style);
         else SetFinish(world, entity, pos, layer, SidingWallEntity.TilesKey, style);
     }
 
@@ -946,6 +975,21 @@ public class SidingWallBlock : Block
             world.BlockAccessor.ExchangeBlock(Id, blockSel.Position);
             SidingFloorBlock.MarkNeighboursDirty(world, blockSel.Position);
             ConsumeHeld(slot, consumes, isCreative);
+            return true;
+        }
+
+        if (MatchConsumes(heldCode, Attributes["Finishes"], null, true) is { } tileKey)
+        {
+            string? DeckStyle(string on) => on == "front" ? entity.DeckFrontStyle : entity.DeckBackStyle;
+            var placed = FlatTilePlacement(byPlayer, blockSel, entity.DeckInfill, Attributes["Infills"], on => on == "front" ? entity.DeckFront : entity.DeckBack, DeckStyle);
+            if (placed is not { } laid) return true;
+
+            // A cut tile costs a whole one, so a tile ignores the layer's share.
+            var tileConsumes = Attributes["Finishes"][tileKey]["Consumes"];
+            if (!TryAffordOrError(byPlayer, isCreative, slot.StackSize, tileConsumes)) return true;
+
+            SetDeckFinish(entity, laid.Face, SidingWallEntity.TilesKey, SidingWallEntity.WithTile(DeckStyle(laid.Face), laid.Slot, tileKey));
+            ConsumeHeld(slot, tileConsumes, isCreative);
             return true;
         }
 
@@ -1764,8 +1808,11 @@ public class SidingWallBlock : Block
 
     // The style of every face whose finish is tiles, for the tiles a break with no player drops (decision 0095).
     private static string?[] TileLists(SidingWallEntity? entity) => entity == null ? [] :
-        [.. new[] { ("front", entity.Front), ("secondfront", entity.SecondFront), ("back", entity.Back), ("secondback", entity.SecondBack) }
-            .Where(face => face.Item2 == SidingWallEntity.TilesKey).Select(face => StyleOn(entity, face.Item1))];
+        TileStyles((entity.Front, entity.FrontStyle), (entity.SecondFront, entity.SecondFrontStyle), (entity.Back, entity.BackStyle),
+            (entity.SecondBack, entity.SecondBackStyle), (entity.DeckFront, entity.DeckFrontStyle), (entity.DeckBack, entity.DeckBackStyle));
+
+    internal static string?[] TileStyles(params (string? Key, string? Style)[] faces)
+        => [.. faces.Where(face => face.Key == SidingWallEntity.TilesKey).Select(face => face.Style)];
 
     internal ItemStack[] ResolveDrops(IWorldAccessor world, List<BlockDropItemStack> drops, float dropQuantityMultiplier)
         => ResolveDrops(world, drops, dropQuantityMultiplier, Code);
@@ -2003,7 +2050,11 @@ public class SidingWallBlock : Block
         => face switch { "front" => entity.Front, "secondfront" => entity.SecondFront, "secondback" => entity.SecondBack, _ => entity.Back };
 
     internal static string? StyleOn(SidingWallEntity entity, string face)
-        => face switch { "front" => entity.FrontStyle, "secondfront" => entity.SecondFrontStyle, "secondback" => entity.SecondBackStyle, _ => entity.BackStyle };
+        => face switch
+        {
+            "front" => entity.FrontStyle, "secondfront" => entity.SecondFrontStyle, "secondback" => entity.SecondBackStyle,
+            "deckfront" => entity.DeckFrontStyle, "deckback" => entity.DeckBackStyle, _ => entity.BackStyle
+        };
 
     // A finish that mirrors on corners, laid beside itself across a corner's edge, takes the turn its partner face has not, whatever
     // is picked (decision 0090): boards draws the pattern a quarter turn, and hboards or no style draws it as it lies (decision 0086).
