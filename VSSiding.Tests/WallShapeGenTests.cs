@@ -778,6 +778,79 @@ public class WallShapeGenTests
         Assert.Equal(["#deckfronttile0", "#deckfronttile2"], Slots("cap-west-front-tile"));
     }
 
+    private static string[] TileGroupLines(string layout) => WallShapeGen.Generate(layout)["elements"]!
+        .Where(e => System.Text.RegularExpressions.Regex.IsMatch((string)e["name"]!, @"^(front|back|secondfront|secondback)-tile\d(-corner|-mitre)?$"))
+        .Select(e => $"{e["name"]} {string.Join(",", e["from"]!.Select(v => (double)v!))} {string.Join(",", e["to"]!.Select(v => (double)v!))}")
+        .ToArray();
+
+    // The outside corner's four plain faces are cut at 8 in the cell whatever stretch of it they cover, so the leg 1 back
+    // starts at z 4 and the leg 2 back's column at x 3 but both still split at 8; the front's column draws the second
+    // front's first column of tiles as `-corner` copies.
+    [Fact]
+    public void CornerOutTileGroupsCutEachFaceAtEightInTheCell()
+    {
+        string[] expected =
+        [
+            "front-tile0 0,0,0 1,8,8", "front-tile1 0,0,8 1,8,16", "front-tile2 0,8,0 1,16,8", "front-tile3 0,8,8 1,16,16",
+            "back-tile0 3,0,4 4,8,8", "back-tile1 3,0,8 4,8,16", "back-tile2 3,8,4 4,16,8", "back-tile3 3,8,8 4,16,16",
+            "secondfront-tile0 1,0,0 8,8,1", "secondfront-tile1 8,0,0 16,8,1", "secondfront-tile2 1,8,0 8,16,1", "secondfront-tile3 8,8,0 16,16,1",
+            "secondback-tile0 3,0,3 4,8,4", "secondback-tile2 3,8,3 4,16,4",
+            "secondback-tile0 4,0,3 8,8,4", "secondback-tile1 8,0,3 16,8,4", "secondback-tile2 4,8,3 8,16,4", "secondback-tile3 8,8,3 16,16,4",
+            "secondfront-tile0-corner 0,0,0 1,8,1", "secondfront-tile2-corner 0,8,0 1,16,1",
+        ];
+        Assert.Equal(expected, TileGroupLines("cornerout"));
+    }
+
+    // The front's north side lies in the second face's plane, so its tile pieces draw it in the second face's first
+    // column of slots, one per row, sampling what the second front's `-corner` copy of that slot does.
+    [Fact]
+    public void CornerOutFrontEdgeTilesLandInTheSecondFacesFirstColumn()
+    {
+        var elements = WallShapeGen.Generate("cornerout")["elements"]!;
+        JToken North(string name) => elements.Single(e => (string)e["name"]! == name)["faces"]!["north"]!;
+
+        foreach (var (front, corner, slot) in new[] { ("front-tile0", "secondfront-tile0-corner", "#frontedgetile0"), ("front-tile2", "secondfront-tile2-corner", "#frontedgetile2") })
+        {
+            Assert.Equal(slot, (string)North(front)["texture"]!);
+            Assert.Equal(North(corner)["uv"]!.ToString(), North(front)["uv"]!.ToString());
+        }
+        Assert.Equal(["frontedgetile0", "frontedgetile2"], ((JObject)WallShapeGen.Generate("cornerout")["textures"]!).Properties()
+            .Select(p => p.Name).Where(n => n.StartsWith("frontedgetile")).ToArray());
+        Assert.DoesNotContain(elements, e => (string)e["name"]! is "front-tile1" or "front-tile3" && ((JObject)e["faces"]!).Properties().Any(p => p.Value["texture"]!.ToString().StartsWith("#frontedge")));
+    }
+
+    // The post's four faces are 4 wide, so each shows the two slots of one column, a body and a mitre piece apiece.
+    [Fact]
+    public void CornerInTileGroupsGiveEachPostFaceTopAndBottomSlots()
+    {
+        string[] expected =
+        [
+            "front-tile0 3,0,1 4,8,4", "front-tile0-mitre 3,0,0 4,8,1", "front-tile2 3,8,1 4,16,4", "front-tile2-mitre 3,8,0 4,16,1",
+            "secondfront-tile0 0,0,3 3,8,4", "secondfront-tile0-mitre 3,0,3 4,8,4", "secondfront-tile2 0,8,3 3,16,4", "secondfront-tile2-mitre 3,8,3 4,16,4",
+            "back-tile0 0,0,0 1,8,3", "back-tile0-mitre 0,0,3 1,8,4", "back-tile2 0,8,0 1,16,3", "back-tile2-mitre 0,8,3 1,16,4",
+            "secondback-tile0 1,0,0 4,8,1", "secondback-tile0-mitre 0,0,0 1,8,1", "secondback-tile2 1,8,0 4,16,1", "secondback-tile2-mitre 0,8,0 1,16,1",
+        ];
+        Assert.Equal(expected, TileGroupLines("cornerin"));
+    }
+
+    // The deck's and cap's tile groups come from the floor's through the shared deck cut, so a corner, a post and a
+    // diagonal carry them in deck slots; the diagonal has no cap.
+    [Theory]
+    [InlineData("cornerout", true)]
+    [InlineData("cornerin", true)]
+    [InlineData("diagonal", false)]
+    public void DeckAndCapTileGroupsReachEveryLayout(string layout, bool capped)
+    {
+        var elements = WallShapeGen.Generate(layout)["elements"]!;
+        string[] Slots(string prefix) => elements
+            .Where(e => ((string)e["name"]!).StartsWith(prefix) && ((string)e["name"]!).Contains("-tile"))
+            .SelectMany(e => ((JObject)e["faces"]!).Properties().Select(p => (string)p.Value["texture"]!))
+            .Distinct().Order().ToArray();
+
+        Assert.Equal(["#deckbacktile0", "#deckbacktile1", "#deckbacktile2", "#deckbacktile3", "#deckfronttile0", "#deckfronttile1", "#deckfronttile2", "#deckfronttile3"], Slots("deck-"));
+        Assert.Equal(capped ? ["#deckfronttile0", "#deckfronttile1", "#deckfronttile2", "#deckfronttile3"] : [], Slots("cap-"));
+    }
+
     // A clipped face samples the texels the floor's whole face has there: a flat face reads its uv
     // the floor's way, and a rotated one runs u along z and v against x (up) or with x (down).
     [Theory]

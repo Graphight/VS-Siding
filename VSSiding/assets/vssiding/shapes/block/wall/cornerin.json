@@ -12,6 +12,8 @@
     "deckfront": "game:block/wood/planks/aged/aged1",
     "deckback": "game:block/wood/planks/aged/aged1",
     "lashing": "game:item/resource/rope",
+    "backtile0": "game:block/wood/planks/aged/aged1",
+    "backtile2": "game:block/wood/planks/aged/aged1",
     "deckbacktile0": "game:block/wood/planks/aged/aged1",
     "deckbacktile1": "game:block/wood/planks/aged/aged1",
     "deckbacktile2": "game:block/wood/planks/aged/aged1",
@@ -19,7 +21,13 @@
     "deckfronttile0": "game:block/wood/planks/aged/aged1",
     "deckfronttile1": "game:block/wood/planks/aged/aged1",
     "deckfronttile2": "game:block/wood/planks/aged/aged1",
-    "deckfronttile3": "game:block/wood/planks/aged/aged1"
+    "deckfronttile3": "game:block/wood/planks/aged/aged1",
+    "fronttile0": "game:block/wood/planks/aged/aged1",
+    "fronttile2": "game:block/wood/planks/aged/aged1",
+    "secondbacktile0": "game:block/wood/planks/aged/aged1",
+    "secondbacktile2": "game:block/wood/planks/aged/aged1",
+    "secondfronttile0": "game:block/wood/planks/aged/aged1",
+    "secondfronttile2": "game:block/wood/planks/aged/aged1"
   },
   "elements": [
     {
@@ -3925,6 +3933,156 @@
       }
     },
     {
+      "name": "front-tile0",
+      "from": [
+        3.0,
+        0.0,
+        1.0
+      ],
+      "to": [
+        4.0,
+        8.0,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#fronttile0",
+          "uv": [
+            0.0,
+            8.0,
+            1.0,
+            16.0
+          ]
+        },
+        "east": {
+          "texture": "#fronttile0",
+          "uv": [
+            12.0,
+            8.0,
+            15.0,
+            16.0
+          ]
+        },
+        "west": {
+          "texture": "#fronttile0",
+          "uv": [
+            1.0,
+            8.0,
+            4.0,
+            16.0
+          ]
+        },
+        "down": {
+          "texture": "#fronttile0",
+          "uv": [
+            0.0,
+            1.0,
+            1.0,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-tile0-mitre",
+      "from": [
+        3.0,
+        0.0,
+        0.0
+      ],
+      "to": [
+        4.0,
+        8.0,
+        1.0
+      ],
+      "faces": {
+        "east": {
+          "texture": "#fronttile0",
+          "uv": [
+            15.0,
+            8.0,
+            16.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-tile2",
+      "from": [
+        3.0,
+        8.0,
+        1.0
+      ],
+      "to": [
+        4.0,
+        16.0,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#fronttile2",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            8.0
+          ]
+        },
+        "east": {
+          "texture": "#fronttile2",
+          "uv": [
+            12.0,
+            0.0,
+            15.0,
+            8.0
+          ]
+        },
+        "west": {
+          "texture": "#fronttile2",
+          "uv": [
+            1.0,
+            0.0,
+            4.0,
+            8.0
+          ]
+        },
+        "up": {
+          "texture": "#fronttile2",
+          "uv": [
+            0.0,
+            1.0,
+            1.0,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "front-tile2-mitre",
+      "from": [
+        3.0,
+        8.0,
+        0.0
+      ],
+      "to": [
+        4.0,
+        16.0,
+        1.0
+      ],
+      "faces": {
+        "east": {
+          "texture": "#fronttile2",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            8.0
+          ]
+        }
+      }
+    },
+    {
       "name": "secondfront",
       "from": [
         0.0,
@@ -7512,6 +7670,156 @@
       }
     },
     {
+      "name": "secondfront-tile0",
+      "from": [
+        0.0,
+        0.0,
+        3.0
+      ],
+      "to": [
+        3.0,
+        8.0,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#secondfronttile0",
+          "uv": [
+            13.0,
+            8.0,
+            16.0,
+            16.0
+          ]
+        },
+        "east": {
+          "texture": "#secondfronttile0",
+          "uv": [
+            0.0,
+            8.0,
+            1.0,
+            16.0
+          ]
+        },
+        "south": {
+          "texture": "#secondfronttile0",
+          "uv": [
+            0.0,
+            8.0,
+            3.0,
+            16.0
+          ]
+        },
+        "down": {
+          "texture": "#secondfronttile0",
+          "uv": [
+            13.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "secondfront-tile0-mitre",
+      "from": [
+        3.0,
+        0.0,
+        3.0
+      ],
+      "to": [
+        4.0,
+        8.0,
+        4.0
+      ],
+      "faces": {
+        "south": {
+          "texture": "#secondfronttile0",
+          "uv": [
+            3.0,
+            8.0,
+            4.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "secondfront-tile2",
+      "from": [
+        0.0,
+        8.0,
+        3.0
+      ],
+      "to": [
+        3.0,
+        16.0,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#secondfronttile2",
+          "uv": [
+            13.0,
+            0.0,
+            16.0,
+            8.0
+          ]
+        },
+        "east": {
+          "texture": "#secondfronttile2",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            8.0
+          ]
+        },
+        "south": {
+          "texture": "#secondfronttile2",
+          "uv": [
+            0.0,
+            0.0,
+            3.0,
+            8.0
+          ]
+        },
+        "up": {
+          "texture": "#secondfronttile2",
+          "uv": [
+            0.0,
+            0.0,
+            3.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "secondfront-tile2-mitre",
+      "from": [
+        3.0,
+        8.0,
+        3.0
+      ],
+      "to": [
+        4.0,
+        16.0,
+        4.0
+      ],
+      "faces": {
+        "south": {
+          "texture": "#secondfronttile2",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            8.0
+          ]
+        }
+      }
+    },
+    {
       "name": "back",
       "from": [
         0.0,
@@ -11094,6 +11402,156 @@
             0.0,
             4.0,
             4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "back-tile0",
+      "from": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "to": [
+        1.0,
+        8.0,
+        3.0
+      ],
+      "faces": {
+        "east": {
+          "texture": "#backtile0",
+          "uv": [
+            13.0,
+            8.0,
+            16.0,
+            16.0
+          ]
+        },
+        "south": {
+          "texture": "#backtile0",
+          "uv": [
+            0.0,
+            8.0,
+            1.0,
+            16.0
+          ]
+        },
+        "west": {
+          "texture": "#backtile0",
+          "uv": [
+            0.0,
+            8.0,
+            3.0,
+            16.0
+          ]
+        },
+        "down": {
+          "texture": "#backtile0",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            3.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "back-tile0-mitre",
+      "from": [
+        0.0,
+        0.0,
+        3.0
+      ],
+      "to": [
+        1.0,
+        8.0,
+        4.0
+      ],
+      "faces": {
+        "west": {
+          "texture": "#backtile0",
+          "uv": [
+            3.0,
+            8.0,
+            4.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "back-tile2",
+      "from": [
+        0.0,
+        8.0,
+        0.0
+      ],
+      "to": [
+        1.0,
+        16.0,
+        3.0
+      ],
+      "faces": {
+        "east": {
+          "texture": "#backtile2",
+          "uv": [
+            13.0,
+            0.0,
+            16.0,
+            8.0
+          ]
+        },
+        "south": {
+          "texture": "#backtile2",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            8.0
+          ]
+        },
+        "west": {
+          "texture": "#backtile2",
+          "uv": [
+            0.0,
+            0.0,
+            3.0,
+            8.0
+          ]
+        },
+        "up": {
+          "texture": "#backtile2",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            3.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "back-tile2-mitre",
+      "from": [
+        0.0,
+        8.0,
+        3.0
+      ],
+      "to": [
+        1.0,
+        16.0,
+        4.0
+      ],
+      "faces": {
+        "west": {
+          "texture": "#backtile2",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            8.0
           ]
         }
       }
@@ -14927,6 +15385,156 @@
             0.0,
             4.0,
             0.7
+          ]
+        }
+      }
+    },
+    {
+      "name": "secondback-tile0",
+      "from": [
+        1.0,
+        0.0,
+        0.0
+      ],
+      "to": [
+        4.0,
+        8.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#secondbacktile0",
+          "uv": [
+            12.0,
+            8.0,
+            15.0,
+            16.0
+          ]
+        },
+        "south": {
+          "texture": "#secondbacktile0",
+          "uv": [
+            1.0,
+            8.0,
+            4.0,
+            16.0
+          ]
+        },
+        "west": {
+          "texture": "#secondbacktile0",
+          "uv": [
+            0.0,
+            8.0,
+            1.0,
+            16.0
+          ]
+        },
+        "down": {
+          "texture": "#secondbacktile0",
+          "uv": [
+            12.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "secondback-tile0-mitre",
+      "from": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "to": [
+        1.0,
+        8.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#secondbacktile0",
+          "uv": [
+            15.0,
+            8.0,
+            16.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "secondback-tile2",
+      "from": [
+        1.0,
+        8.0,
+        0.0
+      ],
+      "to": [
+        4.0,
+        16.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#secondbacktile2",
+          "uv": [
+            12.0,
+            0.0,
+            15.0,
+            8.0
+          ]
+        },
+        "south": {
+          "texture": "#secondbacktile2",
+          "uv": [
+            1.0,
+            0.0,
+            4.0,
+            8.0
+          ]
+        },
+        "west": {
+          "texture": "#secondbacktile2",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            8.0
+          ]
+        },
+        "up": {
+          "texture": "#secondbacktile2",
+          "uv": [
+            1.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "secondback-tile2-mitre",
+      "from": [
+        0.0,
+        8.0,
+        0.0
+      ],
+      "to": [
+        1.0,
+        16.0,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#secondbacktile2",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            8.0
           ]
         }
       }
