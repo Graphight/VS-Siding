@@ -714,6 +714,9 @@ public class SidingWallBlock : Block
             return true;
         }
 
+        if (MatchConsumes(heldCode, Attributes["Finishes"], null, true) is { } tileKey)
+            return LayTile(world, byPlayer, blockSel, entity, slot, tileKey, isCreative);
+
         string? finishKey = MatchConsumes(heldCode, Attributes["Finishes"], slot.Itemstack!.Attributes);
         if (finishKey == null) return base.OnBlockInteractStart(world, byPlayer, blockSel);
 
@@ -772,6 +775,85 @@ public class SidingWallBlock : Block
         return true;
     }
 
+    // A tile goes into the slot under the crosshair, one tile a slot (decision 0095). A face with another finish sends it to the
+    // bare face behind, as a finish does (decision 0075); a full slot is the already-finished answer, with no jump.
+    private bool LayTile(IWorldAccessor world, IPlayer byPlayer, BlockSelection blockSel, SidingWallEntity entity, ItemSlot slot, string tileKey, bool isCreative)
+    {
+        string layout = Variant["layout"];
+        string? refusal = layout == "diagonal" ? "diagonal" : IsTransparent(entity.Infill, Attributes["Infills"]) ? "glazed" : null;
+        if (refusal != null)
+        {
+            (byPlayer as IServerPlayer)?.SendIngameError($"vssiding:tile{refusal}", Lang.Get($"vssiding:build-tile-{refusal}"));
+            return true;
+        }
+
+        string side = Variant["side"];
+        string? face = ResolveFinishFace(layout, side, blockSel.Face) ?? HiddenBareFrontAtEnd(world.BlockAccessor, blockSel.Position, blockSel.Face, entity);
+        if (face == null)
+        {
+            (byPlayer as IServerPlayer)?.SendIngameError("vssiding:wrongface", Lang.Get("vssiding:build-wrong-face"));
+            return true;
+        }
+
+        string? currentKey = FinishOn(entity, face);
+        if (currentKey != null && currentKey != SidingWallEntity.TilesKey)
+        {
+            string? farFace = layout == "cornerin" ? null : ResolveFinishFace(layout, side, blockSel.Face.Opposite);
+            face = farFace != null && FinishOn(entity, farFace) == null ? farFace : face;
+            currentKey = FinishOn(entity, face);
+        }
+
+        int tileSlot = TileSlot(layout, side, face, blockSel.HitPosition);
+        string? style = StyleOn(entity, face);
+        if (currentKey != null && (currentKey != SidingWallEntity.TilesKey || SidingWallEntity.TileSlots(style)[tileSlot] != ""))
+        {
+            (byPlayer as IServerPlayer)?.SendIngameError("vssiding:alreadyfinished", Lang.Get("vssiding:build-already-finished"));
+            return true;
+        }
+
+        // A cut tile costs a whole one, so a tile ignores the layer's share (LayerParts).
+        var consumes = Attributes["Finishes"][tileKey]["Consumes"];
+        if (!TryAffordOrError(byPlayer, isCreative, slot.StackSize, consumes)) return true;
+
+        SetFinish(world, entity, blockSel.Position, face, SidingWallEntity.TilesKey, SidingWallEntity.WithTile(style, tileSlot, tileKey));
+        ConsumeHeld(slot, consumes, isCreative);
+        return true;
+    }
+
+    // Which of a face's four tile slots a hit lies in: row 0 the lower half, col 0 the lower coordinate along the face in
+    // the shape's unrotated frame (west side), found by turning the hit back through the side's rotation. A leg's front and
+    // back run along z and a corner's second leg along x; a post's faces are 4 wide, so show the column 0 slots only.
+    internal static int TileSlot(string layout, string side, string face, Vec3d hit)
+    {
+        int row = hit.Y >= 0.5 ? 1 : 0;
+        if (layout == "cornerin") return row * 2;
+
+        double x = hit.X - 0.5, z = hit.Z - 0.5;
+        (double xu, double zu) = side switch { "south" => (-z, x), "east" => (-x, -z), "north" => (z, -x), _ => (x, z) };
+        return row * 2 + ((face is "front" or "back" ? zu : xu) >= 0 ? 1 : 0);
+    }
+
+    // The slot a break takes: the one under the crosshair, else the first tile in the list, so infill never shows from behind a tile.
+    internal static int TileToBreak(string? style, int hitSlot)
+    {
+        string[] slots = SidingWallEntity.TileSlots(style);
+        return slots[hitSlot] != "" ? hitSlot : Array.FindIndex(slots, kind => kind != "");
+    }
+
+    // The slot a break takes when the layer it peels is a tiled face, else -1.
+    private int TileBreakSlot(SidingWallEntity entity, string layer, Vec3d? hit)
+    {
+        if (layer is not ("front" or "secondfront" or "back" or "secondback") || KeyAt(layer, entity) != SidingWallEntity.TilesKey) return -1;
+        return TileToBreak(StyleOn(entity, layer), hit == null ? 0 : TileSlot(Variant["layout"], Variant["side"], layer, hit));
+    }
+
+    private void RemoveTile(IWorldAccessor world, SidingWallEntity entity, BlockPos pos, string layer, int tileSlot)
+    {
+        string style = SidingWallEntity.WithTile(StyleOn(entity, layer), tileSlot, "");
+        if (style.Trim(',').Length == 0) RemoveLayer(world, entity, pos, layer);
+        else SetFinish(world, entity, pos, layer, SidingWallEntity.TilesKey, style);
+    }
+
     // True when the click was claimed, by the upgrade or by a refusal. A filled wall only turns into a
     // cornerout, and only from PlaceWallFrame, which sees the clicks that could not board the face.
     internal bool TryUpgradeLayout(
@@ -812,11 +894,11 @@ public class SidingWallBlock : Block
             if (FrontMovesToSecondFace(Variant["side"], target.Variant["side"]))
             {
                 entity.SecondFront = entity.Front;
-                entity.SecondFrontStyle = entity.FrontStyle;
+                entity.SecondFrontStyle = SidingWallEntity.TurnTiles(entity.Front, entity.FrontStyle);
                 entity.Front = null;
                 entity.FrontStyle = null;
                 // The old wall's room side goes with it, moved rather than copied, since the upgrade is free (decision 0090).
-                (entity.SecondBack, entity.SecondBackStyle, entity.Back, entity.BackStyle) = (entity.Back, entity.BackStyle, null, null);
+                (entity.SecondBack, entity.SecondBackStyle, entity.Back, entity.BackStyle) = (entity.Back, SidingWallEntity.TurnTiles(entity.Back, entity.BackStyle), null, null);
             }
 
             // The new leg changes retention, light and the liquid barrier. On the target, since
@@ -1585,11 +1667,16 @@ public class SidingWallBlock : Block
             return;
         }
 
+        int tileSlot = TileBreakSlot(entity, layer, selection?.Position.Equals(pos) == true ? selection.HitPosition : null);
         if (world.Side == EnumAppSide.Server && byPlayer.WorldData.CurrentGameMode != EnumGameMode.Creative)
         {
             string? key = KeyAt(layer, entity);
             var drops = new List<BlockDropItemStack>();
-            if (layer == "step")
+            if (tileSlot >= 0)
+            {
+                AddDrops(drops, SidingWallEntity.TileSlots(StyleOn(entity, layer))[tileSlot], Attributes["Finishes"]);
+            }
+            else if (layer == "step")
             {
                 var stepDrop = StepDrop(key);
                 if (stepDrop != null) drops.Add(stepDrop);
@@ -1609,7 +1696,8 @@ public class SidingWallBlock : Block
             }
         }
         SpawnBlockBrokenParticles(pos, byPlayer);
-        RemoveLayer(world, entity, pos, layer);
+        if (tileSlot >= 0) RemoveTile(world, entity, pos, layer, tileSlot);
+        else RemoveLayer(world, entity, pos, layer);
     }
 
     // A fire that burns out against a wall takes its topmost layer, not the whole block; a bare
@@ -1672,7 +1760,12 @@ public class SidingWallBlock : Block
     internal List<BlockDropItemStack> DropsOf(SidingWallEntity? entity) => ComputeDrops(
         entity?.Framing, entity?.Infill, entity?.Front, entity?.SecondFront, entity?.Back, entity?.Deck,
         Attributes["Framings"], Attributes["Infills"], Attributes["Finishes"], entity?.Step,
-        entity?.DeckInfill, entity?.DeckFront, entity?.DeckBack, Variant["layout"], entity?.SecondBack);
+        entity?.DeckInfill, entity?.DeckFront, entity?.DeckBack, Variant["layout"], entity?.SecondBack, TileLists(entity));
+
+    // The style of every face whose finish is tiles, for the tiles a break with no player drops (decision 0095).
+    private static string?[] TileLists(SidingWallEntity? entity) => entity == null ? [] :
+        [.. new[] { ("front", entity.Front), ("secondfront", entity.SecondFront), ("back", entity.Back), ("secondback", entity.SecondBack) }
+            .Where(face => face.Item2 == SidingWallEntity.TilesKey).Select(face => StyleOn(entity, face.Item1))];
 
     internal ItemStack[] ResolveDrops(IWorldAccessor world, List<BlockDropItemStack> drops, float dropQuantityMultiplier)
         => ResolveDrops(world, drops, dropQuantityMultiplier, Code);
@@ -1692,9 +1785,11 @@ public class SidingWallBlock : Block
     internal static List<BlockDropItemStack> ComputeDrops(
         string? framing, string? infill, string? front, string? secondFront, string? back, string? deck,
         JsonObject framings, JsonObject infills, JsonObject finishes, string? step = null,
-        string? deckInfill = null, string? deckFront = null, string? deckBack = null, string? layout = null, string? secondBack = null)
+        string? deckInfill = null, string? deckFront = null, string? deckBack = null, string? layout = null, string? secondBack = null, string?[]? tileLists = null)
     {
         var drops = new List<BlockDropItemStack>();
+        foreach (string[] kinds in (tileLists ?? []).Select(SidingWallEntity.TileSlots))
+            foreach (string kind in kinds) AddDrops(drops, kind == "" ? null : kind, finishes);
         AddDrops(drops, framing, framings, LayerParts(layout, "framing"));
         AddDrops(drops, infill, infills);
         AddDrops(drops, front, finishes, LayerParts(layout, "front"));
@@ -1817,14 +1912,14 @@ public class SidingWallBlock : Block
     // build-flow behavior can turn "the player right-clicked with plank-oak" into "oak". An entry
     // with Consumes.attributes also needs the held stack to carry them, which is what tells one
     // dyed plank from another under a single block code (decision 0068).
-    internal static string? MatchConsumes(AssetLocation heldCode, JsonObject materials, ITreeAttribute? heldAttributes = null)
+    internal static string? MatchConsumes(AssetLocation heldCode, JsonObject materials, ITreeAttribute? heldAttributes = null, bool tile = false)
     {
         if (!materials.Exists) return null;
 
         foreach (var keyToken in materials)
         {
             string key = keyToken.AsString()!;
-            if (materials[key]["Tile"].AsBool()) continue;
+            if (materials[key]["Tile"].AsBool() != tile) continue;
             var consumes = materials[key]["Consumes"];
             if (!consumes.Exists) continue;
 

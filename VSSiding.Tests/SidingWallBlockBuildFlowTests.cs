@@ -408,6 +408,66 @@ public class SidingWallBlockBuildFlowTests
             SidingWallBlock.ResolveStepLeg(layout, side, BlockFacing.FromFirstLetter(clickedFace[..1]), new Vec3d(hitX, 0, hitZ)));
     }
 
+    // Hits at (x, z) = (.25, .25), (.25, .75), (.75, .25), (.75, .75): a front or back reads its column from the unrotated
+    // z axis, a corner's second leg from the unrotated x axis, and the row is always the hit's height.
+    [Theory]
+    [InlineData("west", "front", "0,1,0,1")]
+    [InlineData("west", "secondfront", "0,0,1,1")]
+    [InlineData("south", "back", "0,0,1,1")]
+    [InlineData("south", "secondback", "1,0,1,0")]
+    [InlineData("east", "front", "1,0,1,0")]
+    [InlineData("east", "secondfront", "1,1,0,0")]
+    [InlineData("north", "back", "1,1,0,0")]
+    [InlineData("north", "secondback", "0,1,0,1")]
+    public void TileSlotReadsTheColumnOffTheUnrotatedAxis(string side, string face, string columns)
+    {
+        var hits = new[] { (0.25, 0.25), (0.25, 0.75), (0.75, 0.25), (0.75, 0.75) };
+        Assert.Equal(columns, string.Join(",", hits.Select(hit => SidingWallBlock.TileSlot("cornerout", side, face, new Vec3d(hit.Item1, 0.25, hit.Item2)))));
+        Assert.Equal(columns, string.Join(",", hits.Select(hit => SidingWallBlock.TileSlot("cornerout", side, face, new Vec3d(hit.Item1, 0.75, hit.Item2)) - 2)));
+    }
+
+    [Fact]
+    public void ATilePostFaceOnlyHasItsTwoColumnZeroSlots()
+    {
+        Assert.Equal([0, 0, 2, 2], new[] { (0.1, 0.1), (0.9, 0.9), (0.1, 0.9), (0.9, 0.1) }.Select((hit, i) => SidingWallBlock.TileSlot("cornerin", "west", "front", new Vec3d(hit.Item1, i < 2 ? 0.2 : 0.8, hit.Item2))));
+    }
+
+    [Fact]
+    public void ABreakTakesTheSlotUnderTheCrosshairElseTheFirstTile()
+    {
+        Assert.Equal([2, 0, 2, -1], new[] { SidingWallBlock.TileToBreak("a,,b,", 2), SidingWallBlock.TileToBreak("a,,b,", 0), SidingWallBlock.TileToBreak(",,b,", 1), SidingWallBlock.TileToBreak(",,,", 1) });
+    }
+
+    [Fact]
+    public void AnUpgradedFacesTilesSwapColumnsToStayWhereTheyWere()
+    {
+        Assert.Equal("b,a,d,c", SidingWallEntity.TurnTiles("tiles", "a,b,c,d"));
+        Assert.Equal("a,,b,", SidingWallEntity.TurnTiles("daub", "a,,b,"));
+        Assert.Equal(",a,,b", SidingWallEntity.TurnTiles("tiles", "a,,b,"));
+    }
+
+    [Fact]
+    public void ABreakWithNoPlayerDropsEveryTileOnATiledFace()
+    {
+        var finishes = Dict("""
+        {
+            "tiles": { },
+            "tile-a": { "Tile": true, "Drops": [ { "type": "item", "code": "game:claytile-fired-plain-blue", "quantity": { "avg": 1, "var": 0 } } ] },
+            "tile-b": { "Tile": true, "Drops": [ { "type": "item", "code": "game:claytile-fired-plain-red", "quantity": { "avg": 1, "var": 0 } } ] }
+        }
+        """);
+        var drops = SidingWallBlock.ComputeDrops("oak", null, "tiles", null, null, null, Framings, Dict("{}"), finishes, tileLists: ["tile-a,,tile-b,", "tile-a,,,"]);
+        Assert.Equal(["game:claytile-fired-plain-blue", "game:claytile-fired-plain-red", "game:claytile-fired-plain-blue"], drops.Select(d => d.Code.ToString()).Where(c => c.Contains("claytile")));
+    }
+
+    [Fact]
+    public void ATileItemMatchesOnlyAsATile()
+    {
+        var finishes = Dict("""{ "tile-a": { "Tile": true, "Consumes": { "type": "item", "code": "game:claytile-fired-plain-blue" } }, "clay": { "Consumes": { "type": "item", "code": "game:clay-blue" } } }""");
+        var held = new AssetLocation("game:claytile-fired-plain-blue");
+        Assert.Equal(("tile-a", null), (SidingWallBlock.MatchConsumes(held, finishes, null, true), SidingWallBlock.MatchConsumes(held, finishes)));
+    }
+
     [Theory]
     [InlineData("west", "down-south", 0, 0, "DOWN", 0.5, true, "down-south")]
     [InlineData("west", "up-east", -1, 0, "NORTH", 0.5, true, "up-south")]

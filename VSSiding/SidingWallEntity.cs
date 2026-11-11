@@ -558,6 +558,22 @@ public class SidingWallEntity : BlockEntity
         return [.. Enumerable.Range(0, 4).Select(slot => slot < kinds.Length ? kinds[slot] : "")];
     }
 
+    internal static string WithTile(string? style, int slot, string kind)
+    {
+        string[] slots = TileSlots(style);
+        slots[slot] = kind;
+        return string.Join(",", slots);
+    }
+
+    // A face that becomes a corner's second leg has its columns on the other axis, whose lower end lies at the opposite
+    // world end for every side the upgrade can turn to, so its columns swap and each tile stays where it was.
+    internal static string? TurnTiles(string? key, string? style)
+    {
+        if (key != TilesKey) return style;
+        string[] slots = TileSlots(style);
+        return string.Join(",", slots[1], slots[0], slots[3], slots[2]);
+    }
+
     internal static IEnumerable<string> TileGroups(string group, string? style)
         => TileSlots(style).Select((kind, slot) => kind == "" ? null : $"{group}-tile{slot}").OfType<string>();
 
