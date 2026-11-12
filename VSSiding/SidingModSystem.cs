@@ -1335,7 +1335,8 @@ public class SidingModSystem : ModSystem
                     var openPartDrops = SidingWallBlock.ComputeDrops(
                         null, null, null, null, null, wall.Deck,
                         decked.Attributes["Framings"], decked.Attributes["Infills"], decked.Attributes["Finishes"], wall.Step,
-                        wall.DeckInfill, wall.DeckFront, wall.DeckBack);
+                        wall.DeckInfill, wall.DeckFront, wall.DeckBack,
+                        tileLists: SidingWallBlock.TileStyles((wall.DeckFront, wall.DeckFrontStyle), (wall.DeckBack, wall.DeckBackStyle)));
                     foreach (var stack in decked.ResolveDrops(world, openPartDrops, 1f)) world.SpawnItemEntity(stack, pos);
                     wall.Deck = null;
                     wall.DeckInfill = null;

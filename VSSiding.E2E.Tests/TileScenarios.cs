@@ -178,6 +178,23 @@ public class TileScenarios : AtlasScenarioBase
         Assert.Equal(((",tile-plain-blue,,", ",,,tile-center-red"), (string?)null, string.Join(" ", new[] { Blue }.Order())), (laid, Read(cell, "deckfront"), string.Join(" ", DroppedTiles(cell))));
     }
 
+    // A table set into the cell by a path TryHost does not see cannot fit under the deck, so the deck drops, its tiles included.
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
+    public async Task Deck_Should_DropItsTiles_When_ABlockThatDoesNotFitUnderItTakesTheCell()
+    {
+        (BlockPos cell, ITestPlayer player) = await RaiseWall(back: null);
+        player.Entity.WatchedAttributes.SetString("vssidingDeck", "deck");
+        await WallBuilder.Press(World, player, cell, "game:plank-oak", BlockFacing.EAST, new Vec3d(1, 0.5, 0.5), quantity: 2);
+        await WallBuilder.Press(World, player, cell, "game:clay-blue", BlockFacing.UP, new Vec3d(0.5, 1, 0.5), onDeck: true);
+        await WallBuilder.Press(World, player, cell, Blue, BlockFacing.UP, new Vec3d(0.75, 1, 0.25), onDeck: true);
+        await player.TeleportTo(cell.EastCopy(6).Up());
+
+        World.SetBlock("game:table-normal", cell);
+        await World.Ticks(2);
+
+        Assert.Equal(("game:table-normal", Blue), (World.BlockAt(cell).Code.ToString(), string.Join(" ", DroppedTiles(cell))));
+    }
+
     // A sneak-click goes past vanilla's ground storage and fills the empty slots in slot order, as many as are held.
     [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Wall_Should_FillEmptySlotsInOrderUpToTheStack_When_ATileIsSneakPressed()
