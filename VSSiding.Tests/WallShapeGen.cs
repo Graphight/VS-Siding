@@ -1281,9 +1281,14 @@ public static class WallShapeGen
     ];
 
     private static readonly (string Slot, string Texture)[] DiagonalTextures =
-        [.. WallTextures.Where(t => t.Slot is "front" or "framing" or "infill" or "back" or "deck" or "deckinfill" or "deckfront" or "deckback" or "lashing")];
+        [.. WallTextures.Where(t => t.Slot is "front" or "framing" or "infill" or "back" or "deck" or "deckinfill" or "deckfront" or "deckback" or "lashing")
+            .SelectMany(t => t.Slot.StartsWith("deck") ? [t, ("outer" + t.Slot, t.Texture)] : new[] { t })];
 
     private const double DeckHair = 0.02;
+
+    // The outer triangle's strips are the inner's turned 180 degrees about the cell's centre (decision 0096).
+    private static ((double X, double Y, double Z) From, (double X, double Y, double Z) To)[] OuterDiagonalDeckStrips()
+        => [.. DiagonalDeckStrips().Select(s => ((16 - s.To.X, s.From.Y, 16 - s.To.Z), (16 - s.From.X, s.To.Y, 16 - s.From.Z)))];
 
     // The strips of the block's own west diagonal deck, a hair off every plane the panel's unturned
     // pieces share with them: the top, under the plate and the fillers' caps, and the cell's own faces
@@ -1556,7 +1561,7 @@ public static class WallShapeGen
                         Name = $"{prefix}-{side}-{source.Name}",
                         From = lo with { Z = z },
                         To = hi with { Z = z2 },
-                        Slot = DeckSlots[source.Slot],
+                        Slot = prefix == "outerdeck" && source.Slot != "lashing" ? "outer" + DeckSlots[source.Slot] : DeckSlots[source.Slot],
                         ClippedFrom = source,
                     };
                 }
@@ -1746,7 +1751,7 @@ public static class WallShapeGen
         "cornerout" => Emit(
             [.. WithDeck(FrontEdgeOnSecondFace([.. CornerOutElements, .. CornerRimPieces(CornerOutElements), .. CornerTiles(CornerOutElements)]), ((4, 12, 4), (16, 16, 16))),
              .. CapGroups(((0, 15, 0), (4, 16, 16)), ((4, 15, 0), (16, 16, 4)))], CornerOutTextures),
-        "diagonal" => Rounded(Emit([.. DiagonalElements, .. DeckGroups("deck", DiagonalDeckStrips())], DiagonalTextures)),
+        "diagonal" => Rounded(Emit([.. DiagonalElements, .. DeckGroups("deck", DiagonalDeckStrips()), .. DeckGroups("outerdeck", OuterDiagonalDeckStrips())], DiagonalTextures)),
         "cornerin" => Emit([.. CornerInElements, .. BambooVariants.SelectMany(BambooFatPost), .. DeckGroups("deck", PostDeckStrips()), .. CapGroups(((0, 15, 0), (4, 16, 4)))], CornerInTextures),
         _ => throw new KeyNotFoundException(layout),
     };

@@ -220,9 +220,9 @@ public class SidingWallEntity : BlockEntity
             ? StepMesh(layout, side, StepOrientation, StepFamily(stair?.Shape?.Base?.Path))
             : ([], 0);
         int alternate = CellAlternate(Block.Attributes, SidingWallTexSource.Alternate(Pos), Framing, Deck,
-            [Infill, DeckInfill], [Front, SecondFront, Back, SecondBack, DeckFront, DeckBack],
+            [Infill, DeckInfill, OuterDeckInfill], [Front, SecondFront, Back, SecondBack, DeckFront, DeckBack, OuterDeckFront, OuterDeckBack],
             SidingWallTexSource.Varies(SidingWallTexSource.StairTexture(stair)),
-            [FrontStyle, SecondFrontStyle, BackStyle, SecondBackStyle, DeckFrontStyle, DeckBackStyle]);
+            [FrontStyle, SecondFrontStyle, BackStyle, SecondBackStyle, DeckFrontStyle, DeckBackStyle, OuterDeckFrontStyle, OuterDeckBackStyle]);
         string[] innerCorners = ((SidingWallBlock)Block).InnerCorners(Api.World.BlockAccessor, Pos, Infill, joins);
         var glassRunsOn = ((SidingWallBlock)Block).GlassRunsOn(Api.World.BlockAccessor, Pos, Infill, joins);
         var tees = ((SidingWallBlock)Block).Tees(Api.World.BlockAccessor, Pos);
@@ -240,7 +240,10 @@ public class SidingWallEntity : BlockEntity
         string[] deckElements = DeckElements(side, Deck, DeckInfill, DeckFront, DeckBack, Block.Attributes["Finishes"], deckJoins, (DeckFrontStyle, DeckBackStyle), deckGlazed,
             FrameElements(Block.Attributes["Framings"], Deck, alternate), Ledges(layout, Back == null, glazed, joins, SecondBack == null), deckInnerCorners, capped,
             InfillElements(Block.Attributes["Infills"], DeckInfill));
-        if (selectiveElements.Length == 0 && deckElements.Length == 0 && stepElements.Length == 0) return false;
+        bool outerGlazed = SidingWallBlock.IsTransparent(OuterDeckInfill, Block.Attributes["Infills"]);
+        string[] outerElements = DeckElements(side, OuterDeck, OuterDeckInfill, OuterDeckFront, OuterDeckBack, Block.Attributes["Finishes"], default, (OuterDeckFrontStyle, OuterDeckBackStyle),
+            outerGlazed, FrameElements(Block.Attributes["Framings"], OuterDeck, alternate), fill: InfillElements(Block.Attributes["Infills"], OuterDeckInfill), group: "outerdeck");
+        if (selectiveElements.Length == 0 && deckElements.Length == 0 && outerElements.Length == 0 && stepElements.Length == 0) return false;
 
         string cacheKey = CacheKey(layout, side, Framing, Infill, Front, SecondFront, Back, joins, Styles, Deck, Step, StepOrientation,
             DeckInfill, DeckFront, DeckBack, (DeckFrontStyle, DeckBackStyle), deckJoins, alternate, innerCorners, deckInnerCorners, glassRunsOn, tees, closed, capped,
@@ -254,6 +257,7 @@ public class SidingWallEntity : BlockEntity
             var rotation = new Vec3f(0, RotationYDeg(side), 0);
             return Meshes(tesselator, shape, texSource, rotation, selectiveElements, glazed)
                 .Concat(Meshes(tesselator, shape, texSource, new Vec3f(0, 0, 0), deckElements, deckGlazed))
+                .Concat(Meshes(tesselator, shape, texSource, new Vec3f(0, 0, 0), outerElements, outerGlazed))
                 .Concat(Meshes(tesselator, shape, texSource, new Vec3f(0, stepRotation, 0), stepElements, false))
                 .ToArray();
         });
@@ -356,11 +360,11 @@ public class SidingWallEntity : BlockEntity
     internal static string[] DeckElements(
         string side, string? deck, string? infill, string? front, string? back, JsonObject finishes,
         (bool above, bool below, bool left, bool right) joins, (string? front, string? back) styles, bool glazed,
-        string frame = "framing", string[]? ledges = null, string[]? innerCorners = null, bool capped = false, string fill = "infill")
+        string frame = "framing", string[]? ledges = null, string[]? innerCorners = null, bool capped = false, string fill = "infill", string group = "deck")
     {
         if (deck == null) return [];
         string[] names = SidingFloorEntity.SelectiveElements(deck, infill, front, back, finishes, joins, styles, glazed, frame, innerCorners, fill);
-        string[] copies = ["deck", .. ledges ?? []];
+        string[] copies = [group, .. ledges ?? []];
         // The top finish is the first name, and a glazed deck's is a rim round the glass, which has no top to lay over the wall.
         string[] top = front == TilesKey ? [.. TileGroups("front", styles.front)] : [names[0]];
         string[] cap = capped && front != null && !glazed ? [.. top.Select(name => $"cap-{side}-{name}")] : [];

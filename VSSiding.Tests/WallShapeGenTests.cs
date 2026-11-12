@@ -1116,6 +1116,30 @@ public class WallShapeGenTests
         Assert.Equal([], elements.Where(e => (double)e["to"]![1]! > 15.98).Select(e => (string)e["name"]!));
     }
 
+    [Fact]
+    public void DiagonalOuterDeckGroupsLieInsideTheOuterBoxes()
+    {
+        var elements = WallShapeGen.Generate("diagonal")["elements"]!.ToArray();
+        var offenders = new List<string>();
+        const double slack = 0.03;
+        foreach (string side in Sides)
+        {
+            var boxes = SidingWallBlock.AddOpenPartBoxes([], "diagonal", side, null, null, "oak");
+            var groups = elements.Where(e => ((string)e["name"]!).StartsWith($"outerdeck-{side}-")).ToArray();
+            Assert.NotEmpty(groups);
+            foreach (var group in groups)
+            {
+                var (lo, hi) = Box(group);
+                bool inside = boxes.Any(b => lo[0] >= b.X1 * 16 - slack && hi[0] <= b.X2 * 16 + slack
+                    && lo[1] >= b.Y1 * 16 - slack && hi[1] <= b.Y2 * 16 + slack
+                    && lo[2] >= b.Z1 * 16 - slack && hi[2] <= b.Z2 * 16 + slack);
+                if (!inside) offenders.Add((string)group["name"]!);
+            }
+        }
+
+        Assert.Equal([], offenders);
+    }
+
     // A corner filler is unturned, so a deck box that ends on one of its outer planes and overlaps it
     // there draws a second face in that plane. The fillers turn with the wall's side and the deck groups
     // are cut per side, so each side's are compared where they stand.
