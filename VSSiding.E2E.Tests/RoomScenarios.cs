@@ -85,7 +85,7 @@ public class RoomScenarios : AtlasScenarioBase
         // Raised from inside the room, so the diagonal claims the faces away from it and its open half is the room's.
         player.Entity.WatchedAttributes.SetString("vssidingFraming", "diagonal");
         player.Entity.WatchedAttributes.SetString("vssidingDeck", "deck");
-        await WallBuilder.Raise(World, player, cell, cell.NorthCopy(), "game:plank-oak", "game:clay-blue", framingCost: 4);
+        await WallBuilder.Raise(World, player, cell, cell.NorthCopy(), "game:plank-oak", "game:clay-blue", framingCost: 3);
 
         for (int dx = -1; dx <= 1; dx++)
         {
