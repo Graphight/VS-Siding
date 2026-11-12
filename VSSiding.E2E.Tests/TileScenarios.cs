@@ -105,19 +105,20 @@ public class TileScenarios : AtlasScenarioBase
         Assert.Equal(("cornerout", ",tile-plain-blue,,", ",,,tile-center-red"), (World.BlockAt(cell).Variant["layout"], Read(cell, "frontstyle"), Read(cell, "secondfrontstyle")));
     }
 
-    // Turned at its south end the wall's front becomes the second leg, which counts its columns the other way round.
+    // Turned at its south end the wall's front and back become the second leg's, which counts its columns the other way round.
     [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Wall_Should_KeepItsTilesWhereTheyWere_When_ItIsUpgradedToACorner()
     {
         (BlockPos cell, ITestPlayer player) = await RaiseWall(back: null);
         await WallBuilder.Press(World, player, cell, Blue, BlockFacing.WEST, NorthLow);
+        await WallBuilder.Press(World, player, cell, Red, BlockFacing.EAST, NorthLow);
         player.Entity.WatchedAttributes.SetString("vssidingFraming", "corner");
 
         await WallBuilder.Press(World, player, cell, "game:stick", BlockFacing.WEST, new Vec3d(0, 0.5, 0.8));
 
         Assert.Equal(
-            ("south", (string?)null, "tiles", ",tile-plain-blue,,"),
-            (World.BlockAt(cell).Variant["side"], Read(cell, "front"), Read(cell, "secondfront"), Read(cell, "secondfrontstyle")));
+            ("south", (string?)null, ",tile-plain-blue,,", (string?)null, ",tile-center-red,,"),
+            (World.BlockAt(cell).Variant["side"], Read(cell, "front"), Read(cell, "secondfrontstyle"), Read(cell, "back"), Read(cell, "secondbackstyle")));
     }
 
     // A floor's slots are the world grid: row 0 the lower z, col 0 the lower x, on the top and the underside alike.
