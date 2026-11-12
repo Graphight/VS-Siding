@@ -60,6 +60,16 @@ public class SidingFloorBlock : Block
             return true;
         }
 
+        if (SidingWallBlock.MatchConsumes(heldCode, Attributes["Finishes"], null, true) is { } tileKey)
+        {
+            string? FaceStyle(string on) => on == "front" ? entity.FrontStyle : entity.BackStyle;
+            var placed = SidingWallBlock.FlatTilePlacement(byPlayer, blockSel, entity.Infill, Attributes["Infills"], on => on == "front" ? entity.Front : entity.Back, FaceStyle);
+            if (placed is { } laid)
+                SidingWallBlock.LayTiles(byPlayer, slot, isCreative, Attributes["Finishes"], tileKey, FaceStyle(laid.Face), laid.Slot,
+                    style => SetFinish(entity, laid.Face, SidingWallEntity.TilesKey, style));
+            return true;
+        }
+
         string? finishKey = SidingWallBlock.MatchConsumes(heldCode, Attributes["Finishes"], slot.Itemstack!.Attributes);
         if (finishKey == null) return base.OnBlockInteractStart(world, byPlayer, blockSel);
 
@@ -398,10 +408,15 @@ public class SidingFloorBlock : Block
             return;
         }
 
+        string? layerStyle = layer == "front" ? entity.FrontStyle : entity.BackStyle;
+        int tileSlot = layer != "infill" && SidingWallBlock.LayerKey(layer, entity.Infill, entity.Front, null, entity.Back, null) == SidingWallEntity.TilesKey
+            ? SidingWallBlock.TileToBreak(layerStyle, selection?.Position.Equals(pos) == true ? SidingWallBlock.FloorTileSlot(selection.HitPosition) : 0)
+            : -1;
         if (world.Side == EnumAppSide.Server && byPlayer.WorldData.CurrentGameMode != EnumGameMode.Creative)
         {
             var drops = new List<BlockDropItemStack>();
-            SidingWallBlock.AddDrops(drops, SidingWallBlock.LayerKey(layer, entity.Infill, entity.Front, null, entity.Back, null),
+            if (tileSlot >= 0) SidingWallBlock.AddDrops(drops, SidingWallEntity.TileSlots(layerStyle)[tileSlot], Attributes["Finishes"]);
+            else SidingWallBlock.AddDrops(drops, SidingWallBlock.LayerKey(layer, entity.Infill, entity.Front, null, entity.Back, null),
                 Attributes[layer == "infill" ? "Infills" : "Finishes"]);
             foreach (var stack in SidingWallBlock.ResolveDrops(world, drops, dropQuantityMultiplier, Code)) world.SpawnItemEntity(stack, pos);
 
@@ -412,7 +427,9 @@ public class SidingFloorBlock : Block
             }
         }
         SpawnBlockBrokenParticles(pos, byPlayer);
-        RemoveLayer(world, entity, pos, layer);
+        string tilesLeft = tileSlot >= 0 ? SidingWallEntity.WithTile(layerStyle, tileSlot, "") : "";
+        if (tileSlot >= 0 && tilesLeft.Trim(',').Length > 0) SetFinish(entity, layer, SidingWallEntity.TilesKey, tilesLeft);
+        else RemoveLayer(world, entity, pos, layer);
     }
 
     // As on the wall (decision 0043): a fire that burns out on a floor takes its topmost layer, and
@@ -450,13 +467,14 @@ public class SidingFloorBlock : Block
     {
         var entity = world.BlockAccessor.GetBlockEntity<SidingFloorEntity>(pos);
         var drops = SidingWallBlock.ComputeDrops(entity?.Framing, entity?.Infill, entity?.Front, null, entity?.Back, null,
-            Attributes["Framings"], Attributes["Infills"], Attributes["Finishes"]);
+            Attributes["Framings"], Attributes["Infills"], Attributes["Finishes"],
+            tileLists: entity == null ? null : SidingWallBlock.TileStyles((entity.Front, entity.FrontStyle), (entity.Back, entity.BackStyle)));
         // Nothing built yet: the base drops hand back the placed block.
         if (drops.Count == 0) return base.GetDrops(world, pos, byPlayer, dropQuantityMultiplier);
         return SidingWallBlock.ResolveDrops(world, drops, dropQuantityMultiplier, Code);
     }
 
-    internal static string Describe(string? framing, string? infill, string? front, string? back, JsonObject attributes, System.Func<string, string?> translate, bool full = true)
+    internal static string Describe(string? framing, string? infill, string? front, string? back, JsonObject attributes, System.Func<string, string?> translate, bool full = true, string? frontStyle = null, string? backStyle = null)
     {
         JsonObject framings = attributes["Framings"], infills = attributes["Infills"], finishes = attributes["Finishes"];
         string? builtFraming = SidingWallBlock.Installed(framing, framings);
@@ -470,9 +488,9 @@ public class SidingFloorBlock : Block
         sb.AppendLine("  " + SidingWallBlock.DescribeLayer(builtFraming, framings, "vssiding:tooltip-no-framing", translate));
         sb.AppendLine("  " + SidingWallBlock.DescribeLayer(builtInfill, infills, "vssiding:tooltip-no-infill", translate));
         sb.AppendLine("  " + string.Format(SidingWallBlock.Translate("vssiding:tooltip-top", translate),
-            SidingWallBlock.DescribeLayer(SidingWallBlock.Installed(front, finishes), finishes, "vssiding:tooltip-unfinished", translate)));
+            SidingWallBlock.DescribeLayer(SidingWallBlock.Installed(front, finishes), finishes, "vssiding:tooltip-unfinished", translate, frontStyle)));
         sb.AppendLine("  " + string.Format(SidingWallBlock.Translate("vssiding:tooltip-underside", translate),
-            SidingWallBlock.DescribeLayer(SidingWallBlock.Installed(back, finishes), finishes, "vssiding:tooltip-unfinished", translate)));
+            SidingWallBlock.DescribeLayer(SidingWallBlock.Installed(back, finishes), finishes, "vssiding:tooltip-unfinished", translate, backStyle)));
         sb.AppendLine("  " + SidingWallBlock.Translate(SidingWallBlock.SealKey(builtFraming, builtInfill, framings, infills), translate));
         return sb.ToString();
     }

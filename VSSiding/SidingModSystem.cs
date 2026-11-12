@@ -48,6 +48,7 @@ public class SidingModSystem : ModSystem
         api.RegisterBlockClass("SidingFloorBlock", typeof(SidingFloorBlock));
         api.RegisterBlockEntityClass("SidingFloorEntity", typeof(SidingFloorEntity));
         api.RegisterCollectibleBehaviorClass("vssiding.PlaceWallFrame", typeof(PlaceWallFrame));
+        api.RegisterCollectibleBehaviorClass("vssiding.TileFill", typeof(TileFill));
         GuestWalls.Start(api);
         SidingModePicker.Start(api);
 
@@ -1334,7 +1335,8 @@ public class SidingModSystem : ModSystem
                     var openPartDrops = SidingWallBlock.ComputeDrops(
                         null, null, null, null, null, wall.Deck,
                         decked.Attributes["Framings"], decked.Attributes["Infills"], decked.Attributes["Finishes"], wall.Step,
-                        wall.DeckInfill, wall.DeckFront, wall.DeckBack);
+                        wall.DeckInfill, wall.DeckFront, wall.DeckBack,
+                        tileLists: SidingWallBlock.TileStyles((wall.DeckFront, wall.DeckFrontStyle), (wall.DeckBack, wall.DeckBackStyle)));
                     foreach (var stack in decked.ResolveDrops(world, openPartDrops, 1f)) world.SpawnItemEntity(stack, pos);
                     wall.Deck = null;
                     wall.DeckInfill = null;
@@ -1669,6 +1671,9 @@ public class SidingModSystem : ModSystem
     {
         base.AssetsFinalize(api);
         BuildHostableTable(api);
+
+        foreach (var item in api.World.Items.Where(i => TileFill.IsTile(i?.Code)))
+            item.CollectibleBehaviors = TileFill.BeforeGroundStorable(item.CollectibleBehaviors, item);
 
         // Server side only from here: the client receives the expanded block attributes with the block list (decision 0010).
         if (api.Side != EnumAppSide.Server) return;

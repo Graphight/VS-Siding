@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json.Linq;
+using SkiaSharp;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Datastructures;
@@ -81,12 +82,48 @@ public class SidingWallTexSource : ITexPositionSource
         if (texture.Base.EndsWithWildCard) texture.Bake(capi.Assets);
         texture = PickAlternate(texture, alternate);
         var atlas = capi.BlockTextureAtlas;
+        if (RollsRight(texture.Base)
+            && capi.Assets.TryGet(texture.Base.Clone().WithPathPrefixOnce("textures/").WithPathAppendixOnce(".png")) is { } png)
+            return atlas.GetOrInsertTexture(new AssetLocationAndSource(texture.Base.Clone().WithPathAppendixOnce("-vssidingroll")),
+                out _, out TextureAtlasPosition rolledPos, () => RolledBitmap(png.ToBitmap(capi)))
+                ? rolledPos
+                : atlas.UnknownTexturePosition;
         // The plain indexer only finds textures some other block/item already caused to
         // be packed into the atlas - most of our material textures aren't declared by
         // anything else, so they need GetOrInsertTexture to load and pack them on demand.
         return atlas.GetOrInsertTexture(texture, out _, out TextureAtlasPosition texPos)
             ? texPos
             : atlas.UnknownTexturePosition;
+    }
+
+    internal static bool IsTileSlot(string slotCode)
+        => slotCode.Length > 5 && char.IsDigit(slotCode[^1]) && slotCode[^5..^1] == "tile";
+
+    // Vanilla's clay tile textures draw each tile's joint, a shadow texel and a grout texel, wholly left of the tile's edge
+    // (columns 14-15 and 30-31), where the rows straddle it (15|16, 31|0), so a tile cut on the 16-texel grid shows the
+    // whole joint on its right. Rolled a texel right, every tile shows a texel of joint on each side, as travertine's
+    // already does (decision 0095).
+    internal static bool RollsRight(AssetLocation texture)
+        => texture.Domain == "game" && texture.Path.StartsWith("block/clay/tile/");
+
+    internal static BitmapExternal RolledBitmap(BitmapRef source)
+    {
+        using (source)
+        {
+            // LoadIntoTexture uploads the raw bytes as BGRA, as BitmapExternal.Decode lays them out; a bare
+            // SKBitmap(w, h) takes the platform's order, RGBA on a Mac, and turns red tiles blue.
+            var rolled = new BitmapExternal(new SKBitmap(new SKImageInfo(source.Width, source.Height, SKColorType.Bgra8888, SKAlphaType.Unpremul)));
+            rolled.bmp.Pixels = System.Array.ConvertAll(RollRight(source.Pixels, source.Width), pixel => new SKColor((uint)pixel));
+            return rolled;
+        }
+    }
+
+    internal static int[] RollRight(int[] pixels, int width)
+    {
+        var rolled = new int[pixels.Length];
+        for (int i = 0; i < pixels.Length; i++)
+            rolled[i - i % width + (i % width + 1) % width] = pixels[i];
+        return rolled;
     }
 
     // From the stair block itself, so every BlockStairs works with no wall.json entry (decision 0046).
@@ -124,7 +161,11 @@ public class SidingWallTexSource : ITexPositionSource
     {
         if (slotCode == "lashing") return new CompositeTexture(new AssetLocation(LashingTexture));
 
-        (string? key, JsonObject dictionary, string face, string? style) = slotCode switch
+        // A tile slot, like fronttile2, answers with the kind its face keeps in that slot (decision 0095).
+        int tileAt = IsTileSlot(slotCode) ? slotCode.Length - 5 : -1;
+        string faceSlot = tileAt < 0 ? slotCode : slotCode[..tileAt];
+
+        (string? key, JsonObject dictionary, string face, string? style) = faceSlot switch
         {
             "framing" => (framing, framings, "framing", null),
             "deck" => (deck, framings, "framing", null),
@@ -137,14 +178,22 @@ public class SidingWallTexSource : ITexPositionSource
             "front" => (front, finishes, "front", frontStyle),
             "secondfront" => (secondFront, finishes, "front", secondFrontStyle),
             // The front's strip on a corner's outside corner lies in the second face's plane (decision 0090).
-            "frontedge" => secondFront != null ? (secondFront, finishes, "front", secondFrontStyle) : (front, finishes, "front", frontStyle),
+            "frontedge" => secondFront != null && (tileAt >= 0 || secondFront != SidingWallEntity.TilesKey)
+                ? (secondFront, finishes, "front", secondFrontStyle) : (front, finishes, "front", frontStyle),
             // A post's four faces all take the front's groups (decision 0082).
             "back" => (back, finishes, post ? "front" : "back", backStyle),
             // A corner's second inner leg takes the back's groups (decision 0090).
             "secondback" => (secondBack, finishes, post ? "front" : "back", secondBackStyle),
-            _ => (null, finishes, slotCode, null),
+            _ => (null, finishes, faceSlot, null),
         };
         if (key == null) return null;
+        if (key == SidingWallEntity.TilesKey)
+        {
+            if (tileAt < 0) return null;
+            key = SidingWallEntity.TileSlots(style)[slotCode[^1] - '0'];
+            style = null;
+            if (key == "") return null;
+        }
 
         var entry = dictionary[key];
         if (!entry.Exists) return null;

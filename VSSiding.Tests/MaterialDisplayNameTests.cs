@@ -22,6 +22,7 @@ public class MaterialDisplayNameTests
         var langJsonPath = Path.Combine(repoRoot, "VSSiding", "assets", "vssiding", "lang", "en.json");
         var lang = (JObject)JToken.Parse(File.ReadAllText(langJsonPath));
 
+        var vanillaLang = (JObject)JToken.Parse(File.ReadAllText(Path.Combine(vintageStoryPath, "assets", "game", "lang", "en.json")));
         var candidates = MaterialTextureOpacityTests.AllCandidates(vintageStoryPath);
 
         var missing = new List<string>();
@@ -37,8 +38,10 @@ public class MaterialDisplayNameTests
                     missing.Add($"{dictName}.{entry.Name}: no DisplayName");
                     continue;
                 }
-                string key = displayName.StartsWith("vssiding:") ? displayName["vssiding:".Length..] : displayName;
-                if (lang[key] == null)
+                // A tile names the vanilla item it is cut from.
+                bool vanilla = displayName.StartsWith("game:");
+                string key = displayName.StartsWith("vssiding:") ? displayName["vssiding:".Length..] : vanilla ? displayName["game:".Length..] : displayName;
+                if ((vanilla ? vanillaLang : lang)[key] == null)
                     missing.Add($"{dictName}.{entry.Name}: {key}");
             }
         }

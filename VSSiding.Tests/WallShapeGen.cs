@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Newtonsoft.Json.Linq;
 
 namespace VSSiding.Tests;
@@ -576,6 +577,60 @@ public static class WallShapeGen
         .. RubbleGrid("back-rubble", "back", 'x', 4, 3, 0, 16),
     ];
 
+    // A finish slab cut into the four slots a tile fills, each its own group `<slab>-tile<n>` in its own texture slot
+    // `<slab slot>tile<n>`, n = row * 2 + col. Row 0 is the lower half on rowAxis and col 0 the lower on colAxis, cut at 8
+    // in the cell whatever part of it the slab covers. ClippedFrom keeps each piece sampling its own part of the uv the
+    // slab would have across the whole cell, and a face that lies against the next tile is left out. A squeezed face, a
+    // post's 4 wide, samples a whole tile across the slab's own width instead of the part of one the grid gives it.
+    internal static IEnumerable<Element> TilePieces(Element slab, char rowAxis, char colAxis, string? squeezedFace = null)
+    {
+        var cell = squeezedFace == null
+            ? slab with { From = WithAxis(WithAxis(slab.From, rowAxis, 0), colAxis, 0), To = WithAxis(WithAxis(slab.To, rowAxis, 16), colAxis, 16) }
+            : slab with { From = WithAxis(slab.From, rowAxis, 0), To = WithAxis(slab.To, rowAxis, 16), Explicit = Only(squeezedFace, F(0, 0, 8, 16)) };
+        for (int row = 0; row < 2; row++)
+        for (int col = 0; col < 2; col++)
+        {
+            var from = slab.From;
+            var to = slab.To;
+            var faces = (slab.Faces ?? AllFaces).AsEnumerable();
+            bool empty = false;
+            foreach (var (axis, high) in new[] { (rowAxis, row == 1), (colAxis, col == 1) })
+            {
+                double lo = Axis(slab.From, axis), hi = Axis(slab.To, axis);
+                if (high) lo = Math.Max(lo, 8); else hi = Math.Min(hi, 8);
+                if (hi <= lo) { empty = true; break; }
+                var (loFace, hiFace) = axis switch { 'x' => ("west", "east"), 'y' => ("down", "up"), _ => ("north", "south") };
+                if (high && lo > Axis(slab.From, axis)) faces = faces.Where(f => f != loFace);
+                if (!high && hi < Axis(slab.To, axis)) faces = faces.Where(f => f != hiFace);
+                from = WithAxis(from, axis, lo);
+                to = WithAxis(to, axis, hi);
+            }
+            if (empty) continue;
+
+            yield return slab with
+            {
+                Name = $"{slab.Name}-tile{row * 2 + col}",
+                Slot = $"{slab.Slot}tile{row * 2 + col}",
+                From = from,
+                To = to,
+                Faces = [.. faces],
+                ClippedFrom = cell,
+            };
+        }
+    }
+
+    // The outside corner's four plain faces cut into tiles: the front and the leg 1 back along z, the second front and
+    // the leg 2 back along x, each with the second front's `-corner` copies over the front's column.
+    private static IEnumerable<Element> CornerTiles(Element[] elements)
+    {
+        var tiles = elements.Where(e => e.Name is "front" or "back" or "secondfront" or "secondback")
+            .SelectMany(e => TilePieces(e, 'y', e.Name is "front" or "back" ? 'z' : 'x')).ToArray();
+        return SecondFrontCorners(tiles);
+    }
+
+    private static Element[] WallTiles(Element[] elements)
+        => [.. elements.Where(e => e.Name is "front" or "back").SelectMany(e => TilePieces(e, 'y', 'z'))];
+
     // What a glazed cell shows of a finish: each front and back group again, cut to the footprint of each
     // glazing piece on the face and named for it, so the border round the glass is the finish's own pieces
     // and its laps and joints carry on from the cells beside it. The finish keeps its depth, ClippedFrom
@@ -1052,7 +1107,7 @@ public static class WallShapeGen
     // front (decision 0090): its boxes against the column, moved into it. A group running along x samples its own place on
     // the run already; the rest keep their slab's texture going, through the column the front's sliver samples.
     private static Element[] SecondFrontCorners(Element[] elements)
-        => [.. elements, .. elements.Where(e => e.Slot == "secondfront" && e.From.X == 1).Select(e => e with
+        => [.. elements, .. elements.Where(e => (e.Slot == "secondfront" || e.Slot.StartsWith("secondfronttile")) && e.From.X == 1).Select(e => e with
         {
             Name = e.Name + "-corner",
             From = e.From with { X = 0 },
@@ -1065,7 +1120,8 @@ public static class WallShapeGen
     // face's finish, or the front's while that face is bare (decision 0090). Run after the rims are cut, so a cut face
     // looking north onto the glass keeps the front's.
     private static Element[] FrontEdgeOnSecondFace(Element[] elements)
-        => [.. elements.Select(e => e.Slot == "front" && e.From.Z < 1 ? e with { FaceSlots = new() { ["north"] = "frontedge" } } : e)];
+        => [.. elements.Select(e => e.From.Z < 1 && Regex.IsMatch(e.Slot, @"^front(tile\d)?$")
+            ? e with { FaceSlots = new() { ["north"] = "frontedge" + e.Slot["front".Length..] } } : e)];
 
     private static readonly (string Slot, string Texture)[] WallTextures =
     [
@@ -1382,7 +1438,11 @@ public static class WallShapeGen
     ];
 
     // The floor's elements and its glazed finishes' rims, which a deck cuts from like any other piece.
-    private static readonly Element[] FloorShape = [.. FloorElements, .. RimPieces(FloorElements, 'x', 'z')];
+    private static readonly Element[] FloorShape =
+    [
+        .. FloorElements, .. RimPieces(FloorElements, 'x', 'z'),
+        .. FloorElements.Where(e => e.Name is "front" or "back").SelectMany(e => TilePieces(e, 'z', 'x')),
+    ];
 
     private static IEnumerable<Element> Rim(string name, double z1, double z2) =>
         new[] { (0.0, 2.0), (3.0, 7.5), (8.5, 13.0), (14.0, 16.0) }
@@ -1421,6 +1481,15 @@ public static class WallShapeGen
         ["back"] = "deckback",
         ["lashing"] = "lashing",
     };
+
+    static WallShapeGen()
+    {
+        for (int n = 0; n < 4; n++)
+        {
+            DeckSlots[$"fronttile{n}"] = $"deckfronttile{n}";
+            DeckSlots[$"backtile{n}"] = $"deckbacktile{n}";
+        }
+    }
 
     // The deck is the floor's layers clipped to the deck's area, one copy per side. The wall mesh is
     // tesselated turned by the side, but every floor's joists run north-south, so each copy is cut from
@@ -1550,6 +1619,7 @@ public static class WallShapeGen
             PostSlab(slot, slot, depthAxis, outer),
             PostSlab($"framing-{slot}", "framing", depthAxis, outer),
             .. PostFinishes(slot, slot, depthAxis, outer, outwardFace),
+            .. TilePieces(PostSlab(slot, slot, depthAxis, outer), 'y', runAxis, outwardFace),
         ];
         foreach (var e in full)
         {
@@ -1661,7 +1731,7 @@ public static class WallShapeGen
     // wall's footprint, its top face alone, so the floor reads as one surface across the wall.
     private static IEnumerable<Element> CapGroups(params ((double X, double Y, double Z) From, (double X, double Y, double Z) To)[] footprint)
         => DeckGroups("cap", footprint.Select(box => (box.From with { Y = 15 }, box.To with { Y = 16 })).ToArray())
-            .Where(e => e.Slot == "deckfront" && !e.Name.Contains("-rim"))
+            .Where(e => e.Slot.StartsWith("deckfront") && !e.Name.Contains("-rim"))
             .Select(e => e with { Faces = ["up"], Offset = (0, CapRise, 0) });
 
     // A wall's or corner's own pieces, then its deck's: the deck in its box, and each of its ledges.
@@ -1671,10 +1741,10 @@ public static class WallShapeGen
 
     public static JObject Generate(string layout) => layout switch
     {
-        "wall" => Emit([.. WithDeck([.. WallElements, .. RimPieces(WallElements)], ((4, 12, 0), (16, 16, 16))), .. CapGroups(((0, 15, 0), (4, 16, 16)))], WallTextures),
+        "wall" => Emit([.. WithDeck([.. WallElements, .. RimPieces(WallElements), .. WallTiles(WallElements)], ((4, 12, 0), (16, 16, 16))), .. CapGroups(((0, 15, 0), (4, 16, 16)))], WallTextures),
         "floor" => Emit(FloorShape, FloorTextures),
         "cornerout" => Emit(
-            [.. WithDeck(FrontEdgeOnSecondFace([.. CornerOutElements, .. CornerRimPieces(CornerOutElements)]), ((4, 12, 4), (16, 16, 16))),
+            [.. WithDeck(FrontEdgeOnSecondFace([.. CornerOutElements, .. CornerRimPieces(CornerOutElements), .. CornerTiles(CornerOutElements)]), ((4, 12, 4), (16, 16, 16))),
              .. CapGroups(((0, 15, 0), (4, 16, 16)), ((4, 15, 0), (16, 16, 4)))], CornerOutTextures),
         "diagonal" => Rounded(Emit([.. DiagonalElements, .. DeckGroups("deck", DiagonalDeckStrips())], DiagonalTextures)),
         "cornerin" => Emit([.. CornerInElements, .. BambooVariants.SelectMany(BambooFatPost), .. DeckGroups("deck", PostDeckStrips()), .. CapGroups(((0, 15, 0), (4, 16, 4)))], CornerInTextures),
@@ -1693,6 +1763,8 @@ public static class WallShapeGen
     {
         var textureObject = new JObject();
         foreach (var (slot, texture) in textures) textureObject[slot] = texture;
+        foreach (var slot in elements.SelectMany(e => e.FaceSlots?.Values ?? Enumerable.Empty<string>()).Concat(elements.Select(e => e.Slot)).Distinct().Where(slot => Regex.IsMatch(slot, @"tile\d$")).Order())
+            textureObject[slot] = textureObject[Regex.Replace(slot, @"tile\d$", "")]!;
 
         return new JObject
         {

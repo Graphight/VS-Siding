@@ -140,7 +140,8 @@ public class SidingWallEntity : BlockEntity
             Framing, Infill, Deck, Block.Attributes["Framings"], Block.Attributes["Infills"],
             Block.Variant["layout"], Block.Variant["side"], Front, SecondFront, Back, Block.Attributes["Finishes"],
             SidingWallBlock.LangEntry, stepName, DeckInfill, DeckFront, DeckBack,
-            SidingWallBlock.HasBuildSignal(forPlayer), Api != null && Pos != null ? Buried : null, SecondBack));
+            SidingWallBlock.HasBuildSignal(forPlayer), Api != null && Pos != null ? Buried : null, SecondBack,
+            FrontStyle, SecondFrontStyle, BackStyle, SecondBackStyle, DeckFrontStyle, DeckBackStyle));
         // A bare deck answers a click on the top, so its hint wins over the wall's.
         if (Deck != null && DeckInfill == null)
             SidingWallBlock.AppendFillHint(dsc, forPlayer, "floor", Block.Attributes["Framings"], Block.Attributes["Infills"]);
@@ -195,7 +196,8 @@ public class SidingWallEntity : BlockEntity
             : ([], 0);
         int alternate = CellAlternate(Block.Attributes, SidingWallTexSource.Alternate(Pos), Framing, Deck,
             [Infill, DeckInfill], [Front, SecondFront, Back, SecondBack, DeckFront, DeckBack],
-            SidingWallTexSource.Varies(SidingWallTexSource.StairTexture(stair)));
+            SidingWallTexSource.Varies(SidingWallTexSource.StairTexture(stair)),
+            [FrontStyle, SecondFrontStyle, BackStyle, SecondBackStyle, DeckFrontStyle, DeckBackStyle]);
         string[] innerCorners = ((SidingWallBlock)Block).InnerCorners(Api.World.BlockAccessor, Pos, Infill, joins);
         var glassRunsOn = ((SidingWallBlock)Block).GlassRunsOn(Api.World.BlockAccessor, Pos, Infill, joins);
         var tees = ((SidingWallBlock)Block).Tees(Api.World.BlockAccessor, Pos);
@@ -245,11 +247,14 @@ public class SidingWallEntity : BlockEntity
     // cell keeps the whole hash while any layer's texture varies, the parity alone for a rough wall or
     // deck frame, and nothing otherwise, which is what lets a long plain wall share one mesh.
     internal static int CellAlternate(
-        JsonObject attributes, int hash, string? framing, string? deck, string?[] infills, string?[] finishes, bool stepVaries = false)
+        JsonObject attributes, int hash, string? framing, string? deck, string?[] infills, string?[] finishes, bool stepVaries = false,
+        string?[]? styles = null)
     {
+        // A tiled face keeps its tile kinds in its style, so those count as finishes too.
+        string?[] kinds = [.. finishes, .. finishes.Zip(styles ?? []).Where(face => face.First == TilesKey).SelectMany(face => TileSlots(face.Second)).Where(kind => kind != "")];
         if (stepVaries || SidingWallTexSource.AnyVaries(attributes["Framings"], framing, deck)
             || SidingWallTexSource.AnyVaries(attributes["Infills"], infills)
-            || SidingWallTexSource.AnyVaries(attributes["Finishes"], finishes)) return hash;
+            || SidingWallTexSource.AnyVaries(attributes["Finishes"], kinds)) return hash;
         return FrameElements(attributes["Framings"], framing) != "framing" || FrameElements(attributes["Framings"], deck) != "framing" ? hash % 2 : 0;
     }
 
@@ -332,7 +337,8 @@ public class SidingWallEntity : BlockEntity
         string[] names = SidingFloorEntity.SelectiveElements(deck, infill, front, back, finishes, joins, styles, glazed, frame, innerCorners, fill);
         string[] copies = ["deck", .. ledges ?? []];
         // The top finish is the first name, and a glazed deck's is a rim round the glass, which has no top to lay over the wall.
-        string[] cap = capped && front != null && !glazed ? [$"cap-{side}-{names[0]}"] : [];
+        string[] top = front == TilesKey ? [.. TileGroups("front", styles.front)] : [names[0]];
+        string[] cap = capped && front != null && !glazed ? [.. top.Select(name => $"cap-{side}-{name}")] : [];
         return [.. copies.SelectMany(copy => names.Select(name => $"{copy}-{side}-{name}")), .. cap];
     }
 
@@ -438,15 +444,27 @@ public class SidingWallEntity : BlockEntity
         // A corner's front finish rims leg 1, whose far end is its right, and its second front leg 2, whose is its left,
         // and its corner post rim gives way to the rims either side of a T's piece in its slot.
         bool OnLeg(string part, string otherLeg, bool tee) => !part.EndsWith(otherLeg) && !(part == "" && tee);
-        if (front != null) AddFinish(FinishElement(finishes, front, "front", styles.front), cornerout ? part => OnLeg(part, "-left", tees.right) : null);
+        // A tiled face draws the groups of the slots it has filled instead, none under glazing, which takes no tiles.
+        bool Tiles(string? key, string group, string? style, string suffix = "")
+        {
+            if (key != TilesKey) return false;
+            if (!glazed) names.AddRange(TileGroups(group, style).Select(name => name + suffix));
+            return true;
+        }
+        if (front != null && !Tiles(front, "front", styles.front))
+            AddFinish(FinishElement(finishes, front, "front", styles.front), cornerout ? part => OnLeg(part, "-left", tees.right) : null);
         if (secondFront != null)
         {
             string group = "second" + FinishElement(finishes, secondFront, "front", styles.secondFront);
-            AddFinish(group, cornerout ? part => OnLeg(part, "-right", tees.left) : null);
+            if (!Tiles(secondFront, "secondfront", styles.secondFront))
+                AddFinish(group, cornerout ? part => OnLeg(part, "-right", tees.left) : null);
             // A bare front leaves the outside corner's column open, and the second front carries on over it, where no facing
             // front's infill fills it (decisions 0083, 0090). Its glazed rim is the corner post's piece alone.
             if (cornerout && front == null && !(closed.front && infill != null && !glazed))
-                AddFinish(group + "-corner", part => part is "" or "-tee-left" && OnLeg(part, "-right", tees.left));
+            {
+                if (!Tiles(secondFront, "secondfront", styles.secondFront, "-corner"))
+                    AddFinish(group + "-corner", part => part is "" or "-tee-left" && OnLeg(part, "-right", tees.left));
+            }
         }
         if (framing != null) names.AddRange(parts.Select(part => member + part));
         if (infill != null)
@@ -472,9 +490,9 @@ public class SidingWallEntity : BlockEntity
         // piece included (decision 0090).
         bool Keeps(string part) => !part.StartsWith("-tee") && !(decked && part.StartsWith("-top"));
         string Whole(string key) => cornerout && finishes[key]["WholeOnCorners"].AsBool() ? "-whole" : "";
-        if (back != null)
+        if (back != null && !Tiles(back, "back", styles.back))
             AddFinish(FinishElement(finishes, back, "back", styles.back) + Whole(back), cornerout ? part => Keeps(part) && part != "" && !part.EndsWith("-left") : Keeps);
-        if (cornerout && secondBack != null)
+        if (cornerout && secondBack != null && !Tiles(secondBack, "secondback", secondBackStyle))
             AddFinish("second" + FinishElement(finishes, secondBack, "back", secondBackStyle) + Whole(secondBack), part => Keeps(part) && !part.EndsWith("-right"));
         // A diagonal's end is the filler in its corner, or, where the next cell carries the run on,
         // each group's own piece out to the corner and half a post there.
@@ -518,12 +536,47 @@ public class SidingWallEntity : BlockEntity
         for (int i = 0; i < slots.Length; i++)
         {
             var (key, style) = faces[i];
+            bool mitre = !bamboo || (key != null && faces[(i + 3) % 4].key != null);
+            if (key == TilesKey)
+            {
+                foreach (string tile in TileGroups(slots[i], style)) names.AddRange(mitre ? [tile, tile + "-mitre"] : [tile]);
+                continue;
+            }
             string group = key == null ? $"{member}-{slots[i]}" : slots[i] + FinishElement(finishes, key, "front", style)["front".Length..];
             names.Add(group);
-            if (!bamboo || (key != null && faces[(i + 3) % 4].key != null)) names.Add(group + "-mitre");
+            if (mitre) names.Add(group + "-mitre");
         }
         return [.. names];
     }
+
+    // A tiled face's finish key, and its four slots, kept in the face's style as comma-separated tile kinds with an
+    // empty entry for an empty slot. Slot n is row n / 2 (0 the lower half), column n % 2 (decision 0095).
+    internal const string TilesKey = "tiles";
+
+    internal static string[] TileSlots(string? style)
+    {
+        string[] kinds = style?.Split(',') ?? [];
+        return [.. Enumerable.Range(0, 4).Select(slot => slot < kinds.Length ? kinds[slot] : "")];
+    }
+
+    internal static string WithTile(string? style, int slot, string kind)
+    {
+        string[] slots = TileSlots(style);
+        slots[slot] = kind;
+        return string.Join(",", slots);
+    }
+
+    // A face that becomes a corner's second leg has its columns on the other axis, whose lower end lies at the opposite
+    // world end for every side the upgrade can turn to, so its columns swap and each tile stays where it was.
+    internal static string? TurnTiles(string? key, string? style)
+    {
+        if (key != TilesKey) return style;
+        string[] slots = TileSlots(style);
+        return string.Join(",", slots[1], slots[0], slots[3], slots[2]);
+    }
+
+    internal static IEnumerable<string> TileGroups(string group, string? style)
+        => TileSlots(style).Select((kind, slot) => kind == "" ? null : $"{group}-tile{slot}").OfType<string>();
 
     // A style names its element outright; without one the entry's Elements default stands.
     private static string FinishElement(JsonObject finishes, string key, string face, string? style)

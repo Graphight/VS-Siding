@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Newtonsoft.Json.Linq;
 using Vintagestory.API.Client;
 using Vintagestory.API.MathTools;
@@ -276,6 +277,14 @@ public class WallShapeGenTests
             .. Enumerable.Range(0, 8).Select(i => $"back-lath-hboards 0,12,{2 * i + 0.5} 16,12.5,{2 * i + 1.5}"),
             "back-lath-boards 0,12.5,0 16,13,16",
             .. Enumerable.Range(0, 8).Select(i => $"back-lath-boards {2 * i + 0.5},12,0 {2 * i + 1.5},12.5,16"),
+            "front-tile0 0,15,0 8,16,8",
+            "front-tile1 8,15,0 16,16,8",
+            "front-tile2 0,15,8 8,16,16",
+            "front-tile3 8,15,8 16,16,16",
+            "back-tile0 0,12,0 8,13,8",
+            "back-tile1 8,12,0 16,13,8",
+            "back-tile2 0,12,8 8,13,16",
+            "back-tile3 8,12,8 16,13,16",
         ];
         Assert.Equal(expected, WallShapeGen.Generate("floor")["elements"]!
             .Where(e => !((string)e["name"]!).StartsWith("poles") && !((string)e["name"]!).StartsWith("bamboo") && !((string)e["name"]!).StartsWith("stems") && !((string)e["name"]!).Contains("-rim"))
@@ -680,7 +689,7 @@ public class WallShapeGenTests
                 .Select(e => (string)e["name"]!)
                 .ToArray();
             Assert.All(groups.SelectMany(g => ((JObject)g["faces"]!).Properties()),
-                p => Assert.Contains((string)p.Value["texture"]!, new[] { "#deck", "#deckinfill", "#deckfront", "#deckback", "#lashing" }));
+                p => Assert.Matches(@"^#(deck|deckinfill|deckfront|deckback|lashing|deck(front|back)tile[0-3])$", (string)p.Value["texture"]!));
         }
 
         Assert.Equal(expected, actual);
@@ -713,7 +722,7 @@ public class WallShapeGenTests
                 string name = (string)cap["name"]!;
                 if (!regions.Any(r => Inside(cap, [r.X, 15, r.Z, r.X2, 16.05, r.Z2]))) offenders.Add($"{layout} '{name}' leaves the wall's top");
                 string faces = string.Join(", ", ((JObject)cap["faces"]!).Properties().Select(p => $"{p.Name} {p.Value["texture"]}"));
-                if (faces != "up #deckfront") offenders.Add($"{layout} '{name}' draws {faces}");
+                if (!Regex.IsMatch(faces, @"^up #deckfront(tile[0-3])?$")) offenders.Add($"{layout} '{name}' draws {faces}");
                 if (Math.Abs((double)cap["to"]![1]! - 16.05) > 1e-3) offenders.Add($"{layout} '{name}' tops out at {cap["to"]![1]}");
             }
         }
@@ -726,6 +735,109 @@ public class WallShapeGenTests
         var lo = element["from"]!.Select(v => (double)v!).ToArray();
         var hi = element["to"]!.Select(v => (double)v!).ToArray();
         return Enumerable.Range(0, 3).All(i => lo[i] >= box[i] && hi[i] <= box[i + 3]);
+    }
+
+    // The wall's plain front and back are cut at 8 into four tile groups, row 0 the lower half and col 0 the lower z,
+    // each in its own texture slot and sampling its own quarter of the face's uv.
+    [Fact]
+    public void WallTileGroupsCutEachFaceIntoItsFourQuartersOfTheTexture()
+    {
+        var expected = new[]
+        {
+            "front-tile0 0,0,0 1,8,8 #fronttile0 0,8,8,16",
+            "front-tile1 0,0,8 1,8,16 #fronttile1 8,8,16,16",
+            "front-tile2 0,8,0 1,16,8 #fronttile2 0,0,8,8",
+            "front-tile3 0,8,8 1,16,16 #fronttile3 8,0,16,8",
+            "back-tile0 3,0,0 4,8,8 #backtile0 8,8,16,16",
+            "back-tile1 3,0,8 4,8,16 #backtile1 0,8,8,16",
+            "back-tile2 3,8,0 4,16,8 #backtile2 8,0,16,8",
+            "back-tile3 3,8,8 4,16,16 #backtile3 0,0,8,8",
+        };
+        string Line(JToken e, string face)
+            => $"{e["name"]} {string.Join(",", e["from"]!.Select(v => (double)v!))} {string.Join(",", e["to"]!.Select(v => (double)v!))} "
+               + $"{e["faces"]![face]!["texture"]} {string.Join(",", e["faces"]![face]!["uv"]!.Select(v => (double)v!))}";
+
+        var actual = WallShapeGen.Generate("wall")["elements"]!
+            .Where(e => Regex.IsMatch((string)e["name"]!, @"^(front|back)-tile\d$"))
+            .Select(e => Line(e, ((string)e["name"]!).StartsWith("front") ? "west" : "east"))
+            .ToArray();
+        Assert.Equal(expected, actual);
+    }
+
+    private static string[] TileGroupLines(string layout) => WallShapeGen.Generate(layout)["elements"]!
+        .Where(e => Regex.IsMatch((string)e["name"]!, @"^(front|back|secondfront|secondback)-tile\d(-corner|-mitre)?$"))
+        .Select(e => $"{e["name"]} {string.Join(",", e["from"]!.Select(v => (double)v!))} {string.Join(",", e["to"]!.Select(v => (double)v!))}")
+        .ToArray();
+
+    // The outside corner's four plain faces are cut at 8 in the cell whatever stretch of it they cover, so the leg 1 back
+    // starts at z 4 and the leg 2 back's column at x 3 but both still split at 8; the front's column draws the second
+    // front's first column of tiles as `-corner` copies.
+    [Fact]
+    public void CornerOutTileGroupsCutEachFaceAtEightInTheCell()
+    {
+        string[] expected =
+        [
+            "front-tile0 0,0,0 1,8,8", "front-tile1 0,0,8 1,8,16", "front-tile2 0,8,0 1,16,8", "front-tile3 0,8,8 1,16,16",
+            "back-tile0 3,0,4 4,8,8", "back-tile1 3,0,8 4,8,16", "back-tile2 3,8,4 4,16,8", "back-tile3 3,8,8 4,16,16",
+            "secondfront-tile0 1,0,0 8,8,1", "secondfront-tile1 8,0,0 16,8,1", "secondfront-tile2 1,8,0 8,16,1", "secondfront-tile3 8,8,0 16,16,1",
+            "secondback-tile0 3,0,3 4,8,4", "secondback-tile2 3,8,3 4,16,4",
+            "secondback-tile0 4,0,3 8,8,4", "secondback-tile1 8,0,3 16,8,4", "secondback-tile2 4,8,3 8,16,4", "secondback-tile3 8,8,3 16,16,4",
+            "secondfront-tile0-corner 0,0,0 1,8,1", "secondfront-tile2-corner 0,8,0 1,16,1",
+        ];
+        Assert.Equal(expected, TileGroupLines("cornerout"));
+    }
+
+    // The front's north side lies in the second face's plane, so its tile pieces draw it in the second face's first
+    // column of slots, one per row, sampling what the second front's `-corner` copy of that slot does.
+    [Fact]
+    public void CornerOutFrontEdgeTilesLandInTheSecondFacesFirstColumn()
+    {
+        var elements = WallShapeGen.Generate("cornerout")["elements"]!;
+        JToken North(string name) => elements.Single(e => (string)e["name"]! == name)["faces"]!["north"]!;
+
+        foreach (var (front, corner, slot) in new[] { ("front-tile0", "secondfront-tile0-corner", "#frontedgetile0"), ("front-tile2", "secondfront-tile2-corner", "#frontedgetile2") })
+        {
+            Assert.Equal(slot, (string)North(front)["texture"]!);
+            Assert.Equal(North(corner)["uv"]!.ToString(), North(front)["uv"]!.ToString());
+        }
+        Assert.Equal(["frontedgetile0", "frontedgetile2"], ((JObject)WallShapeGen.Generate("cornerout")["textures"]!).Properties()
+            .Select(p => p.Name).Where(n => n.StartsWith("frontedgetile")).ToArray());
+        Assert.DoesNotContain(elements, e => (string)e["name"]! is "front-tile1" or "front-tile3" && ((JObject)e["faces"]!).Properties().Any(p => p.Value["texture"]!.ToString().StartsWith("#frontedge")));
+    }
+
+    // The post's four faces are 4 wide, so each shows the two slots of one column, a body and a mitre piece apiece.
+    [Fact]
+    public void CornerInTileGroupsGiveEachPostFaceTopAndBottomSlots()
+    {
+        string[] expected =
+        [
+            "front-tile0 3,0,1 4,8,4", "front-tile0-mitre 3,0,0 4,8,1", "front-tile2 3,8,1 4,16,4", "front-tile2-mitre 3,8,0 4,16,1",
+            "secondfront-tile0 0,0,3 3,8,4", "secondfront-tile0-mitre 3,0,3 4,8,4", "secondfront-tile2 0,8,3 3,16,4", "secondfront-tile2-mitre 3,8,3 4,16,4",
+            "back-tile0 0,0,0 1,8,3", "back-tile0-mitre 0,0,3 1,8,4", "back-tile2 0,8,0 1,16,3", "back-tile2-mitre 0,8,3 1,16,4",
+            "secondback-tile0 1,0,0 4,8,1", "secondback-tile0-mitre 0,0,0 1,8,1", "secondback-tile2 1,8,0 4,16,1", "secondback-tile2-mitre 0,8,0 1,16,1",
+        ];
+        Assert.Equal(expected, TileGroupLines("cornerin"));
+    }
+
+    // The deck's and cap's tile groups come from the floor's through the shared deck cut, so every layout carries them in
+    // deck slots, a ledge too; a west cap covers the slots under its footprint, and the diagonal has no cap.
+    [Theory]
+    [InlineData("wall", "0,2")]
+    [InlineData("cornerout", "0,1,2")]
+    [InlineData("cornerin", "0")]
+    [InlineData("diagonal", "")]
+    public void DeckAndCapTileGroupsReachEveryLayout(string layout, string capSlots)
+    {
+        var elements = WallShapeGen.Generate(layout)["elements"]!;
+        string Slots(params string[] prefixes) => string.Join(" ", elements
+            .Where(e => prefixes.Any(((string)e["name"]!).StartsWith) && ((string)e["name"]!).Contains("-tile"))
+            .SelectMany(e => ((JObject)e["faces"]!).Properties().Select(p => (string)p.Value["texture"]!))
+            .Distinct().Order());
+
+        Assert.Equal(
+            ("#deckbacktile0 #deckbacktile1 #deckbacktile2 #deckbacktile3 #deckfronttile0 #deckfronttile1 #deckfronttile2 #deckfronttile3",
+             string.Join(" ", capSlots.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(n => $"#deckfronttile{n}"))),
+            (Slots("deck-", "ledge-"), Slots("cap-west-")));
     }
 
     // A clipped face samples the texels the floor's whole face has there: a flat face reads its uv
@@ -908,7 +1020,10 @@ public class WallShapeGenTests
                     // A corner's `-whole` copies squeeze the whole texture onto their 12-voxel inner legs (decision 0086).
                     bool squeezed = layout == "cornerout" && ((string)element["name"]!).Contains("-whole") && face is "east" or "south"
                         && Math.Abs(voxels * 4 / 3 - texels) < 0.001;
-                    if (!squeezed && Math.Abs(voxels - texels) > 0.001)
+                    // A post's tiles squeeze a whole tile across its 4-voxel faces (decision 0095).
+                    bool postTile = layout == "cornerin" && Regex.IsMatch((string)element["name"]!, @"^(second)?(front|back)-tile\d(-mitre)?$")
+                        && Math.Abs(voxels * 2 - texels) < 0.001;
+                    if (!squeezed && !postTile && Math.Abs(voxels - texels) > 0.001)
                         offenders.Add($"{element["name"]} {face}: {texels} texels over {voxels} voxels");
                 }
             }

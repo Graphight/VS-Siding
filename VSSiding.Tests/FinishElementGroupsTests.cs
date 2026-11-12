@@ -534,7 +534,9 @@ public class FinishElementGroupsTests
     private static List<JProperty> FinishEntries()
     {
         var attributes = MaterialTextureOpacityTests.BlockAttributes("wall.json");
-        return ((JObject)attributes["Finishes"]!).Properties().Concat(((JObject)attributes["FinishFamilies"]!).Properties()).ToList();
+        // A tile is part of a tiled face, never a finish of a whole one.
+        return ((JObject)attributes["Finishes"]!).Properties().Concat(((JObject)attributes["FinishFamilies"]!).Properties())
+            .Where(entry => entry.Name != SidingWallEntity.TilesKey && entry.Value["Tile"] == null).ToList();
     }
 
     // A finish missing one of its row's styles falls back to its default look when that style is
@@ -618,5 +620,79 @@ public class FinishElementGroupsTests
             .Where(floorSelected.Contains).Select(n => $"floor draws '{n}'"));
 
         Assert.Equal([], offenders);
+    }
+
+    private const string Tiled = "tile-a,,tile-b,";
+    private static readonly JsonObject TileFinishes = new(JObject.Parse("""{ "tiles": {}, "daub": {} }"""));
+
+    // A tiled face draws the groups of its filled slots in place of its slab (decision 0095).
+    [Fact]
+    public void ATiledFaceDrawsOnlyItsFilledSlots()
+    {
+        var wall = SidingWallEntity.SelectiveElements("wall", "oak", "clay", "tiles", null, "tiles", TileFinishes, default, false,
+            (Tiled, null, "tile-c,tile-c,tile-c,tile-c"));
+        var corner = SidingWallEntity.SelectiveElements("cornerout", "oak", "clay", null, "tiles", null, TileFinishes, default, false,
+            (null, Tiled, null), secondBack: "tiles", secondBackStyle: Tiled);
+        var floor = SidingFloorEntity.SelectiveElements("oak", "clay", "tiles", null, TileFinishes, default, (Tiled, null));
+
+        Assert.Equal(new[] { "front-tile0", "front-tile2", "back-tile0", "back-tile1", "back-tile2", "back-tile3" },
+            wall.Where(name => name.Contains("tile")));
+        Assert.Equal(new[] { "secondfront-tile0", "secondfront-tile2", "secondfront-tile0-corner", "secondfront-tile2-corner", "secondback-tile0", "secondback-tile2" },
+            corner.Where(name => name.Contains("tile")));
+        Assert.Equal(new[] { "front-tile0", "front-tile2" }, floor.Where(name => name.Contains("tile")));
+        Assert.DoesNotContain(wall.Concat(corner).Concat(floor), name => name is "front" or "secondfront" or "back" or "secondback");
+    }
+
+    [Fact]
+    public void AGlazedFaceDrawsNoTiles()
+    {
+        Assert.DoesNotContain(SidingWallEntity.SelectiveElements("wall", "oak", "glass", "tiles", null, null, TileFinishes, default, true, (Tiled, null, null)),
+            name => name.Contains("tile") || name == "front");
+        Assert.DoesNotContain(SidingFloorEntity.SelectiveElements("oak", "glass", "tiles", null, TileFinishes, default, (Tiled, null), glazed: true),
+            name => name.Contains("tile"));
+    }
+
+    [Fact]
+    public void ADecksCapTilesFollowTheDecksTopTiles()
+    {
+        var deck = SidingWallEntity.DeckElements("west", "oak", "clay", "tiles", null, TileFinishes, default, (Tiled, null), false, capped: true);
+
+        Assert.Equal(new[] { "cap-west-front-tile0", "cap-west-front-tile2" }, deck.Where(name => name.StartsWith("cap")));
+        Assert.Contains("deck-west-front-tile0", deck);
+    }
+
+    // Every group a tiled face can ask for exists in its shape, so a missing one cannot draw nothing without a word.
+    [Theory]
+    [InlineData("wall")]
+    [InlineData("cornerout")]
+    [InlineData("cornerin")]
+    public void EveryTileGroupAWallFaceCanAskForExistsInItsShape(string layout)
+    {
+        var shape = JObject.Parse(File.ReadAllText(Path.Combine(MaterialTextureOpacityTests.GetAssemblyMetadata("RepoRoot"),
+            "VSSiding", "assets", "vssiding", "shapes", "block", "wall", layout + ".json")));
+        var names = shape["elements"]!.Select(e => (string)e["name"]!).ToHashSet();
+        const string all = "a,,c,";
+        bool post = layout == "cornerin";
+
+        var asked = new[] { null, "tiles" }.SelectMany(front => SidingWallEntity.SelectiveElements(
+            layout, "oak", post ? null : "clay", front, layout == "wall" ? null : "tiles", "tiles", TileFinishes, default, false, (all, all, all),
+            secondBack: layout == "wall" ? null : "tiles", secondBackStyle: all))
+            .Concat(SidingWallEntity.DeckElements("west", "oak", "clay", "tiles", "tiles", TileFinishes, default, (post ? "a,,," : all, all), false, capped: true,
+                ledges: SidingWallEntity.Ledges(layout, false, false, default)))
+            .Where(name => name.Contains("tile"));
+
+        Assert.Equal([], asked.Distinct().Where(name => !names.Contains(name)).ToArray());
+    }
+
+    [Fact]
+    public void EveryTileGroupAFloorFaceCanAskForExistsInTheFloorShape()
+    {
+        var shape = JObject.Parse(File.ReadAllText(Path.Combine(MaterialTextureOpacityTests.GetAssemblyMetadata("RepoRoot"),
+            "VSSiding", "assets", "vssiding", "shapes", "block", "floor", "floor.json")));
+        var names = shape["elements"]!.Select(e => (string)e["name"]!).ToHashSet();
+
+        var asked = SidingFloorEntity.SelectiveElements("oak", "clay", "tiles", "tiles", TileFinishes, default, ("a,,c,", "a,,c,"));
+
+        Assert.Equal([], asked.Where(name => name.Contains("tile") && !names.Contains(name)).ToArray());
     }
 }

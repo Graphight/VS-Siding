@@ -1,6 +1,9 @@
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Newtonsoft.Json.Linq;
+using SkiaSharp;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Datastructures;
@@ -364,5 +367,93 @@ public class SidingWallTexSourceTests
         Assert.Equal(
             new[] { Texture("Finishes", "planks"), Texture("Finishes", "planks-veryaged"), Texture("FinishFamilies", "planks-{wood}") },
             new[] { Texture("Framings", "oak"), Texture("Framings", "veryaged"), Texture("FramingFamilies", "{wood}") });
+    }
+
+    private static readonly JsonObject TileFinishes = Dict("""
+    {
+        "tiles": { },
+        "tile-a": { "Tile": true, "Texture": "game:block/clay/tile/2x2/plain/blue*" },
+        "tile-b": { "Tile": true, "Texture": "game:block/clay/tile/2x2/plain/red*" }
+    }
+    """);
+
+    private static string? Tile(string slot, string? front = "tiles", string? secondFront = null, string? frontStyle = "tile-a,,tile-b,", string? secondFrontStyle = null)
+        => SidingWallTexSource.ResolveTexture(slot, null, null, front, secondFront, null, Framings, Infills, TileFinishes,
+            frontStyle, secondFrontStyle)?.Base.ToString();
+
+    [Fact]
+    public void ATileSlotTakesTheTextureOfTheKindItHolds()
+    {
+        Assert.Equal(["game:block/clay/tile/2x2/plain/blue*", null, "game:block/clay/tile/2x2/plain/red*", null],
+            new[] { "fronttile0", "fronttile1", "fronttile2", "fronttile3" }.Select(slot => Tile(slot)));
+        Assert.Null(Tile("front"));
+    }
+
+    [Fact]
+    public void AFrontEdgeTileTakesTheSecondFrontsTileElseTheFronts()
+    {
+        Assert.Equal("game:block/clay/tile/2x2/plain/blue*", Tile("frontedgetile0"));
+        Assert.Equal("game:block/clay/tile/2x2/plain/red*", Tile("frontedgetile0", secondFront: "tiles", secondFrontStyle: "tile-b,,,"));
+    }
+
+    [Fact]
+    public void ATileKindsVaryingTextureVariesTheCell()
+    {
+        var attributes = Dict("""{ "Framings": {}, "Infills": {}, "Finishes": { "tiles": {}, "tile-a": { "Texture": "game:block/clay/tile/2x2/plain/blue*" } } }""");
+
+        // Only a tiled face's style lists tile kinds; another face's names its look.
+        Assert.Equal(
+            (77, 0, 0),
+            (SidingWallEntity.CellAlternate(attributes, 77, null, null, [], ["tiles"], styles: ["tile-a,,,"]),
+             SidingWallEntity.CellAlternate(attributes, 77, null, null, [], ["tiles"], styles: [",,,"]),
+             SidingWallEntity.CellAlternate(attributes, 77, null, null, [], ["daub"], styles: ["tile-a"])));
+    }
+
+    [Fact]
+    public void RollingAClayTileTextureRightPutsEachTilesGroutOnItsFirstColumnAsItsRowsAlreadyAre()
+    {
+        var textures = Path.Combine(MaterialTextureOpacityTests.GetAssemblyMetadata("VintageStoryPath"), "assets", "survival", "textures");
+        var files = Directory.GetFiles(Path.Combine(textures, "block", "clay", "tile"), "*.png", SearchOption.AllDirectories).Order().ToList();
+        Assert.NotEmpty(files);
+
+        var groutAt = files.ToDictionary(file => Path.GetRelativePath(textures, file), file =>
+        {
+            // From bytes, as NoMaterialTextureHasPartialAlpha does since #120: SKBitmap.Decode(path) now and then gave null.
+            using var codec = SKCodec.Create(new MemoryStream(File.ReadAllBytes(file)), out var result);
+            using var bitmap = codec == null ? null : SKBitmap.Decode(codec);
+            if (bitmap == null) return $"did not decode ({result})";
+            var rolled = SidingWallTexSource.RollRight(Array.ConvertAll(bitmap.Pixels, p => (int)(uint)p), bitmap.Width);
+            // The grout texel is a neutral grey; per tile, the column and the row nearest it all along are the joint.
+            int Off(int x, int y)
+            {
+                var c = new SKColor((uint)rolled[y * bitmap.Width + x]);
+                return Math.Abs(c.Red - 99) + Math.Abs(c.Green - 98) + Math.Abs(c.Blue - 97);
+            }
+            int Nearest(int start, System.Func<int, int, int> at)
+                => Enumerable.Range(start, 16).MinBy(line => Enumerable.Range(0, 32).Sum(along => at(line, along)));
+            int[] Lines(System.Func<int, int, int> at) => [Nearest(0, at), Nearest(16, at)];
+            return $"columns {string.Join(",", Lines((x, y) => Off(x, y)))}, rows {string.Join(",", Lines((y, x) => Off(x, y)))}";
+        });
+
+        Assert.Equal(files.ToDictionary(file => Path.GetRelativePath(textures, file), _ => "columns 0,16, rows 0,16"), groutAt);
+    }
+
+    [Fact]
+    public void OnlyVanillasClayTileTexturesRoll()
+    {
+        Assert.Equal(
+            [true, false, false],
+            new[] { "game:block/clay/tile/2x2/plain/blue1", "game:block/stone/tiles/travertine1", "game:block/wood/planks/oak1" }
+                .Select(code => SidingWallTexSource.RollsRight(new AssetLocation(code))));
+    }
+
+    [Fact]
+    public void ARolledTextureKeepsItsColoursInTheBgraBytesTheAtlasUploads()
+    {
+        var source = new SKBitmap(new SKImageInfo(2, 1, SKColorType.Bgra8888, SKAlphaType.Unpremul));
+        source.SetPixel(0, 0, SKColors.Red);
+        source.SetPixel(1, 0, SKColors.Blue);
+
+        Assert.Equal(new byte[] { 255, 0, 0, 255, 0, 0, 255, 255 }, SidingWallTexSource.RolledBitmap(new BitmapExternal(source)).bmp.Bytes);
     }
 }
