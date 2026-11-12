@@ -113,6 +113,24 @@ public class SidingWallBlockDropsTests
         Assert.Equal(new[] { "game:plank-oak", "game:stick", "game:clay-blue", "game:burnedbrick-red" }, Codes(drops));
     }
 
+    // A diagonal's deck covers one triangle, so each layer refunds half a wall's amount (decision 0096).
+    [Fact]
+    public void DiagonalDeckRefundsHalfOfEachLayer()
+    {
+        var drops = SidingWallBlock.ComputeDrops(null, null, null, null, null, "oak", Framings, Infills, Finishes, null, "wattle", "daub", "brick", layout: "diagonal");
+        Assert.Equal(
+            new[] { ("game:plank-oak", 1f), ("game:stick", 2f), ("game:clay-blue", 1f), ("game:burnedbrick-red", 1f) },
+            drops.ConvertAll(d => (d.Code!.ToString(), d.Quantity.avg)));
+    }
+
+    [Theory]
+    [InlineData("diagonal", 4, 2)]
+    [InlineData("diagonal", 1, 1)]
+    [InlineData("wall", 4, 4)]
+    [InlineData("cornerin", 4, 4)]
+    public void DeckCostFollowsTheLayout(string layout, int wall, int deck)
+        => Assert.Equal(deck, SidingWallBlock.Share(wall, SidingWallBlock.LayerParts(layout, "deck")));
+
     [Fact]
     public void StepDropsExactlyOneOfTheStoredStair()
     {

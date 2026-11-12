@@ -69,8 +69,8 @@ public class PlaceWallFrame : CollectibleBehavior
         bool withDeck = layout != "floor" && SidingModePicker.Deck(byPlayer);
 
         int frame = SidingWallBlock.ConsumeQuantity(wallBlock.Attributes["Framings"][framingKey]["Consumes"]);
-        // A post's frame costs a quarter of a wall's; a deck costs a full frame on either.
-        JsonObject Cost(bool deck) => new(new JObject { ["quantity"] = (post ? SidingWallBlock.PostQuarter(frame) : frame) + (deck ? frame : 0) });
+        // A post's frame costs a quarter of a wall's; a deck costs a full frame on either, half of one on a diagonal.
+        JsonObject Cost(bool deck) => new(new JObject { ["quantity"] = (post ? SidingWallBlock.PostQuarter(frame) : frame) + (deck ? SidingWallBlock.Share(frame, SidingWallBlock.LayerParts(layout, "deck")) : 0) });
         bool isCreative = byPlayer.WorldData.CurrentGameMode == EnumGameMode.Creative;
         if (!SidingWallBlock.TryAffordOrError(byPlayer, isCreative, slot.Itemstack.StackSize, Cost(withDeck))) return;
         var placeholder = world.GetBlock(new AssetLocation("vssiding", layout == "floor" ? "floor" : $"wall-{layout}-west"));

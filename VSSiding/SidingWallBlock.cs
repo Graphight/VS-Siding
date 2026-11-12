@@ -994,7 +994,7 @@ public class SidingWallBlock : Block
             if (FramesOnFrom(heldCode, SidingFloorBlock.FinishFace(blockSel.Face) != null, Attributes["Framings"]))
                 return base.OnBlockInteractStart(world, byPlayer, blockSel);
 
-            var consumes = Attributes["Infills"][infillKey]["Consumes"];
+            var consumes = ShareConsumes(Attributes["Infills"][infillKey]["Consumes"], LayerParts(Variant["layout"], "deckinfill"));
             if (!TryAffordOrError(byPlayer, isCreative, slot.StackSize, consumes)) return true;
 
             entity.DeckInfill = infillKey;
@@ -1057,7 +1057,7 @@ public class SidingWallBlock : Block
             style = StyleFor(face);
         }
 
-        var finishConsumes = Attributes["Finishes"][finishKey]["Consumes"];
+        var finishConsumes = ShareConsumes(Attributes["Finishes"][finishKey]["Consumes"], LayerParts(Variant["layout"], "deckfront"));
         if (!TryAffordOrError(byPlayer, isCreative, slot.StackSize, finishConsumes)) return true;
 
         SetDeckFinish(entity, face, finishKey, style);
@@ -1330,7 +1330,7 @@ public class SidingWallBlock : Block
             return true;
         }
 
-        var deckConsumes = Attributes["Framings"][deckKey]["Consumes"];
+        var deckConsumes = ShareConsumes(Attributes["Framings"][deckKey]["Consumes"], LayerParts(Variant["layout"], "deck"));
         if (!TryAffordOrError(byPlayer, isCreative, slot.StackSize, deckConsumes)) return true;
 
         SetDeck(world, entity, pos, deckKey);
@@ -1880,10 +1880,10 @@ public class SidingWallBlock : Block
         AddDrops(drops, secondFront, finishes, LayerParts(layout, "secondfront"));
         AddDrops(drops, back, finishes, LayerParts(layout, "back"));
         AddDrops(drops, secondBack, finishes, LayerParts(layout, "secondback"));
-        AddDrops(drops, deck, framings);
-        AddDrops(drops, deckInfill, infills);
-        AddDrops(drops, deckFront, finishes);
-        AddDrops(drops, deckBack, finishes);
+        AddDrops(drops, deck, framings, LayerParts(layout, "deck"));
+        AddDrops(drops, deckInfill, infills, LayerParts(layout, "deckinfill"));
+        AddDrops(drops, deckFront, finishes, LayerParts(layout, "deckfront"));
+        AddDrops(drops, deckBack, finishes, LayerParts(layout, "deckback"));
         var stepDrop = StepDrop(step);
         if (stepDrop != null) drops.Add(stepDrop);
         return drops;
@@ -2046,9 +2046,11 @@ public class SidingWallBlock : Block
 
     internal static int PostQuarter(int quantity) => Share(quantity, 4);
 
-    // How many parts of a wall's amount a layer costs and refunds one of; a deck is always laid in full.
+    // How many parts of a wall's amount a layer costs and refunds one of; a deck is laid in full, but a diagonal's
+    // covers one triangle of its cell, so half (decision 0096).
     internal static int LayerParts(string? layout, string? layer) => (layout, layer) switch
     {
+        ("diagonal", not null) when layer.StartsWith("deck") => 2,
         (_, not null) when layer.StartsWith("deck") => 1,
         ("cornerin", _) => 4,
         ("cornerout", "back" or "secondback") => 2,
