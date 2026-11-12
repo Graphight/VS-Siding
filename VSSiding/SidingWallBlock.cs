@@ -1372,8 +1372,10 @@ public class SidingWallBlock : Block
     }
 
     // A diagonal's claimed faces look out at the outer triangle; every other face, and every other layout, is the inner deck.
-    internal DeckHalf HalfFacing(BlockFacing face)
-        => Variant["layout"] == "diagonal" && ClaimsFace(face) ? DeckHalf.Outer : DeckHalf.Inner;
+    internal DeckHalf HalfFacing(BlockFacing face) => HalfFacing(Variant["layout"], Variant["side"], face.Code);
+
+    internal static DeckHalf HalfFacing(string layout, string side, string faceCode)
+        => layout == "diagonal" && ClaimsFace(layout, side, faceCode) ? DeckHalf.Outer : DeckHalf.Inner;
 
     private void SetDeck(IWorldAccessor world, SidingWallEntity entity, BlockPos pos, string? deckKey, DeckHalf half = DeckHalf.Inner)
     {

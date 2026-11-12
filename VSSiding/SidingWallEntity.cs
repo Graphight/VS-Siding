@@ -241,13 +241,16 @@ public class SidingWallEntity : BlockEntity
             FrameElements(Block.Attributes["Framings"], Deck, alternate), Ledges(layout, Back == null, glazed, joins, SecondBack == null), deckInnerCorners, capped,
             InfillElements(Block.Attributes["Infills"], DeckInfill));
         bool outerGlazed = SidingWallBlock.IsTransparent(OuterDeckInfill, Block.Attributes["Infills"]);
-        string[] outerElements = DeckElements(side, OuterDeck, OuterDeckInfill, OuterDeckFront, OuterDeckBack, Block.Attributes["Finishes"], default, (OuterDeckFrontStyle, OuterDeckBackStyle),
+        var allJoins = SidingFloorBlock.Joins(Api.World.BlockAccessor, Pos, outerGlazed);
+        var outerJoins = (allJoins.above && SidingWallBlock.ClaimsFace(layout, side, "north"), allJoins.below && SidingWallBlock.ClaimsFace(layout, side, "south"),
+            allJoins.left && SidingWallBlock.ClaimsFace(layout, side, "west"), allJoins.right && SidingWallBlock.ClaimsFace(layout, side, "east"));
+        string[] outerElements = DeckElements(side, OuterDeck, OuterDeckInfill, OuterDeckFront, OuterDeckBack, Block.Attributes["Finishes"], outerJoins, (OuterDeckFrontStyle, OuterDeckBackStyle),
             outerGlazed, FrameElements(Block.Attributes["Framings"], OuterDeck, alternate), fill: InfillElements(Block.Attributes["Infills"], OuterDeckInfill), group: "outerdeck");
         if (selectiveElements.Length == 0 && deckElements.Length == 0 && outerElements.Length == 0 && stepElements.Length == 0) return false;
 
         string cacheKey = CacheKey(layout, side, Framing, Infill, Front, SecondFront, Back, joins, Styles, Deck, Step, StepOrientation,
             DeckInfill, DeckFront, DeckBack, (DeckFrontStyle, DeckBackStyle), deckJoins, alternate, innerCorners, deckInnerCorners, glassRunsOn, tees, closed, capped,
-            SecondBack, SecondBackStyle, OuterDeckState);
+            SecondBack, SecondBackStyle, OuterDeckState + outerJoins);
 
         MeshData[] meshes = ObjectCacheUtil.GetOrCreate(capi, cacheKey, () =>
         {

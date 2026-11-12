@@ -259,6 +259,27 @@ public class SidingFloorTests
             });
     }
 
+    // A west diagonal claims north and west: a floor beside those faces meets the outer deck, any other face the inner.
+    [Fact]
+    public void ADiagonalsClaimedFacesAreReachedByItsOuterDeckAlone()
+    {
+        Assert.Equal(
+            [true, false, true, true, false, true, false, false, false, true],
+            new[]
+            {
+                SidingFloorBlock.DeckReaches("diagonal", "west", BlockFacing.SOUTH, DeckHalf.Outer),
+                SidingFloorBlock.DeckReaches("diagonal", "west", BlockFacing.SOUTH),
+                SidingFloorBlock.DeckReaches("diagonal", "west", BlockFacing.EAST, DeckHalf.Outer),
+                SidingFloorBlock.DeckReaches("diagonal", "west", BlockFacing.WEST),
+                SidingFloorBlock.DeckReaches("diagonal", "west", BlockFacing.WEST, DeckHalf.Outer),
+                SidingFloorBlock.DeckReaches("diagonal", "west", BlockFacing.WEST),
+                SidingFloorBlock.DeckReaches("wall", "west", BlockFacing.EAST, DeckHalf.Outer),
+                SidingFloorBlock.DeckReaches("cornerin", "west", BlockFacing.EAST, DeckHalf.Outer),
+                SidingFloorBlock.DeckReaches("diagonal", "west", BlockFacing.NORTH, DeckHalf.Outer),
+                SidingFloorBlock.DeckReaches("diagonal", "west", BlockFacing.NORTH),
+            });
+    }
+
     // Glazing merges east and west too, so a key without those joins handed one cell's bezel to its neighbours.
     [Fact]
     public void EveryJoinStateMeshesUnderItsOwnKey()
