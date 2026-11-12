@@ -436,4 +436,14 @@ public class SidingWallTexSourceTests
             new[] { "game:block/clay/tile/2x2/plain/blue1", "game:block/stone/tiles/travertine1", "game:block/wood/planks/oak1" }
                 .Select(code => SidingWallTexSource.RollsRight(new AssetLocation(code))));
     }
+
+    [Fact]
+    public void ARolledTextureKeepsItsColoursInTheBgraBytesTheAtlasUploads()
+    {
+        var source = new SKBitmap(new SKImageInfo(2, 1, SKColorType.Bgra8888, SKAlphaType.Unpremul));
+        source.SetPixel(0, 0, SKColors.Red);
+        source.SetPixel(1, 0, SKColors.Blue);
+
+        Assert.Equal(new byte[] { 255, 0, 0, 255, 0, 0, 255, 255 }, SidingWallTexSource.RolledBitmap(new BitmapExternal(source)).bmp.Bytes);
+    }
 }

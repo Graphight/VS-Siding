@@ -106,11 +106,13 @@ public class SidingWallTexSource : ITexPositionSource
     internal static bool RollsRight(AssetLocation texture)
         => texture.Domain == "game" && texture.Path.StartsWith("block/clay/tile/");
 
-    private static IBitmap RolledBitmap(BitmapRef source)
+    internal static BitmapExternal RolledBitmap(BitmapRef source)
     {
         using (source)
         {
-            var rolled = new BitmapExternal(source.Width, source.Height);
+            // LoadIntoTexture uploads the raw bytes as BGRA, as BitmapExternal.Decode lays them out; a bare
+            // SKBitmap(w, h) takes the platform's order, RGBA on a Mac, and turns red tiles blue.
+            var rolled = new BitmapExternal(new SKBitmap(new SKImageInfo(source.Width, source.Height, SKColorType.Bgra8888, SKAlphaType.Unpremul)));
             rolled.bmp.Pixels = System.Array.ConvertAll(RollRight(source.Pixels, source.Width), pixel => new SKColor((uint)pixel));
             return rolled;
         }
