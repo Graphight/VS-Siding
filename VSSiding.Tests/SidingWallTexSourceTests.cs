@@ -401,8 +401,12 @@ public class SidingWallTexSourceTests
     {
         var attributes = Dict("""{ "Framings": {}, "Infills": {}, "Finishes": { "tiles": {}, "tile-a": { "Texture": "game:block/clay/tile/2x2/plain/blue*" } } }""");
 
-        Assert.Equal(77, SidingWallEntity.CellAlternate(attributes, 77, null, null, [], ["tiles"], styles: ["tile-a,,,"]));
-        Assert.Equal(0, SidingWallEntity.CellAlternate(attributes, 77, null, null, [], ["tiles"], styles: [",,,"]));
+        // Only a tiled face's style lists tile kinds; another face's names its look.
+        Assert.Equal(
+            (77, 0, 0),
+            (SidingWallEntity.CellAlternate(attributes, 77, null, null, [], ["tiles"], styles: ["tile-a,,,"]),
+             SidingWallEntity.CellAlternate(attributes, 77, null, null, [], ["tiles"], styles: [",,,"]),
+             SidingWallEntity.CellAlternate(attributes, 77, null, null, [], ["daub"], styles: ["tile-a"])));
     }
 
     [Fact]

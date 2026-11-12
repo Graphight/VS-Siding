@@ -251,7 +251,7 @@ public class SidingWallEntity : BlockEntity
         string?[]? styles = null)
     {
         // A tiled face keeps its tile kinds in its style, so those count as finishes too.
-        string?[] kinds = [.. finishes, .. (styles ?? []).SelectMany(style => style?.Split(',') ?? []).Where(kind => kind != "")];
+        string?[] kinds = [.. finishes, .. finishes.Zip(styles ?? []).Where(face => face.First == TilesKey).SelectMany(face => TileSlots(face.Second)).Where(kind => kind != "")];
         if (stepVaries || SidingWallTexSource.AnyVaries(attributes["Framings"], framing, deck)
             || SidingWallTexSource.AnyVaries(attributes["Infills"], infills)
             || SidingWallTexSource.AnyVaries(attributes["Finishes"], kinds)) return hash;
