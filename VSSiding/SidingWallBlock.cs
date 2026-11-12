@@ -812,14 +812,21 @@ public class SidingWallBlock : Block
             return true;
         }
 
-        // A cut tile costs a whole one, so a tile ignores the layer's share (LayerParts).
-        var consumes = Attributes["Finishes"][tileKey]["Consumes"];
-        var (laidStyle, count) = TilesToLay(style, tileSlot, tileKey, fill, slot.StackSize, isCreative);
-        if (!TryAffordOrError(byPlayer, isCreative, slot.StackSize, consumes, count)) return true;
-
-        SetFinish(world, entity, blockSel.Position, face, SidingWallEntity.TilesKey, laidStyle);
-        ConsumeHeld(slot, consumes, isCreative, count);
+        LayTiles(byPlayer, slot, isCreative, Attributes["Finishes"], tileKey, style, tileSlot,
+            laid => SetFinish(world, entity, blockSel.Position, face, SidingWallEntity.TilesKey, laid));
         return true;
+    }
+
+    // Lays the tiles a click takes and charges for them. A cut tile costs a whole one, so a tile ignores the layer's share (LayerParts).
+    internal static void LayTiles(
+        IPlayer byPlayer, ItemSlot slot, bool isCreative, JsonObject finishes, string tileKey, string? style, int tileSlot, System.Action<string> setStyle)
+    {
+        var consumes = finishes[tileKey]["Consumes"];
+        var (laidStyle, count) = TilesToLay(style, tileSlot, tileKey, byPlayer.Entity.Controls.ShiftKey, slot.StackSize, isCreative);
+        if (!TryAffordOrError(byPlayer, isCreative, slot.StackSize, consumes, count)) return;
+
+        setStyle(laidStyle);
+        ConsumeHeld(slot, consumes, isCreative, count);
     }
 
     // A sneak-click fills every empty slot on the face, so it is refused only once none is left (decision 0095).
@@ -831,14 +838,15 @@ public class SidingWallBlock : Block
     {
         if (!fill) return (SidingWallEntity.WithTile(style, slot, tileKey), 1);
 
+        string[] slots = SidingWallEntity.TileSlots(style);
         int count = 0;
-        for (int i = 0; i < SidingWallEntity.TileSlots(style).Length && (isCreative || count < held); i++)
+        for (int i = 0; i < slots.Length && (isCreative || count < held); i++)
         {
-            if (SidingWallEntity.TileSlots(style)[i] != "") continue;
-            style = SidingWallEntity.WithTile(style, i, tileKey);
+            if (slots[i] != "") continue;
+            slots[i] = tileKey;
             count++;
         }
-        return (style ?? "", count);
+        return (string.Join(",", slots), count);
     }
 
     // Which of a face's four tile slots a hit lies in: row 0 the lower half, col 0 the lower coordinate along the face in
@@ -1003,15 +1011,9 @@ public class SidingWallBlock : Block
         {
             string? DeckStyle(string on) => on == "front" ? entity.DeckFrontStyle : entity.DeckBackStyle;
             var placed = FlatTilePlacement(byPlayer, blockSel, entity.DeckInfill, Attributes["Infills"], on => on == "front" ? entity.DeckFront : entity.DeckBack, DeckStyle);
-            if (placed is not { } laid) return true;
-
-            // A cut tile costs a whole one, so a tile ignores the layer's share.
-            var tileConsumes = Attributes["Finishes"][tileKey]["Consumes"];
-            var (laidStyle, count) = TilesToLay(DeckStyle(laid.Face), laid.Slot, tileKey, byPlayer.Entity.Controls.ShiftKey, slot.StackSize, isCreative);
-            if (!TryAffordOrError(byPlayer, isCreative, slot.StackSize, tileConsumes, count)) return true;
-
-            SetDeckFinish(entity, laid.Face, SidingWallEntity.TilesKey, laidStyle);
-            ConsumeHeld(slot, tileConsumes, isCreative, count);
+            if (placed is { } laid)
+                LayTiles(byPlayer, slot, isCreative, Attributes["Finishes"], tileKey, DeckStyle(laid.Face), laid.Slot,
+                    style => SetDeckFinish(entity, laid.Face, SidingWallEntity.TilesKey, style));
             return true;
         }
 
@@ -1418,8 +1420,10 @@ public class SidingWallBlock : Block
         // A post's back faces look at the corner it stands in, so a bare one against a wall there is left out.
         if (layout == "cornerin")
         {
-            var faces = PostFaces(side).Select(Opposite).Zip(new[] { (front, frontStyle), (secondFront, secondFrontStyle) }).Select(face => (face.First, face.Second.Item1, face.Second.Item2, back: false))
-                .Concat(PostFaces(side).Zip(new[] { (back, backStyle), (secondBack, secondBackStyle) }).Select(face => (face.First, face.Second.Item1, face.Second.Item2, back: true)));
+            var faces = PostFaces(side).Select(Opposite).Zip(new[] { (key: front, style: frontStyle), (key: secondFront, style: secondFrontStyle) })
+                .Select(face => (face.First, face.Second.key, face.Second.style, back: false))
+                .Concat(PostFaces(side).Zip(new[] { (key: back, style: backStyle), (key: secondBack, style: secondBackStyle) })
+                    .Select(face => (face.First, face.Second.key, face.Second.style, back: true)));
             foreach (var (direction, key, style, isBack) in faces)
             {
                 if (isBack && key == null && buried?.Invoke(direction) == true) continue;

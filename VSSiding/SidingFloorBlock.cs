@@ -64,15 +64,9 @@ public class SidingFloorBlock : Block
         {
             string? FaceStyle(string on) => on == "front" ? entity.FrontStyle : entity.BackStyle;
             var placed = SidingWallBlock.FlatTilePlacement(byPlayer, blockSel, entity.Infill, Attributes["Infills"], on => on == "front" ? entity.Front : entity.Back, FaceStyle);
-            if (placed is not { } laid) return true;
-
-            // A cut tile costs a whole one.
-            var tileConsumes = Attributes["Finishes"][tileKey]["Consumes"];
-            var (laidStyle, count) = SidingWallBlock.TilesToLay(FaceStyle(laid.Face), laid.Slot, tileKey, byPlayer.Entity.Controls.ShiftKey, slot.StackSize, isCreative);
-            if (!SidingWallBlock.TryAffordOrError(byPlayer, isCreative, slot.StackSize, tileConsumes, count)) return true;
-
-            SetFinish(entity, laid.Face, SidingWallEntity.TilesKey, laidStyle);
-            SidingWallBlock.ConsumeHeld(slot, tileConsumes, isCreative, count);
+            if (placed is { } laid)
+                SidingWallBlock.LayTiles(byPlayer, slot, isCreative, Attributes["Finishes"], tileKey, FaceStyle(laid.Face), laid.Slot,
+                    style => SetFinish(entity, laid.Face, SidingWallEntity.TilesKey, style));
             return true;
         }
 
