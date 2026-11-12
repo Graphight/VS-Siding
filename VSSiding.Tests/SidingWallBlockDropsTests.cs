@@ -123,6 +123,55 @@ public class SidingWallBlockDropsTests
             drops.ConvertAll(d => (d.Code!.ToString(), d.Quantity.avg)));
     }
 
+    [Fact]
+    public void DiagonalOuterDeckDropsHalfOfEachLayer()
+    {
+        var drops = SidingWallBlock.ComputeDrops(null, null, null, null, null, null, Framings, Infills, Finishes, null, layout: "diagonal",
+            outerDeck: "oak", outerDeckInfill: "wattle", outerDeckFront: "daub", outerDeckBack: "brick");
+        Assert.Equal(
+            new[] { ("game:plank-oak", 1f), ("game:stick", 2f), ("game:clay-blue", 1f), ("game:burnedbrick-red", 1f) },
+            drops.ConvertAll(d => (d.Code!.ToString(), d.Quantity.avg)));
+    }
+
+    [Fact]
+    public void DiagonalPeelsInnerDeckThenOuterDeckThenFrame()
+    {
+        var wall = FootprintHostsTests.Wall("diagonal", "west");
+        var entity = new SidingWallEntity { Framing = "oak", Deck = "oak", OuterDeck = "oak", OuterDeckInfill = "wattle", OuterDeckFront = "daub" };
+
+        Assert.Equal("deck", wall.PeelAt(entity, null, false));
+        entity.Deck = null;
+        Assert.Equal("outerdeckfront", wall.PeelAt(entity, null, false));
+        entity.OuterDeckFront = null;
+        Assert.Equal("outerdeckinfill", wall.PeelAt(entity, null, false));
+        entity.OuterDeckInfill = null;
+        Assert.Equal("outerdeck", wall.PeelAt(entity, null, false));
+        entity.OuterDeck = null;
+        Assert.Null(wall.PeelAt(entity, null, false));
+    }
+
+    [Fact]
+    public void AnOuterStripHitPeelsTheOuterDeckWhateverTheInnerHolds()
+    {
+        var wall = FootprintHostsTests.Wall("diagonal", "west");
+        var entity = new SidingWallEntity { Framing = "oak", Deck = "oak", DeckFront = "brick", OuterDeck = "oak", OuterDeckBack = "daub" };
+
+        Assert.Equal("outerdeckback", wall.PeelAt(entity, null, true, DeckHalf.Outer));
+        Assert.Equal("deckfront", wall.PeelAt(entity, null, true));
+    }
+
+    [Fact]
+    public void DropsOfCarriesTheOuterDeckLayers()
+    {
+        var wall = new SidingWallBlock
+        {
+            Attributes = new JsonObject(JToken.Parse("""{ "Framings": { "oak": { "Drops": [ { "type": "item", "code": "game:plank-oak" } ] } }, "Infills": {}, "Finishes": { "daub": { "Drops": [ { "type": "item", "code": "game:clay-blue" } ] } } }""")),
+        };
+        wall.VariantStrict["layout"] = "diagonal";
+        var entity = new SidingWallEntity { OuterDeck = "oak", OuterDeckFront = "daub" };
+        Assert.Equal(new[] { "game:plank-oak", "game:clay-blue" }, Codes(wall.DropsOf(entity)));
+    }
+
     [Theory]
     [InlineData("diagonal", 4, 2)]
     [InlineData("diagonal", 1, 1)]

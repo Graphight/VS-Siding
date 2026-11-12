@@ -906,8 +906,8 @@ public class SidingWallBlock : Block
     // The slot a break takes when the layer it peels is a tiled face, else -1.
     private int TileBreakSlot(SidingWallEntity entity, string layer, Vec3d? hit)
     {
-        if (layer is not ("front" or "secondfront" or "back" or "secondback" or "deckfront" or "deckback") || KeyAt(layer, entity) != SidingWallEntity.TilesKey) return -1;
-        int hitSlot = hit == null ? 0 : layer.StartsWith("deck") ? FloorTileSlot(hit) : TileSlot(Variant["layout"], Variant["side"], layer, hit);
+        if (BareLayer(layer) is not ("front" or "secondfront" or "back" or "secondback" or "deckfront" or "deckback") || KeyAt(layer, entity) != SidingWallEntity.TilesKey) return -1;
+        int hitSlot = hit == null ? 0 : layer.Contains("deck") ? FloorTileSlot(hit) : TileSlot(Variant["layout"], Variant["side"], layer, hit);
         return TileToBreak(StyleOn(entity, layer), hitSlot);
     }
 
@@ -915,7 +915,8 @@ public class SidingWallBlock : Block
     {
         string style = SidingWallEntity.WithTile(StyleOn(entity, layer), tileSlot, "");
         if (style.Trim(',').Length == 0) RemoveLayer(world, entity, pos, layer);
-        else if (layer.StartsWith("deck")) SetDeckFinish(entity, layer["deck".Length..], SidingWallEntity.TilesKey, style);
+        else if (layer.Contains("deck"))
+            SetDeckFinish(entity, layer[(layer.IndexOf("deck") + "deck".Length)..], SidingWallEntity.TilesKey, style, layer.StartsWith("outer") ? DeckHalf.Outer : DeckHalf.Inner);
         else SetFinish(world, entity, pos, layer, SidingWallEntity.TilesKey, style);
     }
 
@@ -1657,30 +1658,45 @@ public class SidingWallBlock : Block
         var entity = accessor.GetBlockEntity<SidingWallEntity>(pos);
         if (entity == null) return BlockMaterial;
 
-        bool deckHit = blockSel != null && IsDeckHit(accessor, blockSel, entity);
-        return LayerMaterialAt(PeelAt(entity, hitFace, deckHit), entity);
+        DeckHalf? half = blockSel == null ? null : HitDeckHalf(accessor, blockSel, entity);
+        return LayerMaterialAt(PeelAt(entity, hitFace, half != null, half ?? DeckHalf.Inner), entity);
     }
 
     // The layer a hit peels. A hit on the deck's own box always peels the deck, in a floor's order
     // (DeckPeelLayer); any other hit takes the wall's order, and a deck it lands on is resolved the same way, faceless.
-    internal string? PeelAt(SidingWallEntity entity, BlockFacing? hitFace, bool deckHit)
+    internal string? PeelAt(SidingWallEntity entity, BlockFacing? hitFace, bool deckHit, DeckHalf half = DeckHalf.Inner)
     {
+        string? deckFace = hitFace == null ? null : SidingFloorBlock.FinishFace(hitFace);
         if (deckHit)
-            return DeckPeelLayer(hitFace == null ? null : SidingFloorBlock.FinishFace(hitFace), entity.DeckInfill, entity.DeckFront, entity.DeckBack);
+            return half == DeckHalf.Outer ? OuterPeelLayer(entity, deckFace)
+                : DeckPeelLayer(deckFace, entity.DeckInfill, entity.DeckFront, entity.DeckBack);
 
         string? face = hitFace == null ? null : ResolveFinishFace(Variant["layout"], Variant["side"], hitFace);
         string? layer = PeelLayer(face, entity.Infill, entity.Front, entity.SecondFront, entity.Back, entity.Deck, entity.Step, entity.SecondBack);
+        if (layer == null && entity.OuterDeck != null) return OuterPeelLayer(entity, null);
         return layer == "deck" ? DeckPeelLayer(null, entity.DeckInfill, entity.DeckFront, entity.DeckBack) : layer;
     }
 
+    private static string OuterPeelLayer(SidingWallEntity entity, string? deckFace)
+        => "outer" + DeckPeelLayer(deckFace, entity.OuterDeckInfill, entity.OuterDeckFront, entity.OuterDeckBack);
+
     private static string? KeyAt(string? layer, SidingWallEntity entity)
-        => LayerKey(layer, entity.Infill, entity.Front, entity.SecondFront, entity.Back, entity.Deck, entity.Step, entity.DeckInfill, entity.DeckFront, entity.DeckBack, entity.SecondBack);
+        => layer switch
+        {
+            "outerdeck" => entity.OuterDeck,
+            "outerdeckinfill" => entity.OuterDeckInfill,
+            "outerdeckfront" => entity.OuterDeckFront,
+            "outerdeckback" => entity.OuterDeckBack,
+            _ => LayerKey(layer, entity.Infill, entity.Front, entity.SecondFront, entity.Back, entity.Deck, entity.Step, entity.DeckInfill, entity.DeckFront, entity.DeckBack, entity.SecondBack),
+        };
+
+    private static string? BareLayer(string? layer) => layer?.StartsWith("outer") == true ? layer["outer".Length..] : layer;
 
     private EnumBlockMaterial LayerMaterialAt(string? layer, SidingWallEntity entity)
     {
         if (layer == "step" && entity.Step != null)
             return api?.World.GetBlock(new AssetLocation(entity.Step))?.BlockMaterial ?? BlockMaterial;
-        return LayerMaterial(layer, KeyAt(layer, entity), entity.Framing, Attributes["Framings"], Attributes["Infills"], Attributes["Finishes"], BlockMaterial);
+        return LayerMaterial(BareLayer(layer), KeyAt(layer, entity), entity.Framing, Attributes["Framings"], Attributes["Infills"], Attributes["Finishes"], BlockMaterial);
     }
 
     // The fallback is a parameter rather than read from Sounds here, so GetSounds can defer to
@@ -1734,7 +1750,7 @@ public class SidingWallBlock : Block
     internal string? BurnLayer(SidingWallEntity entity)
     {
         string? layer = PeelAt(entity, null, false);
-        if (layer?.StartsWith("deck") != true || LayerMaterialAt(layer, entity) == EnumBlockMaterial.Wood) return layer;
+        if (layer?.Contains("deck") != true || LayerMaterialAt(layer, entity) == EnumBlockMaterial.Wood) return layer;
         return PeelLayer(null, entity.Infill, entity.Front, entity.SecondFront, entity.Back, null, entity.Step, entity.SecondBack) ?? layer;
     }
 
@@ -1761,7 +1777,8 @@ public class SidingWallBlock : Block
             ServerBreakSelection = null;
         }
         BlockFacing? hitFace = selection?.Position.Equals(pos) == true ? selection.Face : null;
-        bool deckHit = entity != null && hitFace != null && IsDeckHit(world.BlockAccessor, selection!, entity);
+        DeckHalf? hitHalf = entity != null && hitFace != null ? HitDeckHalf(world.BlockAccessor, selection!, entity) : null;
+        bool deckHit = hitHalf != null;
 
         // A rug on the deck comes off before any layer, as on a floor (decision 0051): vanilla only
         // breaks decor first in survival.
@@ -1771,7 +1788,7 @@ public class SidingWallBlock : Block
             return;
         }
 
-        string? layer = entity == null ? null : PeelAt(entity, hitFace, deckHit);
+        string? layer = entity == null ? null : PeelAt(entity, hitFace, deckHit, hitHalf ?? DeckHalf.Inner);
         if (entity == null || byPlayer == null || layer == null)
         {
             base.OnBlockBroken(world, pos, byPlayer, dropQuantityMultiplier);
@@ -1794,7 +1811,7 @@ public class SidingWallBlock : Block
             }
             else
             {
-                AddDrops(drops, key, Attributes[layer switch { "infill" or "deckinfill" => "Infills", "deck" => "Framings", _ => "Finishes" }],
+                AddDrops(drops, key, Attributes[BareLayer(layer) switch { "infill" or "deckinfill" => "Infills", "deck" => "Framings", _ => "Finishes" }],
                     LayerParts(Variant["layout"], layer));
             }
             foreach (var stack in ResolveDrops(world, drops, dropQuantityMultiplier)) world.SpawnItemEntity(stack, pos);
@@ -1847,7 +1864,16 @@ public class SidingWallBlock : Block
                 // Decor only goes on a sealed top, so a rug left on the bare joists comes off with the infill.
                 world.BlockAccessor.BreakDecor(pos, BlockFacing.UP);
                 return;
+            case "outerdeckfront": entity.OuterDeckFront = null; entity.OuterDeckFrontStyle = null; break;
+            case "outerdeckback": entity.OuterDeckBack = null; entity.OuterDeckBackStyle = null; break;
+            case "outerdeckinfill":
+                entity.OuterDeckInfill = null;
+                entity.MarkDirty(true);
+                world.BlockAccessor.ExchangeBlock(Id, pos);
+                SidingFloorBlock.MarkNeighboursDirty(world, pos);
+                return;
             case "deck": SetDeck(world, entity, pos, null); return;
+            case "outerdeck": SetDeck(world, entity, pos, null, DeckHalf.Outer); return;
             case "step": entity.Step = null; entity.StepOrientation = null; entity.MarkDirty(true); return;
             default:
                 entity.Infill = null;
@@ -1871,12 +1897,14 @@ public class SidingWallBlock : Block
     internal List<BlockDropItemStack> DropsOf(SidingWallEntity? entity) => ComputeDrops(
         entity?.Framing, entity?.Infill, entity?.Front, entity?.SecondFront, entity?.Back, entity?.Deck,
         Attributes["Framings"], Attributes["Infills"], Attributes["Finishes"], entity?.Step,
-        entity?.DeckInfill, entity?.DeckFront, entity?.DeckBack, Variant["layout"], entity?.SecondBack, TileLists(entity));
+        entity?.DeckInfill, entity?.DeckFront, entity?.DeckBack, Variant["layout"], entity?.SecondBack, TileLists(entity),
+        entity?.OuterDeck, entity?.OuterDeckInfill, entity?.OuterDeckFront, entity?.OuterDeckBack);
 
     // The style of every face whose finish is tiles, for the tiles a break with no player drops (decision 0095).
     private static string?[] TileLists(SidingWallEntity? entity) => entity == null ? [] :
         TileStyles((entity.Front, entity.FrontStyle), (entity.SecondFront, entity.SecondFrontStyle), (entity.Back, entity.BackStyle),
-            (entity.SecondBack, entity.SecondBackStyle), (entity.DeckFront, entity.DeckFrontStyle), (entity.DeckBack, entity.DeckBackStyle));
+            (entity.SecondBack, entity.SecondBackStyle), (entity.DeckFront, entity.DeckFrontStyle), (entity.DeckBack, entity.DeckBackStyle),
+            (entity.OuterDeckFront, entity.OuterDeckFrontStyle), (entity.OuterDeckBack, entity.OuterDeckBackStyle));
 
     internal static string?[] TileStyles(params (string? Key, string? Style)[] faces)
         => [.. faces.Where(face => face.Key == SidingWallEntity.TilesKey).Select(face => face.Style)];
@@ -1899,7 +1927,8 @@ public class SidingWallBlock : Block
     internal static List<BlockDropItemStack> ComputeDrops(
         string? framing, string? infill, string? front, string? secondFront, string? back, string? deck,
         JsonObject framings, JsonObject infills, JsonObject finishes, string? step = null,
-        string? deckInfill = null, string? deckFront = null, string? deckBack = null, string? layout = null, string? secondBack = null, string?[]? tileLists = null)
+        string? deckInfill = null, string? deckFront = null, string? deckBack = null, string? layout = null, string? secondBack = null, string?[]? tileLists = null,
+        string? outerDeck = null, string? outerDeckInfill = null, string? outerDeckFront = null, string? outerDeckBack = null)
     {
         var drops = new List<BlockDropItemStack>();
         foreach (string[] kinds in (tileLists ?? []).Select(SidingWallEntity.TileSlots))
@@ -1914,6 +1943,10 @@ public class SidingWallBlock : Block
         AddDrops(drops, deckInfill, infills, LayerParts(layout, "deckinfill"));
         AddDrops(drops, deckFront, finishes, LayerParts(layout, "deckfront"));
         AddDrops(drops, deckBack, finishes, LayerParts(layout, "deckback"));
+        AddDrops(drops, outerDeck, framings, LayerParts(layout, "outerdeck"));
+        AddDrops(drops, outerDeckInfill, infills, LayerParts(layout, "outerdeckinfill"));
+        AddDrops(drops, outerDeckFront, finishes, LayerParts(layout, "outerdeckfront"));
+        AddDrops(drops, outerDeckBack, finishes, LayerParts(layout, "outerdeckback"));
         var stepDrop = StepDrop(step);
         if (stepDrop != null) drops.Add(stepDrop);
         return drops;
@@ -2080,8 +2113,8 @@ public class SidingWallBlock : Block
     // covers one triangle of its cell, so half (decision 0096).
     internal static int LayerParts(string? layout, string? layer) => (layout, layer) switch
     {
-        ("diagonal", not null) when layer.StartsWith("deck") => 2,
-        (_, not null) when layer.StartsWith("deck") => 1,
+        ("diagonal", not null) when layer.Contains("deck") => 2,
+        (_, not null) when layer.Contains("deck") => 1,
         ("cornerin", _) => 4,
         ("cornerout", "back" or "secondback") => 2,
         _ => 1,
@@ -2122,7 +2155,8 @@ public class SidingWallBlock : Block
         => face switch
         {
             "front" => entity.FrontStyle, "secondfront" => entity.SecondFrontStyle, "secondback" => entity.SecondBackStyle,
-            "deckfront" => entity.DeckFrontStyle, "deckback" => entity.DeckBackStyle, _ => entity.BackStyle
+            "deckfront" => entity.DeckFrontStyle, "deckback" => entity.DeckBackStyle,
+            "outerdeckfront" => entity.OuterDeckFrontStyle, "outerdeckback" => entity.OuterDeckBackStyle, _ => entity.BackStyle
         };
 
     // A finish that mirrors on corners, laid beside itself across a corner's edge, takes the turn its partner face has not, whatever

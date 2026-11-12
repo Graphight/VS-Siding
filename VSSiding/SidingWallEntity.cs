@@ -155,14 +155,18 @@ public class SidingWallEntity : BlockEntity
         string? stepName = null;
         if (Step != null && Api.World.GetBlock(new AssetLocation(Step)) is { } stepBlock)
             stepName = stepBlock.GetHeldItemName(new ItemStack(stepBlock));
+        bool outer = forPlayer?.CurrentBlockSelection is { } sel && sel.Position.Equals(Pos) && Block is SidingWallBlock wall
+            && wall.HitDeckHalf(Api.World.BlockAccessor, sel, this) == DeckHalf.Outer;
+        string? deck = outer ? OuterDeck : Deck, deckInfill = outer ? OuterDeckInfill : DeckInfill;
         dsc.Append(SidingWallBlock.Describe(
-            Framing, Infill, Deck, Block.Attributes["Framings"], Block.Attributes["Infills"],
+            Framing, Infill, deck, Block.Attributes["Framings"], Block.Attributes["Infills"],
             Block.Variant["layout"], Block.Variant["side"], Front, SecondFront, Back, Block.Attributes["Finishes"],
-            SidingWallBlock.LangEntry, stepName, DeckInfill, DeckFront, DeckBack,
+            SidingWallBlock.LangEntry, stepName, deckInfill, outer ? OuterDeckFront : DeckFront, outer ? OuterDeckBack : DeckBack,
             SidingWallBlock.HasBuildSignal(forPlayer), Api != null && Pos != null ? Buried : null, SecondBack,
-            FrontStyle, SecondFrontStyle, BackStyle, SecondBackStyle, DeckFrontStyle, DeckBackStyle));
+            FrontStyle, SecondFrontStyle, BackStyle, SecondBackStyle,
+            outer ? OuterDeckFrontStyle : DeckFrontStyle, outer ? OuterDeckBackStyle : DeckBackStyle));
         // A bare deck answers a click on the top, so its hint wins over the wall's.
-        if (Deck != null && DeckInfill == null)
+        if (deck != null && deckInfill == null)
             SidingWallBlock.AppendFillHint(dsc, forPlayer, "floor", Block.Attributes["Framings"], Block.Attributes["Infills"]);
         else if (Infill == null)
             SidingWallBlock.AppendFillHint(dsc, forPlayer, Block.Variant["layout"], Block.Attributes["Framings"], Block.Attributes["Infills"]);
