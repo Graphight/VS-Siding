@@ -202,6 +202,27 @@ public class TileScenarios : AtlasScenarioBase
         Assert.Equal(("tile-plain-blue,tile-plain-blue,tile-plain-blue,tile-plain-blue", 0, 0), (Read(cell, "frontstyle"), Held(player), World.BlockAt(cell.UpCopy()).Id));
     }
 
+    // The sneak-click reaches the server down the held-item path, which tests range alone, so the fill makes its own claim test.
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
+    public async Task Floor_Should_RefuseASneakFillAndLeaveNoTilePile_When_ItLiesInAnotherPlayersClaim()
+    {
+        (BlockPos cell, ITestPlayer player) = await RaiseFloor();
+        var claim = new LandClaim { OwnedByPlayerUid = "someone-else", LastKnownOwnerName = "Someone else", ProtectionLevel = 1 };
+        claim.Areas.Add(new Cuboidi(cell.X - 2, cell.Y - 2, cell.Z - 2, cell.X + 2, cell.Y + 2, cell.Z + 2));
+        World.Api.World.Claims.Add(claim);
+        player.Entity.Controls.ShiftKey = true;
+        try
+        {
+            await WallBuilder.Press(World, player, cell, Blue, BlockFacing.UP, new Vec3d(0.25, 1, 0.75));
+
+            Assert.Equal(((string?)null, 4, 0), (Read(cell, "frontstyle"), Held(player), World.BlockAt(cell.UpCopy()).Id));
+        }
+        finally
+        {
+            World.Api.World.Claims.Remove(claim);
+        }
+    }
+
     private void BreakAt(BlockPos cell, BlockFacing face, Vec3d hit, ITestPlayer player, bool deck = false)
     {
         SetBreakSelection(new BlockSelection { Position = cell.Copy(), Face = face, HitPosition = hit, SelectionBoxIndex = deck ? World.BlockAt(cell).SelectionBoxes.Length : 0 });

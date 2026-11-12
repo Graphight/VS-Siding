@@ -38,6 +38,9 @@ public class TileFill : CollectibleBehavior
 
         handling = EnumHandling.PreventSubsequent;
         handHandling = EnumHandHandling.PreventDefault;
-        if (byEntity.World.Side == EnumAppSide.Server) block.OnBlockInteractStart(byEntity.World, byPlayer, blockSel);
+        // The held-item path tests range alone, so this is the claim test a plain click gets on the block-use path. TryAccess
+        // answers true on the client and sends its own refusal on the server.
+        if (byEntity.World.Side == EnumAppSide.Server && byEntity.World.Claims.TryAccess(byPlayer, blockSel.Position, EnumBlockAccessFlags.Use))
+            block.OnBlockInteractStart(byEntity.World, byPlayer, blockSel);
     }
 }
