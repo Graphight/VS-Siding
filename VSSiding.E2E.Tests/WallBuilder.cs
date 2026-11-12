@@ -79,9 +79,13 @@ internal static class WallBuilder
     }
 
     // The selection the mod's BreakBlock handler hands to the next siding OnBlockBroken.
-    internal static BlockSelection? ServerBreakSelection(IWorldSession world)
-        => (BlockSelection?)world.Api.ModLoader.GetModSystem("VSSiding.SidingModSystem").GetType().Assembly.GetType("VSSiding.SidingWallBlock")!
-            .GetField("ServerBreakSelection", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)!.GetValue(null);
+    internal static BlockSelection? ServerBreakSelection(IWorldSession world) => (BlockSelection?)BreakSelectionField(world).GetValue(null);
+
+    internal static void SetServerBreakSelection(IWorldSession world, BlockSelection selection) => BreakSelectionField(world).SetValue(null, selection);
+
+    private static System.Reflection.FieldInfo BreakSelectionField(IWorldSession world)
+        => world.Api.ModLoader.GetModSystem("VSSiding.SidingModSystem").GetType().Assembly.GetType("VSSiding.SidingWallBlock")!
+            .GetField("ServerBreakSelection", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)!;
 
     // deck, deckinfill, deckfront, deckback as the wall's entity saves them.
     internal static (string? Deck, string? Infill, string? Front, string? Back) DeckLayers(IWorldSession world, BlockPos cell)

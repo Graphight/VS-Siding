@@ -236,7 +236,7 @@ public class TileScenarios : AtlasScenarioBase
 
     private void BreakAt(BlockPos cell, BlockFacing face, Vec3d hit, ITestPlayer player, bool deck = false)
     {
-        SetBreakSelection(new BlockSelection { Position = cell.Copy(), Face = face, HitPosition = hit, SelectionBoxIndex = deck ? World.BlockAt(cell).SelectionBoxes.Length : 0 });
+        WallBuilder.SetServerBreakSelection(World, new BlockSelection { Position = cell.Copy(), Face = face, HitPosition = hit, SelectionBoxIndex = deck ? World.BlockAt(cell).SelectionBoxes.Length : 0 });
         World.BlockAt(cell).OnBlockBroken(player.Entity.World, cell, player.Player);
     }
 
@@ -255,10 +255,6 @@ public class TileScenarios : AtlasScenarioBase
     }
 
     private static int Held(ITestPlayer player) => player.Player.InventoryManager.ActiveHotbarSlot.Itemstack?.StackSize ?? 0;
-
-    private void SetBreakSelection(BlockSelection selection)
-        => World.Api.ModLoader.GetModSystem("VSSiding.SidingModSystem").GetType().Assembly.GetType("VSSiding.SidingWallBlock")!
-            .GetField("ServerBreakSelection", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)!.SetValue(null, selection);
 
     private async Task<(BlockPos Cell, ITestPlayer Player)> RaiseWall(string? back = "game:plank-birch", string layout = "wall")
     {

@@ -5,6 +5,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Vintagestory.API.Common;
 using Vintagestory.API.Datastructures;
+using Vintagestory.API.MathTools;
 using Xunit;
 
 namespace VSSiding.Tests;
@@ -158,6 +159,44 @@ public class SidingWallBlockDropsTests
 
         Assert.Equal("outerdeckback", wall.PeelAt(entity, null, true, DeckHalf.Outer));
         Assert.Equal("deckfront", wall.PeelAt(entity, null, true));
+    }
+
+    // A west diagonal claims north and west, so a hit there is on the outer side; south and east are the room's.
+    [Theory]
+    [InlineData("north", "outerdeck")]
+    [InlineData("west", "outerdeck")]
+    [InlineData("south", "deck")]
+    [InlineData(null, "deck")]
+    public void APanelHitPeelsTheDeckOnItsOwnSide(string? face, string expected)
+    {
+        var wall = FootprintHostsTests.Wall("diagonal", "west");
+        var entity = new SidingWallEntity { Framing = "oak", Front = "daub", Deck = "oak", OuterDeck = "oak" };
+
+        Assert.Equal(expected, wall.PeelAt(entity, face == null ? null : BlockFacing.FromCode(face), false));
+    }
+
+    [Fact]
+    public void AFacelessPeelTakesTheOuterDeckBeforeTheWallsLayers()
+    {
+        var wall = FootprintHostsTests.Wall("diagonal", "west");
+
+        Assert.Equal("outerdeck", wall.PeelAt(new SidingWallEntity { Framing = "oak", Front = "daub", Infill = "wattle", OuterDeck = "oak" }, null, false));
+    }
+
+    // Fire catches only on wood (decision 0043): a daub front, or a bone inner deck, leaves the outer deck's planks next.
+    [Theory]
+    [InlineData(null)]
+    [InlineData("bone")]
+    public void FireReachesAWoodOuterDeckPastLayersThatDoNotBurn(string? innerDeck)
+    {
+        var wall = new SidingWallBlock
+        {
+            Attributes = new JsonObject(JToken.Parse("""{ "Framings": { "oak": { "BlockMaterial": "Wood" }, "bone": { "BlockMaterial": "Bone" } }, "Infills": {}, "Finishes": { "daub": { "BlockMaterial": "Soil" } } }""")),
+        };
+        wall.VariantStrict["layout"] = "diagonal";
+        wall.VariantStrict["side"] = "west";
+
+        Assert.Equal("outerdeck", wall.BurnLayer(new SidingWallEntity { Framing = "oak", Front = "daub", Deck = innerDeck, OuterDeck = "oak" }));
     }
 
     [Fact]

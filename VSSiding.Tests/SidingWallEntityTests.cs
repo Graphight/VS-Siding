@@ -90,7 +90,20 @@ public class SidingWallEntityTests
 
         Assert.Equal(
             new[] { 0, 1, 77, 77, 77, 1, 1, 77, 77, 0 },
-            cells.Select(c => SidingWallEntity.CellAlternate(attributes, 77, c.Framing, c.Deck, [c.Infill, null], [c.Front, null])));
+            cells.Select(c => SidingWallEntity.CellAlternate(attributes, 77, c.Framing, [c.Deck], [c.Infill, null], [c.Front, null])));
+    }
+
+    // A diagonal's outer deck alternates as its inner deck does, so a stick floor run keeps alternating across it (decision 0096).
+    [Fact]
+    public void AnOuterDeckAlternatesLikeAnInnerOne()
+    {
+        var attributes = Dict("""
+        { "Framings": { "oak": { "Texture": "planks/oak*" }, "aged": { "Texture": "planks/aged1" }, "sticks": { "Texture": "bark/oak", "Elements": "poles" } }, "Infills": {}, "Finishes": {} }
+        """);
+
+        Assert.Equal(
+            new[] { 1, 77, 0 },
+            new[] { "sticks", "oak", null }.Select(outer => SidingWallEntity.CellAlternate(attributes, 77, "aged", [null, outer], [], [])));
     }
 
     [Fact]
@@ -102,7 +115,7 @@ public class SidingWallEntityTests
 
         Assert.Equal(
             new[] { 77, 0 },
-            new[] { true, false }.Select(varies => SidingWallEntity.CellAlternate(attributes, 77, "aged", null, ["wattle"], [], varies)));
+            new[] { true, false }.Select(varies => SidingWallEntity.CellAlternate(attributes, 77, "aged", [], ["wattle"], [], varies)));
     }
 
     // Three stacked infill boxes share a face at each seam; for glass that blends twice and draws

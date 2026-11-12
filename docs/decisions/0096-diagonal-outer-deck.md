@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Created: 2026-11-11
-- Reflects: branch `diagonal-outer-deck`, issue #168 and a ModDB comment asking for it; `SidingWallBlock.OuterDeckBoxes`/`HitDeckHalf`/`HalfFacing`/`TryAddDeck`/`LayerDeck`/`PeelAt`/`LayerParts`, `SidingWallEntity`'s `OuterDeck*` fields, `WallShapeGen`'s `outerdeck-*` groups, `SidingFloorBlock.Continues`, `DiagonalScenarios`; decisions 0042, 0053, 0066, 0067
+- Reflects: branch `diagonal-outer-deck`, issue #168 and a ModDB comment asking for it; `SidingWallBlock.OuterDeckBoxes`/`HitDeckHalf`/`HalfFacing`/`TryAddDeck`/`LayerDeck`/`PeelAt`/`BurnLayer`/`LayerParts`, `SidingWallEntity`'s `OuterDeck*` fields, `DeckLayers` and `CellAlternate`, `WallShapeGen`'s `outerdeck-*` groups, `SidingFloorBlock.Continues`, `DiagonalScenarios`; decisions 0042, 0043, 0053, 0066, 0067; the author's choice of the hit side's deck for a panel hit and the review of PR #172
 
 ## Summary
 A diagonal's deck can cover its outer triangle as well as its inner one, each half with its own layers.
@@ -38,9 +38,12 @@ The outer half retains nothing, since the outer room never enters the cell and t
 
 **Peeling.**
 A hit on a strip peels that half's layers in a floor's order.
-A hit on the panel, once the wall is down to its frame, peels the inner deck, then the outer, then the framing.
-Fire burns the outer deck's top layer in the same turn as the inner's.
+A hit on a claimed face of the panel takes the outer deck before the wall's layers, as a hit on the room side already took the inner deck first.
+A hit with no face, which fire and break resistance use, takes the inner deck, then the outer, then the wall's layers.
+Fire catches only on wood (decision 0043), so a deck top that does not burn leaves the outer deck's top layer next in line, and a wood outer deck burns behind a daub wall.
+With Floor picked, planks on a half's top board it once that half is filled, whatever the other half holds.
 The tooltip shows the half the selection is on.
+The outer deck's framing counts toward the cell's alternate, so a stick or bamboo outer deck alternates with the floor beside it.
 
 **Floors join the half they face.**
 `SidingFloorBlock.Continues` reads the outer deck across a claimed face and the inner across an unclaimed one, and checks that half's glazing.

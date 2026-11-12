@@ -491,11 +491,15 @@ public class SidingWallBlockBuildFlowTests
                 side, neighbourOrientation, new Vec3f(lookX, 0, lookZ), BlockFacing.FromFirstLetter(clickedFace[..1]), hitY, hasDownVariant));
     }
 
+    // A west diagonal claims north and west; a deck click there adds the outer half, anywhere else (or on another layout) the inner.
     [Fact]
-    public void DiagonalWestClaimsTheFacesItsOuterDeckLooksOutAt()
+    public void ADeckClickAddsTheHalfOnTheClickedSide()
     {
-        var claimed = new[] { "north", "east", "south", "west" }.Where(f => SidingWallBlock.ClaimsFace("diagonal", "west", f)).ToArray();
+        string[] faces = ["north", "east", "south", "west", "up"];
 
-        Assert.Equal(new[] { "north", "west" }, claimed);
+        Assert.Equal(
+            [DeckHalf.Outer, DeckHalf.Inner, DeckHalf.Inner, DeckHalf.Outer, DeckHalf.Inner, DeckHalf.Inner, DeckHalf.Inner],
+            [.. faces.Select(face => SidingWallBlock.HalfFacing("diagonal", "west", face)),
+             SidingWallBlock.HalfFacing("cornerout", "west", "west"), SidingWallBlock.HalfFacing("wall", "west", "west")]);
     }
 }

@@ -128,84 +128,87 @@ public class DiagonalScenarios : AtlasScenarioBase
     [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public Task Diagonal_Should_DeckItsOuterHalfOnly_When_ItsOtherClaimedFaceIsClickedWithTheDeckLit() => OuterDeckFrom(side => CounterClockwise[side]);
 
+    // An outer deck costs half a frame of planks, one of the frame's two.
     private async Task OuterDeckFrom(System.Func<string, string> face)
     {
         (BlockPos cell, ITestPlayer player) = await RaiseFrame("diagonal", deck: false);
-        player.Entity.WatchedAttributes.SetString("vssidingDeck", "deck");
-        await player.GiveItem("game:plank-oak", 2);
-        World.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, FaceSel(cell, BlockFacing.FromCode(face(World.BlockAt(cell).Variant["side"]))));
+        await AddOuterDeck(cell, player, BlockFacing.FromCode(face(World.BlockAt(cell).Variant["side"])));
 
-        Assert.Equal(((string?)null, (string?)"oak"), (Deck(cell), Read(cell, "outerdeck")));
+        Assert.Equal(((string?)null, (string?)"oak", (ItemStack?)null), (Deck(cell), Read(cell, "outerdeck"), player.Player.InventoryManager.ActiveHotbarSlot.Itemstack));
     }
 
     [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Diagonal_Should_DeckBothHalvesApart_When_ClaimedAndUnclaimedFacesAreClicked()
     {
         (BlockPos cell, ITestPlayer player) = await RaiseFrame("diagonal", deck: false);
-        BlockFacing outerFace = BlockFacing.FromCode(World.BlockAt(cell).Variant["side"]);
-        player.Entity.WatchedAttributes.SetString("vssidingDeck", "deck");
-
-        await player.GiveItem("game:plank-oak", 2);
-        World.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, FaceSel(cell, outerFace));
+        await AddOuterDeck(cell, player, BlockFacing.FromCode(World.BlockAt(cell).Variant["side"]));
         var outerOnly = (Deck(cell), Read(cell, "outerdeck"));
 
-        await player.GiveItem("game:plank-oak", 2);
+        await player.GiveItem("game:plank-oak", 1);
         World.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, RoomSide(cell));
 
-        Assert.Equal((((string?)null, (string?)"oak"), ("oak", "oak")), (outerOnly, (Deck(cell), Read(cell, "outerdeck"))));
+        Assert.Equal(((null, "oak"), ("oak", "oak")), (outerOnly, (Deck(cell), Read(cell, "outerdeck"))));
     }
 
-    // Eight strips per half (decision 0067), the inner's first.
+    // The inner deck's eight strips come first among the deck's boxes, then the outer's (decisions 0067, 0096).
+    private const int Strips = 8;
+
     [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Deck_Should_LayerAndPeelOneHalf_When_ItsStripIsClicked()
     {
         (BlockPos cell, ITestPlayer player) = await RaiseFrame("diagonal", deck: true, framingCost: 3);
-        player.Entity.WatchedAttributes.SetString("vssidingDeck", "deck");
-        await player.GiveItem("game:plank-oak", 2);
-        World.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, FaceSel(cell, BlockFacing.FromCode(World.BlockAt(cell).Variant["side"])));
-        int strips = 8;
-
-        async Task Fill(int strip)
+        await AddOuterDeck(cell, player, BlockFacing.FromCode(World.BlockAt(cell).Variant["side"]));
+        (string?, string?, string?) Halves() => (DeckInfill(cell), Read(cell, "outerdeckinfill"), Read(cell, "outerdeck"));
+        void Peel(int strip)
         {
-            await player.GiveItem("game:clay-blue", 4);
-            var sel = new BlockSelection
-            {
-                Position = cell.Copy(), Face = BlockFacing.UP, HitPosition = new Vec3d(0.5, 1, 0.5),
-                SelectionBoxIndex = World.BlockAt(cell).SelectionBoxes.Length + strip,
-            };
-            Assert.True(World.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, sel));
+            WallBuilder.SetServerBreakSelection(World, StripTop(cell, strip));
+            World.BlockAt(cell).OnBlockBroken(player.Entity.World, cell, player.Player);
         }
 
-        await Fill(0);
-        var innerFilled = (DeckInfill(cell), Read(cell, "outerdeckinfill"));
-        await Fill(strips);
-        var bothFilled = (DeckInfill(cell), Read(cell, "outerdeckinfill"));
-
-        SetBreakSelection(new BlockSelection
-        {
-            Position = cell.Copy(), Face = BlockFacing.UP, HitPosition = new Vec3d(0.5, 1, 0.5),
-            SelectionBoxIndex = World.BlockAt(cell).SelectionBoxes.Length + strips,
-        });
-        World.BlockAt(cell).OnBlockBroken(player.Entity.World, cell, player.Player);
-        var outerInfillPeeled = (DeckInfill(cell), Read(cell, "outerdeckinfill"), Read(cell, "outerdeck"));
-        SetBreakSelection(new BlockSelection
-        {
-            Position = cell.Copy(), Face = BlockFacing.UP, HitPosition = new Vec3d(0.5, 1, 0.5),
-            SelectionBoxIndex = World.BlockAt(cell).SelectionBoxes.Length + strips,
-        });
-        World.BlockAt(cell).OnBlockBroken(player.Entity.World, cell, player.Player);
+        await player.GiveItem("game:clay-blue", 2);
+        World.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, StripTop(cell, 0));
+        var innerFilled = Halves();
+        await player.GiveItem("game:clay-blue", 2);
+        World.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, StripTop(cell, Strips));
+        var bothFilled = Halves();
+        Peel(Strips);
+        var outerInfillPeeled = Halves();
+        Peel(Strips);
 
         Assert.Equal(
-            ((("clay", (string?)null)), (("clay", "clay")), (("clay", (string?)null, (string?)"oak")), (("clay", (string?)null, (string?)null))),
-            (innerFilled, bothFilled, outerInfillPeeled, (DeckInfill(cell), Read(cell, "outerdeckinfill"), Read(cell, "outerdeck"))));
+            (("clay", null, "oak"), ("clay", "clay", "oak"), ("clay", null, "oak"), ("clay", null, null)),
+            (innerFilled, bothFilled, outerInfillPeeled, Halves()));
     }
+
+    // With Floor picked, planks on a filled deck's top board it; an outer deck answers from its own infill, not the inner's.
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
+    public async Task OuterDeck_Should_TakeFloorboards_When_PlanksFinishItWithFloorPickedAndNoInnerDeck()
+    {
+        (BlockPos cell, ITestPlayer player) = await RaiseFrame("diagonal", deck: false);
+        await AddOuterDeck(cell, player, BlockFacing.FromCode(World.BlockAt(cell).Variant["side"]));
+        await player.GiveItem("game:clay-blue", 2);
+        World.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, StripTop(cell, 0));
+
+        player.Entity.WatchedAttributes.SetString("vssidingFraming", "floor");
+        await player.GiveItem("game:plank-oak", 1);
+        World.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, StripTop(cell, 0));
+
+        Assert.Equal(((string?)"planks", (ItemStack?)null), (Read(cell, "outerdeckfront"), player.Player.InventoryManager.ActiveHotbarSlot.Itemstack));
+    }
+
+    private async Task AddOuterDeck(BlockPos cell, ITestPlayer player, BlockFacing claimedFace)
+    {
+        player.Entity.WatchedAttributes.SetString("vssidingDeck", "deck");
+        await player.GiveItem("game:plank-oak", 1);
+        World.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, FaceSel(cell, claimedFace));
+    }
+
+    // A strip's top; with no inner deck the outer's strips come first.
+    private BlockSelection StripTop(BlockPos cell, int strip)
+        => new() { Position = cell.Copy(), Face = BlockFacing.UP, HitPosition = new Vec3d(0.5, 1, 0.5), SelectionBoxIndex = World.BlockAt(cell).SelectionBoxes.Length + strip };
 
     private BlockSelection FaceSel(BlockPos cell, BlockFacing face)
         => new() { Position = cell.Copy(), Face = face, HitPosition = new Vec3d(0.5, 0.5, 0.5) };
-
-    private void SetBreakSelection(BlockSelection selection)
-        => World.Api.ModLoader.GetModSystem("VSSiding.SidingModSystem").GetType().Assembly.GetType("VSSiding.SidingWallBlock")!
-            .GetField("ServerBreakSelection", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)!.SetValue(null, selection);
 
     private BlockSelection RoomSide(BlockPos cell)
         => new() { Position = cell.Copy(), Face = BlockFacing.FromCode(World.BlockAt(cell).Variant["side"]).Opposite, HitPosition = new Vec3d(0.5, 0.5, 0.5) };

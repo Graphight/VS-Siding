@@ -264,13 +264,13 @@ public class SidingFloorTests
     public void ADiagonalsClaimedFacesAreReachedByItsOuterDeckAlone()
     {
         Assert.Equal(
-            [true, false, true, true, false, true, false, false, false, true],
+            [true, false, true, false, false, true, false, false, false, true],
             new[]
             {
                 SidingFloorBlock.DeckReaches("diagonal", "west", BlockFacing.SOUTH, DeckHalf.Outer),
                 SidingFloorBlock.DeckReaches("diagonal", "west", BlockFacing.SOUTH),
                 SidingFloorBlock.DeckReaches("diagonal", "west", BlockFacing.EAST, DeckHalf.Outer),
-                SidingFloorBlock.DeckReaches("diagonal", "west", BlockFacing.WEST),
+                SidingFloorBlock.DeckReaches("diagonal", "west", BlockFacing.EAST),
                 SidingFloorBlock.DeckReaches("diagonal", "west", BlockFacing.WEST, DeckHalf.Outer),
                 SidingFloorBlock.DeckReaches("diagonal", "west", BlockFacing.WEST),
                 SidingFloorBlock.DeckReaches("wall", "west", BlockFacing.EAST, DeckHalf.Outer),

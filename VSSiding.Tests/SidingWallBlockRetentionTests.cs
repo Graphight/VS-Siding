@@ -239,7 +239,7 @@ public class SidingWallBlockRetentionTests
     [Fact]
     public void ADiagonalsUpFaceFollowsItsInnerDeckAlone()
     {
-        var wall = new SidingWallBlock { Attributes = new JsonObject(JToken.Parse("""{ "Framings": { "oak": {} }, "Infills": { "wattle": { "BlockMaterial": "Wood" }, "clay": { "Cooling": true } } }""")) };
+        var wall = new SidingWallBlock { Attributes = new JsonObject(JToken.Parse("""{ "Framings": { "oak": {} }, "Infills": { "wattle": { "BlockMaterial": "Wood" }, "clay": { "BlockMaterial": "Soil" } } }""")) };
         wall.VariantStrict["layout"] = "diagonal";
         wall.VariantStrict["side"] = "west";
 

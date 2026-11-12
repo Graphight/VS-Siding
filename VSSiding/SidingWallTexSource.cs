@@ -37,12 +37,11 @@ public class SidingWallTexSource : ITexPositionSource
         get
         {
             if (textureCode == "step") return StepTexture();
-            bool outer = textureCode.StartsWith("outerdeck");
+            var deck = entity.DeckLayers(textureCode.StartsWith("outerdeck") ? DeckHalf.Outer : DeckHalf.Inner);
             CompositeTexture? texture = ResolveTexture(
-                outer ? textureCode[5..] : textureCode, entity.Framing, entity.Infill, entity.Front, entity.SecondFront, entity.Back,
-                framings, infills, finishes, entity.FrontStyle, entity.SecondFrontStyle, entity.BackStyle, outer ? entity.OuterDeck : entity.Deck,
-                outer ? entity.OuterDeckInfill : entity.DeckInfill, outer ? entity.OuterDeckFront : entity.DeckFront, outer ? entity.OuterDeckBack : entity.DeckBack,
-                outer ? entity.OuterDeckFrontStyle : entity.DeckFrontStyle, outer ? entity.OuterDeckBackStyle : entity.DeckBackStyle,
+                SidingWallBlock.BareLayer(textureCode)!, entity.Framing, entity.Infill, entity.Front, entity.SecondFront, entity.Back,
+                framings, infills, finishes, entity.FrontStyle, entity.SecondFrontStyle, entity.BackStyle, deck.Deck,
+                deck.Infill, deck.Front, deck.Back, deck.FrontStyle, deck.BackStyle,
                 blockTexture: BlockTexture(capi), secondBack: entity.SecondBack, secondBackStyle: entity.SecondBackStyle,
                 post: entity.Block?.Variant["layout"] == "cornerin");
             return AtlasPosition(capi, texture, alternate);

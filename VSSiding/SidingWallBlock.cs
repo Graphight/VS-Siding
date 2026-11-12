@@ -620,8 +620,9 @@ public class SidingWallBlock : Block
         // With floor picked, planks frame a floor beside the wall (PlaceWallFrame) rather than work on it.
         // A filled deck's top or underside still takes them as floorboards or a ceiling, as a floor's does,
         // and sticks still fill the bare wall or deck face they hit (MatchFraming, FramesOnFrom).
-        bool deckHit = entity != null && IsDeckHit(world.BlockAccessor, blockSel, entity);
-        bool hitFilled = deckHit ? entity!.DeckInfill != null : entity != null && FramesAsFilled(entity);
+        DeckHalf? hitHalf = entity == null ? null : HitDeckHalf(world.BlockAccessor, blockSel, entity);
+        bool deckHit = hitHalf != null;
+        bool hitFilled = deckHit ? entity!.DeckLayers(hitHalf!.Value).Infill != null : entity != null && FramesAsFilled(entity);
         if (SidingModePicker.Layout(byPlayer) == "floor" && MatchFraming(heldCode, hitFilled, Attributes["Framings"], Attributes["Infills"]) != null
             && !(deckHit && hitFilled && SidingFloorBlock.FinishFace(blockSel.Face) != null))
             return base.OnBlockInteractStart(world, byPlayer, blockSel);
@@ -681,8 +682,8 @@ public class SidingWallBlock : Block
         // A post takes no infill; it goes straight to the finish path at a quarter of the cost.
         bool post = Variant["layout"] == "cornerin";
 
-        if (HitDeckHalf(world.BlockAccessor, blockSel, entity) is { } hitHalf)
-            return LayerDeck(world, byPlayer, blockSel, entity, slot, heldCode, isCreative, hitHalf);
+        if (hitHalf is { } half)
+            return LayerDeck(world, byPlayer, blockSel, entity, slot, heldCode, isCreative, half);
 
         // With the deck lit, planks on a side face add a deck in place. Ahead of finishing, since
         // planks are a finish too. The top face still stacks the next course (PlaceWallFrame).
@@ -1002,11 +1003,7 @@ public class SidingWallBlock : Block
         ItemSlot slot, AssetLocation heldCode, bool isCreative, DeckHalf half = DeckHalf.Inner)
     {
         bool outer = half == DeckHalf.Outer;
-        string? deckInfill = outer ? entity.OuterDeckInfill : entity.DeckInfill;
-        string? deckFront = outer ? entity.OuterDeckFront : entity.DeckFront;
-        string? deckBack = outer ? entity.OuterDeckBack : entity.DeckBack;
-        string? deckFrontStyle = outer ? entity.OuterDeckFrontStyle : entity.DeckFrontStyle;
-        string? deckBackStyle = outer ? entity.OuterDeckBackStyle : entity.DeckBackStyle;
+        var (_, deckInfill, deckFront, deckBack, deckFrontStyle, deckBackStyle) = entity.DeckLayers(half);
 
         if (deckInfill == null)
         {
@@ -1674,6 +1671,9 @@ public class SidingWallBlock : Block
                 : DeckPeelLayer(deckFace, entity.DeckInfill, entity.DeckFront, entity.DeckBack);
 
         string? face = hitFace == null ? null : ResolveFinishFace(Variant["layout"], Variant["side"], hitFace);
+        // An outer face hit takes the outer deck as a room-side hit takes the inner; a faceless one takes it once the inner is gone (decision 0096).
+        if (entity.OuterDeck != null && ((hitFace != null && HalfFacing(hitFace) == DeckHalf.Outer) || (face == null && entity.Deck == null)))
+            return OuterPeelLayer(entity, null);
         string? layer = PeelLayer(face, entity.Infill, entity.Front, entity.SecondFront, entity.Back, entity.Deck, entity.Step, entity.SecondBack);
         if (layer == null && entity.OuterDeck != null) return OuterPeelLayer(entity, null);
         return layer == "deck" ? DeckPeelLayer(null, entity.DeckInfill, entity.DeckFront, entity.DeckBack) : layer;
@@ -1692,7 +1692,7 @@ public class SidingWallBlock : Block
             _ => LayerKey(layer, entity.Infill, entity.Front, entity.SecondFront, entity.Back, entity.Deck, entity.Step, entity.DeckInfill, entity.DeckFront, entity.DeckBack, entity.SecondBack),
         };
 
-    private static string? BareLayer(string? layer) => layer?.StartsWith("outer") == true ? layer["outer".Length..] : layer;
+    internal static string? BareLayer(string? layer) => layer?.StartsWith("outer") == true ? layer["outer".Length..] : layer;
 
     private EnumBlockMaterial LayerMaterialAt(string? layer, SidingWallEntity entity)
     {
@@ -1753,6 +1753,9 @@ public class SidingWallBlock : Block
     {
         string? layer = PeelAt(entity, null, false);
         if (layer?.Contains("deck") != true || LayerMaterialAt(layer, entity) == EnumBlockMaterial.Wood) return layer;
+        // An inner deck that does not burn leaves the outer deck's top layer next in line.
+        string? outer = entity.OuterDeck == null ? null : OuterPeelLayer(entity, null);
+        if (outer != null && outer != layer && LayerMaterialAt(outer, entity) == EnumBlockMaterial.Wood) return outer;
         return PeelLayer(null, entity.Infill, entity.Front, entity.SecondFront, entity.Back, null, entity.Step, entity.SecondBack) ?? layer;
     }
 

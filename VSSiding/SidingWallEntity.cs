@@ -48,6 +48,11 @@ public class SidingWallEntity : BlockEntity
 
     internal bool OpenPartFilled => Deck != null || OuterDeck != null || Step != null;
 
+    internal (string? Deck, string? Infill, string? Front, string? Back, string? FrontStyle, string? BackStyle) DeckLayers(DeckHalf half)
+        => half == DeckHalf.Outer
+            ? (OuterDeck, OuterDeckInfill, OuterDeckFront, OuterDeckBack, OuterDeckFrontStyle, OuterDeckBackStyle)
+            : (Deck, DeckInfill, DeckFront, DeckBack, DeckFrontStyle, DeckBackStyle);
+
     public override void ToTreeAttributes(ITreeAttribute tree)
     {
         base.ToTreeAttributes(tree);
@@ -157,14 +162,13 @@ public class SidingWallEntity : BlockEntity
             stepName = stepBlock.GetHeldItemName(new ItemStack(stepBlock));
         bool outer = forPlayer?.CurrentBlockSelection is { } sel && sel.Position.Equals(Pos) && Block is SidingWallBlock wall
             && wall.HitDeckHalf(Api.World.BlockAccessor, sel, this) == DeckHalf.Outer;
-        string? deck = outer ? OuterDeck : Deck, deckInfill = outer ? OuterDeckInfill : DeckInfill;
+        var (deck, deckInfill, deckFront, deckBack, deckFrontStyle, deckBackStyle) = DeckLayers(outer ? DeckHalf.Outer : DeckHalf.Inner);
         dsc.Append(SidingWallBlock.Describe(
             Framing, Infill, deck, Block.Attributes["Framings"], Block.Attributes["Infills"],
             Block.Variant["layout"], Block.Variant["side"], Front, SecondFront, Back, Block.Attributes["Finishes"],
-            SidingWallBlock.LangEntry, stepName, deckInfill, outer ? OuterDeckFront : DeckFront, outer ? OuterDeckBack : DeckBack,
+            SidingWallBlock.LangEntry, stepName, deckInfill, deckFront, deckBack,
             SidingWallBlock.HasBuildSignal(forPlayer), Api != null && Pos != null ? Buried : null, SecondBack,
-            FrontStyle, SecondFrontStyle, BackStyle, SecondBackStyle,
-            outer ? OuterDeckFrontStyle : DeckFrontStyle, outer ? OuterDeckBackStyle : DeckBackStyle));
+            FrontStyle, SecondFrontStyle, BackStyle, SecondBackStyle, deckFrontStyle, deckBackStyle));
         // A bare deck answers a click on the top, so its hint wins over the wall's.
         if (deck != null && deckInfill == null)
             SidingWallBlock.AppendFillHint(dsc, forPlayer, "floor", Block.Attributes["Framings"], Block.Attributes["Infills"]);
@@ -219,7 +223,7 @@ public class SidingWallEntity : BlockEntity
         (string[] stepElements, float stepRotation) = stepped
             ? StepMesh(layout, side, StepOrientation, StepFamily(stair?.Shape?.Base?.Path))
             : ([], 0);
-        int alternate = CellAlternate(Block.Attributes, SidingWallTexSource.Alternate(Pos), Framing, Deck,
+        int alternate = CellAlternate(Block.Attributes, SidingWallTexSource.Alternate(Pos), Framing, [Deck, OuterDeck],
             [Infill, DeckInfill, OuterDeckInfill], [Front, SecondFront, Back, SecondBack, DeckFront, DeckBack, OuterDeckFront, OuterDeckBack],
             SidingWallTexSource.Varies(SidingWallTexSource.StairTexture(stair)),
             [FrontStyle, SecondFrontStyle, BackStyle, SecondBackStyle, DeckFrontStyle, DeckBackStyle, OuterDeckFrontStyle, OuterDeckBackStyle]);
@@ -279,15 +283,16 @@ public class SidingWallEntity : BlockEntity
     // cell keeps the whole hash while any layer's texture varies, the parity alone for a rough wall or
     // deck frame, and nothing otherwise, which is what lets a long plain wall share one mesh.
     internal static int CellAlternate(
-        JsonObject attributes, int hash, string? framing, string? deck, string?[] infills, string?[] finishes, bool stepVaries = false,
+        JsonObject attributes, int hash, string? framing, string?[] decks, string?[] infills, string?[] finishes, bool stepVaries = false,
         string?[]? styles = null)
     {
         // A tiled face keeps its tile kinds in its style, so those count as finishes too.
         string?[] kinds = [.. finishes, .. finishes.Zip(styles ?? []).Where(face => face.First == TilesKey).SelectMany(face => TileSlots(face.Second)).Where(kind => kind != "")];
-        if (stepVaries || SidingWallTexSource.AnyVaries(attributes["Framings"], framing, deck)
+        string?[] frames = [framing, .. decks];
+        if (stepVaries || SidingWallTexSource.AnyVaries(attributes["Framings"], frames)
             || SidingWallTexSource.AnyVaries(attributes["Infills"], infills)
             || SidingWallTexSource.AnyVaries(attributes["Finishes"], kinds)) return hash;
-        return FrameElements(attributes["Framings"], framing) != "framing" || FrameElements(attributes["Framings"], deck) != "framing" ? hash % 2 : 0;
+        return frames.Any(frame => FrameElements(attributes["Framings"], frame) != "framing") ? hash % 2 : 0;
     }
 
     // The shape-group prefix a framing entry draws its frame with; most draw the plain "framing" groups.
