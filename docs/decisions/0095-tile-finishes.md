@@ -64,6 +64,7 @@ Tiles as decor on plain vanilla blocks (0077) are out of scope.
 A sneak-click fills every empty slot on that face in slot order, as many as the player holds, with no message when they run out.
 Vanilla's `GroundStorable` takes a sneak-click on an up face before the block sees it, so `TileFill` goes ahead of it and hands that click to a Siding wall or floor while the build signal is held.
 `TileFill` matches tile items by hard-coded code patterns, not by `Tile: true`, because finish families are expanded on the server and not on the client.
+The server's held-item path tests range alone, so `TileFill` makes the land claim test (`Use`) that a click gets on the block-use path, and a refused fill lays nothing and leaves no pile.
 
 **Breaking.**
 A break takes the tile under the crosshair and drops it.
@@ -90,7 +91,6 @@ One tile counts as a finished face and stops the light, because `IsFinished` rea
 - **A post face showing the half of a tile the grid gives it, or a tile's middle slice.** The grid half was built first and looked odd in play; the squeezed whole tile was chosen over the slice.
 
 ## Consequences & open questions
-- Where the build diverged from the plan: the corner upgrade needed `TurnTiles`, which swaps each tiled face's columns; `TileFill` matches by code pattern and not `Tile: true`; and the tooltip uses vanilla's item names, so a count reads "3 Earthy brown ceramic tile (plain)" and not "3 Blue tiles".
 - A tile item added by another mod is not matched by `TileFill`, and takes `GroundStorable`'s sneak-click as vanilla does.
 - Each tile pattern on a face is a cached mesh. A cell's alternate enters the cache key when a slot's texture varies, so neighbouring cells do not all draw the same variant.
 - A deck draws its ledge only while the room side is bare, and a tiled room side counts as finished.
