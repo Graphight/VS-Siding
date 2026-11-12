@@ -424,8 +424,14 @@ public class SidingWallTexSourceTests
             if (bitmap == null) return $"did not decode ({result})";
             var rolled = SidingWallTexSource.RollRight(Array.ConvertAll(bitmap.Pixels, p => (int)(uint)p), bitmap.Width);
             // The grout texel is a neutral grey; per tile, the column and the row nearest it all along are the joint.
-            int Off(int x, int y) { var c = new SKColor((uint)rolled[y * bitmap.Width + x]); return Math.Abs(c.Red - 99) + Math.Abs(c.Green - 98) + Math.Abs(c.Blue - 97); }
-            int[] Lines(System.Func<int, int, int> at) => [.. new[] { 0, 16 }.Select(start => Enumerable.Range(start, 16).MinBy(line => Enumerable.Range(0, 32).Sum(along => at(line, along))))];
+            int Off(int x, int y)
+            {
+                var c = new SKColor((uint)rolled[y * bitmap.Width + x]);
+                return Math.Abs(c.Red - 99) + Math.Abs(c.Green - 98) + Math.Abs(c.Blue - 97);
+            }
+            int Nearest(int start, System.Func<int, int, int> at)
+                => Enumerable.Range(start, 16).MinBy(line => Enumerable.Range(0, 32).Sum(along => at(line, along)));
+            int[] Lines(System.Func<int, int, int> at) => [Nearest(0, at), Nearest(16, at)];
             return $"columns {string.Join(",", Lines((x, y) => Off(x, y)))}, rows {string.Join(",", Lines((y, x) => Off(x, y)))}";
         });
 

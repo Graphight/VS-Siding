@@ -42,7 +42,7 @@ public class SidingWallTooltipTests
         ["vssiding:finish-daub"] = "Daub Finish",
         ["vssiding:finish-planks"] = "Planks Finish",
         ["vssiding:finish-tiles"] = "Tile Finish",
-        ["vssiding:tile-blue"] = "Blue tiles",
+        ["vssiding:tile-blue"] = "Blue tile",
         ["vssiding:tile-red"] = "Red tile",
         ["vssiding:tooltip-no-framing"] = "No framing",
         ["vssiding:tooltip-no-infill"] = "No infill",
@@ -76,16 +76,16 @@ public class SidingWallTooltipTests
     [Fact]
     public void ATiledFaceCountsEachKindInSlotOrder()
     {
-        Assert.Equal("\n  Oak Framing\n  Wattle Infill\n  West: 3 Blue tiles, 1 Red tile\n  East: unfinished\n  Seals the room\n",
+        Assert.Equal("\n  Oak Framing\n  Wattle Infill\n  West: 3 Blue tile, 1 Red tile\n  East: unfinished\n  Seals the room\n",
             Describe(front: "tiles", frontStyle: "tile-blue,tile-blue,tile-red,tile-blue"));
     }
 
     [Fact]
     public void TiledFacesShareALineOnlyWhenTheirTilesMatch()
     {
-        Assert.Equal("\n  Oak Framing\n  Wattle Infill\n  West: 1 Blue tiles\n  East: 1 Red tile\n  Seals the room\n",
+        Assert.Equal("\n  Oak Framing\n  Wattle Infill\n  West: 1 Blue tile\n  East: 1 Red tile\n  Seals the room\n",
             Describe(front: "tiles", frontStyle: "tile-blue,,,", back: "tiles", backStyle: ",,,tile-red"));
-        Assert.Equal("\n  Oak Framing\n  Wattle Infill\n  West, East: 1 Blue tiles\n  Seals the room\n",
+        Assert.Equal("\n  Oak Framing\n  Wattle Infill\n  West, East: 1 Blue tile\n  Seals the room\n",
             Describe(front: "tiles", frontStyle: "tile-blue,,,", back: "tiles", backStyle: "tile-blue,,,"));
     }
 

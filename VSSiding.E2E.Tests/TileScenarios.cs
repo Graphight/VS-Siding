@@ -63,22 +63,15 @@ public class TileScenarios : AtlasScenarioBase
         await WallBuilder.Press(World, player, cell, Red, BlockFacing.WEST, NorthHigh);
         await player.TeleportTo(cell.EastCopy(6).Up());
 
-        (string?, string?) Break(Vec3d hit)
-        {
-            SetBreakSelection(new BlockSelection { Position = cell.Copy(), Face = BlockFacing.WEST, HitPosition = hit });
-            World.BlockAt(cell).OnBlockBroken(player.Entity.World, cell, player.Player);
-            return (Read(cell, "front"), Read(cell, "frontstyle"));
-        }
-        var underCrosshair = Break(SouthLow);
-        var firstTile = Break(SouthLow);
+        BreakAt(cell, BlockFacing.WEST, SouthLow, player);
+        var underCrosshair = (Read(cell, "front"), Read(cell, "frontstyle"));
+        BreakAt(cell, BlockFacing.WEST, SouthLow, player);
+        var firstTile = (Read(cell, "front"), Read(cell, "frontstyle"));
         await World.Ticks(2);
-
-        var dropped = World.Api.World.GetEntitiesAround(cell.ToVec3d().Add(0.5, 0.5, 0.5), 3, 3, entity => entity is EntityItem)
-            .Cast<EntityItem>().Select(item => item.Itemstack.Collectible.Code.ToString()).Where(code => code.Contains("claytile")).Order().ToList();
 
         Assert.Equal(
             (((string?)"tiles", (string?)",,tile-center-red,"), ((string?)null, (string?)null), string.Join(" ", new[] { Red, Blue }.Order())),
-            (underCrosshair, firstTile, string.Join(" ", dropped)));
+            (underCrosshair, firstTile, string.Join(" ", DroppedTiles(cell))));
     }
 
     [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
@@ -176,7 +169,7 @@ public class TileScenarios : AtlasScenarioBase
         BreakAt(cell, BlockFacing.UP, new Vec3d(0.75, 1, 0.25), player, deck: true);
         await World.Ticks(2);
 
-        Assert.Equal(((",tile-plain-blue,,", ",,,tile-center-red"), (string?)null, string.Join(" ", new[] { Blue }.Order())), (laid, Read(cell, "deckfront"), string.Join(" ", DroppedTiles(cell))));
+        Assert.Equal(((",tile-plain-blue,,", ",,,tile-center-red"), (string?)null, Blue), (laid, Read(cell, "deckfront"), string.Join(" ", DroppedTiles(cell))));
     }
 
     // A table set into the cell by a path TryHost does not see cannot fit under the deck, so the deck drops, its tiles included.

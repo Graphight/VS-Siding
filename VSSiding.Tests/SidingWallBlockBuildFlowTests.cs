@@ -427,9 +427,10 @@ public class SidingWallBlockBuildFlowTests
     }
 
     [Fact]
-    public void ATilePostFaceOnlyHasItsTwoColumnZeroSlots()
+    public void APostFaceOnlyHasItsTwoColumnZeroSlots()
     {
-        Assert.Equal([0, 0, 2, 2], new[] { (0.1, 0.1), (0.9, 0.9), (0.1, 0.9), (0.9, 0.1) }.Select((hit, i) => SidingWallBlock.TileSlot("cornerin", "west", "front", new Vec3d(hit.Item1, i < 2 ? 0.2 : 0.8, hit.Item2))));
+        var hits = new[] { new Vec3d(0.1, 0.2, 0.1), new Vec3d(0.9, 0.2, 0.9), new Vec3d(0.1, 0.8, 0.9), new Vec3d(0.9, 0.8, 0.1) };
+        Assert.Equal([0, 0, 2, 2], hits.Select(hit => SidingWallBlock.TileSlot("cornerin", "west", "front", hit)));
     }
 
     [Fact]
