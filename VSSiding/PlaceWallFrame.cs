@@ -78,6 +78,7 @@ public class PlaceWallFrame : CollectibleBehavior
 
         BlockPos targetPos = blockSel.Position;
         bool didOffset;
+        BlockFacing arrival = blockSel.Face.Opposite;
         if (layout == "floor" && blockSel.Face == BlockFacing.UP && world.BlockAccessor.GetBlock(targetPos) is SidingFloorBlock)
         {
             // Stacking a floor 12/16 above another is never wanted, so a click on a floor's top
@@ -87,6 +88,7 @@ public class PlaceWallFrame : CollectibleBehavior
             if (end == null) return;
             targetPos = end;
             didOffset = true;
+            arrival = SidingFloorBlock.Ahead(byPlayer.Entity.SidedPos.GetViewVector()).Opposite;
         }
         else
         {
@@ -99,7 +101,7 @@ public class PlaceWallFrame : CollectibleBehavior
         // A floor laid up to a wall decks that wall; a click on the wall itself already offset to the cell beside it.
         if (layout == "floor" && world.BlockAccessor.GetBlock(targetPos) is SidingWallBlock deckWall
             && world.BlockAccessor.GetBlockEntity<SidingWallEntity>(targetPos) is { } deckEntity
-            && deckWall.TryAddDeck(world, byPlayer, targetPos, deckEntity, slot, heldCode, isCreative))
+            && deckWall.TryAddDeck(world, byPlayer, targetPos, deckEntity, slot, heldCode, isCreative, deckWall.HalfFacing(arrival)))
             return;
         BlockSelection placeSel = blockSel.Clone();
         placeSel.Position = targetPos;

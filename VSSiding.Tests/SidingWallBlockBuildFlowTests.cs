@@ -490,4 +490,12 @@ public class SidingWallBlockBuildFlowTests
             SidingWallBlock.ResolveStepOrientation(
                 side, neighbourOrientation, new Vec3f(lookX, 0, lookZ), BlockFacing.FromFirstLetter(clickedFace[..1]), hitY, hasDownVariant));
     }
+
+    [Fact]
+    public void DiagonalWestClaimsTheFacesItsOuterDeckLooksOutAt()
+    {
+        var claimed = new[] { "north", "east", "south", "west" }.Where(f => SidingWallBlock.ClaimsFace("diagonal", "west", f)).ToArray();
+
+        Assert.Equal(new[] { "north", "west" }, claimed);
+    }
 }

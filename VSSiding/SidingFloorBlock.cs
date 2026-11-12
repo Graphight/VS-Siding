@@ -314,11 +314,12 @@ public class SidingFloorBlock : Block
     internal static BlockPos? RunEndFor(IWorldAccessor world, IPlayer byPlayer, BlockPos start, Block placeholder, AssetLocation heldCode)
     {
         var accessor = world.BlockAccessor;
+        var ahead = Ahead(byPlayer.Entity.SidedPos.GetViewVector());
         return RunEnd(
             pos => accessor.GetBlock(pos) is SidingFloorBlock,
             pos => accessor.GetBlock(pos).IsReplacableBy(placeholder)
-                || (accessor.GetBlock(pos) is SidingWallBlock wall && accessor.GetBlockEntity<SidingWallEntity>(pos) is { } entity && wall.CanTakeDeck(world, pos, entity, heldCode)),
-            start, Ahead(byPlayer.Entity.SidedPos.GetViewVector()));
+                || (accessor.GetBlock(pos) is SidingWallBlock wall && accessor.GetBlockEntity<SidingWallEntity>(pos) is { } entity && wall.CanTakeDeck(world, pos, entity, heldCode, wall.HalfFacing(ahead.Opposite))),
+            start, ahead);
     }
 
     // The horizontal face the player is looking toward, whatever the pitch.
