@@ -32,6 +32,13 @@ public class SidingWallEntity : BlockEntity
     public string? DeckBack;
     public string? DeckFrontStyle;
     public string? DeckBackStyle;
+    // A diagonal's deck on its outer triangle, with layers of its own (decision 0096).
+    public string? OuterDeck;
+    public string? OuterDeckInfill;
+    public string? OuterDeckFront;
+    public string? OuterDeckBack;
+    public string? OuterDeckFrontStyle;
+    public string? OuterDeckBackStyle;
     // A deck saved before decks took layers sealed as bare framing, and keeps doing so until infill is laid.
     public bool LegacyDeck;
     // The held stair's full block code, e.g. "game:plankstairs-oak-up-north-free".
@@ -39,7 +46,7 @@ public class SidingWallEntity : BlockEntity
     // Vanilla's own vertical-horizontal naming, e.g. "up-north".
     public string? StepOrientation;
 
-    internal bool OpenPartFilled => Deck != null || Step != null;
+    internal bool OpenPartFilled => Deck != null || OuterDeck != null || Step != null;
 
     public override void ToTreeAttributes(ITreeAttribute tree)
     {
@@ -61,6 +68,12 @@ public class SidingWallEntity : BlockEntity
         tree.SetString("deckback", DeckBack);
         tree.SetString("deckfrontstyle", DeckFrontStyle);
         tree.SetString("deckbackstyle", DeckBackStyle);
+        tree.SetString("outerdeck", OuterDeck);
+        tree.SetString("outerdeckinfill", OuterDeckInfill);
+        tree.SetString("outerdeckfront", OuterDeckFront);
+        tree.SetString("outerdeckback", OuterDeckBack);
+        tree.SetString("outerdeckfrontstyle", OuterDeckFrontStyle);
+        tree.SetString("outerdeckbackstyle", OuterDeckBackStyle);
         tree.SetBool("legacydeck", LegacyDeck);
         tree.SetString("step", Step);
         tree.SetString("steporientation", StepOrientation);
@@ -103,6 +116,12 @@ public class SidingWallEntity : BlockEntity
         DeckBack = NullIfEmpty(tree.GetString("deckback", null));
         DeckFrontStyle = NullIfEmpty(tree.GetString("deckfrontstyle", null));
         DeckBackStyle = NullIfEmpty(tree.GetString("deckbackstyle", null));
+        OuterDeck = NullIfEmpty(tree.GetString("outerdeck", null));
+        OuterDeckInfill = NullIfEmpty(tree.GetString("outerdeckinfill", null));
+        OuterDeckFront = NullIfEmpty(tree.GetString("outerdeckfront", null));
+        OuterDeckBack = NullIfEmpty(tree.GetString("outerdeckback", null));
+        OuterDeckFrontStyle = NullIfEmpty(tree.GetString("outerdeckfrontstyle", null));
+        OuterDeckBackStyle = NullIfEmpty(tree.GetString("outerdeckbackstyle", null));
         LegacyDeck = ReadLegacyDeck(tree, Deck);
         Step = NullIfEmpty(tree.GetString("step", null));
         StepOrientation = NullIfEmpty(tree.GetString("steporientation", null));
@@ -163,9 +182,11 @@ public class SidingWallEntity : BlockEntity
             && SidingWallBlock.FrontsFaceEachOther(Block.Variant["layout"], Block.Variant["side"], direction, wall.Variant["layout"], wall.Variant["side"]);
 
     // Everything OnTesselation reads off this entity, which is exactly what CacheKey covers.
-    private ((string?, string?, string?, string?, string?, string?, string?, string?, string?, string?, string?), (string?, string?, string?, string?, string?, string?, string?)) MeshState
+    private ((string?, string?, string?, string?, string?, string?, string?, string?, string?, string?, string?), (string?, string?, string?, string?, string?, string?, string?), string) MeshState
         => ((Framing, Infill, Front, SecondFront, Back, FrontStyle, SecondFrontStyle, BackStyle, Deck, Step, StepOrientation),
-            (DeckInfill, DeckFront, DeckBack, DeckFrontStyle, DeckBackStyle, SecondBack, SecondBackStyle));
+            (DeckInfill, DeckFront, DeckBack, DeckFrontStyle, DeckBackStyle, SecondBack, SecondBackStyle), OuterDeckState);
+
+    private string OuterDeckState => $"{OuterDeck}-{OuterDeckInfill}-{OuterDeckFront}-{OuterDeckBack}-{OuterDeckFrontStyle}-{OuterDeckBackStyle}";
 
     // A ToBytes/FromBytes round trip (chunk save/reload, client sync) turns a null
     // SetString value into "" - normalize back to null so "unbuilt" survives a reload.
@@ -219,7 +240,7 @@ public class SidingWallEntity : BlockEntity
 
         string cacheKey = CacheKey(layout, side, Framing, Infill, Front, SecondFront, Back, joins, Styles, Deck, Step, StepOrientation,
             DeckInfill, DeckFront, DeckBack, (DeckFrontStyle, DeckBackStyle), deckJoins, alternate, innerCorners, deckInnerCorners, glassRunsOn, tees, closed, capped,
-            SecondBack, SecondBackStyle);
+            SecondBack, SecondBackStyle, OuterDeckState);
 
         MeshData[] meshes = ObjectCacheUtil.GetOrCreate(capi, cacheKey, () =>
         {
@@ -320,10 +341,10 @@ public class SidingWallEntity : BlockEntity
         string? deckInfill = null, string? deckFront = null, string? deckBack = null, (string? front, string? back) deckStyles = default,
         (bool above, bool below, bool left, bool right) deckJoins = default, int alternate = 0,
         string[]? innerCorners = null, string[]? deckInnerCorners = null, (bool left, bool right) glassRunsOn = default, (bool left, bool right) tees = default,
-        (bool front, bool second) closed = default, bool capped = false, string? secondBack = null, string? secondBackStyle = null)
+        (bool front, bool second) closed = default, bool capped = false, string? secondBack = null, string? secondBackStyle = null, string? outerDeckState = null)
         => $"vssiding-wall-mesh-{layout}-{side}-{framing}-{infill}-{front}-{secondFront}-{back}-{joins.above}-{joins.below}-{joins.left}-{joins.right}-{styles.front}-{styles.secondFront}-{styles.back}-{deck}-{step}-{stepOrientation}"
             + $"-{deckInfill}-{deckFront}-{deckBack}-{deckStyles.front}-{deckStyles.back}-{deckJoins.above}-{deckJoins.below}-{deckJoins.left}-{deckJoins.right}-{alternate}"
-            + $"-{string.Concat(innerCorners ?? [])}-{string.Concat(deckInnerCorners ?? [])}-{glassRunsOn.left}-{glassRunsOn.right}-{tees.left}-{tees.right}-{closed.front}-{closed.second}-{capped}-{secondBack}-{secondBackStyle}";
+            + $"-{string.Concat(innerCorners ?? [])}-{string.Concat(deckInnerCorners ?? [])}-{glassRunsOn.left}-{glassRunsOn.right}-{tees.left}-{tees.right}-{closed.front}-{closed.second}-{capped}-{secondBack}-{secondBackStyle}-{outerDeckState}";
 
     // The floor's groups for the deck, which the wall shapes carry per side as deck-{side}-{name}. The
     // deck stops a voxel short of the frame, at the slot the wall's room-side finish takes, so the shapes

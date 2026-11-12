@@ -212,6 +212,25 @@ public class SidingWallBlockCollisionTests
     }
 
     [Fact]
+    public void DiagonalWestOuterDeckBoxesAreTheInnerStripsTurnedHalfWayRound()
+    {
+        var inner = Enumerable.Range(0, 8).Select(k => new Cuboidf((15f - 2 * k) / 16, 12f / 16, 2f * k / 16, 1, 1, (2f * k + 2) / 16));
+        var turned = inner.Select(box => new Cuboidf(1 - box.X2, box.Y1, 1 - box.Z2, 1 - box.X1, box.Y2, 1 - box.Z1));
+
+        Assert.Equal([FullBoxes[0], .. turned], SidingWallBlock.AddOpenPartBoxes(FullBoxes, "diagonal", "west", null, null, "oak"), Comparer);
+    }
+
+    [Fact]
+    public void OuterDeckBoxesFollowTheInnersAndOnlyAdornADiagonal()
+    {
+        var inner = SidingWallBlock.AddOpenPartBoxes(FullBoxes, "diagonal", "west", "oak", null);
+        var outer = SidingWallBlock.AddOpenPartBoxes([], "diagonal", "west", null, null, "oak");
+
+        Assert.Equal([.. inner, .. outer], SidingWallBlock.AddOpenPartBoxes(FullBoxes, "diagonal", "west", "oak", null, "oak"), Comparer);
+        Assert.Same(FullBoxes, SidingWallBlock.AddOpenPartBoxes(FullBoxes, "wall", "west", null, null, "oak"));
+    }
+
+    [Fact]
     public void CornerinWestDeckBoxesAreTwoStripsAroundThePost()
     {
         var expected = new[]

@@ -819,6 +819,30 @@ public class SidingWallEntityTests
     }
 
     [Fact]
+    public void OuterDeckStateSurvivesATreeRoundTrip()
+    {
+        var block = new Block { Code = new AssetLocation("vssiding", "wall-diagonal-west") };
+        block.VariantStrict["layout"] = "diagonal";
+        var saved = new SidingWallEntity
+        {
+            Block = block, Pos = new BlockPos(0, 0, 0, 0), Framing = "oak", OuterDeck = "birch", OuterDeckInfill = "wattle",
+            OuterDeckFront = "daub", OuterDeckFrontStyle = "coursed", OuterDeckBackStyle = "boards",
+        };
+        var tree = new TreeAttribute();
+        saved.ToTreeAttributes(tree);
+        var reloaded = new TreeAttribute();
+        reloaded.FromBytes(tree.ToBytes());
+
+        var loaded = new SidingWallEntity { Block = block };
+        loaded.FromTreeAttributes(reloaded, GuestWallsTests.World);
+
+        Assert.Equal(
+            ("birch", "wattle", "daub", null, "coursed", "boards"),
+            (loaded.OuterDeck, loaded.OuterDeckInfill, loaded.OuterDeckFront, loaded.OuterDeckBack, loaded.OuterDeckFrontStyle, loaded.OuterDeckBackStyle));
+        Assert.True(loaded.OpenPartFilled);
+    }
+
+    [Fact]
     public void StepKeysSurviveByteRoundTrip()
     {
         var tree = new TreeAttribute();

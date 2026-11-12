@@ -16,6 +16,8 @@ using Vintagestory.GameContent;
 
 namespace VSSiding;
 
+internal enum DeckHalf { Inner, Outer }
+
 public class SidingWallBlock : Block
 {
     // cornerout's L covers `side` plus the face counter-clockwise from it:
@@ -100,6 +102,10 @@ public class SidingWallBlock : Block
     private static readonly Dictionary<(string layout, string side, bool joinsAbove), Cuboidf[]> FramingBoxes = BuildFramingBoxes();
 
     private static readonly Dictionary<(string layout, string side), Cuboidf[]> DeckBoxes = BuildDeckBoxes();
+
+    // A diagonal's outer deck is its inner strips turned 180 degrees about the cell's centre (decision 0096).
+    private static readonly Dictionary<string, Cuboidf[]> OuterDeckBoxes = CorneroutSecondFace.Keys.ToDictionary(
+        side => side, side => DeckBoxes[("diagonal", side)].Select(box => box.RotatedCopy(0, 180, 0, new Vec3d(0.5, 0.5, 0.5))).ToArray());
 
     private static readonly Dictionary<(string side, string element), Cuboidf> StepBoxes = BuildStepBoxes();
 
@@ -194,9 +200,10 @@ public class SidingWallBlock : Block
     // The deck and the step both sit in the open 12/16, outside both the frame's boxes and the
     // panel's, except a diagonal's deck, whose strips run on under its plate to the middle of the frame.
     // A step applies to a wall and a cornerout; a diagonal never has one.
-    internal static Cuboidf[] AddOpenPartBoxes(Cuboidf[] boxes, string layout, string side, string? deck, string? stepOrientation)
+    internal static Cuboidf[] AddOpenPartBoxes(Cuboidf[] boxes, string layout, string side, string? deck, string? stepOrientation, string? outerDeck = null)
     {
         if (deck != null) boxes = boxes.Concat(DeckBoxes[(layout, side)]).ToArray();
+        if (outerDeck != null && layout == "diagonal") boxes = boxes.Concat(OuterDeckBoxes[side]).ToArray();
         var step = OpenStepBoxes(layout, side, stepOrientation);
         return step.Length == 0 ? boxes : boxes.Concat(step).ToArray();
     }
@@ -216,7 +223,7 @@ public class SidingWallBlock : Block
         var boxes = base.GetSelectionBoxes(blockAccessor, pos);
         var entity = blockAccessor.GetBlockEntity<SidingWallEntity>(pos);
         var own = entity == null ? boxes : AddOpenPartBoxes(
-            boxes, Variant["layout"], Variant["side"], entity.Deck, entity.Step == null ? null : entity.StepOrientation);
+            boxes, Variant["layout"], Variant["side"], entity.Deck, entity.Step == null ? null : entity.StepOrientation, entity.OuterDeck);
         return SidingFloorBlock.WithHangerBelow(blockAccessor, pos, own);
     }
 
@@ -247,7 +254,7 @@ public class SidingWallBlock : Block
             boxes = ComputeCollisionBoxes(Variant["layout"], Variant["side"], entity.Framing, entity.Infill, joins.above, fullBoxes);
         }
 
-        return AddOpenPartBoxes(boxes, Variant["layout"], Variant["side"], entity.Deck, entity.Step == null ? null : entity.StepOrientation);
+        return AddOpenPartBoxes(boxes, Variant["layout"], Variant["side"], entity.Deck, entity.Step == null ? null : entity.StepOrientation, entity.OuterDeck);
     }
 
     // Which neighbours this cell shares a member with, i.e. draws no plate or post against. For a
@@ -974,10 +981,16 @@ public class SidingWallBlock : Block
 
     // The deck's boxes are appended after the block's own selection boxes (AddOpenPartBoxes).
     internal bool IsDeckHit(IBlockAccessor blockAccessor, BlockSelection blockSel, SidingWallEntity entity)
+        => HitDeckHalf(blockAccessor, blockSel, entity) != null;
+
+    // Which half of the deck the selection is on: the inner's boxes come first, the outer's follow.
+    internal DeckHalf? HitDeckHalf(IBlockAccessor blockAccessor, BlockSelection blockSel, SidingWallEntity entity)
     {
-        if (entity.Deck == null) return false;
-        int first = base.GetSelectionBoxes(blockAccessor, blockSel.Position).Length;
-        return blockSel.SelectionBoxIndex >= first && blockSel.SelectionBoxIndex < first + DeckBoxes[(Variant["layout"], Variant["side"])].Length;
+        int index = blockSel.SelectionBoxIndex - base.GetSelectionBoxes(blockAccessor, blockSel.Position).Length;
+        int inner = entity.Deck == null ? 0 : DeckBoxes[(Variant["layout"], Variant["side"])].Length;
+        if (index >= 0 && index < inner) return DeckHalf.Inner;
+        return entity.OuterDeck != null && Variant["layout"] == "diagonal" && index >= inner && index < inner + OuterDeckBoxes[Variant["side"]].Length
+            ? DeckHalf.Outer : null;
     }
 
     // The deck takes layers the way a floor does (SidingFloorBlock.OnBlockInteractStart): infill on any
@@ -1304,12 +1317,13 @@ public class SidingWallBlock : Block
 
     // The deck changes the UP face's retention, and rooms only recompute on a chunk-dirty event,
     // so the block is exchanged for itself as OnInfillChanged does.
-    internal bool DeckOccupied(IWorldAccessor world, BlockPos pos)
-        => world.GetIntersectingEntities(pos, DeckBoxes[(Variant["layout"], Variant["side"])], e => e.IsInteractable) is { Length: > 0 };
+    internal bool DeckOccupied(IWorldAccessor world, BlockPos pos, DeckHalf half = DeckHalf.Inner)
+        => world.GetIntersectingEntities(pos, half == DeckHalf.Outer ? OuterDeckBoxes[Variant["side"]] : DeckBoxes[(Variant["layout"], Variant["side"])], e => e.IsInteractable) is { Length: > 0 };
 
     // Whether the held framing could give this wall a deck now: used where a refusal must stay quiet (a floor run's end).
-    internal bool CanTakeDeck(IWorldAccessor world, BlockPos pos, SidingWallEntity entity, AssetLocation heldCode)
-        => entity.Framing != null && entity.Deck == null && entity.Step == null && !DeckOccupied(world, pos)
+    internal bool CanTakeDeck(IWorldAccessor world, BlockPos pos, SidingWallEntity entity, AssetLocation heldCode, DeckHalf half = DeckHalf.Inner)
+        => entity.Framing != null && (half == DeckHalf.Inner ? entity.Deck == null : entity.OuterDeck == null && Variant["layout"] == "diagonal")
+            && entity.Step == null && !DeckOccupied(world, pos, half)
             && MatchFraming(heldCode, FramesAsFilled(entity), Attributes["Framings"], Attributes["Infills"]) != null;
 
     // Adds a deck from the held framing, shared by a plank click on a side face and a floor laid up to the cell.
