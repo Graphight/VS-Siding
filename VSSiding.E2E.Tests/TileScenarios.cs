@@ -218,9 +218,7 @@ public class TileScenarios : AtlasScenarioBase
     public async Task Floor_Should_RefuseASneakFillAndLeaveNoTilePile_When_ItLiesInAnotherPlayersClaim()
     {
         (BlockPos cell, ITestPlayer player) = await RaiseFloor();
-        var claim = new LandClaim { OwnedByPlayerUid = "someone-else", LastKnownOwnerName = "Someone else", ProtectionLevel = 1 };
-        claim.Areas.Add(new Cuboidi(cell.X - 2, cell.Y - 2, cell.Z - 2, cell.X + 2, cell.Y + 2, cell.Z + 2));
-        World.Api.World.Claims.Add(claim);
+        LandClaim claim = WallBuilder.ClaimAround(World, cell);
         player.Entity.Controls.ShiftKey = true;
         try
         {

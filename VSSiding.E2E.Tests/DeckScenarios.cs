@@ -63,7 +63,7 @@ public class DeckScenarios : AtlasScenarioBase
         {
             await WallBuilder.Press(World, player, cell, "game:plank-oak", BlockFacing.EAST, new Vec3d(1, 0.5, 0.5));
 
-            Assert.Equal((((string?)null), 4), (DeckLayers(cell).Deck, player.Player.InventoryManager.ActiveHotbarSlot.Itemstack?.StackSize ?? 0));
+            Assert.Equal(((string?)null, 4), (DeckLayers(cell).Deck, player.Player.InventoryManager.ActiveHotbarSlot.Itemstack?.StackSize ?? 0));
         }
         finally
         {
