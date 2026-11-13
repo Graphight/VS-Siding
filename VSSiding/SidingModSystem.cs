@@ -1699,17 +1699,24 @@ public class SidingModSystem : ModSystem
             .ToList();
 
         var shared = api.Assets.Get(new AssetLocation("vssiding", "config/materials.json")).ToObject<JObject>();
+        var expanded = new Dictionary<string, JsonObject>();
         foreach (var block in api.World.Blocks.Where(b => b is SidingWallBlock or SidingFloorBlock))
         {
-            var attributes = MaterialFamilies.MergeShared(shared, (JObject)block.Attributes.Token);
-            foreach (var (familiesKey, materialsKey) in new[] { ("FramingFamilies", "Framings"), ("InfillFamilies", "Infills"), ("FinishFamilies", "Finishes") })
+            var own = (JObject)block.Attributes.Token;
+            var key = own.ToString(Newtonsoft.Json.Formatting.None);
+            if (!expanded.TryGetValue(key, out var result))
             {
-                if (attributes[familiesKey] is not JObject families) continue;
-                attributes[materialsKey] = MaterialFamilies.Expand(families, attributes[materialsKey] as JObject ?? new JObject(), candidates,
-                    message => api.Logger.Warning("{0}: {1}", block.Code, message));
-                attributes.Remove(familiesKey);
+                var attributes = MaterialFamilies.MergeShared(shared, own);
+                foreach (var (familiesKey, materialsKey) in new[] { ("FramingFamilies", "Framings"), ("InfillFamilies", "Infills"), ("FinishFamilies", "Finishes") })
+                {
+                    if (attributes[familiesKey] is not JObject families) continue;
+                    attributes[materialsKey] = MaterialFamilies.Expand(families, attributes[materialsKey] as JObject ?? new JObject(), candidates,
+                        message => api.Logger.Warning("{0}: {1}", block.Code, message));
+                    attributes.Remove(familiesKey);
+                }
+                expanded[key] = result = new JsonObject(attributes);
             }
-            block.Attributes = new JsonObject(attributes);
+            block.Attributes = result;
         }
     }
 }
