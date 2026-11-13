@@ -25,10 +25,11 @@ internal static class GuestTooltipPatches
 
     private static void Finalizer() => depth--;
 
-    // __args, because Harmony binds by name and a mod's override may spell the parameters differently.
-    private static void Postfix(Block __instance, object[] __args, ref string __result)
+    // Positional __0, __1, __2, because Harmony binds named parameters by name and a mod's override may spell them differently.
+    private static void Postfix(Block __instance, IWorldAccessor __0, BlockPos __1, IPlayer __2, ref string __result)
     {
-        if (depth != 1 || __args[0] is not IWorldAccessor world || __args[1] is not BlockPos pos || __args[2] is not IPlayer forPlayer) return;
+        if (depth != 1 || __0 == null || __1 == null || __2 == null) return;
+        var (world, pos, forPlayer) = (__0, __1, __2);
         if (!SidingModSystem.IsHostableId(__instance.BlockId)) return;
 
         SidingWallEntity? guest = GuestWalls.GuestAt(world.Api, pos);
