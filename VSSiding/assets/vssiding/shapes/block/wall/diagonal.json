@@ -410395,6 +410395,6790 @@
           ]
         }
       }
+    },
+    {
+      "name": "cap-west-front",
+      "from": [
+        15.0,
+        15.05,
+        0.0
+      ],
+      "to": [
+        16.0,
+        16.05,
+        2.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            2.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-west-front-boards",
+      "from": [
+        15.0,
+        15.05,
+        0.0
+      ],
+      "to": [
+        16.0,
+        16.05,
+        2.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            0.0,
+            2.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "cap-west-front-hboards",
+      "from": [
+        15.0,
+        15.05,
+        0.0
+      ],
+      "to": [
+        16.0,
+        16.05,
+        2.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            2.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-west-front-tile1",
+      "from": [
+        15.0,
+        15.05,
+        0.0
+      ],
+      "to": [
+        16.0,
+        16.05,
+        2.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfronttile1",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            2.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-west-front",
+      "from": [
+        13.0,
+        15.05,
+        2.0
+      ],
+      "to": [
+        16.0,
+        16.05,
+        4.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            13.0,
+            2.0,
+            16.0,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-west-front-boards",
+      "from": [
+        13.0,
+        15.05,
+        2.0
+      ],
+      "to": [
+        16.0,
+        16.05,
+        4.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            2.0,
+            0.0,
+            4.0,
+            3.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "cap-west-front-hboards",
+      "from": [
+        13.0,
+        15.05,
+        2.0
+      ],
+      "to": [
+        16.0,
+        16.05,
+        4.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            13.0,
+            2.0,
+            16.0,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-west-front-tile1",
+      "from": [
+        13.0,
+        15.05,
+        2.0
+      ],
+      "to": [
+        16.0,
+        16.05,
+        4.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfronttile1",
+          "uv": [
+            13.0,
+            2.0,
+            16.0,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-west-front",
+      "from": [
+        11.0,
+        15.05,
+        4.0
+      ],
+      "to": [
+        15.0,
+        16.05,
+        6.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            11.0,
+            4.0,
+            15.0,
+            6.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-west-front-boards",
+      "from": [
+        11.0,
+        15.05,
+        4.0
+      ],
+      "to": [
+        15.0,
+        16.05,
+        6.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            4.0,
+            1.0,
+            6.0,
+            5.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "cap-west-front-hboards",
+      "from": [
+        11.0,
+        15.05,
+        4.0
+      ],
+      "to": [
+        15.0,
+        16.05,
+        6.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            11.0,
+            4.0,
+            15.0,
+            6.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-west-front-tile1",
+      "from": [
+        11.0,
+        15.05,
+        4.0
+      ],
+      "to": [
+        15.0,
+        16.05,
+        6.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfronttile1",
+          "uv": [
+            11.0,
+            4.0,
+            15.0,
+            6.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-west-front",
+      "from": [
+        9.0,
+        15.05,
+        6.0
+      ],
+      "to": [
+        13.0,
+        16.05,
+        8.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            9.0,
+            6.0,
+            13.0,
+            8.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-west-front-boards",
+      "from": [
+        9.0,
+        15.05,
+        6.0
+      ],
+      "to": [
+        13.0,
+        16.05,
+        8.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            6.0,
+            3.0,
+            8.0,
+            7.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "cap-west-front-hboards",
+      "from": [
+        9.0,
+        15.05,
+        6.0
+      ],
+      "to": [
+        13.0,
+        16.05,
+        8.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            9.0,
+            6.0,
+            13.0,
+            8.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-west-front-tile1",
+      "from": [
+        9.0,
+        15.05,
+        6.0
+      ],
+      "to": [
+        13.0,
+        16.05,
+        8.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfronttile1",
+          "uv": [
+            9.0,
+            6.0,
+            13.0,
+            8.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-west-front",
+      "from": [
+        7.0,
+        15.05,
+        8.0
+      ],
+      "to": [
+        11.0,
+        16.05,
+        10.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            7.0,
+            8.0,
+            11.0,
+            10.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-west-front-boards",
+      "from": [
+        7.0,
+        15.05,
+        8.0
+      ],
+      "to": [
+        11.0,
+        16.05,
+        10.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            8.0,
+            5.0,
+            10.0,
+            9.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "cap-west-front-hboards",
+      "from": [
+        7.0,
+        15.05,
+        8.0
+      ],
+      "to": [
+        11.0,
+        16.05,
+        10.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            7.0,
+            8.0,
+            11.0,
+            10.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-west-front-tile2",
+      "from": [
+        7.0,
+        15.05,
+        8.0
+      ],
+      "to": [
+        8.0,
+        16.05,
+        10.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfronttile2",
+          "uv": [
+            7.0,
+            8.0,
+            8.0,
+            10.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-west-front-tile3",
+      "from": [
+        8.0,
+        15.05,
+        8.0
+      ],
+      "to": [
+        11.0,
+        16.05,
+        10.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfronttile3",
+          "uv": [
+            8.0,
+            8.0,
+            11.0,
+            10.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-west-front",
+      "from": [
+        5.0,
+        15.05,
+        10.0
+      ],
+      "to": [
+        9.0,
+        16.05,
+        12.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            5.0,
+            10.0,
+            9.0,
+            12.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-west-front-boards",
+      "from": [
+        5.0,
+        15.05,
+        10.0
+      ],
+      "to": [
+        9.0,
+        16.05,
+        12.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            10.0,
+            7.0,
+            12.0,
+            11.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "cap-west-front-hboards",
+      "from": [
+        5.0,
+        15.05,
+        10.0
+      ],
+      "to": [
+        9.0,
+        16.05,
+        12.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            5.0,
+            10.0,
+            9.0,
+            12.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-west-front-tile2",
+      "from": [
+        5.0,
+        15.05,
+        10.0
+      ],
+      "to": [
+        8.0,
+        16.05,
+        12.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfronttile2",
+          "uv": [
+            5.0,
+            10.0,
+            8.0,
+            12.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-west-front-tile3",
+      "from": [
+        8.0,
+        15.05,
+        10.0
+      ],
+      "to": [
+        9.0,
+        16.05,
+        12.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfronttile3",
+          "uv": [
+            8.0,
+            10.0,
+            9.0,
+            12.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-west-front",
+      "from": [
+        3.0,
+        15.05,
+        12.0
+      ],
+      "to": [
+        7.0,
+        16.05,
+        14.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            3.0,
+            12.0,
+            7.0,
+            14.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-west-front-boards",
+      "from": [
+        3.0,
+        15.05,
+        12.0
+      ],
+      "to": [
+        7.0,
+        16.05,
+        14.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            12.0,
+            9.0,
+            14.0,
+            13.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "cap-west-front-hboards",
+      "from": [
+        3.0,
+        15.05,
+        12.0
+      ],
+      "to": [
+        7.0,
+        16.05,
+        14.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            3.0,
+            12.0,
+            7.0,
+            14.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-west-front-tile2",
+      "from": [
+        3.0,
+        15.05,
+        12.0
+      ],
+      "to": [
+        7.0,
+        16.05,
+        14.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfronttile2",
+          "uv": [
+            3.0,
+            12.0,
+            7.0,
+            14.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-west-front",
+      "from": [
+        1.0,
+        15.05,
+        14.0
+      ],
+      "to": [
+        5.0,
+        16.05,
+        16.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            1.0,
+            14.0,
+            5.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-west-front-boards",
+      "from": [
+        1.0,
+        15.05,
+        14.0
+      ],
+      "to": [
+        5.0,
+        16.05,
+        16.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            14.0,
+            11.0,
+            16.0,
+            15.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "cap-west-front-hboards",
+      "from": [
+        1.0,
+        15.05,
+        14.0
+      ],
+      "to": [
+        5.0,
+        16.05,
+        16.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            1.0,
+            14.0,
+            5.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-west-front-tile2",
+      "from": [
+        1.0,
+        15.05,
+        14.0
+      ],
+      "to": [
+        5.0,
+        16.05,
+        16.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfronttile2",
+          "uv": [
+            1.0,
+            14.0,
+            5.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-south-front",
+      "from": [
+        0.0,
+        15.05,
+        0.0
+      ],
+      "to": [
+        2.0,
+        16.05,
+        1.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            0.0,
+            2.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-south-front-boards",
+      "from": [
+        0.0,
+        15.05,
+        0.0
+      ],
+      "to": [
+        2.0,
+        16.05,
+        1.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            14.0,
+            1.0,
+            16.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "cap-south-front-hboards",
+      "from": [
+        0.0,
+        15.05,
+        0.0
+      ],
+      "to": [
+        2.0,
+        16.05,
+        1.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            0.0,
+            2.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-south-front-tile0",
+      "from": [
+        0.0,
+        15.05,
+        0.0
+      ],
+      "to": [
+        2.0,
+        16.05,
+        1.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfronttile0",
+          "uv": [
+            0.0,
+            0.0,
+            2.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-south-front",
+      "from": [
+        2.0,
+        15.05,
+        0.0
+      ],
+      "to": [
+        4.0,
+        16.05,
+        3.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            2.0,
+            0.0,
+            4.0,
+            3.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-south-front-boards",
+      "from": [
+        2.0,
+        15.05,
+        0.0
+      ],
+      "to": [
+        4.0,
+        16.05,
+        3.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            12.0,
+            3.0,
+            14.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "cap-south-front-hboards",
+      "from": [
+        2.0,
+        15.05,
+        0.0
+      ],
+      "to": [
+        4.0,
+        16.05,
+        3.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            2.0,
+            0.0,
+            4.0,
+            3.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-south-front-tile0",
+      "from": [
+        2.0,
+        15.05,
+        0.0
+      ],
+      "to": [
+        4.0,
+        16.05,
+        3.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfronttile0",
+          "uv": [
+            2.0,
+            0.0,
+            4.0,
+            3.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-south-front",
+      "from": [
+        4.0,
+        15.05,
+        1.0
+      ],
+      "to": [
+        6.0,
+        16.05,
+        5.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            4.0,
+            1.0,
+            6.0,
+            5.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-south-front-boards",
+      "from": [
+        4.0,
+        15.05,
+        1.0
+      ],
+      "to": [
+        6.0,
+        16.05,
+        5.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            1.0,
+            10.0,
+            5.0,
+            12.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "cap-south-front-hboards",
+      "from": [
+        4.0,
+        15.05,
+        1.0
+      ],
+      "to": [
+        6.0,
+        16.05,
+        5.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            4.0,
+            1.0,
+            6.0,
+            5.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-south-front-tile0",
+      "from": [
+        4.0,
+        15.05,
+        1.0
+      ],
+      "to": [
+        6.0,
+        16.05,
+        5.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfronttile0",
+          "uv": [
+            4.0,
+            1.0,
+            6.0,
+            5.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-south-front",
+      "from": [
+        6.0,
+        15.05,
+        3.0
+      ],
+      "to": [
+        8.0,
+        16.05,
+        7.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            6.0,
+            3.0,
+            8.0,
+            7.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-south-front-boards",
+      "from": [
+        6.0,
+        15.05,
+        3.0
+      ],
+      "to": [
+        8.0,
+        16.05,
+        7.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            3.0,
+            8.0,
+            7.0,
+            10.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "cap-south-front-hboards",
+      "from": [
+        6.0,
+        15.05,
+        3.0
+      ],
+      "to": [
+        8.0,
+        16.05,
+        7.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            6.0,
+            3.0,
+            8.0,
+            7.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-south-front-tile0",
+      "from": [
+        6.0,
+        15.05,
+        3.0
+      ],
+      "to": [
+        8.0,
+        16.05,
+        7.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfronttile0",
+          "uv": [
+            6.0,
+            3.0,
+            8.0,
+            7.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-south-front",
+      "from": [
+        8.0,
+        15.05,
+        5.0
+      ],
+      "to": [
+        10.0,
+        16.05,
+        9.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            8.0,
+            5.0,
+            10.0,
+            9.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-south-front-boards",
+      "from": [
+        8.0,
+        15.05,
+        5.0
+      ],
+      "to": [
+        10.0,
+        16.05,
+        9.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            5.0,
+            6.0,
+            9.0,
+            8.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "cap-south-front-hboards",
+      "from": [
+        8.0,
+        15.05,
+        5.0
+      ],
+      "to": [
+        10.0,
+        16.05,
+        9.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            8.0,
+            5.0,
+            10.0,
+            9.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-south-front-tile1",
+      "from": [
+        8.0,
+        15.05,
+        5.0
+      ],
+      "to": [
+        10.0,
+        16.05,
+        8.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfronttile1",
+          "uv": [
+            8.0,
+            5.0,
+            10.0,
+            8.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-south-front-tile3",
+      "from": [
+        8.0,
+        15.05,
+        8.0
+      ],
+      "to": [
+        10.0,
+        16.05,
+        9.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfronttile3",
+          "uv": [
+            8.0,
+            8.0,
+            10.0,
+            9.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-south-front",
+      "from": [
+        10.0,
+        15.05,
+        7.0
+      ],
+      "to": [
+        12.0,
+        16.05,
+        11.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            10.0,
+            7.0,
+            12.0,
+            11.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-south-front-boards",
+      "from": [
+        10.0,
+        15.05,
+        7.0
+      ],
+      "to": [
+        12.0,
+        16.05,
+        11.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            7.0,
+            4.0,
+            11.0,
+            6.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "cap-south-front-hboards",
+      "from": [
+        10.0,
+        15.05,
+        7.0
+      ],
+      "to": [
+        12.0,
+        16.05,
+        11.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            10.0,
+            7.0,
+            12.0,
+            11.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-south-front-tile1",
+      "from": [
+        10.0,
+        15.05,
+        7.0
+      ],
+      "to": [
+        12.0,
+        16.05,
+        8.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfronttile1",
+          "uv": [
+            10.0,
+            7.0,
+            12.0,
+            8.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-south-front-tile3",
+      "from": [
+        10.0,
+        15.05,
+        8.0
+      ],
+      "to": [
+        12.0,
+        16.05,
+        11.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfronttile3",
+          "uv": [
+            10.0,
+            8.0,
+            12.0,
+            11.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-south-front",
+      "from": [
+        12.0,
+        15.05,
+        9.0
+      ],
+      "to": [
+        14.0,
+        16.05,
+        13.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            12.0,
+            9.0,
+            14.0,
+            13.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-south-front-boards",
+      "from": [
+        12.0,
+        15.05,
+        9.0
+      ],
+      "to": [
+        14.0,
+        16.05,
+        13.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            9.0,
+            2.0,
+            13.0,
+            4.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "cap-south-front-hboards",
+      "from": [
+        12.0,
+        15.05,
+        9.0
+      ],
+      "to": [
+        14.0,
+        16.05,
+        13.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            12.0,
+            9.0,
+            14.0,
+            13.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-south-front-tile3",
+      "from": [
+        12.0,
+        15.05,
+        9.0
+      ],
+      "to": [
+        14.0,
+        16.05,
+        13.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfronttile3",
+          "uv": [
+            12.0,
+            9.0,
+            14.0,
+            13.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-south-front",
+      "from": [
+        14.0,
+        15.05,
+        11.0
+      ],
+      "to": [
+        16.0,
+        16.05,
+        15.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            14.0,
+            11.0,
+            16.0,
+            15.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-south-front-boards",
+      "from": [
+        14.0,
+        15.05,
+        11.0
+      ],
+      "to": [
+        16.0,
+        16.05,
+        15.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            11.0,
+            0.0,
+            15.0,
+            2.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "cap-south-front-hboards",
+      "from": [
+        14.0,
+        15.05,
+        11.0
+      ],
+      "to": [
+        16.0,
+        16.05,
+        15.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            14.0,
+            11.0,
+            16.0,
+            15.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-south-front-tile3",
+      "from": [
+        14.0,
+        15.05,
+        11.0
+      ],
+      "to": [
+        16.0,
+        16.05,
+        15.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfronttile3",
+          "uv": [
+            14.0,
+            11.0,
+            16.0,
+            15.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-east-front",
+      "from": [
+        0.0,
+        15.05,
+        14.0
+      ],
+      "to": [
+        1.0,
+        16.05,
+        16.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            14.0,
+            1.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-east-front-boards",
+      "from": [
+        0.0,
+        15.05,
+        14.0
+      ],
+      "to": [
+        1.0,
+        16.05,
+        16.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            14.0,
+            15.0,
+            16.0,
+            16.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "cap-east-front-hboards",
+      "from": [
+        0.0,
+        15.05,
+        14.0
+      ],
+      "to": [
+        1.0,
+        16.05,
+        16.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            14.0,
+            1.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-east-front-tile2",
+      "from": [
+        0.0,
+        15.05,
+        14.0
+      ],
+      "to": [
+        1.0,
+        16.05,
+        16.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfronttile2",
+          "uv": [
+            0.0,
+            14.0,
+            1.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-east-front",
+      "from": [
+        0.0,
+        15.05,
+        12.0
+      ],
+      "to": [
+        3.0,
+        16.05,
+        14.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            12.0,
+            3.0,
+            14.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-east-front-boards",
+      "from": [
+        0.0,
+        15.05,
+        12.0
+      ],
+      "to": [
+        3.0,
+        16.05,
+        14.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            12.0,
+            13.0,
+            14.0,
+            16.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "cap-east-front-hboards",
+      "from": [
+        0.0,
+        15.05,
+        12.0
+      ],
+      "to": [
+        3.0,
+        16.05,
+        14.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            12.0,
+            3.0,
+            14.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-east-front-tile2",
+      "from": [
+        0.0,
+        15.05,
+        12.0
+      ],
+      "to": [
+        3.0,
+        16.05,
+        14.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfronttile2",
+          "uv": [
+            0.0,
+            12.0,
+            3.0,
+            14.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-east-front",
+      "from": [
+        1.0,
+        15.05,
+        10.0
+      ],
+      "to": [
+        5.0,
+        16.05,
+        12.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            1.0,
+            10.0,
+            5.0,
+            12.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-east-front-boards",
+      "from": [
+        1.0,
+        15.05,
+        10.0
+      ],
+      "to": [
+        5.0,
+        16.05,
+        12.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            10.0,
+            11.0,
+            12.0,
+            15.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "cap-east-front-hboards",
+      "from": [
+        1.0,
+        15.05,
+        10.0
+      ],
+      "to": [
+        5.0,
+        16.05,
+        12.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            1.0,
+            10.0,
+            5.0,
+            12.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-east-front-tile2",
+      "from": [
+        1.0,
+        15.05,
+        10.0
+      ],
+      "to": [
+        5.0,
+        16.05,
+        12.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfronttile2",
+          "uv": [
+            1.0,
+            10.0,
+            5.0,
+            12.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-east-front",
+      "from": [
+        3.0,
+        15.05,
+        8.0
+      ],
+      "to": [
+        7.0,
+        16.05,
+        10.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            3.0,
+            8.0,
+            7.0,
+            10.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-east-front-boards",
+      "from": [
+        3.0,
+        15.05,
+        8.0
+      ],
+      "to": [
+        7.0,
+        16.05,
+        10.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            8.0,
+            9.0,
+            10.0,
+            13.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "cap-east-front-hboards",
+      "from": [
+        3.0,
+        15.05,
+        8.0
+      ],
+      "to": [
+        7.0,
+        16.05,
+        10.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            3.0,
+            8.0,
+            7.0,
+            10.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-east-front-tile2",
+      "from": [
+        3.0,
+        15.05,
+        8.0
+      ],
+      "to": [
+        7.0,
+        16.05,
+        10.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfronttile2",
+          "uv": [
+            3.0,
+            8.0,
+            7.0,
+            10.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-east-front",
+      "from": [
+        5.0,
+        15.05,
+        6.0
+      ],
+      "to": [
+        9.0,
+        16.05,
+        8.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            5.0,
+            6.0,
+            9.0,
+            8.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-east-front-boards",
+      "from": [
+        5.0,
+        15.05,
+        6.0
+      ],
+      "to": [
+        9.0,
+        16.05,
+        8.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            6.0,
+            7.0,
+            8.0,
+            11.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "cap-east-front-hboards",
+      "from": [
+        5.0,
+        15.05,
+        6.0
+      ],
+      "to": [
+        9.0,
+        16.05,
+        8.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            5.0,
+            6.0,
+            9.0,
+            8.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-east-front-tile0",
+      "from": [
+        5.0,
+        15.05,
+        6.0
+      ],
+      "to": [
+        8.0,
+        16.05,
+        8.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfronttile0",
+          "uv": [
+            5.0,
+            6.0,
+            8.0,
+            8.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-east-front-tile1",
+      "from": [
+        8.0,
+        15.05,
+        6.0
+      ],
+      "to": [
+        9.0,
+        16.05,
+        8.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfronttile1",
+          "uv": [
+            8.0,
+            6.0,
+            9.0,
+            8.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-east-front",
+      "from": [
+        7.0,
+        15.05,
+        4.0
+      ],
+      "to": [
+        11.0,
+        16.05,
+        6.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            7.0,
+            4.0,
+            11.0,
+            6.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-east-front-boards",
+      "from": [
+        7.0,
+        15.05,
+        4.0
+      ],
+      "to": [
+        11.0,
+        16.05,
+        6.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            4.0,
+            5.0,
+            6.0,
+            9.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "cap-east-front-hboards",
+      "from": [
+        7.0,
+        15.05,
+        4.0
+      ],
+      "to": [
+        11.0,
+        16.05,
+        6.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            7.0,
+            4.0,
+            11.0,
+            6.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-east-front-tile0",
+      "from": [
+        7.0,
+        15.05,
+        4.0
+      ],
+      "to": [
+        8.0,
+        16.05,
+        6.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfronttile0",
+          "uv": [
+            7.0,
+            4.0,
+            8.0,
+            6.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-east-front-tile1",
+      "from": [
+        8.0,
+        15.05,
+        4.0
+      ],
+      "to": [
+        11.0,
+        16.05,
+        6.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfronttile1",
+          "uv": [
+            8.0,
+            4.0,
+            11.0,
+            6.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-east-front",
+      "from": [
+        9.0,
+        15.05,
+        2.0
+      ],
+      "to": [
+        13.0,
+        16.05,
+        4.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            9.0,
+            2.0,
+            13.0,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-east-front-boards",
+      "from": [
+        9.0,
+        15.05,
+        2.0
+      ],
+      "to": [
+        13.0,
+        16.05,
+        4.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            2.0,
+            3.0,
+            4.0,
+            7.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "cap-east-front-hboards",
+      "from": [
+        9.0,
+        15.05,
+        2.0
+      ],
+      "to": [
+        13.0,
+        16.05,
+        4.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            9.0,
+            2.0,
+            13.0,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-east-front-tile1",
+      "from": [
+        9.0,
+        15.05,
+        2.0
+      ],
+      "to": [
+        13.0,
+        16.05,
+        4.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfronttile1",
+          "uv": [
+            9.0,
+            2.0,
+            13.0,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-east-front",
+      "from": [
+        11.0,
+        15.05,
+        0.0
+      ],
+      "to": [
+        15.0,
+        16.05,
+        2.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            11.0,
+            0.0,
+            15.0,
+            2.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-east-front-boards",
+      "from": [
+        11.0,
+        15.05,
+        0.0
+      ],
+      "to": [
+        15.0,
+        16.05,
+        2.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            1.0,
+            2.0,
+            5.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "cap-east-front-hboards",
+      "from": [
+        11.0,
+        15.05,
+        0.0
+      ],
+      "to": [
+        15.0,
+        16.05,
+        2.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            11.0,
+            0.0,
+            15.0,
+            2.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-east-front-tile1",
+      "from": [
+        11.0,
+        15.05,
+        0.0
+      ],
+      "to": [
+        15.0,
+        16.05,
+        2.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfronttile1",
+          "uv": [
+            11.0,
+            0.0,
+            15.0,
+            2.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-north-front",
+      "from": [
+        14.0,
+        15.05,
+        15.0
+      ],
+      "to": [
+        16.0,
+        16.05,
+        16.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            14.0,
+            15.0,
+            16.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-north-front-boards",
+      "from": [
+        14.0,
+        15.05,
+        15.0
+      ],
+      "to": [
+        16.0,
+        16.05,
+        16.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            2.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "cap-north-front-hboards",
+      "from": [
+        14.0,
+        15.05,
+        15.0
+      ],
+      "to": [
+        16.0,
+        16.05,
+        16.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            14.0,
+            15.0,
+            16.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-north-front-tile3",
+      "from": [
+        14.0,
+        15.05,
+        15.0
+      ],
+      "to": [
+        16.0,
+        16.05,
+        16.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfronttile3",
+          "uv": [
+            14.0,
+            15.0,
+            16.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-north-front",
+      "from": [
+        12.0,
+        15.05,
+        13.0
+      ],
+      "to": [
+        14.0,
+        16.05,
+        16.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            12.0,
+            13.0,
+            14.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-north-front-boards",
+      "from": [
+        12.0,
+        15.05,
+        13.0
+      ],
+      "to": [
+        14.0,
+        16.05,
+        16.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            13.0,
+            2.0,
+            16.0,
+            4.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "cap-north-front-hboards",
+      "from": [
+        12.0,
+        15.05,
+        13.0
+      ],
+      "to": [
+        14.0,
+        16.05,
+        16.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            12.0,
+            13.0,
+            14.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-north-front-tile3",
+      "from": [
+        12.0,
+        15.05,
+        13.0
+      ],
+      "to": [
+        14.0,
+        16.05,
+        16.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfronttile3",
+          "uv": [
+            12.0,
+            13.0,
+            14.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-north-front",
+      "from": [
+        10.0,
+        15.05,
+        11.0
+      ],
+      "to": [
+        12.0,
+        16.05,
+        15.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            10.0,
+            11.0,
+            12.0,
+            15.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-north-front-boards",
+      "from": [
+        10.0,
+        15.05,
+        11.0
+      ],
+      "to": [
+        12.0,
+        16.05,
+        15.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            11.0,
+            4.0,
+            15.0,
+            6.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "cap-north-front-hboards",
+      "from": [
+        10.0,
+        15.05,
+        11.0
+      ],
+      "to": [
+        12.0,
+        16.05,
+        15.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            10.0,
+            11.0,
+            12.0,
+            15.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-north-front-tile3",
+      "from": [
+        10.0,
+        15.05,
+        11.0
+      ],
+      "to": [
+        12.0,
+        16.05,
+        15.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfronttile3",
+          "uv": [
+            10.0,
+            11.0,
+            12.0,
+            15.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-north-front",
+      "from": [
+        8.0,
+        15.05,
+        9.0
+      ],
+      "to": [
+        10.0,
+        16.05,
+        13.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            8.0,
+            9.0,
+            10.0,
+            13.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-north-front-boards",
+      "from": [
+        8.0,
+        15.05,
+        9.0
+      ],
+      "to": [
+        10.0,
+        16.05,
+        13.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            9.0,
+            6.0,
+            13.0,
+            8.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "cap-north-front-hboards",
+      "from": [
+        8.0,
+        15.05,
+        9.0
+      ],
+      "to": [
+        10.0,
+        16.05,
+        13.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            8.0,
+            9.0,
+            10.0,
+            13.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-north-front-tile3",
+      "from": [
+        8.0,
+        15.05,
+        9.0
+      ],
+      "to": [
+        10.0,
+        16.05,
+        13.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfronttile3",
+          "uv": [
+            8.0,
+            9.0,
+            10.0,
+            13.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-north-front",
+      "from": [
+        6.0,
+        15.05,
+        7.0
+      ],
+      "to": [
+        8.0,
+        16.05,
+        11.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            6.0,
+            7.0,
+            8.0,
+            11.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-north-front-boards",
+      "from": [
+        6.0,
+        15.05,
+        7.0
+      ],
+      "to": [
+        8.0,
+        16.05,
+        11.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            7.0,
+            8.0,
+            11.0,
+            10.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "cap-north-front-hboards",
+      "from": [
+        6.0,
+        15.05,
+        7.0
+      ],
+      "to": [
+        8.0,
+        16.05,
+        11.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            6.0,
+            7.0,
+            8.0,
+            11.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-north-front-tile0",
+      "from": [
+        6.0,
+        15.05,
+        7.0
+      ],
+      "to": [
+        8.0,
+        16.05,
+        8.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfronttile0",
+          "uv": [
+            6.0,
+            7.0,
+            8.0,
+            8.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-north-front-tile2",
+      "from": [
+        6.0,
+        15.05,
+        8.0
+      ],
+      "to": [
+        8.0,
+        16.05,
+        11.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfronttile2",
+          "uv": [
+            6.0,
+            8.0,
+            8.0,
+            11.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-north-front",
+      "from": [
+        4.0,
+        15.05,
+        5.0
+      ],
+      "to": [
+        6.0,
+        16.05,
+        9.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            4.0,
+            5.0,
+            6.0,
+            9.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-north-front-boards",
+      "from": [
+        4.0,
+        15.05,
+        5.0
+      ],
+      "to": [
+        6.0,
+        16.05,
+        9.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            5.0,
+            10.0,
+            9.0,
+            12.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "cap-north-front-hboards",
+      "from": [
+        4.0,
+        15.05,
+        5.0
+      ],
+      "to": [
+        6.0,
+        16.05,
+        9.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            4.0,
+            5.0,
+            6.0,
+            9.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-north-front-tile0",
+      "from": [
+        4.0,
+        15.05,
+        5.0
+      ],
+      "to": [
+        6.0,
+        16.05,
+        8.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfronttile0",
+          "uv": [
+            4.0,
+            5.0,
+            6.0,
+            8.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-north-front-tile2",
+      "from": [
+        4.0,
+        15.05,
+        8.0
+      ],
+      "to": [
+        6.0,
+        16.05,
+        9.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfronttile2",
+          "uv": [
+            4.0,
+            8.0,
+            6.0,
+            9.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-north-front",
+      "from": [
+        2.0,
+        15.05,
+        3.0
+      ],
+      "to": [
+        4.0,
+        16.05,
+        7.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            2.0,
+            3.0,
+            4.0,
+            7.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-north-front-boards",
+      "from": [
+        2.0,
+        15.05,
+        3.0
+      ],
+      "to": [
+        4.0,
+        16.05,
+        7.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            3.0,
+            12.0,
+            7.0,
+            14.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "cap-north-front-hboards",
+      "from": [
+        2.0,
+        15.05,
+        3.0
+      ],
+      "to": [
+        4.0,
+        16.05,
+        7.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            2.0,
+            3.0,
+            4.0,
+            7.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-north-front-tile0",
+      "from": [
+        2.0,
+        15.05,
+        3.0
+      ],
+      "to": [
+        4.0,
+        16.05,
+        7.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfronttile0",
+          "uv": [
+            2.0,
+            3.0,
+            4.0,
+            7.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-north-front",
+      "from": [
+        0.0,
+        15.05,
+        1.0
+      ],
+      "to": [
+        2.0,
+        16.05,
+        5.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            1.0,
+            2.0,
+            5.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-north-front-boards",
+      "from": [
+        0.0,
+        15.05,
+        1.0
+      ],
+      "to": [
+        2.0,
+        16.05,
+        5.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            1.0,
+            14.0,
+            5.0,
+            16.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "cap-north-front-hboards",
+      "from": [
+        0.0,
+        15.05,
+        1.0
+      ],
+      "to": [
+        2.0,
+        16.05,
+        5.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfront",
+          "uv": [
+            0.0,
+            1.0,
+            2.0,
+            5.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap-north-front-tile0",
+      "from": [
+        0.0,
+        15.05,
+        1.0
+      ],
+      "to": [
+        2.0,
+        16.05,
+        5.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deckfronttile0",
+          "uv": [
+            0.0,
+            1.0,
+            2.0,
+            5.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-west-front",
+      "from": [
+        0.0,
+        15.05,
+        14.0
+      ],
+      "to": [
+        1.0,
+        16.05,
+        16.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            0.0,
+            14.0,
+            1.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-west-front-boards",
+      "from": [
+        0.0,
+        15.05,
+        14.0
+      ],
+      "to": [
+        1.0,
+        16.05,
+        16.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            14.0,
+            15.0,
+            16.0,
+            16.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "outercap-west-front-hboards",
+      "from": [
+        0.0,
+        15.05,
+        14.0
+      ],
+      "to": [
+        1.0,
+        16.05,
+        16.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            0.0,
+            14.0,
+            1.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-west-front-tile2",
+      "from": [
+        0.0,
+        15.05,
+        14.0
+      ],
+      "to": [
+        1.0,
+        16.05,
+        16.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfronttile2",
+          "uv": [
+            0.0,
+            14.0,
+            1.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-west-front",
+      "from": [
+        0.0,
+        15.05,
+        12.0
+      ],
+      "to": [
+        3.0,
+        16.05,
+        14.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            0.0,
+            12.0,
+            3.0,
+            14.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-west-front-boards",
+      "from": [
+        0.0,
+        15.05,
+        12.0
+      ],
+      "to": [
+        3.0,
+        16.05,
+        14.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            12.0,
+            13.0,
+            14.0,
+            16.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "outercap-west-front-hboards",
+      "from": [
+        0.0,
+        15.05,
+        12.0
+      ],
+      "to": [
+        3.0,
+        16.05,
+        14.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            0.0,
+            12.0,
+            3.0,
+            14.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-west-front-tile2",
+      "from": [
+        0.0,
+        15.05,
+        12.0
+      ],
+      "to": [
+        3.0,
+        16.05,
+        14.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfronttile2",
+          "uv": [
+            0.0,
+            12.0,
+            3.0,
+            14.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-west-front",
+      "from": [
+        1.0,
+        15.05,
+        10.0
+      ],
+      "to": [
+        5.0,
+        16.05,
+        12.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            1.0,
+            10.0,
+            5.0,
+            12.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-west-front-boards",
+      "from": [
+        1.0,
+        15.05,
+        10.0
+      ],
+      "to": [
+        5.0,
+        16.05,
+        12.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            10.0,
+            11.0,
+            12.0,
+            15.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "outercap-west-front-hboards",
+      "from": [
+        1.0,
+        15.05,
+        10.0
+      ],
+      "to": [
+        5.0,
+        16.05,
+        12.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            1.0,
+            10.0,
+            5.0,
+            12.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-west-front-tile2",
+      "from": [
+        1.0,
+        15.05,
+        10.0
+      ],
+      "to": [
+        5.0,
+        16.05,
+        12.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfronttile2",
+          "uv": [
+            1.0,
+            10.0,
+            5.0,
+            12.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-west-front",
+      "from": [
+        3.0,
+        15.05,
+        8.0
+      ],
+      "to": [
+        7.0,
+        16.05,
+        10.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            3.0,
+            8.0,
+            7.0,
+            10.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-west-front-boards",
+      "from": [
+        3.0,
+        15.05,
+        8.0
+      ],
+      "to": [
+        7.0,
+        16.05,
+        10.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            8.0,
+            9.0,
+            10.0,
+            13.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "outercap-west-front-hboards",
+      "from": [
+        3.0,
+        15.05,
+        8.0
+      ],
+      "to": [
+        7.0,
+        16.05,
+        10.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            3.0,
+            8.0,
+            7.0,
+            10.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-west-front-tile2",
+      "from": [
+        3.0,
+        15.05,
+        8.0
+      ],
+      "to": [
+        7.0,
+        16.05,
+        10.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfronttile2",
+          "uv": [
+            3.0,
+            8.0,
+            7.0,
+            10.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-west-front",
+      "from": [
+        5.0,
+        15.05,
+        6.0
+      ],
+      "to": [
+        9.0,
+        16.05,
+        8.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            5.0,
+            6.0,
+            9.0,
+            8.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-west-front-boards",
+      "from": [
+        5.0,
+        15.05,
+        6.0
+      ],
+      "to": [
+        9.0,
+        16.05,
+        8.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            6.0,
+            7.0,
+            8.0,
+            11.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "outercap-west-front-hboards",
+      "from": [
+        5.0,
+        15.05,
+        6.0
+      ],
+      "to": [
+        9.0,
+        16.05,
+        8.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            5.0,
+            6.0,
+            9.0,
+            8.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-west-front-tile0",
+      "from": [
+        5.0,
+        15.05,
+        6.0
+      ],
+      "to": [
+        8.0,
+        16.05,
+        8.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfronttile0",
+          "uv": [
+            5.0,
+            6.0,
+            8.0,
+            8.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-west-front-tile1",
+      "from": [
+        8.0,
+        15.05,
+        6.0
+      ],
+      "to": [
+        9.0,
+        16.05,
+        8.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfronttile1",
+          "uv": [
+            8.0,
+            6.0,
+            9.0,
+            8.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-west-front",
+      "from": [
+        7.0,
+        15.05,
+        4.0
+      ],
+      "to": [
+        11.0,
+        16.05,
+        6.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            7.0,
+            4.0,
+            11.0,
+            6.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-west-front-boards",
+      "from": [
+        7.0,
+        15.05,
+        4.0
+      ],
+      "to": [
+        11.0,
+        16.05,
+        6.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            4.0,
+            5.0,
+            6.0,
+            9.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "outercap-west-front-hboards",
+      "from": [
+        7.0,
+        15.05,
+        4.0
+      ],
+      "to": [
+        11.0,
+        16.05,
+        6.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            7.0,
+            4.0,
+            11.0,
+            6.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-west-front-tile0",
+      "from": [
+        7.0,
+        15.05,
+        4.0
+      ],
+      "to": [
+        8.0,
+        16.05,
+        6.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfronttile0",
+          "uv": [
+            7.0,
+            4.0,
+            8.0,
+            6.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-west-front-tile1",
+      "from": [
+        8.0,
+        15.05,
+        4.0
+      ],
+      "to": [
+        11.0,
+        16.05,
+        6.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfronttile1",
+          "uv": [
+            8.0,
+            4.0,
+            11.0,
+            6.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-west-front",
+      "from": [
+        9.0,
+        15.05,
+        2.0
+      ],
+      "to": [
+        13.0,
+        16.05,
+        4.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            9.0,
+            2.0,
+            13.0,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-west-front-boards",
+      "from": [
+        9.0,
+        15.05,
+        2.0
+      ],
+      "to": [
+        13.0,
+        16.05,
+        4.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            2.0,
+            3.0,
+            4.0,
+            7.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "outercap-west-front-hboards",
+      "from": [
+        9.0,
+        15.05,
+        2.0
+      ],
+      "to": [
+        13.0,
+        16.05,
+        4.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            9.0,
+            2.0,
+            13.0,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-west-front-tile1",
+      "from": [
+        9.0,
+        15.05,
+        2.0
+      ],
+      "to": [
+        13.0,
+        16.05,
+        4.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfronttile1",
+          "uv": [
+            9.0,
+            2.0,
+            13.0,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-west-front",
+      "from": [
+        11.0,
+        15.05,
+        0.0
+      ],
+      "to": [
+        15.0,
+        16.05,
+        2.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            11.0,
+            0.0,
+            15.0,
+            2.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-west-front-boards",
+      "from": [
+        11.0,
+        15.05,
+        0.0
+      ],
+      "to": [
+        15.0,
+        16.05,
+        2.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            0.0,
+            1.0,
+            2.0,
+            5.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "outercap-west-front-hboards",
+      "from": [
+        11.0,
+        15.05,
+        0.0
+      ],
+      "to": [
+        15.0,
+        16.05,
+        2.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            11.0,
+            0.0,
+            15.0,
+            2.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-west-front-tile1",
+      "from": [
+        11.0,
+        15.05,
+        0.0
+      ],
+      "to": [
+        15.0,
+        16.05,
+        2.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfronttile1",
+          "uv": [
+            11.0,
+            0.0,
+            15.0,
+            2.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-south-front",
+      "from": [
+        14.0,
+        15.05,
+        15.0
+      ],
+      "to": [
+        16.0,
+        16.05,
+        16.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            14.0,
+            15.0,
+            16.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-south-front-boards",
+      "from": [
+        14.0,
+        15.05,
+        15.0
+      ],
+      "to": [
+        16.0,
+        16.05,
+        16.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            2.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "outercap-south-front-hboards",
+      "from": [
+        14.0,
+        15.05,
+        15.0
+      ],
+      "to": [
+        16.0,
+        16.05,
+        16.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            14.0,
+            15.0,
+            16.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-south-front-tile3",
+      "from": [
+        14.0,
+        15.05,
+        15.0
+      ],
+      "to": [
+        16.0,
+        16.05,
+        16.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfronttile3",
+          "uv": [
+            14.0,
+            15.0,
+            16.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-south-front",
+      "from": [
+        12.0,
+        15.05,
+        13.0
+      ],
+      "to": [
+        14.0,
+        16.05,
+        16.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            12.0,
+            13.0,
+            14.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-south-front-boards",
+      "from": [
+        12.0,
+        15.05,
+        13.0
+      ],
+      "to": [
+        14.0,
+        16.05,
+        16.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            13.0,
+            2.0,
+            16.0,
+            4.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "outercap-south-front-hboards",
+      "from": [
+        12.0,
+        15.05,
+        13.0
+      ],
+      "to": [
+        14.0,
+        16.05,
+        16.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            12.0,
+            13.0,
+            14.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-south-front-tile3",
+      "from": [
+        12.0,
+        15.05,
+        13.0
+      ],
+      "to": [
+        14.0,
+        16.05,
+        16.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfronttile3",
+          "uv": [
+            12.0,
+            13.0,
+            14.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-south-front",
+      "from": [
+        10.0,
+        15.05,
+        11.0
+      ],
+      "to": [
+        12.0,
+        16.05,
+        15.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            10.0,
+            11.0,
+            12.0,
+            15.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-south-front-boards",
+      "from": [
+        10.0,
+        15.05,
+        11.0
+      ],
+      "to": [
+        12.0,
+        16.05,
+        15.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            11.0,
+            4.0,
+            15.0,
+            6.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "outercap-south-front-hboards",
+      "from": [
+        10.0,
+        15.05,
+        11.0
+      ],
+      "to": [
+        12.0,
+        16.05,
+        15.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            10.0,
+            11.0,
+            12.0,
+            15.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-south-front-tile3",
+      "from": [
+        10.0,
+        15.05,
+        11.0
+      ],
+      "to": [
+        12.0,
+        16.05,
+        15.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfronttile3",
+          "uv": [
+            10.0,
+            11.0,
+            12.0,
+            15.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-south-front",
+      "from": [
+        8.0,
+        15.05,
+        9.0
+      ],
+      "to": [
+        10.0,
+        16.05,
+        13.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            8.0,
+            9.0,
+            10.0,
+            13.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-south-front-boards",
+      "from": [
+        8.0,
+        15.05,
+        9.0
+      ],
+      "to": [
+        10.0,
+        16.05,
+        13.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            9.0,
+            6.0,
+            13.0,
+            8.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "outercap-south-front-hboards",
+      "from": [
+        8.0,
+        15.05,
+        9.0
+      ],
+      "to": [
+        10.0,
+        16.05,
+        13.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            8.0,
+            9.0,
+            10.0,
+            13.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-south-front-tile3",
+      "from": [
+        8.0,
+        15.05,
+        9.0
+      ],
+      "to": [
+        10.0,
+        16.05,
+        13.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfronttile3",
+          "uv": [
+            8.0,
+            9.0,
+            10.0,
+            13.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-south-front",
+      "from": [
+        6.0,
+        15.05,
+        7.0
+      ],
+      "to": [
+        8.0,
+        16.05,
+        11.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            6.0,
+            7.0,
+            8.0,
+            11.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-south-front-boards",
+      "from": [
+        6.0,
+        15.05,
+        7.0
+      ],
+      "to": [
+        8.0,
+        16.05,
+        11.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            7.0,
+            8.0,
+            11.0,
+            10.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "outercap-south-front-hboards",
+      "from": [
+        6.0,
+        15.05,
+        7.0
+      ],
+      "to": [
+        8.0,
+        16.05,
+        11.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            6.0,
+            7.0,
+            8.0,
+            11.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-south-front-tile0",
+      "from": [
+        6.0,
+        15.05,
+        7.0
+      ],
+      "to": [
+        8.0,
+        16.05,
+        8.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfronttile0",
+          "uv": [
+            6.0,
+            7.0,
+            8.0,
+            8.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-south-front-tile2",
+      "from": [
+        6.0,
+        15.05,
+        8.0
+      ],
+      "to": [
+        8.0,
+        16.05,
+        11.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfronttile2",
+          "uv": [
+            6.0,
+            8.0,
+            8.0,
+            11.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-south-front",
+      "from": [
+        4.0,
+        15.05,
+        5.0
+      ],
+      "to": [
+        6.0,
+        16.05,
+        9.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            4.0,
+            5.0,
+            6.0,
+            9.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-south-front-boards",
+      "from": [
+        4.0,
+        15.05,
+        5.0
+      ],
+      "to": [
+        6.0,
+        16.05,
+        9.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            5.0,
+            10.0,
+            9.0,
+            12.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "outercap-south-front-hboards",
+      "from": [
+        4.0,
+        15.05,
+        5.0
+      ],
+      "to": [
+        6.0,
+        16.05,
+        9.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            4.0,
+            5.0,
+            6.0,
+            9.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-south-front-tile0",
+      "from": [
+        4.0,
+        15.05,
+        5.0
+      ],
+      "to": [
+        6.0,
+        16.05,
+        8.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfronttile0",
+          "uv": [
+            4.0,
+            5.0,
+            6.0,
+            8.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-south-front-tile2",
+      "from": [
+        4.0,
+        15.05,
+        8.0
+      ],
+      "to": [
+        6.0,
+        16.05,
+        9.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfronttile2",
+          "uv": [
+            4.0,
+            8.0,
+            6.0,
+            9.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-south-front",
+      "from": [
+        2.0,
+        15.05,
+        3.0
+      ],
+      "to": [
+        4.0,
+        16.05,
+        7.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            2.0,
+            3.0,
+            4.0,
+            7.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-south-front-boards",
+      "from": [
+        2.0,
+        15.05,
+        3.0
+      ],
+      "to": [
+        4.0,
+        16.05,
+        7.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            3.0,
+            12.0,
+            7.0,
+            14.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "outercap-south-front-hboards",
+      "from": [
+        2.0,
+        15.05,
+        3.0
+      ],
+      "to": [
+        4.0,
+        16.05,
+        7.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            2.0,
+            3.0,
+            4.0,
+            7.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-south-front-tile0",
+      "from": [
+        2.0,
+        15.05,
+        3.0
+      ],
+      "to": [
+        4.0,
+        16.05,
+        7.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfronttile0",
+          "uv": [
+            2.0,
+            3.0,
+            4.0,
+            7.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-south-front",
+      "from": [
+        0.0,
+        15.05,
+        1.0
+      ],
+      "to": [
+        2.0,
+        16.05,
+        5.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            0.0,
+            1.0,
+            2.0,
+            5.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-south-front-boards",
+      "from": [
+        0.0,
+        15.05,
+        1.0
+      ],
+      "to": [
+        2.0,
+        16.05,
+        5.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            1.0,
+            14.0,
+            5.0,
+            16.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "outercap-south-front-hboards",
+      "from": [
+        0.0,
+        15.05,
+        1.0
+      ],
+      "to": [
+        2.0,
+        16.05,
+        5.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            0.0,
+            1.0,
+            2.0,
+            5.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-south-front-tile0",
+      "from": [
+        0.0,
+        15.05,
+        1.0
+      ],
+      "to": [
+        2.0,
+        16.05,
+        5.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfronttile0",
+          "uv": [
+            0.0,
+            1.0,
+            2.0,
+            5.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-east-front",
+      "from": [
+        15.0,
+        15.05,
+        0.0
+      ],
+      "to": [
+        16.0,
+        16.05,
+        2.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            2.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-east-front-boards",
+      "from": [
+        15.0,
+        15.05,
+        0.0
+      ],
+      "to": [
+        16.0,
+        16.05,
+        2.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            0.0,
+            0.0,
+            2.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "outercap-east-front-hboards",
+      "from": [
+        15.0,
+        15.05,
+        0.0
+      ],
+      "to": [
+        16.0,
+        16.05,
+        2.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            2.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-east-front-tile1",
+      "from": [
+        15.0,
+        15.05,
+        0.0
+      ],
+      "to": [
+        16.0,
+        16.05,
+        2.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfronttile1",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            2.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-east-front",
+      "from": [
+        13.0,
+        15.05,
+        2.0
+      ],
+      "to": [
+        16.0,
+        16.05,
+        4.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            13.0,
+            2.0,
+            16.0,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-east-front-boards",
+      "from": [
+        13.0,
+        15.05,
+        2.0
+      ],
+      "to": [
+        16.0,
+        16.05,
+        4.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            2.0,
+            0.0,
+            4.0,
+            3.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "outercap-east-front-hboards",
+      "from": [
+        13.0,
+        15.05,
+        2.0
+      ],
+      "to": [
+        16.0,
+        16.05,
+        4.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            13.0,
+            2.0,
+            16.0,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-east-front-tile1",
+      "from": [
+        13.0,
+        15.05,
+        2.0
+      ],
+      "to": [
+        16.0,
+        16.05,
+        4.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfronttile1",
+          "uv": [
+            13.0,
+            2.0,
+            16.0,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-east-front",
+      "from": [
+        11.0,
+        15.05,
+        4.0
+      ],
+      "to": [
+        15.0,
+        16.05,
+        6.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            11.0,
+            4.0,
+            15.0,
+            6.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-east-front-boards",
+      "from": [
+        11.0,
+        15.05,
+        4.0
+      ],
+      "to": [
+        15.0,
+        16.05,
+        6.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            4.0,
+            1.0,
+            6.0,
+            5.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "outercap-east-front-hboards",
+      "from": [
+        11.0,
+        15.05,
+        4.0
+      ],
+      "to": [
+        15.0,
+        16.05,
+        6.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            11.0,
+            4.0,
+            15.0,
+            6.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-east-front-tile1",
+      "from": [
+        11.0,
+        15.05,
+        4.0
+      ],
+      "to": [
+        15.0,
+        16.05,
+        6.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfronttile1",
+          "uv": [
+            11.0,
+            4.0,
+            15.0,
+            6.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-east-front",
+      "from": [
+        9.0,
+        15.05,
+        6.0
+      ],
+      "to": [
+        13.0,
+        16.05,
+        8.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            9.0,
+            6.0,
+            13.0,
+            8.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-east-front-boards",
+      "from": [
+        9.0,
+        15.05,
+        6.0
+      ],
+      "to": [
+        13.0,
+        16.05,
+        8.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            6.0,
+            3.0,
+            8.0,
+            7.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "outercap-east-front-hboards",
+      "from": [
+        9.0,
+        15.05,
+        6.0
+      ],
+      "to": [
+        13.0,
+        16.05,
+        8.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            9.0,
+            6.0,
+            13.0,
+            8.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-east-front-tile1",
+      "from": [
+        9.0,
+        15.05,
+        6.0
+      ],
+      "to": [
+        13.0,
+        16.05,
+        8.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfronttile1",
+          "uv": [
+            9.0,
+            6.0,
+            13.0,
+            8.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-east-front",
+      "from": [
+        7.0,
+        15.05,
+        8.0
+      ],
+      "to": [
+        11.0,
+        16.05,
+        10.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            7.0,
+            8.0,
+            11.0,
+            10.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-east-front-boards",
+      "from": [
+        7.0,
+        15.05,
+        8.0
+      ],
+      "to": [
+        11.0,
+        16.05,
+        10.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            8.0,
+            5.0,
+            10.0,
+            9.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "outercap-east-front-hboards",
+      "from": [
+        7.0,
+        15.05,
+        8.0
+      ],
+      "to": [
+        11.0,
+        16.05,
+        10.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            7.0,
+            8.0,
+            11.0,
+            10.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-east-front-tile2",
+      "from": [
+        7.0,
+        15.05,
+        8.0
+      ],
+      "to": [
+        8.0,
+        16.05,
+        10.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfronttile2",
+          "uv": [
+            7.0,
+            8.0,
+            8.0,
+            10.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-east-front-tile3",
+      "from": [
+        8.0,
+        15.05,
+        8.0
+      ],
+      "to": [
+        11.0,
+        16.05,
+        10.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfronttile3",
+          "uv": [
+            8.0,
+            8.0,
+            11.0,
+            10.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-east-front",
+      "from": [
+        5.0,
+        15.05,
+        10.0
+      ],
+      "to": [
+        9.0,
+        16.05,
+        12.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            5.0,
+            10.0,
+            9.0,
+            12.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-east-front-boards",
+      "from": [
+        5.0,
+        15.05,
+        10.0
+      ],
+      "to": [
+        9.0,
+        16.05,
+        12.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            10.0,
+            7.0,
+            12.0,
+            11.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "outercap-east-front-hboards",
+      "from": [
+        5.0,
+        15.05,
+        10.0
+      ],
+      "to": [
+        9.0,
+        16.05,
+        12.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            5.0,
+            10.0,
+            9.0,
+            12.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-east-front-tile2",
+      "from": [
+        5.0,
+        15.05,
+        10.0
+      ],
+      "to": [
+        8.0,
+        16.05,
+        12.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfronttile2",
+          "uv": [
+            5.0,
+            10.0,
+            8.0,
+            12.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-east-front-tile3",
+      "from": [
+        8.0,
+        15.05,
+        10.0
+      ],
+      "to": [
+        9.0,
+        16.05,
+        12.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfronttile3",
+          "uv": [
+            8.0,
+            10.0,
+            9.0,
+            12.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-east-front",
+      "from": [
+        3.0,
+        15.05,
+        12.0
+      ],
+      "to": [
+        7.0,
+        16.05,
+        14.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            3.0,
+            12.0,
+            7.0,
+            14.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-east-front-boards",
+      "from": [
+        3.0,
+        15.05,
+        12.0
+      ],
+      "to": [
+        7.0,
+        16.05,
+        14.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            12.0,
+            9.0,
+            14.0,
+            13.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "outercap-east-front-hboards",
+      "from": [
+        3.0,
+        15.05,
+        12.0
+      ],
+      "to": [
+        7.0,
+        16.05,
+        14.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            3.0,
+            12.0,
+            7.0,
+            14.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-east-front-tile2",
+      "from": [
+        3.0,
+        15.05,
+        12.0
+      ],
+      "to": [
+        7.0,
+        16.05,
+        14.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfronttile2",
+          "uv": [
+            3.0,
+            12.0,
+            7.0,
+            14.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-east-front",
+      "from": [
+        1.0,
+        15.05,
+        14.0
+      ],
+      "to": [
+        5.0,
+        16.05,
+        16.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            1.0,
+            14.0,
+            5.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-east-front-boards",
+      "from": [
+        1.0,
+        15.05,
+        14.0
+      ],
+      "to": [
+        5.0,
+        16.05,
+        16.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            14.0,
+            11.0,
+            16.0,
+            15.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "outercap-east-front-hboards",
+      "from": [
+        1.0,
+        15.05,
+        14.0
+      ],
+      "to": [
+        5.0,
+        16.05,
+        16.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            1.0,
+            14.0,
+            5.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-east-front-tile2",
+      "from": [
+        1.0,
+        15.05,
+        14.0
+      ],
+      "to": [
+        5.0,
+        16.05,
+        16.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfronttile2",
+          "uv": [
+            1.0,
+            14.0,
+            5.0,
+            16.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-north-front",
+      "from": [
+        0.0,
+        15.05,
+        0.0
+      ],
+      "to": [
+        2.0,
+        16.05,
+        1.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            0.0,
+            0.0,
+            2.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-north-front-boards",
+      "from": [
+        0.0,
+        15.05,
+        0.0
+      ],
+      "to": [
+        2.0,
+        16.05,
+        1.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            0.0,
+            14.0,
+            1.0,
+            16.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "outercap-north-front-hboards",
+      "from": [
+        0.0,
+        15.05,
+        0.0
+      ],
+      "to": [
+        2.0,
+        16.05,
+        1.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            0.0,
+            0.0,
+            2.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-north-front-tile0",
+      "from": [
+        0.0,
+        15.05,
+        0.0
+      ],
+      "to": [
+        2.0,
+        16.05,
+        1.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfronttile0",
+          "uv": [
+            0.0,
+            0.0,
+            2.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-north-front",
+      "from": [
+        2.0,
+        15.05,
+        0.0
+      ],
+      "to": [
+        4.0,
+        16.05,
+        3.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            2.0,
+            0.0,
+            4.0,
+            3.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-north-front-boards",
+      "from": [
+        2.0,
+        15.05,
+        0.0
+      ],
+      "to": [
+        4.0,
+        16.05,
+        3.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            0.0,
+            12.0,
+            3.0,
+            14.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "outercap-north-front-hboards",
+      "from": [
+        2.0,
+        15.05,
+        0.0
+      ],
+      "to": [
+        4.0,
+        16.05,
+        3.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            2.0,
+            0.0,
+            4.0,
+            3.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-north-front-tile0",
+      "from": [
+        2.0,
+        15.05,
+        0.0
+      ],
+      "to": [
+        4.0,
+        16.05,
+        3.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfronttile0",
+          "uv": [
+            2.0,
+            0.0,
+            4.0,
+            3.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-north-front",
+      "from": [
+        4.0,
+        15.05,
+        1.0
+      ],
+      "to": [
+        6.0,
+        16.05,
+        5.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            4.0,
+            1.0,
+            6.0,
+            5.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-north-front-boards",
+      "from": [
+        4.0,
+        15.05,
+        1.0
+      ],
+      "to": [
+        6.0,
+        16.05,
+        5.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            1.0,
+            10.0,
+            5.0,
+            12.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "outercap-north-front-hboards",
+      "from": [
+        4.0,
+        15.05,
+        1.0
+      ],
+      "to": [
+        6.0,
+        16.05,
+        5.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            4.0,
+            1.0,
+            6.0,
+            5.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-north-front-tile0",
+      "from": [
+        4.0,
+        15.05,
+        1.0
+      ],
+      "to": [
+        6.0,
+        16.05,
+        5.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfronttile0",
+          "uv": [
+            4.0,
+            1.0,
+            6.0,
+            5.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-north-front",
+      "from": [
+        6.0,
+        15.05,
+        3.0
+      ],
+      "to": [
+        8.0,
+        16.05,
+        7.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            6.0,
+            3.0,
+            8.0,
+            7.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-north-front-boards",
+      "from": [
+        6.0,
+        15.05,
+        3.0
+      ],
+      "to": [
+        8.0,
+        16.05,
+        7.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            3.0,
+            8.0,
+            7.0,
+            10.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "outercap-north-front-hboards",
+      "from": [
+        6.0,
+        15.05,
+        3.0
+      ],
+      "to": [
+        8.0,
+        16.05,
+        7.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            6.0,
+            3.0,
+            8.0,
+            7.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-north-front-tile0",
+      "from": [
+        6.0,
+        15.05,
+        3.0
+      ],
+      "to": [
+        8.0,
+        16.05,
+        7.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfronttile0",
+          "uv": [
+            6.0,
+            3.0,
+            8.0,
+            7.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-north-front",
+      "from": [
+        8.0,
+        15.05,
+        5.0
+      ],
+      "to": [
+        10.0,
+        16.05,
+        9.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            8.0,
+            5.0,
+            10.0,
+            9.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-north-front-boards",
+      "from": [
+        8.0,
+        15.05,
+        5.0
+      ],
+      "to": [
+        10.0,
+        16.05,
+        9.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            5.0,
+            6.0,
+            9.0,
+            8.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "outercap-north-front-hboards",
+      "from": [
+        8.0,
+        15.05,
+        5.0
+      ],
+      "to": [
+        10.0,
+        16.05,
+        9.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            8.0,
+            5.0,
+            10.0,
+            9.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-north-front-tile1",
+      "from": [
+        8.0,
+        15.05,
+        5.0
+      ],
+      "to": [
+        10.0,
+        16.05,
+        8.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfronttile1",
+          "uv": [
+            8.0,
+            5.0,
+            10.0,
+            8.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-north-front-tile3",
+      "from": [
+        8.0,
+        15.05,
+        8.0
+      ],
+      "to": [
+        10.0,
+        16.05,
+        9.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfronttile3",
+          "uv": [
+            8.0,
+            8.0,
+            10.0,
+            9.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-north-front",
+      "from": [
+        10.0,
+        15.05,
+        7.0
+      ],
+      "to": [
+        12.0,
+        16.05,
+        11.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            10.0,
+            7.0,
+            12.0,
+            11.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-north-front-boards",
+      "from": [
+        10.0,
+        15.05,
+        7.0
+      ],
+      "to": [
+        12.0,
+        16.05,
+        11.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            7.0,
+            4.0,
+            11.0,
+            6.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "outercap-north-front-hboards",
+      "from": [
+        10.0,
+        15.05,
+        7.0
+      ],
+      "to": [
+        12.0,
+        16.05,
+        11.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            10.0,
+            7.0,
+            12.0,
+            11.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-north-front-tile1",
+      "from": [
+        10.0,
+        15.05,
+        7.0
+      ],
+      "to": [
+        12.0,
+        16.05,
+        8.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfronttile1",
+          "uv": [
+            10.0,
+            7.0,
+            12.0,
+            8.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-north-front-tile3",
+      "from": [
+        10.0,
+        15.05,
+        8.0
+      ],
+      "to": [
+        12.0,
+        16.05,
+        11.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfronttile3",
+          "uv": [
+            10.0,
+            8.0,
+            12.0,
+            11.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-north-front",
+      "from": [
+        12.0,
+        15.05,
+        9.0
+      ],
+      "to": [
+        14.0,
+        16.05,
+        13.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            12.0,
+            9.0,
+            14.0,
+            13.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-north-front-boards",
+      "from": [
+        12.0,
+        15.05,
+        9.0
+      ],
+      "to": [
+        14.0,
+        16.05,
+        13.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            9.0,
+            2.0,
+            13.0,
+            4.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "outercap-north-front-hboards",
+      "from": [
+        12.0,
+        15.05,
+        9.0
+      ],
+      "to": [
+        14.0,
+        16.05,
+        13.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            12.0,
+            9.0,
+            14.0,
+            13.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-north-front-tile3",
+      "from": [
+        12.0,
+        15.05,
+        9.0
+      ],
+      "to": [
+        14.0,
+        16.05,
+        13.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfronttile3",
+          "uv": [
+            12.0,
+            9.0,
+            14.0,
+            13.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-north-front",
+      "from": [
+        14.0,
+        15.05,
+        11.0
+      ],
+      "to": [
+        16.0,
+        16.05,
+        15.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            14.0,
+            11.0,
+            16.0,
+            15.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-north-front-boards",
+      "from": [
+        14.0,
+        15.05,
+        11.0
+      ],
+      "to": [
+        16.0,
+        16.05,
+        15.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            11.0,
+            0.0,
+            15.0,
+            2.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "outercap-north-front-hboards",
+      "from": [
+        14.0,
+        15.05,
+        11.0
+      ],
+      "to": [
+        16.0,
+        16.05,
+        15.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfront",
+          "uv": [
+            14.0,
+            11.0,
+            16.0,
+            15.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outercap-north-front-tile3",
+      "from": [
+        14.0,
+        15.05,
+        11.0
+      ],
+      "to": [
+        16.0,
+        16.05,
+        15.0
+      ],
+      "faces": {
+        "up": {
+          "texture": "#outerdeckfronttile3",
+          "uv": [
+            14.0,
+            11.0,
+            16.0,
+            15.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outerdeck-west-fascia",
+      "from": [
+        -0.02,
+        12.0,
+        0.0
+      ],
+      "to": [
+        0.0,
+        16.0,
+        13.1716
+      ],
+      "faces": {
+        "west": {
+          "texture": "#outerdeck",
+          "uv": [
+            0.0,
+            0.0,
+            13.1716,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outerdeck-west-fascia",
+      "from": [
+        0.0,
+        12.0,
+        -0.02
+      ],
+      "to": [
+        13.1716,
+        16.0,
+        0.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#outerdeck",
+          "uv": [
+            0.0,
+            0.0,
+            13.1716,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outerdeck-south-fascia",
+      "from": [
+        0.0,
+        12.0,
+        16.0
+      ],
+      "to": [
+        13.1716,
+        16.0,
+        16.02
+      ],
+      "faces": {
+        "south": {
+          "texture": "#outerdeck",
+          "uv": [
+            0.0,
+            0.0,
+            13.1716,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outerdeck-south-fascia",
+      "from": [
+        -0.02,
+        12.0,
+        2.8284
+      ],
+      "to": [
+        0.0,
+        16.0,
+        16.0
+      ],
+      "faces": {
+        "west": {
+          "texture": "#outerdeck",
+          "uv": [
+            2.8284,
+            0.0,
+            16.0,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outerdeck-east-fascia",
+      "from": [
+        16.0,
+        12.0,
+        2.8284
+      ],
+      "to": [
+        16.02,
+        16.0,
+        16.0
+      ],
+      "faces": {
+        "east": {
+          "texture": "#outerdeck",
+          "uv": [
+            2.8284,
+            0.0,
+            16.0,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outerdeck-east-fascia",
+      "from": [
+        2.8284,
+        12.0,
+        16.0
+      ],
+      "to": [
+        16.0,
+        16.0,
+        16.02
+      ],
+      "faces": {
+        "south": {
+          "texture": "#outerdeck",
+          "uv": [
+            2.8284,
+            0.0,
+            16.0,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outerdeck-north-fascia",
+      "from": [
+        2.8284,
+        12.0,
+        -0.02
+      ],
+      "to": [
+        16.0,
+        16.0,
+        0.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#outerdeck",
+          "uv": [
+            2.8284,
+            0.0,
+            16.0,
+            4.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "outerdeck-north-fascia",
+      "from": [
+        16.0,
+        12.0,
+        0.0
+      ],
+      "to": [
+        16.02,
+        16.0,
+        13.1716
+      ],
+      "faces": {
+        "east": {
+          "texture": "#outerdeck",
+          "uv": [
+            0.0,
+            0.0,
+            13.1716,
+            4.0
+          ]
+        }
+      }
     }
   ]
 }

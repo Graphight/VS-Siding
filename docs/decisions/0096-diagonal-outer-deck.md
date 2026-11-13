@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Created: 2026-11-11
-- Reflects: branch `diagonal-outer-deck`, issue #168 and a ModDB comment asking for it; `SidingWallBlock.OuterDeckBoxes`/`HitDeckHalf`/`HalfFacing`/`TryAddDeck`/`LayerDeck`/`PeelAt`/`BurnLayer`/`LayerParts`, `SidingWallEntity`'s `OuterDeck*` fields, `DeckLayers` and `CellAlternate`, `WallShapeGen`'s `outerdeck-*` groups, `SidingFloorBlock.Continues`, `DiagonalScenarios`; decisions 0042, 0043, 0053, 0066, 0067; the author's choice of the hit side's deck for a panel hit and the review of PR #172
+- Reflects: branch `diagonal-outer-deck`, issue #168 and a ModDB comment asking for it; `SidingWallBlock.OuterDeckBoxes`/`HitDeckHalf`/`HalfFacing`/`TryAddDeck`/`LayerDeck`/`PeelAt`/`BurnLayer`/`LayerParts`, `SidingWallEntity`'s `OuterDeck*` fields, `DeckLayers` and `CellAlternate`, `WallShapeGen`'s `outerdeck-*` groups, `SidingFloorBlock.Continues`, `DiagonalScenarios`, `SidingWallEntity.Capped`/`DeckElements`, `WallShapeGen`'s `DiagonalCaps` and `OuterDeckFascia`; decisions 0042, 0043, 0053, 0066, 0067, 0085; the author's choice of the hit side's deck for a panel hit, the review of PR #172 and the author's screenshots of 2026-11-12
 
 ## Summary
 A diagonal's deck can cover its outer triangle as well as its inner one, each half with its own layers.
@@ -48,15 +48,32 @@ The outer deck's framing counts toward the cell's alternate, so a stick or bambo
 **Floors join the half they face.**
 `SidingFloorBlock.Continues` reads the outer deck across a claimed face and the inner across an unclaimed one, and checks that half's glazing.
 
+**A diagonal decked on both halves caps its plate.**
+The plate's top is level with both halves' tops, and a square storey stands on the claimed faces, so under one the plate showed as a stripe across the floor above.
+`WallShapeGen` adds `cap-*` and `outercap-*` groups over the panel's top, 0.05 voxel above the block as decision 0085's cap.
+Each is its half's top finish in a row per strip, from where the two halves meet to 4 voxels on, past the panel's face, so it lies on that half's deck.
+`Capped` draws them once both halves are decked, for each half with a top finish that is not glazed, whatever stands above.
+Two halves with one finish meet in one grain; two finishes meet in the strips' 2-voxel steps.
+
+**The outer deck's edge takes a fascia.**
+The outer strips reach the claimed faces, which are the building's face, so the deck's layers showed there edge-on, finish, infill and finish.
+`outerdeck-*-fascia` is one board per claimed face in the outer deck's framing, from y 12 to 16, and from the corner the two faces share to the panel's filler.
+It stands 0.02 voxel outside the cell, so it shares no plane with the layers' faces behind it, and draws its outward face alone.
+A glazed outer deck takes none, since its glazing frame already edges it.
+
 ## Alternatives considered
 - **A thin floor in the diagonal's cell.** A floor has no orientation, so a cut floor needs new variants, and the cell holds a wall.
 - **One deck over the whole cell.** A square deck stands outside the panel as a triangular ear, which is the reason 0067 cut the inner half.
 - **One shared set of layers for both halves.** The two halves face different rooms, so each takes its own finishes.
 - **Hangers under a full deck.** Not built.
+- **Capping only with nothing above, as 0085 does.** A square storey stands on the claimed faces and leaves the plate's middle in its floor.
+- **A rim joist inside the cell on the claimed faces, as the floor has on its north and south edges.** On the east or west edge it shares the plane of the cell's face with the infill's edge, and the two would flicker.
 
 ## Consequences & open questions
 - 0067's consequence that the outer triangle has no floor no longer holds.
 - A triangle floor standing alone in an empty cell is still unbuilt.
 - A decked wall or corner upgraded to a diagonal paid a full deck, and its deck becomes the inner half, which refunds half.
-- `diagonal.json` went from 4.4 MB to 7.0 MB with the outer groups; the strips are still not merged (0067).
+- `diagonal.json` went from 4.4 MB to 7.1 MB with the outer groups, the caps and the fascia; the strips are still not merged (0067).
 - The tooltip's choice of half, the drawing and walking the outer strips are not covered by unit or e2e tests.
+- The cap and the fascia are pinned in the shape and the group names, and wait on play; the cap stands 0.003 block into whatever is above, as 0085's does.
+- A thin floor's east and west edges still show its layers edge-on; only the outer deck takes a fascia.

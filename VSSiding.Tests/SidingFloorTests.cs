@@ -161,15 +161,34 @@ public class SidingFloorTests
             });
     }
 
+    // A diagonal caps its plate once both halves are decked, whatever stands above (decision 0096).
     [Theory]
-    [InlineData("wall", "planks", true, true)]
-    [InlineData("cornerout", "planks", true, true)]
-    [InlineData("cornerin", "planks", true, true)]
-    [InlineData("diagonal", "planks", true, false)]
-    [InlineData("wall", null, true, false)]
-    [InlineData("wall", "planks", false, false)]
-    public void ADeckCapsItsWallOnlyWithATopFinishAndNothingAbove(string layout, string? deckFront, bool freeAbove, bool expected)
-        => Assert.Equal(expected, SidingWallEntity.Capped(layout, deckFront, freeAbove));
+    [InlineData("wall", "planks", true, false, true)]
+    [InlineData("cornerout", "planks", true, false, true)]
+    [InlineData("cornerin", "planks", true, false, true)]
+    [InlineData("wall", null, true, false, false)]
+    [InlineData("wall", "planks", false, true, false)]
+    [InlineData("diagonal", "planks", false, true, true)]
+    [InlineData("diagonal", "planks", true, false, false)]
+    [InlineData("diagonal", null, true, true, false)]
+    public void ADeckCapsItsWallOnlyWithATopFinishAndNothingAbove(string layout, string? deckFront, bool freeAbove, bool bothHalves, bool expected)
+        => Assert.Equal(expected, SidingWallEntity.Capped(layout, deckFront, freeAbove, bothHalves));
+
+    [Fact]
+    public void AnOuterDeckCapsFromItsOwnGroupsAndAddsAFasciaUnlessGlazed()
+    {
+        string[] Outer(string? infill, bool glazed)
+            => SidingWallEntity.DeckElements("west", "oak", infill, "planks", null, Finishes, (false, false, false, false), default, glazed, capped: true, group: "outerdeck");
+
+        Assert.Equal(
+            new string[][]
+            {
+                ["outerdeck-west-front-hboards", "outerdeck-west-framing-left", "outerdeck-west-framing-right", "outerdeck-west-framing-top", "outerdeck-west-framing-bottom",
+                 "outercap-west-front-hboards", "outerdeck-west-fascia"],
+                [.. Outer("glass", glazed: true).Where(name => name.StartsWith("outerdeck-west-") && !name.EndsWith("-fascia"))],
+            },
+            new[] { Outer(null, glazed: false), Outer("glass", glazed: true) });
+    }
 
     [Fact]
     public void AJoinedRimDropsAndTheInfillCarriesAcross()

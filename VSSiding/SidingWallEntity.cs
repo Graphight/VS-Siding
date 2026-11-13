@@ -240,7 +240,8 @@ public class SidingWallEntity : BlockEntity
         bool deckGlazed = SidingWallBlock.IsTransparent(DeckInfill, Block.Attributes["Infills"]);
         var deckJoins = SidingFloorBlock.Joins(Api.World.BlockAccessor, Pos, deckGlazed);
         string[] deckInnerCorners = SidingFloorBlock.InnerCorners(Api.World.BlockAccessor, Pos, deckGlazed, deckJoins);
-        bool capped = Capped(layout, DeckFront, SidingWallBlock.FreeAbove(Api.World.BlockAccessor, Pos));
+        bool bothHalves = Deck != null && OuterDeck != null;
+        bool capped = Capped(layout, DeckFront, SidingWallBlock.FreeAbove(Api.World.BlockAccessor, Pos), bothHalves);
         string[] deckElements = DeckElements(side, Deck, DeckInfill, DeckFront, DeckBack, Block.Attributes["Finishes"], deckJoins, (DeckFrontStyle, DeckBackStyle), deckGlazed,
             FrameElements(Block.Attributes["Framings"], Deck, alternate), Ledges(layout, Back == null, glazed, joins, SecondBack == null), deckInnerCorners, capped,
             InfillElements(Block.Attributes["Infills"], DeckInfill));
@@ -249,7 +250,8 @@ public class SidingWallEntity : BlockEntity
         var outerJoins = (allJoins.above && SidingWallBlock.ClaimsFace(layout, side, "north"), allJoins.below && SidingWallBlock.ClaimsFace(layout, side, "south"),
             allJoins.left && SidingWallBlock.ClaimsFace(layout, side, "west"), allJoins.right && SidingWallBlock.ClaimsFace(layout, side, "east"));
         string[] outerElements = DeckElements(side, OuterDeck, OuterDeckInfill, OuterDeckFront, OuterDeckBack, Block.Attributes["Finishes"], outerJoins, (OuterDeckFrontStyle, OuterDeckBackStyle),
-            outerGlazed, FrameElements(Block.Attributes["Framings"], OuterDeck, alternate), fill: InfillElements(Block.Attributes["Infills"], OuterDeckInfill), group: "outerdeck");
+            outerGlazed, FrameElements(Block.Attributes["Framings"], OuterDeck, alternate), capped: Capped(layout, OuterDeckFront, false, bothHalves),
+            fill: InfillElements(Block.Attributes["Infills"], OuterDeckInfill), group: "outerdeck");
         if (selectiveElements.Length == 0 && deckElements.Length == 0 && outerElements.Length == 0 && stepElements.Length == 0) return false;
 
         string cacheKey = CacheKey(layout, side, Framing, Infill, Front, SecondFront, Back, joins, Styles, Deck, Step, StepOrientation,
@@ -375,13 +377,18 @@ public class SidingWallEntity : BlockEntity
         string[] copies = [group, .. ledges ?? []];
         // The top finish is the first name, and a glazed deck's is a rim round the glass, which has no top to lay over the wall.
         string[] top = front == TilesKey ? [.. TileGroups("front", styles.front)] : [names[0]];
-        string[] cap = capped && front != null && !glazed ? [.. top.Select(name => $"cap-{side}-{name}")] : [];
-        return [.. copies.SelectMany(copy => names.Select(name => $"{copy}-{side}-{name}")), .. cap];
+        string capGroup = group == "outerdeck" ? "outercap" : "cap";
+        string[] cap = capped && front != null && !glazed ? [.. top.Select(name => $"{capGroup}-{side}-{name}")] : [];
+        // The outer deck's edges are the building's face, which its fascia covers; a glazed deck frames its own edges.
+        string[] fascia = group == "outerdeck" && !glazed ? [$"outerdeck-{side}-fascia"] : [];
+        return [.. copies.SelectMany(copy => names.Select(name => $"{copy}-{side}-{name}")), .. cap, .. fascia];
     }
 
     // A decked wall or corner with nothing standing on it shows the deck's top finish over its own 4/16 top, so the floor
-    // reads as one surface (decision 0085). A diagonal's deck is strips round its run, which the cap does not follow.
-    internal static bool Capped(string layout, string? deckFront, bool freeAbove) => layout != "diagonal" && deckFront != null && freeAbove;
+    // reads as one surface (decision 0085). A square storey stands on a diagonal's outer faces and leaves its plate in the
+    // floor, so a diagonal decked on both halves caps the plate from each half whatever stands above (decision 0096).
+    internal static bool Capped(string layout, string? deckFront, bool freeAbove, bool bothHalves = false)
+        => deckFront != null && (layout == "diagonal" ? bothHalves : freeAbove);
 
     // The copies of the deck that reach into the slot the wall's room-side finish takes. While that side
     // is bare the whole slot is open, and the deck draws its ledge. A finish fills the slot, but a glazed
