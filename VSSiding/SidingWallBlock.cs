@@ -937,6 +937,8 @@ public class SidingWallBlock : Block
             || ResolveFinishFace(layout, Variant["side"], blockSel.Face) == null)
             return false;
 
+        if (!world.Claims.TryAccess(byPlayer, blockSel.Position, EnumBlockAccessFlags.Use)) return true;
+
         if (entity.Step != null)
         {
             (byPlayer as IServerPlayer)?.SendIngameError("vssiding:stepped", Lang.Get("vssiding:build-stepped"));
@@ -1341,6 +1343,8 @@ public class SidingWallBlock : Block
     internal bool TryAddDeck(IWorldAccessor world, IPlayer byPlayer, BlockPos pos, SidingWallEntity entity, ItemSlot slot, AssetLocation heldCode, bool isCreative, DeckHalf half)
     {
         if (entity.DeckLayers(half).Deck != null || MatchFraming(heldCode, FramesAsFilled(entity), Attributes["Framings"], Attributes["Infills"]) is not { } deckKey) return false;
+
+        if (!world.Claims.TryAccess(byPlayer, pos, EnumBlockAccessFlags.Use)) return true;
 
         if (entity.Step != null)
         {

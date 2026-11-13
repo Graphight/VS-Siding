@@ -50,6 +50,27 @@ public class DeckScenarios : AtlasScenarioBase
         return DeckLayers(cell);
     }
 
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
+    public async Task Wall_Should_TakeNoDeckAndSpendNothing_When_PlanksArePressedOnItInAnotherPlayersClaim()
+    {
+        BlockPos cell = World.Spawn.Offset(1, 2, 0);
+        World.SetBlock("game:planks-aged-ud", cell.DownCopy());
+        ITestPlayer player = await WallBuilder.JoinBuilder(World);
+        await WallBuilder.Raise(World, player, cell, cell.WestCopy(), "game:plank-oak", "game:clay-blue");
+        player.Entity.WatchedAttributes.SetString("vssidingDeck", "deck");
+        LandClaim claim = WallBuilder.ClaimAround(World, cell);
+        try
+        {
+            await WallBuilder.Press(World, player, cell, "game:plank-oak", BlockFacing.EAST, new Vec3d(1, 0.5, 0.5));
+
+            Assert.Equal((((string?)null), 4), (DeckLayers(cell).Deck, player.Player.InventoryManager.ActiveHotbarSlot.Itemstack?.StackSize ?? 0));
+        }
+        finally
+        {
+            World.Api.World.Claims.Remove(claim);
+        }
+    }
+
     private async Task<(BlockPos Cell, ITestPlayer Player)> DeckedWall()
     {
         BlockPos cell = World.Spawn.Offset(1, 2, 0);

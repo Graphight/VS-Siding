@@ -59,6 +59,23 @@ public class JunctionScenarios : AtlasScenarioBase
     }
 
     [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
+    public async Task FilledWall_Should_StayAWallAndSpendNothing_When_SticksArePressedOnItInAnotherPlayersClaim()
+    {
+        (BlockPos cell, ITestPlayer player) = await RaiseWall("game:clay-blue");
+        LandClaim claim = WallBuilder.ClaimAround(World, cell);
+        try
+        {
+            await WallBuilder.Press(World, player, cell, "game:stick", BlockFacing.WEST, NorthEnd);
+
+            Assert.Equal(("wall", 4), (World.BlockAt(cell).Variant["layout"], player.Player.InventoryManager.ActiveHotbarSlot.Itemstack?.StackSize ?? 0));
+        }
+        finally
+        {
+            World.Api.World.Claims.Remove(claim);
+        }
+    }
+
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task GlazedWall_Should_TakePlanksAsItsFrontFinishKeepingItsGlass_When_PlanksArePressedOnItsFront()
     {
         (BlockPos cell, ITestPlayer player) = await RaiseWall(infill: null);
