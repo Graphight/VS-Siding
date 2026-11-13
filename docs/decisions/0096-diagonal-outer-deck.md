@@ -74,6 +74,8 @@ A glazed outer deck takes none, since its glazing frame already edges it.
 - A triangle floor standing alone in an empty cell is still unbuilt.
 - A decked wall or corner upgraded to a diagonal paid a full deck, and its deck becomes the inner half, which refunds half.
 - `diagonal.json` went from 4.4 MB to 7.1 MB with the outer groups, the caps and the fascia; the strips are still not merged (0067).
-- The tooltip's choice of half, the drawing and walking the outer strips are not covered by unit or e2e tests.
-- The cap and the fascia are pinned in the shape and the group names, and wait on play; the cap stands 0.003 block into whatever is above, as 0085's does.
+- The tooltip's choice of half, the drawing and walking the outer strips are not covered by unit or e2e tests; play covered them.
+- The cap and the fascia are pinned in the shape and the group names; the cap stands 0.003 block into whatever is above, as 0085's does.
+- Played on 2026-11-12: a square storey over a diagonal and two side-by-side rooms, both halves decked with different finishes and peeled from each side, the tooltip on each half, and the joint under the plate.
+- The first play showed the plate as a stripe across the floor above and the outer deck's layers edge-on outside, which the cap and the fascia answer; the second raised no issue.
 - A thin floor's east and west edges still show its layers edge-on; only the outer deck takes a fascia.
