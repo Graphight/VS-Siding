@@ -127,8 +127,7 @@ internal static class GuestLightPatches
     private static void AbsorptionChunkPostfix(Block __instance, IWorldChunk __0, BlockPos __1, ref int __result)
     {
         if (!SidingModSystem.IsHostableId(__instance.BlockId) || __0 == null || __1 == null) return;
-        var chunk = __0;
-        var pos = __1;
+        var (chunk, pos) = (__0, __1);
         if (source == (pos.X, pos.Y, pos.Z)) return;
 
         ICoreAPI? api = SidingModSystem.ApiRef(__instance);

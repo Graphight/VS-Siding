@@ -270,7 +270,7 @@ public class SidingWallBlockRetentionTests
     }
 
     [Fact]
-    public void TraitsOfAgreesWithTheComputedAnswersAndKeysOnTheAttributesObject()
+    public void TraitsOfAgreesWithTheComputedAnswers()
     {
         var attributes = Dict("""{ "Framings": { "oak": {} }, "Infills": { "wattle": { "BlockMaterial": "Wood", "Porous": true }, "clay": { "BlockMaterial": "Soil" }, "glass": { "BlockMaterial": "Glass", "Transparent": true } } }""");
         var framings = attributes["Framings"];
@@ -282,9 +282,14 @@ public class SidingWallBlockRetentionTests
             Assert.Equal((SidingWallBlock.ComputeRetention(true, "oak", infill, framings, infills), SidingWallBlock.IsTransparent(infill, infills), SidingWallBlock.IsPorous(infill, infills)),
                 (traits.Retention, traits.Transparent, traits.Porous));
         }
+    }
 
+    [Fact]
+    public void TraitsOfAnswersPerAttributesObject()
+    {
+        var attributes = Dict("""{ "Framings": { "oak": {} }, "Infills": { "clay": { "BlockMaterial": "Soil" } } }""");
         var other = Dict("""{ "Framings": { "oak": {} }, "Infills": { "clay": { "BlockMaterial": "Wood" } } }""");
-        Assert.Equal(-1, SidingWallBlock.TraitsOf(attributes, "oak", "clay").Retention);
-        Assert.Equal(1, SidingWallBlock.TraitsOf(other, "oak", "clay").Retention);
+
+        Assert.Equal((-1, 1), (SidingWallBlock.TraitsOf(attributes, "oak", "clay").Retention, SidingWallBlock.TraitsOf(other, "oak", "clay").Retention));
     }
 }

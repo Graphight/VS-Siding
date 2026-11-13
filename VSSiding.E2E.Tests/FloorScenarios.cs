@@ -103,6 +103,25 @@ public class FloorScenarios : AtlasScenarioBase
         Assert.Equal(("oak", 1), (DeckOf(wall), Held(player)));
     }
 
+    // Floor mode reaches the wall's deck from PlaceWallFrame, down the held-item path (#171).
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
+    public async Task Wall_Should_TakeNoDeck_When_PlanksArePressedBesideItInAnotherPlayersClaim()
+    {
+        (BlockPos beside, BlockPos wall, BlockFacing ahead, ITestPlayer player) = await RaiseWallAhead();
+        World.SetBlock("game:planks-aged-ud", beside);
+        LandClaim claim = WallBuilder.ClaimAround(World, wall);
+        try
+        {
+            await WallBuilder.Press(World, player, beside, "game:plank-oak", ahead, Middle, quantity: 3);
+
+            Assert.Equal(((string?)null, 3), (DeckOf(wall), Held(player)));
+        }
+        finally
+        {
+            World.Api.World.Claims.Remove(claim);
+        }
+    }
+
     [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Wall_Should_TakeADeck_When_AFloorRunIsExtendedTowardIt()
     {

@@ -9,7 +9,7 @@ namespace VSSiding;
 
 // Patches every declaring override of a named method on Block and every Block subclass in every
 // loaded assembly, so other mods' blocks are covered too (decision 0035). Abstract classes are
-// included: BlockShapeFromAttributes overrides these without calling base.
+// included: BlockShapeFromAttributes answers these without calling base once its type carries boxes.
 // SidingWallBlock is skipped: it answers for itself.
 internal static class EveryOverridePatches
 {
