@@ -194,6 +194,15 @@ public class SidingWallBlockCollisionTests
     }
 
     [Fact]
+    public void SameDeckAndStepHandBackOneArrayAndADifferentOneAnotherArray()
+    {
+        var deck = SidingWallBlock.AddOpenPartBoxes(FullBoxes, "wall", "west", "oak", null);
+        Assert.Same(deck, SidingWallBlock.AddOpenPartBoxes(FullBoxes, "wall", "west", "birch", null));
+        Assert.NotSame(deck, SidingWallBlock.AddOpenPartBoxes(FullBoxes, "wall", "west", null, "up-north"));
+        Assert.NotSame(deck, SidingWallBlock.AddOpenPartBoxes(FullBoxes, "wall", "south", "oak", null));
+    }
+
+    [Fact]
     public void WallWestDeckBoxIsUnrotated()
     {
         var expected = new[] { FullBoxes[0], new Cuboidf(4f / 16, 12f / 16, 0, 1, 1, 1) };

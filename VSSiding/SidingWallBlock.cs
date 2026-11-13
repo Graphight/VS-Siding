@@ -203,11 +203,23 @@ public class SidingWallBlock : Block
     // A step applies to a wall and a cornerout; a diagonal never has one.
     internal static Cuboidf[] AddOpenPartBoxes(Cuboidf[] boxes, string layout, string side, string? deck, string? stepOrientation, string? outerDeck = null)
     {
-        if (deck != null) boxes = boxes.Concat(DeckBoxes[(layout, side)]).ToArray();
-        if (outerDeck != null) boxes = boxes.Concat(OuterDeckBoxes[side]).ToArray();
+        if (deck == null && outerDeck == null && stepOrientation == null) return boxes;
+        // No lambda here: one capturing these arguments would be built on every call, the plain wall's included.
+        var cache = OpenPartCache.GetValue(boxes, static _ => new());
+        var key = (layout, side, deck != null, outerDeck != null, stepOrientation);
+        return cache.TryGetValue(key, out var cached) ? cached : cache.GetOrAdd(key, BuildOpenPartBoxes(boxes, layout, side, deck != null, outerDeck != null, stepOrientation));
+    }
+
+    private static Cuboidf[] BuildOpenPartBoxes(Cuboidf[] boxes, string layout, string side, bool deck, bool outerDeck, string? stepOrientation)
+    {
+        if (deck) boxes = boxes.Concat(DeckBoxes[(layout, side)]).ToArray();
+        if (outerDeck) boxes = boxes.Concat(OuterDeckBoxes[side]).ToArray();
         var step = OpenStepBoxes(layout, side, stepOrientation);
         return step.Length == 0 ? boxes : boxes.Concat(step).ToArray();
     }
+
+    // Per base array, one result per deck, outer deck and step: this runs every physics tick.
+    private static readonly ConditionalWeakTable<Cuboidf[], ConcurrentDictionary<(string layout, string side, bool deck, bool outerDeck, string? step), Cuboidf[]>> OpenPartCache = new();
 
     private static Cuboidf[] OpenStepBoxes(string layout, string side, string? stepOrientation)
     {
