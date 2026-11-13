@@ -16,6 +16,8 @@ using Vintagestory.GameContent;
 
 namespace VSSiding;
 
+internal enum DeckHalf { Inner, Outer }
+
 public class SidingWallBlock : Block
 {
     // cornerout's L covers `side` plus the face counter-clockwise from it:
@@ -100,6 +102,10 @@ public class SidingWallBlock : Block
     private static readonly Dictionary<(string layout, string side, bool joinsAbove), Cuboidf[]> FramingBoxes = BuildFramingBoxes();
 
     private static readonly Dictionary<(string layout, string side), Cuboidf[]> DeckBoxes = BuildDeckBoxes();
+
+    // A diagonal's outer deck is its inner strips turned 180 degrees about the cell's centre (decision 0096).
+    private static readonly Dictionary<string, Cuboidf[]> OuterDeckBoxes = CorneroutSecondFace.Keys.ToDictionary(
+        side => side, side => DeckBoxes[("diagonal", side)].Select(box => box.RotatedCopy(0, 180, 0, new Vec3d(0.5, 0.5, 0.5))).ToArray());
 
     private static readonly Dictionary<(string side, string element), Cuboidf> StepBoxes = BuildStepBoxes();
 
@@ -194,9 +200,10 @@ public class SidingWallBlock : Block
     // The deck and the step both sit in the open 12/16, outside both the frame's boxes and the
     // panel's, except a diagonal's deck, whose strips run on under its plate to the middle of the frame.
     // A step applies to a wall and a cornerout; a diagonal never has one.
-    internal static Cuboidf[] AddOpenPartBoxes(Cuboidf[] boxes, string layout, string side, string? deck, string? stepOrientation)
+    internal static Cuboidf[] AddOpenPartBoxes(Cuboidf[] boxes, string layout, string side, string? deck, string? stepOrientation, string? outerDeck = null)
     {
         if (deck != null) boxes = boxes.Concat(DeckBoxes[(layout, side)]).ToArray();
+        if (outerDeck != null) boxes = boxes.Concat(OuterDeckBoxes[side]).ToArray();
         var step = OpenStepBoxes(layout, side, stepOrientation);
         return step.Length == 0 ? boxes : boxes.Concat(step).ToArray();
     }
@@ -216,7 +223,7 @@ public class SidingWallBlock : Block
         var boxes = base.GetSelectionBoxes(blockAccessor, pos);
         var entity = blockAccessor.GetBlockEntity<SidingWallEntity>(pos);
         var own = entity == null ? boxes : AddOpenPartBoxes(
-            boxes, Variant["layout"], Variant["side"], entity.Deck, entity.Step == null ? null : entity.StepOrientation);
+            boxes, Variant["layout"], Variant["side"], entity.Deck, entity.Step == null ? null : entity.StepOrientation, entity.OuterDeck);
         return SidingFloorBlock.WithHangerBelow(blockAccessor, pos, own);
     }
 
@@ -247,7 +254,7 @@ public class SidingWallBlock : Block
             boxes = ComputeCollisionBoxes(Variant["layout"], Variant["side"], entity.Framing, entity.Infill, joins.above, fullBoxes);
         }
 
-        return AddOpenPartBoxes(boxes, Variant["layout"], Variant["side"], entity.Deck, entity.Step == null ? null : entity.StepOrientation);
+        return AddOpenPartBoxes(boxes, Variant["layout"], Variant["side"], entity.Deck, entity.Step == null ? null : entity.StepOrientation, entity.OuterDeck);
     }
 
     // Which neighbours this cell shares a member with, i.e. draws no plate or post against. For a
@@ -613,8 +620,9 @@ public class SidingWallBlock : Block
         // With floor picked, planks frame a floor beside the wall (PlaceWallFrame) rather than work on it.
         // A filled deck's top or underside still takes them as floorboards or a ceiling, as a floor's does,
         // and sticks still fill the bare wall or deck face they hit (MatchFraming, FramesOnFrom).
-        bool deckHit = entity != null && IsDeckHit(world.BlockAccessor, blockSel, entity);
-        bool hitFilled = deckHit ? entity!.DeckInfill != null : entity != null && FramesAsFilled(entity);
+        DeckHalf? hitHalf = entity == null ? null : HitDeckHalf(world.BlockAccessor, blockSel, entity);
+        bool deckHit = hitHalf != null;
+        bool hitFilled = deckHit ? entity!.DeckLayers(hitHalf!.Value).Infill != null : entity != null && FramesAsFilled(entity);
         if (SidingModePicker.Layout(byPlayer) == "floor" && MatchFraming(heldCode, hitFilled, Attributes["Framings"], Attributes["Infills"]) != null
             && !(deckHit && hitFilled && SidingFloorBlock.FinishFace(blockSel.Face) != null))
             return base.OnBlockInteractStart(world, byPlayer, blockSel);
@@ -674,13 +682,13 @@ public class SidingWallBlock : Block
         // A post takes no infill; it goes straight to the finish path at a quarter of the cost.
         bool post = Variant["layout"] == "cornerin";
 
-        if (IsDeckHit(world.BlockAccessor, blockSel, entity))
-            return LayerDeck(world, byPlayer, blockSel, entity, slot, heldCode, isCreative);
+        if (hitHalf is { } half)
+            return LayerDeck(world, byPlayer, blockSel, entity, slot, heldCode, isCreative, half);
 
         // With the deck lit, planks on a side face add a deck in place. Ahead of finishing, since
         // planks are a finish too. The top face still stacks the next course (PlaceWallFrame).
         if (blockSel.Face != BlockFacing.UP && SidingModePicker.Deck(byPlayer)
-            && TryAddDeck(world, byPlayer, blockSel.Position, entity, slot, heldCode, isCreative))
+            && TryAddDeck(world, byPlayer, blockSel.Position, entity, slot, heldCode, isCreative, HalfFacing(blockSel.Face)))
             return true;
 
         if (!post && entity.Infill == null)
@@ -899,8 +907,8 @@ public class SidingWallBlock : Block
     // The slot a break takes when the layer it peels is a tiled face, else -1.
     private int TileBreakSlot(SidingWallEntity entity, string layer, Vec3d? hit)
     {
-        if (layer is not ("front" or "secondfront" or "back" or "secondback" or "deckfront" or "deckback") || KeyAt(layer, entity) != SidingWallEntity.TilesKey) return -1;
-        int hitSlot = hit == null ? 0 : layer.StartsWith("deck") ? FloorTileSlot(hit) : TileSlot(Variant["layout"], Variant["side"], layer, hit);
+        if (BareLayer(layer) is not ("front" or "secondfront" or "back" or "secondback" or "deckfront" or "deckback") || KeyAt(layer, entity) != SidingWallEntity.TilesKey) return -1;
+        int hitSlot = hit == null ? 0 : layer.Contains("deck") ? FloorTileSlot(hit) : TileSlot(Variant["layout"], Variant["side"], layer, hit);
         return TileToBreak(StyleOn(entity, layer), hitSlot);
     }
 
@@ -908,7 +916,8 @@ public class SidingWallBlock : Block
     {
         string style = SidingWallEntity.WithTile(StyleOn(entity, layer), tileSlot, "");
         if (style.Trim(',').Length == 0) RemoveLayer(world, entity, pos, layer);
-        else if (layer.StartsWith("deck")) SetDeckFinish(entity, layer["deck".Length..], SidingWallEntity.TilesKey, style);
+        else if (layer.Contains("deck"))
+            SetDeckFinish(entity, BareLayer(layer)!["deck".Length..], SidingWallEntity.TilesKey, style, HalfOf(layer));
         else SetFinish(world, entity, pos, layer, SidingWallEntity.TilesKey, style);
     }
 
@@ -974,10 +983,16 @@ public class SidingWallBlock : Block
 
     // The deck's boxes are appended after the block's own selection boxes (AddOpenPartBoxes).
     internal bool IsDeckHit(IBlockAccessor blockAccessor, BlockSelection blockSel, SidingWallEntity entity)
+        => HitDeckHalf(blockAccessor, blockSel, entity) != null;
+
+    // Which half of the deck the selection is on: the inner's boxes come first, the outer's follow.
+    internal DeckHalf? HitDeckHalf(IBlockAccessor blockAccessor, BlockSelection blockSel, SidingWallEntity entity)
     {
-        if (entity.Deck == null) return false;
-        int first = base.GetSelectionBoxes(blockAccessor, blockSel.Position).Length;
-        return blockSel.SelectionBoxIndex >= first && blockSel.SelectionBoxIndex < first + DeckBoxes[(Variant["layout"], Variant["side"])].Length;
+        int index = blockSel.SelectionBoxIndex - base.GetSelectionBoxes(blockAccessor, blockSel.Position).Length;
+        int inner = entity.Deck == null ? 0 : DeckBoxes[(Variant["layout"], Variant["side"])].Length;
+        if (index >= 0 && index < inner) return DeckHalf.Inner;
+        return entity.OuterDeck != null && index >= inner && index < inner + OuterDeckBoxes[Variant["side"]].Length
+            ? DeckHalf.Outer : null;
     }
 
     // The deck takes layers the way a floor does (SidingFloorBlock.OnBlockInteractStart): infill on any
@@ -985,20 +1000,23 @@ public class SidingWallBlock : Block
     // bare deck's top still reach PlaceWallFrame.
     private bool LayerDeck(
         IWorldAccessor world, IPlayer byPlayer, BlockSelection blockSel, SidingWallEntity entity,
-        ItemSlot slot, AssetLocation heldCode, bool isCreative)
+        ItemSlot slot, AssetLocation heldCode, bool isCreative, DeckHalf half)
     {
-        if (entity.DeckInfill == null)
+        bool outer = half == DeckHalf.Outer;
+        var (_, deckInfill, deckFront, deckBack, deckFrontStyle, deckBackStyle) = entity.DeckLayers(half);
+
+        if (deckInfill == null)
         {
             string? infillKey = MatchConsumes(heldCode, Attributes["Infills"]);
             if (infillKey == null) return base.OnBlockInteractStart(world, byPlayer, blockSel);
             if (FramesOnFrom(heldCode, SidingFloorBlock.FinishFace(blockSel.Face) != null, Attributes["Framings"]))
                 return base.OnBlockInteractStart(world, byPlayer, blockSel);
 
-            var consumes = Attributes["Infills"][infillKey]["Consumes"];
+            var consumes = ShareConsumes(Attributes["Infills"][infillKey]["Consumes"], LayerParts(Variant["layout"], "deckinfill"));
             if (!TryAffordOrError(byPlayer, isCreative, slot.StackSize, consumes)) return true;
 
-            entity.DeckInfill = infillKey;
-            entity.LegacyDeck = false;
+            if (outer) entity.OuterDeckInfill = infillKey;
+            else { entity.DeckInfill = infillKey; entity.LegacyDeck = false; }
             entity.MarkDirty(true);
             // Rooms only recompute on a chunk-dirty event, and the deck's retention just changed.
             world.BlockAccessor.ExchangeBlock(Id, blockSel.Position);
@@ -1009,11 +1027,11 @@ public class SidingWallBlock : Block
 
         if (MatchConsumes(heldCode, Attributes["Finishes"], null, true) is { } tileKey)
         {
-            string? DeckStyle(string on) => on == "front" ? entity.DeckFrontStyle : entity.DeckBackStyle;
-            var placed = FlatTilePlacement(byPlayer, blockSel, entity.DeckInfill, Attributes["Infills"], on => on == "front" ? entity.DeckFront : entity.DeckBack, DeckStyle);
+            string? DeckStyle(string on) => on == "front" ? deckFrontStyle : deckBackStyle;
+            var placed = FlatTilePlacement(byPlayer, blockSel, deckInfill, Attributes["Infills"], on => on == "front" ? deckFront : deckBack, DeckStyle);
             if (placed is { } laid)
                 LayTiles(byPlayer, slot, isCreative, Attributes["Finishes"], tileKey, DeckStyle(laid.Face), laid.Slot,
-                    style => SetDeckFinish(entity, laid.Face, SidingWallEntity.TilesKey, style));
+                    style => SetDeckFinish(entity, laid.Face, SidingWallEntity.TilesKey, style, half));
             return true;
         }
 
@@ -1033,20 +1051,20 @@ public class SidingWallBlock : Block
         string? StyleFor(string on) => SidingModePicker.FinishChoices(byPlayer).FirstOrDefault(s => SidingFloorEntity.HasFloorStyle(Attributes["Finishes"][finishKey], on, s));
         string? style = StyleFor(face);
 
-        string? currentKey = face == "front" ? entity.DeckFront : entity.DeckBack;
-        string? currentStyle = face == "front" ? entity.DeckFrontStyle : entity.DeckBackStyle;
+        string? currentKey = face == "front" ? deckFront : deckBack;
+        string? currentStyle = face == "front" ? deckFrontStyle : deckBackStyle;
         if (currentKey != null)
         {
             if (style != null && currentKey == finishKey && currentStyle != style)
             {
-                SetDeckFinish(entity, face, finishKey, style);
+                SetDeckFinish(entity, face, finishKey, style, half);
                 return true;
             }
 
             // The far face takes the finish as a floor's does (decision 0075). A click on the deck is the deck's, so
             // planks take it too, whatever is picked; the wall's own top still stacks the next course.
             string? farFace = SidingFloorBlock.FinishFace(blockSel.Face.Opposite);
-            if (farFace == null || (farFace == "front" ? entity.DeckFront : entity.DeckBack) != null)
+            if (farFace == null || (farFace == "front" ? deckFront : deckBack) != null)
             {
                 if (heldPlaces) return base.OnBlockInteractStart(world, byPlayer, blockSel);
                 (byPlayer as IServerPlayer)?.SendIngameError("vssiding:alreadyfinished", Lang.Get("vssiding:build-already-finished"));
@@ -1057,17 +1075,22 @@ public class SidingWallBlock : Block
             style = StyleFor(face);
         }
 
-        var finishConsumes = Attributes["Finishes"][finishKey]["Consumes"];
+        var finishConsumes = ShareConsumes(Attributes["Finishes"][finishKey]["Consumes"], LayerParts(Variant["layout"], "deckfront"));
         if (!TryAffordOrError(byPlayer, isCreative, slot.StackSize, finishConsumes)) return true;
 
-        SetDeckFinish(entity, face, finishKey, style);
+        SetDeckFinish(entity, face, finishKey, style, half);
         ConsumeHeld(slot, finishConsumes, isCreative);
         return true;
     }
 
-    private static void SetDeckFinish(SidingWallEntity entity, string face, string finishKey, string? style)
+    private static void SetDeckFinish(SidingWallEntity entity, string face, string finishKey, string? style, DeckHalf half)
     {
-        if (face == "front") { entity.DeckFront = finishKey; entity.DeckFrontStyle = style; }
+        if (half == DeckHalf.Outer)
+        {
+            if (face == "front") { entity.OuterDeckFront = finishKey; entity.OuterDeckFrontStyle = style; }
+            else { entity.OuterDeckBack = finishKey; entity.OuterDeckBackStyle = style; }
+        }
+        else if (face == "front") { entity.DeckFront = finishKey; entity.DeckFrontStyle = style; }
         else { entity.DeckBack = finishKey; entity.DeckBackStyle = style; }
         entity.MarkDirty(true);
     }
@@ -1304,19 +1327,20 @@ public class SidingWallBlock : Block
 
     // The deck changes the UP face's retention, and rooms only recompute on a chunk-dirty event,
     // so the block is exchanged for itself as OnInfillChanged does.
-    internal bool DeckOccupied(IWorldAccessor world, BlockPos pos)
-        => world.GetIntersectingEntities(pos, DeckBoxes[(Variant["layout"], Variant["side"])], e => e.IsInteractable) is { Length: > 0 };
+    internal bool DeckOccupied(IWorldAccessor world, BlockPos pos, DeckHalf half = DeckHalf.Inner)
+        => world.GetIntersectingEntities(pos, half == DeckHalf.Outer ? OuterDeckBoxes[Variant["side"]] : DeckBoxes[(Variant["layout"], Variant["side"])], e => e.IsInteractable) is { Length: > 0 };
 
     // Whether the held framing could give this wall a deck now: used where a refusal must stay quiet (a floor run's end).
-    internal bool CanTakeDeck(IWorldAccessor world, BlockPos pos, SidingWallEntity entity, AssetLocation heldCode)
-        => entity.Framing != null && entity.Deck == null && entity.Step == null && !DeckOccupied(world, pos)
+    internal bool CanTakeDeck(IWorldAccessor world, BlockPos pos, SidingWallEntity entity, AssetLocation heldCode, DeckHalf half)
+        => entity.Framing != null && entity.DeckLayers(half).Deck == null
+            && entity.Step == null && !DeckOccupied(world, pos, half)
             && MatchFraming(heldCode, FramesAsFilled(entity), Attributes["Framings"], Attributes["Infills"]) != null;
 
     // Adds a deck from the held framing, shared by a plank click on a side face and a floor laid up to the cell.
     // False when the wall has a deck or the held item is no framing for it; true once handled, refused or done.
-    internal bool TryAddDeck(IWorldAccessor world, IPlayer byPlayer, BlockPos pos, SidingWallEntity entity, ItemSlot slot, AssetLocation heldCode, bool isCreative)
+    internal bool TryAddDeck(IWorldAccessor world, IPlayer byPlayer, BlockPos pos, SidingWallEntity entity, ItemSlot slot, AssetLocation heldCode, bool isCreative, DeckHalf half)
     {
-        if (entity.Deck != null || MatchFraming(heldCode, FramesAsFilled(entity), Attributes["Framings"], Attributes["Infills"]) is not { } deckKey) return false;
+        if (entity.DeckLayers(half).Deck != null || MatchFraming(heldCode, FramesAsFilled(entity), Attributes["Framings"], Attributes["Infills"]) is not { } deckKey) return false;
 
         if (entity.Step != null)
         {
@@ -1324,16 +1348,16 @@ public class SidingWallBlock : Block
             return true;
         }
 
-        if (DeckOccupied(world, pos))
+        if (DeckOccupied(world, pos, half))
         {
             (byPlayer as IServerPlayer)?.SendIngameError("vssiding:occupied", Lang.Get("vssiding:build-occupied"));
             return true;
         }
 
-        var deckConsumes = Attributes["Framings"][deckKey]["Consumes"];
+        var deckConsumes = ShareConsumes(Attributes["Framings"][deckKey]["Consumes"], LayerParts(Variant["layout"], "deck"));
         if (!TryAffordOrError(byPlayer, isCreative, slot.StackSize, deckConsumes)) return true;
 
-        SetDeck(world, entity, pos, deckKey);
+        SetDeck(world, entity, pos, deckKey, half);
         ConsumeHeld(slot, deckConsumes, isCreative);
         return true;
     }
@@ -1344,10 +1368,16 @@ public class SidingWallBlock : Block
         return world.GetIntersectingEntities(pos, boxes, e => e.IsInteractable) is { Length: > 0 };
     }
 
-    private void SetDeck(IWorldAccessor world, SidingWallEntity entity, BlockPos pos, string? deckKey)
+    // A diagonal's claimed faces look out at the outer triangle; every other face, and every other layout, is the inner deck.
+    internal DeckHalf HalfFacing(BlockFacing face) => HalfFacing(Variant["layout"], Variant["side"], face.Code);
+
+    internal static DeckHalf HalfFacing(string layout, string side, string faceCode)
+        => layout == "diagonal" && ClaimsFace(layout, side, faceCode) ? DeckHalf.Outer : DeckHalf.Inner;
+
+    private void SetDeck(IWorldAccessor world, SidingWallEntity entity, BlockPos pos, string? deckKey, DeckHalf half = DeckHalf.Inner)
     {
-        entity.Deck = deckKey;
-        entity.LegacyDeck = false;
+        if (half == DeckHalf.Outer) entity.OuterDeck = deckKey;
+        else { entity.Deck = deckKey; entity.LegacyDeck = false; }
         entity.MarkDirty(true);
         SidingFloorBlock.MarkNeighboursDirty(world, pos);
         world.BlockAccessor.ExchangeBlock(Id, pos);
@@ -1627,30 +1657,46 @@ public class SidingWallBlock : Block
         var entity = accessor.GetBlockEntity<SidingWallEntity>(pos);
         if (entity == null) return BlockMaterial;
 
-        bool deckHit = blockSel != null && IsDeckHit(accessor, blockSel, entity);
-        return LayerMaterialAt(PeelAt(entity, hitFace, deckHit), entity);
+        DeckHalf? half = blockSel == null ? null : HitDeckHalf(accessor, blockSel, entity);
+        return LayerMaterialAt(PeelAt(entity, hitFace, half), entity);
     }
 
     // The layer a hit peels. A hit on the deck's own box always peels the deck, in a floor's order
     // (DeckPeelLayer); any other hit takes the wall's order, and a deck it lands on is resolved the same way, faceless.
-    internal string? PeelAt(SidingWallEntity entity, BlockFacing? hitFace, bool deckHit)
+    internal string? PeelAt(SidingWallEntity entity, BlockFacing? hitFace, DeckHalf? deckHit)
     {
-        if (deckHit)
-            return DeckPeelLayer(hitFace == null ? null : SidingFloorBlock.FinishFace(hitFace), entity.DeckInfill, entity.DeckFront, entity.DeckBack);
+        string? deckFace = hitFace == null ? null : SidingFloorBlock.FinishFace(hitFace);
+        if (deckHit is { } half)
+            return half == DeckHalf.Outer ? OuterPeelLayer(entity, deckFace)
+                : DeckPeelLayer(deckFace, entity.DeckInfill, entity.DeckFront, entity.DeckBack);
 
         string? face = hitFace == null ? null : ResolveFinishFace(Variant["layout"], Variant["side"], hitFace);
+        // An outer face hit takes the outer deck as a room-side hit takes the inner; a faceless one takes it once the inner is gone (decision 0096).
+        if (entity.OuterDeck != null && ((hitFace != null && HalfFacing(hitFace) == DeckHalf.Outer) || (face == null && entity.Deck == null)))
+            return OuterPeelLayer(entity, null);
         string? layer = PeelLayer(face, entity.Infill, entity.Front, entity.SecondFront, entity.Back, entity.Deck, entity.Step, entity.SecondBack);
+        if (layer == null && entity.OuterDeck != null) return OuterPeelLayer(entity, null);
         return layer == "deck" ? DeckPeelLayer(null, entity.DeckInfill, entity.DeckFront, entity.DeckBack) : layer;
     }
 
+    private static string OuterPeelLayer(SidingWallEntity entity, string? deckFace)
+        => "outer" + DeckPeelLayer(deckFace, entity.OuterDeckInfill, entity.OuterDeckFront, entity.OuterDeckBack);
+
     private static string? KeyAt(string? layer, SidingWallEntity entity)
-        => LayerKey(layer, entity.Infill, entity.Front, entity.SecondFront, entity.Back, entity.Deck, entity.Step, entity.DeckInfill, entity.DeckFront, entity.DeckBack, entity.SecondBack);
+    {
+        var deck = entity.DeckLayers(HalfOf(layer));
+        return LayerKey(BareLayer(layer), entity.Infill, entity.Front, entity.SecondFront, entity.Back, deck.Deck, entity.Step, deck.Infill, deck.Front, deck.Back, entity.SecondBack);
+    }
+
+    internal static string? BareLayer(string? layer) => layer?.StartsWith("outer") == true ? layer["outer".Length..] : layer;
+
+    internal static DeckHalf HalfOf(string? layer) => layer?.StartsWith("outer") == true ? DeckHalf.Outer : DeckHalf.Inner;
 
     private EnumBlockMaterial LayerMaterialAt(string? layer, SidingWallEntity entity)
     {
         if (layer == "step" && entity.Step != null)
             return api?.World.GetBlock(new AssetLocation(entity.Step))?.BlockMaterial ?? BlockMaterial;
-        return LayerMaterial(layer, KeyAt(layer, entity), entity.Framing, Attributes["Framings"], Attributes["Infills"], Attributes["Finishes"], BlockMaterial);
+        return LayerMaterial(BareLayer(layer), KeyAt(layer, entity), entity.Framing, Attributes["Framings"], Attributes["Infills"], Attributes["Finishes"], BlockMaterial);
     }
 
     // The fallback is a parameter rather than read from Sounds here, so GetSounds can defer to
@@ -1703,8 +1749,11 @@ public class SidingWallBlock : Block
     // A wall with no layer of its own keeps the deck's answer, so its frame does not burn out from under the deck.
     internal string? BurnLayer(SidingWallEntity entity)
     {
-        string? layer = PeelAt(entity, null, false);
-        if (layer?.StartsWith("deck") != true || LayerMaterialAt(layer, entity) == EnumBlockMaterial.Wood) return layer;
+        string? layer = PeelAt(entity, null, null);
+        if (layer?.Contains("deck") != true || LayerMaterialAt(layer, entity) == EnumBlockMaterial.Wood) return layer;
+        // An inner deck that does not burn leaves the outer deck's top layer next in line.
+        string? outer = entity.OuterDeck == null ? null : OuterPeelLayer(entity, null);
+        if (outer != null && outer != layer && LayerMaterialAt(outer, entity) == EnumBlockMaterial.Wood) return outer;
         return PeelLayer(null, entity.Infill, entity.Front, entity.SecondFront, entity.Back, null, entity.Step, entity.SecondBack) ?? layer;
     }
 
@@ -1731,7 +1780,8 @@ public class SidingWallBlock : Block
             ServerBreakSelection = null;
         }
         BlockFacing? hitFace = selection?.Position.Equals(pos) == true ? selection.Face : null;
-        bool deckHit = entity != null && hitFace != null && IsDeckHit(world.BlockAccessor, selection!, entity);
+        DeckHalf? hitHalf = entity != null && hitFace != null ? HitDeckHalf(world.BlockAccessor, selection!, entity) : null;
+        bool deckHit = hitHalf != null;
 
         // A rug on the deck comes off before any layer, as on a floor (decision 0051): vanilla only
         // breaks decor first in survival.
@@ -1741,7 +1791,7 @@ public class SidingWallBlock : Block
             return;
         }
 
-        string? layer = entity == null ? null : PeelAt(entity, hitFace, deckHit);
+        string? layer = entity == null ? null : PeelAt(entity, hitFace, hitHalf);
         if (entity == null || byPlayer == null || layer == null)
         {
             base.OnBlockBroken(world, pos, byPlayer, dropQuantityMultiplier);
@@ -1764,7 +1814,7 @@ public class SidingWallBlock : Block
             }
             else
             {
-                AddDrops(drops, key, Attributes[layer switch { "infill" or "deckinfill" => "Infills", "deck" => "Framings", _ => "Finishes" }],
+                AddDrops(drops, key, Attributes[BareLayer(layer) switch { "infill" or "deckinfill" => "Infills", "deck" => "Framings", _ => "Finishes" }],
                     LayerParts(Variant["layout"], layer));
             }
             foreach (var stack in ResolveDrops(world, drops, dropQuantityMultiplier)) world.SpawnItemEntity(stack, pos);
@@ -1817,7 +1867,16 @@ public class SidingWallBlock : Block
                 // Decor only goes on a sealed top, so a rug left on the bare joists comes off with the infill.
                 world.BlockAccessor.BreakDecor(pos, BlockFacing.UP);
                 return;
+            case "outerdeckfront": entity.OuterDeckFront = null; entity.OuterDeckFrontStyle = null; break;
+            case "outerdeckback": entity.OuterDeckBack = null; entity.OuterDeckBackStyle = null; break;
+            case "outerdeckinfill":
+                entity.OuterDeckInfill = null;
+                entity.MarkDirty(true);
+                world.BlockAccessor.ExchangeBlock(Id, pos);
+                SidingFloorBlock.MarkNeighboursDirty(world, pos);
+                return;
             case "deck": SetDeck(world, entity, pos, null); return;
+            case "outerdeck": SetDeck(world, entity, pos, null, DeckHalf.Outer); return;
             case "step": entity.Step = null; entity.StepOrientation = null; entity.MarkDirty(true); return;
             default:
                 entity.Infill = null;
@@ -1841,12 +1900,14 @@ public class SidingWallBlock : Block
     internal List<BlockDropItemStack> DropsOf(SidingWallEntity? entity) => ComputeDrops(
         entity?.Framing, entity?.Infill, entity?.Front, entity?.SecondFront, entity?.Back, entity?.Deck,
         Attributes["Framings"], Attributes["Infills"], Attributes["Finishes"], entity?.Step,
-        entity?.DeckInfill, entity?.DeckFront, entity?.DeckBack, Variant["layout"], entity?.SecondBack, TileLists(entity));
+        entity?.DeckInfill, entity?.DeckFront, entity?.DeckBack, Variant["layout"], entity?.SecondBack, TileLists(entity),
+        entity?.OuterDeck, entity?.OuterDeckInfill, entity?.OuterDeckFront, entity?.OuterDeckBack);
 
     // The style of every face whose finish is tiles, for the tiles a break with no player drops (decision 0095).
     private static string?[] TileLists(SidingWallEntity? entity) => entity == null ? [] :
         TileStyles((entity.Front, entity.FrontStyle), (entity.SecondFront, entity.SecondFrontStyle), (entity.Back, entity.BackStyle),
-            (entity.SecondBack, entity.SecondBackStyle), (entity.DeckFront, entity.DeckFrontStyle), (entity.DeckBack, entity.DeckBackStyle));
+            (entity.SecondBack, entity.SecondBackStyle), (entity.DeckFront, entity.DeckFrontStyle), (entity.DeckBack, entity.DeckBackStyle),
+            (entity.OuterDeckFront, entity.OuterDeckFrontStyle), (entity.OuterDeckBack, entity.OuterDeckBackStyle));
 
     internal static string?[] TileStyles(params (string? Key, string? Style)[] faces)
         => [.. faces.Where(face => face.Key == SidingWallEntity.TilesKey).Select(face => face.Style)];
@@ -1869,7 +1930,8 @@ public class SidingWallBlock : Block
     internal static List<BlockDropItemStack> ComputeDrops(
         string? framing, string? infill, string? front, string? secondFront, string? back, string? deck,
         JsonObject framings, JsonObject infills, JsonObject finishes, string? step = null,
-        string? deckInfill = null, string? deckFront = null, string? deckBack = null, string? layout = null, string? secondBack = null, string?[]? tileLists = null)
+        string? deckInfill = null, string? deckFront = null, string? deckBack = null, string? layout = null, string? secondBack = null, string?[]? tileLists = null,
+        string? outerDeck = null, string? outerDeckInfill = null, string? outerDeckFront = null, string? outerDeckBack = null)
     {
         var drops = new List<BlockDropItemStack>();
         foreach (string[] kinds in (tileLists ?? []).Select(SidingWallEntity.TileSlots))
@@ -1880,10 +1942,14 @@ public class SidingWallBlock : Block
         AddDrops(drops, secondFront, finishes, LayerParts(layout, "secondfront"));
         AddDrops(drops, back, finishes, LayerParts(layout, "back"));
         AddDrops(drops, secondBack, finishes, LayerParts(layout, "secondback"));
-        AddDrops(drops, deck, framings);
-        AddDrops(drops, deckInfill, infills);
-        AddDrops(drops, deckFront, finishes);
-        AddDrops(drops, deckBack, finishes);
+        AddDrops(drops, deck, framings, LayerParts(layout, "deck"));
+        AddDrops(drops, deckInfill, infills, LayerParts(layout, "deckinfill"));
+        AddDrops(drops, deckFront, finishes, LayerParts(layout, "deckfront"));
+        AddDrops(drops, deckBack, finishes, LayerParts(layout, "deckback"));
+        AddDrops(drops, outerDeck, framings, LayerParts(layout, "outerdeck"));
+        AddDrops(drops, outerDeckInfill, infills, LayerParts(layout, "outerdeckinfill"));
+        AddDrops(drops, outerDeckFront, finishes, LayerParts(layout, "outerdeckfront"));
+        AddDrops(drops, outerDeckBack, finishes, LayerParts(layout, "outerdeckback"));
         var stepDrop = StepDrop(step);
         if (stepDrop != null) drops.Add(stepDrop);
         return drops;
@@ -2046,10 +2112,12 @@ public class SidingWallBlock : Block
 
     internal static int PostQuarter(int quantity) => Share(quantity, 4);
 
-    // How many parts of a wall's amount a layer costs and refunds one of; a deck is always laid in full.
+    // How many parts of a wall's amount a layer costs and refunds one of; a deck is laid in full, but a diagonal's
+    // covers one triangle of its cell, so half (decision 0096).
     internal static int LayerParts(string? layout, string? layer) => (layout, layer) switch
     {
-        (_, not null) when layer.StartsWith("deck") => 1,
+        ("diagonal", not null) when layer.Contains("deck") => 2,
+        (_, not null) when layer.Contains("deck") => 1,
         ("cornerin", _) => 4,
         ("cornerout", "back" or "secondback") => 2,
         _ => 1,
@@ -2090,7 +2158,8 @@ public class SidingWallBlock : Block
         => face switch
         {
             "front" => entity.FrontStyle, "secondfront" => entity.SecondFrontStyle, "secondback" => entity.SecondBackStyle,
-            "deckfront" => entity.DeckFrontStyle, "deckback" => entity.DeckBackStyle, _ => entity.BackStyle
+            "deckfront" => entity.DeckFrontStyle, "deckback" => entity.DeckBackStyle,
+            "outerdeckfront" => entity.OuterDeckFrontStyle, "outerdeckback" => entity.OuterDeckBackStyle, _ => entity.BackStyle
         };
 
     // A finish that mirrors on corners, laid beside itself across a corner's edge, takes the turn its partner face has not, whatever

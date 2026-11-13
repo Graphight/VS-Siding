@@ -5,6 +5,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Vintagestory.API.Common;
 using Vintagestory.API.Datastructures;
+using Vintagestory.API.MathTools;
 using Xunit;
 
 namespace VSSiding.Tests;
@@ -112,6 +113,108 @@ public class SidingWallBlockDropsTests
         var drops = SidingWallBlock.ComputeDrops(null, null, null, null, null, "oak", Framings, Infills, Finishes, null, "wattle", "daub", "brick");
         Assert.Equal(new[] { "game:plank-oak", "game:stick", "game:clay-blue", "game:burnedbrick-red" }, Codes(drops));
     }
+
+    // A diagonal's deck covers one triangle, so each layer refunds half a wall's amount (decision 0096).
+    [Fact]
+    public void DiagonalDeckRefundsHalfOfEachLayer()
+    {
+        var drops = SidingWallBlock.ComputeDrops(null, null, null, null, null, "oak", Framings, Infills, Finishes, null, "wattle", "daub", "brick", layout: "diagonal");
+        Assert.Equal(
+            new[] { ("game:plank-oak", 1f), ("game:stick", 2f), ("game:clay-blue", 1f), ("game:burnedbrick-red", 1f) },
+            drops.ConvertAll(d => (d.Code!.ToString(), d.Quantity.avg)));
+    }
+
+    [Fact]
+    public void DiagonalOuterDeckDropsHalfOfEachLayer()
+    {
+        var drops = SidingWallBlock.ComputeDrops(null, null, null, null, null, null, Framings, Infills, Finishes, null, layout: "diagonal",
+            outerDeck: "oak", outerDeckInfill: "wattle", outerDeckFront: "daub", outerDeckBack: "brick");
+        Assert.Equal(
+            new[] { ("game:plank-oak", 1f), ("game:stick", 2f), ("game:clay-blue", 1f), ("game:burnedbrick-red", 1f) },
+            drops.ConvertAll(d => (d.Code!.ToString(), d.Quantity.avg)));
+    }
+
+    [Fact]
+    public void DiagonalPeelsInnerDeckThenOuterDeckThenFrame()
+    {
+        var wall = FootprintHostsTests.Wall("diagonal", "west");
+        var entity = new SidingWallEntity { Framing = "oak", Deck = "oak", OuterDeck = "oak", OuterDeckInfill = "wattle", OuterDeckFront = "daub" };
+
+        Assert.Equal("deck", wall.PeelAt(entity, null, null));
+        entity.Deck = null;
+        Assert.Equal("outerdeckfront", wall.PeelAt(entity, null, null));
+        entity.OuterDeckFront = null;
+        Assert.Equal("outerdeckinfill", wall.PeelAt(entity, null, null));
+        entity.OuterDeckInfill = null;
+        Assert.Equal("outerdeck", wall.PeelAt(entity, null, null));
+        entity.OuterDeck = null;
+        Assert.Null(wall.PeelAt(entity, null, null));
+    }
+
+    [Fact]
+    public void AnOuterStripHitPeelsTheOuterDeckWhateverTheInnerHolds()
+    {
+        var wall = FootprintHostsTests.Wall("diagonal", "west");
+        var entity = new SidingWallEntity { Framing = "oak", Deck = "oak", DeckFront = "brick", OuterDeck = "oak", OuterDeckBack = "daub" };
+
+        Assert.Equal("outerdeckback", wall.PeelAt(entity, null, DeckHalf.Outer));
+        Assert.Equal("deckfront", wall.PeelAt(entity, null, DeckHalf.Inner));
+    }
+
+    // A west diagonal claims north and west, so a hit there is on the outer side; south and east are the room's.
+    [Theory]
+    [InlineData("north", "outerdeck")]
+    [InlineData("west", "outerdeck")]
+    [InlineData("south", "deck")]
+    public void APanelHitPeelsTheDeckOnItsOwnSide(string face, string expected)
+    {
+        var wall = FootprintHostsTests.Wall("diagonal", "west");
+        var entity = new SidingWallEntity { Framing = "oak", Front = "daub", Deck = "oak", OuterDeck = "oak" };
+
+        Assert.Equal(expected, wall.PeelAt(entity, BlockFacing.FromCode(face), null));
+    }
+
+    [Fact]
+    public void AFacelessPeelTakesTheOuterDeckBeforeTheWallsLayers()
+    {
+        var wall = FootprintHostsTests.Wall("diagonal", "west");
+
+        Assert.Equal("outerdeck", wall.PeelAt(new SidingWallEntity { Framing = "oak", Front = "daub", Infill = "wattle", OuterDeck = "oak" }, null, null));
+    }
+
+    // Fire catches only on wood (decision 0043): a bone inner deck leaves the outer deck's planks next.
+    [Fact]
+    public void FireReachesAWoodOuterDeckPastABoneInnerDeck()
+    {
+        var wall = new SidingWallBlock
+        {
+            Attributes = new JsonObject(JToken.Parse("""{ "Framings": { "oak": { "BlockMaterial": "Wood" }, "bone": { "BlockMaterial": "Bone" } }, "Infills": {}, "Finishes": { "daub": { "BlockMaterial": "Soil" } } }""")),
+        };
+        wall.VariantStrict["layout"] = "diagonal";
+        wall.VariantStrict["side"] = "west";
+
+        Assert.Equal("outerdeck", wall.BurnLayer(new SidingWallEntity { Framing = "oak", Front = "daub", Deck = "bone", OuterDeck = "oak" }));
+    }
+
+    [Fact]
+    public void DropsOfCarriesTheOuterDeckLayers()
+    {
+        var wall = new SidingWallBlock
+        {
+            Attributes = new JsonObject(JToken.Parse("""{ "Framings": { "oak": { "Drops": [ { "type": "item", "code": "game:plank-oak" } ] } }, "Infills": {}, "Finishes": { "daub": { "Drops": [ { "type": "item", "code": "game:clay-blue" } ] } } }""")),
+        };
+        wall.VariantStrict["layout"] = "diagonal";
+        var entity = new SidingWallEntity { OuterDeck = "oak", OuterDeckFront = "daub" };
+        Assert.Equal(new[] { "game:plank-oak", "game:clay-blue" }, Codes(wall.DropsOf(entity)));
+    }
+
+    [Theory]
+    [InlineData("diagonal", 4, 2)]
+    [InlineData("diagonal", 1, 1)]
+    [InlineData("wall", 4, 4)]
+    [InlineData("cornerin", 4, 4)]
+    public void DeckCostFollowsTheLayout(string layout, int wall, int deck)
+        => Assert.Equal(deck, SidingWallBlock.Share(wall, SidingWallBlock.LayerParts(layout, "deck")));
 
     [Fact]
     public void StepDropsExactlyOneOfTheStoredStair()

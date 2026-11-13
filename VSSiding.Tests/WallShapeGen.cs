@@ -1281,9 +1281,37 @@ public static class WallShapeGen
     ];
 
     private static readonly (string Slot, string Texture)[] DiagonalTextures =
-        [.. WallTextures.Where(t => t.Slot is "front" or "framing" or "infill" or "back" or "deck" or "deckinfill" or "deckfront" or "deckback" or "lashing")];
+        [.. WallTextures.Where(t => t.Slot is "front" or "framing" or "infill" or "back" or "deck" or "deckinfill" or "deckfront" or "deckback" or "lashing")
+            .SelectMany(t => t.Slot.StartsWith("deck") ? [t, ("outer" + t.Slot, t.Texture)] : new[] { t })];
 
     private const double DeckHair = 0.02;
+
+    // The outer triangle's strips are the inner's turned 180 degrees about the cell's centre (decision 0096).
+    private static ((double X, double Y, double Z) From, (double X, double Y, double Z) To)[] OuterDiagonalDeckStrips()
+        => [.. DiagonalDeckStrips().Select(Turned)];
+
+    private static ((double X, double Y, double Z) From, (double X, double Y, double Z) To) Turned(
+        ((double X, double Y, double Z) From, (double X, double Y, double Z) To) box)
+        => ((16 - box.To.X, box.From.Y, 16 - box.To.Z), (16 - box.From.X, box.To.Y, 16 - box.From.Z));
+
+    // Each half's top finish over its side of the panel's top, for a diagonal decked on both halves (decision 0096): a row
+    // per strip, from where the two halves meet to 4 voxels on, past the panel's face at 2√2 from the line, so it lies on the deck.
+    private static IEnumerable<Element> DiagonalCaps()
+    {
+        var inner = SidingWallBlock.AddOpenPartBoxes([], "diagonal", "west", "oak", null)
+            .Select(b => ((b.X1 * 16.0, 15.0, b.Z1 * 16.0), (Math.Min(16, b.X1 * 16.0 + 4), 16.0, b.Z2 * 16.0))).ToArray();
+        return CapGroups("cap", inner).Concat(CapGroups("outercap", [.. inner.Select(Turned)]));
+    }
+
+    // The outer deck's edge on each face the diagonal claims is the building's face, so a board in the deck's framing covers its
+    // layers there (decision 0096), from the corner to the panel, a hair outside the cell so it shares no plane with them.
+    private static IEnumerable<Element> OuterDeckFascia() =>
+        from deckSide in DeckSides
+        from box in new[] { ((-DeckHair, 12.0, 0.0), (0.0, 16.0, 16 - DiagonalFiller)), ((0.0, 12.0, -DeckHair), (16 - DiagonalFiller, 16.0, 0.0)) }
+        let r = DeckRegion(box.Item1, box.Item2, deckSide.RotationYDeg)
+        let face = r.X2 <= 0 ? "west" : r.X >= 16 ? "east" : r.Z2 <= 0 ? "north" : "south"
+        select new Element($"outerdeck-{deckSide.Side}-fascia", (r.X, r.Y, r.Z), (r.X2, r.Y2, r.Z2), "outerdeck", UvRule.Positional,
+            Faces: [face], RunAxis: face is "west" or "east" ? 'z' : 'x');
 
     // The strips of the block's own west diagonal deck, a hair off every plane the panel's unturned
     // pieces share with them: the top, under the plate and the fillers' caps, and the cell's own faces
@@ -1556,7 +1584,7 @@ public static class WallShapeGen
                         Name = $"{prefix}-{side}-{source.Name}",
                         From = lo with { Z = z },
                         To = hi with { Z = z2 },
-                        Slot = DeckSlots[source.Slot],
+                        Slot = prefix.StartsWith("outer") && source.Slot != "lashing" ? "outer" + DeckSlots[source.Slot] : DeckSlots[source.Slot],
                         ClippedFrom = source,
                     };
                 }
@@ -1729,9 +1757,9 @@ public static class WallShapeGen
 
     // The deck's top finish laid over the wall's own 4/16 top, for when nothing stands on it: each finish group cut to the
     // wall's footprint, its top face alone, so the floor reads as one surface across the wall.
-    private static IEnumerable<Element> CapGroups(params ((double X, double Y, double Z) From, (double X, double Y, double Z) To)[] footprint)
-        => DeckGroups("cap", footprint.Select(box => (box.From with { Y = 15 }, box.To with { Y = 16 })).ToArray())
-            .Where(e => e.Slot.StartsWith("deckfront") && !e.Name.Contains("-rim"))
+    private static IEnumerable<Element> CapGroups(string prefix, params ((double X, double Y, double Z) From, (double X, double Y, double Z) To)[] footprint)
+        => DeckGroups(prefix, footprint.Select(box => (box.From with { Y = 15 }, box.To with { Y = 16 })).ToArray())
+            .Where(e => e.Slot.Contains("deckfront") && !e.Name.Contains("-rim"))
             .Select(e => e with { Faces = ["up"], Offset = (0, CapRise, 0) });
 
     // A wall's or corner's own pieces, then its deck's: the deck in its box, and each of its ledges.
@@ -1741,13 +1769,14 @@ public static class WallShapeGen
 
     public static JObject Generate(string layout) => layout switch
     {
-        "wall" => Emit([.. WithDeck([.. WallElements, .. RimPieces(WallElements), .. WallTiles(WallElements)], ((4, 12, 0), (16, 16, 16))), .. CapGroups(((0, 15, 0), (4, 16, 16)))], WallTextures),
+        "wall" => Emit([.. WithDeck([.. WallElements, .. RimPieces(WallElements), .. WallTiles(WallElements)], ((4, 12, 0), (16, 16, 16))), .. CapGroups("cap", ((0, 15, 0), (4, 16, 16)))], WallTextures),
         "floor" => Emit(FloorShape, FloorTextures),
         "cornerout" => Emit(
             [.. WithDeck(FrontEdgeOnSecondFace([.. CornerOutElements, .. CornerRimPieces(CornerOutElements), .. CornerTiles(CornerOutElements)]), ((4, 12, 4), (16, 16, 16))),
-             .. CapGroups(((0, 15, 0), (4, 16, 16)), ((4, 15, 0), (16, 16, 4)))], CornerOutTextures),
-        "diagonal" => Rounded(Emit([.. DiagonalElements, .. DeckGroups("deck", DiagonalDeckStrips())], DiagonalTextures)),
-        "cornerin" => Emit([.. CornerInElements, .. BambooVariants.SelectMany(BambooFatPost), .. DeckGroups("deck", PostDeckStrips()), .. CapGroups(((0, 15, 0), (4, 16, 4)))], CornerInTextures),
+             .. CapGroups("cap", ((0, 15, 0), (4, 16, 16)), ((4, 15, 0), (16, 16, 4)))], CornerOutTextures),
+        "diagonal" => Rounded(Emit([.. DiagonalElements, .. DeckGroups("deck", DiagonalDeckStrips()), .. DeckGroups("outerdeck", OuterDiagonalDeckStrips()),
+            .. DiagonalCaps(), .. OuterDeckFascia()], DiagonalTextures)),
+        "cornerin" => Emit([.. CornerInElements, .. BambooVariants.SelectMany(BambooFatPost), .. DeckGroups("deck", PostDeckStrips()), .. CapGroups("cap", ((0, 15, 0), (4, 16, 4)))], CornerInTextures),
         _ => throw new KeyNotFoundException(layout),
     };
 

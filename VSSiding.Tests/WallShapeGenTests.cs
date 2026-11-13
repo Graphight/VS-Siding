@@ -182,14 +182,15 @@ public class WallShapeGenTests
                 where lo[axis] > hi[axis]
                 select $"{layout} '{name}' inverts on axis {axis}: {lo[axis]} > {hi[axis]}");
             // A turned element's plan is measured after the turn (TheDiagonalRunsCornerToCornerWithItsFrontToTheNorthWest).
-            // A bamboo ring stands a quarter voxel past the block's side into the next (decision 0092), never its top or bottom.
-            double reach = name.StartsWith("bamboo") ? 0.25 : 0;
+            // A bamboo ring stands a quarter voxel past the block's side into the next (decision 0092), and the outer deck's fascia
+            // a hair past it (decision 0096), never their top or bottom.
+            double reach = name.StartsWith("bamboo") ? 0.25 : name.EndsWith("-fascia") ? 0.02 : 0;
             offenders.AddRange(
                 from axis in element["rotationY"] == null ? new[] { 0, 1, 2 } : [1]
                 let slack = axis == 1 ? 0 : reach
                 from v in new[] { lo[axis], hi[axis] }
                 // A cap stands a hair above the block's top so its face wins over the slabs' and the frame's at the same height.
-                where v < -slack || v > (name.StartsWith("cap-") && axis == 1 && v == hi[1] ? 16.05 : 16 + slack)
+                where v < -slack || v > ((name.StartsWith("cap-") || name.StartsWith("outercap-")) && axis == 1 && v == hi[1] ? 16.05 : 16 + slack)
                 select $"{layout} '{name}' leaves the block: {v}");
         }
 
@@ -820,12 +821,12 @@ public class WallShapeGenTests
     }
 
     // The deck's and cap's tile groups come from the floor's through the shared deck cut, so every layout carries them in
-    // deck slots, a ledge too; a west cap covers the slots under its footprint, and the diagonal has no cap.
+    // deck slots, a ledge too; a west cap covers the slots under its footprint, the diagonal's inner cap the three its half of the panel crosses.
     [Theory]
     [InlineData("wall", "0,2")]
     [InlineData("cornerout", "0,1,2")]
     [InlineData("cornerin", "0")]
-    [InlineData("diagonal", "")]
+    [InlineData("diagonal", "1,2,3")]
     public void DeckAndCapTileGroupsReachEveryLayout(string layout, string capSlots)
     {
         var elements = WallShapeGen.Generate(layout)["elements"]!;
@@ -1116,6 +1117,30 @@ public class WallShapeGenTests
         Assert.Equal([], elements.Where(e => (double)e["to"]![1]! > 15.98).Select(e => (string)e["name"]!));
     }
 
+    [Fact]
+    public void DiagonalOuterDeckGroupsLieInsideTheOuterBoxes()
+    {
+        var elements = WallShapeGen.Generate("diagonal")["elements"]!.ToArray();
+        var offenders = new List<string>();
+        const double slack = 0.03;
+        foreach (string side in Sides)
+        {
+            var boxes = SidingWallBlock.AddOpenPartBoxes([], "diagonal", side, null, null, "oak");
+            var groups = elements.Where(e => ((string)e["name"]!).StartsWith($"outerdeck-{side}-") && !((string)e["name"]!).EndsWith("-fascia")).ToArray();
+            Assert.NotEmpty(groups);
+            foreach (var group in groups)
+            {
+                var (lo, hi) = Box(group);
+                bool inside = boxes.Any(b => lo[0] >= b.X1 * 16 - slack && hi[0] <= b.X2 * 16 + slack
+                    && lo[1] >= b.Y1 * 16 - slack && hi[1] <= b.Y2 * 16 + slack
+                    && lo[2] >= b.Z1 * 16 - slack && hi[2] <= b.Z2 * 16 + slack);
+                if (!inside) offenders.Add((string)group["name"]!);
+            }
+        }
+
+        Assert.Equal([], offenders);
+    }
+
     // A corner filler is unturned, so a deck box that ends on one of its outer planes and overlaps it
     // there draws a second face in that plane. The fillers turn with the wall's side and the deck groups
     // are cut per side, so each side's are compared where they stand.
@@ -1146,6 +1171,66 @@ public class WallShapeGenTests
         }
 
         Assert.Equal([], offenders);
+    }
+
+    // Decked on both halves, every point of the panel's top, 2 voxels either side of its centre line, lies under one cap, the
+    // inner half's on the room side and the outer's beyond, each drawing its half's top finish a hair above the block (decision 0096).
+    [Fact]
+    public void DiagonalCapsCoverThePanelsTopFromOneHalfOrTheOther()
+    {
+        var elements = WallShapeGen.Generate("diagonal")["elements"]!.Cast<JObject>().ToArray();
+        var offenders = new List<string>();
+        foreach (string side in Sides)
+        {
+            (double[] Lo, double[] Hi)[] Caps(string prefix, string slot)
+            {
+                var caps = elements.Where(e => (string)e["name"]! == $"{prefix}-{side}-front-hboards").ToArray();
+                offenders.AddRange(
+                    from cap in caps
+                    let faces = string.Join(", ", ((JObject)cap["faces"]!).Properties().Select(p => $"{p.Name} {p.Value["texture"]}"))
+                    where faces != $"up #{slot}" || Math.Abs((double)cap["to"]![1]! - 16.05) > 1e-3
+                    select $"{cap["name"]} draws {faces} at {cap["to"]![1]}");
+                return [.. caps.Select(Box)];
+            }
+            var (inner, outer) = (Caps("cap", "deckfront"), Caps("outercap", "outerdeckfront"));
+            for (double x = 0.25; x < 16; x += 0.5)
+            for (double z = 0.25; z < 16; z += 0.5)
+            {
+                if (Math.Abs(x + z - 16) > 2 * Math.Sqrt(2)) continue;
+                var r = WallShapeGen.DeckRegion((x, 15, z), (x, 16, z), (int)SidingWallEntity.RotationYDeg(side));
+                bool Under((double[] Lo, double[] Hi) cap) => cap.Lo[0] <= r.X && r.X <= cap.Hi[0] && cap.Lo[2] <= r.Z && r.Z <= cap.Hi[2];
+                var under = (inner.Count(Under), outer.Count(Under));
+                if (!(under == (1, 0) && x + z > 15 || under == (0, 1) && x + z < 17)) offenders.Add($"{side} ({x}, {z}) under {under}");
+            }
+        }
+
+        Assert.Equal([], offenders);
+    }
+
+    // The outer deck's fascia: a board on each face the side claims, a hair outside it from y 12 to 16, drawing its outward face
+    // alone in the deck's framing, from the corner the two faces share to the panel's filler (decision 0096).
+    [Fact]
+    public void TheOuterDecksFasciaCoversEachClaimedFaceFromTheCornerToThePanel()
+    {
+        const double filler = 2.828;
+        var elements = WallShapeGen.Generate("diagonal")["elements"]!.Cast<JObject>().ToArray();
+        foreach (string side in Sides)
+        {
+            string[] claimed = [.. new[] { "north", "east", "south", "west" }.Where(face => SidingWallBlock.ClaimsFace("diagonal", side, face))];
+            (double, double) Run(string face) => claimed.Contains(face is "west" or "east" ? "north" : "west") ? (0, R(16 - filler)) : (filler, 16);
+            var expected = claimed.Select(face => (face, "#outerdeck", face is "west" or "north" ? -0.02 : 16.02, Run(face), (12.0, 16.0)));
+            var drawn = elements.Where(e => (string)e["name"]! == $"outerdeck-{side}-fascia").Select(e =>
+            {
+                var (lo, hi) = Box(e);
+                var face = ((JObject)e["faces"]!).Properties().Single();
+                int across = face.Name is "west" or "east" ? 0 : 2, along = 2 - across;
+                return (face.Name, (string)face.Value["texture"]!, R(face.Name is "west" or "north" ? lo[across] : hi[across]), (R(lo[along]), R(hi[along])), (R(lo[1]), R(hi[1])));
+            });
+
+            Assert.Equal(expected.OrderBy(f => f.face), drawn.OrderBy(f => f.Name));
+        }
+
+        static double R(double v) => Math.Round(v, 3);
     }
 
     // A generated step element as its box and faces, to compare whole against one built from vanilla's uvs by hand.

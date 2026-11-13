@@ -90,7 +90,20 @@ public class SidingWallEntityTests
 
         Assert.Equal(
             new[] { 0, 1, 77, 77, 77, 1, 1, 77, 77, 0 },
-            cells.Select(c => SidingWallEntity.CellAlternate(attributes, 77, c.Framing, c.Deck, [c.Infill, null], [c.Front, null])));
+            cells.Select(c => SidingWallEntity.CellAlternate(attributes, 77, c.Framing, [c.Deck], [c.Infill, null], [c.Front, null])));
+    }
+
+    // A diagonal's outer deck alternates as its inner deck does, so a stick floor run keeps alternating across it (decision 0096).
+    [Fact]
+    public void AnOuterDeckAlternatesLikeAnInnerOne()
+    {
+        var attributes = Dict("""
+        { "Framings": { "oak": { "Texture": "planks/oak*" }, "aged": { "Texture": "planks/aged1" }, "sticks": { "Texture": "bark/oak", "Elements": "poles" } }, "Infills": {}, "Finishes": {} }
+        """);
+
+        Assert.Equal(
+            new[] { 1, 77, 0 },
+            new[] { "sticks", "oak", null }.Select(outer => SidingWallEntity.CellAlternate(attributes, 77, "aged", [null, outer], [], [])));
     }
 
     [Fact]
@@ -102,7 +115,7 @@ public class SidingWallEntityTests
 
         Assert.Equal(
             new[] { 77, 0 },
-            new[] { true, false }.Select(varies => SidingWallEntity.CellAlternate(attributes, 77, "aged", null, ["wattle"], [], varies)));
+            new[] { true, false }.Select(varies => SidingWallEntity.CellAlternate(attributes, 77, "aged", [], ["wattle"], [], varies)));
     }
 
     // Three stacked infill boxes share a face at each seam; for glass that blends twice and draws
@@ -817,6 +830,32 @@ public class SidingWallEntityTests
             new string?[] { "deckinfill-value", "deckfront-value", null, "deckfrontstyle-value", "deckbackstyle-value" },
             keys.Select(key => SidingWallEntity.NullIfEmpty(reloaded.GetString(key, null))));
     }
+
+    [Fact]
+    public void OuterDeckStateSurvivesATreeRoundTrip()
+    {
+        var block = new Block { Code = new AssetLocation("vssiding", "wall-diagonal-west") };
+        block.VariantStrict["layout"] = "diagonal";
+        var saved = new SidingWallEntity
+        {
+            Block = block, Pos = new BlockPos(0, 0, 0, 0), Framing = "oak", OuterDeck = "birch", OuterDeckInfill = "wattle",
+            OuterDeckFront = "daub", OuterDeckFrontStyle = "coursed", OuterDeckBackStyle = "boards",
+        };
+        var tree = new TreeAttribute();
+        saved.ToTreeAttributes(tree);
+        var reloaded = new TreeAttribute();
+        reloaded.FromBytes(tree.ToBytes());
+
+        var loaded = new SidingWallEntity { Block = block };
+        loaded.FromTreeAttributes(reloaded, GuestWallsTests.World);
+
+        Assert.Equal(
+            ("birch", "wattle", "daub", null, "coursed", "boards"),
+            (loaded.OuterDeck, loaded.OuterDeckInfill, loaded.OuterDeckFront, loaded.OuterDeckBack, loaded.OuterDeckFrontStyle, loaded.OuterDeckBackStyle));
+    }
+
+    [Fact]
+    public void AnOuterDeckFillsTheOpenPart() => Assert.True(new SidingWallEntity { OuterDeck = "oak" }.OpenPartFilled);
 
     [Fact]
     public void StepKeysSurviveByteRoundTrip()

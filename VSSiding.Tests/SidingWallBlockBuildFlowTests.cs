@@ -490,4 +490,16 @@ public class SidingWallBlockBuildFlowTests
             SidingWallBlock.ResolveStepOrientation(
                 side, neighbourOrientation, new Vec3f(lookX, 0, lookZ), BlockFacing.FromFirstLetter(clickedFace[..1]), hitY, hasDownVariant));
     }
+
+    // A west diagonal claims north and west, which face its outer half; any other face, or another layout, faces the inner.
+    [Fact]
+    public void AClaimedFaceOfADiagonalFacesItsOuterHalf()
+    {
+        string[] faces = ["north", "east", "south", "west", "up"];
+
+        Assert.Equal(
+            [DeckHalf.Outer, DeckHalf.Inner, DeckHalf.Inner, DeckHalf.Outer, DeckHalf.Inner, DeckHalf.Inner, DeckHalf.Inner],
+            [.. faces.Select(face => SidingWallBlock.HalfFacing("diagonal", "west", face)),
+             SidingWallBlock.HalfFacing("cornerout", "west", "west"), SidingWallBlock.HalfFacing("wall", "west", "west")]);
+    }
 }

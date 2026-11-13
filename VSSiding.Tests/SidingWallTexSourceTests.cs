@@ -404,9 +404,9 @@ public class SidingWallTexSourceTests
         // Only a tiled face's style lists tile kinds; another face's names its look.
         Assert.Equal(
             (77, 0, 0),
-            (SidingWallEntity.CellAlternate(attributes, 77, null, null, [], ["tiles"], styles: ["tile-a,,,"]),
-             SidingWallEntity.CellAlternate(attributes, 77, null, null, [], ["tiles"], styles: [",,,"]),
-             SidingWallEntity.CellAlternate(attributes, 77, null, null, [], ["daub"], styles: ["tile-a"])));
+            (SidingWallEntity.CellAlternate(attributes, 77, null, [], [], ["tiles"], styles: ["tile-a,,,"]),
+             SidingWallEntity.CellAlternate(attributes, 77, null, [], [], ["tiles"], styles: [",,,"]),
+             SidingWallEntity.CellAlternate(attributes, 77, null, [], [], ["daub"], styles: ["tile-a"])));
     }
 
     [Fact]

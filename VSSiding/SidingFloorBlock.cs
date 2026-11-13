@@ -271,9 +271,10 @@ public class SidingFloorBlock : Block
         BlockPos neighbourPos = pos.AddCopy(direction);
         if (accessor.GetBlockEntity<SidingFloorEntity>(neighbourPos) is { } floor)
             return Continues(glazing, floor.Framing, floor.Infill, floor.Block.Attributes["Infills"]);
-        return SidingWallBlock.WallAt(accessor, neighbourPos) is var (wallBlock, wall)
-            && DeckReaches(wallBlock.Variant["layout"], wallBlock.Variant["side"], direction)
-            && Continues(glazing, wall.Deck, wall.DeckInfill, wallBlock.Attributes["Infills"]);
+        if (SidingWallBlock.WallAt(accessor, neighbourPos) is not var (wallBlock, wall)) return false;
+        string layout = wallBlock.Variant["layout"], side = wallBlock.Variant["side"];
+        var deck = wall.DeckLayers(SidingWallBlock.HalfFacing(layout, side, direction.Opposite.Code));
+        return DeckReaches(layout, side, direction) && Continues(glazing, deck.Deck, deck.Infill, wallBlock.Attributes["Infills"]);
     }
 
     // As a wall's (SidingWallBlock.InnerCorners). The cell diagonally across is asked from both of the
@@ -290,8 +291,9 @@ public class SidingFloorBlock : Block
 
     // A wall's panel stands on the faces it claims, and its deck stops short of them; `direction`
     // is from the cell looking on to the wall, so the face it would touch is the opposite one.
+    // A diagonal's outer deck reaches the faces it claims (decision 0096).
     internal static bool DeckReaches(string layout, string side, BlockFacing direction)
-        => !SidingWallBlock.ClaimsFace(layout, side, direction.Opposite.Code);
+        => layout == "diagonal" || !SidingWallBlock.ClaimsFace(layout, side, direction.Opposite.Code);
 
     // How far past the clicked floor a run can be extended, so a stray click cannot frame one across a lake.
     internal const int RunReach = 4;
@@ -314,11 +316,12 @@ public class SidingFloorBlock : Block
     internal static BlockPos? RunEndFor(IWorldAccessor world, IPlayer byPlayer, BlockPos start, Block placeholder, AssetLocation heldCode)
     {
         var accessor = world.BlockAccessor;
+        var ahead = Ahead(byPlayer.Entity.SidedPos.GetViewVector());
         return RunEnd(
             pos => accessor.GetBlock(pos) is SidingFloorBlock,
             pos => accessor.GetBlock(pos).IsReplacableBy(placeholder)
-                || (accessor.GetBlock(pos) is SidingWallBlock wall && accessor.GetBlockEntity<SidingWallEntity>(pos) is { } entity && wall.CanTakeDeck(world, pos, entity, heldCode)),
-            start, Ahead(byPlayer.Entity.SidedPos.GetViewVector()));
+                || (accessor.GetBlock(pos) is SidingWallBlock wall && accessor.GetBlockEntity<SidingWallEntity>(pos) is { } entity && wall.CanTakeDeck(world, pos, entity, heldCode, wall.HalfFacing(ahead.Opposite))),
+            start, ahead);
     }
 
     // The horizontal face the player is looking toward, whatever the pitch.

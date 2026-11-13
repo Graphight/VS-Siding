@@ -32,6 +32,13 @@ public class SidingWallEntity : BlockEntity
     public string? DeckBack;
     public string? DeckFrontStyle;
     public string? DeckBackStyle;
+    // A diagonal's deck on its outer triangle, with layers of its own (decision 0096).
+    public string? OuterDeck;
+    public string? OuterDeckInfill;
+    public string? OuterDeckFront;
+    public string? OuterDeckBack;
+    public string? OuterDeckFrontStyle;
+    public string? OuterDeckBackStyle;
     // A deck saved before decks took layers sealed as bare framing, and keeps doing so until infill is laid.
     public bool LegacyDeck;
     // The held stair's full block code, e.g. "game:plankstairs-oak-up-north-free".
@@ -39,7 +46,12 @@ public class SidingWallEntity : BlockEntity
     // Vanilla's own vertical-horizontal naming, e.g. "up-north".
     public string? StepOrientation;
 
-    internal bool OpenPartFilled => Deck != null || Step != null;
+    internal bool OpenPartFilled => Deck != null || OuterDeck != null || Step != null;
+
+    internal (string? Deck, string? Infill, string? Front, string? Back, string? FrontStyle, string? BackStyle) DeckLayers(DeckHalf half)
+        => half == DeckHalf.Outer
+            ? (OuterDeck, OuterDeckInfill, OuterDeckFront, OuterDeckBack, OuterDeckFrontStyle, OuterDeckBackStyle)
+            : (Deck, DeckInfill, DeckFront, DeckBack, DeckFrontStyle, DeckBackStyle);
 
     public override void ToTreeAttributes(ITreeAttribute tree)
     {
@@ -61,6 +73,12 @@ public class SidingWallEntity : BlockEntity
         tree.SetString("deckback", DeckBack);
         tree.SetString("deckfrontstyle", DeckFrontStyle);
         tree.SetString("deckbackstyle", DeckBackStyle);
+        tree.SetString("outerdeck", OuterDeck);
+        tree.SetString("outerdeckinfill", OuterDeckInfill);
+        tree.SetString("outerdeckfront", OuterDeckFront);
+        tree.SetString("outerdeckback", OuterDeckBack);
+        tree.SetString("outerdeckfrontstyle", OuterDeckFrontStyle);
+        tree.SetString("outerdeckbackstyle", OuterDeckBackStyle);
         tree.SetBool("legacydeck", LegacyDeck);
         tree.SetString("step", Step);
         tree.SetString("steporientation", StepOrientation);
@@ -103,6 +121,12 @@ public class SidingWallEntity : BlockEntity
         DeckBack = NullIfEmpty(tree.GetString("deckback", null));
         DeckFrontStyle = NullIfEmpty(tree.GetString("deckfrontstyle", null));
         DeckBackStyle = NullIfEmpty(tree.GetString("deckbackstyle", null));
+        OuterDeck = NullIfEmpty(tree.GetString("outerdeck", null));
+        OuterDeckInfill = NullIfEmpty(tree.GetString("outerdeckinfill", null));
+        OuterDeckFront = NullIfEmpty(tree.GetString("outerdeckfront", null));
+        OuterDeckBack = NullIfEmpty(tree.GetString("outerdeckback", null));
+        OuterDeckFrontStyle = NullIfEmpty(tree.GetString("outerdeckfrontstyle", null));
+        OuterDeckBackStyle = NullIfEmpty(tree.GetString("outerdeckbackstyle", null));
         LegacyDeck = ReadLegacyDeck(tree, Deck);
         Step = NullIfEmpty(tree.GetString("step", null));
         StepOrientation = NullIfEmpty(tree.GetString("steporientation", null));
@@ -136,14 +160,17 @@ public class SidingWallEntity : BlockEntity
         string? stepName = null;
         if (Step != null && Api.World.GetBlock(new AssetLocation(Step)) is { } stepBlock)
             stepName = stepBlock.GetHeldItemName(new ItemStack(stepBlock));
+        DeckHalf? half = forPlayer?.CurrentBlockSelection is { } sel && sel.Position.Equals(Pos) && Block is SidingWallBlock wall
+            ? wall.HitDeckHalf(Api.World.BlockAccessor, sel, this) : null;
+        var (deck, deckInfill, deckFront, deckBack, deckFrontStyle, deckBackStyle) = DeckLayers(half ?? DeckHalf.Inner);
         dsc.Append(SidingWallBlock.Describe(
-            Framing, Infill, Deck, Block.Attributes["Framings"], Block.Attributes["Infills"],
+            Framing, Infill, deck, Block.Attributes["Framings"], Block.Attributes["Infills"],
             Block.Variant["layout"], Block.Variant["side"], Front, SecondFront, Back, Block.Attributes["Finishes"],
-            SidingWallBlock.LangEntry, stepName, DeckInfill, DeckFront, DeckBack,
+            SidingWallBlock.LangEntry, stepName, deckInfill, deckFront, deckBack,
             SidingWallBlock.HasBuildSignal(forPlayer), Api != null && Pos != null ? Buried : null, SecondBack,
-            FrontStyle, SecondFrontStyle, BackStyle, SecondBackStyle, DeckFrontStyle, DeckBackStyle));
+            FrontStyle, SecondFrontStyle, BackStyle, SecondBackStyle, deckFrontStyle, deckBackStyle));
         // A bare deck answers a click on the top, so its hint wins over the wall's.
-        if (Deck != null && DeckInfill == null)
+        if (deck != null && deckInfill == null)
             SidingWallBlock.AppendFillHint(dsc, forPlayer, "floor", Block.Attributes["Framings"], Block.Attributes["Infills"]);
         else if (Infill == null)
             SidingWallBlock.AppendFillHint(dsc, forPlayer, Block.Variant["layout"], Block.Attributes["Framings"], Block.Attributes["Infills"]);
@@ -163,9 +190,11 @@ public class SidingWallEntity : BlockEntity
             && SidingWallBlock.FrontsFaceEachOther(Block.Variant["layout"], Block.Variant["side"], direction, wall.Variant["layout"], wall.Variant["side"]);
 
     // Everything OnTesselation reads off this entity, which is exactly what CacheKey covers.
-    private ((string?, string?, string?, string?, string?, string?, string?, string?, string?, string?, string?), (string?, string?, string?, string?, string?, string?, string?)) MeshState
+    private ((string?, string?, string?, string?, string?, string?, string?, string?, string?, string?, string?), (string?, string?, string?, string?, string?, string?, string?), string) MeshState
         => ((Framing, Infill, Front, SecondFront, Back, FrontStyle, SecondFrontStyle, BackStyle, Deck, Step, StepOrientation),
-            (DeckInfill, DeckFront, DeckBack, DeckFrontStyle, DeckBackStyle, SecondBack, SecondBackStyle));
+            (DeckInfill, DeckFront, DeckBack, DeckFrontStyle, DeckBackStyle, SecondBack, SecondBackStyle), OuterDeckState);
+
+    private string OuterDeckState => $"{OuterDeck}-{OuterDeckInfill}-{OuterDeckFront}-{OuterDeckBack}-{OuterDeckFrontStyle}-{OuterDeckBackStyle}";
 
     // A ToBytes/FromBytes round trip (chunk save/reload, client sync) turns a null
     // SetString value into "" - normalize back to null so "unbuilt" survives a reload.
@@ -194,10 +223,10 @@ public class SidingWallEntity : BlockEntity
         (string[] stepElements, float stepRotation) = stepped
             ? StepMesh(layout, side, StepOrientation, StepFamily(stair?.Shape?.Base?.Path))
             : ([], 0);
-        int alternate = CellAlternate(Block.Attributes, SidingWallTexSource.Alternate(Pos), Framing, Deck,
-            [Infill, DeckInfill], [Front, SecondFront, Back, SecondBack, DeckFront, DeckBack],
+        int alternate = CellAlternate(Block.Attributes, SidingWallTexSource.Alternate(Pos), Framing, [Deck, OuterDeck],
+            [Infill, DeckInfill, OuterDeckInfill], [Front, SecondFront, Back, SecondBack, DeckFront, DeckBack, OuterDeckFront, OuterDeckBack],
             SidingWallTexSource.Varies(SidingWallTexSource.StairTexture(stair)),
-            [FrontStyle, SecondFrontStyle, BackStyle, SecondBackStyle, DeckFrontStyle, DeckBackStyle]);
+            [FrontStyle, SecondFrontStyle, BackStyle, SecondBackStyle, DeckFrontStyle, DeckBackStyle, OuterDeckFrontStyle, OuterDeckBackStyle]);
         string[] innerCorners = ((SidingWallBlock)Block).InnerCorners(Api.World.BlockAccessor, Pos, Infill, joins);
         var glassRunsOn = ((SidingWallBlock)Block).GlassRunsOn(Api.World.BlockAccessor, Pos, Infill, joins);
         var tees = ((SidingWallBlock)Block).Tees(Api.World.BlockAccessor, Pos);
@@ -211,15 +240,23 @@ public class SidingWallEntity : BlockEntity
         bool deckGlazed = SidingWallBlock.IsTransparent(DeckInfill, Block.Attributes["Infills"]);
         var deckJoins = SidingFloorBlock.Joins(Api.World.BlockAccessor, Pos, deckGlazed);
         string[] deckInnerCorners = SidingFloorBlock.InnerCorners(Api.World.BlockAccessor, Pos, deckGlazed, deckJoins);
-        bool capped = Capped(layout, DeckFront, SidingWallBlock.FreeAbove(Api.World.BlockAccessor, Pos));
+        bool bothHalves = Deck != null && OuterDeck != null;
+        bool capped = Capped(layout, DeckFront, SidingWallBlock.FreeAbove(Api.World.BlockAccessor, Pos), bothHalves);
         string[] deckElements = DeckElements(side, Deck, DeckInfill, DeckFront, DeckBack, Block.Attributes["Finishes"], deckJoins, (DeckFrontStyle, DeckBackStyle), deckGlazed,
             FrameElements(Block.Attributes["Framings"], Deck, alternate), Ledges(layout, Back == null, glazed, joins, SecondBack == null), deckInnerCorners, capped,
             InfillElements(Block.Attributes["Infills"], DeckInfill));
-        if (selectiveElements.Length == 0 && deckElements.Length == 0 && stepElements.Length == 0) return false;
+        bool outerGlazed = SidingWallBlock.IsTransparent(OuterDeckInfill, Block.Attributes["Infills"]);
+        var allJoins = SidingFloorBlock.Joins(Api.World.BlockAccessor, Pos, outerGlazed);
+        var outerJoins = (allJoins.above && SidingWallBlock.ClaimsFace(layout, side, "north"), allJoins.below && SidingWallBlock.ClaimsFace(layout, side, "south"),
+            allJoins.left && SidingWallBlock.ClaimsFace(layout, side, "west"), allJoins.right && SidingWallBlock.ClaimsFace(layout, side, "east"));
+        string[] outerElements = DeckElements(side, OuterDeck, OuterDeckInfill, OuterDeckFront, OuterDeckBack, Block.Attributes["Finishes"], outerJoins, (OuterDeckFrontStyle, OuterDeckBackStyle),
+            outerGlazed, FrameElements(Block.Attributes["Framings"], OuterDeck, alternate), capped: Capped(layout, OuterDeckFront, false, bothHalves),
+            fill: InfillElements(Block.Attributes["Infills"], OuterDeckInfill), group: "outerdeck");
+        if (selectiveElements.Length == 0 && deckElements.Length == 0 && outerElements.Length == 0 && stepElements.Length == 0) return false;
 
         string cacheKey = CacheKey(layout, side, Framing, Infill, Front, SecondFront, Back, joins, Styles, Deck, Step, StepOrientation,
             DeckInfill, DeckFront, DeckBack, (DeckFrontStyle, DeckBackStyle), deckJoins, alternate, innerCorners, deckInnerCorners, glassRunsOn, tees, closed, capped,
-            SecondBack, SecondBackStyle);
+            SecondBack, SecondBackStyle, OuterDeckState + outerJoins);
 
         MeshData[] meshes = ObjectCacheUtil.GetOrCreate(capi, cacheKey, () =>
         {
@@ -229,6 +266,7 @@ public class SidingWallEntity : BlockEntity
             var rotation = new Vec3f(0, RotationYDeg(side), 0);
             return Meshes(tesselator, shape, texSource, rotation, selectiveElements, glazed)
                 .Concat(Meshes(tesselator, shape, texSource, new Vec3f(0, 0, 0), deckElements, deckGlazed))
+                .Concat(Meshes(tesselator, shape, texSource, new Vec3f(0, 0, 0), outerElements, outerGlazed))
                 .Concat(Meshes(tesselator, shape, texSource, new Vec3f(0, stepRotation, 0), stepElements, false))
                 .ToArray();
         });
@@ -247,15 +285,16 @@ public class SidingWallEntity : BlockEntity
     // cell keeps the whole hash while any layer's texture varies, the parity alone for a rough wall or
     // deck frame, and nothing otherwise, which is what lets a long plain wall share one mesh.
     internal static int CellAlternate(
-        JsonObject attributes, int hash, string? framing, string? deck, string?[] infills, string?[] finishes, bool stepVaries = false,
+        JsonObject attributes, int hash, string? framing, string?[] decks, string?[] infills, string?[] finishes, bool stepVaries = false,
         string?[]? styles = null)
     {
         // A tiled face keeps its tile kinds in its style, so those count as finishes too.
         string?[] kinds = [.. finishes, .. finishes.Zip(styles ?? []).Where(face => face.First == TilesKey).SelectMany(face => TileSlots(face.Second)).Where(kind => kind != "")];
-        if (stepVaries || SidingWallTexSource.AnyVaries(attributes["Framings"], framing, deck)
+        string?[] frames = [framing, .. decks];
+        if (stepVaries || SidingWallTexSource.AnyVaries(attributes["Framings"], frames)
             || SidingWallTexSource.AnyVaries(attributes["Infills"], infills)
             || SidingWallTexSource.AnyVaries(attributes["Finishes"], kinds)) return hash;
-        return FrameElements(attributes["Framings"], framing) != "framing" || FrameElements(attributes["Framings"], deck) != "framing" ? hash % 2 : 0;
+        return frames.Any(frame => FrameElements(attributes["Framings"], frame) != "framing") ? hash % 2 : 0;
     }
 
     // The shape-group prefix a framing entry draws its frame with; most draw the plain "framing" groups.
@@ -320,10 +359,10 @@ public class SidingWallEntity : BlockEntity
         string? deckInfill = null, string? deckFront = null, string? deckBack = null, (string? front, string? back) deckStyles = default,
         (bool above, bool below, bool left, bool right) deckJoins = default, int alternate = 0,
         string[]? innerCorners = null, string[]? deckInnerCorners = null, (bool left, bool right) glassRunsOn = default, (bool left, bool right) tees = default,
-        (bool front, bool second) closed = default, bool capped = false, string? secondBack = null, string? secondBackStyle = null)
+        (bool front, bool second) closed = default, bool capped = false, string? secondBack = null, string? secondBackStyle = null, string? outerDeckState = null)
         => $"vssiding-wall-mesh-{layout}-{side}-{framing}-{infill}-{front}-{secondFront}-{back}-{joins.above}-{joins.below}-{joins.left}-{joins.right}-{styles.front}-{styles.secondFront}-{styles.back}-{deck}-{step}-{stepOrientation}"
             + $"-{deckInfill}-{deckFront}-{deckBack}-{deckStyles.front}-{deckStyles.back}-{deckJoins.above}-{deckJoins.below}-{deckJoins.left}-{deckJoins.right}-{alternate}"
-            + $"-{string.Concat(innerCorners ?? [])}-{string.Concat(deckInnerCorners ?? [])}-{glassRunsOn.left}-{glassRunsOn.right}-{tees.left}-{tees.right}-{closed.front}-{closed.second}-{capped}-{secondBack}-{secondBackStyle}";
+            + $"-{string.Concat(innerCorners ?? [])}-{string.Concat(deckInnerCorners ?? [])}-{glassRunsOn.left}-{glassRunsOn.right}-{tees.left}-{tees.right}-{closed.front}-{closed.second}-{capped}-{secondBack}-{secondBackStyle}-{outerDeckState}";
 
     // The floor's groups for the deck, which the wall shapes carry per side as deck-{side}-{name}. The
     // deck stops a voxel short of the frame, at the slot the wall's room-side finish takes, so the shapes
@@ -331,20 +370,25 @@ public class SidingWallEntity : BlockEntity
     internal static string[] DeckElements(
         string side, string? deck, string? infill, string? front, string? back, JsonObject finishes,
         (bool above, bool below, bool left, bool right) joins, (string? front, string? back) styles, bool glazed,
-        string frame = "framing", string[]? ledges = null, string[]? innerCorners = null, bool capped = false, string fill = "infill")
+        string frame = "framing", string[]? ledges = null, string[]? innerCorners = null, bool capped = false, string fill = "infill", string group = "deck")
     {
         if (deck == null) return [];
         string[] names = SidingFloorEntity.SelectiveElements(deck, infill, front, back, finishes, joins, styles, glazed, frame, innerCorners, fill);
-        string[] copies = ["deck", .. ledges ?? []];
+        string[] copies = [group, .. ledges ?? []];
         // The top finish is the first name, and a glazed deck's is a rim round the glass, which has no top to lay over the wall.
         string[] top = front == TilesKey ? [.. TileGroups("front", styles.front)] : [names[0]];
-        string[] cap = capped && front != null && !glazed ? [.. top.Select(name => $"cap-{side}-{name}")] : [];
-        return [.. copies.SelectMany(copy => names.Select(name => $"{copy}-{side}-{name}")), .. cap];
+        string capGroup = group == "outerdeck" ? "outercap" : "cap";
+        string[] cap = capped && front != null && !glazed ? [.. top.Select(name => $"{capGroup}-{side}-{name}")] : [];
+        // The outer deck's edges are the building's face, which its fascia covers; a glazed deck frames its own edges.
+        string[] fascia = group == "outerdeck" && !glazed ? [$"outerdeck-{side}-fascia"] : [];
+        return [.. copies.SelectMany(copy => names.Select(name => $"{copy}-{side}-{name}")), .. cap, .. fascia];
     }
 
     // A decked wall or corner with nothing standing on it shows the deck's top finish over its own 4/16 top, so the floor
-    // reads as one surface (decision 0085). A diagonal's deck is strips round its run, which the cap does not follow.
-    internal static bool Capped(string layout, string? deckFront, bool freeAbove) => layout != "diagonal" && deckFront != null && freeAbove;
+    // reads as one surface (decision 0085). A square storey stands on a diagonal's outer faces and leaves its plate in the
+    // floor, so a diagonal decked on both halves caps the plate from each half whatever stands above (decision 0096).
+    internal static bool Capped(string layout, string? deckFront, bool freeAbove, bool bothHalves = false)
+        => deckFront != null && (layout == "diagonal" ? bothHalves : freeAbove);
 
     // The copies of the deck that reach into the slot the wall's room-side finish takes. While that side
     // is bare the whole slot is open, and the deck draws its ledge. A finish fills the slot, but a glazed
