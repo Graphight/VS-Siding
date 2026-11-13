@@ -608,6 +608,10 @@ public class SidingWallBlock : Block
         return true;
     }
 
+    // Every layer a click adds needs build rights in a land claim, as placing a block does (decision 0098).
+    internal static bool ClaimRefuses(IWorldAccessor world, IPlayer byPlayer, BlockPos pos)
+        => !world.Claims.TryAccess(byPlayer, pos, EnumBlockAccessFlags.BuildOrBreak);
+
     // True keeps a held click one interaction, so vanilla's repeat does not press the next layer on (decision 0075).
     public override bool OnBlockInteractStep(float secondsUsed, IWorldAccessor world, IPlayer byPlayer, BlockSelection blockSel) => true;
 
@@ -647,6 +651,8 @@ public class SidingWallBlock : Block
         // A stair on a side face fills the open part beside the stair in the room (decision 0046).
         if (slot.Itemstack!.Block is BlockStairs && blockSel.Face != BlockFacing.UP)
         {
+            if (ClaimRefuses(world, byPlayer, blockSel.Position)) return true;
+
             if (Variant["layout"] is "diagonal" or "cornerin")
             {
                 string noStep = Variant["layout"] == "diagonal" ? "diagonal" : "post";
@@ -717,6 +723,8 @@ public class SidingWallBlock : Block
             if (FramesOnFrom(heldCode, ResolveFinishFace(Variant["layout"], Variant["side"], blockSel.Face) != null, Attributes["Framings"]))
                 return base.OnBlockInteractStart(world, byPlayer, blockSel);
 
+            if (ClaimRefuses(world, byPlayer, blockSel.Position)) return true;
+
             // The full slab, not the open frame's collision: infill would seal in anyone standing in it.
             var occupants = world.GetIntersectingEntities(blockSel.Position, base.GetCollisionBoxes(world.BlockAccessor, blockSel.Position), e => e.IsInteractable);
             if (occupants is { Length: > 0 })
@@ -757,6 +765,8 @@ public class SidingWallBlock : Block
             (byPlayer as IServerPlayer)?.SendIngameError("vssiding:wrongface", Lang.Get("vssiding:build-wrong-face"));
             return true;
         }
+
+        if (ClaimRefuses(world, byPlayer, blockSel.Position)) return true;
 
         string? currentKey = FinishOn(entity, face);
         string? currentStyle = StyleOn(entity, face);
@@ -800,6 +810,8 @@ public class SidingWallBlock : Block
     // bare face behind, as a finish does (decision 0075); a full slot is the already-finished answer, with no jump.
     private bool LayTile(IWorldAccessor world, IPlayer byPlayer, BlockSelection blockSel, SidingWallEntity entity, ItemSlot slot, string tileKey, bool isCreative)
     {
+        if (ClaimRefuses(world, byPlayer, blockSel.Position)) return true;
+
         string layout = Variant["layout"];
         string? refusal = layout == "diagonal" ? "diagonal" : IsTransparent(entity.Infill, Attributes["Infills"]) ? "glazed" : null;
         if (refusal != null)
@@ -950,7 +962,7 @@ public class SidingWallBlock : Block
             || ResolveFinishFace(layout, Variant["side"], blockSel.Face) == null)
             return false;
 
-        if (!world.Claims.TryAccess(byPlayer, blockSel.Position, EnumBlockAccessFlags.Use)) return true;
+        if (ClaimRefuses(world, byPlayer, blockSel.Position)) return true;
 
         if (entity.Step != null)
         {
@@ -1027,6 +1039,8 @@ public class SidingWallBlock : Block
             if (FramesOnFrom(heldCode, SidingFloorBlock.FinishFace(blockSel.Face) != null, Attributes["Framings"]))
                 return base.OnBlockInteractStart(world, byPlayer, blockSel);
 
+            if (ClaimRefuses(world, byPlayer, blockSel.Position)) return true;
+
             var consumes = ShareConsumes(Attributes["Infills"][infillKey]["Consumes"], LayerParts(Variant["layout"], "deckinfill"));
             if (!TryAffordOrError(byPlayer, isCreative, slot.StackSize, consumes)) return true;
 
@@ -1042,6 +1056,7 @@ public class SidingWallBlock : Block
 
         if (MatchConsumes(heldCode, Attributes["Finishes"], null, true) is { } tileKey)
         {
+            if (ClaimRefuses(world, byPlayer, blockSel.Position)) return true;
             string? DeckStyle(string on) => on == "front" ? deckFrontStyle : deckBackStyle;
             var placed = FlatTilePlacement(byPlayer, blockSel, deckInfill, Attributes["Infills"], on => on == "front" ? deckFront : deckBack, DeckStyle);
             if (placed is { } laid)
@@ -1062,6 +1077,8 @@ public class SidingWallBlock : Block
             (byPlayer as IServerPlayer)?.SendIngameError("vssiding:wrongface", Lang.Get("vssiding:build-floor-wrong-face"));
             return true;
         }
+
+        if (ClaimRefuses(world, byPlayer, blockSel.Position)) return true;
 
         string? StyleFor(string on) => SidingModePicker.FinishChoices(byPlayer).FirstOrDefault(s => SidingFloorEntity.HasFloorStyle(Attributes["Finishes"][finishKey], on, s));
         string? style = StyleFor(face);
@@ -1374,7 +1391,7 @@ public class SidingWallBlock : Block
     {
         if (entity.DeckLayers(half).Deck != null || MatchFraming(heldCode, FramesAsFilled(entity), Attributes["Framings"], Attributes["Infills"]) is not { } deckKey) return false;
 
-        if (!world.Claims.TryAccess(byPlayer, pos, EnumBlockAccessFlags.Use)) return true;
+        if (ClaimRefuses(world, byPlayer, pos)) return true;
 
         if (entity.Step != null)
         {

@@ -51,6 +51,8 @@ public class SidingFloorBlock : Block
             if (SidingWallBlock.FramesOnFrom(heldCode, FinishFace(blockSel.Face) != null, Attributes["Framings"]))
                 return base.OnBlockInteractStart(world, byPlayer, blockSel);
 
+            if (SidingWallBlock.ClaimRefuses(world, byPlayer, blockSel.Position)) return true;
+
             var consumes = Attributes["Infills"][infillKey]["Consumes"];
             if (!SidingWallBlock.TryAffordOrError(byPlayer, isCreative, slot.StackSize, consumes)) return true;
 
@@ -62,6 +64,7 @@ public class SidingFloorBlock : Block
 
         if (SidingWallBlock.MatchConsumes(heldCode, Attributes["Finishes"], null, true) is { } tileKey)
         {
+            if (SidingWallBlock.ClaimRefuses(world, byPlayer, blockSel.Position)) return true;
             string? FaceStyle(string on) => on == "front" ? entity.FrontStyle : entity.BackStyle;
             var placed = SidingWallBlock.FlatTilePlacement(byPlayer, blockSel, entity.Infill, Attributes["Infills"], on => on == "front" ? entity.Front : entity.Back, FaceStyle);
             if (placed is { } laid)
@@ -82,6 +85,8 @@ public class SidingFloorBlock : Block
             (byPlayer as IServerPlayer)?.SendIngameError("vssiding:wrongface", Lang.Get("vssiding:build-floor-wrong-face"));
             return true;
         }
+
+        if (SidingWallBlock.ClaimRefuses(world, byPlayer, blockSel.Position)) return true;
 
         // A face takes the picked style only if its FloorElements lists it, or it has none and the
         // finish lists the style, so weatherboard, or boards on a daub top, falls back to the face's default.
