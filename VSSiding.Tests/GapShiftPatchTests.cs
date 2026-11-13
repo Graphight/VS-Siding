@@ -32,4 +32,12 @@ public class GapShiftPatchTests
         Assert.NotNull(AccessTools.Field(typeof(ChunkTesselator), "vars"));
         Assert.NotNull(AccessTools.Field(typeof(ChunkTesselator), "currentChunkBlocksExt"));
     }
+
+    [Fact]
+    public void EveryOverridePatches_ReachAbstractBlockClasses()
+    {
+        var types = EveryOverridePatches.FindBlockTypes();
+
+        Assert.Contains(typeof(Vintagestory.GameContent.BlockShapeFromAttributes), types);
+    }
 }

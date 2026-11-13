@@ -7,8 +7,9 @@ using Vintagestory.API.Common;
 
 namespace VSSiding;
 
-// Patches every declaring override of a named method on Block and every non-abstract Block
-// subclass in every loaded assembly, so other mods' blocks are covered too (decision 0035).
+// Patches every declaring override of a named method on Block and every Block subclass in every
+// loaded assembly, so other mods' blocks are covered too (decision 0035). Abstract classes are
+// included: BlockShapeFromAttributes overrides these without calling base.
 // SidingWallBlock is skipped: it answers for itself.
 internal static class EveryOverridePatches
 {
@@ -17,11 +18,11 @@ internal static class EveryOverridePatches
 
     internal static void Forget() => blockTypes = null;
 
-    private static List<Type> FindBlockTypes()
+    internal static List<Type> FindBlockTypes()
     {
         var types = new List<Type> { typeof(Block) };
         types.AddRange(AppDomain.CurrentDomain.GetAssemblies().SelectMany(SafeGetTypes)
-            .Where(t => t.IsSubclassOf(typeof(Block)) && !t.IsAbstract && t != typeof(SidingWallBlock)));
+            .Where(t => t.IsSubclassOf(typeof(Block)) && !t.ContainsGenericParameters && t != typeof(SidingWallBlock)));
         return types;
     }
 
@@ -32,7 +33,7 @@ internal static class EveryOverridePatches
         {
             var method = type.GetMethod(methodName, BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly,
                 null, parameterTypes, null);
-            if (method == null) continue;
+            if (method == null || method.IsAbstract) continue;
 
             try
             {
