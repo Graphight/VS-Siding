@@ -23,6 +23,8 @@ public class SidingWallBlockRetentionTests
     }
     """);
 
+    private static readonly JsonObject Attributes = new(new JObject { ["Framings"] = Framings.Token, ["Infills"] = Infills.Token });
+
     [Fact]
     public void OpenPartRefusalNamesADeckOnlyToABlockThatDoesNotFitAndAStepAlways()
     {
@@ -145,7 +147,7 @@ public class SidingWallBlockRetentionTests
 
         Assert.Equal(
             new[] { 0f, 0f, 1f, 1f, 1f, 0f, 0f },
-            cases.Select(c => SidingWallBlock.ComputeLiquidBarrier(c.claimed, c.framing, c.infill, Framings, Infills)));
+            cases.Select(c => SidingWallBlock.ComputeLiquidBarrier(c.claimed, c.framing, c.infill, Attributes)));
     }
 
     // Glazing is the case that splits these two apart: sealed, so it retains, but not opaque.
@@ -153,7 +155,7 @@ public class SidingWallBlockRetentionTests
     public void OnlyAnOpaqueSealedWallAbsorbsLight()
     {
         var actual = new[] { (null, null), ("oak", null), ("oak", "wattle"), ("oak", "clay"), ("oak", "glass"), ("oak", "uninstalled") }
-            .Select(w => SidingWallBlock.ComputeLightAbsorption(w.Item1, w.Item2, Framings, Infills));
+            .Select(w => SidingWallBlock.ComputeLightAbsorption(w.Item1, w.Item2, Attributes));
 
         Assert.Equal(new[] { 0, 0, 99, 99, 0, 0 }, actual);
     }
@@ -163,7 +165,7 @@ public class SidingWallBlockRetentionTests
     public void AnUnfinishedPorousWallPassesLightAndNothingElseChanges()
     {
         var actual = new[] { (null, null), ("oak", null), ("oak", "wattle"), ("oak", "clay"), ("oak", "glass"), ("oak", "uninstalled") }
-            .Select(w => SidingWallBlock.ComputeLightAbsorption(w.Item1, w.Item2, Framings, Infills, finished: false));
+            .Select(w => SidingWallBlock.ComputeLightAbsorption(w.Item1, w.Item2, Attributes, finished: false));
 
         Assert.Equal(new[] { 0, 0, 0, 99, 0, 0 }, actual);
     }
@@ -265,5 +267,24 @@ public class SidingWallBlockRetentionTests
         });
 
         Assert.Equal(new[] { true, true, true, false, false }, actual);
+    }
+
+    [Fact]
+    public void TraitsOfAgreesWithTheComputedAnswersAndKeysOnTheAttributesObject()
+    {
+        var attributes = Dict("""{ "Framings": { "oak": {} }, "Infills": { "wattle": { "BlockMaterial": "Wood", "Porous": true }, "clay": { "BlockMaterial": "Soil" }, "glass": { "BlockMaterial": "Glass", "Transparent": true } } }""");
+        var framings = attributes["Framings"];
+        var infills = attributes["Infills"];
+
+        foreach (var infill in new[] { "wattle", "clay", "glass", "missing", null })
+        {
+            var traits = SidingWallBlock.TraitsOf(attributes, "oak", infill);
+            Assert.Equal((SidingWallBlock.ComputeRetention(true, "oak", infill, framings, infills), SidingWallBlock.IsTransparent(infill, infills), SidingWallBlock.IsPorous(infill, infills)),
+                (traits.Retention, traits.Transparent, traits.Porous));
+        }
+
+        var other = Dict("""{ "Framings": { "oak": {} }, "Infills": { "clay": { "BlockMaterial": "Wood" } } }""");
+        Assert.Equal(-1, SidingWallBlock.TraitsOf(attributes, "oak", "clay").Retention);
+        Assert.Equal(1, SidingWallBlock.TraitsOf(other, "oak", "clay").Retention);
     }
 }

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -1270,8 +1271,8 @@ public class SidingWallBlock : Block
 
     internal int RetentionOf(SidingWallEntity? entity, BlockFacing facing)
     {
-        if (facing == BlockFacing.UP) return ComputeDeckRetention(entity?.Deck, entity?.DeckInfill, entity?.LegacyDeck ?? false, Attributes["Framings"], Attributes["Infills"]);
-        return ComputeRetention(ClaimsFace(facing), entity?.Framing, entity?.Infill, Attributes["Framings"], Attributes["Infills"]);
+        if (facing == BlockFacing.UP) return DeckRetentionOf(entity);
+        return ClaimsFace(facing) ? TraitsOf(Attributes, entity?.Framing, entity?.Infill).Retention : 0;
     }
 
     // Vanilla derives this from SideSolid, which is false on every face (decision 0002) so a thin
@@ -1281,13 +1282,13 @@ public class SidingWallBlock : Block
     public override float GetLiquidBarrierHeightOnSide(BlockFacing face, BlockPos pos)
     {
         var entity = api.World.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos);
-        return ComputeLiquidBarrier(ClaimsFace(face), entity?.Framing, entity?.Infill, Attributes["Framings"], Attributes["Infills"]);
+        return ComputeLiquidBarrier(ClaimsFace(face), entity?.Framing, entity?.Infill, Attributes);
     }
 
     // Full height or nothing: a wall either dams its face or it doesn't. A cooling infill retains
     // negatively but still dams, so this asks whether retention is non-zero, not what sign it has.
-    internal static float ComputeLiquidBarrier(bool claimed, string? framingKey, string? infillKey, JsonObject framings, JsonObject infills)
-        => ComputeRetention(claimed, framingKey, infillKey, framings, infills) != 0 ? 1f : 0f;
+    internal static float ComputeLiquidBarrier(bool claimed, string? framingKey, string? infillKey, JsonObject attributes)
+        => claimed && TraitsOf(attributes, framingKey, infillKey).Retention != 0 ? 1f : 0f;
 
     // Another SideSolid consumer (decision 0020): with sidesolid off, nothing could be hung on any
     // siding wall. attachmentArea is ignored - a sealed face is solid across its whole 16x16.
@@ -1297,10 +1298,27 @@ public class SidingWallBlock : Block
     // A deck's underside takes hangers (decision 0094); a diagonal's deck covers half the cell, so it has none.
     internal bool CanAttachOf(SidingWallEntity? entity, BlockFacing blockFace)
     {
-        if (blockFace == BlockFacing.UP) return ComputeDeckRetention(entity?.Deck, entity?.DeckInfill, entity?.LegacyDeck ?? false, Attributes["Framings"], Attributes["Infills"]) != 0;
+        if (blockFace == BlockFacing.UP) return DeckRetentionOf(entity) != 0;
         if (blockFace == BlockFacing.DOWN && entity?.Deck != null) return Variant["layout"] != "diagonal";
-        return ComputeRetention(ClaimsFace(blockFace), entity?.Framing, entity?.Infill, Attributes["Framings"], Attributes["Infills"]) != 0;
+        return ClaimsFace(blockFace) && TraitsOf(Attributes, entity?.Framing, entity?.Infill).Retention != 0;
     }
+
+    internal readonly record struct SealTraits(int Retention, bool Transparent, bool Porous);
+
+    private static readonly ConditionalWeakTable<JsonObject, ConcurrentDictionary<(string?, string?), SealTraits>> TraitsCache = new();
+
+    // What a claimed face of this framing and infill does, read once per block's Attributes object (the one AssetsFinalize sets).
+    internal static SealTraits TraitsOf(JsonObject attributes, string? framing, string? infill)
+        => TraitsCache.GetValue(attributes, static _ => new()).GetOrAdd((framing, infill), static (key, attributes) =>
+        {
+            JsonObject framings = attributes["Framings"], infills = attributes["Infills"];
+            return new SealTraits(ComputeRetention(true, key.Item1, key.Item2, framings, infills), IsTransparent(key.Item2, infills), IsPorous(key.Item2, infills));
+        }, attributes);
+
+    private int DeckRetentionOf(SidingWallEntity? entity)
+        => entity is { LegacyDeck: true, DeckInfill: null }
+            ? ComputeDeckRetention(entity.Deck, null, true, Attributes["Framings"], Attributes["Infills"])
+            : TraitsOf(Attributes, entity?.Deck, entity?.DeckInfill).Retention;
 
     // sidesolid is false on every face (decision 0002), so base.GetRetention can't be
     // delegated to. A wall seals only once framing and infill are both built and still
@@ -1537,7 +1555,7 @@ public class SidingWallBlock : Block
     }
 
     internal int AbsorptionOf(SidingWallEntity? entity)
-        => ComputeLightAbsorption(entity?.Framing, entity?.Infill, Attributes["Framings"], Attributes["Infills"],
+        => ComputeLightAbsorption(entity?.Framing, entity?.Infill, Attributes,
             IsFinished(Variant["layout"], entity?.Front, entity?.SecondFront, entity?.Back, entity?.SecondBack));
 
     // A wall's back or front covers its whole side; a cornerout's two outer faces and its two inner faces are
@@ -1552,10 +1570,11 @@ public class SidingWallBlock : Block
     // out of the room skylight patch (decision 0015), side AO (0016) and both 0018 patches, since
     // all of them ask this. An infill marked Porous passes light until a face is finished; the
     // default finished = true is what RoomSunlight and the thin floor rely on to keep their answers.
-    internal static int ComputeLightAbsorption(string? framingKey, string? infillKey, JsonObject framings, JsonObject infills, bool finished = true)
-        => ComputeRetention(true, framingKey, infillKey, framings, infills) != 0
-            && !IsTransparent(infillKey, infills)
-            && (finished || !IsPorous(infillKey, infills)) ? 99 : 0;
+    internal static int ComputeLightAbsorption(string? framingKey, string? infillKey, JsonObject attributes, bool finished = true)
+    {
+        var traits = TraitsOf(attributes, framingKey, infillKey);
+        return traits.Retention != 0 && !traits.Transparent && (finished || !traits.Porous) ? 99 : 0;
+    }
 
     internal static bool IsPorous(string? infillKey, JsonObject infills)
         => infillKey != null && infills[infillKey]["Porous"].AsBool(false);
@@ -1623,7 +1642,7 @@ public class SidingWallBlock : Block
         var found = WallAt(accessor, pos);
         if (found == null) return accessor.GetLightLevel(pos, type);
         var (wall, entity) = found.Value;
-        int absorption = ComputeLightAbsorption(entity.Framing, entity.Infill, wall.Attributes["Framings"], wall.Attributes["Infills"]);
+        int absorption = ComputeLightAbsorption(entity.Framing, entity.Infill, wall.Attributes);
         return absorption > 0 ? 0 : accessor.GetLightLevel(pos, type);
     }
 

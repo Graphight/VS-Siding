@@ -533,7 +533,7 @@ public class SidingModSystem : ModSystem
         var found = SidingWallBlock.WallAt(__instance, pos);
         if (found == null) return;
         var (wall, entity) = found.Value;
-        int retention = SidingWallBlock.ComputeRetention(true, entity.Framing, entity.Infill, wall.Attributes["Framings"], wall.Attributes["Infills"]);
+        int retention = SidingWallBlock.TraitsOf(wall.Attributes, entity.Framing, entity.Infill).Retention;
         if (retention == 0) return;
         var (dx, dz) = SidingWallBlock.OpenSide(wall.Variant["layout"], wall.Variant["side"]);
         pos = pos.AddCopy(dx, 0, dz);

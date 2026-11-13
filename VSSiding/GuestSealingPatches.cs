@@ -84,7 +84,7 @@ internal static class GuestSealingPatches
         if (entity == null) return;
 
         var wall = (SidingWallBlock)entity.Block;
-        __result = SidingWallBlock.ComputeLiquidBarrier(true, entity.Framing, entity.Infill, wall.Attributes["Framings"], wall.Attributes["Infills"]);
+        __result = SidingWallBlock.ComputeLiquidBarrier(true, entity.Framing, entity.Infill, wall.Attributes);
     }
 
     private static void CanAttachPostfix(Block __instance, IBlockAccessor __0, BlockPos __2, BlockFacing __3, ref bool __result)
@@ -102,7 +102,7 @@ internal static class GuestSealingPatches
         var wall = (SidingWallBlock)entity.Block;
         __result = vertical
             ? wall.CanAttachOf(entity, blockFace)
-            : SidingWallBlock.ComputeRetention(true, entity.Framing, entity.Infill, wall.Attributes["Framings"], wall.Attributes["Infills"]) != 0;
+            : SidingWallBlock.TraitsOf(wall.Attributes, entity.Framing, entity.Infill).Retention != 0;
     }
 
     // A torch or sign placed on the panel's inner face asks the cell past the panel (pos, often air)

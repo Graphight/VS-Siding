@@ -152,7 +152,7 @@ public class SidingFloorBlock : Block
     }
 
     internal static int ComputeRetention(BlockFacing facing, string? framing, string? infill, JsonObject attributes)
-        => SidingWallBlock.ComputeRetention(facing == BlockFacing.UP, framing, infill, attributes["Framings"], attributes["Infills"]);
+        => facing == BlockFacing.UP ? SidingWallBlock.TraitsOf(attributes, framing, infill).Retention : 0;
 
     // sidesolid on UP would let anything stand on bare joists; only a sealed top holds it.
     // Anything hangs from the underside once the joists are up, sealed or not.
@@ -234,17 +234,17 @@ public class SidingFloorBlock : Block
     public override int GetLightAbsorption(IWorldChunk chunk, BlockPos pos)
     {
         var entity = chunk?.GetLocalBlockEntityAtBlockPos(pos) as SidingFloorEntity;
-        return SidingWallBlock.ComputeLightAbsorption(entity?.Framing, entity?.Infill, Attributes["Framings"], Attributes["Infills"]);
+        return SidingWallBlock.ComputeLightAbsorption(entity?.Framing, entity?.Infill, Attributes);
     }
 
     // The relight skips when old and new absorption match, so it needs the old infill's real value (decision 0034).
     internal void MarkAbsorptionChanged(IBlockAccessor accessor, BlockPos pos, string? framing, string? oldInfill)
         => accessor.MarkAbsorptionChanged(
-            SidingWallBlock.ComputeLightAbsorption(framing, oldInfill, Attributes["Framings"], Attributes["Infills"]),
+            SidingWallBlock.ComputeLightAbsorption(framing, oldInfill, Attributes),
             GetLightAbsorption(accessor, pos), pos);
 
     internal bool IsSealed(BlockEntity? be)
-        => be is SidingFloorEntity entity && SidingWallBlock.ComputeLightAbsorption(entity.Framing, entity.Infill, Attributes["Framings"], Attributes["Infills"]) > 0;
+        => be is SidingFloorEntity entity && SidingWallBlock.ComputeLightAbsorption(entity.Framing, entity.Infill, Attributes) > 0;
 
     // As on the wall (decision 0016): a sealed cell shows the room below's light (decision 0055),
     // so emitting side AO keeps it out of the smooth-lighting corners of faces in the room above.
