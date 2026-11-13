@@ -10,7 +10,7 @@ using Xunit;
 
 namespace VSSiding.E2E.Tests;
 
-// A diagonal claims its side and the face counter-clockwise from it (decision 0066), and takes a deck over the half of its cell on the room side.
+// A diagonal claims its side and the face counter-clockwise from it (decision 0066), and takes a deck over each half of its cell (decisions 0067, 0096).
 [AtlasWorld(StrictBootDiagnostics = true)]
 public class DiagonalScenarios : AtlasScenarioBase
 {
@@ -135,6 +135,20 @@ public class DiagonalScenarios : AtlasScenarioBase
         await AddOuterDeck(cell, player, BlockFacing.FromCode(face(World.BlockAt(cell).Variant["side"])));
 
         Assert.Equal(((string?)null, (string?)"oak", (ItemStack?)null), (Deck(cell), Read(cell, "outerdeck"), player.Player.InventoryManager.ActiveHotbarSlot.Itemstack));
+    }
+
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
+    public async Task Diagonal_Should_DeckItsOuterHalf_When_AFloorIsLaidUpToAClaimedFace()
+    {
+        (BlockPos cell, ITestPlayer player) = await RaiseFrame("diagonal", deck: false);
+        BlockFacing claimed = BlockFacing.FromCode(CounterClockwise[World.BlockAt(cell).Variant["side"]]);
+        BlockPos beside = cell.AddCopy(claimed);
+        World.SetBlock("game:planks-aged-ud", beside);
+        player.Entity.WatchedAttributes.SetString("vssidingFraming", "floor");
+
+        await WallBuilder.Press(World, player, beside, "game:plank-oak", claimed.Opposite, new Vec3d(0.5, 0.5, 0.5), quantity: 2);
+
+        Assert.Equal(((string?)null, (string?)"oak", 1), (Deck(cell), Read(cell, "outerdeck"), player.Player.InventoryManager.ActiveHotbarSlot.Itemstack?.StackSize));
     }
 
     [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]

@@ -1,6 +1,6 @@
 # 0067 — Diagonal decks
 
-- Status: Accepted; no outer deck superseded by 0096
+- Status: Accepted; no outer deck and the full deck's cost superseded by 0096
 - Created: 2026-10-08
 - Reflects: the author's questions of 2026-10-08 while planning the diagonal wall; branch `feat/diagonal-decks`; `SidingWallBlock.UnrotatedDeckBoxes`/`BuildDeckBoxes`/`AddOpenPartBoxes`/`IsDeckHit`/`DeckOccupied`/`OnBlockInteractStart` and the framing upgrade's deck check, `SidingWallEntity.OnTesselation`, `PlaceWallFrame`, `lang/en.json`, `docs/moddb.html`, `shapes/block/wall/diagonal.json`, `VSSiding.Tests/WallShapeGen`'s `DeckGroups`, `CoveredLengths` and `DiagonalDeckStrips`, `SidingFloorBlock.DeckReaches` (read, not changed); decisions 0042, 0050, 0053, 0066; `WallShapeGenTests`' pins of the deck groups to the deck boxes, of the triangle's top, of the fillers' planes and of the pole groups, `SidingWallBlockCollisionTests`' pin of the west strips, `SidingFloorTests`' `DeckReaches` rows for `diagonal`, `VSSiding.E2E.Tests/DiagonalScenarios.cs` and `RoomScenarios.cs`; the review of PR #107; unit tests (467) and e2e scenarios (37) pass; the author's play of 2026-10-08, a glazed diagonal dug in one block with a deck at ground level
 

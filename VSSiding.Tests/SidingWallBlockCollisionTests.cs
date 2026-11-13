@@ -221,13 +221,12 @@ public class SidingWallBlockCollisionTests
     }
 
     [Fact]
-    public void OuterDeckBoxesFollowTheInnersAndOnlyAdornADiagonal()
+    public void OuterDeckBoxesFollowTheInners()
     {
         var inner = SidingWallBlock.AddOpenPartBoxes(FullBoxes, "diagonal", "west", "oak", null);
         var outer = SidingWallBlock.AddOpenPartBoxes([], "diagonal", "west", null, null, "oak");
 
         Assert.Equal([.. inner, .. outer], SidingWallBlock.AddOpenPartBoxes(FullBoxes, "diagonal", "west", "oak", null, "oak"), Comparer);
-        Assert.Same(FullBoxes, SidingWallBlock.AddOpenPartBoxes(FullBoxes, "wall", "west", null, null, "oak"));
     }
 
     [Fact]

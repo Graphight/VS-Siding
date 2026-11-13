@@ -140,15 +140,15 @@ public class SidingWallBlockDropsTests
         var wall = FootprintHostsTests.Wall("diagonal", "west");
         var entity = new SidingWallEntity { Framing = "oak", Deck = "oak", OuterDeck = "oak", OuterDeckInfill = "wattle", OuterDeckFront = "daub" };
 
-        Assert.Equal("deck", wall.PeelAt(entity, null, false));
+        Assert.Equal("deck", wall.PeelAt(entity, null, null));
         entity.Deck = null;
-        Assert.Equal("outerdeckfront", wall.PeelAt(entity, null, false));
+        Assert.Equal("outerdeckfront", wall.PeelAt(entity, null, null));
         entity.OuterDeckFront = null;
-        Assert.Equal("outerdeckinfill", wall.PeelAt(entity, null, false));
+        Assert.Equal("outerdeckinfill", wall.PeelAt(entity, null, null));
         entity.OuterDeckInfill = null;
-        Assert.Equal("outerdeck", wall.PeelAt(entity, null, false));
+        Assert.Equal("outerdeck", wall.PeelAt(entity, null, null));
         entity.OuterDeck = null;
-        Assert.Null(wall.PeelAt(entity, null, false));
+        Assert.Null(wall.PeelAt(entity, null, null));
     }
 
     [Fact]
@@ -157,8 +157,8 @@ public class SidingWallBlockDropsTests
         var wall = FootprintHostsTests.Wall("diagonal", "west");
         var entity = new SidingWallEntity { Framing = "oak", Deck = "oak", DeckFront = "brick", OuterDeck = "oak", OuterDeckBack = "daub" };
 
-        Assert.Equal("outerdeckback", wall.PeelAt(entity, null, true, DeckHalf.Outer));
-        Assert.Equal("deckfront", wall.PeelAt(entity, null, true));
+        Assert.Equal("outerdeckback", wall.PeelAt(entity, null, DeckHalf.Outer));
+        Assert.Equal("deckfront", wall.PeelAt(entity, null, DeckHalf.Inner));
     }
 
     // A west diagonal claims north and west, so a hit there is on the outer side; south and east are the room's.
@@ -166,13 +166,12 @@ public class SidingWallBlockDropsTests
     [InlineData("north", "outerdeck")]
     [InlineData("west", "outerdeck")]
     [InlineData("south", "deck")]
-    [InlineData(null, "deck")]
-    public void APanelHitPeelsTheDeckOnItsOwnSide(string? face, string expected)
+    public void APanelHitPeelsTheDeckOnItsOwnSide(string face, string expected)
     {
         var wall = FootprintHostsTests.Wall("diagonal", "west");
         var entity = new SidingWallEntity { Framing = "oak", Front = "daub", Deck = "oak", OuterDeck = "oak" };
 
-        Assert.Equal(expected, wall.PeelAt(entity, face == null ? null : BlockFacing.FromCode(face), false));
+        Assert.Equal(expected, wall.PeelAt(entity, BlockFacing.FromCode(face), null));
     }
 
     [Fact]
@@ -180,14 +179,12 @@ public class SidingWallBlockDropsTests
     {
         var wall = FootprintHostsTests.Wall("diagonal", "west");
 
-        Assert.Equal("outerdeck", wall.PeelAt(new SidingWallEntity { Framing = "oak", Front = "daub", Infill = "wattle", OuterDeck = "oak" }, null, false));
+        Assert.Equal("outerdeck", wall.PeelAt(new SidingWallEntity { Framing = "oak", Front = "daub", Infill = "wattle", OuterDeck = "oak" }, null, null));
     }
 
-    // Fire catches only on wood (decision 0043): a daub front, or a bone inner deck, leaves the outer deck's planks next.
-    [Theory]
-    [InlineData(null)]
-    [InlineData("bone")]
-    public void FireReachesAWoodOuterDeckPastLayersThatDoNotBurn(string? innerDeck)
+    // Fire catches only on wood (decision 0043): a bone inner deck leaves the outer deck's planks next.
+    [Fact]
+    public void FireReachesAWoodOuterDeckPastABoneInnerDeck()
     {
         var wall = new SidingWallBlock
         {
@@ -196,7 +193,7 @@ public class SidingWallBlockDropsTests
         wall.VariantStrict["layout"] = "diagonal";
         wall.VariantStrict["side"] = "west";
 
-        Assert.Equal("outerdeck", wall.BurnLayer(new SidingWallEntity { Framing = "oak", Front = "daub", Deck = innerDeck, OuterDeck = "oak" }));
+        Assert.Equal("outerdeck", wall.BurnLayer(new SidingWallEntity { Framing = "oak", Front = "daub", Deck = "bone", OuterDeck = "oak" }));
     }
 
     [Fact]

@@ -34,13 +34,13 @@ A diagonal's inner deck saved before this refunds half what it cost.
 **Retention stays with the inner half.**
 The UP face reads `ComputeDeckRetention` on the inner fields.
 The outer half retains nothing, since the outer room never enters the cell and the claimed faces stop it.
-`CanAttachOf` on DOWN stays refused, so neither half carries a hanger.
+`CanAttachOf` stays false on DOWN, so neither half carries a hanger.
 
 **Peeling.**
 A hit on a strip peels that half's layers in a floor's order.
 A hit on a claimed face of the panel takes the outer deck before the wall's layers, as a hit on the room side already took the inner deck first.
 A hit with no face, which fire and break resistance use, takes the inner deck, then the outer, then the wall's layers.
-Fire catches only on wood (decision 0043), so a deck top that does not burn leaves the outer deck's top layer next in line, and a wood outer deck burns behind a daub wall.
+Fire catches only on wood (decision 0043), so an inner deck top that does not burn leaves the outer deck's top layer next in line.
 With Floor picked, planks on a half's top board it once that half is filled, whatever the other half holds.
 The tooltip shows the half the selection is on.
 The outer deck's framing counts toward the cell's alternate, so a stick or bamboo outer deck alternates with the floor beside it.
@@ -58,5 +58,5 @@ The outer deck's framing counts toward the cell's alternate, so a stick or bambo
 - 0067's consequence that the outer triangle has no floor no longer holds.
 - A triangle floor standing alone in an empty cell is still unbuilt.
 - A decked wall or corner upgraded to a diagonal paid a full deck, and its deck becomes the inner half, which refunds half.
-- `diagonal.json` went from 4.4M to 6.6M with the outer groups; the strips are still not merged (0067).
+- `diagonal.json` went from 4.4 MB to 7.0 MB with the outer groups; the strips are still not merged (0067).
 - The tooltip's choice of half, the drawing and walking the outer strips are not covered by unit or e2e tests.

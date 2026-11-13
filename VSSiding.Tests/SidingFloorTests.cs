@@ -234,12 +234,13 @@ public class SidingFloorTests
             });
     }
 
-    // A deck stops short of the faces its wall claims, so only a neighbour on another face carries it on.
+    // A deck stops short of the faces its wall claims, so only a neighbour on another face carries it on;
+    // a diagonal's outer deck reaches the faces it claims (decision 0096).
     [Fact]
     public void ADeckReachesTheEdgesItsWallDoesNotClaim()
     {
         Assert.Equal(
-            [false, true, true, true, false, true, false, false, true, true, true, true, true, true],
+            [false, true, true, true, false, true, true, true, true, true, true, true, true, true],
             new[]
             {
                 SidingFloorBlock.DeckReaches("wall", "west", BlockFacing.EAST),
@@ -256,27 +257,6 @@ public class SidingFloorTests
                 SidingFloorBlock.DeckReaches("cornerin", "west", BlockFacing.SOUTH),
                 SidingFloorBlock.DeckReaches("cornerin", "west", BlockFacing.WEST),
                 SidingFloorBlock.DeckReaches("cornerin", "west", BlockFacing.NORTH),
-            });
-    }
-
-    // A west diagonal claims north and west: a floor beside those faces meets the outer deck, any other face the inner.
-    [Fact]
-    public void ADiagonalsClaimedFacesAreReachedByItsOuterDeckAlone()
-    {
-        Assert.Equal(
-            [true, false, true, false, false, true, false, false, false, true],
-            new[]
-            {
-                SidingFloorBlock.DeckReaches("diagonal", "west", BlockFacing.SOUTH, DeckHalf.Outer),
-                SidingFloorBlock.DeckReaches("diagonal", "west", BlockFacing.SOUTH),
-                SidingFloorBlock.DeckReaches("diagonal", "west", BlockFacing.EAST, DeckHalf.Outer),
-                SidingFloorBlock.DeckReaches("diagonal", "west", BlockFacing.EAST),
-                SidingFloorBlock.DeckReaches("diagonal", "west", BlockFacing.WEST, DeckHalf.Outer),
-                SidingFloorBlock.DeckReaches("diagonal", "west", BlockFacing.WEST),
-                SidingFloorBlock.DeckReaches("wall", "west", BlockFacing.EAST, DeckHalf.Outer),
-                SidingFloorBlock.DeckReaches("cornerin", "west", BlockFacing.EAST, DeckHalf.Outer),
-                SidingFloorBlock.DeckReaches("diagonal", "west", BlockFacing.NORTH, DeckHalf.Outer),
-                SidingFloorBlock.DeckReaches("diagonal", "west", BlockFacing.NORTH),
             });
     }
 

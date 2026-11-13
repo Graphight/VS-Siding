@@ -160,9 +160,9 @@ public class SidingWallEntity : BlockEntity
         string? stepName = null;
         if (Step != null && Api.World.GetBlock(new AssetLocation(Step)) is { } stepBlock)
             stepName = stepBlock.GetHeldItemName(new ItemStack(stepBlock));
-        bool outer = forPlayer?.CurrentBlockSelection is { } sel && sel.Position.Equals(Pos) && Block is SidingWallBlock wall
-            && wall.HitDeckHalf(Api.World.BlockAccessor, sel, this) == DeckHalf.Outer;
-        var (deck, deckInfill, deckFront, deckBack, deckFrontStyle, deckBackStyle) = DeckLayers(outer ? DeckHalf.Outer : DeckHalf.Inner);
+        DeckHalf? half = forPlayer?.CurrentBlockSelection is { } sel && sel.Position.Equals(Pos) && Block is SidingWallBlock wall
+            ? wall.HitDeckHalf(Api.World.BlockAccessor, sel, this) : null;
+        var (deck, deckInfill, deckFront, deckBack, deckFrontStyle, deckBackStyle) = DeckLayers(half ?? DeckHalf.Inner);
         dsc.Append(SidingWallBlock.Describe(
             Framing, Infill, deck, Block.Attributes["Framings"], Block.Attributes["Infills"],
             Block.Variant["layout"], Block.Variant["side"], Front, SecondFront, Back, Block.Attributes["Finishes"],

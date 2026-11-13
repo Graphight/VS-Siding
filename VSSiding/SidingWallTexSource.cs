@@ -37,7 +37,7 @@ public class SidingWallTexSource : ITexPositionSource
         get
         {
             if (textureCode == "step") return StepTexture();
-            var deck = entity.DeckLayers(textureCode.StartsWith("outerdeck") ? DeckHalf.Outer : DeckHalf.Inner);
+            var deck = entity.DeckLayers(SidingWallBlock.HalfOf(textureCode));
             CompositeTexture? texture = ResolveTexture(
                 SidingWallBlock.BareLayer(textureCode)!, entity.Framing, entity.Infill, entity.Front, entity.SecondFront, entity.Back,
                 framings, infills, finishes, entity.FrontStyle, entity.SecondFrontStyle, entity.BackStyle, deck.Deck,

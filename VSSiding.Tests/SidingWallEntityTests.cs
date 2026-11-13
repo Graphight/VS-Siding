@@ -852,8 +852,10 @@ public class SidingWallEntityTests
         Assert.Equal(
             ("birch", "wattle", "daub", null, "coursed", "boards"),
             (loaded.OuterDeck, loaded.OuterDeckInfill, loaded.OuterDeckFront, loaded.OuterDeckBack, loaded.OuterDeckFrontStyle, loaded.OuterDeckBackStyle));
-        Assert.True(loaded.OpenPartFilled);
     }
+
+    [Fact]
+    public void AnOuterDeckFillsTheOpenPart() => Assert.True(new SidingWallEntity { OuterDeck = "oak" }.OpenPartFilled);
 
     [Fact]
     public void StepKeysSurviveByteRoundTrip()

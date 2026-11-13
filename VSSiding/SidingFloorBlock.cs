@@ -273,11 +273,8 @@ public class SidingFloorBlock : Block
             return Continues(glazing, floor.Framing, floor.Infill, floor.Block.Attributes["Infills"]);
         if (SidingWallBlock.WallAt(accessor, neighbourPos) is not var (wallBlock, wall)) return false;
         string layout = wallBlock.Variant["layout"], side = wallBlock.Variant["side"];
-        DeckHalf half = SidingWallBlock.HalfFacing(layout, side, direction.Opposite.Code);
-        return DeckReaches(layout, side, direction, half)
-            && (half == DeckHalf.Outer
-                ? Continues(glazing, wall.OuterDeck, wall.OuterDeckInfill, wallBlock.Attributes["Infills"])
-                : Continues(glazing, wall.Deck, wall.DeckInfill, wallBlock.Attributes["Infills"]));
+        var deck = wall.DeckLayers(SidingWallBlock.HalfFacing(layout, side, direction.Opposite.Code));
+        return DeckReaches(layout, side, direction) && Continues(glazing, deck.Deck, deck.Infill, wallBlock.Attributes["Infills"]);
     }
 
     // As a wall's (SidingWallBlock.InnerCorners). The cell diagonally across is asked from both of the
@@ -294,10 +291,9 @@ public class SidingFloorBlock : Block
 
     // A wall's panel stands on the faces it claims, and its deck stops short of them; `direction`
     // is from the cell looking on to the wall, so the face it would touch is the opposite one.
-    // A diagonal's claimed faces are reached by its outer deck, every other face by the inner.
-    internal static bool DeckReaches(string layout, string side, BlockFacing direction, DeckHalf half = DeckHalf.Inner)
-        => half == SidingWallBlock.HalfFacing(layout, side, direction.Opposite.Code)
-            && (half == DeckHalf.Outer || !SidingWallBlock.ClaimsFace(layout, side, direction.Opposite.Code));
+    // A diagonal's outer deck reaches the faces it claims (decision 0096).
+    internal static bool DeckReaches(string layout, string side, BlockFacing direction)
+        => layout == "diagonal" || !SidingWallBlock.ClaimsFace(layout, side, direction.Opposite.Code);
 
     // How far past the clicked floor a run can be extended, so a stray click cannot frame one across a lake.
     internal const int RunReach = 4;
