@@ -1586,13 +1586,20 @@ public class SidingModSystem : ModSystem
         ICoreAPI? api = ApiRef(block);
         if (api == null) return (0, 0);
 
-        // A bed shifts as one by whichever of its cells holds a guest, or it splits at the seam: head-on
-        // the feet stand on open floor, and a double bed's head can stand in the room with only its fillers in the wall.
-        var guest = GuestWalls.GuestAt(api, pos)
-            ?? BedCells(api.World.BlockAccessor, pos, block).Select(cell => GuestWalls.GuestAt(api, cell)).FirstOrDefault(found => found != null);
+        var guest = GuestWalls.GuestAt(api, pos) ?? (block is BlockBed or BlockMultiblock ? BedGuest(api, pos, block) : null);
         if (guest?.Block is not SidingWallBlock wall) return (0, 0);
 
-        if (FaceShiftByBlock![ShiftSource(api.World.BlockAccessor, pos, block).BlockId] is not { } shifts) return (0, 0);
+        return FaceShiftByBlock![ShiftSource(api.World.BlockAccessor, pos, block).BlockId] is { } shifts ? ShiftOff(wall, shifts) : (0, 0);
+    }
+
+    // A bed shifts as one by whichever of its cells holds a guest, or it splits at the seam: head-on
+    // the feet stand on open floor, and a double bed's head can stand in the room with only its fillers in the wall.
+    private static SidingWallEntity? BedGuest(ICoreAPI api, BlockPos pos, Block block)
+        => BedCells(api.World.BlockAccessor, pos, block).Select(cell => GuestWalls.GuestAt(api, cell)).FirstOrDefault(found => found != null);
+
+    // Kept out of GapShiftAt, where a lambda's captures would be built on every call, a block that hosts nothing included.
+    private static (double dx, double dz) ShiftOff(SidingWallBlock wall, double[] shifts)
+    {
         string layout = wall.Variant["layout"], side = wall.Variant["side"];
         IEnumerable<string> claimed = layout == "cornerin" ? SidingWallBlock.PostFaces(side) : HorizontalFaces.Where(face => SidingWallBlock.ClaimsFace(layout, side, face));
         return Combine(claimed, face => shifts[HorizontalFaceIndex[face]]);

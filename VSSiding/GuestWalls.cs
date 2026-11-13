@@ -117,8 +117,11 @@ public static class GuestWalls
     {
         var guests = Guests(chunk);
         if (guests == null || !guests.TryGetValue(LocalIndex3d(pos), out GuestRecord? record)) return null;
-        return DecodedFor(api).GetValue(record, r => Decode(api, r, pos));
+        return DecodedFor(api).TryGetValue(record, out SidingWallEntity? decoded) ? decoded : DecodeAndCache(api, record, pos);
     }
+
+    private static SidingWallEntity DecodeAndCache(ICoreAPI api, GuestRecord record, BlockPos pos)
+        => DecodedFor(api).GetValue(record, r => Decode(api, r, pos));
 
     public static SidingWallEntity? GuestAt(ICoreAPI api, BlockPos pos)
     {
