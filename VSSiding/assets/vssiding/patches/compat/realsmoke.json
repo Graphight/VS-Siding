@@ -1,0 +1,23 @@
+[
+	{
+		"op": "addmerge",
+		"file": "vssiding:blocktypes/wallvent.json",
+		"path": "/tags",
+		"value": ["porous"],
+		"dependsOn": [{ "modid": "realsmoke" }]
+	},
+	{
+		"op": "addmerge",
+		"file": "vssiding:blocktypes/wallvent.json",
+		"path": "/attributes",
+		"value": { "vssidingVentsSmoke": true },
+		"dependsOn": [{ "modid": "realsmoke" }]
+	},
+	{
+		"op": "addmerge",
+		"file": "vssiding:blocktypes/floorvent.json",
+		"path": "/tags",
+		"value": ["porous"],
+		"dependsOn": [{ "modid": "realsmoke" }]
+	}
+]

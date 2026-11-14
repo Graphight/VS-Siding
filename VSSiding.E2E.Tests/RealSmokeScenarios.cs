@@ -16,7 +16,7 @@ namespace VSSiding.E2E.Tests;
 
 // Runs with `just probe realsmoke`, the only run that loads Real Smoke (issue #101). Each arena lights a firepit in a cell of
 // its own and reads the smoke Real Smoke holds in the cell beyond the block under test, through the mod's own controller.
-// Every verdict is what the mod does today; a fix flips the row it fixes, and docs/compat/realsmoke.md records the run.
+// Every verdict is what the mod does today; a fix flips the row it fixes, and docs/compat/realsmoke-smoke.md records the run.
 [Trait("Category", "Probe")]
 [AtlasWorld(Mods = new[] { "../../../../compat/mods/slot0.zip", "../../../../compat/mods/slot1.zip", "../../../../compat/mods/slot2.zip", "../../../../compat/mods/slot3.zip", "../../../../compat/mods/slot4.zip", "../../../../compat/mods/slot5.zip" })]
 public class RealSmokeScenarios : AtlasScenarioBase
@@ -88,19 +88,21 @@ public class RealSmokeScenarios : AtlasScenarioBase
         await Click(player, cell, infill, quantity, outward);
     }
 
-    private async Task Deck(ITestPlayer player, BlockPos cell, bool filled)
+    private const string Trapdoor = "game:trapdoor-solid-oak-1";
+
+    private async Task Deck(ITestPlayer player, BlockPos cell, bool filled, string fill = "game:clay-blue", int amount = 4)
     {
         player.Entity.WatchedAttributes.SetString("vssidingDeck", "deck");
         await Click(player, cell, "game:plank-oak", 2, BlockFacing.EAST);
-        if (filled) await Click(player, cell, "game:clay-blue", 4, BlockFacing.UP, World.BlockAt(cell).SelectionBoxes.Length);
+        if (filled) await Click(player, cell, fill, amount, BlockFacing.UP, World.BlockAt(cell).SelectionBoxes.Length);
         player.Entity.WatchedAttributes.SetString("vssidingDeck", "");
     }
 
-    private async Task Floor(ITestPlayer player, BlockPos cell, bool filled)
+    private async Task Floor(ITestPlayer player, BlockPos cell, bool filled, string fill = "game:clay-blue", int amount = 4)
     {
         player.Entity.WatchedAttributes.SetString("vssidingFraming", "floor");
         await WallBuilder.Raise(World, player, cell, cell.WestCopy(), "game:plank-oak", null);
-        if (filled) await Click(player, cell, "game:clay-blue", 4, BlockFacing.UP);
+        if (filled) await Click(player, cell, fill, amount, BlockFacing.UP);
         player.Entity.WatchedAttributes.SetString("vssidingFraming", "wall");
     }
 
@@ -201,6 +203,7 @@ public class RealSmokeScenarios : AtlasScenarioBase
                 await Horizontal($"wall, bare frame, {side}", onRoomSide, (wall, inside) => Wall(player, wall, inside, null, 0));
                 await Horizontal($"wall, clay infill, {side}", onRoomSide, (wall, inside) => Wall(player, wall, inside, "game:clay-blue", 4));
                 await Horizontal($"wall, wattle infill, {side}", onRoomSide, (wall, inside) => Wall(player, wall, inside, "game:stick", 4));
+                await Horizontal($"vent wall, trapdoor infill, {side}", onRoomSide, (wall, inside) => Wall(player, wall, inside, Trapdoor, 1));
                 await Horizontal($"wall, glass infill, {side}", onRoomSide, (wall, inside) => Wall(player, wall, inside, "game:glass-plain", 1));
                 await Horizontal($"wall, clay infill hosting a lantern, {side}", onRoomSide, (wall, inside) => Lantern(player, wall, inside));
             }
@@ -211,6 +214,8 @@ public class RealSmokeScenarios : AtlasScenarioBase
             await Vertical("floor, clay infill", cell => Floor(player, cell, true));
             await Vertical("wall deck, bare", async cell => { await Wall(player, cell, cell.WestCopy(), "game:clay-blue", 4); await Deck(player, cell, false); });
             await Vertical("wall deck, clay infill", async cell => { await Wall(player, cell, cell.WestCopy(), "game:clay-blue", 4); await Deck(player, cell, true); });
+            await Vertical("vent floor, trapdoor", cell => Floor(player, cell, true, Trapdoor, 1));
+            await Vertical("vent wall deck, trapdoor", async cell => { await Wall(player, cell, cell.WestCopy(), "game:clay-blue", 4); await Deck(player, cell, true, Trapdoor, 1); });
             await Vertical("roof of a wooden trapdoor", _ => Task.CompletedTask, cell => World.SetBlock(FirstBlock("trapdoor-solid-").Code.ToString(), cell));
             await Vertical("roof of a wooden window trapdoor", _ => Task.CompletedTask, cell => World.SetBlock(FirstBlock("trapdoor-window-").Code.ToString(), cell));
             await Vertical("roof of a barred trapdoor", _ => Task.CompletedTask, cell => World.SetBlock(FirstBlock("trapdoor-bars").Code.ToString(), cell));
@@ -219,6 +224,11 @@ public class RealSmokeScenarios : AtlasScenarioBase
 
             await Room(player, "planks roof (control)", "game:planks-aged-ud");
             await Room(player, "no roof cell", null);
+            await Room(player, "vent floor, trapdoor", null);
+            BlockPos ventRoof = roomCells[^1].Inside.UpCopy();
+            World.SetBlock("game:planks-aged-ud", ventRoof.DownCopy());
+            await Floor(player, ventRoof, true, Trapdoor, 1);
+            World.SetBlock("game:air", ventRoof.DownCopy());
             await Room(player, "wooden trapdoor", FirstBlock("trapdoor-solid-").Code.ToString());
             await Room(player, "wooden window trapdoor", FirstBlock("trapdoor-window-").Code.ToString());
             await Room(player, "barred trapdoor", FirstBlock("trapdoor-bars").Code.ToString());
@@ -289,6 +299,10 @@ public class RealSmokeScenarios : AtlasScenarioBase
         ["floor, clay infill"] = Held,
         ["wall deck, bare"] = Held,
         ["wall deck, clay infill"] = Held,
+        ["vent wall, trapdoor infill, fire on the outer face"] = Passes,
+        ["vent wall, trapdoor infill, fire on the room face"] = Passes,
+        ["vent floor, trapdoor"] = Passes,
+        ["vent wall deck, trapdoor"] = Passes,
         ["roof of a wooden trapdoor"] = Held,
         ["roof of a wooden window trapdoor"] = Held,
         ["roof of a barred trapdoor"] = Held,
@@ -300,6 +314,7 @@ public class RealSmokeScenarios : AtlasScenarioBase
     {
         ["planks roof (control)"] = "sealed",
         ["no roof cell"] = "leaks",
+        ["vent floor, trapdoor"] = "sealed",
         ["wooden trapdoor"] = "sealed",
         ["wooden window trapdoor"] = "leaks",
         ["barred trapdoor"] = "leaks",
@@ -355,6 +370,6 @@ public class RealSmokeScenarios : AtlasScenarioBase
         };
         string directory = Path.GetFullPath("../../../../docs/compat", Path.GetDirectoryName(typeof(RealSmokeScenarios).Assembly.Location)!);
         Directory.CreateDirectory(directory);
-        File.WriteAllLines($"{directory}/realsmoke.md", lines.Concat(smoke).Concat(roomHeader).Concat(rooms).Concat(hostHeader).Concat(hosts));
+        File.WriteAllLines($"{directory}/realsmoke-smoke.md", lines.Concat(smoke).Concat(roomHeader).Concat(rooms).Concat(hostHeader).Concat(hosts));
     }
 }

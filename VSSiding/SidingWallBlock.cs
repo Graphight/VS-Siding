@@ -1331,8 +1331,9 @@ public class SidingWallBlock : Block
     }
 
     // Real Smoke's fire venting and vanilla's water edges ask this; a face that dams liquid is solid to them (decision 0020, revisited).
+    // A vent Real Smoke tags porous is open to a fire's smoke on either face, so it is not solid to it.
     public override bool SideIsSolid(BlockPos pos, int faceIndex)
-        => GetLiquidBarrierHeightOnSide(BlockFacing.ALLFACES[faceIndex], pos) >= 1f;
+        => !Attributes.IsTrue("vssidingVentsSmoke") && GetLiquidBarrierHeightOnSide(BlockFacing.ALLFACES[faceIndex], pos) >= 1f;
 
     // Full height or nothing: a wall either dams its face or it doesn't. A cooling infill retains
     // negatively but still dams, so this asks whether retention is non-zero, not what sign it has.
