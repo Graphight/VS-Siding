@@ -33,6 +33,45 @@ public class VentScenarios : AtlasScenarioBase
             (filled, drops, World.BlockAt(cell).FirstCodePart(), WallBuilder.Layers(World, cell).Infill));
     }
 
+    // A trapdoor in the deck vents the whole cell, and peeling it puts the cell back on the plain wall.
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
+    public async Task Wall_Should_BeAVentUntilPeeled_When_ATrapdoorFillsItsDeck()
+    {
+        BlockPos cell = World.Spawn.Offset(1, 2, 0);
+        World.SetBlock("game:planks-aged-ud", cell.DownCopy());
+        ITestPlayer player = await WallBuilder.JoinBuilder(World);
+        await WallBuilder.Raise(World, player, cell, cell.WestCopy(), "game:plank-oak", "game:clay-blue");
+        player.Entity.WatchedAttributes.SetString("vssidingDeck", "deck");
+        await WallBuilder.Press(World, player, cell, "game:plank-oak", BlockFacing.EAST, new Vec3d(1, 0.5, 0.5), quantity: 2);
+        player.Entity.WatchedAttributes.SetString("vssidingDeck", "");
+        await WallBuilder.Press(World, player, cell, Trapdoor, BlockFacing.UP, new Vec3d(0.5, 1, 0.5), quantity: 1, onDeck: true);
+        var vented = (World.BlockAt(cell).FirstCodePart(), WallBuilder.DeckLayers(World, cell).Infill);
+
+        World.BlockAt(cell).OnBlockBroken(player.Entity.World, cell, player.Player);
+
+        Assert.Equal((("wallvent", "trapdoor-solid-oak-1"), "wall", "clay", null),
+            (vented, World.BlockAt(cell).FirstCodePart(), WallBuilder.Layers(World, cell).Infill, WallBuilder.DeckLayers(World, cell).Infill));
+    }
+
+    // A bare frame's upgrade exchanges straight to its target with no infill change to re-derive the vent, so the target
+    // keeps the block's own first code part: a frame under a trapdoor deck becomes a vented diagonal.
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
+    public async Task Frame_Should_StayAVent_When_ItsTrapdoorDeckedFrameBecomesADiagonal()
+    {
+        BlockPos cell = World.Spawn.Offset(1, 2, 0);
+        World.SetBlock("game:planks-aged-ud", cell.DownCopy());
+        ITestPlayer player = await WallBuilder.JoinBuilder(World);
+        player.Entity.WatchedAttributes.SetString("vssidingDeck", "deck");
+        await WallBuilder.Raise(World, player, cell, cell.WestCopy(), "game:plank-oak", null, framingCost: 4);
+        player.Entity.WatchedAttributes.SetString("vssidingDeck", "");
+        await WallBuilder.Press(World, player, cell, Trapdoor, BlockFacing.UP, new Vec3d(0.5, 1, 0.5), quantity: 1, onDeck: true);
+
+        player.Entity.WatchedAttributes.SetString("vssidingFraming", "diagonal");
+        await WallBuilder.Press(World, player, cell, "game:plank-oak", BlockFacing.FromCode(World.BlockAt(cell).Variant["side"]), new Vec3d(0.5, 0.5, 0.5), quantity: 2);
+
+        Assert.Equal(("wallvent", "diagonal", "trapdoor-solid-oak-1"), (World.BlockAt(cell).FirstCodePart(), World.BlockAt(cell).Variant["layout"], WallBuilder.DeckLayers(World, cell).Infill));
+    }
+
     [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Floor_Should_BeAVentThatSeals_When_ATrapdoorFillsItsTop()
     {

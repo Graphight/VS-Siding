@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Created: 2026-11-14
-- Reflects: issue #101 and mod page comment https://mods.vintagestory.at/vssiding#cmt-245074; proposal `real-smoke-flues`; branch `real-smoke-flues`; `just probe realsmoke` against Real Smoke 2.0.0-pre.13 on game 1.22.7 (`RealSmokeScenarios`, written to `docs/compat/realsmoke-smoke.md`); Real Smoke's source at https://codeberg.org/xyrvexus/RealSmoke branch `rs_v2` (`SmokeFlowField.ReadCell`, `GasUtils.IsAdjacentSidePorous`, `SmokeUtils.ChimneyOutputPosition`); `SidingWallBlock.SideIsSolid`/`HasVent`/`VentId`; `GuestSealingPatches.SideSolidPostfix`; `blocktypes/wallvent.json` and `blocktypes/floorvent.json`; the trapdoor entries in `config/materials.json`; `patches/compat/realsmoke.json`; `WallShapeGen.Louvres`; `VentScenarios`, `VentBlocktypesTests`; every vanilla `SideIsSolid` caller in decompiled 1.22.7 `VintagestoryAPI`, `VintagestoryLib` and `VSSurvivalMod`; decisions 0001, 0019, 0020, 0035, 0042, 0050, 0068
+- Reflects: issue #101 and mod page comment https://mods.vintagestory.at/vssiding#cmt-245074; proposal `real-smoke-flues`; branch `real-smoke-flues`; `just probe realsmoke` against Real Smoke 2.0.0-pre.13 on game 1.22.7 (`RealSmokeScenarios`, written to `docs/compat/realsmoke-smoke.md`); Real Smoke's source at https://codeberg.org/xyrvexus/RealSmoke branch `rs_v2` (`SmokeFlowField.ReadCell`, `GasUtils.IsAdjacentSidePorous`, `SmokeUtils.ChimneyOutputPosition`); `SidingWallBlock.SideIsSolid`/`HasVent`/`VentId`; `GuestSealingPatches.SideSolidPostfix`; `blocktypes/wallvent.json` and `blocktypes/floorvent.json`; the trapdoor entry in `config/materials.json`; `patches/compat/realsmoke.json`; `WallShapeGen.Louvres`; `VentScenarios`, `VentBlocktypesTests`; every vanilla `SideIsSolid` caller in decompiled 1.22.7 `VintagestoryAPI`, `VintagestoryLib`, `VSSurvivalMod`, `VSEssentials` and `VSCreativeMod` (which has none); decisions 0001, 0019, 0020, 0035, 0042, 0050, 0068
 
 ## Summary
 A wooden trapdoor clicked into a frame, a deck or a thin floor as its infill makes a vent, drawn as louvres in the trapdoor's wood.
@@ -57,7 +57,8 @@ Every vanilla caller, read in the decompiled DLLs:
 | `LiquidTesselator` edges, `ChunkTesselator` liquid face culling | water against a sealed face draws as it does against stone |
 | `BEBehaviorMPWaterWheel.blockedBy` | a sealed face in front of a water wheel blocks its flow |
 | `SurfaceLayerTesselator` | a SurfaceLayer decor (wallpaper, plaster, paint, cave art) asks the face it sits on, and on a solid one draws a flat quad on the cell's face instead of projecting onto the model. Only a claimed face can answer true, and the panel lies flush against it, so the quad lands where the panel's outer face already is. The room face never claims, so a decor there is drawn as before. The call passes the cell beyond the decor's face as `pos`, so the override reads that cell's entity; it can only answer true where that cell is a sealed siding wall too. Not looked at in game |
-| `BlockRequireSolidGround`, `BlockBehaviorChimney`, `ItemRoller`, `Timeswitch`, `BlockMicroBlock` | nothing: they ask the up or down face, which no wall claims |
+| `BlockRequireSolidGround`, `BlockBehaviorChimney`, `ItemRoller`, `Timeswitch`, `BlockMicroBlock`, `EntityBehaviorControlledPhysics` step-up (`FindSteppableCollisionBox`, `FindSteppableCollisionboxSmooth`) | nothing: they ask the up or down face, which no wall claims |
+| `BlockMultiblock` | nothing: it hands the question to its control block, which a siding wall never is |
 | `BlockBehaviorUnstableRock` | nothing: it asks up and down, or two opposite faces, and no layout claims two opposite faces |
 | `SystemSoundEngine` | nothing: it asks only stone, metal and similar materials |
 | `BlockSpurGear.OnNeighbourBlockChange` | nothing: it breaks the gear unless the block it faces is a `BlockMPBase`, and a siding wall never is, whatever its side answers |
@@ -78,7 +79,8 @@ A post takes no infill, but its deck takes a trapdoor as any deck does.
 A trapdoor in a wall's infill or in either deck puts the cell on `wallvent` (`HasVent`, `VentId`), and one in a thin floor puts it on `floorvent`.
 The swap rides the `ExchangeBlock` an infill change already makes for vanilla's rooms, keeps the block entity, and fires the chunk-dirty event that refreshes Real Smoke's reading of the cell.
 Peeling the last trapdoor puts the cell back on `wall` or `floor`.
-The corner upgrade keeps the block's own first code part, so a vented wall upgraded to a corner stays vented.
+A filled wall's corner upgrade re-derives the vent through `OnInfillChanged`; a bare frame's upgrade exchanges straight to its target, so the target keeps the block's own first code part, and a frame under a trapdoor deck stays vented as a corner or a diagonal.
+The porous cell opens every face to smoke, so a trapdoor deck opens the clay wall under it, and a trapdoor wall opens the clay deck over it; the probe reads smoke through both.
 A cell hosting furniture holds the furniture block, not `wallvent`, so a vent passes no smoke while it hosts.
 
 **Real Smoke reads the vent as porous; nothing else does.**
@@ -103,10 +105,12 @@ The clay oven is kept out by the solid-side rule of `SidingModSystem.HostRefusal
 - **A thin floor's top damming only once filled, and a deck's top damming while it retains** (two stages of the plan, dropped). The collision boxes already hold the smoke, so either would only change where water rests.
 - **A wall's `SideSolid` field following its fill, for the flue search.** A static field per block type, which no override reaches; the probe's chimney course held the smoke anyway.
 - **Name a vanilla flue in the handbook in place of a vent.** None keeps the room sealed.
+- **Only a wall's own infill makes a wall cell a vent.** A deck vent would then need a block of its own to leave the wall below it closed; one vent block per cell, open on every side, was chosen instead.
 
 ## Consequences & open questions
 - Water against a sealed wall face no longer draws its edge face, a sealed face blocks a water wheel, and a wallpaper or plaster decor on a sealed face draws flat on the cell's face; none of these was looked at in game.
 - A vent that keeps the heat and passes the smoke is not physical. Accepted: heat beyond vanilla's room retention is out of scope for the mod.
+- A trapdoor deck lets smoke through the filled wall below it, and a trapdoor wall through the filled deck above it; the handbook and the ModDB page say a vent opens every side of its cell.
 - A post's deck taking a trapdoor and becoming a vent follows from the code, and no scenario covers it.
 - In the probe, the room under a vent floor counted one skylight cell where the planks roof counted none; whether that matters for a cellar was not looked at.
 - The probe's bare-frame, room-face row is not steady: one run's reading differed from the table's.

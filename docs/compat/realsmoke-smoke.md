@@ -4,7 +4,7 @@ Mod version 2.0.0-pre.13, game version 1.22.7, probed 2026-11-14.
 
 ## Where smoke goes
 
-Each row lights a firepit in a stone box whose only way out is the block under test, and reads the smoke Real Smoke holds in a second stone box the block opens onto, for 102 seconds of game time.
+Each row lights a firepit in a stone box whose only way out is the block under test, and reads the smoke Real Smoke holds in a second stone box the block opens onto, for 104 seconds of game time.
 `smoke passes` means some smoke reached the second box, with the most it held at one reading; `smoke held` means none did.
 The open rows are the controls: smoke crosses open air and stone stops it.
 A wall's room face is the one it claims, so a fire on it is a fire inside the room.
@@ -12,32 +12,34 @@ The last column is what the block under test answers for the face towards the fi
 
 | Arrangement | Smoke | Faces |
 | --- | --- | --- |
-| control: open cell | smoke passes (60) | fire side barrier 0, side solid false; far side barrier 0, side solid false |
+| control: open cell | smoke passes (110) | fire side barrier 0, side solid false; far side barrier 0, side solid false |
 | control: stone | smoke held (0) | fire side barrier 1, side solid true; far side barrier 1, side solid true |
-| wall, bare frame, fire on the outer face | smoke passes (52) | fire side barrier 0, side solid false; far side barrier 0, side solid false |
+| wall, bare frame, fire on the outer face | smoke passes (86) | fire side barrier 0, side solid false; far side barrier 0, side solid false |
 | wall, clay infill, fire on the outer face | smoke held (0) | fire side barrier 0, side solid false; far side barrier 1, side solid true |
 | wall, wattle infill, fire on the outer face | smoke held (0) | fire side barrier 0, side solid false; far side barrier 1, side solid true |
-| vent wall, trapdoor infill, fire on the outer face | smoke passes (70) | fire side barrier 0, side solid false; far side barrier 1, side solid false |
+| vent wall, trapdoor infill, fire on the outer face | smoke passes (40) | fire side barrier 0, side solid false; far side barrier 1, side solid false |
 | wall, glass infill, fire on the outer face | smoke held (0) | fire side barrier 0, side solid false; far side barrier 1, side solid true |
 | wall, clay infill hosting a lantern, fire on the outer face | smoke held (0) | fire side barrier 0, side solid false; far side barrier 1, side solid true |
-| wall, bare frame, fire on the room face | smoke passes (60) | fire side barrier 0, side solid false; far side barrier 0, side solid false |
+| wall, bare frame, fire on the room face | smoke passes (42) | fire side barrier 0, side solid false; far side barrier 0, side solid false |
 | wall, clay infill, fire on the room face | smoke held (0) | fire side barrier 1, side solid true; far side barrier 0, side solid false |
 | wall, wattle infill, fire on the room face | smoke held (0) | fire side barrier 1, side solid true; far side barrier 0, side solid false |
-| vent wall, trapdoor infill, fire on the room face | smoke passes (44) | fire side barrier 1, side solid false; far side barrier 0, side solid false |
+| vent wall, trapdoor infill, fire on the room face | smoke passes (58) | fire side barrier 1, side solid false; far side barrier 0, side solid false |
 | wall, glass infill, fire on the room face | smoke held (0) | fire side barrier 1, side solid true; far side barrier 0, side solid false |
 | wall, clay infill hosting a lantern, fire on the room face | smoke held (0) | fire side barrier 1, side solid true; far side barrier 0, side solid false |
-| control: open cell above | smoke passes (154) | fire side barrier 0, side solid false; far side barrier 0, side solid false |
+| wall, clay infill under a vent deck, fire on the room face | smoke passes (96) | fire side barrier 1, side solid false; far side barrier 0, side solid false |
+| control: open cell above | smoke passes (166) | fire side barrier 0, side solid false; far side barrier 0, side solid false |
 | control: stone above | smoke held (0) | fire side barrier 1, side solid true; far side barrier 1, side solid true |
 | floor, bare joists | smoke held (0) | fire side barrier 0, side solid false; far side barrier 1, side solid true |
 | floor, clay infill | smoke held (0) | fire side barrier 0, side solid false; far side barrier 1, side solid true |
 | wall deck, bare | smoke held (0) | fire side barrier 0, side solid false; far side barrier 0, side solid false |
 | wall deck, clay infill | smoke held (0) | fire side barrier 0, side solid false; far side barrier 0, side solid false |
-| vent floor, trapdoor | smoke passes (102) | fire side barrier 0, side solid false; far side barrier 1, side solid true |
-| vent wall deck, trapdoor | smoke passes (162) | fire side barrier 0, side solid false; far side barrier 0, side solid false |
+| vent floor, trapdoor | smoke passes (108) | fire side barrier 0, side solid false; far side barrier 1, side solid true |
+| vent wall deck, trapdoor | smoke passes (180) | fire side barrier 0, side solid false; far side barrier 0, side solid false |
+| clay deck on a vent wall | smoke passes (70) | fire side barrier 0, side solid false; far side barrier 0, side solid false |
 | roof of a wooden trapdoor | smoke held (0) | fire side barrier 1, side solid true; far side barrier 0, side solid false |
 | roof of a wooden window trapdoor | smoke held (0) | fire side barrier 0, side solid true; far side barrier 0, side solid false |
 | roof of a barred trapdoor | smoke held (0) | fire side barrier 0, side solid true; far side barrier 0, side solid false |
-| roof of a stick layer | smoke passes (100) | fire side barrier 0, side solid false; far side barrier 0, side solid false |
+| roof of a stick layer | smoke passes (116) | fire side barrier 0, side solid false; far side barrier 0, side solid false |
 | chimney course over a clay floor | smoke held (0) | fire side barrier 0, side solid false; far side barrier 1, side solid true |
 
 ## Room retention under a flue

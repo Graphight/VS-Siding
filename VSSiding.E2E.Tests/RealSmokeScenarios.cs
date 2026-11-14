@@ -206,6 +206,8 @@ public class RealSmokeScenarios : AtlasScenarioBase
                 await Horizontal($"wall, glass infill, {side}", onRoomSide, (wall, inside) => Wall(player, wall, inside, "game:glass-plain", 1));
                 await Horizontal($"wall, clay infill hosting a lantern, {side}", onRoomSide, (wall, inside) => Lantern(player, wall, inside));
             }
+            // A trapdoor deck puts the whole cell on the vent block, so the clay beside it opens too. The deck goes on from the open east side.
+            await Horizontal("wall, clay infill under a vent deck, fire on the room face", true, async (wall, inside) => { await Wall(player, wall, inside, "game:clay-blue", 4); await Deck(player, wall, true, Trapdoor, 1); });
 
             await Vertical("control: open cell above", _ => Task.CompletedTask);
             await Vertical("control: stone above", cell => { Fill(Stone, cell); return Task.CompletedTask; });
@@ -215,6 +217,7 @@ public class RealSmokeScenarios : AtlasScenarioBase
             await Vertical("wall deck, clay infill", async cell => { await Wall(player, cell, cell.WestCopy(), "game:clay-blue", 4); await Deck(player, cell, true); });
             await Vertical("vent floor, trapdoor", cell => Floor(player, cell, true, Trapdoor, 1));
             await Vertical("vent wall deck, trapdoor", async cell => { await Wall(player, cell, cell.WestCopy(), "game:clay-blue", 4); await Deck(player, cell, true, Trapdoor, 1); });
+            await Vertical("clay deck on a vent wall", async cell => { await Wall(player, cell, cell.WestCopy(), Trapdoor, 1); await Deck(player, cell, true); });
             await Vertical("roof of a wooden trapdoor", _ => Task.CompletedTask, cell => World.SetBlock(FirstBlock("trapdoor-solid-").Code.ToString(), cell));
             await Vertical("roof of a wooden window trapdoor", _ => Task.CompletedTask, cell => World.SetBlock(FirstBlock("trapdoor-window-").Code.ToString(), cell));
             await Vertical("roof of a barred trapdoor", _ => Task.CompletedTask, cell => World.SetBlock(FirstBlock("trapdoor-bars").Code.ToString(), cell));
@@ -302,6 +305,8 @@ public class RealSmokeScenarios : AtlasScenarioBase
         ["vent wall, trapdoor infill, fire on the room face"] = Passes,
         ["vent floor, trapdoor"] = Passes,
         ["vent wall deck, trapdoor"] = Passes,
+        ["wall, clay infill under a vent deck, fire on the room face"] = Passes,
+        ["clay deck on a vent wall"] = Passes,
         ["roof of a wooden trapdoor"] = Held,
         ["roof of a wooden window trapdoor"] = Held,
         ["roof of a barred trapdoor"] = Held,
