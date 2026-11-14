@@ -970,7 +970,7 @@ public class SidingWallBlock : Block
             return true;
         }
 
-        if (world.GetBlock(new AssetLocation("vssiding", upgrade)) is not SidingWallBlock target) return false;
+        if (world.GetBlock(new AssetLocation("vssiding", FirstCodePart() + upgrade["wall".Length..])) is not SidingWallBlock target) return false;
 
         if (filled && world.GetIntersectingEntities(blockSel.Position, target.GetCollisionBoxes(world.BlockAccessor, blockSel.Position), e => e.IsInteractable) is { Length: > 0 })
         {
