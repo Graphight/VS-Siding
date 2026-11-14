@@ -60,11 +60,21 @@ public class SealedCellLightTests
     public void SideAoIsEmittedOnlyTowardAClaimedFaceAndKeepsAWallsVerticalAnswer()
     {
         int N = BlockFacing.NORTH.Flag, E = BlockFacing.EAST.Flag, W = BlockFacing.WEST.Flag, U = BlockFacing.UP.Flag, D = BlockFacing.DOWN.Flag;
-        int[] claimed = [N, N, N, N | E, N | E, N | E, N | E, U, U, U];
-        int[] flags = [N, E, E | U, E, W, N | D, U, U, N, D];
-        bool[] expected = [true, false, false, true, false, true, true, true, false, false];
+        (int claimed, int flags, bool emits)[] expected =
+        [
+            (N, N, true),
+            (N, E, false),
+            (N, E | U, false),
+            (N | E, E, true),
+            (N | E, W, false),
+            (N | E, N | D, true),
+            (N | E, U, true),       // a wall keeps emitting toward up/down-only quadrants
+            (U, U, true),
+            (U, N, false),
+            (U, D, false),
+        ];
 
-        Assert.Equal(expected, claimed.Zip(flags, SidingWallBlock.EmitsSideAo).ToArray());
+        Assert.Equal(expected, expected.Select(c => (c.claimed, c.flags, SidingWallBlock.EmitsSideAo(c.claimed, c.flags))).ToArray());
     }
 
     [Fact]

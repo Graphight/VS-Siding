@@ -17,13 +17,13 @@ The real effect of an emitting ring cell is that it is excluded from the corner 
 That scale is `occ` (0.67) when one edge cell of the corner emits.
 When both edge cells emit it is `min(occ, 1 - halfoccInverted * clamp(ground.LightAbsorption, 0, 32))`, with `halfoccInverted` 0.0196875, which is 0.37 for a ground block.
 The tile diagonally inside a corner between two sealed walls has both edge cells emitting at its nook vertex, so it took 0.37 while the tiles beside it took 0.67 or 1.
-A wall's open, dead-space side faces the same cells, so the shade also reached ground that the panel does not touch.
+Every sealed cell emitted toward every quadrant, its open side included, so that 0.37 fell on ground three quarters of a block from either panel, beside dead-space tiles at a flat 0.67.
 
 ## Design
 **The sealed-cell mask carries the claimed faces.**
-`sealedCells` in `SidingModSystem` holds, per cell, the `BlockFacing` flags of the faces the panel covers (`ClaimedFlags`), and zero means not sealed.
+`sealedCells` in `SidingModSystem` holds, per cell, the `BlockFacing` flags of the faces the panel covers, and zero means not sealed.
+A wall's flags are `SidingWallBlock.ClaimedFlags`, set once in `OnLoaded` from `ClaimsFace`, because they are read on every face-light call.
 Floors and decks claim up.
-`ClaimedFlags` loops over `HORIZONTALS` instead of using LINQ, because it runs on every face-light call.
 
 **The flat path occludes only corners that touch the panel.**
 `SealedCellFaceLightPrefix` (0018's flat path) applies `occ` to a corner only when its vertex lies on a claimed face of the sealed cell (`CornerFaces`, read from `CubeFaceVertices.blockFaceVerticesCentered`), or to all four when the cell claims the face toward the drawn one.
@@ -31,7 +31,8 @@ The floor in a wall's open part therefore grades from dark at the panel to light
 
 **Side AO is directional.**
 `SidingWallBlock.EmitsSideAo` lets a sealed cell emit toward a quadrant only when the flags include a claimed face.
-A wall keeps today's answer for flags with no horizontal face, so up and down faces still read as before.
+A wall still emits toward a quadrant whose flags name no horizontal face, as it did before; which faces ask with such flags was not traced.
+The cheap flag test runs before `IsSealed`, so most quadrants skip the block entity lookup.
 `SidingFloorBlock` and the guest postfixes in `GuestLightPatches` use the same rule, with a floor claiming up and a guest taking its wall's claim.
 A diagonal claims its corner's faces, so it follows the same rule through `ClaimsFace`.
 A `cornerin` post takes no infill and so is never sealed; it emitted nothing before and still does not.

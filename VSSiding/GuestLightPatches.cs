@@ -143,7 +143,7 @@ internal static class GuestLightPatches
 
         var pos = new BlockPos(tct.posX, tct.posY, tct.posZ, tct.dimension).Offset(facing.Opposite);
         SidingWallEntity? guest = GuestWalls.GuestAt(capi, pos);
-        if (guest?.Block is SidingWallBlock wall) __result |= wall.IsSealed(guest) && SidingWallBlock.EmitsSideAo(SidingModSystem.ClaimedFlags(wall), facing.Flag);
+        if (guest?.Block is SidingWallBlock wall) __result |= SidingWallBlock.EmitsSideAo(wall.ClaimedFlags, facing.Flag) && wall.IsSealed(guest);
     }
 
     private static void SideAoByFlagPostfix(Block __instance, IGeometryTester caller, Vec3iAndFacingFlags vec, int flags, ref bool __result)
@@ -153,6 +153,6 @@ internal static class GuestLightPatches
 
         var pos = new BlockPos(tct.posX + vec.X, tct.posY + vec.Y, tct.posZ + vec.Z, tct.dimension);
         SidingWallEntity? guest = GuestWalls.GuestAt(capi, pos);
-        if (guest?.Block is SidingWallBlock wall) __result |= wall.IsSealed(guest) && SidingWallBlock.EmitsSideAo(SidingModSystem.ClaimedFlags(wall), flags);
+        if (guest?.Block is SidingWallBlock wall) __result |= SidingWallBlock.EmitsSideAo(wall.ClaimedFlags, flags) && wall.IsSealed(guest);
     }
 }

@@ -632,7 +632,7 @@ public class SidingModSystem : ModSystem
             if (!wall.IsSealed(___game.BlockAccessor.GetBlockEntity(pos))) continue;
 
             ___currentChunkRgbsExt[i] = ___currentChunkRgbsExt[i + dx + dz * size];
-            mask[i] = ClaimedFlags(wall);
+            mask[i] = wall.ClaimedFlags;
         }
 
         // A hosted block's cell darkens like a sealed wall cell (decision 0035). The guests this
@@ -655,7 +655,7 @@ public class SidingModSystem : ModSystem
                 if (!wall.IsSealed(guest)) continue;
 
                 ___currentChunkRgbsExt[extIndex] = ___currentChunkRgbsExt[extIndex + dx + dz * size];
-                mask[extIndex] = ClaimedFlags(wall);
+                mask[extIndex] = wall.ClaimedFlags;
             }
         }
     }
@@ -678,10 +678,10 @@ public class SidingModSystem : ModSystem
 
     // Smooth lighting averages a face's own sample with the cells ringing it, and for the floor
     // face under a thin wall one of those is the sunlit cell just outside - which is the daylight
-    // that lit a sealed room's floor edges. Faces onto a sealed cell take the flat path instead,
-    // dimmed by the occlusion vanilla gives a face onto a side-AO cell, or the dead space reads
-    // brighter than the AO-shaded floor beside it (decision 0034). Where vanilla already takes its
-    // own flat path it reads the rewritten light unaided, so those faces are left to it.
+    // that lit a sealed room's floor edges. Faces onto a sealed cell take the sealed cell's light
+    // instead, each corner dimmed by vanilla's side-AO occlusion only where its vertex touches the
+    // panel, or every corner when the panel faces the drawn face (decisions 0034, 0099). Where vanilla
+    // already takes its own flat path it reads the rewritten light unaided, so those faces are left to it.
     internal static bool SealedCellFaceLightPrefix(TCTCache __instance, int tileSide, int extNeibIndex3d, ref long __result)
     {
         if (sealedCells is not { } mask || mask[extNeibIndex3d] == 0) return true;
@@ -697,15 +697,6 @@ public class SidingModSystem : ModSystem
             total += corners[k] = facingPanel || (claimed & CornerFaces(tileSide, k)) != 0 ? shadedRgb : rgb;
         __result = total;   // int arithmetic, as vanilla's flat path returns it
         return false;
-    }
-
-    // Read on every face-light call, so no LINQ here.
-    internal static byte ClaimedFlags(SidingWallBlock wall)
-    {
-        int flags = 0;
-        foreach (var face in BlockFacing.HORIZONTALS)
-            if (wall.ClaimsFace(face)) flags |= face.Flag;
-        return (byte)flags;
     }
 
     // The faces of the cell in front of a drawn face that corner k's vertex lies on: the tangent
