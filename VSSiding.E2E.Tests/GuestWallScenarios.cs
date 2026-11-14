@@ -221,4 +221,36 @@ public class GuestWallScenarios : AtlasScenarioBase
             await World.Until(() => !player.IsConnected);
         }
     }
+
+    // BlockShapeFromAttributes is abstract and answers the box queries without calling base once its type carries boxes of
+    // its own, as the broken anvil's one box does, so only a patch on that class reaches it.
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
+    public async Task Clutter_Should_CarryThePanelInItsCollisionBoxes_When_HostedInAWallsCell()
+    {
+        BlockPos cell = Cell;
+        World.SetBlock("game:planks-aged-ud", cell.DownCopy());
+
+        ITestPlayer player = await WallBuilder.JoinBuilder(World);
+        try
+        {
+            await WallBuilder.Raise(World, player, cell, cell.WestCopy(), "game:plank-oak", "game:clay-blue", "game:plank-oak");
+
+            player.Entity.LeftHandItemSlot.Itemstack = null;
+            Block clutter = World.Api.World.GetBlock(new AssetLocation("game:clutter"));
+            var stack = new ItemStack(clutter);
+            stack.Attributes.SetString("type", "anvil-broken1");
+            player.Player.InventoryManager.ActiveHotbarSlot.Itemstack = stack;
+            var selection = new BlockSelection { Position = cell.Copy(), Face = BlockFacing.EAST, HitPosition = new Vec3d(0.5, 0.5, 0.5) };
+            Assert.True(World.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, selection));
+
+            string? type = WallBuilder.Reader(World.Api.World.BlockAccessor.GetBlockEntity(cell))("type");
+            Cuboidf[] boxes = World.BlockAt(cell).GetCollisionBoxes(World.Api.World.BlockAccessor, cell);
+            Assert.Equal(("game:clutter", "anvil-broken1", true), (World.BlockAt(cell).Code.ToString(), type, boxes.Length > 1));
+        }
+        finally
+        {
+            player.Player.Disconnect();
+            await World.Until(() => !player.IsConnected);
+        }
+    }
 }

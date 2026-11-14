@@ -14,10 +14,10 @@ internal static class PanelInteractionPatches
     }
 
     // No depth guard: a panel hit skips the original, so no base call runs underneath.
-    private static bool InteractPrefix(Block __instance, object[] __args, ref bool __result)
+    private static bool InteractPrefix(Block __instance, IWorldAccessor __0, BlockSelection __2, ref bool __result)
     {
-        if (__args[0] is not IWorldAccessor world || __args[2] is not BlockSelection blockSel) return true;
-        if (!GapShiftCollisionPatches.IsPanelHit(__instance, world.BlockAccessor, blockSel)) return true;
+        if (__0 == null || __2 == null) return true;
+        if (!GapShiftCollisionPatches.IsPanelHit(__instance, __0.BlockAccessor, __2)) return true;
 
         // Vanilla falls through to the held item's own OnHeldInteractStart when the block returns
         // false, so placing a block against the panel face still works like any other wall.

@@ -51,6 +51,8 @@ public class SidingFloorBlock : Block
             if (SidingWallBlock.FramesOnFrom(heldCode, FinishFace(blockSel.Face) != null, Attributes["Framings"]))
                 return base.OnBlockInteractStart(world, byPlayer, blockSel);
 
+            if (SidingWallBlock.ClaimRefuses(world, byPlayer, blockSel.Position)) return true;
+
             var consumes = Attributes["Infills"][infillKey]["Consumes"];
             if (!SidingWallBlock.TryAffordOrError(byPlayer, isCreative, slot.StackSize, consumes)) return true;
 
@@ -62,6 +64,7 @@ public class SidingFloorBlock : Block
 
         if (SidingWallBlock.MatchConsumes(heldCode, Attributes["Finishes"], null, true) is { } tileKey)
         {
+            if (SidingWallBlock.ClaimRefuses(world, byPlayer, blockSel.Position)) return true;
             string? FaceStyle(string on) => on == "front" ? entity.FrontStyle : entity.BackStyle;
             var placed = SidingWallBlock.FlatTilePlacement(byPlayer, blockSel, entity.Infill, Attributes["Infills"], on => on == "front" ? entity.Front : entity.Back, FaceStyle);
             if (placed is { } laid)
@@ -82,6 +85,8 @@ public class SidingFloorBlock : Block
             (byPlayer as IServerPlayer)?.SendIngameError("vssiding:wrongface", Lang.Get("vssiding:build-floor-wrong-face"));
             return true;
         }
+
+        if (SidingWallBlock.ClaimRefuses(world, byPlayer, blockSel.Position)) return true;
 
         // A face takes the picked style only if its FloorElements lists it, or it has none and the
         // finish lists the style, so weatherboard, or boards on a daub top, falls back to the face's default.
@@ -152,7 +157,7 @@ public class SidingFloorBlock : Block
     }
 
     internal static int ComputeRetention(BlockFacing facing, string? framing, string? infill, JsonObject attributes)
-        => SidingWallBlock.ComputeRetention(facing == BlockFacing.UP, framing, infill, attributes["Framings"], attributes["Infills"]);
+        => facing == BlockFacing.UP ? SidingWallBlock.TraitsOf(attributes, framing, infill).Retention : 0;
 
     // sidesolid on UP would let anything stand on bare joists; only a sealed top holds it.
     // Anything hangs from the underside once the joists are up, sealed or not.
@@ -234,17 +239,17 @@ public class SidingFloorBlock : Block
     public override int GetLightAbsorption(IWorldChunk chunk, BlockPos pos)
     {
         var entity = chunk?.GetLocalBlockEntityAtBlockPos(pos) as SidingFloorEntity;
-        return SidingWallBlock.ComputeLightAbsorption(entity?.Framing, entity?.Infill, Attributes["Framings"], Attributes["Infills"]);
+        return SidingWallBlock.ComputeLightAbsorption(entity?.Framing, entity?.Infill, Attributes);
     }
 
     // The relight skips when old and new absorption match, so it needs the old infill's real value (decision 0034).
     internal void MarkAbsorptionChanged(IBlockAccessor accessor, BlockPos pos, string? framing, string? oldInfill)
         => accessor.MarkAbsorptionChanged(
-            SidingWallBlock.ComputeLightAbsorption(framing, oldInfill, Attributes["Framings"], Attributes["Infills"]),
+            SidingWallBlock.ComputeLightAbsorption(framing, oldInfill, Attributes),
             GetLightAbsorption(accessor, pos), pos);
 
     internal bool IsSealed(BlockEntity? be)
-        => be is SidingFloorEntity entity && SidingWallBlock.ComputeLightAbsorption(entity.Framing, entity.Infill, Attributes["Framings"], Attributes["Infills"]) > 0;
+        => be is SidingFloorEntity entity && SidingWallBlock.ComputeLightAbsorption(entity.Framing, entity.Infill, Attributes) > 0;
 
     // As on the wall (decision 0016): a sealed cell shows the room below's light (decision 0055),
     // so emitting side AO keeps it out of the smooth-lighting corners of faces in the room above.

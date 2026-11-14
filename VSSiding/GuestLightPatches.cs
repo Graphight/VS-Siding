@@ -116,17 +116,18 @@ internal static class GuestLightPatches
     private static void SourceFinalizer((int X, int Y, int Z)? __state) => source = __state;
 
     // The Hostable read comes first: every chunk mesh and relight runs through here.
-    private static void AbsorptionAccessorPostfix(Block __instance, object[] __args, ref int __result)
+    private static void AbsorptionAccessorPostfix(Block __instance, BlockPos __1, ref int __result)
     {
-        if (!SidingModSystem.IsHostableId(__instance.BlockId) || __args[1] is not BlockPos pos) return;
+        if (!SidingModSystem.IsHostableId(__instance.BlockId) || __1 == null) return;
 
         ICoreAPI? api = SidingModSystem.ApiRef(__instance);
-        if (api != null) __result = Math.Max(__result, GuestWalls.Absorption(GuestWalls.GuestAt(api, pos)));
+        if (api != null) __result = Math.Max(__result, GuestWalls.Absorption(GuestWalls.GuestAt(api, __1)));
     }
 
-    private static void AbsorptionChunkPostfix(Block __instance, object[] __args, ref int __result)
+    private static void AbsorptionChunkPostfix(Block __instance, IWorldChunk __0, BlockPos __1, ref int __result)
     {
-        if (!SidingModSystem.IsHostableId(__instance.BlockId) || __args[0] is not IWorldChunk chunk || __args[1] is not BlockPos pos) return;
+        if (!SidingModSystem.IsHostableId(__instance.BlockId) || __0 == null || __1 == null) return;
+        var (chunk, pos) = (__0, __1);
         if (source == (pos.X, pos.Y, pos.Z)) return;
 
         ICoreAPI? api = SidingModSystem.ApiRef(__instance);

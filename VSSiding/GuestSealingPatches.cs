@@ -64,9 +64,10 @@ internal static class GuestSealingPatches
         => (hostable != null && block.BlockId < hostable.Length && hostable[block.BlockId])
             || (restorePending && (block.BlockId == 0 || block.Replaceable >= 6000));
 
-    private static void RetentionPostfix(Block __instance, object[] __args, ref int __result)
+    private static void RetentionPostfix(Block __instance, BlockPos __0, BlockFacing __1, ref int __result)
     {
-        if (depth != 1 || __args[0] is not BlockPos pos || __args[1] is not BlockFacing facing) return;
+        if (depth != 1 || __0 == null || __1 == null) return;
+        var (pos, facing) = (__0, __1);
 
         SidingWallEntity? entity = facing == BlockFacing.UP ? DeckedGuestAt(__instance, pos) : ClaimingGuestAt(__instance, pos, facing.Code);
         if (entity == null) return;
@@ -74,24 +75,22 @@ internal static class GuestSealingPatches
         __result = ((SidingWallBlock)entity.Block).RetentionOf(entity, facing);
     }
 
-    private static void LiquidBarrierPostfix(Block __instance, object[] __args, ref float __result)
+    private static void LiquidBarrierPostfix(Block __instance, BlockFacing __0, BlockPos __1, ref float __result)
     {
-        if (depth != 1 || __args[0] is not BlockFacing face || __args[1] is not BlockPos pos) return;
+        if (depth != 1 || __0 == null || __1 == null) return;
+        var (face, pos) = (__0, __1);
 
         SidingWallEntity? entity = ClaimingGuestAt(__instance, pos, face.Code);
         if (entity == null) return;
 
         var wall = (SidingWallBlock)entity.Block;
-        __result = SidingWallBlock.ComputeLiquidBarrier(true, entity.Framing, entity.Infill, wall.Attributes["Framings"], wall.Attributes["Infills"]);
+        __result = SidingWallBlock.ComputeLiquidBarrier(true, entity.Framing, entity.Infill, wall.Attributes);
     }
 
-    private static void CanAttachPostfix(Block __instance, object[] __args, ref bool __result)
+    private static void CanAttachPostfix(Block __instance, IBlockAccessor __0, BlockPos __2, BlockFacing __3, ref bool __result)
     {
-        if (depth != 1 || __args[0] is not IBlockAccessor blockAccessor
-            || __args[2] is not BlockPos pos || __args[3] is not BlockFacing blockFace)
-        {
-            return;
-        }
+        if (depth != 1 || __0 == null || __2 == null || __3 == null) return;
+        var (blockAccessor, pos, blockFace) = (__0, __2, __3);
 
         bool vertical = !blockFace.IsHorizontal;
         SidingWallEntity? entity = vertical
@@ -103,7 +102,7 @@ internal static class GuestSealingPatches
         var wall = (SidingWallBlock)entity.Block;
         __result = vertical
             ? wall.CanAttachOf(entity, blockFace)
-            : SidingWallBlock.ComputeRetention(true, entity.Framing, entity.Infill, wall.Attributes["Framings"], wall.Attributes["Infills"]) != 0;
+            : SidingWallBlock.TraitsOf(wall.Attributes, entity.Framing, entity.Infill).Retention != 0;
     }
 
     // A torch or sign placed on the panel's inner face asks the cell past the panel (pos, often air)

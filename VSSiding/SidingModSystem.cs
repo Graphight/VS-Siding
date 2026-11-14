@@ -533,7 +533,7 @@ public class SidingModSystem : ModSystem
         var found = SidingWallBlock.WallAt(__instance, pos);
         if (found == null) return;
         var (wall, entity) = found.Value;
-        int retention = SidingWallBlock.ComputeRetention(true, entity.Framing, entity.Infill, wall.Attributes["Framings"], wall.Attributes["Infills"]);
+        int retention = SidingWallBlock.TraitsOf(wall.Attributes, entity.Framing, entity.Infill).Retention;
         if (retention == 0) return;
         var (dx, dz) = SidingWallBlock.OpenSide(wall.Variant["layout"], wall.Variant["side"]);
         pos = pos.AddCopy(dx, 0, dz);
@@ -1586,13 +1586,20 @@ public class SidingModSystem : ModSystem
         ICoreAPI? api = ApiRef(block);
         if (api == null) return (0, 0);
 
-        // A bed shifts as one by whichever of its cells holds a guest, or it splits at the seam: head-on
-        // the feet stand on open floor, and a double bed's head can stand in the room with only its fillers in the wall.
-        var guest = GuestWalls.GuestAt(api, pos)
-            ?? BedCells(api.World.BlockAccessor, pos, block).Select(cell => GuestWalls.GuestAt(api, cell)).FirstOrDefault(found => found != null);
+        var guest = GuestWalls.GuestAt(api, pos) ?? (block is BlockBed or BlockMultiblock ? BedGuest(api, pos, block) : null);
         if (guest?.Block is not SidingWallBlock wall) return (0, 0);
 
-        if (FaceShiftByBlock![ShiftSource(api.World.BlockAccessor, pos, block).BlockId] is not { } shifts) return (0, 0);
+        return FaceShiftByBlock![ShiftSource(api.World.BlockAccessor, pos, block).BlockId] is { } shifts ? ShiftOff(wall, shifts) : (0, 0);
+    }
+
+    // A bed shifts as one by whichever of its cells holds a guest, or it splits at the seam: head-on
+    // the feet stand on open floor, and a double bed's head can stand in the room with only its fillers in the wall.
+    private static SidingWallEntity? BedGuest(ICoreAPI api, BlockPos pos, Block block)
+        => BedCells(api.World.BlockAccessor, pos, block).Select(cell => GuestWalls.GuestAt(api, cell)).FirstOrDefault(found => found != null);
+
+    // Kept out of GapShiftAt, where a lambda's captures would be built on every call, a block that hosts nothing included.
+    private static (double dx, double dz) ShiftOff(SidingWallBlock wall, double[] shifts)
+    {
         string layout = wall.Variant["layout"], side = wall.Variant["side"];
         IEnumerable<string> claimed = layout == "cornerin" ? SidingWallBlock.PostFaces(side) : HorizontalFaces.Where(face => SidingWallBlock.ClaimsFace(layout, side, face));
         return Combine(claimed, face => shifts[HorizontalFaceIndex[face]]);
@@ -1692,17 +1699,24 @@ public class SidingModSystem : ModSystem
             .ToList();
 
         var shared = api.Assets.Get(new AssetLocation("vssiding", "config/materials.json")).ToObject<JObject>();
+        var expanded = new Dictionary<string, JsonObject>();
         foreach (var block in api.World.Blocks.Where(b => b is SidingWallBlock or SidingFloorBlock))
         {
-            var attributes = MaterialFamilies.MergeShared(shared, (JObject)block.Attributes.Token);
-            foreach (var (familiesKey, materialsKey) in new[] { ("FramingFamilies", "Framings"), ("InfillFamilies", "Infills"), ("FinishFamilies", "Finishes") })
+            var own = (JObject)block.Attributes.Token;
+            var key = own.ToString(Newtonsoft.Json.Formatting.None);
+            if (!expanded.TryGetValue(key, out var result))
             {
-                if (attributes[familiesKey] is not JObject families) continue;
-                attributes[materialsKey] = MaterialFamilies.Expand(families, attributes[materialsKey] as JObject ?? new JObject(), candidates,
-                    message => api.Logger.Warning("{0}: {1}", block.Code, message));
-                attributes.Remove(familiesKey);
+                var attributes = MaterialFamilies.MergeShared(shared, own);
+                foreach (var (familiesKey, materialsKey) in new[] { ("FramingFamilies", "Framings"), ("InfillFamilies", "Infills"), ("FinishFamilies", "Finishes") })
+                {
+                    if (attributes[familiesKey] is not JObject families) continue;
+                    attributes[materialsKey] = MaterialFamilies.Expand(families, attributes[materialsKey] as JObject ?? new JObject(), candidates,
+                        message => api.Logger.Warning("{0}: {1}", block.Code, message));
+                    attributes.Remove(familiesKey);
+                }
+                expanded[key] = result = new JsonObject(attributes);
             }
-            block.Attributes = new JsonObject(attributes);
+            block.Attributes = result;
         }
     }
 }

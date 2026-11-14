@@ -110,6 +110,23 @@ public class FaceFinishScenarios : AtlasScenarioBase
         Assert.Equal("", Decors(cell));
     }
 
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
+    public async Task Log_Should_TakeNoFaceFinishAndSpendNothing_When_ItLiesInAnotherPlayersClaim()
+    {
+        (BlockPos cell, ITestPlayer player) = await RaiseLog();
+        LandClaim claim = WallBuilder.ClaimAround(World, cell);
+        try
+        {
+            await Press(player, cell, "game:plank-oak", 4);
+
+            Assert.Equal(("", 4), (Decors(cell), HeldPlanks(player)));
+        }
+        finally
+        {
+            World.Api.World.Claims.Remove(claim);
+        }
+    }
+
     private async Task<(BlockPos Cell, ITestPlayer Player)> RaiseLog()
     {
         BlockPos cell = World.Spawn.Offset(1, 2, 0);

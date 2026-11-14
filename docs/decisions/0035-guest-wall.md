@@ -1,6 +1,6 @@
 # 0035 — Guest wall
 
-- Status: Accepted; a decked cell now hosts a block that fits under the deck, see 0094; panel breaks being swallowed superseded by 0093
+- Status: Accepted; a decked cell now hosts a block that fits under the deck, see 0094; panel breaks being swallowed superseded by 0093; patches bind by position and reach abstract classes, see 0097
 - Created: 2026-09-20
 - Reflects: branch `furniture-against-thin-walls` (PR #41); vanilla 1.22 decompiled source
 

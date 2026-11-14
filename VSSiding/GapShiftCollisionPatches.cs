@@ -56,34 +56,35 @@ internal static class GapShiftCollisionPatches
 
     private static void Finalizer() => depth--;
 
+    // Positional __0, __1: an override may spell its parameters differently, and a typed binding builds no args array.
     // Each passes the full boxes the wall's own override would start from.
     // A hung block under a thin floor reaches head height in a low room, so it collides with nothing,
     // as vanilla's oil lamp has no collision box; it still selects (decision 0054).
-    private static void PostfixCollision(Block __instance, ref Cuboidf[] __result, object[] __args)
-        => __result = ShiftAndAppendPanel(__instance, IsHung(__instance, __args) ? null! : __result, __args, wall => wall.CollisionBoxes, clampToCell: true);
+    private static void PostfixCollision(Block __instance, ref Cuboidf[] __result, IBlockAccessor __0, BlockPos __1)
+        => __result = ShiftAndAppendPanel(__instance, IsHung(__instance, __1) ? null! : __result, __0, __1, wall => wall.CollisionBoxes, clampToCell: true);
 
     // Outermost only, so an override reading base's boxes never sees null.
-    private static bool IsHung(Block instance, object[] args)
-        => depth == 1 && args[1] is BlockPos pos && SidingModSystem.HangShiftAt(pos, instance) > 0;
+    private static bool IsHung(Block instance, BlockPos pos)
+        => depth == 1 && pos != null && SidingModSystem.HangShiftAt(pos, instance) > 0;
 
-    private static void PostfixParticleCollision(Block __instance, ref Cuboidf[] __result, object[] __args)
-        => __result = ShiftAndAppendPanel(__instance, __result, __args, wall => wall.ParticleCollisionBoxes ?? wall.CollisionBoxes, clampToCell: true);
+    private static void PostfixParticleCollision(Block __instance, ref Cuboidf[] __result, IBlockAccessor __0, BlockPos __1)
+        => __result = ShiftAndAppendPanel(__instance, __result, __0, __1, wall => wall.ParticleCollisionBoxes ?? wall.CollisionBoxes, clampToCell: true);
 
     // The panel's boxes go after the host's, so the host's own indices (which shelves and ground
     // storage use to pick a slot) are unchanged.
-    private static void PostfixSelection(Block __instance, ref Cuboidf[] __result, object[] __args)
-        => __result = ShiftAndAppendPanel(__instance, __result, __args, wall => wall.SelectionBoxes, MarkedForPanel);
+    private static void PostfixSelection(Block __instance, ref Cuboidf[] __result, IBlockAccessor __0, BlockPos __1)
+        => __result = ShiftAndAppendPanel(__instance, __result, __0, __1, wall => wall.SelectionBoxes, MarkedForPanel);
 
-    private static Cuboidf[] ShiftAndAppendPanel(Block instance, Cuboidf[] result, object[] args,
-        System.Func<SidingWallBlock, Cuboidf[]> fullBoxesOf, System.Func<Cuboidf[], Cuboidf[]>? markPanel = null, bool clampToCell = false)
+    private static Cuboidf[] ShiftAndAppendPanel(Block instance, Cuboidf[] result,
+        IBlockAccessor blockAccessor, BlockPos pos, System.Func<SidingWallBlock, Cuboidf[]> fullBoxesOf, System.Func<Cuboidf[], Cuboidf[]>? markPanel = null, bool clampToCell = false)
     {
-        Shift(instance, result, args, out var shifted);
+        Shift(instance, result, pos, out var shifted);
         // Vanilla only asks the cells an entity's box already overlaps, so a box past its own cell is never met.
         if (clampToCell && !ReferenceEquals(shifted, result)) shifted = Clamped(shifted);
         // Hostable first: this runs on every collision query in the world. It also keeps a real
         // wall, reaching here through its own base call, from appending a copy of its own panel.
         if (!SidingModSystem.IsHostableId(instance.BlockId) || depth != 1
-            || args[0] is not IBlockAccessor blockAccessor || args[1] is not BlockPos pos) return shifted;
+            || blockAccessor == null || pos == null) return shifted;
 
         if (SidingWallBlock.WallAt(blockAccessor, pos) is not { } found) return shifted;
         var (guestWall, guestEntity) = found;
@@ -96,12 +97,10 @@ internal static class GapShiftCollisionPatches
     private static Cuboidf[] MarkedForPanel(Cuboidf[] panelBoxes)
         => PanelSelectionCache.GetValue(panelBoxes, boxes => boxes.Select(box => (Cuboidf)new PanelSelectionBox(box)).ToArray());
 
-    private static void Shift(Block instance, Cuboidf[] result, object[] args, out Cuboidf[] shifted)
+    private static void Shift(Block instance, Cuboidf[] result, BlockPos pos, out Cuboidf[] shifted)
     {
         shifted = result;
-        // __args, because overrides don't all spell the parameters the same way.
-        if (depth != 1 || result is not { Length: > 0 }
-            || args[0] is not IBlockAccessor blockAccessor || args[1] is not BlockPos pos) return;
+        if (depth != 1 || result is not { Length: > 0 } || pos == null) return;
 
         var (dx, dz) = SidingModSystem.GapShiftAt(pos, instance);
         var dy = SidingModSystem.HangShiftAt(pos, instance);

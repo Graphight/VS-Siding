@@ -26,6 +26,20 @@ public class GapShiftAtTests
         }
     }
 
+    // Every collision query on every block passes through here, so the bail for a block that hosts nothing must build nothing.
+    [Fact]
+    public void ABlockThatHostsNothingAllocatesNothing()
+    {
+        var block = new Block { BlockId = int.MaxValue };
+        var pos = new BlockPos(5, 60, 9, 0);
+        SidingModSystem.GapShiftAt(pos, block);
+
+        long before = System.GC.GetAllocatedBytesForCurrentThread();
+        for (int i = 0; i < 1000; i++) SidingModSystem.GapShiftAt(pos, block);
+
+        Assert.Equal(0, System.GC.GetAllocatedBytesForCurrentThread() - before);
+    }
+
     [Fact]
     public void AFillerResolvesToTheBlockAtItsOffsetInv()
     {

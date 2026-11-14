@@ -175,6 +175,15 @@ internal static class WallBuilder
         return tree.GetBool("raisedbelow");
     }
 
+    // A claim round the cell owned by someone else; the caller removes it from World.Api.World.Claims.
+    internal static LandClaim ClaimAround(IWorldSession world, BlockPos cell)
+    {
+        var claim = new LandClaim { OwnedByPlayerUid = "someone-else", LastKnownOwnerName = "Someone else", ProtectionLevel = 1 };
+        claim.Areas.Add(new Cuboidi(cell.X - 2, cell.Y - 2, cell.Z - 2, cell.X + 2, cell.Y + 2, cell.Z + 2));
+        world.Api.World.Claims.Add(claim);
+        return claim;
+    }
+
     // A right-click as vanilla sends it: the wall answers first unless the player sneaks, and the held item only
     // when the wall passes the click on. A held button sends the click again with firstEvent false, unless
     // the wall claimed the press and its OnBlockInteractStep keeps the interaction going.

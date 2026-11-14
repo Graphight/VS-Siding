@@ -173,6 +173,7 @@ public class PlaceWallFrame : CollectibleBehavior
         if (wood == null) return;
         Block? decor = world.GetBlock(new AssetLocation("vssiding", $"facefinish-planks-{wood}"));
         if (decor == null || !host.CanAttachBlockAt(accessor, decor, pos, blockSel.Face)) return;
+        if (SidingWallBlock.ClaimRefuses(world, byPlayer, pos)) return;
 
         var bits = new DecorBits(blockSel.Face) { Rotation = SidingModePicker.Boards(byPlayer) == "boards" ? 1 : 0 };
         // The chunk keys a decor by its rotation too, so the old one is found and removed by its own key.
