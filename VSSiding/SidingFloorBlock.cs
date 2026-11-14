@@ -255,12 +255,10 @@ public class SidingFloorBlock : Block
     // so emitting side AO keeps it out of the smooth-lighting corners of faces in the room above,
     // from the top only, where the floor's layers sit (decision 0099).
     public override bool DoEmitSideAo(IGeometryTester caller, BlockFacing facing)
-        => (SidingWallBlock.EmitsSideAo(BlockFacing.UP.Flag, facing.Flag) && IsSealed(caller.GetCurrentBlockEntityOnSide(facing.Opposite)))
-            || base.DoEmitSideAo(caller, facing);
+        => (facing == BlockFacing.UP && IsSealed(caller.GetCurrentBlockEntityOnSide(facing.Opposite))) || base.DoEmitSideAo(caller, facing);
 
     public override bool DoEmitSideAoByFlag(IGeometryTester caller, Vec3iAndFacingFlags vec, int flags)
-        => (SidingWallBlock.EmitsSideAo(BlockFacing.UP.Flag, flags) && IsSealed(caller.GetCurrentBlockEntityOnSide(vec)))
-            || base.DoEmitSideAoByFlag(caller, vec, flags);
+        => ((flags & BlockFacing.UP.Flag) != 0 && IsSealed(caller.GetCurrentBlockEntityOnSide(vec))) || base.DoEmitSideAoByFlag(caller, vec, flags);
 
     // Every floor's joists run north-south, so the north rim (framing-top) and the south rim
     // (framing-bottom) each drop where a framed floor carries the joists on, the way a stacked

@@ -1615,27 +1615,34 @@ public class SidingWallBlock : Block
 
     // Emitting side AO keeps a sealed cell's light out of neighbouring faces' smooth-lighting corners.
     // That light is the open side's (decision 0018), which is daylight when the panels face in. Only a
-    // quadrant on the panel's side emits, so the open side casts no shadow (decision 0099).
+    // quadrant whose flags name a face the panel or a deck covers emits, so the open side casts no shadow (decision 0099).
     public override bool DoEmitSideAo(IGeometryTester caller, BlockFacing facing)
-        => (EmitsSideAo(ClaimedFlags, facing.Flag) && IsSealed(caller.GetCurrentBlockEntityOnSide(facing.Opposite)))
-            || base.DoEmitSideAo(caller, facing);
+        => (SealedFlags(caller.GetCurrentBlockEntityOnSide(facing.Opposite)) & facing.Flag) != 0 || base.DoEmitSideAo(caller, facing);
 
     public override bool DoEmitSideAoByFlag(IGeometryTester caller, Vec3iAndFacingFlags vec, int flags)
-        => (EmitsSideAo(ClaimedFlags, flags) && IsSealed(caller.GetCurrentBlockEntityOnSide(vec)))
-            || base.DoEmitSideAoByFlag(caller, vec, flags);
-
-    // Whether a sealed cell claiming these faces emits side AO toward a quadrant with these flags; a claim
-    // with a horizontal face keeps answering for flags that name no horizontal face.
-    internal static bool EmitsSideAo(int claimed, int flags)
-        => (flags & claimed) != 0
-            || ((claimed & BlockFacing.HorizontalFlags) != 0 && (flags & BlockFacing.HorizontalFlags) == 0);
+        => (SealedFlags(caller.GetCurrentBlockEntityOnSide(vec)) & flags) != 0 || base.DoEmitSideAoByFlag(caller, vec, flags);
 
     // The relight skips when old and new absorption match, so the caller reads the old value before it edits the wall (decision 0034).
     internal void MarkAbsorptionChanged(IBlockAccessor accessor, BlockPos pos, int oldAbsorption)
         => accessor.MarkAbsorptionChanged(oldAbsorption, GetLightAbsorption(accessor, pos), pos);
 
-    internal bool IsSealed(BlockEntity? be)
-        => be is SidingWallEntity entity && AbsorptionOf(entity) > 0;
+    // ClaimsFace's horizontal faces as BlockFacing flags, fixed per block; -1 until first read.
+    private int claimedFlags = -1;
+
+    // The BlockFacing flags of the faces a sealed cell's layers cover, its panels' plus the top under a deck,
+    // or zero when the cell is not sealed (decision 0099).
+    internal int SealedFlags(BlockEntity? be)
+    {
+        if (be is not SidingWallEntity entity || AbsorptionOf(entity) <= 0) return 0;
+        if (claimedFlags < 0)
+        {
+            int flags = 0;
+            foreach (var face in BlockFacing.HORIZONTALS)
+                if (ClaimsFace(face)) flags |= face.Flag;
+            claimedFlags = flags;
+        }
+        return claimedFlags | (entity.Deck != null || entity.OuterDeck != null ? BlockFacing.UP.Flag : 0);
+    }
 
     // The horizontal step from a wall cell to the cell its dead space opens onto: away from the panel, diagonally for a cornerout.
     // A diagonal takes the same step, which is wrong for the triangle outside its panel (decision 0066).
@@ -1691,14 +1698,9 @@ public class SidingWallBlock : Block
     // Keyed by EnumBlockMaterial name (LayerResistance in wall.json); multiplies Resistance.
     private Dictionary<EnumBlockMaterial, float>? layerResistance;
 
-    // The BlockFacing flags of the faces ClaimsFace answers, read on every face-light call (decision 0099).
-    internal byte ClaimedFlags { get; private set; }
-
     public override void OnLoaded(ICoreAPI api)
     {
         base.OnLoaded(api);
-        foreach (var face in BlockFacing.HORIZONTALS)
-            if (ClaimsFace(face)) ClaimedFlags |= (byte)face.Flag;
         layerSounds = LayerTable(Attributes["LayerSounds"], entry => entry.AsObject(new BlockSounds()));
         layerResistance = LayerTable(Attributes["LayerResistance"], entry => entry.AsFloat(1f));
     }

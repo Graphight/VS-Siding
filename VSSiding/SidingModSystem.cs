@@ -629,10 +629,11 @@ public class SidingModSystem : ModSystem
             // has the same cell in its own interior and darkens it there.
             if (x + dx is < 0 or >= size || z + dz is < 0 or >= size) continue;
 
-            if (!wall.IsSealed(___game.BlockAccessor.GetBlockEntity(pos))) continue;
+            int sealedFlags = wall.SealedFlags(___game.BlockAccessor.GetBlockEntity(pos));
+            if (sealedFlags == 0) continue;
 
             ___currentChunkRgbsExt[i] = ___currentChunkRgbsExt[i + dx + dz * size];
-            mask[i] = wall.ClaimedFlags;
+            mask[i] = (byte)sealedFlags;
         }
 
         // A hosted block's cell darkens like a sealed wall cell (decision 0035). The guests this
@@ -652,10 +653,11 @@ public class SidingModSystem : ModSystem
                 var (dx, dz) = SidingWallBlock.OpenSide(wall.Variant["layout"], wall.Variant["side"]);
                 int x = extIndex % size, z = extIndex / size % size;
                 if (x + dx is < 0 or >= size || z + dz is < 0 or >= size) continue;
-                if (!wall.IsSealed(guest)) continue;
+                int sealedFlags = wall.SealedFlags(guest);
+                if (sealedFlags == 0) continue;
 
                 ___currentChunkRgbsExt[extIndex] = ___currentChunkRgbsExt[extIndex + dx + dz * size];
-                mask[extIndex] = wall.ClaimedFlags;
+                mask[extIndex] = (byte)sealedFlags;
             }
         }
     }
