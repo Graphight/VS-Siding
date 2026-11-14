@@ -288,7 +288,7 @@ public class WallShapeGenTests
             "back-tile3 8,12,8 16,13,16",
         ];
         Assert.Equal(expected, WallShapeGen.Generate("floor")["elements"]!
-            .Where(e => !((string)e["name"]!).StartsWith("poles") && !((string)e["name"]!).StartsWith("bamboo") && !((string)e["name"]!).StartsWith("stems") && !((string)e["name"]!).StartsWith("louvres") && !((string)e["name"]!).Contains("-rim"))
+            .Where(e => !new[] { "poles", "bamboo", "stems", "louvres" }.Any(((string)e["name"]!).StartsWith) && !((string)e["name"]!).Contains("-rim"))
             .Select(e => $"{e["name"]} {string.Join(",", e["from"]!.Select(v => (double)v!))} {string.Join(",", e["to"]!.Select(v => (double)v!))}")
             .ToArray());
     }

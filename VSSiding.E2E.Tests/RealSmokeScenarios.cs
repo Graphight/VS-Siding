@@ -24,11 +24,12 @@ public class RealSmokeScenarios : AtlasScenarioBase
     private static bool RealSmokeLoaded => Environment.GetEnvironmentVariable("SIDING_PROBE") == "realsmoke";
 
     private const string Stone = "game:rock-granite";
+    private const string Trapdoor = "game:trapdoor-solid-oak-1";
     private const int PollTicks = 100;
     // A hundred seconds of game time: smoke crosses a stretch of open air in a stone box slowly, and the open control has to get through.
     private const int Polls = 30;
 
-    private sealed record Arena(string Name, BlockPos Fire, BlockPos Between, BlockPos[] Measure);
+    private sealed record Arena(string Name, BlockPos Fire, BlockPos Between, BlockPos Far);
 
     private readonly List<Arena> arenas = new();
     private readonly List<(string Name, BlockPos Inside)> roomCells = new();
@@ -62,7 +63,7 @@ public class RealSmokeScenarios : AtlasScenarioBase
         Fill(Stone, Ring(fire, BlockFacing.UP, BlockFacing.NORTH, BlockFacing.SOUTH, BlockFacing.WEST));
         Fill(Stone, Ring(wall, BlockFacing.UP, BlockFacing.NORTH, BlockFacing.SOUTH));
         Fill(Stone, Ring(far, BlockFacing.UP, BlockFacing.NORTH, BlockFacing.SOUTH, BlockFacing.EAST));
-        arenas.Add(new Arena(name, fire, wall, new[] { far }));
+        arenas.Add(new Arena(name, fire, wall, far));
     }
 
     // fire, cell above it, measured cell above that, with the same boxes. The fire's cell is built in planks and cleared afterwards, as a floor is raised from a block below.
@@ -77,7 +78,7 @@ public class RealSmokeScenarios : AtlasScenarioBase
         Fill(Stone, Ring(fire, BlockFacing.NORTH, BlockFacing.SOUTH, BlockFacing.EAST, BlockFacing.WEST));
         Fill(Stone, Ring(above, BlockFacing.NORTH, BlockFacing.SOUTH, BlockFacing.EAST, BlockFacing.WEST));
         Fill(Stone, Ring(far, BlockFacing.NORTH, BlockFacing.SOUTH, BlockFacing.EAST, BlockFacing.WEST, BlockFacing.UP));
-        arenas.Add(new Arena(name, fire, above, new[] { far }));
+        arenas.Add(new Arena(name, fire, above, far));
     }
 
     private async Task Wall(ITestPlayer player, BlockPos cell, BlockPos inside, string? infill, int quantity)
@@ -87,8 +88,6 @@ public class RealSmokeScenarios : AtlasScenarioBase
         BlockFacing outward = BlockFacing.FromVector(cell.X - inside.X, 0, cell.Z - inside.Z);
         await Click(player, cell, infill, quantity, outward);
     }
-
-    private const string Trapdoor = "game:trapdoor-solid-oak-1";
 
     private async Task Deck(ITestPlayer player, BlockPos cell, bool filled, string fill = "game:clay-blue", int amount = 4)
     {
@@ -252,7 +251,7 @@ public class RealSmokeScenarios : AtlasScenarioBase
             foreach (Arena arena in arenas) Light(arena.Fire);
             foreach (var host in hostedCells.Where(host => host.Lit && host.Hosted)) Light(host.Cell, place: false);
             await World.Ticks(PollTicks);
-            foreach (Arena arena in arenas) peak[arena.Name] = Math.Max(peak[arena.Name], arena.Measure.Sum(Smoke));
+            foreach (Arena arena in arenas) peak[arena.Name] = Math.Max(peak[arena.Name], Smoke(arena.Far));
         }
         double seconds = (World.Api.World.ElapsedMilliseconds - started) / 1000.0;
 

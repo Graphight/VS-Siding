@@ -1221,9 +1221,9 @@ public static class WallShapeGen
            where hi > lo
            select OnDiagonal(e with { From = (e.From.X, e.From.Y, lo), To = (e.To.X, e.To.Y, hi), ClippedFrom = e }, suffix, shift);
 
-    // The stems over a run, laid on the cell's 0..16 and repeated along it as DiagonalFinish lays a finish, so the poles keep
+    // The stems, or a vent's louvres, over a run, laid on the cell's 0..16 and repeated along it as DiagonalFinish lays a finish, so the poles keep
     // their spacing and nodes through the run's ends instead of stretching as DiagonalRun stretches a slab.
-    private static IEnumerable<Element> DiagonalStems(double runLo, double runHi, string suffix = "", bool louvres = false)
+    private static IEnumerable<Element> DiagonalBands(double runLo, double runHi, string suffix = "", bool louvres = false)
         => from shift in new[] { -16, 0, 16 }
            from e in louvres ? LouvreBands(0, 16) : StemBands(0, 16)
            let lo = Math.Max(e.From.Z, 8 + runLo - shift)
@@ -1280,12 +1280,12 @@ public static class WallShapeGen
             DiagonalRun(e, 1 - DiagonalCorner, -DiagonalEnd, "-left"),
             DiagonalRun(e, DiagonalEnd, DiagonalCorner - 1, "-right"),
         }),
-        .. DiagonalStems(-DiagonalEnd, DiagonalEnd),
-        .. DiagonalStems(1 - DiagonalCorner, -DiagonalEnd, "-left"),
-        .. DiagonalStems(DiagonalEnd, DiagonalCorner - 1, "-right"),
-        .. DiagonalStems(-DiagonalEnd, DiagonalEnd, louvres: true),
-        .. DiagonalStems(1 - DiagonalCorner, -DiagonalEnd, "-left", true),
-        .. DiagonalStems(DiagonalEnd, DiagonalCorner - 1, "-right", true),
+        .. DiagonalBands(-DiagonalEnd, DiagonalEnd),
+        .. DiagonalBands(1 - DiagonalCorner, -DiagonalEnd, "-left"),
+        .. DiagonalBands(DiagonalEnd, DiagonalCorner - 1, "-right"),
+        .. DiagonalBands(-DiagonalEnd, DiagonalEnd, louvres: true),
+        .. DiagonalBands(1 - DiagonalCorner, -DiagonalEnd, "-left", true),
+        .. DiagonalBands(DiagonalEnd, DiagonalCorner - 1, "-right", true),
         .. DiagonalFinish(-DiagonalEnd, DiagonalEnd),
         .. DiagonalFinish(-DiagonalCorner, -DiagonalEnd, "-left"),
         .. DiagonalFinish(DiagonalEnd, DiagonalCorner, "-right"),

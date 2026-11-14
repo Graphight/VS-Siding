@@ -352,12 +352,12 @@ public class SidingWallBlockBuildFlowTests
         var expected = new Dictionary<(string Layout, string Picked), string?>
         {
             [("wall", "wall")] = null,
-            [("wall", "cornerout")] = "wall-cornerout-south",
-            [("wall", "diagonal")] = "wall-diagonal-south",
+            [("wall", "cornerout")] = "cornerout-south",
+            [("wall", "diagonal")] = "diagonal-south",
             [("wall", "floor")] = null,
             [("cornerout", "wall")] = null,
             [("cornerout", "cornerout")] = null,
-            [("cornerout", "diagonal")] = "wall-diagonal-west",
+            [("cornerout", "diagonal")] = "diagonal-west",
             [("diagonal", "wall")] = null,
             [("diagonal", "cornerout")] = null,
             [("diagonal", "diagonal")] = null,

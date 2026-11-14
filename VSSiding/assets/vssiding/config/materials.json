@@ -171,25 +171,15 @@
 			Consumes: { type: "item", code: "game:stone-{rock}", quantity: 4 },
 			Drops: [ { type: "item", code: "game:stone-{rock}", quantity: { avg: 4, var: 0 } } ]
 		},
-		"trapdoor-solid-{material}-{age}": {
-			Match: { type: "block", code: "game:trapdoor-solid-*-*", variant: ["material", "age"] },
+		"trapdoor-{style}-{material}-{age}": {
+			Match: { type: "block", code: "game:@trapdoor-(solid|window)-.*", variant: ["style", "material", "age"] },
 			DisplayName: "vssiding:infill-vent",
-			TextureBlock: "game:trapdoor-solid-{material}-{age}",
+			TextureBlock: "game:trapdoor-{style}-{material}-{age}",
 			Elements: "louvres",
 			Vent: true,
 			BlockMaterial: "Wood",
-			Consumes: { type: "block", code: "game:trapdoor-solid-{material}-{age}", quantity: 1 },
-			Drops: [ { type: "block", code: "game:trapdoor-solid-{material}-{age}", quantity: { avg: 1, var: 0 } } ]
-		},
-		"trapdoor-window-{material}-{age}": {
-			Match: { type: "block", code: "game:trapdoor-window-*-*", variant: ["material", "age"] },
-			DisplayName: "vssiding:infill-vent",
-			TextureBlock: "game:trapdoor-window-{material}-{age}",
-			Elements: "louvres",
-			Vent: true,
-			BlockMaterial: "Wood",
-			Consumes: { type: "block", code: "game:trapdoor-window-{material}-{age}", quantity: 1 },
-			Drops: [ { type: "block", code: "game:trapdoor-window-{material}-{age}", quantity: { avg: 1, var: 0 } } ]
+			Consumes: { type: "block", code: "game:trapdoor-{style}-{material}-{age}", quantity: 1 },
+			Drops: [ { type: "block", code: "game:trapdoor-{style}-{material}-{age}", quantity: { avg: 1, var: 0 } } ]
 		},
 		"rammed-{pattern}": {
 			Match: { type: "block", code: "game:rammed-light-*", variant: "pattern" },

@@ -448,13 +448,13 @@ public class SidingWallBlock : Block
     // on it moves to the second slot; one on the left end keeps that face as its front.
     internal static bool FrontMovesToSecondFace(string wallSide, string corneroutSide) => corneroutSide != wallSide;
 
-    // The block a bare frame becomes when the saw picks another layout (decision 0026): a wall turns
+    // The layout and side a bare frame becomes when the saw picks another layout (decision 0026): a wall turns
     // into a cornerout or a diagonal at the end clicked, a cornerout into a diagonal on the same
     // side, and nothing turns back. Null when the pick offers no upgrade.
     internal static string? ResolveFramingUpgrade(string layout, string side, string picked, Vec3d hitPosition) => (layout, picked) switch
     {
-        ("wall", "cornerout" or "diagonal") => $"wall-{picked}-{ResolveCornerUpgrade(side, hitPosition)}",
-        ("cornerout", "diagonal") => $"wall-diagonal-{side}",
+        ("wall", "cornerout" or "diagonal") => $"{picked}-{ResolveCornerUpgrade(side, hitPosition)}",
+        ("cornerout", "diagonal") => $"diagonal-{side}",
         _ => null,
     };
 
@@ -970,7 +970,7 @@ public class SidingWallBlock : Block
             return true;
         }
 
-        if (world.GetBlock(new AssetLocation("vssiding", FirstCodePart() + upgrade["wall".Length..])) is not SidingWallBlock target) return false;
+        if (world.GetBlock(new AssetLocation("vssiding", $"{FirstCodePart()}-{upgrade}")) is not SidingWallBlock target) return false;
 
         if (filled && world.GetIntersectingEntities(blockSel.Position, target.GetCollisionBoxes(world.BlockAccessor, blockSel.Position), e => e.IsInteractable) is { Length: > 0 })
         {

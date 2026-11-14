@@ -86,15 +86,15 @@ A cell hosting furniture holds the furniture block, not `wallvent`, so a vent pa
 A vent keeps its retention and its liquid barrier, so vanilla's room test and water treat it as a filled wall, and without Real Smoke it is a sealed louvred wall.
 The same patch sets `vssidingVentsSmoke` on `wallvent`, and `SideIsSolid` answers false for a block carrying it.
 Without that flag the side-solid answer above held the smoke of a fire on a vent's room face, since `IsAdjacentSidePorous` reads `SideIsSolid` and not the tag.
-`floorvent` needs no flag: a floor's top was already side-solid, and the probe's vent floor passes smoke.
-The probe reads smoke through a vent wall from either face (38 from the outer face, 102 from the room face), through a vent floor (118) and through a vent wall's deck (174), and a room roofed with a vent floor stays sealed.
+`floorvent` needs no flag: a fire under a floor vents into its cell through the underside, which is not side-solid, and the probe's vent floor passes smoke.
+The probe reads smoke through a vent wall from either face, through a vent floor and through a vent wall's deck, and a room roofed with a vent floor stays sealed; the amounts vary from run to run by tens of percent, so only whether smoke passes is asserted.
 
 **No vanilla roof block serves as the flue.**
 With one roof cell of a sealed room set to each, a wooden trapdoor keeps the room sealed and holds the smoke, and a window trapdoor, a barred trapdoor and a stick layer each leak the room.
 So the handbook names only the Siding vent.
 
 **Fires already host in a wall's cell.**
-A firepit and a forge host in a filled wall's cell, and a firepit lit there for the whole run leaves the wall's wood layers intact: vanilla's fire blocks carry no `Burning` behaviour, so they set nothing beside them alight, and no code was needed.
+A firepit and a forge host in a filled wall's cell, and a firepit lit there for the whole run leaves the wall's wood layers intact: the firepit, forge and clay oven carry no `Burning` behaviour (only the `fire` block spreads flame), so they set nothing beside them alight, and no code was needed.
 The clay oven is kept out by the solid-side rule of `SidingModSystem.HostRefusal`, contrary to the proposal's read of `clay/oven.json`, and left so.
 
 ## Alternatives considered
@@ -105,7 +105,7 @@ The clay oven is kept out by the solid-side rule of `SidingModSystem.HostRefusal
 - **Name a vanilla flue in the handbook in place of a vent.** None keeps the room sealed.
 
 ## Consequences & open questions
-- Water against a sealed wall face now draws an edge, a sealed face blocks a water wheel, and decor on a sealed face takes vanilla's solid-face path; none of these was looked at in game.
+- Water against a sealed wall face no longer draws its edge face, a sealed face blocks a water wheel, and a wallpaper or plaster decor on a sealed face draws flat on the cell's face; none of these was looked at in game.
 - A vent that keeps the heat and passes the smoke is not physical. Accepted: heat beyond vanilla's room retention is out of scope for the mod.
 - A post's deck taking a trapdoor and becoming a vent follows from the code, and no scenario covers it.
 - In the probe, the room under a vent floor counted one skylight cell where the planks roof counted none; whether that matters for a cellar was not looked at.
