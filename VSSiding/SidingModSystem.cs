@@ -699,8 +699,14 @@ public class SidingModSystem : ModSystem
         return false;
     }
 
+    // Read on every face-light call, so no LINQ here.
     internal static byte ClaimedFlags(SidingWallBlock wall)
-        => (byte)BlockFacing.HORIZONTALS.Where(wall.ClaimsFace).Sum(face => face.Flag);
+    {
+        int flags = 0;
+        foreach (var face in BlockFacing.HORIZONTALS)
+            if (wall.ClaimsFace(face)) flags |= face.Flag;
+        return (byte)flags;
+    }
 
     // The faces of the cell in front of a drawn face that corner k's vertex lies on: the tangent
     // directions toward ring cell 4+k, which CalcBlockFaceLight reads into corner k.

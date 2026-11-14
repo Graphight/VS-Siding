@@ -1614,12 +1614,23 @@ public class SidingWallBlock : Block
         => infillKey != null && infills[infillKey]["Transparent"].AsBool(false);
 
     // Emitting side AO keeps a sealed cell's light out of neighbouring faces' smooth-lighting corners.
-    // That light is the open side's (decision 0018), which is daylight when the panels face in.
+    // That light is the open side's (decision 0018), which is daylight when the panels face in. Only a
+    // quadrant on the panel's side emits; up/down-only flags keep a wall's answer.
     public override bool DoEmitSideAo(IGeometryTester caller, BlockFacing facing)
-        => IsSealed(caller.GetCurrentBlockEntityOnSide(facing.Opposite)) || base.DoEmitSideAo(caller, facing);
+        => (IsSealed(caller.GetCurrentBlockEntityOnSide(facing.Opposite)) && EmitsSideAo(SidingModSystem.ClaimedFlags(this), facing.Flag))
+            || base.DoEmitSideAo(caller, facing);
 
     public override bool DoEmitSideAoByFlag(IGeometryTester caller, Vec3iAndFacingFlags vec, int flags)
-        => IsSealed(caller.GetCurrentBlockEntityOnSide(vec)) || base.DoEmitSideAoByFlag(caller, vec, flags);
+        => (IsSealed(caller.GetCurrentBlockEntityOnSide(vec)) && EmitsSideAo(SidingModSystem.ClaimedFlags(this), flags))
+            || base.DoEmitSideAoByFlag(caller, vec, flags);
+
+    // Whether a sealed cell claiming these faces emits side AO toward a quadrant with these flags; a claim
+    // with a horizontal face keeps answering for flags that name no horizontal face.
+    internal static bool EmitsSideAo(int claimed, int flags)
+    {
+        const int horizontals = 0b1111;
+        return (flags & claimed) != 0 || ((claimed & horizontals) != 0 && (flags & horizontals) == 0);
+    }
 
     // The relight skips when old and new absorption match, so the caller reads the old value before it edits the wall (decision 0034).
     internal void MarkAbsorptionChanged(IBlockAccessor accessor, BlockPos pos, int oldAbsorption)

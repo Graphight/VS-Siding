@@ -57,6 +57,17 @@ public class SealedCellLightTests
         => Assert.Equal(unchecked((int)0x7F_44_22_00), SidingModSystem.Occlude(unchecked((int)0xFF_88_44_00), 0.5f));
 
     [Fact]
+    public void SideAoIsEmittedOnlyTowardAClaimedFaceAndKeepsAWallsVerticalAnswer()
+    {
+        int N = BlockFacing.NORTH.Flag, E = BlockFacing.EAST.Flag, W = BlockFacing.WEST.Flag, U = BlockFacing.UP.Flag, D = BlockFacing.DOWN.Flag;
+        int[] claimed = [N, N, N, N | E, N | E, N | E, N | E, U, U, U];
+        int[] flags = [N, E, E | U, E, W, N | D, U, U, N, D];
+        bool[] expected = [true, false, false, true, false, true, true, true, false, false];
+
+        Assert.Equal(expected, claimed.Zip(flags, SidingWallBlock.EmitsSideAo).ToArray());
+    }
+
+    [Fact]
     public void CornerFacesAreTheTangentDirectionsTowardEachRingCell()
     {
         int N = BlockFacing.NORTH.Flag, E = BlockFacing.EAST.Flag, S = BlockFacing.SOUTH.Flag, W = BlockFacing.WEST.Flag,

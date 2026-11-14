@@ -143,16 +143,16 @@ internal static class GuestLightPatches
 
         var pos = new BlockPos(tct.posX, tct.posY, tct.posZ, tct.dimension).Offset(facing.Opposite);
         SidingWallEntity? guest = GuestWalls.GuestAt(capi, pos);
-        if (guest?.Block is SidingWallBlock wall) __result |= wall.IsSealed(guest);
+        if (guest?.Block is SidingWallBlock wall) __result |= wall.IsSealed(guest) && SidingWallBlock.EmitsSideAo(SidingModSystem.ClaimedFlags(wall), facing.Flag);
     }
 
-    private static void SideAoByFlagPostfix(Block __instance, IGeometryTester caller, Vec3iAndFacingFlags vec, ref bool __result)
+    private static void SideAoByFlagPostfix(Block __instance, IGeometryTester caller, Vec3iAndFacingFlags vec, int flags, ref bool __result)
     {
         if (__result || !SidingModSystem.IsHostableId(__instance.BlockId)
             || SidingModSystem.capi is not { } capi || caller is not TCTCache tct) return;
 
         var pos = new BlockPos(tct.posX + vec.X, tct.posY + vec.Y, tct.posZ + vec.Z, tct.dimension);
         SidingWallEntity? guest = GuestWalls.GuestAt(capi, pos);
-        if (guest?.Block is SidingWallBlock wall) __result |= wall.IsSealed(guest);
+        if (guest?.Block is SidingWallBlock wall) __result |= wall.IsSealed(guest) && SidingWallBlock.EmitsSideAo(SidingModSystem.ClaimedFlags(wall), flags);
     }
 }
