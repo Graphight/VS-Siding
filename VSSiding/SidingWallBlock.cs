@@ -1048,7 +1048,7 @@ public class SidingWallBlock : Block
             else { entity.DeckInfill = infillKey; entity.LegacyDeck = false; }
             entity.MarkDirty(true);
             // Rooms only recompute on a chunk-dirty event, and the deck's retention just changed.
-            world.BlockAccessor.ExchangeBlock(Id, blockSel.Position);
+            world.BlockAccessor.ExchangeBlock(VentId(world, entity), blockSel.Position);
             SidingFloorBlock.MarkNeighboursDirty(world, blockSel.Position);
             ConsumeHeld(slot, consumes, isCreative);
             return true;
@@ -1145,12 +1145,28 @@ public class SidingWallBlock : Block
     internal static bool HasStyle(JsonObject finish, string style)
         => Array.IndexOf(finish["Styles"].AsArray<string>([]) ?? [], style) >= 0;
 
+    // A trapdoor infill, in the wall or either deck, puts the cell on the vent block, which Real Smoke tags porous (decision 0097).
+    internal bool HasVent(SidingWallEntity entity)
+        => IsVent(entity.Infill, Attributes["Infills"]) || IsVent(entity.DeckInfill, Attributes["Infills"]) || IsVent(entity.OuterDeckInfill, Attributes["Infills"]);
+
+    internal static bool IsVent(string? infill, JsonObject infills) => infill != null && infills[infill]["Vent"].AsBool();
+
+    internal int VentId(IWorldAccessor world, SidingWallEntity entity) => VentId(world, this, HasVent(entity));
+
+    // The block with this one's code and variants, on the vent or the plain first part.
+    internal static int VentId(IWorldAccessor world, Block block, bool vent)
+    {
+        string first = block.FirstCodePart();
+        string plain = first.EndsWith("vent") ? first[..^4] : first;
+        return world.GetBlock(new AssetLocation(block.Code.Domain, (vent ? plain + "vent" : plain) + block.Code.Path[first.Length..]))?.Id ?? block.Id;
+    }
+
     internal void OnInfillChanged(IWorldAccessor world, SidingWallEntity entity, BlockPos pos, int oldAbsorption)
     {
         entity.MarkDirty(true);
         MarkAbsorptionChanged(world.BlockAccessor, pos, oldAbsorption);
         // Infill changes retention, but rooms only recompute on a chunk-dirty event; exchanging the block for itself fires one.
-        world.BlockAccessor.ExchangeBlock(Id, pos);
+        world.BlockAccessor.ExchangeBlock(VentId(world, entity), pos);
         // It changes the liquid barrier too, and the block itself never changed, so the water
         // beside it has no idea. Without this a wall only starts damming once something else
         // nearby happens to make the neighbours recalculate - and only stops damming then too.
@@ -1918,7 +1934,7 @@ public class SidingWallBlock : Block
                 entity.DeckInfill = null;
                 entity.MarkDirty(true);
                 // Rooms only recompute on a chunk-dirty event, and the deck's retention just changed.
-                world.BlockAccessor.ExchangeBlock(Id, pos);
+                world.BlockAccessor.ExchangeBlock(VentId(world, entity), pos);
                 SidingFloorBlock.MarkNeighboursDirty(world, pos);
                 // Decor only goes on a sealed top, so a rug left on the bare joists comes off with the infill.
                 world.BlockAccessor.BreakDecor(pos, BlockFacing.UP);
@@ -1928,7 +1944,7 @@ public class SidingWallBlock : Block
             case "outerdeckinfill":
                 entity.OuterDeckInfill = null;
                 entity.MarkDirty(true);
-                world.BlockAccessor.ExchangeBlock(Id, pos);
+                world.BlockAccessor.ExchangeBlock(VentId(world, entity), pos);
                 SidingFloorBlock.MarkNeighboursDirty(world, pos);
                 return;
             case "deck": SetDeck(world, entity, pos, null); return;

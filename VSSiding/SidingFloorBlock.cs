@@ -145,7 +145,7 @@ public class SidingFloorBlock : Block
         entity.MarkDirty(true);
         MarkAbsorptionChanged(world.BlockAccessor, pos, entity.Framing, oldInfill);
         // Rooms only recompute on a chunk-dirty event, as on the wall; exchanging the block for itself fires one.
-        world.BlockAccessor.ExchangeBlock(Id, pos);
+        world.BlockAccessor.ExchangeBlock(SidingWallBlock.VentId(world, this, SidingWallBlock.IsVent(entity.Infill, Attributes["Infills"])), pos);
         MarkNeighboursDirty(world, pos);
     }
 
