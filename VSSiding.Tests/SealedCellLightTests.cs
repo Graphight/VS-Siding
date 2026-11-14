@@ -57,6 +57,24 @@ public class SealedCellLightTests
         => Assert.Equal(unchecked((int)0x7F_44_22_00), SidingModSystem.Occlude(unchecked((int)0xFF_88_44_00), 0.5f));
 
     [Fact]
+    public void CornerFacesAreTheTangentDirectionsTowardEachRingCell()
+    {
+        int N = BlockFacing.NORTH.Flag, E = BlockFacing.EAST.Flag, S = BlockFacing.SOUTH.Flag, W = BlockFacing.WEST.Flag,
+            U = BlockFacing.UP.Flag, D = BlockFacing.DOWN.Flag;
+        var expected = new[]
+        {
+            new[] { E | U, W | U, E | D, W | D },
+            new[] { U | S, U | N, D | S, D | N },
+            new[] { W | U, E | U, W | D, E | D },
+            new[] { U | N, U | S, D | N, D | S },
+            new[] { E | S, W | S, E | N, W | N },
+            new[] { E | N, W | N, E | S, W | S },
+        };
+        var actual = Enumerable.Range(0, 6).Select(side => Enumerable.Range(0, 4).Select(k => SidingModSystem.CornerFaces(side, k)).ToArray()).ToArray();
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
     public void PatchTargetsStillExist()
     {
         Assert.NotNull(AccessTools.Method(typeof(ChunkTesselator), "BuildExtendedChunkData"));
