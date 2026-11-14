@@ -1,6 +1,6 @@
 # Sealed wall glow
 
-- Status: Accepted
+- Status: Accepted; side AO toward every quadrant superseded by 0099
 - Created: 2026-09-18
 - Reflects: playtest on branch `siding-cellar-strength` at 63ea9ae; vanilla 1.21 `TCTCache.CalcBlockFaceLight`, `ChunkIlluminator`, `WorldChunk.GetLightAbsorptionAt` and `BlockMicroBlock.DoEmitSideAo` (decompiled from `VintagestoryLib.dll`/`VSSurvivalMod.dll`); playtest on branch `sealed-wall-glow` at f87a9d2
 

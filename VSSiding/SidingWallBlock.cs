@@ -1614,19 +1614,35 @@ public class SidingWallBlock : Block
         => infillKey != null && infills[infillKey]["Transparent"].AsBool(false);
 
     // Emitting side AO keeps a sealed cell's light out of neighbouring faces' smooth-lighting corners.
-    // That light is the open side's (decision 0018), which is daylight when the panels face in.
+    // That light is the open side's (decision 0018), which is daylight when the panels face in. Only a
+    // quadrant whose flags name a face the panel or a deck covers emits, so the open side casts no shadow (decision 0099).
     public override bool DoEmitSideAo(IGeometryTester caller, BlockFacing facing)
-        => IsSealed(caller.GetCurrentBlockEntityOnSide(facing.Opposite)) || base.DoEmitSideAo(caller, facing);
+        => (SealedFlags(caller.GetCurrentBlockEntityOnSide(facing.Opposite)) & facing.Flag) != 0 || base.DoEmitSideAo(caller, facing);
 
     public override bool DoEmitSideAoByFlag(IGeometryTester caller, Vec3iAndFacingFlags vec, int flags)
-        => IsSealed(caller.GetCurrentBlockEntityOnSide(vec)) || base.DoEmitSideAoByFlag(caller, vec, flags);
+        => (SealedFlags(caller.GetCurrentBlockEntityOnSide(vec)) & flags) != 0 || base.DoEmitSideAoByFlag(caller, vec, flags);
 
     // The relight skips when old and new absorption match, so the caller reads the old value before it edits the wall (decision 0034).
     internal void MarkAbsorptionChanged(IBlockAccessor accessor, BlockPos pos, int oldAbsorption)
         => accessor.MarkAbsorptionChanged(oldAbsorption, GetLightAbsorption(accessor, pos), pos);
 
-    internal bool IsSealed(BlockEntity? be)
-        => be is SidingWallEntity entity && AbsorptionOf(entity) > 0;
+    // ClaimsFace's horizontal faces as BlockFacing flags, fixed per block; -1 until first read.
+    private int claimedFlags = -1;
+
+    // The BlockFacing flags of the faces a sealed cell's layers cover, its panels' plus the top under a deck,
+    // or zero when the cell is not sealed (decision 0099).
+    internal int SealedFlags(BlockEntity? be)
+    {
+        if (be is not SidingWallEntity entity || AbsorptionOf(entity) <= 0) return 0;
+        if (claimedFlags < 0)
+        {
+            int flags = 0;
+            foreach (var face in BlockFacing.HORIZONTALS)
+                if (ClaimsFace(face)) flags |= face.Flag;
+            claimedFlags = flags;
+        }
+        return claimedFlags | (entity.Deck != null || entity.OuterDeck != null ? BlockFacing.UP.Flag : 0);
+    }
 
     // The horizontal step from a wall cell to the cell its dead space opens onto: away from the panel, diagonally for a cornerout.
     // A diagonal takes the same step, which is wrong for the triangle outside its panel (decision 0066).

@@ -583,7 +583,8 @@ public class SidingModSystem : ModSystem
 
     // Both halves of the fix run on the tessellation thread, one chunk at a time, so what a
     // chunk's postfix records is what its own face-light calls read back.
-    [ThreadStatic] private static bool[]? sealedCells;
+    // Per cell, the BlockFacing flags of the faces its panel covers; zero is not sealed.
+    [ThreadStatic] private static byte[]? sealedCells;
     [ThreadStatic] private static int[]? sealedCellRgbs;
 
     // A sealed wall's cell stores the sunlight flowing in from outside (decision 0015), and the
@@ -596,7 +597,7 @@ public class SidingModSystem : ModSystem
         int chunkX, int chunkY, int chunkZ)
     {
         const int size = 34;
-        var mask = sealedCells ??= new bool[___currentChunkBlocksExt.Length];
+        var mask = sealedCells ??= new byte[___currentChunkBlocksExt.Length];
         Array.Clear(mask);
         sealedCellRgbs = ___currentChunkRgbsExt;
 
@@ -617,7 +618,7 @@ public class SidingModSystem : ModSystem
                 if (y == 0 || !floor.IsSealed(___game.BlockAccessor.GetBlockEntity(pos))) continue;
 
                 ___currentChunkRgbsExt[i] = ___currentChunkRgbsExt[i - size * size];
-                mask[i] = true;
+                mask[i] = (byte)BlockFacing.UP.Flag;
                 continue;
             }
 
@@ -628,10 +629,11 @@ public class SidingModSystem : ModSystem
             // has the same cell in its own interior and darkens it there.
             if (x + dx is < 0 or >= size || z + dz is < 0 or >= size) continue;
 
-            if (!wall.IsSealed(___game.BlockAccessor.GetBlockEntity(pos))) continue;
+            int sealedFlags = wall.SealedFlags(___game.BlockAccessor.GetBlockEntity(pos));
+            if (sealedFlags == 0) continue;
 
             ___currentChunkRgbsExt[i] = ___currentChunkRgbsExt[i + dx + dz * size];
-            mask[i] = true;
+            mask[i] = (byte)sealedFlags;
         }
 
         // A hosted block's cell darkens like a sealed wall cell (decision 0035). The guests this
@@ -651,10 +653,11 @@ public class SidingModSystem : ModSystem
                 var (dx, dz) = SidingWallBlock.OpenSide(wall.Variant["layout"], wall.Variant["side"]);
                 int x = extIndex % size, z = extIndex / size % size;
                 if (x + dx is < 0 or >= size || z + dz is < 0 or >= size) continue;
-                if (!wall.IsSealed(guest)) continue;
+                int sealedFlags = wall.SealedFlags(guest);
+                if (sealedFlags == 0) continue;
 
                 ___currentChunkRgbsExt[extIndex] = ___currentChunkRgbsExt[extIndex + dx + dz * size];
-                mask[extIndex] = true;
+                mask[extIndex] = (byte)sealedFlags;
             }
         }
     }
@@ -677,20 +680,38 @@ public class SidingModSystem : ModSystem
 
     // Smooth lighting averages a face's own sample with the cells ringing it, and for the floor
     // face under a thin wall one of those is the sunlit cell just outside - which is the daylight
-    // that lit a sealed room's floor edges. Faces onto a sealed cell take the flat path instead,
-    // dimmed by the occlusion vanilla gives a face onto a side-AO cell, or the dead space reads
-    // brighter than the AO-shaded floor beside it (decision 0034). Where vanilla already takes its
-    // own flat path it reads the rewritten light unaided, so those faces are left to it.
+    // that lit a sealed room's floor edges. Faces onto a sealed cell take the sealed cell's light
+    // instead, each corner dimmed by vanilla's side-AO occlusion only where its vertex touches the
+    // panel, or every corner when the panel faces the drawn face (decisions 0034, 0099). Where vanilla
+    // already takes its own flat path it reads the rewritten light unaided, so those faces are left to it.
     internal static bool SealedCellFaceLightPrefix(TCTCache __instance, int tileSide, int extNeibIndex3d, ref long __result)
     {
-        if (sealedCells is not { } mask || !mask[extNeibIndex3d]) return true;
+        if (sealedCells is not { } mask || mask[extNeibIndex3d] == 0) return true;
         if (!__instance.aoAndSmoothShadows || !__instance.block.SideAo[tileSide]) return true;
 
-        int light = Occlude(sealedCellRgbs![extNeibIndex3d], __instance.occ);
+        int claimed = mask[extNeibIndex3d];
+        int rgb = sealedCellRgbs![extNeibIndex3d];
+        int shadedRgb = Occlude(rgb, __instance.occ);
+        bool facingPanel = (claimed & BlockFacing.ALLFACES[tileSide].Opposite.Flag) != 0;
         var corners = __instance.CurrentLightRGBByCorner;
-        corners[0] = corners[1] = corners[2] = corners[3] = light;
-        __result = light * 4;   // int arithmetic, as vanilla's flat path returns it
+        int total = 0;
+        for (int k = 0; k < 4; k++)
+            total += corners[k] = facingPanel || (claimed & CornerFaces(tileSide, k)) != 0 ? shadedRgb : rgb;
+        __result = total;   // int arithmetic, as vanilla's flat path returns it
         return false;
+    }
+
+    // The faces of the cell in front of a drawn face that corner k's vertex lies on: the tangent
+    // directions toward ring cell 4+k, which CalcBlockFaceLight reads into corner k.
+    internal static int CornerFaces(int tileSide, int k)
+    {
+        var ring = CubeFaceVertices.blockFaceVerticesCentered[tileSide][4 + k];
+        var normal = BlockFacing.ALLFACES[tileSide].Normali;
+        int flags = 0;
+        if (normal.X == 0 && ring.X != 0) flags |= (ring.X > 0 ? BlockFacing.EAST : BlockFacing.WEST).Flag;
+        if (normal.Y == 0 && ring.Y != 0) flags |= (ring.Y > 0 ? BlockFacing.UP : BlockFacing.DOWN).Flag;
+        if (normal.Z == 0 && ring.Z != 0) flags |= (ring.Z > 0 ? BlockFacing.SOUTH : BlockFacing.NORTH).Flag;
+        return flags;
     }
 
     // Scales all four packed bytes, sunlight included, as TCTCache.CornerAoRGB does.
