@@ -1145,7 +1145,7 @@ public class SidingWallBlock : Block
     internal static bool HasStyle(JsonObject finish, string style)
         => Array.IndexOf(finish["Styles"].AsArray<string>([]) ?? [], style) >= 0;
 
-    // A trapdoor infill, in the wall or either deck, puts the cell on the vent block, which Real Smoke tags porous (decision 0097).
+    // A trapdoor infill, in the wall or either deck, puts the cell on the vent block, which Real Smoke tags porous (decision 0100).
     internal bool HasVent(SidingWallEntity entity)
         => IsVent(entity.Infill, Attributes["Infills"]) || IsVent(entity.DeckInfill, Attributes["Infills"]) || IsVent(entity.OuterDeckInfill, Attributes["Infills"]);
 
@@ -1330,7 +1330,7 @@ public class SidingWallBlock : Block
         return ComputeLiquidBarrier(ClaimsFace(face), entity?.Framing, entity?.Infill, Attributes);
     }
 
-    // Real Smoke's fire venting and vanilla's water edges ask this; a face that dams liquid is solid to them (decision 0020, revisited).
+    // Real Smoke's fire venting and vanilla's water edges ask this; a face that dams liquid is solid to them (decision 0100).
     // A vent Real Smoke tags porous is open to a fire's smoke on either face, so it is not solid to it.
     public override bool SideIsSolid(BlockPos pos, int faceIndex)
         => !Attributes.IsTrue("vssidingVentsSmoke") && GetLiquidBarrierHeightOnSide(BlockFacing.ALLFACES[faceIndex], pos) >= 1f;

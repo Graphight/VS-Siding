@@ -1,6 +1,6 @@
 # 0020 — What `sidesolid: false` turns off
 
-- Status: Accepted
+- Status: Accepted; `SideIsSolid` left false superseded by 0100
 - Created: 2026-09-20
 - Reflects: proposal `sidesolid-derived-behaviour`; `Vintagestory.API.Common.Block` from `VintagestoryAPI.xml`/`VintagestoryAPI.dll` 1.21; three bugs found by playtest rather than by reading (decisions 0002, 0015, 0019)
 
