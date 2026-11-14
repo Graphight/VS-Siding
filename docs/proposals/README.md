@@ -8,8 +8,6 @@ An idea that's been thought through but not acted on. Mutable: edit freely, argu
 
 ## Open
 
-- `real-smoke-flues`: a player vents a kitchen through trellises, which costs the room its heat, and asks for a flue or a hearth in a wall.
-Real Smoke stops smoke at a face that dams liquid, which a filled wall already reports, so the proposal plays what reading cannot settle and adds a vented wall on that mod's chimney behaviour only if no vanilla block already serves.
 - `walls-under-roofing`: a flat-topped wall leaves a stepped triangle under a Roofing gable.
 The proposal adds a raked wall, its top cut to a pitch picked on the saw and measured to match Roofing's slopes, without reading Roofing's state.
 A first cut takes framing and infill only, one generated shape per pitch as the diagonal wall's is; which cells of a Roofing gable are free for it is still to be built and looked at.
