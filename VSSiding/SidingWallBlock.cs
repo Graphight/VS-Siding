@@ -1314,6 +1314,10 @@ public class SidingWallBlock : Block
         return ComputeLiquidBarrier(ClaimsFace(face), entity?.Framing, entity?.Infill, Attributes);
     }
 
+    // Real Smoke's fire venting and vanilla's water edges ask this; a face that dams liquid is solid to them (decision 0020, revisited).
+    public override bool SideIsSolid(BlockPos pos, int faceIndex)
+        => GetLiquidBarrierHeightOnSide(BlockFacing.ALLFACES[faceIndex], pos) >= 1f;
+
     // Full height or nothing: a wall either dams its face or it doesn't. A cooling infill retains
     // negatively but still dams, so this asks whether retention is non-zero, not what sign it has.
     internal static float ComputeLiquidBarrier(bool claimed, string? framingKey, string? infillKey, JsonObject attributes)

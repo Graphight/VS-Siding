@@ -12,19 +12,19 @@ The last column is what the block under test answers for the face towards the fi
 
 | Arrangement | Smoke | Faces |
 | --- | --- | --- |
-| control: open cell | smoke passes (70) | fire side barrier 0, side solid false; far side barrier 0, side solid false |
+| control: open cell | smoke passes (66) | fire side barrier 0, side solid false; far side barrier 0, side solid false |
 | control: stone | smoke held (0) | fire side barrier 1, side solid true; far side barrier 1, side solid true |
-| wall, bare frame, fire on the outer face | smoke passes (58) | fire side barrier 0, side solid false; far side barrier 0, side solid false |
-| wall, clay infill, fire on the outer face | smoke held (0) | fire side barrier 0, side solid false; far side barrier 1, side solid false |
-| wall, wattle infill, fire on the outer face | smoke held (0) | fire side barrier 0, side solid false; far side barrier 1, side solid false |
-| wall, glass infill, fire on the outer face | smoke held (0) | fire side barrier 0, side solid false; far side barrier 1, side solid false |
-| wall, clay infill hosting a lantern, fire on the outer face | smoke held (0) | fire side barrier 0, side solid false; far side barrier 1, side solid false |
-| wall, bare frame, fire on the room face | smoke passes (84) | fire side barrier 0, side solid false; far side barrier 0, side solid false |
-| wall, clay infill, fire on the room face | smoke passes (188) | fire side barrier 1, side solid false; far side barrier 0, side solid false |
-| wall, wattle infill, fire on the room face | smoke passes (274) | fire side barrier 1, side solid false; far side barrier 0, side solid false |
-| wall, glass infill, fire on the room face | smoke passes (156) | fire side barrier 1, side solid false; far side barrier 0, side solid false |
-| wall, clay infill hosting a lantern, fire on the room face | smoke held (0) | fire side barrier 1, side solid false; far side barrier 0, side solid false |
-| control: open cell above | smoke passes (176) | fire side barrier 0, side solid false; far side barrier 0, side solid false |
+| wall, bare frame, fire on the outer face | smoke passes (50) | fire side barrier 0, side solid false; far side barrier 0, side solid false |
+| wall, clay infill, fire on the outer face | smoke held (0) | fire side barrier 0, side solid false; far side barrier 1, side solid true |
+| wall, wattle infill, fire on the outer face | smoke held (0) | fire side barrier 0, side solid false; far side barrier 1, side solid true |
+| wall, glass infill, fire on the outer face | smoke held (0) | fire side barrier 0, side solid false; far side barrier 1, side solid true |
+| wall, clay infill hosting a lantern, fire on the outer face | smoke held (0) | fire side barrier 0, side solid false; far side barrier 1, side solid true |
+| wall, bare frame, fire on the room face | smoke passes (92) | fire side barrier 0, side solid false; far side barrier 0, side solid false |
+| wall, clay infill, fire on the room face | smoke held (0) | fire side barrier 1, side solid true; far side barrier 0, side solid false |
+| wall, wattle infill, fire on the room face | smoke held (0) | fire side barrier 1, side solid true; far side barrier 0, side solid false |
+| wall, glass infill, fire on the room face | smoke held (0) | fire side barrier 1, side solid true; far side barrier 0, side solid false |
+| wall, clay infill hosting a lantern, fire on the room face | smoke held (0) | fire side barrier 1, side solid true; far side barrier 0, side solid false |
+| control: open cell above | smoke passes (158) | fire side barrier 0, side solid false; far side barrier 0, side solid false |
 | control: stone above | smoke held (0) | fire side barrier 1, side solid true; far side barrier 1, side solid true |
 | floor, bare joists | smoke held (0) | fire side barrier 0, side solid false; far side barrier 1, side solid true |
 | floor, clay infill | smoke held (0) | fire side barrier 0, side solid false; far side barrier 1, side solid true |
@@ -33,7 +33,7 @@ The last column is what the block under test answers for the face towards the fi
 | roof of a wooden trapdoor | smoke held (0) | fire side barrier 1, side solid true; far side barrier 0, side solid false |
 | roof of a wooden window trapdoor | smoke held (0) | fire side barrier 0, side solid true; far side barrier 0, side solid false |
 | roof of a barred trapdoor | smoke held (0) | fire side barrier 0, side solid true; far side barrier 0, side solid false |
-| roof of a stick layer | smoke passes (102) | fire side barrier 0, side solid false; far side barrier 0, side solid false |
+| roof of a stick layer | smoke passes (100) | fire side barrier 0, side solid false; far side barrier 0, side solid false |
 | chimney course over a clay floor | smoke held (0) | fire side barrier 0, side solid false; far side barrier 1, side solid true |
 
 ## Room retention under a flue

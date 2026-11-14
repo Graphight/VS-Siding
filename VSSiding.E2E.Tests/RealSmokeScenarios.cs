@@ -279,10 +279,9 @@ public class RealSmokeScenarios : AtlasScenarioBase
         ["wall, glass infill, fire on the outer face"] = Held,
         ["wall, clay infill hosting a lantern, fire on the outer face"] = Held,
         ["wall, bare frame, fire on the room face"] = Passes,
-        // A sealed face leaks smoke from the room: SideIsSolid is false on it, so the emitter vents into the cell and the open far face lets it on.
-        ["wall, clay infill, fire on the room face"] = Passes,
-        ["wall, wattle infill, fire on the room face"] = Passes,
-        ["wall, glass infill, fire on the room face"] = Passes,
+        ["wall, clay infill, fire on the room face"] = Held,
+        ["wall, wattle infill, fire on the room face"] = Held,
+        ["wall, glass infill, fire on the room face"] = Held,
         ["wall, clay infill hosting a lantern, fire on the room face"] = Held,
         ["control: open cell above"] = Passes,
         ["control: stone above"] = Held,
