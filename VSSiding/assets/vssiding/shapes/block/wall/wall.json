@@ -13264,6 +13264,696 @@
       }
     },
     {
+      "name": "louvres-top",
+      "from": [
+        1.75,
+        15.0,
+        1.0
+      ],
+      "to": [
+        2.75,
+        15.25,
+        15.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#infill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.25
+          ]
+        },
+        "east": {
+          "texture": "#infill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            0.25
+          ]
+        },
+        "south": {
+          "texture": "#infill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.25
+          ]
+        },
+        "west": {
+          "texture": "#infill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            0.25
+          ]
+        },
+        "up": {
+          "texture": "#infill",
+          "uv": [
+            0.0,
+            1.0,
+            1.0,
+            15.0
+          ]
+        },
+        "down": {
+          "texture": "#infill",
+          "uv": [
+            0.0,
+            1.0,
+            1.0,
+            15.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "louvres",
+      "from": [
+        1.25,
+        1.0,
+        1.0
+      ],
+      "to": [
+        2.25,
+        1.25,
+        15.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#infill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.25
+          ]
+        },
+        "east": {
+          "texture": "#infill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            0.25
+          ]
+        },
+        "south": {
+          "texture": "#infill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.25
+          ]
+        },
+        "west": {
+          "texture": "#infill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            0.25
+          ]
+        },
+        "up": {
+          "texture": "#infill",
+          "uv": [
+            0.0,
+            1.0,
+            1.0,
+            15.0
+          ]
+        },
+        "down": {
+          "texture": "#infill",
+          "uv": [
+            0.0,
+            1.0,
+            1.0,
+            15.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "louvres",
+      "from": [
+        1.75,
+        2.25,
+        1.0
+      ],
+      "to": [
+        2.75,
+        3.25,
+        15.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#infill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#infill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#infill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#infill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#infill",
+          "uv": [
+            0.0,
+            1.0,
+            1.0,
+            15.0
+          ]
+        },
+        "down": {
+          "texture": "#infill",
+          "uv": [
+            0.0,
+            1.0,
+            1.0,
+            15.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "louvres",
+      "from": [
+        1.25,
+        4.25,
+        1.0
+      ],
+      "to": [
+        2.25,
+        5.25,
+        15.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#infill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#infill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#infill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#infill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#infill",
+          "uv": [
+            0.0,
+            1.0,
+            1.0,
+            15.0
+          ]
+        },
+        "down": {
+          "texture": "#infill",
+          "uv": [
+            0.0,
+            1.0,
+            1.0,
+            15.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "louvres",
+      "from": [
+        1.75,
+        6.25,
+        1.0
+      ],
+      "to": [
+        2.75,
+        7.25,
+        15.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#infill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#infill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#infill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#infill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#infill",
+          "uv": [
+            0.0,
+            1.0,
+            1.0,
+            15.0
+          ]
+        },
+        "down": {
+          "texture": "#infill",
+          "uv": [
+            0.0,
+            1.0,
+            1.0,
+            15.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "louvres",
+      "from": [
+        1.25,
+        8.25,
+        1.0
+      ],
+      "to": [
+        2.25,
+        9.25,
+        15.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#infill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#infill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#infill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#infill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#infill",
+          "uv": [
+            0.0,
+            1.0,
+            1.0,
+            15.0
+          ]
+        },
+        "down": {
+          "texture": "#infill",
+          "uv": [
+            0.0,
+            1.0,
+            1.0,
+            15.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "louvres",
+      "from": [
+        1.75,
+        10.25,
+        1.0
+      ],
+      "to": [
+        2.75,
+        11.25,
+        15.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#infill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#infill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#infill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#infill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#infill",
+          "uv": [
+            0.0,
+            1.0,
+            1.0,
+            15.0
+          ]
+        },
+        "down": {
+          "texture": "#infill",
+          "uv": [
+            0.0,
+            1.0,
+            1.0,
+            15.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "louvres",
+      "from": [
+        1.25,
+        12.25,
+        1.0
+      ],
+      "to": [
+        2.25,
+        13.25,
+        15.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#infill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#infill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#infill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#infill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#infill",
+          "uv": [
+            0.0,
+            1.0,
+            1.0,
+            15.0
+          ]
+        },
+        "down": {
+          "texture": "#infill",
+          "uv": [
+            0.0,
+            1.0,
+            1.0,
+            15.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "louvres",
+      "from": [
+        1.75,
+        14.25,
+        1.0
+      ],
+      "to": [
+        2.75,
+        15.0,
+        15.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#infill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.75
+          ]
+        },
+        "east": {
+          "texture": "#infill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            0.75
+          ]
+        },
+        "south": {
+          "texture": "#infill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.75
+          ]
+        },
+        "west": {
+          "texture": "#infill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            0.75
+          ]
+        },
+        "up": {
+          "texture": "#infill",
+          "uv": [
+            0.0,
+            1.0,
+            1.0,
+            15.0
+          ]
+        },
+        "down": {
+          "texture": "#infill",
+          "uv": [
+            0.0,
+            1.0,
+            1.0,
+            15.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "louvres-bottom",
+      "from": [
+        1.25,
+        0.25,
+        1.0
+      ],
+      "to": [
+        2.25,
+        1.0,
+        15.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#infill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.75
+          ]
+        },
+        "east": {
+          "texture": "#infill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            0.75
+          ]
+        },
+        "south": {
+          "texture": "#infill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.75
+          ]
+        },
+        "west": {
+          "texture": "#infill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            0.75
+          ]
+        },
+        "up": {
+          "texture": "#infill",
+          "uv": [
+            0.0,
+            1.0,
+            1.0,
+            15.0
+          ]
+        },
+        "down": {
+          "texture": "#infill",
+          "uv": [
+            0.0,
+            1.0,
+            1.0,
+            15.0
+          ]
+        }
+      }
+    },
+    {
       "name": "infill-pane",
       "from": [
         2.0,
@@ -66125,6 +66815,1284 @@
       }
     },
     {
+      "name": "deck-west-louvres-top",
+      "from": [
+        4.25,
+        13.25,
+        0.0
+      ],
+      "to": [
+        5.25,
+        14.25,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-west-louvres-top",
+      "from": [
+        6.25,
+        13.75,
+        0.0
+      ],
+      "to": [
+        7.25,
+        14.75,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-west-louvres-top",
+      "from": [
+        8.25,
+        13.25,
+        0.0
+      ],
+      "to": [
+        9.25,
+        14.25,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-west-louvres-top",
+      "from": [
+        10.25,
+        13.75,
+        0.0
+      ],
+      "to": [
+        11.25,
+        14.75,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-west-louvres-top",
+      "from": [
+        12.25,
+        13.25,
+        0.0
+      ],
+      "to": [
+        13.25,
+        14.25,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-west-louvres-top",
+      "from": [
+        14.25,
+        13.75,
+        0.0
+      ],
+      "to": [
+        15.25,
+        14.75,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-west-louvres",
+      "from": [
+        4.25,
+        13.25,
+        1.0
+      ],
+      "to": [
+        5.25,
+        14.25,
+        15.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-west-louvres",
+      "from": [
+        6.25,
+        13.75,
+        1.0
+      ],
+      "to": [
+        7.25,
+        14.75,
+        15.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-west-louvres",
+      "from": [
+        8.25,
+        13.25,
+        1.0
+      ],
+      "to": [
+        9.25,
+        14.25,
+        15.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-west-louvres",
+      "from": [
+        10.25,
+        13.75,
+        1.0
+      ],
+      "to": [
+        11.25,
+        14.75,
+        15.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-west-louvres",
+      "from": [
+        12.25,
+        13.25,
+        1.0
+      ],
+      "to": [
+        13.25,
+        14.25,
+        15.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-west-louvres",
+      "from": [
+        14.25,
+        13.75,
+        1.0
+      ],
+      "to": [
+        15.25,
+        14.75,
+        15.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-west-louvres-bottom",
+      "from": [
+        4.25,
+        13.25,
+        15.0
+      ],
+      "to": [
+        5.25,
+        14.25,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-west-louvres-bottom",
+      "from": [
+        6.25,
+        13.75,
+        15.0
+      ],
+      "to": [
+        7.25,
+        14.75,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-west-louvres-bottom",
+      "from": [
+        8.25,
+        13.25,
+        15.0
+      ],
+      "to": [
+        9.25,
+        14.25,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-west-louvres-bottom",
+      "from": [
+        10.25,
+        13.75,
+        15.0
+      ],
+      "to": [
+        11.25,
+        14.75,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-west-louvres-bottom",
+      "from": [
+        12.25,
+        13.25,
+        15.0
+      ],
+      "to": [
+        13.25,
+        14.25,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-west-louvres-bottom",
+      "from": [
+        14.25,
+        13.75,
+        15.0
+      ],
+      "to": [
+        15.25,
+        14.75,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
       "name": "deck-west-back",
       "from": [
         4.0,
@@ -84739,6 +86707,1142 @@
             0.0,
             12.0,
             0.5
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-south-louvres-top",
+      "from": [
+        0.25,
+        13.25,
+        0.0
+      ],
+      "to": [
+        1.25,
+        14.25,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-south-louvres-top",
+      "from": [
+        2.25,
+        13.75,
+        0.0
+      ],
+      "to": [
+        3.25,
+        14.75,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-south-louvres-top",
+      "from": [
+        4.25,
+        13.25,
+        0.0
+      ],
+      "to": [
+        5.25,
+        14.25,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-south-louvres-top",
+      "from": [
+        6.25,
+        13.75,
+        0.0
+      ],
+      "to": [
+        7.25,
+        14.75,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-south-louvres-top",
+      "from": [
+        8.25,
+        13.25,
+        0.0
+      ],
+      "to": [
+        9.25,
+        14.25,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-south-louvres-top",
+      "from": [
+        10.25,
+        13.75,
+        0.0
+      ],
+      "to": [
+        11.25,
+        14.75,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-south-louvres-top",
+      "from": [
+        12.25,
+        13.25,
+        0.0
+      ],
+      "to": [
+        13.25,
+        14.25,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-south-louvres-top",
+      "from": [
+        14.25,
+        13.75,
+        0.0
+      ],
+      "to": [
+        15.25,
+        14.75,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-south-louvres",
+      "from": [
+        0.25,
+        13.25,
+        1.0
+      ],
+      "to": [
+        1.25,
+        14.25,
+        12.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            4.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            12.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            12.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-south-louvres",
+      "from": [
+        2.25,
+        13.75,
+        1.0
+      ],
+      "to": [
+        3.25,
+        14.75,
+        12.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            4.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            12.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            12.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-south-louvres",
+      "from": [
+        4.25,
+        13.25,
+        1.0
+      ],
+      "to": [
+        5.25,
+        14.25,
+        12.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            4.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            12.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            12.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-south-louvres",
+      "from": [
+        6.25,
+        13.75,
+        1.0
+      ],
+      "to": [
+        7.25,
+        14.75,
+        12.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            4.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            12.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            12.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-south-louvres",
+      "from": [
+        8.25,
+        13.25,
+        1.0
+      ],
+      "to": [
+        9.25,
+        14.25,
+        12.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            4.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            12.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            12.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-south-louvres",
+      "from": [
+        10.25,
+        13.75,
+        1.0
+      ],
+      "to": [
+        11.25,
+        14.75,
+        12.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            4.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            12.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            12.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-south-louvres",
+      "from": [
+        12.25,
+        13.25,
+        1.0
+      ],
+      "to": [
+        13.25,
+        14.25,
+        12.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            4.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            12.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            12.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-south-louvres",
+      "from": [
+        14.25,
+        13.75,
+        1.0
+      ],
+      "to": [
+        15.25,
+        14.75,
+        12.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            4.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            12.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            12.0,
+            1.0
           ],
           "rotation": 90
         }
@@ -105024,6 +108128,1284 @@
       }
     },
     {
+      "name": "deck-east-louvres-top",
+      "from": [
+        0.25,
+        13.25,
+        0.0
+      ],
+      "to": [
+        1.25,
+        14.25,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-east-louvres-top",
+      "from": [
+        2.25,
+        13.75,
+        0.0
+      ],
+      "to": [
+        3.25,
+        14.75,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-east-louvres-top",
+      "from": [
+        4.25,
+        13.25,
+        0.0
+      ],
+      "to": [
+        5.25,
+        14.25,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-east-louvres-top",
+      "from": [
+        6.25,
+        13.75,
+        0.0
+      ],
+      "to": [
+        7.25,
+        14.75,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-east-louvres-top",
+      "from": [
+        8.25,
+        13.25,
+        0.0
+      ],
+      "to": [
+        9.25,
+        14.25,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-east-louvres-top",
+      "from": [
+        10.25,
+        13.75,
+        0.0
+      ],
+      "to": [
+        11.25,
+        14.75,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-east-louvres",
+      "from": [
+        0.25,
+        13.25,
+        1.0
+      ],
+      "to": [
+        1.25,
+        14.25,
+        15.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-east-louvres",
+      "from": [
+        2.25,
+        13.75,
+        1.0
+      ],
+      "to": [
+        3.25,
+        14.75,
+        15.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-east-louvres",
+      "from": [
+        4.25,
+        13.25,
+        1.0
+      ],
+      "to": [
+        5.25,
+        14.25,
+        15.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-east-louvres",
+      "from": [
+        6.25,
+        13.75,
+        1.0
+      ],
+      "to": [
+        7.25,
+        14.75,
+        15.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-east-louvres",
+      "from": [
+        8.25,
+        13.25,
+        1.0
+      ],
+      "to": [
+        9.25,
+        14.25,
+        15.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-east-louvres",
+      "from": [
+        10.25,
+        13.75,
+        1.0
+      ],
+      "to": [
+        11.25,
+        14.75,
+        15.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-east-louvres-bottom",
+      "from": [
+        0.25,
+        13.25,
+        15.0
+      ],
+      "to": [
+        1.25,
+        14.25,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-east-louvres-bottom",
+      "from": [
+        2.25,
+        13.75,
+        15.0
+      ],
+      "to": [
+        3.25,
+        14.75,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-east-louvres-bottom",
+      "from": [
+        4.25,
+        13.25,
+        15.0
+      ],
+      "to": [
+        5.25,
+        14.25,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-east-louvres-bottom",
+      "from": [
+        6.25,
+        13.75,
+        15.0
+      ],
+      "to": [
+        7.25,
+        14.75,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-east-louvres-bottom",
+      "from": [
+        8.25,
+        13.25,
+        15.0
+      ],
+      "to": [
+        9.25,
+        14.25,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-east-louvres-bottom",
+      "from": [
+        10.25,
+        13.75,
+        15.0
+      ],
+      "to": [
+        11.25,
+        14.75,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
       "name": "deck-east-back",
       "from": [
         0.0,
@@ -123644,6 +128026,1142 @@
       }
     },
     {
+      "name": "deck-north-louvres",
+      "from": [
+        0.25,
+        13.25,
+        4.0
+      ],
+      "to": [
+        1.25,
+        14.25,
+        15.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            4.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            4.0,
+            0.0,
+            15.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            4.0,
+            0.0,
+            15.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-north-louvres",
+      "from": [
+        2.25,
+        13.75,
+        4.0
+      ],
+      "to": [
+        3.25,
+        14.75,
+        15.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            4.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            4.0,
+            0.0,
+            15.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            4.0,
+            0.0,
+            15.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-north-louvres",
+      "from": [
+        4.25,
+        13.25,
+        4.0
+      ],
+      "to": [
+        5.25,
+        14.25,
+        15.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            4.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            4.0,
+            0.0,
+            15.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            4.0,
+            0.0,
+            15.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-north-louvres",
+      "from": [
+        6.25,
+        13.75,
+        4.0
+      ],
+      "to": [
+        7.25,
+        14.75,
+        15.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            4.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            4.0,
+            0.0,
+            15.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            4.0,
+            0.0,
+            15.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-north-louvres",
+      "from": [
+        8.25,
+        13.25,
+        4.0
+      ],
+      "to": [
+        9.25,
+        14.25,
+        15.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            4.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            4.0,
+            0.0,
+            15.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            4.0,
+            0.0,
+            15.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-north-louvres",
+      "from": [
+        10.25,
+        13.75,
+        4.0
+      ],
+      "to": [
+        11.25,
+        14.75,
+        15.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            4.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            4.0,
+            0.0,
+            15.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            4.0,
+            0.0,
+            15.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-north-louvres",
+      "from": [
+        12.25,
+        13.25,
+        4.0
+      ],
+      "to": [
+        13.25,
+        14.25,
+        15.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            4.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            4.0,
+            0.0,
+            15.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            4.0,
+            0.0,
+            15.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-north-louvres",
+      "from": [
+        14.25,
+        13.75,
+        4.0
+      ],
+      "to": [
+        15.25,
+        14.75,
+        15.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            4.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            4.0,
+            0.0,
+            15.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            4.0,
+            0.0,
+            15.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-north-louvres-bottom",
+      "from": [
+        0.25,
+        13.25,
+        15.0
+      ],
+      "to": [
+        1.25,
+        14.25,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-north-louvres-bottom",
+      "from": [
+        2.25,
+        13.75,
+        15.0
+      ],
+      "to": [
+        3.25,
+        14.75,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-north-louvres-bottom",
+      "from": [
+        4.25,
+        13.25,
+        15.0
+      ],
+      "to": [
+        5.25,
+        14.25,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-north-louvres-bottom",
+      "from": [
+        6.25,
+        13.75,
+        15.0
+      ],
+      "to": [
+        7.25,
+        14.75,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-north-louvres-bottom",
+      "from": [
+        8.25,
+        13.25,
+        15.0
+      ],
+      "to": [
+        9.25,
+        14.25,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-north-louvres-bottom",
+      "from": [
+        10.25,
+        13.75,
+        15.0
+      ],
+      "to": [
+        11.25,
+        14.75,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-north-louvres-bottom",
+      "from": [
+        12.25,
+        13.25,
+        15.0
+      ],
+      "to": [
+        13.25,
+        14.25,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "deck-north-louvres-bottom",
+      "from": [
+        14.25,
+        13.75,
+        15.0
+      ],
+      "to": [
+        15.25,
+        14.75,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
       "name": "deck-north-back",
       "from": [
         0.0,
@@ -133413,6 +138931,219 @@
       }
     },
     {
+      "name": "ledge-west-louvres-top",
+      "from": [
+        3.0,
+        13.75,
+        0.0
+      ],
+      "to": [
+        3.25,
+        14.75,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.75,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.25
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.75,
+            1.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "ledge-west-louvres",
+      "from": [
+        3.0,
+        13.75,
+        1.0
+      ],
+      "to": [
+        3.25,
+        14.75,
+        15.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.75,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            0.25
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.75,
+            15.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "ledge-west-louvres-bottom",
+      "from": [
+        3.0,
+        13.75,
+        15.0
+      ],
+      "to": [
+        3.25,
+        14.75,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.75,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            0.25
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.75,
+            16.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
       "name": "ledge-west-back",
       "from": [
         3.0,
@@ -138623,6 +144354,574 @@
             0.0,
             12.8,
             0.5
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "ledge-south-louvres",
+      "from": [
+        0.25,
+        13.25,
+        12.0
+      ],
+      "to": [
+        1.25,
+        14.25,
+        13.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "ledge-south-louvres",
+      "from": [
+        2.25,
+        13.75,
+        12.0
+      ],
+      "to": [
+        3.25,
+        14.75,
+        13.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "ledge-south-louvres",
+      "from": [
+        4.25,
+        13.25,
+        12.0
+      ],
+      "to": [
+        5.25,
+        14.25,
+        13.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "ledge-south-louvres",
+      "from": [
+        6.25,
+        13.75,
+        12.0
+      ],
+      "to": [
+        7.25,
+        14.75,
+        13.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "ledge-south-louvres",
+      "from": [
+        8.25,
+        13.25,
+        12.0
+      ],
+      "to": [
+        9.25,
+        14.25,
+        13.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "ledge-south-louvres",
+      "from": [
+        10.25,
+        13.75,
+        12.0
+      ],
+      "to": [
+        11.25,
+        14.75,
+        13.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "ledge-south-louvres",
+      "from": [
+        12.25,
+        13.25,
+        12.0
+      ],
+      "to": [
+        13.25,
+        14.25,
+        13.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "ledge-south-louvres",
+      "from": [
+        14.25,
+        13.75,
+        12.0
+      ],
+      "to": [
+        15.25,
+        14.75,
+        13.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
           ],
           "rotation": 90
         }
@@ -144643,6 +150942,219 @@
       }
     },
     {
+      "name": "ledge-east-louvres-top",
+      "from": [
+        12.25,
+        13.25,
+        0.0
+      ],
+      "to": [
+        13.0,
+        14.25,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.25,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            0.75,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.25,
+            1.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.75
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "ledge-east-louvres",
+      "from": [
+        12.25,
+        13.25,
+        1.0
+      ],
+      "to": [
+        13.0,
+        14.25,
+        15.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.25,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            0.75,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.25,
+            15.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            15.0,
+            0.75
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "ledge-east-louvres-bottom",
+      "from": [
+        12.25,
+        13.25,
+        15.0
+      ],
+      "to": [
+        13.0,
+        14.25,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.25,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            0.75,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.25,
+            16.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            0.75
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
       "name": "ledge-east-back",
       "from": [
         12.0,
@@ -149928,6 +156440,574 @@
       }
     },
     {
+      "name": "ledge-north-louvres",
+      "from": [
+        0.25,
+        13.25,
+        3.0
+      ],
+      "to": [
+        1.25,
+        14.25,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "ledge-north-louvres",
+      "from": [
+        2.25,
+        13.75,
+        3.0
+      ],
+      "to": [
+        3.25,
+        14.75,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "ledge-north-louvres",
+      "from": [
+        4.25,
+        13.25,
+        3.0
+      ],
+      "to": [
+        5.25,
+        14.25,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "ledge-north-louvres",
+      "from": [
+        6.25,
+        13.75,
+        3.0
+      ],
+      "to": [
+        7.25,
+        14.75,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "ledge-north-louvres",
+      "from": [
+        8.25,
+        13.25,
+        3.0
+      ],
+      "to": [
+        9.25,
+        14.25,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "ledge-north-louvres",
+      "from": [
+        10.25,
+        13.75,
+        3.0
+      ],
+      "to": [
+        11.25,
+        14.75,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "ledge-north-louvres",
+      "from": [
+        12.25,
+        13.25,
+        3.0
+      ],
+      "to": [
+        13.25,
+        14.25,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "ledge-north-louvres",
+      "from": [
+        14.25,
+        13.75,
+        3.0
+      ],
+      "to": [
+        15.25,
+        14.75,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
       "name": "ledge-north-back",
       "from": [
         0.0,
@@ -154301,6 +161381,77 @@
       }
     },
     {
+      "name": "ledgetop-west-louvres",
+      "from": [
+        3.0,
+        13.75,
+        2.0
+      ],
+      "to": [
+        3.25,
+        14.75,
+        14.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            2.0,
+            0.0,
+            14.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.75,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            2.0,
+            0.0,
+            14.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            2.0,
+            0.0,
+            14.0,
+            0.25
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            2.0,
+            0.75,
+            14.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
       "name": "ledgetop-west-back",
       "from": [
         3.0,
@@ -157842,6 +164993,432 @@
       }
     },
     {
+      "name": "ledgetop-south-louvres",
+      "from": [
+        2.25,
+        13.75,
+        12.0
+      ],
+      "to": [
+        3.25,
+        14.75,
+        13.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "ledgetop-south-louvres",
+      "from": [
+        4.25,
+        13.25,
+        12.0
+      ],
+      "to": [
+        5.25,
+        14.25,
+        13.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "ledgetop-south-louvres",
+      "from": [
+        6.25,
+        13.75,
+        12.0
+      ],
+      "to": [
+        7.25,
+        14.75,
+        13.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "ledgetop-south-louvres",
+      "from": [
+        8.25,
+        13.25,
+        12.0
+      ],
+      "to": [
+        9.25,
+        14.25,
+        13.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "ledgetop-south-louvres",
+      "from": [
+        10.25,
+        13.75,
+        12.0
+      ],
+      "to": [
+        11.25,
+        14.75,
+        13.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "ledgetop-south-louvres",
+      "from": [
+        12.25,
+        13.25,
+        12.0
+      ],
+      "to": [
+        13.25,
+        14.25,
+        13.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
       "name": "ledgetop-south-back",
       "from": [
         2.0,
@@ -160481,6 +168058,77 @@
             3.0,
             14.0,
             4.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "ledgetop-east-louvres",
+      "from": [
+        12.25,
+        13.25,
+        2.0
+      ],
+      "to": [
+        13.0,
+        14.25,
+        14.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.25,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            2.0,
+            0.0,
+            14.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            0.75,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            2.0,
+            0.0,
+            14.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            2.0,
+            0.25,
+            14.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            2.0,
+            0.0,
+            14.0,
+            0.75
           ],
           "rotation": 90
         }
@@ -164028,6 +171676,432 @@
       }
     },
     {
+      "name": "ledgetop-north-louvres",
+      "from": [
+        2.25,
+        13.75,
+        3.0
+      ],
+      "to": [
+        3.25,
+        14.75,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "ledgetop-north-louvres",
+      "from": [
+        4.25,
+        13.25,
+        3.0
+      ],
+      "to": [
+        5.25,
+        14.25,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "ledgetop-north-louvres",
+      "from": [
+        6.25,
+        13.75,
+        3.0
+      ],
+      "to": [
+        7.25,
+        14.75,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "ledgetop-north-louvres",
+      "from": [
+        8.25,
+        13.25,
+        3.0
+      ],
+      "to": [
+        9.25,
+        14.25,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "ledgetop-north-louvres",
+      "from": [
+        10.25,
+        13.75,
+        3.0
+      ],
+      "to": [
+        11.25,
+        14.75,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "ledgetop-north-louvres",
+      "from": [
+        12.25,
+        13.25,
+        3.0
+      ],
+      "to": [
+        13.25,
+        14.25,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
       "name": "ledgetop-north-back",
       "from": [
         2.0,
@@ -166470,6 +174544,148 @@
       }
     },
     {
+      "name": "ledgetopleft-west-louvres-top",
+      "from": [
+        3.0,
+        13.75,
+        0.0
+      ],
+      "to": [
+        3.25,
+        14.75,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.75,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.25
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.75,
+            1.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "ledgetopleft-west-louvres",
+      "from": [
+        3.0,
+        13.75,
+        1.0
+      ],
+      "to": [
+        3.25,
+        14.75,
+        2.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            14.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.75,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            2.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            2.0,
+            0.25
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.75,
+            2.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
       "name": "ledgetopleft-west-back",
       "from": [
         3.0,
@@ -168278,6 +176494,77 @@
             14.0,
             12.6,
             16.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "ledgetopleft-south-louvres",
+      "from": [
+        0.25,
+        13.25,
+        12.0
+      ],
+      "to": [
+        1.25,
+        14.25,
+        13.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
           ],
           "rotation": 90
         }
@@ -171014,6 +179301,148 @@
       }
     },
     {
+      "name": "ledgetopleft-east-louvres",
+      "from": [
+        12.25,
+        13.25,
+        14.0
+      ],
+      "to": [
+        13.0,
+        14.25,
+        15.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.25,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            2.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            0.75,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            14.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            14.0,
+            0.25,
+            15.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            14.0,
+            0.0,
+            15.0,
+            0.75
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "ledgetopleft-east-louvres-bottom",
+      "from": [
+        12.25,
+        13.25,
+        15.0
+      ],
+      "to": [
+        13.0,
+        14.25,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.25,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            0.75,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.25,
+            16.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            0.75
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
       "name": "ledgetopleft-east-back",
       "from": [
         12.0,
@@ -172822,6 +181251,77 @@
             0.0,
             4.0,
             2.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "ledgetopleft-north-louvres",
+      "from": [
+        14.25,
+        13.75,
+        3.0
+      ],
+      "to": [
+        15.25,
+        14.75,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
           ],
           "rotation": 90
         }
@@ -175558,6 +184058,148 @@
       }
     },
     {
+      "name": "ledgetopright-west-louvres",
+      "from": [
+        3.0,
+        13.75,
+        14.0
+      ],
+      "to": [
+        3.25,
+        14.75,
+        15.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            2.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.75,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            14.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            14.0,
+            0.0,
+            15.0,
+            0.25
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            14.0,
+            0.75,
+            15.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "ledgetopright-west-louvres-bottom",
+      "from": [
+        3.0,
+        13.75,
+        15.0
+      ],
+      "to": [
+        3.25,
+        14.75,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            0.25,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.75,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.0,
+            16.0,
+            0.25
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            15.0,
+            0.75,
+            16.0,
+            1.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
       "name": "ledgetopright-west-back",
       "from": [
         3.0,
@@ -177366,6 +186008,77 @@
             0.0,
             12.6,
             2.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "ledgetopright-south-louvres",
+      "from": [
+        14.25,
+        13.75,
+        12.0
+      ],
+      "to": [
+        15.25,
+        14.75,
+        13.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
           ],
           "rotation": 90
         }
@@ -180033,6 +188746,148 @@
       }
     },
     {
+      "name": "ledgetopright-east-louvres-top",
+      "from": [
+        12.25,
+        13.25,
+        0.0
+      ],
+      "to": [
+        13.0,
+        14.25,
+        1.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.25,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            0.75,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.25,
+            1.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            0.75
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "ledgetopright-east-louvres",
+      "from": [
+        12.25,
+        13.25,
+        1.0
+      ],
+      "to": [
+        13.0,
+        14.25,
+        2.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.25,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            14.0,
+            0.0,
+            15.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            0.75,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            2.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.25,
+            2.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            1.0,
+            0.0,
+            2.0,
+            0.75
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
       "name": "ledgetopright-east-back",
       "from": [
         12.0,
@@ -181841,6 +190696,77 @@
             14.0,
             4.0,
             16.0
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "ledgetopright-north-louvres",
+      "from": [
+        0.25,
+        13.25,
+        3.0
+      ],
+      "to": [
+        1.25,
+        14.25,
+        4.0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#deckinfill",
+          "uv": [
+            12.0,
+            0.0,
+            13.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#deckinfill",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#deckinfill",
+          "uv": [
+            3.0,
+            0.0,
+            4.0,
+            1.0
           ],
           "rotation": 90
         }
