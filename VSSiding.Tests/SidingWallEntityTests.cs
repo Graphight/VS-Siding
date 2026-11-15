@@ -276,17 +276,11 @@ public class SidingWallEntityTests
     }
 
     // A vent is a framed sheet like glazing, with the glazing frame and its finishes as rims, but it draws its own louvres
-    // where glass draws the pane, and a merged vent's louvres run on through the joined side.
+    // where glass draws the pane.
     [Fact]
     public void AFinishedVentDrawsGlazingFramingRimsAndLouvresWithNoPane()
     {
         var finishes = Dict("""{ "daub": {}, "planks": {} }""");
-        var wall = SidingWallEntity.SelectiveElements(
-            "wall", "oak", "louvres", "planks", null, "daub", finishes, (true, false, true, false), glazed: true, fill: "louvres", pane: false);
-
-        var diagonal = SidingWallEntity.SelectiveElements(
-            "diagonal", "oak", "louvres", null, null, null, NoElementFinishes, (false, false, true, false), glazed: true,
-            glassRunsOn: (true, false), fill: "louvres", pane: false);
         Assert.Equal(
             new[]
             {
@@ -294,7 +288,17 @@ public class SidingWallEntityTests
                 "glazing-right", "glazing-bottom", "glazing-bottom-left", "louvres", "louvres-top",
                 "back-rim-right", "back-rim-bottom", "back-rim-bottom-left",
             },
-            wall);
+            SidingWallEntity.SelectiveElements(
+                "wall", "oak", "louvres", "planks", null, "daub", finishes, (true, false, true, false), glazed: true, fill: "louvres", pane: false));
+    }
+
+    // Where a vent diagonal runs on into the next, its louvres carry on through the dropped post, as glass's pane does.
+    [Fact]
+    public void AVentDiagonalRunsItsLouvresOnThroughAJoin()
+    {
+        var diagonal = SidingWallEntity.SelectiveElements(
+            "diagonal", "oak", "louvres", null, null, null, NoElementFinishes, (false, false, true, false), glazed: true,
+            glassRunsOn: (true, false), fill: "louvres", pane: false);
         Assert.Equal(
             new[]
             {

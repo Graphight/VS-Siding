@@ -101,11 +101,11 @@ The clay oven is kept out by the solid-side rule of `SidingModSystem.HostRefusal
 
 **A vent is a framed sheet, not a pane.**
 `SidingWallBlock.IsTransparent` drove two jobs: the framed sheet (the `glazing` frame member, finishes drawn as rims, merging along a run, ledges under a deck) and transparency (the `infill-pane` group, the transparent render pass, zero light absorption).
-`SheetKind` answers "glass" for a `Transparent` infill, "vent" for a `Vent` one and null otherwise, and `IsSheet` is true for either; every framed-sheet call site asks `IsSheet`, and the transparency ones keep `IsTransparent`.
+`SheetKind` answers "glazed" for a `Transparent` infill, "vent" for a `Vent` one and null otherwise, the kind naming the tile refusal's lang key, and `IsSheet` is true for either; every framed-sheet call site asks `IsSheet`, and the transparency ones keep `IsTransparent`.
 A vent therefore stays opaque and draws its `louvres` groups where glass draws the pane (`SelectiveElements`' `pane` parameter).
 A finish on a vent always draws as a rim round the louvres, so a vent in brick or plaster never reads as a sealed wall.
 A sheet merges only into its own kind: vent into vent drops the posts and rims between them, glass into glass as before, vent and glass not at all (`ContinuesGlazing`, and `SidingFloorBlock.Joins`/`Continues`/`InnerCorners` take the cell's kind).
-To merge, the louvres reach the cell's edge (the wall's and each corner leg's bands span the cell, with no faces on the run axis's ends) and a diagonal carries `-join-left`/`-join-right` louvre pieces.
+To merge, the louvres reach the edge of the cell, or of the leg on a corner, with no faces on the run axis's ends, and a diagonal carries `-join-left`/`-join-right` louvre pieces.
 A vent takes no tiles (`build-tile-vent`).
 
 ## Alternatives considered
@@ -118,7 +118,7 @@ A vent takes no tiles (`build-tile-vent`).
 - **Only a wall's own infill makes a wall cell a vent.** A deck vent would then need a block of its own to leave the wall below it closed; one vent block per cell, open on every side, was chosen instead.
 
 ## Consequences & open questions
-- A vent no longer renders a plain frame: its frame, rims and merging follow glazing's, so any later change to the glazed sheet reaches vents too.
+- A vent's frame, rims and merging are glazing's, so any later change to the glazed sheet reaches vents too.
 - Water against a sealed wall face no longer draws its edge face, a sealed face blocks a water wheel, and a wallpaper or plaster decor on a sealed face draws flat on the cell's face; none of these was looked at in game.
 - A vent that keeps the heat and passes the smoke is not physical. Accepted: heat beyond vanilla's room retention is out of scope for the mod.
 - A trapdoor deck lets smoke through the filled wall below it, and a trapdoor wall through the filled deck above it; the handbook and the ModDB page say a vent opens every side of its cell.

@@ -453,8 +453,8 @@ public class SidingWallBlockCollisionTests
     [InlineData("louvres", "oak", "louvres", true)]  // a vent into a vent: one louvred opening
     [InlineData("louvres", "oak", "glass", false)]   // a vent beside glass: the post stays
     [InlineData("glass", "oak", "louvres", false)]   // and glass beside a vent
-    [InlineData("louvres", "oak", "wattle", false)]
-    public void GlazingMergesOnlyIntoGlazing(string? infill, string? neighbourFraming, string? neighbourInfill, bool expected)
+    [InlineData("louvres", "oak", "wattle", false)]  // a vent into opaque fill
+    public void ASheetMergesOnlyIntoItsOwnKind(string? infill, string? neighbourFraming, string? neighbourInfill, bool expected)
     {
         var infills = new JsonObject(JToken.Parse("""
         {

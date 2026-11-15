@@ -285,7 +285,7 @@ public class SidingWallBlock : Block
         // Glazing merges with the glazing around it in every direction, with no member between,
         // so a run of it reads as one sheet however large. Opaque fill keeps decision 0008's
         // alternating cross-beam. That is why this asks the infill and not the layout: merging
-        // belongs to glass, not to a shape. A cornerout merges at its two leg ends and its corner
+        // belongs to a sheet, glass or vent, not to a shape. A cornerout merges at its two leg ends and its corner
         // post stays either way (decision 0080).
         if (IsSheet(infill, Attributes["Infills"]))
         {
@@ -813,7 +813,7 @@ public class SidingWallBlock : Block
         if (ClaimRefuses(world, byPlayer, blockSel.Position)) return true;
 
         string layout = Variant["layout"];
-        string? refusal = layout == "diagonal" ? "diagonal" : SheetKind(entity.Infill, Attributes["Infills"]) switch { "glass" => "glazed", "vent" => "vent", _ => null };
+        string? refusal = layout == "diagonal" ? "diagonal" : SheetKind(entity.Infill, Attributes["Infills"]);
         if (refusal != null)
         {
             (byPlayer as IServerPlayer)?.SendIngameError($"vssiding:tile{refusal}", Lang.Get($"vssiding:build-tile-{refusal}"));
@@ -905,7 +905,7 @@ public class SidingWallBlock : Block
     {
         (string Code, string Lang)? error = null;
         string? face = SidingFloorBlock.FinishFace(blockSel.Face);
-        if (SheetKind(infill, infills) is { } kind) error = kind == "vent" ? ("tilevent", "build-tile-vent") : ("tileglazed", "build-tile-glazed");
+        if (SheetKind(infill, infills) is { } kind) error = ($"tile{kind}", $"build-tile-{kind}");
         else if (face == null) error = ("wrongface", "build-floor-wrong-face");
         else if (keyOn(face) != null && keyOn(face) != SidingWallEntity.TilesKey)
         {
@@ -1634,10 +1634,10 @@ public class SidingWallBlock : Block
     internal static bool IsTransparent(string? infillKey, JsonObject infills)
         => infillKey != null && infills[infillKey]["Transparent"].AsBool(false);
 
-    // A framed sheet is the glazing's frame and rims, which merge only into their own kind. A vent shares glazing's
-    // frame but stays opaque, so only the transparency call sites keep IsTransparent.
+    // Glass and a vent are each a framed sheet: the glazing frame, finishes as rims, merging into their own kind only.
+    // Only glass is transparent. The kind names the tile refusal's lang key.
     internal static string? SheetKind(string? infillKey, JsonObject infills)
-        => IsTransparent(infillKey, infills) ? "glass" : infillKey != null && IsVent(infillKey, infills) ? "vent" : null;
+        => IsTransparent(infillKey, infills) ? "glazed" : IsVent(infillKey, infills) ? "vent" : null;
 
     internal static bool IsSheet(string? infillKey, JsonObject infills) => SheetKind(infillKey, infills) != null;
 

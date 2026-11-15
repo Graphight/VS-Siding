@@ -246,13 +246,13 @@ public class SidingFloorTests
             {
                 SidingFloorBlock.Continues(null, null, null, infills),
                 SidingFloorBlock.Continues(null, "oak", "wattle", infills),
-                SidingFloorBlock.Continues("glass", "oak", "glass", infills),
-                SidingFloorBlock.Continues("glass", "oak", "wattle", infills),
+                SidingFloorBlock.Continues("glazed", "oak", "glass", infills),
+                SidingFloorBlock.Continues("glazed", "oak", "wattle", infills),
                 SidingFloorBlock.Continues(null, "oak", null, infills),
-                SidingFloorBlock.Continues("glass", "oak", null, infills),
+                SidingFloorBlock.Continues("glazed", "oak", null, infills),
                 SidingFloorBlock.Continues("vent", "oak", "louvres", infills),
                 SidingFloorBlock.Continues("vent", "oak", "glass", infills),
-                SidingFloorBlock.Continues("glass", "oak", "louvres", infills),
+                SidingFloorBlock.Continues("glazed", "oak", "louvres", infills),
             });
     }
 

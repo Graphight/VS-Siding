@@ -261,14 +261,12 @@ public class SidingFloorBlock : Block
 
     // Every floor's joists run north-south, so the north rim (framing-top) and the south rim
     // (framing-bottom) each drop where a framed floor carries the joists on, the way a stacked
-    // wall drops its plates. A glazed or vented floor has no joists: its bezel merges on all four sides,
-    // and only with its own kind, as glazing does on a wall (decision 0019). A wall's deck is
-    // laid the same way and counts as a neighbour wherever it reaches the shared edge.
+    // wall drops its plates. A glazed or vented floor has no joists: its bezel merges on all
+    // four sides, and only with its own kind, as glazing does on a wall (decision 0019). A wall's
+    // deck is laid the same way and counts as a neighbour wherever it reaches the shared edge.
     internal static (bool above, bool below, bool left, bool right) Joins(IBlockAccessor accessor, BlockPos pos, string? sheet)
-        => sheet != null
-            ? (Continues(accessor, pos, BlockFacing.NORTH, sheet), Continues(accessor, pos, BlockFacing.SOUTH, sheet),
-                Continues(accessor, pos, BlockFacing.WEST, sheet), Continues(accessor, pos, BlockFacing.EAST, sheet))
-            : (Continues(accessor, pos, BlockFacing.NORTH, null), Continues(accessor, pos, BlockFacing.SOUTH, null), false, false);
+        => (Continues(accessor, pos, BlockFacing.NORTH, sheet), Continues(accessor, pos, BlockFacing.SOUTH, sheet),
+            sheet != null && Continues(accessor, pos, BlockFacing.WEST, sheet), sheet != null && Continues(accessor, pos, BlockFacing.EAST, sheet));
 
     // Whether the cell `direction` of `pos` carries on the joists, or the sheet of that kind when `sheet`.
     private static bool Continues(IBlockAccessor accessor, BlockPos pos, BlockFacing direction, string? sheet)

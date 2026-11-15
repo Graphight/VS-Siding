@@ -409,7 +409,7 @@ public static class WallShapeGen
         => e with
         {
             From = (e.From.Z, e.From.Y, e.From.X), To = (e.To.Z, e.To.Y, e.To.X), RunAxis = 'x',
-            Faces = e.Faces?.Select(f => f switch { "west" => "north", "east" => "south", _ => f }).ToArray(),
+            Faces = e.Faces?.Select(f => f switch { "west" => "north", "north" => "west", "east" => "south", "south" => "east", _ => f }).ToArray(),
         };
 
     // A floor lays the wall's stems flat: the wall's depth is the floor's height and its height the floor's x, so the

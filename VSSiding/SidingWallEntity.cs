@@ -461,6 +461,7 @@ public class SidingWallEntity : BlockEntity
     {
         if (layout == "cornerin") return PostElements(framing, finishes, [(front, styles.front), (secondFront, styles.secondFront), (back, styles.back), (secondBack, secondBackStyle)], frame);
         var names = new List<string>();
+        var fillGroups = new List<string>();
         // A diagonal's shape has bamboo's ringed groups but no rough frame's, so any other framing draws the plain ones
         // (decisions 0066, 0092).
         bool diagonal = layout == "diagonal";
@@ -523,13 +524,14 @@ public class SidingWallEntity : BlockEntity
             // Three stacked boxes share a face at each seam, and two coincident transparent quads
             // blend twice over - a bright line exactly where a cross-beam would be. One pane also
             // meets the pane above it edge on, so a glazed stack has no seams at all. A vent has no pane and draws its fill.
-            if (glazed && pane) names.Add("infill-pane");
+            if (glazed && pane) fillGroups.Add("infill-pane");
             else
             {
-                names.Add(fill);
-                if (joins.above) names.Add($"{fill}-top");
-                if (joins.below) names.Add($"{fill}-bottom");
+                fillGroups.Add(fill);
+                if (joins.above) fillGroups.Add($"{fill}-top");
+                if (joins.below) fillGroups.Add($"{fill}-bottom");
             }
+            names.AddRange(fillGroups);
         }
         // The top of the room side's rim lies in a deck's height, where the deck's ledge takes its place (Ledges), and a T's
         // piece lies in a front slot, clear of it. A framed pattern takes a corner's `-whole` copy, which fits its border onto
@@ -545,7 +547,6 @@ public class SidingWallEntity : BlockEntity
         // each group's own piece out to the corner and half a post there.
         if (diagonal)
         {
-            IEnumerable<string> FillGroups() => new[] { fill }.Concat(joins.above ? [$"{fill}-top"] : []).Concat(joins.below ? [$"{fill}-bottom"] : []);
             string[] panel = names.ToArray();
             // A glazed diagonal's rails are the glazing's, so its ends stay the plain frame's whatever the framing.
             string post = glazed ? "framing" : frame;
@@ -559,7 +560,7 @@ public class SidingWallEntity : BlockEntity
                     string[] rails = [.. new[] { "-top", "-bottom" }.Where(rail => parts.Contains(rail) || (innerCorners ?? []).Contains($"{rail}-{end}"))];
                     foreach (var (group, keeps) in rims) names.AddRange(rails.Where(keeps).Select(rail => $"{group}-rim{rail}-join-{end}"));
                     if (framing != null) names.AddRange(rails.Select(rail => $"glazing{rail}-join-{end}"));
-                    if (infill != null) names.AddRange(pane ? [$"infill-pane-join-{end}"] : FillGroups().Select(group => $"{group}-join-{end}"));
+                    names.AddRange(fillGroups.Select(group => $"{group}-join-{end}"));
                     continue;
                 }
                 // A glazed diagonal's rims also cover the half post's front, full height as a wall's stile rim does.
