@@ -145,7 +145,7 @@ public class SidingFloorEntity : BlockEntity
     private const string DefaultStyle = "hboards";
 
     // FloorElements maps each face's styles to the element drawing them; a face it leaves out is the plain slab.
-    private static string FloorElement(JsonObject finishes, string key, string face, string? style)
+    internal static string FloorElement(JsonObject finishes, string key, string face, string? style)
     {
         var looks = finishes[key]["FloorElements"][face];
         return looks.Exists ? looks[style ?? DefaultStyle].AsString(null!) ?? looks[DefaultStyle].AsString(face) : face;

@@ -378,10 +378,10 @@ public class SidingWallEntity : BlockEntity
         if (deck == null) return [];
         string[] names = SidingFloorEntity.SelectiveElements(deck, infill, front, back, finishes, joins, styles, glazed, frame, innerCorners, fill, pane);
         string[] copies = [group, .. ledges ?? []];
-        // The top finish is the first name, and a glazed deck's is a rim round the glass, which has no top to lay over the wall.
-        string[] top = front == TilesKey ? [.. TileGroups("front", styles.front)] : [names[0]];
+        // The cap takes the top finish's whole group, since a glazed deck's own top is only a rim round the glass.
+        string[] top = front == TilesKey ? [.. TileGroups("front", styles.front)] : front != null ? [SidingFloorEntity.FloorElement(finishes, front, "front", styles.front)] : [];
         string capGroup = group == "outerdeck" ? "outercap" : "cap";
-        string[] cap = capped && front != null && !glazed ? [.. top.Select(name => $"{capGroup}-{side}-{name}")] : [];
+        string[] cap = capped ? [.. top.Select(name => $"{capGroup}-{side}-{name}")] : [];
         // The outer deck's edges are the building's face, which its fascia covers; a glazed deck frames its own edges.
         string[] fascia = group == "outerdeck" && !glazed ? [$"outerdeck-{side}-fascia"] : [];
         return [.. copies.SelectMany(copy => names.Select(name => $"{copy}-{side}-{name}")), .. cap, .. fascia];

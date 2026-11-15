@@ -107,6 +107,8 @@ A finish on a vent always draws as a rim round the louvres, so a vent in brick o
 A sheet merges only into its own kind: vent into vent drops the posts and rims between them, glass into glass as before, vent and glass not at all (`ContinuesGlazing`, and `SidingFloorBlock.Joins`/`Continues`/`InnerCorners` take the cell's kind).
 To merge, the louvres reach the edge of the cell, or of the leg on a corner, with no faces on the run axis's ends, and a diagonal carries `-join-left`/`-join-right` louvre pieces.
 A vent takes no tiles (`build-tile-vent`).
+A sheet deck, glass or vent, caps the wall's top in its top finish as an opaque deck does, superseding decisions 0085 and 0096 where a glazed deck took no cap: without it the deck's rim ran round three sides and the deck's edge against the wall, and stopped short of the wall's own top strip.
+`DeckElements` takes the cap from the top finish's whole group (`SidingFloorEntity.FloorElement`), since a sheet deck's own top is only the rim.
 
 ## Alternatives considered
 - **A vent finished in a solid face hides its louvres.** Rejected: a vent should read as one, and a hidden one looks like a sealed wall while passing smoke.

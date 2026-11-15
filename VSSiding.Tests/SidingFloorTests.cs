@@ -136,7 +136,7 @@ public class SidingFloorTests
     }
 
     [Fact]
-    public void ACappedDeckAddsItsTopFinishOverTheWallAndOnlyWhileItHasOneAndIsNotGlazed()
+    public void ACappedDeckAddsItsTopFinishOverTheWallAndOnlyWhileItHasOne()
     {
         string[] bare = ["deck-west-framing-left", "deck-west-framing-right", "deck-west-framing-top", "deck-west-framing-bottom"];
         string[] Deck(string? infill, string? front, bool glazed, bool capped = false)
@@ -149,7 +149,7 @@ public class SidingFloorTests
                 ["deck-west-front-hboards", .. bare],
                 bare,
                 bare,
-                Deck("glass", "planks", glazed: true),
+                [.. Deck("glass", "planks", glazed: true), "cap-west-front-hboards"],
             },
             new[]
             {
@@ -185,7 +185,7 @@ public class SidingFloorTests
             {
                 ["outerdeck-west-front-hboards", "outerdeck-west-framing-left", "outerdeck-west-framing-right", "outerdeck-west-framing-top", "outerdeck-west-framing-bottom",
                  "outercap-west-front-hboards", "outerdeck-west-fascia"],
-                [.. Outer("glass", glazed: true).Where(name => name.StartsWith("outerdeck-west-") && !name.EndsWith("-fascia"))],
+                [.. Outer("glass", glazed: true).Where(name => name.StartsWith("outerdeck-west-") && !name.EndsWith("-fascia")), "outercap-west-front-hboards"],
             },
             new[] { Outer(null, glazed: false), Outer("glass", glazed: true) });
     }
