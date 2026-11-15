@@ -1,6 +1,6 @@
 # 0034 — Lighting, round two
 
-- Status: Accepted
+- Status: Accepted; the flat path now occludes only corners that touch the panel, and an emitting ring cell is excluded rather than swapped, see 0099
 - Created: 2026-09-23
 - Reflects: branch `lighting-round-two`; commits `6dfb1c9`, `2c66de1`, `f58959b`, `06f6bba`; vanilla 1.22 `TCTCache.CalcBlockFaceLight`, `ChunkTesselator.BuildExtendedChunkData`, `ChunkIlluminator.UpdateSunLight`, `BlockAccessorBase.GetDistanceToRainFall` and `WeatherSimulationSound` (decompiled); playtests in a flat creative world with the clock frozen at noon
 
