@@ -78,13 +78,14 @@ public class SidingFloorEntity : BlockEntity
     {
         if (Api is not ICoreClientAPI capi) return false;
 
-        bool glazed = SidingWallBlock.IsTransparent(Infill, Block.Attributes["Infills"]);
-        var joins = SidingFloorBlock.Joins(Api.World.BlockAccessor, Pos, glazed);
+        string? sheet = SidingWallBlock.SheetKind(Infill, Block.Attributes["Infills"]);
+        bool glazed = sheet != null, transparent = SidingWallBlock.IsTransparent(Infill, Block.Attributes["Infills"]);
+        var joins = SidingFloorBlock.Joins(Api.World.BlockAccessor, Pos, sheet);
         int alternate = SidingWallEntity.CellAlternate(Block.Attributes, SidingWallTexSource.Alternate(Pos), Framing, [], [Infill], [Front, Back], styles: [FrontStyle, BackStyle]);
-        string[] innerCorners = SidingFloorBlock.InnerCorners(Api.World.BlockAccessor, Pos, glazed, joins);
+        string[] innerCorners = SidingFloorBlock.InnerCorners(Api.World.BlockAccessor, Pos, sheet, joins);
         string[] selectiveElements = SelectiveElements(Framing, Infill, Front, Back, Block.Attributes["Finishes"], joins, (FrontStyle, BackStyle), glazed,
             SidingWallEntity.FrameElements(Block.Attributes["Framings"], Framing, alternate), innerCorners,
-            SidingWallEntity.InfillElements(Block.Attributes["Infills"], Infill));
+            SidingWallEntity.InfillElements(Block.Attributes["Infills"], Infill), transparent);
         if (selectiveElements.Length == 0) return false;
 
         string cacheKey = CacheKey(Framing, Infill, Front, Back, (FrontStyle, BackStyle), joins, alternate, innerCorners);
@@ -92,7 +93,7 @@ public class SidingFloorEntity : BlockEntity
         {
             Shape shape = SidingWallEntity.ParsedShape(capi, "floor/floor");
             var texSource = new TexSource(capi, this, alternate);
-            if (!glazed) return new[] { Tesselate(tesselator, shape, texSource, selectiveElements) };
+            if (!transparent) return new[] { Tesselate(tesselator, shape, texSource, selectiveElements) };
 
             // Two meshes, never merged: see SidingWallEntity.OnTesselation.
             MeshData glass = Tesselate(tesselator, shape, texSource, Array.FindAll(selectiveElements, SidingWallEntity.IsInfillElement));
@@ -123,9 +124,9 @@ public class SidingFloorEntity : BlockEntity
     internal static string[] SelectiveElements(
         string? framing, string? infill, string? front, string? back, JsonObject finishes,
         (bool above, bool below, bool left, bool right) joins, (string? front, string? back) styles = default, bool glazed = false, string frame = "framing",
-        string[]? innerCorners = null, string fill = "infill")
+        string[]? innerCorners = null, string fill = "infill", bool pane = true)
     {
-        var names = SidingWallEntity.SelectiveElements("wall", framing, infill, null, null, null, finishes, joins, glazed, frame: frame, innerCorners: innerCorners, fill: fill).ToList();
+        var names = SidingWallEntity.SelectiveElements("wall", framing, infill, null, null, null, finishes, joins, glazed, frame: frame, innerCorners: innerCorners, fill: fill, pane: pane).ToList();
         var parts = SidingWallEntity.FrameParts("wall", joins, glazed, innerCorners);
         IEnumerable<string> Finish(string key, string face, string? style)
         {

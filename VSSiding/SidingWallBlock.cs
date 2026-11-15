@@ -287,7 +287,7 @@ public class SidingWallBlock : Block
         // alternating cross-beam. That is why this asks the infill and not the layout: merging
         // belongs to glass, not to a shape. A cornerout merges at its two leg ends and its corner
         // post stays either way (decision 0080).
-        if (IsTransparent(infill, Attributes["Infills"]))
+        if (IsSheet(infill, Attributes["Infills"]))
         {
             bool above = ContinuesGlazing(blockAccessor, pos.UpCopy(), infill);
             bool below = ContinuesGlazing(blockAccessor, pos.DownCopy(), infill);
@@ -306,7 +306,7 @@ public class SidingWallBlock : Block
     internal (bool left, bool right) GlassRunsOn(
         IBlockAccessor blockAccessor, BlockPos pos, string? infill, (bool above, bool below, bool left, bool right) joins)
     {
-        if (Variant["layout"] != "diagonal" || !IsTransparent(infill, Attributes["Infills"])) return default;
+        if (Variant["layout"] != "diagonal" || !IsSheet(infill, Attributes["Infills"])) return default;
         var (leftStep, rightStep) = DiagonalRunNeighbours(Variant["side"]);
         return (joins.left && GlazedDiagonalAt(blockAccessor, pos.AddCopy(leftStep), infill),
             joins.right && GlazedDiagonalAt(blockAccessor, pos.AddCopy(rightStep), infill));
@@ -337,7 +337,7 @@ public class SidingWallBlock : Block
     // A diagonal's sheet turns an inside corner at an end its glass runs on through, where the next cell's stack stops short of its own.
     internal string[] InnerCorners(IBlockAccessor blockAccessor, BlockPos pos, string? infill, (bool above, bool below, bool left, bool right) joins)
     {
-        if (!IsTransparent(infill, Attributes["Infills"])) return [];
+        if (!IsSheet(infill, Attributes["Infills"])) return [];
         if (Variant["layout"] == "diagonal")
         {
             var (leftStep, rightStep) = DiagonalRunNeighbours(Variant["side"]);
@@ -407,10 +407,10 @@ public class SidingWallBlock : Block
         return neighbour != null && ContinuesGlazing(infill, neighbour, Attributes["Infills"]);
     }
 
-    // Glazing only merges into more glazing: against a wattle-filled neighbour, or a bare frame,
+    // A sheet only merges into its own kind: against a wattle-filled neighbour, a bare frame, or a vent beside glass,
     // the post stays - that is a join between two different walls, not one continuous sheet.
     internal static bool ContinuesGlazing(string? infill, SidingWallEntity? neighbour, JsonObject infills)
-        => SharesStack(infill, neighbour) && IsTransparent(neighbour?.Infill, infills);
+        => SharesStack(infill, neighbour) && SheetKind(infill, infills) is { } kind && SheetKind(neighbour?.Infill, infills) == kind;
 
     internal static bool JoinsAbove(bool continuesAbove, int cellsBelow) => continuesAbove && cellsBelow % 2 == 0;
 
@@ -813,7 +813,7 @@ public class SidingWallBlock : Block
         if (ClaimRefuses(world, byPlayer, blockSel.Position)) return true;
 
         string layout = Variant["layout"];
-        string? refusal = layout == "diagonal" ? "diagonal" : IsTransparent(entity.Infill, Attributes["Infills"]) ? "glazed" : null;
+        string? refusal = layout == "diagonal" ? "diagonal" : SheetKind(entity.Infill, Attributes["Infills"]) switch { "glass" => "glazed", "vent" => "vent", _ => null };
         if (refusal != null)
         {
             (byPlayer as IServerPlayer)?.SendIngameError($"vssiding:tile{refusal}", Lang.Get($"vssiding:build-tile-{refusal}"));
@@ -905,7 +905,7 @@ public class SidingWallBlock : Block
     {
         (string Code, string Lang)? error = null;
         string? face = SidingFloorBlock.FinishFace(blockSel.Face);
-        if (IsTransparent(infill, infills)) error = ("tileglazed", "build-tile-glazed");
+        if (SheetKind(infill, infills) is { } kind) error = kind == "vent" ? ("tilevent", "build-tile-vent") : ("tileglazed", "build-tile-glazed");
         else if (face == null) error = ("wrongface", "build-floor-wrong-face");
         else if (keyOn(face) != null && keyOn(face) != SidingWallEntity.TilesKey)
         {
@@ -1223,7 +1223,7 @@ public class SidingWallBlock : Block
             var fronts = FrontDirections(Variant["layout"], Variant["side"]);
             if (fronts.Any(direction => neibpos.Equals(pos.AddCopy(BlockFacing.FromCode(direction))))) entity.MarkDirty(true);
             var ends = Ends(Variant["layout"], Variant["side"]);
-            if (!IsTransparent(entity.Infill, Attributes["Infills"])) ends = Variant["layout"] == "cornerout" ? ends[2..] : [];
+            if (!IsSheet(entity.Infill, Attributes["Infills"])) ends = Variant["layout"] == "cornerout" ? ends[2..] : [];
             if (ends.Any(end => neibpos.Equals(pos.AddCopy(end.Points)))) entity.MarkDirty(true);
             return;
         }
@@ -1633,6 +1633,13 @@ public class SidingWallBlock : Block
     // the infill's mesh goes in (SidingWallEntity.OnTesselation).
     internal static bool IsTransparent(string? infillKey, JsonObject infills)
         => infillKey != null && infills[infillKey]["Transparent"].AsBool(false);
+
+    // A framed sheet is the glazing's frame and rims, which merge only into their own kind. A vent shares glazing's
+    // frame but stays opaque, so only the transparency call sites keep IsTransparent.
+    internal static string? SheetKind(string? infillKey, JsonObject infills)
+        => IsTransparent(infillKey, infills) ? "glass" : infillKey != null && IsVent(infillKey, infills) ? "vent" : null;
+
+    internal static bool IsSheet(string? infillKey, JsonObject infills) => SheetKind(infillKey, infills) != null;
 
     // Emitting side AO keeps a sealed cell's light out of neighbouring faces' smooth-lighting corners.
     // That light is the open side's (decision 0018), which is daylight when the panels face in.

@@ -450,12 +450,17 @@ public class SidingWallBlockCollisionTests
     [InlineData("glass", "oak", null, false)]        // glazing into a bare frame: not the same wall
     [InlineData("glass", null, "glass", false)]      // no framing next door at all
     [InlineData("glass", "oak", "uninstalled", false)] // a key no longer in the dictionary
+    [InlineData("louvres", "oak", "louvres", true)]  // a vent into a vent: one louvred opening
+    [InlineData("louvres", "oak", "glass", false)]   // a vent beside glass: the post stays
+    [InlineData("glass", "oak", "louvres", false)]   // and glass beside a vent
+    [InlineData("louvres", "oak", "wattle", false)]
     public void GlazingMergesOnlyIntoGlazing(string? infill, string? neighbourFraming, string? neighbourInfill, bool expected)
     {
         var infills = new JsonObject(JToken.Parse("""
         {
             "wattle": { "BlockMaterial": "Wood" },
-            "glass": { "BlockMaterial": "Glass", "Transparent": true }
+            "glass": { "BlockMaterial": "Glass", "Transparent": true },
+            "louvres": { "BlockMaterial": "Wood", "Vent": true }
         }
         """));
         var neighbour = new SidingWallEntity { Framing = neighbourFraming, Infill = neighbourInfill };
@@ -533,5 +538,29 @@ public class SidingWallBlockCollisionTests
                 ["diagonal"] = ((true, false, true, true), "-top-left", (true, true), (false, false)),
             },
             new Dictionary<string, ((bool, bool, bool, bool), string, (bool, bool), (bool, bool))> { ["cornerout"] = Read(corner), ["diagonal"] = Read(diagonal) });
+    }
+
+    // Two vents side by side drop the post between them as glazing does; a vent beside glass keeps it.
+    [Fact]
+    public void AVentMergesWithTheVentBesideItButNotWithGlass()
+    {
+        var attributes = new JsonObject(JToken.Parse("""{ "Infills": { "glass": { "Transparent": true }, "louvres": { "Vent": true } } }"""));
+        (Block Block, SidingWallEntity Entity) Cell(string infill)
+        {
+            var block = new SidingWallBlock { Attributes = attributes };
+            block.VariantStrict["layout"] = "wall";
+            block.VariantStrict["side"] = "west";
+            return (block, new SidingWallEntity { Framing = "oak", Infill = infill });
+        }
+
+        var pos = new BlockPos(10, 60, 10, 0);
+        var accessor = DispatchProxy.Create<IBlockAccessor, CellsAccessor>();
+        var (leftEnd, _) = SidingWallBlock.LeftRightEnds("wall", "west");
+        var cells = ((CellsAccessor)(object)accessor).Cells = new() { [pos] = Cell("louvres"), [pos.AddCopy(leftEnd.Points)] = Cell("louvres") };
+        var wall = (SidingWallBlock)cells[pos].Block;
+        Assert.True(wall.NeighbourJoins(accessor, pos, "louvres").left);
+
+        cells[pos.AddCopy(leftEnd.Points)] = Cell("glass");
+        Assert.False(wall.NeighbourJoins(accessor, pos, "louvres").left);
     }
 }

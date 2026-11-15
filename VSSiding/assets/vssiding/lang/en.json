@@ -287,6 +287,7 @@
 	"build-step-post": "A post takes no step",
 	"build-tile-diagonal": "A diagonal takes no tiles",
 	"build-tile-glazed": "Glazing takes no tiles",
+	"build-tile-vent": "A vent takes no tiles",
 	"build-already-stepped": "This wall already has a step",
 	"build-cant-afford": "Not enough material",
 	"tooltip-no-framing": "No framing",

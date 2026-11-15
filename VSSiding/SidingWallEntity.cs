@@ -183,9 +183,9 @@ public class SidingWallEntity : BlockEntity
             || (Block.Variant["layout"] == "cornerin" && SidingWallBlock.WallAt(Api.World.BlockAccessor, Pos.AddCopy(facing)) != null);
     }
 
-    // A bare front facing another wall's front is closed in this wall's own infill, glazing and a bare frame excepted (decision 0083).
+    // A bare front facing another wall's front is closed in this wall's own infill, a framed sheet and a bare frame excepted (decision 0083).
     private bool FrontClosed(string direction)
-        => Infill != null && !SidingWallBlock.IsTransparent(Infill, Block.Attributes["Infills"])
+        => Infill != null && !SidingWallBlock.IsSheet(Infill, Block.Attributes["Infills"])
             && SidingWallBlock.WallAt(Api.World.BlockAccessor, Pos.AddCopy(BlockFacing.FromCode(direction))) is var (wall, _)
             && SidingWallBlock.FrontsFaceEachOther(Block.Variant["layout"], Block.Variant["side"], direction, wall.Variant["layout"], wall.Variant["side"]);
 
@@ -216,7 +216,8 @@ public class SidingWallEntity : BlockEntity
         // An empty selectiveElements array matches zero shape elements, not "no filter", and any
         // built cell names at least one - glazing merged on every side still draws its pane. So
         // empty means nothing is built, and the block's default JSON shape stands in.
-        bool glazed = SidingWallBlock.IsTransparent(Infill, Block.Attributes["Infills"]);
+        bool glazed = SidingWallBlock.IsSheet(Infill, Block.Attributes["Infills"]);
+        bool transparent = SidingWallBlock.IsTransparent(Infill, Block.Attributes["Infills"]);
         string side = Block.Variant["side"];
         bool stepped = Step != null && layout is "wall" or "cornerout";
         Block? stair = stepped ? Api.World.GetBlock(new AssetLocation(Step)) : null;
@@ -234,24 +235,26 @@ public class SidingWallEntity : BlockEntity
         var closed = (front: frontDirections.Length > 0 && FrontClosed(frontDirections[0]), second: frontDirections.Length > 1 && FrontClosed(frontDirections[1]));
         string[] selectiveElements = SelectiveElements(layout, Framing, Infill, Front, SecondFront, Back, Block.Attributes["Finishes"], joins, glazed, Styles,
             frame: FrameElements(Block.Attributes["Framings"], Framing, alternate), decked: Deck != null, innerCorners: innerCorners, glassRunsOn: glassRunsOn, tees: tees, closed: closed,
-            secondBack: SecondBack, secondBackStyle: SecondBackStyle, fill: InfillElements(Block.Attributes["Infills"], Infill));
+            secondBack: SecondBack, secondBackStyle: SecondBackStyle, fill: InfillElements(Block.Attributes["Infills"], Infill), pane: transparent);
 
         // The deck is laid like a floor, in world directions, so its groups are tesselated unrotated.
-        bool deckGlazed = SidingWallBlock.IsTransparent(DeckInfill, Block.Attributes["Infills"]);
-        var deckJoins = SidingFloorBlock.Joins(Api.World.BlockAccessor, Pos, deckGlazed);
-        string[] deckInnerCorners = SidingFloorBlock.InnerCorners(Api.World.BlockAccessor, Pos, deckGlazed, deckJoins);
+        string? deckSheet = SidingWallBlock.SheetKind(DeckInfill, Block.Attributes["Infills"]);
+        bool deckGlazed = deckSheet != null, deckTransparent = SidingWallBlock.IsTransparent(DeckInfill, Block.Attributes["Infills"]);
+        var deckJoins = SidingFloorBlock.Joins(Api.World.BlockAccessor, Pos, deckSheet);
+        string[] deckInnerCorners = SidingFloorBlock.InnerCorners(Api.World.BlockAccessor, Pos, deckSheet, deckJoins);
         bool bothHalves = Deck != null && OuterDeck != null;
         bool capped = Capped(layout, DeckFront, SidingWallBlock.FreeAbove(Api.World.BlockAccessor, Pos), bothHalves);
         string[] deckElements = DeckElements(side, Deck, DeckInfill, DeckFront, DeckBack, Block.Attributes["Finishes"], deckJoins, (DeckFrontStyle, DeckBackStyle), deckGlazed,
             FrameElements(Block.Attributes["Framings"], Deck, alternate), Ledges(layout, Back == null, glazed, joins, SecondBack == null), deckInnerCorners, capped,
-            InfillElements(Block.Attributes["Infills"], DeckInfill));
-        bool outerGlazed = SidingWallBlock.IsTransparent(OuterDeckInfill, Block.Attributes["Infills"]);
-        var allJoins = SidingFloorBlock.Joins(Api.World.BlockAccessor, Pos, outerGlazed);
+            InfillElements(Block.Attributes["Infills"], DeckInfill), pane: deckTransparent);
+        string? outerSheet = SidingWallBlock.SheetKind(OuterDeckInfill, Block.Attributes["Infills"]);
+        bool outerGlazed = outerSheet != null, outerTransparent = SidingWallBlock.IsTransparent(OuterDeckInfill, Block.Attributes["Infills"]);
+        var allJoins = SidingFloorBlock.Joins(Api.World.BlockAccessor, Pos, outerSheet);
         var outerJoins = (allJoins.above && SidingWallBlock.ClaimsFace(layout, side, "north"), allJoins.below && SidingWallBlock.ClaimsFace(layout, side, "south"),
             allJoins.left && SidingWallBlock.ClaimsFace(layout, side, "west"), allJoins.right && SidingWallBlock.ClaimsFace(layout, side, "east"));
         string[] outerElements = DeckElements(side, OuterDeck, OuterDeckInfill, OuterDeckFront, OuterDeckBack, Block.Attributes["Finishes"], outerJoins, (OuterDeckFrontStyle, OuterDeckBackStyle),
             outerGlazed, FrameElements(Block.Attributes["Framings"], OuterDeck, alternate), capped: Capped(layout, OuterDeckFront, false, bothHalves),
-            fill: InfillElements(Block.Attributes["Infills"], OuterDeckInfill), group: "outerdeck");
+            fill: InfillElements(Block.Attributes["Infills"], OuterDeckInfill), group: "outerdeck", pane: outerTransparent);
         if (selectiveElements.Length == 0 && deckElements.Length == 0 && outerElements.Length == 0 && stepElements.Length == 0) return false;
 
         string cacheKey = CacheKey(layout, side, Framing, Infill, Front, SecondFront, Back, joins, Styles, Deck, Step, StepOrientation,
@@ -264,9 +267,9 @@ public class SidingWallEntity : BlockEntity
             var texSource = new SidingWallTexSource(
                 capi, this, Block.Attributes["Framings"], Block.Attributes["Infills"], Block.Attributes["Finishes"], alternate);
             var rotation = new Vec3f(0, RotationYDeg(side), 0);
-            return Meshes(tesselator, shape, texSource, rotation, selectiveElements, glazed)
-                .Concat(Meshes(tesselator, shape, texSource, new Vec3f(0, 0, 0), deckElements, deckGlazed))
-                .Concat(Meshes(tesselator, shape, texSource, new Vec3f(0, 0, 0), outerElements, outerGlazed))
+            return Meshes(tesselator, shape, texSource, rotation, selectiveElements, transparent)
+                .Concat(Meshes(tesselator, shape, texSource, new Vec3f(0, 0, 0), deckElements, deckTransparent))
+                .Concat(Meshes(tesselator, shape, texSource, new Vec3f(0, 0, 0), outerElements, outerTransparent))
                 .Concat(Meshes(tesselator, shape, texSource, new Vec3f(0, stepRotation, 0), stepElements, false))
                 .ToArray();
         });
@@ -370,10 +373,10 @@ public class SidingWallEntity : BlockEntity
     internal static string[] DeckElements(
         string side, string? deck, string? infill, string? front, string? back, JsonObject finishes,
         (bool above, bool below, bool left, bool right) joins, (string? front, string? back) styles, bool glazed,
-        string frame = "framing", string[]? ledges = null, string[]? innerCorners = null, bool capped = false, string fill = "infill", string group = "deck")
+        string frame = "framing", string[]? ledges = null, string[]? innerCorners = null, bool capped = false, string fill = "infill", string group = "deck", bool pane = true)
     {
         if (deck == null) return [];
-        string[] names = SidingFloorEntity.SelectiveElements(deck, infill, front, back, finishes, joins, styles, glazed, frame, innerCorners, fill);
+        string[] names = SidingFloorEntity.SelectiveElements(deck, infill, front, back, finishes, joins, styles, glazed, frame, innerCorners, fill, pane);
         string[] copies = [group, .. ledges ?? []];
         // The top finish is the first name, and a glazed deck's is a rim round the glass, which has no top to lay over the wall.
         string[] top = front == TilesKey ? [.. TileGroups("front", styles.front)] : [names[0]];
@@ -454,7 +457,7 @@ public class SidingWallEntity : BlockEntity
         (bool above, bool below, bool left, bool right) joins, bool glazed,
         (string? front, string? secondFront, string? back) styles = default, string frame = "framing", bool decked = false,
         string[]? innerCorners = null, (bool left, bool right) glassRunsOn = default, (bool left, bool right) tees = default,
-        (bool front, bool second) closed = default, string? secondBack = null, string? secondBackStyle = null, string fill = "infill")
+        (bool front, bool second) closed = default, string? secondBack = null, string? secondBackStyle = null, string fill = "infill", bool pane = true)
     {
         if (layout == "cornerin") return PostElements(framing, finishes, [(front, styles.front), (secondFront, styles.secondFront), (back, styles.back), (secondBack, secondBackStyle)], frame);
         var names = new List<string>();
@@ -519,8 +522,8 @@ public class SidingWallEntity : BlockEntity
             // Glazing is one flat pane spanning the whole cell rather than a slab plus fillers.
             // Three stacked boxes share a face at each seam, and two coincident transparent quads
             // blend twice over - a bright line exactly where a cross-beam would be. One pane also
-            // meets the pane above it edge on, so a glazed stack has no seams at all.
-            if (glazed) names.Add("infill-pane");
+            // meets the pane above it edge on, so a glazed stack has no seams at all. A vent has no pane and draws its fill.
+            if (glazed && pane) names.Add("infill-pane");
             else
             {
                 names.Add(fill);
@@ -542,6 +545,7 @@ public class SidingWallEntity : BlockEntity
         // each group's own piece out to the corner and half a post there.
         if (diagonal)
         {
+            IEnumerable<string> FillGroups() => new[] { fill }.Concat(joins.above ? [$"{fill}-top"] : []).Concat(joins.below ? [$"{fill}-bottom"] : []);
             string[] panel = names.ToArray();
             // A glazed diagonal's rails are the glazing's, so its ends stay the plain frame's whatever the framing.
             string post = glazed ? "framing" : frame;
@@ -555,7 +559,7 @@ public class SidingWallEntity : BlockEntity
                     string[] rails = [.. new[] { "-top", "-bottom" }.Where(rail => parts.Contains(rail) || (innerCorners ?? []).Contains($"{rail}-{end}"))];
                     foreach (var (group, keeps) in rims) names.AddRange(rails.Where(keeps).Select(rail => $"{group}-rim{rail}-join-{end}"));
                     if (framing != null) names.AddRange(rails.Select(rail => $"glazing{rail}-join-{end}"));
-                    if (infill != null) names.Add($"infill-pane-join-{end}");
+                    if (infill != null) names.AddRange(pane ? [$"infill-pane-join-{end}"] : FillGroups().Select(group => $"{group}-join-{end}"));
                     continue;
                 }
                 // A glazed diagonal's rims also cover the half post's front, full height as a wall's stile rim does.
