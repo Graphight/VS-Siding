@@ -25,6 +25,11 @@ Every sealed cell emitted toward every quadrant, its open side included, so that
 For a wall that is `SidingWallBlock.SealedFlags`: the faces `ClaimsFace` answers, worked out once per block, plus up when the cell carries a deck or an outer deck, since a deck is entity state, not part of the block.
 A floor claims up.
 
+**A sealed cell shows the first unsealed cell along its open sides.**
+0018's rewrite copied each cell's open side in scan order, so a wall reached before the sealed floor its open side looks into copied the daylight that floor's cell stores.
+A corner's leg faces read that wall, so with a thin-floor ceiling in the walls' top course and sky above it, the corners stayed lit in a sealed room: at 0.67 on `main`, and at full strength on the vertices away from the panel once this decision's per-corner occlusion left them undarkened.
+`ResolveSealedLight` now follows each cell's open side through other sealed cells, so the scan order no longer matters, and a loop of cells opening onto each other keeps its own light.
+
 **The flat path occludes only corners that touch the panel.**
 `SealedCellFaceLightPrefix` (0018's flat path) applies `occ` to a corner only when its vertex lies on a claimed face of the sealed cell (`CornerFaces`, read from `CubeFaceVertices.blockFaceVerticesCentered`), or to all four when the cell claims the face toward the drawn one.
 The floor in a wall's open part therefore grades from dark at the panel to light at its open edge, and ground against a panel shades as it does beside a full block.
@@ -49,6 +54,7 @@ Directional AO alone leaves the flat path's uniform `occ` on the open side, and 
 
 ## Consequences & open questions
 - Played: the reported room, a panels-in wall, a wall on a chunk border, a hosted cell, a diagonal, a thin floor and a deck.
+- Played after the open-side fix: corners under a thin-floor ceiling go dark when the room seals.
 - A deck's up flag was added after that playtest, from review: a block standing beside a decked wall in the room above has not been looked at.
 - `SealedCellLightTests` pins the corner-to-vertex mapping against vanilla's `CubeFaceVertices`, `SealedFlags` with and without a deck, and the overrides' answers for vanilla's real ring and front-cell flags.
 - `SealedCellFaceLightPrefix`'s own corner choice has no unit test, since it needs a live `TCTCache`.

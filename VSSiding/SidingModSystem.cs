@@ -586,6 +586,8 @@ public class SidingModSystem : ModSystem
     // Per cell, the BlockFacing flags of the faces its panel covers; zero is not sealed.
     [ThreadStatic] private static byte[]? sealedCells;
     [ThreadStatic] private static int[]? sealedCellRgbs;
+    // Per sealed cell, the index of the cell its open side looks into.
+    [ThreadStatic] private static int[]? sealedSources;
 
     // A sealed wall's cell stores the sunlight flowing in from outside (decision 0015), and the
     // floor face under it samples that cell. Show the light of the cell the wall's dead space
@@ -599,6 +601,7 @@ public class SidingModSystem : ModSystem
         const int size = 34;
         var mask = sealedCells ??= new byte[___currentChunkBlocksExt.Length];
         Array.Clear(mask);
+        var source = sealedSources ??= new int[___currentChunkBlocksExt.Length];
         sealedCellRgbs = ___currentChunkRgbsExt;
 
         var pos = new BlockPos(chunkY / 1024);
@@ -617,7 +620,7 @@ public class SidingModSystem : ModSystem
                 // which has this cell in its own interior and lights it there.
                 if (y == 0 || !floor.IsSealed(___game.BlockAccessor.GetBlockEntity(pos))) continue;
 
-                ___currentChunkRgbsExt[i] = ___currentChunkRgbsExt[i - size * size];
+                source[i] = i - size * size;
                 mask[i] = (byte)BlockFacing.UP.Flag;
                 continue;
             }
@@ -632,7 +635,7 @@ public class SidingModSystem : ModSystem
             int sealedFlags = wall.SealedFlags(___game.BlockAccessor.GetBlockEntity(pos));
             if (sealedFlags == 0) continue;
 
-            ___currentChunkRgbsExt[i] = ___currentChunkRgbsExt[i + dx + dz * size];
+            source[i] = i + dx + dz * size;
             mask[i] = (byte)sealedFlags;
         }
 
@@ -656,9 +659,25 @@ public class SidingModSystem : ModSystem
                 int sealedFlags = wall.SealedFlags(guest);
                 if (sealedFlags == 0) continue;
 
-                ___currentChunkRgbsExt[extIndex] = ___currentChunkRgbsExt[extIndex + dx + dz * size];
+                source[extIndex] = extIndex + dx + dz * size;
                 mask[extIndex] = (byte)sealedFlags;
             }
+        }
+
+        ResolveSealedLight(mask, source, ___currentChunkRgbsExt);
+    }
+
+    // Each sealed cell shows the first unsealed cell along its open sides, so a wall opening onto a sealed
+    // floor shows the room under the floor, not the daylight the floor's cell stores, whichever the scan
+    // reached first. A loop of cells opening onto each other keeps its own light.
+    internal static void ResolveSealedLight(byte[] mask, int[] source, int[] rgbs)
+    {
+        for (int i = 0; i < mask.Length; i++)
+        {
+            if (mask[i] == 0) continue;
+            int j = source[i];
+            for (int hops = 0; mask[j] != 0 && hops < 8; hops++) j = source[j];
+            if (mask[j] == 0) rgbs[i] = rgbs[j];
         }
     }
 

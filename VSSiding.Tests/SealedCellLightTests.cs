@@ -60,6 +60,19 @@ public class SealedCellLightTests
     public void OccludeScalesEveryByteIncludingSunlight()
         => Assert.Equal(unchecked((int)0x7F_44_22_00), SidingModSystem.Occlude(unchecked((int)0xFF_88_44_00), 0.5f));
 
+    // The scan reaches a wall before the floor its open side looks into, which once left the wall
+    // showing the daylight the floor's cell stores.
+    [Fact]
+    public void ASealedCellShowsTheFirstUnsealedCellAlongItsOpenSides()
+    {
+        // 0 is the room under floor 2, wall 1 opens onto floor 2, and walls 3 and 4 open onto each other.
+        byte[] mask = [0, 1, 16, 1, 1];
+        int[] source = [0, 2, 0, 4, 3];
+        int[] rgbs = [10, 20, 30, 40, 50];
+        SidingModSystem.ResolveSealedLight(mask, source, rgbs);
+        Assert.Equal(new[] { 10, 10, 10, 40, 50 }, rgbs);
+    }
+
     [Fact]
     public void SealedFlagsAreThePanelsFacesPlusTheTopUnderADeck()
     {
