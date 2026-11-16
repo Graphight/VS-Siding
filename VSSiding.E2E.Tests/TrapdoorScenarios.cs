@@ -135,4 +135,18 @@ public class TrapdoorScenarios : AtlasScenarioBase
         Assert.Equal((true, "trapdoor-solid-oak-1", "game:ladder-wood-aged-west"),
             (placed, World.BlockAt(cell).Code.Path, WallBuilder.GuestLadder(World, cell)));
     }
+
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
+    public async Task Hatch_Should_LeaveTheLadderHostedInTheWall_When_ItIsBroken()
+    {
+        BlockPos cell = Cell;
+        ITestPlayer player = await BuilderWithHatch(cell);
+        PlaceLadder(player, cell.EastCopy(), BlockFacing.EAST, true);
+
+        World.Api.World.BlockAccessor.BreakBlock(cell, player.Player);
+        await World.Until(() => WallBuilder.GuestLadder(World, cell) == null && World.BlockAt(cell).Code.Path == "ladder-wood-aged-west", 100);
+
+        Assert.Equal(("ladder-wood-aged-west", null, ("oak", "clay", null, null, null)),
+            (World.BlockAt(cell).Code.Path, WallBuilder.GuestLadder(World, cell), WallBuilder.GuestLayers(World, cell)));
+    }
 }

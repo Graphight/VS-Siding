@@ -1645,6 +1645,23 @@ public class SidingModSystem : ModSystem
         Block current = world.BlockAccessor.GetBlock(pos, BlockLayersAccess.Solid);
         if (ClassifyHostChange(current, guest.Block, Hostable) != HostChange.Restore) return;
 
+        // A hatch's ladder layer becomes the cell's host again, the wall staying its guest.
+        if (guest.Ladder != null && world.GetBlock(new AssetLocation(guest.Ladder)) is { BlockId: not 0 } ladder && IsHostableId(ladder.BlockId))
+        {
+            GuestWalls.GuestRecord kept = GuestWalls.WithLadder(guest, null);
+            if (world.Side == EnumAppSide.Client)
+            {
+                GuestWalls.SetOnClient((ICoreClientAPI)world.Api, pos, kept);
+                world.BlockAccessor.SetBlock(ladder.BlockId, pos);
+                return;
+            }
+
+            GuestWalls.Set(world, chunk, pos, kept, sync: false);
+            world.BlockAccessor.SetBlock(ladder.BlockId, pos);
+            GuestWalls.Sync(pos, kept);
+            return;
+        }
+
         if (world.Side == EnumAppSide.Client)
         {
             world.BlockAccessor.SetBlock(guest.Block.BlockId, pos);
