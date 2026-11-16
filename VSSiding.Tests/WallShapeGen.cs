@@ -386,9 +386,31 @@ public static class WallShapeGen
     private static IEnumerable<Element> StemBands(double runLo, double runHi)
         => [.. Stems("stems-top", runLo, runHi, 15, 16), .. Stems("stems", runLo, runHi, 1, 15), .. Stems("stems-bottom", runLo, runHi, 0, 1)];
 
+    // A vent's louvres: a slat a voxel tall every two, along the run, alternate slats a half voxel deeper so they read as
+    // angled. Cut to z runLo..runHi and y y0..y1 as the stems are; their planes sit a quarter voxel off the frame's and the
+    // finishes'. They draw no face on the run's ends, so they sit inside a post that stands there and carry on into the next
+    // cell where the post has merged away.
+    private static IEnumerable<Element> Louvres(string name, double runLo, double runHi, double y0, double y1)
+    {
+        for (int k = 0; k < 8; k++)
+        {
+            double bottom = Math.Max(0.25 + 2 * k, y0), top = Math.Min(1.25 + 2 * k, y1);
+            double x = k % 2 == 0 ? 1.25 : 1.75;
+            if (top > bottom && runHi > runLo)
+                yield return new Element(name, (x, bottom, runLo), (x + 1, top, runHi), "infill", UvRule.Flat, Faces: ["west", "east", "up", "down"], RunAxis: 'z');
+        }
+    }
+
+    private static IEnumerable<Element> LouvreBands(double runLo, double runHi)
+        => [.. Louvres("louvres-top", runLo, runHi, 15, 16), .. Louvres("louvres", runLo, runHi, 1, 15), .. Louvres("louvres-bottom", runLo, runHi, 0, 1)];
+
     // A corner's second leg runs along x with its depth on z.
     private static Element SwapXZ(Element e)
-        => e with { From = (e.From.Z, e.From.Y, e.From.X), To = (e.To.Z, e.To.Y, e.To.X), RunAxis = 'x' };
+        => e with
+        {
+            From = (e.From.Z, e.From.Y, e.From.X), To = (e.To.Z, e.To.Y, e.To.X), RunAxis = 'x',
+            Faces = e.Faces?.Select(f => f switch { "west" => "north", "north" => "west", "east" => "south", "south" => "east", _ => f }).ToArray(),
+        };
 
     // A floor lays the wall's stems flat: the wall's depth is the floor's height and its height the floor's x, so the
     // poles lie east-west across the joists; the top and underside turn the texture to run along them.
@@ -501,6 +523,7 @@ public static class WallShapeGen
         new("infill", (1.5, 1, 1), (2.5, 15, 15), "infill", UvRule.Positional),
         new("infill-bottom", (1.5, 0, 1), (2.5, 1, 15), "infill", UvRule.Positional),
         .. StemBands(1, 15),
+        .. LouvreBands(0, 16),
         new("infill-pane", (2, 0, 0), (2, 16, 16), "infill", UvRule.Flat, Faces: ["west", "east"]),
         // A bare front facing another wall's front is closed in the infill (decision 0083).
         new("infill-front", (0, 0, 0), (1, 16, 16), "infill", UvRule.Positional),
@@ -954,6 +977,7 @@ public static class WallShapeGen
         new("infill", (1.5, 1, 3), (2.5, 15, 15), "infill", UvRule.Positional),
         new("infill-bottom", (1.5, 0, 3), (2.5, 1, 15), "infill", UvRule.Positional),
         .. StemBands(3, 15),
+        .. LouvreBands(3, 16),
         new("framing", (1, 0, 15), (3, 16, 16), "framing", UvRule.Flat),
         new("back", (3, 0, 4), (4, 16, 16), "back", UvRule.Flat),
         new("secondfront", (1, 0, 0), (16, 16, 1), "secondfront", UvRule.Flat),
@@ -966,6 +990,7 @@ public static class WallShapeGen
         new("infill", (3, 1, 1.5), (15, 15, 2.5), "infill", UvRule.Positional),
         new("infill-bottom", (3, 0, 1.5), (15, 1, 2.5), "infill", UvRule.Positional),
         .. StemBands(3, 15).Select(SwapXZ),
+        .. LouvreBands(3, 16).Select(SwapXZ),
         new("infill-pane", (2, 0, 3), (2, 16, 16), "infill", UvRule.Flat, Faces: ["west", "east"]),
         new("infill-pane", (3, 0, 2), (16, 16, 2), "infill", UvRule.Flat, Faces: ["north", "south"]),
         new("framing", (15, 0, 1), (16, 16, 3), "framing", UvRule.Flat),
@@ -1201,11 +1226,11 @@ public static class WallShapeGen
            where hi > lo
            select OnDiagonal(e with { From = (e.From.X, e.From.Y, lo), To = (e.To.X, e.To.Y, hi), ClippedFrom = e }, suffix, shift);
 
-    // The stems over a run, laid on the cell's 0..16 and repeated along it as DiagonalFinish lays a finish, so the poles keep
+    // The stems, or a vent's louvres, over a run, laid on the cell's 0..16 and repeated along it as DiagonalFinish lays a finish, so the poles keep
     // their spacing and nodes through the run's ends instead of stretching as DiagonalRun stretches a slab.
-    private static IEnumerable<Element> DiagonalStems(double runLo, double runHi, string suffix = "")
+    private static IEnumerable<Element> DiagonalBands(double runLo, double runHi, string suffix = "", bool louvres = false)
         => from shift in new[] { -16, 0, 16 }
-           from e in StemBands(0, 16)
+           from e in louvres ? LouvreBands(0, 16) : StemBands(0, 16)
            let lo = Math.Max(e.From.Z, 8 + runLo - shift)
            let hi = Math.Min(e.To.Z, 8 + runHi - shift)
            where hi > lo
@@ -1260,9 +1285,14 @@ public static class WallShapeGen
             DiagonalRun(e, 1 - DiagonalCorner, -DiagonalEnd, "-left"),
             DiagonalRun(e, DiagonalEnd, DiagonalCorner - 1, "-right"),
         }),
-        .. DiagonalStems(-DiagonalEnd, DiagonalEnd),
-        .. DiagonalStems(1 - DiagonalCorner, -DiagonalEnd, "-left"),
-        .. DiagonalStems(DiagonalEnd, DiagonalCorner - 1, "-right"),
+        .. DiagonalBands(-DiagonalEnd, DiagonalEnd),
+        .. DiagonalBands(1 - DiagonalCorner, -DiagonalEnd, "-left"),
+        .. DiagonalBands(DiagonalEnd, DiagonalCorner - 1, "-right"),
+        .. DiagonalBands(-DiagonalEnd, DiagonalEnd, louvres: true),
+        .. DiagonalBands(1 - DiagonalCorner, -DiagonalEnd, "-left", true),
+        .. DiagonalBands(DiagonalEnd, DiagonalCorner - 1, "-right", true),
+        .. DiagonalBands(-DiagonalCorner, 1 - DiagonalCorner, "-join-left", true),
+        .. DiagonalBands(DiagonalCorner - 1, DiagonalCorner, "-join-right", true),
         .. DiagonalFinish(-DiagonalEnd, DiagonalEnd),
         .. DiagonalFinish(-DiagonalCorner, -DiagonalEnd, "-left"),
         .. DiagonalFinish(DiagonalEnd, DiagonalCorner, "-right"),
@@ -1439,6 +1469,8 @@ public static class WallShapeGen
         // Joined floors make one pole of their two halves over the seam.
         .. new (string Name, double Lo, double Hi)[] { ("stems-top", 0, 1), ("stems", 1, 15), ("stems-bottom", 15, 16) }
             .SelectMany(band => Stems(band.Name, band.Lo, band.Hi, 0, 16).Select(OnFloor)),
+        .. new (string Name, double Lo, double Hi)[] { ("louvres-top", 0, 1), ("louvres", 1, 15), ("louvres-bottom", 15, 16) }
+            .SelectMany(band => Louvres(band.Name, band.Lo, band.Hi, 0, 16).Select(e => OnFloor(e with { Faces = null }))),
         new("back", (0, 12, 0), (16, 13, 16), "back", UvRule.Flat),
         new("infill-pane", (0, 14, 0), (16, 14, 16), "infill", UvRule.Flat, Faces: ["up", "down"]),
         // The wall's glazing frame laid flat, with no joists: stiles on the west and east edges, rails

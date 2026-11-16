@@ -288,7 +288,7 @@ public class WallShapeGenTests
             "back-tile3 8,12,8 16,13,16",
         ];
         Assert.Equal(expected, WallShapeGen.Generate("floor")["elements"]!
-            .Where(e => !((string)e["name"]!).StartsWith("poles") && !((string)e["name"]!).StartsWith("bamboo") && !((string)e["name"]!).StartsWith("stems") && !((string)e["name"]!).Contains("-rim"))
+            .Where(e => !new[] { "poles", "bamboo", "stems", "louvres" }.Any(((string)e["name"]!).StartsWith) && !((string)e["name"]!).Contains("-rim"))
             .Select(e => $"{e["name"]} {string.Join(",", e["from"]!.Select(v => (double)v!))} {string.Join(",", e["to"]!.Select(v => (double)v!))}")
             .ToArray());
     }
@@ -303,7 +303,7 @@ public class WallShapeGenTests
     public void EveryStemsBoxStaysInsideTheFramesThickness(string layout)
     {
         bool Inside(double[] lo, double[] hi, int axis, double from, double to) => lo[axis] >= from && hi[axis] <= to;
-        var boxes = WallShapeGen.Generate(layout)["elements"]!.Where(e => ((string)e["name"]!).StartsWith("stems")).Select(Box).ToList();
+        var boxes = WallShapeGen.Generate(layout)["elements"]!.Where(e => ((string)e["name"]!).StartsWith("stems") || ((string)e["name"]!).StartsWith("louvres")).Select(Box).ToList();
 
         Assert.NotEmpty(boxes);
         Assert.Equal([], boxes.Where(b => !(layout switch
@@ -313,6 +313,35 @@ public class WallShapeGenTests
             "diagonal" => Inside(b.Lo, b.Hi, 0, 7, 9),
             _ => Inside(b.Lo, b.Hi, 1, 13, 15),
         })).Select(b => $"{string.Join(",", b.Lo)} to {string.Join(",", b.Hi)}"));
+    }
+
+    // A vent's louvres span the run to the cell's or leg's edge and draw no face on the run's ends, so merged vents carry
+    // them across the seam and a standing post hides them.
+    [Theory]
+    [InlineData("wall", 2, 0, 16)]
+    [InlineData("cornerout", 2, 3, 16)]
+    [InlineData("cornerout", 0, 3, 16)]
+    public void LouvresReachTheCellEdgeAndDrawNoEndFace(string layout, int runAxis, double lo, double hi)
+    {
+        var louvres = WallShapeGen.Generate(layout)["elements"]!.Where(e => ((string)e["name"]!).StartsWith("louvres")).ToList();
+        int depth = runAxis == 2 ? 0 : 2;
+        var onAxis = louvres.Where(e => Box(e).Hi[depth] <= 3).ToList();
+        string[] ends = runAxis == 2 ? ["north", "south"] : ["west", "east"];
+
+        Assert.NotEmpty(onAxis);
+        Assert.Equal(
+            (lo, hi, ""),
+            (onAxis.Min(e => Box(e).Lo[runAxis]), onAxis.Max(e => Box(e).Hi[runAxis]),
+                string.Join(",", onAxis.SelectMany(e => ends.Where(end => e["faces"]![end] != null)))));
+    }
+
+    [Fact]
+    public void ADiagonalsLouvresHaveJoinPiecesAtBothEnds()
+    {
+        var names = WallShapeGen.Generate("diagonal")["elements"]!.Select(e => (string)e["name"]!).ToHashSet();
+
+        foreach (var end in new[] { "left", "right" })
+            Assert.Contains($"louvres-join-{end}", names);
     }
 
     // A bare bamboo post's slices stay in the body their layer owns, so a finished face drops its slice and nothing else

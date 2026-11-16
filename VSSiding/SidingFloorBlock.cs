@@ -145,7 +145,7 @@ public class SidingFloorBlock : Block
         entity.MarkDirty(true);
         MarkAbsorptionChanged(world.BlockAccessor, pos, entity.Framing, oldInfill);
         // Rooms only recompute on a chunk-dirty event, as on the wall; exchanging the block for itself fires one.
-        world.BlockAccessor.ExchangeBlock(Id, pos);
+        world.BlockAccessor.ExchangeBlock(SidingWallBlock.VentId(world, this, SidingWallBlock.IsVent(entity.Infill, Attributes["Infills"])), pos);
         MarkNeighboursDirty(world, pos);
     }
 
@@ -262,38 +262,36 @@ public class SidingFloorBlock : Block
 
     // Every floor's joists run north-south, so the north rim (framing-top) and the south rim
     // (framing-bottom) each drop where a framed floor carries the joists on, the way a stacked
-    // wall drops its plates. A glazed floor has no joists: its bezel merges on all four sides,
-    // and only with glazed floors, as glazing does on a wall (decision 0019). A wall's deck is
-    // laid the same way and counts as a neighbour wherever it reaches the shared edge.
-    internal static (bool above, bool below, bool left, bool right) Joins(IBlockAccessor accessor, BlockPos pos, bool glazed)
-        => glazed
-            ? (Continues(accessor, pos, BlockFacing.NORTH, true), Continues(accessor, pos, BlockFacing.SOUTH, true),
-                Continues(accessor, pos, BlockFacing.WEST, true), Continues(accessor, pos, BlockFacing.EAST, true))
-            : (Continues(accessor, pos, BlockFacing.NORTH, false), Continues(accessor, pos, BlockFacing.SOUTH, false), false, false);
+    // wall drops its plates. A glazed or vented floor has no joists: its bezel merges on all
+    // four sides, and only with its own kind, as glazing does on a wall (decision 0019). A wall's
+    // deck is laid the same way and counts as a neighbour wherever it reaches the shared edge.
+    internal static (bool above, bool below, bool left, bool right) Joins(IBlockAccessor accessor, BlockPos pos, string? sheet)
+        => (Continues(accessor, pos, BlockFacing.NORTH, sheet), Continues(accessor, pos, BlockFacing.SOUTH, sheet),
+            sheet != null && Continues(accessor, pos, BlockFacing.WEST, sheet), sheet != null && Continues(accessor, pos, BlockFacing.EAST, sheet));
 
-    // Whether the cell `direction` of `pos` carries on the joists, or the glazing when `glazing`.
-    private static bool Continues(IBlockAccessor accessor, BlockPos pos, BlockFacing direction, bool glazing)
+    // Whether the cell `direction` of `pos` carries on the joists, or the sheet of that kind when `sheet`.
+    private static bool Continues(IBlockAccessor accessor, BlockPos pos, BlockFacing direction, string? sheet)
     {
         BlockPos neighbourPos = pos.AddCopy(direction);
         if (accessor.GetBlockEntity<SidingFloorEntity>(neighbourPos) is { } floor)
-            return Continues(glazing, floor.Framing, floor.Infill, floor.Block.Attributes["Infills"]);
+            return Continues(sheet, floor.Framing, floor.Infill, floor.Block.Attributes["Infills"]);
         if (SidingWallBlock.WallAt(accessor, neighbourPos) is not var (wallBlock, wall)) return false;
         string layout = wallBlock.Variant["layout"], side = wallBlock.Variant["side"];
         var deck = wall.DeckLayers(SidingWallBlock.HalfFacing(layout, side, direction.Opposite.Code));
-        return DeckReaches(layout, side, direction) && Continues(glazing, deck.Deck, deck.Infill, wallBlock.Attributes["Infills"]);
+        return DeckReaches(layout, side, direction) && Continues(sheet, deck.Deck, deck.Infill, wallBlock.Attributes["Infills"]);
     }
 
     // As a wall's (SidingWallBlock.InnerCorners). The cell diagonally across is asked from both of the
     // cells between, since a deck there has to reach both of the edges that meet at the corner.
-    internal static string[] InnerCorners(IBlockAccessor accessor, BlockPos pos, bool glazed, (bool above, bool below, bool left, bool right) joins)
-        => !glazed ? [] : SidingWallBlock.InnerCorners(joins, (rail, stile) =>
+    internal static string[] InnerCorners(IBlockAccessor accessor, BlockPos pos, string? sheet, (bool above, bool below, bool left, bool right) joins)
+        => sheet == null ? [] : SidingWallBlock.InnerCorners(joins, (rail, stile) =>
         {
             BlockFacing along = rail == "-top" ? BlockFacing.NORTH : BlockFacing.SOUTH, across = stile == "-left" ? BlockFacing.WEST : BlockFacing.EAST;
-            return Continues(accessor, pos.AddCopy(along), across, true) && Continues(accessor, pos.AddCopy(across), along, true);
+            return Continues(accessor, pos.AddCopy(along), across, sheet) && Continues(accessor, pos.AddCopy(across), along, sheet);
         });
 
-    internal static bool Continues(bool glazing, string? framing, string? infill, JsonObject infills)
-        => framing != null && (!glazing || SidingWallBlock.IsTransparent(infill, infills));
+    internal static bool Continues(string? sheet, string? framing, string? infill, JsonObject infills)
+        => framing != null && (sheet == null || SidingWallBlock.SheetKind(infill, infills) == sheet);
 
     // A wall's panel stands on the faces it claims, and its deck stops short of them; `direction`
     // is from the cell looking on to the wall, so the face it would touch is the opposite one.

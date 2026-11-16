@@ -275,6 +275,39 @@ public class SidingWallEntityTests
                 "wall", "oak", "glass", "planks", null, "daub", finishes, j, glazed: true)));
     }
 
+    // A vent is a framed sheet like glazing, with the glazing frame and its finishes as rims, but it draws its own louvres
+    // where glass draws the pane.
+    [Fact]
+    public void AFinishedVentDrawsGlazingFramingRimsAndLouvresWithNoPane()
+    {
+        var finishes = Dict("""{ "daub": {}, "planks": {} }""");
+        Assert.Equal(
+            new[]
+            {
+                "front-rim-right", "front-rim-bottom", "front-rim-bottom-left",
+                "glazing-right", "glazing-bottom", "glazing-bottom-left", "louvres", "louvres-top",
+                "back-rim-right", "back-rim-bottom", "back-rim-bottom-left",
+            },
+            SidingWallEntity.SelectiveElements(
+                "wall", "oak", "louvres", "planks", null, "daub", finishes, (true, false, true, false), glazed: true, fill: "louvres", pane: false));
+    }
+
+    // Where a vent diagonal runs on into the next, its louvres carry on through the dropped post, as glass's pane does.
+    [Fact]
+    public void AVentDiagonalRunsItsLouvresOnThroughAJoin()
+    {
+        var diagonal = SidingWallEntity.SelectiveElements(
+            "diagonal", "oak", "louvres", null, null, null, NoElementFinishes, (false, false, true, false), glazed: true,
+            glassRunsOn: (true, false), fill: "louvres", pane: false);
+        Assert.Equal(
+            new[]
+            {
+                "glazing-top", "glazing-bottom", "louvres", "glazing-top-left", "glazing-bottom-left", "louvres-left",
+                "glazing-top-join-left", "glazing-bottom-join-left", "louvres-join-left", "framing-right",
+            },
+            diagonal);
+    }
+
     // A glazed cornerout's corner post never drops and each leg's end post is named like a wall's stile, with a
     // rail per leg between them, and the leg's filler in each rail's corner in place of an end post that has dropped.
     // An opaque cornerout has no end posts, so it draws only its corner post and rails.

@@ -136,7 +136,7 @@ public class SidingFloorTests
     }
 
     [Fact]
-    public void ACappedDeckAddsItsTopFinishOverTheWallAndOnlyWhileItHasOneAndIsNotGlazed()
+    public void ACappedDeckAddsItsTopFinishOverTheWallAndOnlyWhileItHasOne()
     {
         string[] bare = ["deck-west-framing-left", "deck-west-framing-right", "deck-west-framing-top", "deck-west-framing-bottom"];
         string[] Deck(string? infill, string? front, bool glazed, bool capped = false)
@@ -149,7 +149,7 @@ public class SidingFloorTests
                 ["deck-west-front-hboards", .. bare],
                 bare,
                 bare,
-                Deck("glass", "planks", glazed: true),
+                [.. Deck("glass", "planks", glazed: true), "cap-west-front-hboards"],
             },
             new[]
             {
@@ -185,7 +185,7 @@ public class SidingFloorTests
             {
                 ["outerdeck-west-front-hboards", "outerdeck-west-framing-left", "outerdeck-west-framing-right", "outerdeck-west-framing-top", "outerdeck-west-framing-bottom",
                  "outercap-west-front-hboards", "outerdeck-west-fascia"],
-                [.. Outer("glass", glazed: true).Where(name => name.StartsWith("outerdeck-west-") && !name.EndsWith("-fascia"))],
+                [.. Outer("glass", glazed: true).Where(name => name.StartsWith("outerdeck-west-") && !name.EndsWith("-fascia")), "outercap-west-front-hboards"],
             },
             new[] { Outer(null, glazed: false), Outer("glass", glazed: true) });
     }
@@ -237,20 +237,36 @@ public class SidingFloorTests
     }
 
     [Fact]
-    public void ANeighbourContinuesJoistsOnFramingAndGlazingOnTransparentInfill()
+    public void ANeighbourContinuesJoistsOnFramingAndASheetOnItsOwnKind()
     {
-        JsonObject infills = SidingWallEntityTests.Dict("""{ "glass": { "Transparent": true }, "wattle": {} }""");
+        JsonObject infills = SidingWallEntityTests.Dict("""{ "glass": { "Transparent": true }, "wattle": {}, "louvres": { "Vent": true } }""");
         Assert.Equal(
-            [false, true, true, false, true, false],
+            [false, true, true, false, true, false, true, false, false],
             new[]
             {
-                SidingFloorBlock.Continues(false, null, null, infills),
-                SidingFloorBlock.Continues(false, "oak", "wattle", infills),
-                SidingFloorBlock.Continues(true, "oak", "glass", infills),
-                SidingFloorBlock.Continues(true, "oak", "wattle", infills),
-                SidingFloorBlock.Continues(false, "oak", null, infills),
-                SidingFloorBlock.Continues(true, "oak", null, infills),
+                SidingFloorBlock.Continues(null, null, null, infills),
+                SidingFloorBlock.Continues(null, "oak", "wattle", infills),
+                SidingFloorBlock.Continues("glazed", "oak", "glass", infills),
+                SidingFloorBlock.Continues("glazed", "oak", "wattle", infills),
+                SidingFloorBlock.Continues(null, "oak", null, infills),
+                SidingFloorBlock.Continues("glazed", "oak", null, infills),
+                SidingFloorBlock.Continues("vent", "oak", "louvres", infills),
+                SidingFloorBlock.Continues("vent", "oak", "glass", infills),
+                SidingFloorBlock.Continues("glazed", "oak", "louvres", infills),
             });
+    }
+
+    // A vent floor frames its louvres in a bezel and rims its finishes as glazing does, but draws no pane.
+    [Fact]
+    public void AVentFloorDrawsItsBezelRimsAndLouvresWithNoPane()
+    {
+        var floor = SidingFloorEntity.SelectiveElements("oak", "louvres", "planks", null, Finishes, (false, false, false, false), glazed: true, fill: "louvres", pane: false);
+        Assert.Equal(
+            [
+                "front-hboards-rim-left", "front-hboards-rim-right", "front-hboards-rim-top", "front-hboards-rim-bottom",
+                "glazing-left", "glazing-right", "glazing-top", "glazing-bottom", "louvres",
+            ],
+            floor);
     }
 
     // A deck stops short of the faces its wall claims, so only a neighbour on another face carries it on;

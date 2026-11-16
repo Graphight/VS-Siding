@@ -86,6 +86,17 @@ public class GuestSealingPatchesTests
     }
 
     [Fact]
+    public void SideIsSolidTargetsStillExistOnBlockAndAKnownVanillaOverride()
+    {
+        var signature = new[] { typeof(BlockPos), typeof(int) };
+        Assert.NotNull(typeof(Block).GetMethod(nameof(Block.SideIsSolid),
+            BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly, null, signature, null));
+
+        Assert.NotNull(typeof(BlockFarmland).GetMethod(nameof(Block.SideIsSolid),
+            BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly, null, signature, null));
+    }
+
+    [Fact]
     public void CanAttachBlockAtTargetsStillExistOnBlockAndAKnownVanillaOverride()
     {
         var signature = new[] { typeof(IBlockAccessor), typeof(Block), typeof(BlockPos), typeof(BlockFacing), typeof(Cuboidi) };

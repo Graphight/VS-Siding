@@ -1,6 +1,6 @@
 # 0085 — The decked wall's top
 
-- Status: Accepted; the diagonal taking no cap superseded by 0096
+- Status: Accepted; the diagonal taking no cap superseded by 0096, a glazed deck taking no cap by 0100
 - Created: 2026-11-01
 - Reflects: branch `inside-corner-post`; `SidingWallEntity.Capped`, `SidingWallBlock.FreeAbove`, `VSSiding.Tests/WallShapeGen` (`cap-*` groups), `shapes/block/wall/wall.json`, `cornerout.json` and `cornerin.json`, `SidingFloorTests`, `WallShapeGenTests`; decisions 0042, 0053; played in creative on 2026-11-02
 

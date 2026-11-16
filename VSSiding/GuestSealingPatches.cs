@@ -26,6 +26,12 @@ internal static class GuestSealingPatches
             new HarmonyMethod(typeof(GuestSealingPatches), nameof(LiquidBarrierPostfix)),
             new HarmonyMethod(typeof(GuestSealingPatches), nameof(Finalizer)));
 
+        EveryOverridePatches.PatchEveryOverride(harmony, api, nameof(Block.SideIsSolid),
+            new[] { typeof(BlockPos), typeof(int) },
+            new HarmonyMethod(typeof(GuestSealingPatches), nameof(Prefix)),
+            new HarmonyMethod(typeof(GuestSealingPatches), nameof(SideSolidPostfix)),
+            new HarmonyMethod(typeof(GuestSealingPatches), nameof(Finalizer)));
+
         EveryOverridePatches.PatchEveryOverride(harmony, api, nameof(Block.CanAttachBlockAt),
             new[] { typeof(IBlockAccessor), typeof(Block), typeof(BlockPos), typeof(BlockFacing), typeof(Cuboidi) },
             new HarmonyMethod(typeof(GuestSealingPatches), nameof(Prefix)),
@@ -85,6 +91,17 @@ internal static class GuestSealingPatches
 
         var wall = (SidingWallBlock)entity.Block;
         __result = SidingWallBlock.ComputeLiquidBarrier(true, entity.Framing, entity.Infill, wall.Attributes);
+    }
+
+    private static void SideSolidPostfix(Block __instance, BlockPos __0, int __1, ref bool __result)
+    {
+        if (depth != 1 || __0 == null || __1 < 0 || __1 > 5) return;
+
+        SidingWallEntity? entity = ClaimingGuestAt(__instance, __0, BlockFacing.ALLFACES[__1].Code);
+        if (entity == null) return;
+
+        var wall = (SidingWallBlock)entity.Block;
+        __result = SidingWallBlock.ComputeLiquidBarrier(true, entity.Framing, entity.Infill, wall.Attributes) >= 1f;
     }
 
     private static void CanAttachPostfix(Block __instance, IBlockAccessor __0, BlockPos __2, BlockFacing __3, ref bool __result)

@@ -285,9 +285,9 @@ public class SidingWallBlock : Block
         // Glazing merges with the glazing around it in every direction, with no member between,
         // so a run of it reads as one sheet however large. Opaque fill keeps decision 0008's
         // alternating cross-beam. That is why this asks the infill and not the layout: merging
-        // belongs to glass, not to a shape. A cornerout merges at its two leg ends and its corner
+        // belongs to a sheet, glass or vent, not to a shape. A cornerout merges at its two leg ends and its corner
         // post stays either way (decision 0080).
-        if (IsTransparent(infill, Attributes["Infills"]))
+        if (IsSheet(infill, Attributes["Infills"]))
         {
             bool above = ContinuesGlazing(blockAccessor, pos.UpCopy(), infill);
             bool below = ContinuesGlazing(blockAccessor, pos.DownCopy(), infill);
@@ -306,7 +306,7 @@ public class SidingWallBlock : Block
     internal (bool left, bool right) GlassRunsOn(
         IBlockAccessor blockAccessor, BlockPos pos, string? infill, (bool above, bool below, bool left, bool right) joins)
     {
-        if (Variant["layout"] != "diagonal" || !IsTransparent(infill, Attributes["Infills"])) return default;
+        if (Variant["layout"] != "diagonal" || !IsSheet(infill, Attributes["Infills"])) return default;
         var (leftStep, rightStep) = DiagonalRunNeighbours(Variant["side"]);
         return (joins.left && GlazedDiagonalAt(blockAccessor, pos.AddCopy(leftStep), infill),
             joins.right && GlazedDiagonalAt(blockAccessor, pos.AddCopy(rightStep), infill));
@@ -337,7 +337,7 @@ public class SidingWallBlock : Block
     // A diagonal's sheet turns an inside corner at an end its glass runs on through, where the next cell's stack stops short of its own.
     internal string[] InnerCorners(IBlockAccessor blockAccessor, BlockPos pos, string? infill, (bool above, bool below, bool left, bool right) joins)
     {
-        if (!IsTransparent(infill, Attributes["Infills"])) return [];
+        if (!IsSheet(infill, Attributes["Infills"])) return [];
         if (Variant["layout"] == "diagonal")
         {
             var (leftStep, rightStep) = DiagonalRunNeighbours(Variant["side"]);
@@ -407,10 +407,10 @@ public class SidingWallBlock : Block
         return neighbour != null && ContinuesGlazing(infill, neighbour, Attributes["Infills"]);
     }
 
-    // Glazing only merges into more glazing: against a wattle-filled neighbour, or a bare frame,
+    // A sheet only merges into its own kind: against a wattle-filled neighbour, a bare frame, or a vent beside glass,
     // the post stays - that is a join between two different walls, not one continuous sheet.
     internal static bool ContinuesGlazing(string? infill, SidingWallEntity? neighbour, JsonObject infills)
-        => SharesStack(infill, neighbour) && IsTransparent(neighbour?.Infill, infills);
+        => SharesStack(infill, neighbour) && SheetKind(infill, infills) is { } kind && SheetKind(neighbour?.Infill, infills) == kind;
 
     internal static bool JoinsAbove(bool continuesAbove, int cellsBelow) => continuesAbove && cellsBelow % 2 == 0;
 
@@ -448,13 +448,13 @@ public class SidingWallBlock : Block
     // on it moves to the second slot; one on the left end keeps that face as its front.
     internal static bool FrontMovesToSecondFace(string wallSide, string corneroutSide) => corneroutSide != wallSide;
 
-    // The block a bare frame becomes when the saw picks another layout (decision 0026): a wall turns
+    // The layout and side a bare frame becomes when the saw picks another layout (decision 0026): a wall turns
     // into a cornerout or a diagonal at the end clicked, a cornerout into a diagonal on the same
     // side, and nothing turns back. Null when the pick offers no upgrade.
     internal static string? ResolveFramingUpgrade(string layout, string side, string picked, Vec3d hitPosition) => (layout, picked) switch
     {
-        ("wall", "cornerout" or "diagonal") => $"wall-{picked}-{ResolveCornerUpgrade(side, hitPosition)}",
-        ("cornerout", "diagonal") => $"wall-diagonal-{side}",
+        ("wall", "cornerout" or "diagonal") => $"{picked}-{ResolveCornerUpgrade(side, hitPosition)}",
+        ("cornerout", "diagonal") => $"diagonal-{side}",
         _ => null,
     };
 
@@ -813,7 +813,7 @@ public class SidingWallBlock : Block
         if (ClaimRefuses(world, byPlayer, blockSel.Position)) return true;
 
         string layout = Variant["layout"];
-        string? refusal = layout == "diagonal" ? "diagonal" : IsTransparent(entity.Infill, Attributes["Infills"]) ? "glazed" : null;
+        string? refusal = layout == "diagonal" ? "diagonal" : SheetKind(entity.Infill, Attributes["Infills"]);
         if (refusal != null)
         {
             (byPlayer as IServerPlayer)?.SendIngameError($"vssiding:tile{refusal}", Lang.Get($"vssiding:build-tile-{refusal}"));
@@ -905,7 +905,7 @@ public class SidingWallBlock : Block
     {
         (string Code, string Lang)? error = null;
         string? face = SidingFloorBlock.FinishFace(blockSel.Face);
-        if (IsTransparent(infill, infills)) error = ("tileglazed", "build-tile-glazed");
+        if (SheetKind(infill, infills) is { } kind) error = ($"tile{kind}", $"build-tile-{kind}");
         else if (face == null) error = ("wrongface", "build-floor-wrong-face");
         else if (keyOn(face) != null && keyOn(face) != SidingWallEntity.TilesKey)
         {
@@ -970,7 +970,7 @@ public class SidingWallBlock : Block
             return true;
         }
 
-        if (world.GetBlock(new AssetLocation("vssiding", upgrade)) is not SidingWallBlock target) return false;
+        if (world.GetBlock(new AssetLocation("vssiding", $"{FirstCodePart()}-{upgrade}")) is not SidingWallBlock target) return false;
 
         if (filled && world.GetIntersectingEntities(blockSel.Position, target.GetCollisionBoxes(world.BlockAccessor, blockSel.Position), e => e.IsInteractable) is { Length: > 0 })
         {
@@ -1048,7 +1048,7 @@ public class SidingWallBlock : Block
             else { entity.DeckInfill = infillKey; entity.LegacyDeck = false; }
             entity.MarkDirty(true);
             // Rooms only recompute on a chunk-dirty event, and the deck's retention just changed.
-            world.BlockAccessor.ExchangeBlock(Id, blockSel.Position);
+            world.BlockAccessor.ExchangeBlock(VentId(world, entity), blockSel.Position);
             SidingFloorBlock.MarkNeighboursDirty(world, blockSel.Position);
             ConsumeHeld(slot, consumes, isCreative);
             return true;
@@ -1145,12 +1145,28 @@ public class SidingWallBlock : Block
     internal static bool HasStyle(JsonObject finish, string style)
         => Array.IndexOf(finish["Styles"].AsArray<string>([]) ?? [], style) >= 0;
 
+    // A trapdoor infill, in the wall or either deck, puts the cell on the vent block, which Real Smoke tags porous (decision 0100).
+    internal bool HasVent(SidingWallEntity entity)
+        => IsVent(entity.Infill, Attributes["Infills"]) || IsVent(entity.DeckInfill, Attributes["Infills"]) || IsVent(entity.OuterDeckInfill, Attributes["Infills"]);
+
+    internal static bool IsVent(string? infill, JsonObject infills) => infill != null && infills[infill]["Vent"].AsBool();
+
+    internal int VentId(IWorldAccessor world, SidingWallEntity entity) => VentId(world, this, HasVent(entity));
+
+    // The block with this one's code and variants, on the vent or the plain first part.
+    internal static int VentId(IWorldAccessor world, Block block, bool vent)
+    {
+        string first = block.FirstCodePart();
+        string plain = first.EndsWith("vent") ? first[..^4] : first;
+        return world.GetBlock(new AssetLocation(block.Code.Domain, (vent ? plain + "vent" : plain) + block.Code.Path[first.Length..]))?.Id ?? block.Id;
+    }
+
     internal void OnInfillChanged(IWorldAccessor world, SidingWallEntity entity, BlockPos pos, int oldAbsorption)
     {
         entity.MarkDirty(true);
         MarkAbsorptionChanged(world.BlockAccessor, pos, oldAbsorption);
         // Infill changes retention, but rooms only recompute on a chunk-dirty event; exchanging the block for itself fires one.
-        world.BlockAccessor.ExchangeBlock(Id, pos);
+        world.BlockAccessor.ExchangeBlock(VentId(world, entity), pos);
         // It changes the liquid barrier too, and the block itself never changed, so the water
         // beside it has no idea. Without this a wall only starts damming once something else
         // nearby happens to make the neighbours recalculate - and only stops damming then too.
@@ -1207,7 +1223,7 @@ public class SidingWallBlock : Block
             var fronts = FrontDirections(Variant["layout"], Variant["side"]);
             if (fronts.Any(direction => neibpos.Equals(pos.AddCopy(BlockFacing.FromCode(direction))))) entity.MarkDirty(true);
             var ends = Ends(Variant["layout"], Variant["side"]);
-            if (!IsTransparent(entity.Infill, Attributes["Infills"])) ends = Variant["layout"] == "cornerout" ? ends[2..] : [];
+            if (!IsSheet(entity.Infill, Attributes["Infills"])) ends = Variant["layout"] == "cornerout" ? ends[2..] : [];
             if (ends.Any(end => neibpos.Equals(pos.AddCopy(end.Points)))) entity.MarkDirty(true);
             return;
         }
@@ -1313,6 +1329,11 @@ public class SidingWallBlock : Block
         var entity = api.World.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos);
         return ComputeLiquidBarrier(ClaimsFace(face), entity?.Framing, entity?.Infill, Attributes);
     }
+
+    // Real Smoke's fire venting and vanilla's water edges ask this; a face that dams liquid is solid to them (decision 0100).
+    // A vent Real Smoke tags porous is open to a fire's smoke on either face, so it is not solid to it.
+    public override bool SideIsSolid(BlockPos pos, int faceIndex)
+        => !Attributes.IsTrue("vssidingVentsSmoke") && GetLiquidBarrierHeightOnSide(BlockFacing.ALLFACES[faceIndex], pos) >= 1f;
 
     // Full height or nothing: a wall either dams its face or it doesn't. A cooling infill retains
     // negatively but still dams, so this asks whether retention is non-zero, not what sign it has.
@@ -1612,6 +1633,13 @@ public class SidingWallBlock : Block
     // the infill's mesh goes in (SidingWallEntity.OnTesselation).
     internal static bool IsTransparent(string? infillKey, JsonObject infills)
         => infillKey != null && infills[infillKey]["Transparent"].AsBool(false);
+
+    // Glass and a vent are each a framed sheet: the glazing frame, finishes as rims, merging into their own kind only.
+    // Only glass is transparent. The kind names the tile refusal's lang key.
+    internal static string? SheetKind(string? infillKey, JsonObject infills)
+        => IsTransparent(infillKey, infills) ? "glazed" : IsVent(infillKey, infills) ? "vent" : null;
+
+    internal static bool IsSheet(string? infillKey, JsonObject infills) => SheetKind(infillKey, infills) != null;
 
     // Emitting side AO keeps a sealed cell's light out of neighbouring faces' smooth-lighting corners.
     // That light is the open side's (decision 0018), which is daylight when the panels face in. Only a
@@ -1930,7 +1958,7 @@ public class SidingWallBlock : Block
                 entity.DeckInfill = null;
                 entity.MarkDirty(true);
                 // Rooms only recompute on a chunk-dirty event, and the deck's retention just changed.
-                world.BlockAccessor.ExchangeBlock(Id, pos);
+                world.BlockAccessor.ExchangeBlock(VentId(world, entity), pos);
                 SidingFloorBlock.MarkNeighboursDirty(world, pos);
                 // Decor only goes on a sealed top, so a rug left on the bare joists comes off with the infill.
                 world.BlockAccessor.BreakDecor(pos, BlockFacing.UP);
@@ -1940,7 +1968,7 @@ public class SidingWallBlock : Block
             case "outerdeckinfill":
                 entity.OuterDeckInfill = null;
                 entity.MarkDirty(true);
-                world.BlockAccessor.ExchangeBlock(Id, pos);
+                world.BlockAccessor.ExchangeBlock(VentId(world, entity), pos);
                 SidingFloorBlock.MarkNeighboursDirty(world, pos);
                 return;
             case "deck": SetDeck(world, entity, pos, null); return;

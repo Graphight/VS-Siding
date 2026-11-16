@@ -1,6 +1,6 @@
 # 0096 — A diagonal's outer deck
 
-- Status: Accepted
+- Status: Accepted; a glazed half taking no cap superseded by 0100
 - Created: 2026-11-11
 - Reflects: branch `diagonal-outer-deck`, issue #168 and a ModDB comment asking for it; `SidingWallBlock.OuterDeckBoxes`/`HitDeckHalf`/`HalfFacing`/`TryAddDeck`/`LayerDeck`/`PeelAt`/`BurnLayer`/`LayerParts`, `SidingWallEntity`'s `OuterDeck*` fields, `DeckLayers` and `CellAlternate`, `WallShapeGen`'s `outerdeck-*` groups, `SidingFloorBlock.Continues`, `DiagonalScenarios`, `SidingWallEntity.Capped`/`DeckElements`, `WallShapeGen`'s `DiagonalCaps` and `OuterDeckFascia`; decisions 0042, 0043, 0053, 0066, 0067, 0085; the author's choice of the hit side's deck for a panel hit, the review of PR #172 and the author's screenshots of 2026-11-12
 
