@@ -321,6 +321,8 @@ public class SidingModSystem : ModSystem
                 prefix: new HarmonyMethod(typeof(SidingModSystem), nameof(TrapdoorIntoWallPrefix)));
             harmony.Patch(AccessTools.Method(typeof(BEBehaviorTrapDoor), "getTfMatrix"),
                 postfix: new HarmonyMethod(typeof(SidingModSystem), nameof(TrapdoorOpenPartPostfix)));
+            harmony.Patch(AccessTools.Method(typeof(BlockBehaviorLadder), nameof(BlockBehaviorLadder.TryPlaceBlock)),
+                prefix: new HarmonyMethod(typeof(SidingModSystem), nameof(LadderIntoHatchPrefix)));
             harmony.Patch(AccessTools.Method(typeof(Block), nameof(Block.IsClimbable)),
                 postfix: new HarmonyMethod(typeof(SidingModSystem), nameof(HatchClimbablePostfix)));
         }
@@ -1202,6 +1204,41 @@ public class SidingModSystem : ModSystem
 
         return false;
     }
+
+    // A ladder joins a hatch's cell as the guest wall's layer, from a click on that cell or from the top of a ladder stack
+    // growing up into it, where vanilla would refuse the cell as not replaceable.
+    internal static bool LadderIntoHatchPrefix(BlockBehaviorLadder __instance, IWorldAccessor world, IPlayer byPlayer,
+        BlockSelection blockSel, ref EnumHandling handled, ref bool __result)
+    {
+        if (__instance.isFlexible && !byPlayer.Entity.Controls.ShiftKey) return true;
+
+        var accessor = world.BlockAccessor;
+        BlockPos clicked = blockSel.DidOffset ? blockSel.Position.AddCopy(blockSel.Face.Opposite) : blockSel.Position;
+        BlockPos cell = clicked;
+        if (!HatchWithoutLadder(accessor, world.Api, cell))
+        {
+            if (__instance.isFlexible || accessor.GetBlock(clicked).GetBehavior(typeof(BlockBehaviorLadder), false) is not BlockBehaviorLadder start
+                || start.LadderType != __instance.LadderType) return true;
+
+            cell = clicked.UpCopy();
+            while (cell.Y < accessor.MapSizeY && accessor.GetBlock(cell).GetBehavior(typeof(BlockBehaviorLadder), false) is BlockBehaviorLadder up && up.LadderType == __instance.LadderType) cell.Up();
+            if (!HatchWithoutLadder(accessor, world.Api, cell)) return true;
+        }
+
+        handled = EnumHandling.PreventDefault;
+        __result = false;
+        SidingWallEntity guest = GuestWalls.GuestAt(world.Api, cell)!;
+        if (accessor.GetBlock(__instance.block.CodeWithParts(guest.Block.Variant["side"])) is not { BlockId: not 0 } ladder || SidingWallBlock.ClaimRefuses(world, byPlayer, cell)) return false;
+
+        SetLadderLayer(world, cell, guest, ladder.Code.ToString());
+        world.PlaySoundAt(ladder.Sounds.Place, cell, 0.5, byPlayer);
+        __result = true;
+        return false;
+    }
+
+    private static bool HatchWithoutLadder(IBlockAccessor accessor, ICoreAPI api, BlockPos cell)
+        => accessor.GetBlock(cell).HasBehavior<BlockBehaviorTrapDoor>()
+            && GuestWalls.GuestAt(api, cell) is { Ladder: null, Block: SidingWallBlock wall } && wall.Variant["layout"] == "wall";
 
     // The ladder a hatch goes over becomes the guest wall's layer, which the trapdoor replacing it as host would otherwise lose.
     private static void SetLadderLayer(IWorldAccessor world, BlockPos cell, SidingWallEntity guest, string? ladder)

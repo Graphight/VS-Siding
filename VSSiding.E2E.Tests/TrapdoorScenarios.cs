@@ -95,4 +95,44 @@ public class TrapdoorScenarios : AtlasScenarioBase
         Assert.Equal((true, "trapdoor-solid-oak-1", "game:ladder-wood-aged-west", ("oak", "clay", null, null, null), true),
             (placed, World.BlockAt(cell).Code.Path, WallBuilder.GuestLadder(World, cell), WallBuilder.GuestLayers(World, cell), World.BlockAt(cell).IsClimbable(cell)));
     }
+
+    private async Task<ITestPlayer> BuilderWithHatch(BlockPos cell)
+    {
+        ITestPlayer player = await BuilderWithWall(cell);
+        Place(player, cell, BlockFacing.EAST);
+        return player;
+    }
+
+    private bool PlaceLadder(ITestPlayer player, BlockPos position, BlockFacing face, bool didOffset)
+    {
+        var ladder = World.Api.World.GetBlock(new AssetLocation("game:ladder-wood-aged-west"));
+        var sel = new BlockSelection { Position = position, Face = face, DidOffset = didOffset, HitPosition = new Vec3d(0.5, 0.5, 0.5) };
+        string failureCode = "";
+        return ladder.TryPlaceBlock(player.Entity.World, player.Player, new ItemStack(ladder), sel, ref failureCode);
+    }
+
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
+    public async Task Hatch_Should_TakeTheLadderAsALayer_When_ALadderIsClickedOntoIt()
+    {
+        BlockPos cell = Cell;
+        ITestPlayer player = await BuilderWithHatch(cell);
+
+        bool placed = PlaceLadder(player, cell.EastCopy(), BlockFacing.EAST, true);
+
+        Assert.Equal((true, "trapdoor-solid-oak-1", "game:ladder-wood-aged-west", true),
+            (placed, World.BlockAt(cell).Code.Path, WallBuilder.GuestLadder(World, cell), World.BlockAt(cell).IsClimbable(cell)));
+    }
+
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
+    public async Task Hatch_Should_TakeTheLadderAsALayer_When_ALadderStackGrowsUpIntoIt()
+    {
+        BlockPos cell = Cell;
+        ITestPlayer player = await BuilderWithHatch(cell);
+        World.SetBlock("game:ladder-wood-aged-west", cell.DownCopy());
+
+        bool placed = PlaceLadder(player, cell.DownCopy().EastCopy(), BlockFacing.EAST, true);
+
+        Assert.Equal((true, "trapdoor-solid-oak-1", "game:ladder-wood-aged-west"),
+            (placed, World.BlockAt(cell).Code.Path, WallBuilder.GuestLadder(World, cell)));
+    }
 }
