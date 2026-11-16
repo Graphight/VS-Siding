@@ -77,4 +77,22 @@ public class TrapdoorScenarios : AtlasScenarioBase
 
         Assert.Equal((false, "vssiding-hatch-straight", "cornerout"), (placed, failure, World.BlockAt(cell).Variant["layout"]));
     }
+
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
+    public async Task Hatch_Should_KeepTheLadderAsALayerAndBeClimbable_When_ItIsPlacedOnAHostedLadder()
+    {
+        BlockPos cell = Cell;
+        ITestPlayer player = await BuilderWithWall(cell);
+        var ladder = World.Api.World.GetBlock(new AssetLocation("game:ladder-wood-aged-west"));
+        var ladderSel = new BlockSelection { Position = cell.Copy(), Face = BlockFacing.EAST, HitPosition = new Vec3d(1, 0.5, 0.5) };
+        string failureCode = "";
+        Assert.True(ladder.TryPlaceBlock(player.Entity.World, player.Player, new ItemStack(ladder), ladderSel, ref failureCode), failureCode);
+
+        var stack = new ItemStack(World.Api.World.GetBlock(new AssetLocation(Trapdoor)));
+        var onLadder = new BlockSelection { Position = cell.EastCopy(), Face = BlockFacing.EAST, DidOffset = true, HitPosition = new Vec3d(0.5, 0.5, 0.5) };
+        bool placed = stack.Block.TryPlaceBlock(player.Entity.World, player.Player, stack, onLadder, ref failureCode);
+
+        Assert.Equal((true, "trapdoor-solid-oak-1", "game:ladder-wood-aged-west", ("oak", "clay", null, null, null), true),
+            (placed, World.BlockAt(cell).Code.Path, WallBuilder.GuestLadder(World, cell), WallBuilder.GuestLayers(World, cell), World.BlockAt(cell).IsClimbable(cell)));
+    }
 }
