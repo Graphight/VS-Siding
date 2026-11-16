@@ -317,6 +317,18 @@ public class SidingModSystem : ModSystem
 
         try
         {
+            harmony.Patch(AccessTools.Method(typeof(BlockBehaviorTrapDoor), nameof(BlockBehaviorTrapDoor.TryPlaceBlock)),
+                prefix: new HarmonyMethod(typeof(SidingModSystem), nameof(TrapdoorIntoWallPrefix)));
+            harmony.Patch(AccessTools.Method(typeof(BEBehaviorTrapDoor), "getTfMatrix"),
+                postfix: new HarmonyMethod(typeof(SidingModSystem), nameof(TrapdoorOpenPartPostfix)));
+        }
+        catch (Exception e)
+        {
+            api.Logger.Error("vssiding: trapdoor patches skipped, a trapdoor can't be placed into a wall's cell: {0}", e);
+        }
+
+        try
+        {
             harmony.Patch(AccessTools.Method(typeof(BlockBehaviorRightClickPickup), nameof(BlockBehaviorRightClickPickup.OnBlockInteractStart)),
                 postfix: new HarmonyMethod(typeof(SidingModSystem), nameof(PickedUpHostPostfix)));
         }
@@ -759,7 +771,7 @@ public class SidingModSystem : ModSystem
     // overrides that for a block whose boxes overstate its shape, such as Butchering's hooks.
     internal static double? UnderDeckDropFor(Block block)
     {
-        if (!IsHostable(block)) return null;
+        if (!IsHostable(block) || block.HasBehavior<BlockBehaviorTrapDoor>()) return null;
 
         const double room = 1 - PanelThickness;
         var boxes = block.SelectionBoxes ?? block.CollisionBoxes;
@@ -894,6 +906,8 @@ public class SidingModSystem : ModSystem
     // right unless its front is the side against the wall.
     internal static double[] FaceShifts(Block block)
     {
+        if (block.HasBehavior<BlockBehaviorTrapDoor>()) return new double[HorizontalFaces.Length];
+
         var boxes = block.SelectionBoxes ?? block.CollisionBoxes;
         var shifts = HorizontalFaces.Select(face => FaceShift(boxes, face)).ToArray();
         return block.HasBehavior<BlockBehaviorRotateablePlaceable>() ? shifts.Select(_ => shifts.Max()).ToArray() : shifts;
@@ -1135,6 +1149,48 @@ public class SidingModSystem : ModSystem
 
         failureCode = "requireattachable";
         return false;
+    }
+
+    // Vanilla places a trapdoor only into a cell with nothing in its solid layer, which a wall's never is (#138). A straight
+    // wall takes it as a guest, flush at the top whatever face was clicked, the hit point still picking the hinge edge.
+    internal static bool TrapdoorIntoWallPrefix(BlockBehaviorTrapDoor __instance, IWorldAccessor world, IPlayer byPlayer,
+        ItemStack itemstack, BlockSelection blockSel, ref EnumHandling handling, ref string failureCode, ref bool __result)
+    {
+        var accessor = world.BlockAccessor;
+        if (accessor.GetBlock(blockSel.Position) is not SidingWallBlock wall) return true;
+
+        handling = EnumHandling.PreventDefault;
+        __result = false;
+        if (wall.Variant["layout"] != "wall") failureCode = "vssiding-hatch-straight";
+        else if (SidingWallBlock.OpenPartRefusal(accessor.GetBlockEntity<SidingWallEntity>(blockSel.Position)) is { } refusal) failureCode = refusal;
+        else if (__instance.block.CanPlaceBlock(world, byPlayer, blockSel, ref failureCode))
+        {
+            var down = blockSel.Clone();
+            down.Face = BlockFacing.DOWN;
+            __result = __instance.placeDoor(world, byPlayer, itemstack, down, blockSel.Position, accessor);
+        }
+
+        return false;
+    }
+
+    // Squeezes a trapdoor's hinge matrix, which the mesh, the animation and the boxes all take, into the 12/16 of the
+    // cell a straight wall's panel leaves open.
+    internal static void TrapdoorOpenPartPostfix(BEBehaviorTrapDoor __instance, Matrixf __result)
+    {
+        if (__instance.Api is not { } api || GuestWalls.GuestAt(api, __instance.Pos)?.Block is not SidingWallBlock wall) return;
+        if (OpenPartSquash(wall.Variant["layout"], wall.Variant["side"]) is { } squash) __result.ReverseMul(squash.Values);
+    }
+
+    // The matrix that maps a cell onto the part a straight wall on side leaves open; null for any other layout.
+    internal static Matrixf? OpenPartSquash(string layout, string side)
+    {
+        if (layout != "wall" || BlockFacing.FromCode(side) is not { IsHorizontal: true } face) return null;
+
+        const float open = (float)(1 - PanelThickness);
+        float shift = (float)PanelThickness;
+        return face.Axis == EnumAxis.X
+            ? new Matrixf().Translate(face.Negative ? shift : 0, 0, 0).Scale(open, 1, 1)
+            : new Matrixf().Translate(0, 0, face.Negative ? shift : 0).Scale(1, 1, open);
     }
 
     // Vanilla works out the bed's facing again from this selection, by the angle from the player's eye to

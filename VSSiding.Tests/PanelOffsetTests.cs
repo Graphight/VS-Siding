@@ -1,4 +1,6 @@
+using Newtonsoft.Json.Linq;
 using Vintagestory.API.Common;
+using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Vintagestory.GameContent;
 using Xunit;
@@ -56,4 +58,43 @@ public class PanelOffsetTests
         Assert.Equal(new[] { 0.25, 0.25, 0.0, 0.25 }, SidingModSystem.FaceShifts(fixedCabinet));
         Assert.Equal(new[] { 0.25, 0.25, 0.25, 0.25 }, SidingModSystem.FaceShifts(turningCabinet));
     }
+
+    private static Block Trapdoor()
+    {
+        var trapdoor = new Block
+        {
+            Attributes = new JsonObject(new JObject()),
+            SideSolid = new SmallBoolArray(0),
+            SelectionBoxes = new[] { new Cuboidf(0, 0, 0, 1, 0.1875f, 1) },
+        };
+        trapdoor.BlockBehaviors = new BlockBehavior[] { new BlockBehaviorTrapDoor(trapdoor) };
+        return trapdoor;
+    }
+
+    // A hatch is squeezed to the open part instead of shifted off the panel, and never fits under a deck.
+    [Fact]
+    public void ATrapdoorTakesNoFaceShiftAndFitsUnderNoDeck()
+    {
+        var trapdoor = Trapdoor();
+
+        Assert.Equal(new[] { 0.0, 0.0, 0.0, 0.0 }, SidingModSystem.FaceShifts(trapdoor));
+        Assert.Null(SidingModSystem.UnderDeckDropFor(trapdoor));
+    }
+
+    [Theory]
+    [InlineData("north", 0.0, 0.0, 0.25, 1.0, 1.0, 1.0)]
+    [InlineData("south", 0.0, 0.0, 0.0, 1.0, 1.0, 0.75)]
+    [InlineData("west", 0.25, 0.0, 0.0, 1.0, 1.0, 1.0)]
+    [InlineData("east", 0.0, 0.0, 0.0, 0.75, 1.0, 1.0)]
+    public void TheOpenPartSquashMapsTheCellOntoWhatThePanelLeavesOpen(string side, double x1, double y1, double z1, double x2, double y2, double z2)
+    {
+        var squash = SidingModSystem.OpenPartSquash("wall", side)!;
+        var box = new Cuboidf(0, 0, 0, 1, 1, 1).TransformedCopy(squash.Values);
+
+        Assert.Equal((x1, y1, z1, x2, y2, z2), ((double)box.X1, (double)box.Y1, (double)box.Z1, (double)box.X2, (double)box.Y2, (double)box.Z2));
+    }
+
+    [Fact]
+    public void OnlyAStraightWallHasAnOpenPartSquash()
+        => Assert.Null(SidingModSystem.OpenPartSquash("cornerout", "north"));
 }

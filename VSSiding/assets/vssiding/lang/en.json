@@ -284,6 +284,7 @@
 	"build-occupied": "Something is in the way",
 	"game:placefailure-vssiding-decked": "Remove the deck first",
 	"game:placefailure-vssiding-stepped": "Remove the step first",
+	"game:placefailure-vssiding-hatch-straight": "A hatch needs a straight wall",
 	"build-decked": "Remove the deck first",
 	"build-stepped": "Remove the step first",
 	"build-step-diagonal": "A diagonal takes no step",
