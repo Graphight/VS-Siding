@@ -13,8 +13,8 @@ public class SidingModePickerTests
     public void LocateMapsAFlatIndexToItsRowAndOption()
     {
         Assert.Equal(
-            new[] { (0, 0), (0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (1, 0), (2, 0), (2, 1), (2, 2), (3, 0), (3, 1), (3, 2), (3, 3), (-1, -1), (-1, -1) },
-            new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, -1 }.Select(SidingModePicker.Locate));
+            new[] { (0, 0), (0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (1, 0), (2, 0), (2, 1), (2, 2), (3, 0), (3, 1), (3, 2), (3, 3), (4, 0), (4, 1), (-1, -1), (-1, -1) },
+            new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, -1 }.Select(SidingModePicker.Locate));
     }
 
     [Fact]
@@ -28,6 +28,36 @@ public class SidingModePickerTests
                 SidingModePicker.Toggle("weatherboard", "boards", allowNone: true),
                 SidingModePicker.Toggle("", "weatherboard", allowNone: true),
                 SidingModePicker.Toggle("wall", "wall", allowNone: false),
+            });
+    }
+
+    [Fact]
+    public void ASwitchRowStoresTheOffOptionsInOrder()
+    {
+        var options = new[] { "updown", "leftright" };
+        Assert.Equal(
+            new[] { "leftright", "updown,leftright", "updown", "" },
+            new[]
+            {
+                SidingModePicker.ToggleSwitch("", options, "leftright"),
+                SidingModePicker.ToggleSwitch("leftright", options, "updown"),
+                SidingModePicker.ToggleSwitch("updown,leftright", options, "leftright"),
+                SidingModePicker.ToggleSwitch("updown", options, "updown"),
+            });
+    }
+
+    [Fact]
+    public void ASwitchIsLitUnlessItIsInTheOffList()
+    {
+        var row = SidingModePicker.Rows.Single(r => r.Key == "vssidingMerge");
+        Assert.Equal(
+            new[] { true, true, false, true },
+            new[]
+            {
+                SidingModePicker.IsLit(row, "", "updown"),
+                SidingModePicker.IsLit(row, "updown", "leftright"),
+                SidingModePicker.IsLit(row, "updown,leftright", "leftright"),
+                SidingModePicker.IsLit(row, "leftright", "updown"),
             });
     }
 
