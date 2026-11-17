@@ -84,7 +84,7 @@ public class SidingFloorEntity : BlockEntity
 
         string? sheet = SidingWallBlock.SheetKind(Infill, Block.Attributes["Infills"]);
         bool glazed = sheet != null, transparent = SidingWallBlock.IsTransparent(Infill, Block.Attributes["Infills"]);
-        var joins = SidingFloorBlock.Joins(Api.World.BlockAccessor, Pos, sheet);
+        var joins = SidingFloorBlock.Joins(Api.World.BlockAccessor, Pos, sheet, InfillUnmerged);
         int alternate = SidingWallEntity.CellAlternate(Block.Attributes, SidingWallTexSource.Alternate(Pos), Framing, [], [Infill], [Front, Back], styles: [FrontStyle, BackStyle]);
         string[] innerCorners = SidingFloorBlock.InnerCorners(Api.World.BlockAccessor, Pos, sheet, joins);
         string[] selectiveElements = SelectiveElements(Framing, Infill, Front, Back, Block.Attributes["Finishes"], joins, (FrontStyle, BackStyle), glazed,

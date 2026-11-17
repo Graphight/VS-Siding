@@ -266,20 +266,35 @@ public class SidingFloorBlock : Block
     // wall drops its plates. A glazed or vented floor has no joists: its bezel merges on all
     // four sides, and only with its own kind, as glazing does on a wall (decision 0019). A wall's
     // deck is laid the same way and counts as a neighbour wherever it reaches the shared edge.
-    internal static (bool above, bool below, bool left, bool right) Joins(IBlockAccessor accessor, BlockPos pos, string? sheet)
-        => (Continues(accessor, pos, BlockFacing.NORTH, sheet), Continues(accessor, pos, BlockFacing.SOUTH, sheet),
-            sheet != null && Continues(accessor, pos, BlockFacing.WEST, sheet), sheet != null && Continues(accessor, pos, BlockFacing.EAST, sheet));
+    internal static (bool above, bool below, bool left, bool right) Joins(IBlockAccessor accessor, BlockPos pos, string? sheet, string? unmerged)
+        => (Continues(accessor, pos, BlockFacing.NORTH, sheet, unmerged), Continues(accessor, pos, BlockFacing.SOUTH, sheet, unmerged),
+            sheet != null && Continues(accessor, pos, BlockFacing.WEST, sheet, unmerged), sheet != null && Continues(accessor, pos, BlockFacing.EAST, sheet, unmerged));
 
-    // Whether the cell `direction` of `pos` carries on the joists, or the sheet of that kind when `sheet`.
-    private static bool Continues(IBlockAccessor accessor, BlockPos pos, BlockFacing direction, string? sheet)
+    // Whether the cell `direction` of `pos` carries on the joists, or the sheet of that kind when `sheet`,
+    // which also needs both cells to allow that axis: north-south is updown, east-west leftright.
+    private static bool Continues(IBlockAccessor accessor, BlockPos pos, BlockFacing direction, string? sheet, string? unmerged)
     {
         BlockPos neighbourPos = pos.AddCopy(direction);
+        string axis = direction.Axis == EnumAxis.Z ? "updown" : "leftright";
+        bool mine = sheet == null || SidingWallBlock.Merges(unmerged, axis);
         if (accessor.GetBlockEntity<SidingFloorEntity>(neighbourPos) is { } floor)
-            return Continues(sheet, floor.Framing, floor.Infill, floor.Block.Attributes["Infills"]);
+            return mine && Continues(sheet, floor.Framing, floor.Infill, floor.Block.Attributes["Infills"])
+                && (sheet == null || SidingWallBlock.Merges(floor.InfillUnmerged, axis));
         if (SidingWallBlock.WallAt(accessor, neighbourPos) is not var (wallBlock, wall)) return false;
         string layout = wallBlock.Variant["layout"], side = wallBlock.Variant["side"];
-        var deck = wall.DeckLayers(SidingWallBlock.HalfFacing(layout, side, direction.Opposite.Code));
-        return DeckReaches(layout, side, direction) && Continues(sheet, deck.Deck, deck.Infill, wallBlock.Attributes["Infills"]);
+        var half = SidingWallBlock.HalfFacing(layout, side, direction.Opposite.Code);
+        var deck = wall.DeckLayers(half);
+        return mine && DeckReaches(layout, side, direction) && Continues(sheet, deck.Deck, deck.Infill, wallBlock.Attributes["Infills"])
+            && (sheet == null || SidingWallBlock.Merges(wall.DeckUnmerged(half), axis));
+    }
+
+    // The flags of the cell at `pos`, as the cell next to it in `direction` meets them.
+    private static string? OwnUnmerged(IBlockAccessor accessor, BlockPos pos, BlockFacing direction)
+    {
+        if (accessor.GetBlockEntity<SidingFloorEntity>(pos) is { } floor) return floor.InfillUnmerged;
+        return SidingWallBlock.WallAt(accessor, pos) is var (wallBlock, wall)
+            ? wall.DeckUnmerged(SidingWallBlock.HalfFacing(wallBlock.Variant["layout"], wallBlock.Variant["side"], direction.Code))
+            : null;
     }
 
     // As a wall's (SidingWallBlock.InnerCorners). The cell diagonally across is asked from both of the
@@ -288,7 +303,9 @@ public class SidingFloorBlock : Block
         => sheet == null ? [] : SidingWallBlock.InnerCorners(joins, (rail, stile) =>
         {
             BlockFacing along = rail == "-top" ? BlockFacing.NORTH : BlockFacing.SOUTH, across = stile == "-left" ? BlockFacing.WEST : BlockFacing.EAST;
-            return Continues(accessor, pos.AddCopy(along), across, sheet) && Continues(accessor, pos.AddCopy(across), along, sheet);
+            BlockPos alongPos = pos.AddCopy(along), acrossPos = pos.AddCopy(across);
+            return Continues(accessor, alongPos, across, sheet, OwnUnmerged(accessor, alongPos, across))
+                && Continues(accessor, acrossPos, along, sheet, OwnUnmerged(accessor, acrossPos, along));
         });
 
     internal static bool Continues(string? sheet, string? framing, string? infill, JsonObject infills)

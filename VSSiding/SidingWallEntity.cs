@@ -252,7 +252,7 @@ public class SidingWallEntity : BlockEntity
         // The deck is laid like a floor, in world directions, so its groups are tesselated unrotated.
         string? deckSheet = SidingWallBlock.SheetKind(DeckInfill, Block.Attributes["Infills"]);
         bool deckGlazed = deckSheet != null, deckTransparent = SidingWallBlock.IsTransparent(DeckInfill, Block.Attributes["Infills"]);
-        var deckJoins = SidingFloorBlock.Joins(Api.World.BlockAccessor, Pos, deckSheet);
+        var deckJoins = SidingFloorBlock.Joins(Api.World.BlockAccessor, Pos, deckSheet, DeckInfillUnmerged);
         string[] deckInnerCorners = SidingFloorBlock.InnerCorners(Api.World.BlockAccessor, Pos, deckSheet, deckJoins);
         bool bothHalves = Deck != null && OuterDeck != null;
         bool capped = Capped(layout, DeckFront, SidingWallBlock.FreeAbove(Api.World.BlockAccessor, Pos), bothHalves);
@@ -261,7 +261,7 @@ public class SidingWallEntity : BlockEntity
             InfillElements(Block.Attributes["Infills"], DeckInfill), pane: deckTransparent);
         string? outerSheet = SidingWallBlock.SheetKind(OuterDeckInfill, Block.Attributes["Infills"]);
         bool outerGlazed = outerSheet != null, outerTransparent = SidingWallBlock.IsTransparent(OuterDeckInfill, Block.Attributes["Infills"]);
-        var allJoins = SidingFloorBlock.Joins(Api.World.BlockAccessor, Pos, outerSheet);
+        var allJoins = SidingFloorBlock.Joins(Api.World.BlockAccessor, Pos, outerSheet, OuterDeckInfillUnmerged);
         var outerJoins = (allJoins.above && SidingWallBlock.ClaimsFace(layout, side, "north"), allJoins.below && SidingWallBlock.ClaimsFace(layout, side, "south"),
             allJoins.left && SidingWallBlock.ClaimsFace(layout, side, "west"), allJoins.right && SidingWallBlock.ClaimsFace(layout, side, "east"));
         string[] outerElements = DeckElements(side, OuterDeck, OuterDeckInfill, OuterDeckFront, OuterDeckBack, Block.Attributes["Finishes"], outerJoins, (OuterDeckFrontStyle, OuterDeckBackStyle),
