@@ -263,7 +263,7 @@ public class SidingWallBlock : Block
         }
         else
         {
-            var joins = NeighbourJoins(blockAccessor, pos, entity.Infill);
+            var joins = NeighbourJoins(blockAccessor, pos, entity.Infill, entity.InfillUnmerged);
             boxes = ComputeCollisionBoxes(Variant["layout"], Variant["side"], entity.Framing, entity.Infill, joins.above, fullBoxes);
         }
 
@@ -273,7 +273,7 @@ public class SidingWallBlock : Block
     // Which neighbours this cell shares a member with, i.e. draws no plate or post against. For a
     // diagonal, left and right say which ends the next cell carries the run on from (decision 0066).
     internal (bool above, bool below, bool left, bool right) NeighbourJoins(
-        IBlockAccessor blockAccessor, BlockPos pos, string? infill)
+        IBlockAccessor blockAccessor, BlockPos pos, string? infill, string? unmerged = null)
     {
         var runsOn = (left: false, right: false);
         if (Variant["layout"] == "diagonal")
@@ -289,11 +289,11 @@ public class SidingWallBlock : Block
         // post stays either way (decision 0080).
         if (IsSheet(infill, Attributes["Infills"]))
         {
-            bool above = ContinuesGlazing(blockAccessor, pos.UpCopy(), infill);
-            bool below = ContinuesGlazing(blockAccessor, pos.DownCopy(), infill);
+            bool above = ContinuesGlazing(blockAccessor, pos.UpCopy(), infill, unmerged, "updown");
+            bool below = ContinuesGlazing(blockAccessor, pos.DownCopy(), infill, unmerged, "updown");
             if (Variant["layout"] == "diagonal") return (above, below, runsOn.left, runsOn.right);
             var (leftEnd, rightEnd) = LeftRightEnds(Variant["layout"], Variant["side"]);
-            return (above, below, EndContinuesGlazing(blockAccessor, pos, leftEnd, infill), EndContinuesGlazing(blockAccessor, pos, rightEnd, infill));
+            return (above, below, EndContinuesGlazing(blockAccessor, pos, leftEnd, infill, unmerged), EndContinuesGlazing(blockAccessor, pos, rightEnd, infill, unmerged));
         }
 
         int cellsBelow = 0;
@@ -304,12 +304,12 @@ public class SidingWallBlock : Block
     // Which ends of a diagonal the glass carries on through: the run goes on there and the diagonal it
     // goes on into is glazed in the same stack, so no post stands between them.
     internal (bool left, bool right) GlassRunsOn(
-        IBlockAccessor blockAccessor, BlockPos pos, string? infill, (bool above, bool below, bool left, bool right) joins)
+        IBlockAccessor blockAccessor, BlockPos pos, string? infill, (bool above, bool below, bool left, bool right) joins, string? unmerged = null)
     {
         if (Variant["layout"] != "diagonal" || !IsSheet(infill, Attributes["Infills"])) return default;
         var (leftStep, rightStep) = DiagonalRunNeighbours(Variant["side"]);
-        return (joins.left && GlazedDiagonalAt(blockAccessor, pos.AddCopy(leftStep), infill),
-            joins.right && GlazedDiagonalAt(blockAccessor, pos.AddCopy(rightStep), infill));
+        return (joins.left && GlazedDiagonalAt(blockAccessor, pos.AddCopy(leftStep), infill, unmerged),
+            joins.right && GlazedDiagonalAt(blockAccessor, pos.AddCopy(rightStep), infill, unmerged));
     }
 
     // Which of a corner's post ends another cell's end meets, a T, whatever either is filled with: the left end
@@ -322,8 +322,8 @@ public class SidingWallBlock : Block
         return (Met(ends[2]), Met(ends[3]));
     }
 
-    private bool GlazedDiagonalAt(IBlockAccessor blockAccessor, BlockPos at, string? infill)
-        => ContinuesDiagonal(blockAccessor, at) && ContinuesGlazing(infill, WallAt(blockAccessor, at)?.entity, Attributes["Infills"]);
+    private bool GlazedDiagonalAt(IBlockAccessor blockAccessor, BlockPos at, string? infill, string? unmerged)
+        => ContinuesDiagonal(blockAccessor, at) && ContinuesGlazing(infill, WallAt(blockAccessor, at)?.entity, Attributes["Infills"], unmerged, "leftright");
 
     // The corners a cell merged on both sides still has to frame, as the fillers' suffixes. Where the
     // cell diagonally across carries no glazing on, the sheet is an L and its frame turns an inside
@@ -335,21 +335,25 @@ public class SidingWallBlock : Block
             select rail.Part + stile.Part).ToArray();
 
     // A diagonal's sheet turns an inside corner at an end its glass runs on through, where the next cell's stack stops short of its own.
-    internal string[] InnerCorners(IBlockAccessor blockAccessor, BlockPos pos, string? infill, (bool above, bool below, bool left, bool right) joins)
+    internal string[] InnerCorners(IBlockAccessor blockAccessor, BlockPos pos, string? infill, (bool above, bool below, bool left, bool right) joins, string? unmerged = null)
     {
         if (!IsSheet(infill, Attributes["Infills"])) return [];
         if (Variant["layout"] == "diagonal")
         {
             var (leftStep, rightStep) = DiagonalRunNeighbours(Variant["side"]);
-            var glassOn = GlassRunsOn(blockAccessor, pos, infill, joins);
+            var glassOn = GlassRunsOn(blockAccessor, pos, infill, joins, unmerged);
             return InnerCorners((joins.above, joins.below, glassOn.left, glassOn.right), (rail, stile) =>
-                GlazedDiagonalAt(blockAccessor, pos.AddCopy(stile == "-left" ? leftStep : rightStep).Add(0, rail == "-top" ? 1 : -1, 0), infill));
+                GlazedDiagonalAt(blockAccessor, pos.AddCopy(stile == "-left" ? leftStep : rightStep).Add(0, rail == "-top" ? 1 : -1, 0), infill, BesideUnmerged(blockAccessor, pos, rail)));
         }
         if (Variant["layout"] is not ("wall" or "cornerout")) return [];
         var (leftEnd, rightEnd) = LeftRightEnds(Variant["layout"], Variant["side"]);
         return InnerCorners(joins, (rail, stile) =>
-            EndContinuesGlazing(blockAccessor, pos.AddCopy(0, rail == "-top" ? 1 : -1, 0), stile == "-left" ? leftEnd : rightEnd, infill));
+            EndContinuesGlazing(blockAccessor, pos.AddCopy(0, rail == "-top" ? 1 : -1, 0), stile == "-left" ? leftEnd : rightEnd, infill, BesideUnmerged(blockAccessor, pos, rail)));
     }
+
+    // The across checks start from the cell above or below, so its own setting counts, not the clicked cell's.
+    private static string? BesideUnmerged(IBlockAccessor blockAccessor, BlockPos pos, string rail)
+        => WallAt(blockAccessor, pos.AddCopy(0, rail == "-top" ? 1 : -1, 0))?.entity.InfillUnmerged;
 
     // Where a cell's frame stops along a run: the face the end lies on and the way the run carries on from it.
     internal readonly record struct End(BlockFacing Face, BlockFacing Points);
@@ -379,12 +383,12 @@ public class SidingWallBlock : Block
     // Two ends on the same face pointing at each other are the one join seen from both cells.
     internal static bool EndsMeet(End a, End b) => a.Face == b.Face && a.Points == b.Points.Opposite;
 
-    private bool EndContinuesGlazing(IBlockAccessor blockAccessor, BlockPos pos, End end, string? infill)
+    private bool EndContinuesGlazing(IBlockAccessor blockAccessor, BlockPos pos, End end, string? infill, string? unmerged)
     {
         BlockPos neighbourPos = pos.AddCopy(end.Points);
         if (WallAt(blockAccessor, neighbourPos) is not var (wall, neighbour)) return false;
         return JoinsAtEnd(end, wall.Variant["layout"], wall.Variant["side"])
-            && ContinuesGlazing(infill, neighbour, Attributes["Infills"]);
+            && ContinuesGlazing(infill, neighbour, Attributes["Infills"], unmerged, "leftright");
     }
 
     // Whether a cell of `layout` and `side` has an end meeting `end`: another wall on its line, a corner
@@ -401,16 +405,20 @@ public class SidingWallBlock : Block
         => blockAccessor.GetBlock(neighbourPos) is SidingWallBlock other && other.Variant["layout"] == "diagonal"
             && (other.Variant["side"] == Variant["side"] || other.Variant["side"] == BlockFacing.FromCode(Variant["side"]).Opposite.Code);
 
-    private bool ContinuesGlazing(IBlockAccessor blockAccessor, BlockPos neighbourPos, string? infill)
+    private bool ContinuesGlazing(IBlockAccessor blockAccessor, BlockPos neighbourPos, string? infill, string? unmerged, string axis)
     {
         var neighbour = SameRunNeighbour(blockAccessor, neighbourPos);
-        return neighbour != null && ContinuesGlazing(infill, neighbour, Attributes["Infills"]);
+        return neighbour != null && ContinuesGlazing(infill, neighbour, Attributes["Infills"], unmerged, axis);
     }
 
     // A sheet only merges into its own kind: against a wattle-filled neighbour, a bare frame, or a vent beside glass,
-    // the post stays - that is a join between two different walls, not one continuous sheet.
-    internal static bool ContinuesGlazing(string? infill, SidingWallEntity? neighbour, JsonObject infills)
-        => SharesStack(infill, neighbour) && SheetKind(infill, infills) is { } kind && SheetKind(neighbour?.Infill, infills) == kind;
+    // the post stays - that is a join between two different walls, not one continuous sheet. It also joins only
+    // where both cells allow that axis ("updown" or "leftright"), as the Merge picker row stamped them.
+    internal static bool ContinuesGlazing(string? infill, SidingWallEntity? neighbour, JsonObject infills, string? unmerged, string axis)
+        => SharesStack(infill, neighbour) && SheetKind(infill, infills) is { } kind && SheetKind(neighbour?.Infill, infills) == kind
+            && Merges(unmerged, axis) && Merges(neighbour?.InfillUnmerged, axis);
+
+    internal static bool Merges(string? unmerged, string axis) => unmerged == null || !unmerged.Split(',').Contains(axis);
 
     internal static bool JoinsAbove(bool continuesAbove, int cellsBelow) => continuesAbove && cellsBelow % 2 == 0;
 

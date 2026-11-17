@@ -465,7 +465,24 @@ public class SidingWallBlockCollisionTests
         """));
         var neighbour = new SidingWallEntity { Framing = neighbourFraming, Infill = neighbourInfill };
 
-        Assert.Equal(expected, SidingWallBlock.ContinuesGlazing(infill, neighbour, infills));
+        Assert.Equal(expected, SidingWallBlock.ContinuesGlazing(infill, neighbour, infills, null, "updown"));
+    }
+
+    // Two sheets join only where both cells allow the axis, so either one's switch off frames the edge.
+    [Theory]
+    [InlineData(null, null, "updown", true)]
+    [InlineData("leftright", null, "updown", true)]
+    [InlineData("updown", null, "updown", false)]
+    [InlineData(null, "updown", "updown", false)]
+    [InlineData("updown", "updown", "leftright", true)]
+    [InlineData(null, "leftright", "leftright", false)]
+    [InlineData("updown,leftright", null, "leftright", false)]
+    public void ASheetJoinsOnlyWhereBothCellsAllowTheAxis(string? unmerged, string? neighbourUnmerged, string axis, bool expected)
+    {
+        var infills = new JsonObject(JToken.Parse("""{ "glass": { "Transparent": true } }"""));
+        var neighbour = new SidingWallEntity { Framing = "oak", Infill = "glass", InfillUnmerged = neighbourUnmerged };
+
+        Assert.Equal(expected, SidingWallBlock.ContinuesGlazing("glass", neighbour, infills, unmerged, axis));
     }
 
     // Answers GetBlock and GetBlockEntity from the cells it is given and air everywhere else, so a cell's joins read a world.

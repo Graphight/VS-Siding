@@ -223,7 +223,7 @@ public class SidingWallEntity : BlockEntity
         if (layout is not ("wall" or "cornerout" or "diagonal" or "cornerin")) return false;
         if (Api is not ICoreClientAPI capi) return false;
 
-        var joins = ((SidingWallBlock)Block).NeighbourJoins(Api.World.BlockAccessor, Pos, Infill);
+        var joins = ((SidingWallBlock)Block).NeighbourJoins(Api.World.BlockAccessor, Pos, Infill, InfillUnmerged);
 
         // An empty selectiveElements array matches zero shape elements, not "no filter", and any
         // built cell names at least one - glazing merged on every side still draws its pane. So
@@ -240,8 +240,8 @@ public class SidingWallEntity : BlockEntity
             [Infill, DeckInfill, OuterDeckInfill], [Front, SecondFront, Back, SecondBack, DeckFront, DeckBack, OuterDeckFront, OuterDeckBack],
             SidingWallTexSource.Varies(SidingWallTexSource.StairTexture(stair)),
             [FrontStyle, SecondFrontStyle, BackStyle, SecondBackStyle, DeckFrontStyle, DeckBackStyle, OuterDeckFrontStyle, OuterDeckBackStyle]);
-        string[] innerCorners = ((SidingWallBlock)Block).InnerCorners(Api.World.BlockAccessor, Pos, Infill, joins);
-        var glassRunsOn = ((SidingWallBlock)Block).GlassRunsOn(Api.World.BlockAccessor, Pos, Infill, joins);
+        string[] innerCorners = ((SidingWallBlock)Block).InnerCorners(Api.World.BlockAccessor, Pos, Infill, joins, InfillUnmerged);
+        var glassRunsOn = ((SidingWallBlock)Block).GlassRunsOn(Api.World.BlockAccessor, Pos, Infill, joins, InfillUnmerged);
         var tees = ((SidingWallBlock)Block).Tees(Api.World.BlockAccessor, Pos);
         string[] frontDirections = SidingWallBlock.FrontDirections(layout, side);
         var closed = (front: frontDirections.Length > 0 && FrontClosed(frontDirections[0]), second: frontDirections.Length > 1 && FrontClosed(frontDirections[1]));
