@@ -1380,6 +1380,7 @@ public class SidingModSystem : ModSystem
                     foreach (var stack in decked.ResolveDrops(world, openPartDrops, 1f)) world.SpawnItemEntity(stack, pos);
                     wall.Deck = null;
                     wall.DeckInfill = null;
+                    wall.DeckInfillUnmerged = null;
                     wall.DeckFront = null;
                     wall.DeckBack = null;
                     wall.DeckFrontStyle = null;

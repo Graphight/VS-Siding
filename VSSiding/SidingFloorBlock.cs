@@ -57,6 +57,7 @@ public class SidingFloorBlock : Block
             if (!SidingWallBlock.TryAffordOrError(byPlayer, isCreative, slot.StackSize, consumes)) return true;
 
             entity.Infill = infillKey;
+            entity.InfillUnmerged = SidingWallBlock.IsSheet(infillKey, Attributes["Infills"]) ? SidingModePicker.Unmerged(byPlayer) : null;
             OnInfillChanged(world, entity, blockSel.Position, null);
             SidingWallBlock.ConsumeHeld(slot, consumes, isCreative);
             return true;
@@ -462,6 +463,7 @@ public class SidingFloorBlock : Block
             default:
                 string? oldInfill = entity.Infill;
                 entity.Infill = null;
+                entity.InfillUnmerged = null;
                 OnInfillChanged(world, entity, pos, oldInfill);
                 // Decor only goes on a sealed top (CanAttachBlockAt), so a rug left on bare joists
                 // after peeling from below or a fire comes off with the infill.

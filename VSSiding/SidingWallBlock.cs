@@ -738,6 +738,7 @@ public class SidingWallBlock : Block
 
             int oldAbsorption = AbsorptionOf(entity);
             entity.Infill = infillKey;
+            entity.InfillUnmerged = IsSheet(infillKey, Attributes["Infills"]) ? SidingModePicker.Unmerged(byPlayer) : null;
             OnInfillChanged(world, entity, blockSel.Position, oldAbsorption);
             ConsumeHeld(slot, consumes, isCreative);
             return true;
@@ -1044,8 +1045,9 @@ public class SidingWallBlock : Block
             var consumes = ShareConsumes(Attributes["Infills"][infillKey]["Consumes"], LayerParts(Variant["layout"], "deckinfill"));
             if (!TryAffordOrError(byPlayer, isCreative, slot.StackSize, consumes)) return true;
 
-            if (outer) entity.OuterDeckInfill = infillKey;
-            else { entity.DeckInfill = infillKey; entity.LegacyDeck = false; }
+            string? unmerged = IsSheet(infillKey, Attributes["Infills"]) ? SidingModePicker.Unmerged(byPlayer) : null;
+            if (outer) { entity.OuterDeckInfill = infillKey; entity.OuterDeckInfillUnmerged = unmerged; }
+            else { entity.DeckInfill = infillKey; entity.DeckInfillUnmerged = unmerged; entity.LegacyDeck = false; }
             entity.MarkDirty(true);
             // Rooms only recompute on a chunk-dirty event, and the deck's retention just changed.
             world.BlockAccessor.ExchangeBlock(VentId(world, entity), blockSel.Position);
@@ -1956,6 +1958,7 @@ public class SidingWallBlock : Block
             case "deckback": entity.DeckBack = null; entity.DeckBackStyle = null; break;
             case "deckinfill":
                 entity.DeckInfill = null;
+                entity.DeckInfillUnmerged = null;
                 entity.MarkDirty(true);
                 // Rooms only recompute on a chunk-dirty event, and the deck's retention just changed.
                 world.BlockAccessor.ExchangeBlock(VentId(world, entity), pos);
@@ -1967,6 +1970,7 @@ public class SidingWallBlock : Block
             case "outerdeckback": entity.OuterDeckBack = null; entity.OuterDeckBackStyle = null; break;
             case "outerdeckinfill":
                 entity.OuterDeckInfill = null;
+                entity.OuterDeckInfillUnmerged = null;
                 entity.MarkDirty(true);
                 world.BlockAccessor.ExchangeBlock(VentId(world, entity), pos);
                 SidingFloorBlock.MarkNeighboursDirty(world, pos);
@@ -1976,6 +1980,7 @@ public class SidingWallBlock : Block
             case "step": entity.Step = null; entity.StepOrientation = null; entity.MarkDirty(true); return;
             default:
                 entity.Infill = null;
+                entity.InfillUnmerged = null;
                 OnInfillChanged(world, entity, pos, oldAbsorption);
                 return;
         }

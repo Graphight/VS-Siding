@@ -39,6 +39,10 @@ public class SidingWallEntity : BlockEntity
     public string? OuterDeckBack;
     public string? OuterDeckFrontStyle;
     public string? OuterDeckBackStyle;
+    // The merge switches that were off when a sheet infill was laid, comma-separated; null merges every way.
+    public string? InfillUnmerged;
+    public string? DeckInfillUnmerged;
+    public string? OuterDeckInfillUnmerged;
     // A deck saved before decks took layers sealed as bare framing, and keeps doing so until infill is laid.
     public bool LegacyDeck;
     // The held stair's full block code, e.g. "game:plankstairs-oak-up-north-free".
@@ -52,6 +56,8 @@ public class SidingWallEntity : BlockEntity
         => half == DeckHalf.Outer
             ? (OuterDeck, OuterDeckInfill, OuterDeckFront, OuterDeckBack, OuterDeckFrontStyle, OuterDeckBackStyle)
             : (Deck, DeckInfill, DeckFront, DeckBack, DeckFrontStyle, DeckBackStyle);
+
+    internal string? DeckUnmerged(DeckHalf half) => half == DeckHalf.Outer ? OuterDeckInfillUnmerged : DeckInfillUnmerged;
 
     public override void ToTreeAttributes(ITreeAttribute tree)
     {
@@ -79,6 +85,9 @@ public class SidingWallEntity : BlockEntity
         tree.SetString("outerdeckback", OuterDeckBack);
         tree.SetString("outerdeckfrontstyle", OuterDeckFrontStyle);
         tree.SetString("outerdeckbackstyle", OuterDeckBackStyle);
+        tree.SetString("infillunmerged", InfillUnmerged);
+        tree.SetString("deckinfillunmerged", DeckInfillUnmerged);
+        tree.SetString("outerdeckinfillunmerged", OuterDeckInfillUnmerged);
         tree.SetBool("legacydeck", LegacyDeck);
         tree.SetString("step", Step);
         tree.SetString("steporientation", StepOrientation);
@@ -127,6 +136,9 @@ public class SidingWallEntity : BlockEntity
         OuterDeckBack = NullIfEmpty(tree.GetString("outerdeckback", null));
         OuterDeckFrontStyle = NullIfEmpty(tree.GetString("outerdeckfrontstyle", null));
         OuterDeckBackStyle = NullIfEmpty(tree.GetString("outerdeckbackstyle", null));
+        InfillUnmerged = NullIfEmpty(tree.GetString("infillunmerged", null));
+        DeckInfillUnmerged = NullIfEmpty(tree.GetString("deckinfillunmerged", null));
+        OuterDeckInfillUnmerged = NullIfEmpty(tree.GetString("outerdeckinfillunmerged", null));
         LegacyDeck = ReadLegacyDeck(tree, Deck);
         Step = NullIfEmpty(tree.GetString("step", null));
         StepOrientation = NullIfEmpty(tree.GetString("steporientation", null));
@@ -194,7 +206,7 @@ public class SidingWallEntity : BlockEntity
         => ((Framing, Infill, Front, SecondFront, Back, FrontStyle, SecondFrontStyle, BackStyle, Deck, Step, StepOrientation),
             (DeckInfill, DeckFront, DeckBack, DeckFrontStyle, DeckBackStyle, SecondBack, SecondBackStyle), OuterDeckState);
 
-    private string OuterDeckState => $"{OuterDeck}-{OuterDeckInfill}-{OuterDeckFront}-{OuterDeckBack}-{OuterDeckFrontStyle}-{OuterDeckBackStyle}";
+    private string OuterDeckState => $"{OuterDeck}-{OuterDeckInfill}-{OuterDeckFront}-{OuterDeckBack}-{OuterDeckFrontStyle}-{OuterDeckBackStyle}-{InfillUnmerged}-{DeckInfillUnmerged}-{OuterDeckInfillUnmerged}";
 
     // A ToBytes/FromBytes round trip (chunk save/reload, client sync) turns a null
     // SetString value into "" - normalize back to null so "unbuilt" survives a reload.
