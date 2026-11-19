@@ -300,6 +300,9 @@ public class SidingWallEntity : BlockEntity
         return true;
     }
 
+    // A closed hatch's slab, the top 3/16 of the cell, which the ladder stops under so their top faces do not fight.
+    private const float UnderHatch = 13f / 16;
+
     // The ladder block's own mesh, moved off the panel as a hosted ladder is (GapShiftAt), once per ladder and side.
     private MeshData? LadderMesh(ICoreClientAPI capi)
     {
@@ -309,7 +312,7 @@ public class SidingWallEntity : BlockEntity
         return ObjectCacheUtil.GetOrCreate(capi, $"vssiding-ladder-{Ladder}-{side}", () =>
         {
             var (dx, dz) = SidingModSystem.PanelOffset(ladder.SelectionBoxes ?? ladder.CollisionBoxes, [side]);
-            return capi.TesselatorManager.GetDefaultBlockMesh(ladder).Clone().Translate((float)dx, 0, (float)dz);
+            return capi.TesselatorManager.GetDefaultBlockMesh(ladder).Clone().Scale(new Vec3f(), 1, UnderHatch, 1).Translate((float)dx, 0, (float)dz);
         });
     }
 
