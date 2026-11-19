@@ -1303,12 +1303,10 @@ public class SidingModSystem : ModSystem
             GuestWalls.Set(world, chunk, cell, GuestWalls.WithLadder(guest, ladder));
     }
 
-    // A hatch over a ladder counts as the ladder for climbing: vanilla looks for a climbable block in the player's own column,
-    // and the ladder's own cell is the one the hatch took.
     [ThreadStatic] private static BlockPos? belowHatch;
 
-    // A trapdoor over a ladder is climbable too, so a hatch flush in the floor above a ladder in the cell beside a wall
-    // lets a climber through without a ladder layer to answer for its cell.
+    // A hatch holding a ladder layer, or standing over a ladder, counts as a ladder for climbing: vanilla looks for a
+    // climbable block only in the cells from a player's feet to head height, and the hatch's cell is one of them on the way through.
     internal static void HatchClimbablePostfix(Block __instance, BlockPos pos, ref bool __result)
     {
         if (__result || !IsHatchId(__instance.BlockId) || ApiRef(__instance) is not { } api) return;
