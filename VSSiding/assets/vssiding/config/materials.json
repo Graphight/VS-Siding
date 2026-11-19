@@ -417,6 +417,14 @@
 			Consumes: { type: "item", code: "game:stone-{rock}", quantity: 4 },
 			Drops: [ { type: "item", code: "game:stone-{rock}", quantity: { avg: 4, var: 0 } } ]
 		},
+		"wallpaper-{type}": {
+			Match: { type: "block", code: "game:wallpaper-*", variant: "type" },
+			DisplayName: "vssiding:finish-wallpaper-{type}",
+			Texture: "game:block/wallpaper/normal/{type}",
+			BlockMaterial: "Cloth",
+			Consumes: { type: "block", code: "game:wallpaper-{type}", quantity: 1 },
+			Drops: [ { type: "block", code: "game:wallpaper-{type}", quantity: { avg: 1, var: 0 } } ]
+		},
 		"brick-{type}": {
 			Match: { type: "item", code: "game:burnedbrick-*", variant: "type" },
 			DisplayName: "vssiding:finish-brick-{type}",
