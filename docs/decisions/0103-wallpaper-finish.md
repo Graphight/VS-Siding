@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Created: 2026-11-19
-- Reflects: issue #169; branch `169-wallpaper-finish`; `config/materials.json`'s `FinishFamilies["wallpaper-{type}"]`, `SidingWallBlock.CanAttachBlockAt`, `MaterialDisplayNameTests`, `MaterialTextureOpacityTests`, `WallpaperScenarios`; vanilla `wallpaper.json` and `BlockBehaviorDecor`; decisions 0001, 0010, 0064
+- Reflects: issue #169; branch `169-wallpaper-finish`; `config/materials.json`'s `FinishFamilies["wallpaper-{type}"]`, `SidingWallBlock.CanAttachBlockAt`, `MaterialDisplayNameTests`, `MaterialTextureOpacityTests`, `WallpaperScenarios`, `FireScenarios`; vanilla `wallpaper.json` and `BlockBehaviorDecor`; decisions 0001, 0010, 0064
 
 ## Summary
 Vanilla's wallpaper is a decor.
@@ -19,9 +19,8 @@ A sneak right-click runs vanilla placement first: `BlockBehaviorDecor.TryPlaceBl
 
 ## Design
 **One finish family.**
-`FinishFamilies["wallpaper-{type}"]` matches `game:wallpaper-*` on the variant `type`, with texture `game:block/wallpaper/normal/{type}` and `BlockMaterial: "Cloth"`, so fire skips it (only a wood top layer burns).
+`FinishFamilies["wallpaper-{type}"]` matches `game:wallpaper-*` on the variant `type`, with texture `game:block/wallpaper/normal/{type}` and `BlockMaterial: "Wood"`, as the cloth infill takes.
 It consumes and drops one `game:wallpaper-{type}` block per face.
-`Cloth` is a new layer material, so `wall.json`, `floor.json` and their vent copies gain a `Cloth` row in `LayerSounds` (vanilla's cloth sounds) and in `LayerResistance` (0.5, as glass).
 Vanilla's nine types come along: blue4, green1, grey1, brown, walnut, darkpurple, yellow, pink, lightgreen.
 The textures are 32x32 and fully opaque.
 The mod ships its own lang key per type, since vanilla's keys are wildcards (`block-wallpaper-blue*`) and `SidingWallBlock.LangEntry` does not resolve wildcards.
@@ -36,6 +35,12 @@ The entry has no `Elements` or `Styles`, so a floor's top, a ceiling and a deck'
 **Peeling gives the paper back.**
 One wallpaper per face, as every finish does, though vanilla's decor drops nothing.
 
+**Paper burns.**
+Vanilla's wallpaper is combustible, and fire takes a wall's outermost layer only, so a finish that did not burn would fireproof the wall behind it.
+A wall papered on its room side with its outer face bare would then not catch at all, a straw wall included.
+As `Wood`, the paper burns off first and the layers under it burn as before.
+Hit and break sounds are the wood ones, as for the cloth infill.
+
 **Walls refuse decor on side faces.**
 `SidingWallBlock.CanAttachBlockAt` answers false for a block with a `BlockBehaviorDecor` on a horizontal face, `HasBehavior` seeing block behaviours.
 UP (rugs on a deck) and DOWN are unchanged.
@@ -47,6 +52,7 @@ Without the test there, wallpaper went on a hosted cell as decor, and a plain cl
 ## Alternatives considered
 - **Paper layered over boards.** Two finishes on a face breaks the one-finish-per-face rule every other finish follows.
 - **Dropping nothing on peel**, as vanilla's decor does. Every other finish returns its material.
+- **`Cloth`, which does not burn.** It was the first build, with cloth sounds. The review of PR #180 showed it fireproofs the wall behind it, as plaster, daub and stone finishes on a wall's back already do.
 - **Any mod's wallpaper.** The template matches `game:wallpaper-*`; another mod's blocks would need their own match and texture path.
 - **Aged or peeled paper styles.** Not built.
 - **Refusing decor on a deck's underside, or converting wallpaper already placed as decor.** Not built. Wallpaper already on a wall as decor is left as it is.

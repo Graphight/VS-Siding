@@ -421,7 +421,7 @@
 			Match: { type: "block", code: "game:wallpaper-*", variant: "type" },
 			DisplayName: "vssiding:finish-wallpaper-{type}",
 			Texture: "game:block/wallpaper/normal/{type}",
-			BlockMaterial: "Cloth",
+			BlockMaterial: "Wood",
 			Consumes: { type: "block", code: "game:wallpaper-{type}", quantity: 1 },
 			Drops: [ { type: "block", code: "game:wallpaper-{type}", quantity: { avg: 1, var: 0 } } ]
 		},
