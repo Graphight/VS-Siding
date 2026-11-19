@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -30,6 +31,20 @@ public class SidingModSystem : ModSystem
     // the static above would hand it the client's api - freeing GL textures off the GL thread, which
     // segfaults the game on exit.
     private ICoreClientAPI? clientApi;
+
+    // Tesselation runs off the main thread, so the shared ObjectCache dictionary is unsafe for these.
+    internal static readonly ConcurrentDictionary<string, object> Cache = new();
+
+    internal static T Cached<T>(string key, System.Func<T> create) => (T)Cache.GetOrAdd(key, _ => create()!);
+
+    internal static int ForgetCache()
+    {
+        int count = Cache.Count;
+        foreach (var value in Cache.Values)
+            if (value is SkillItem[] items) foreach (var item in items) item.Dispose();
+        Cache.Clear();
+        return count;
+    }
 
     public override void StartClientSide(ICoreClientAPI api)
     {
@@ -600,7 +615,11 @@ public class SidingModSystem : ModSystem
                 clientApi.ObjectCache.Remove(cacheKey);
             }
         }
-        if (clientApi != null) capi = null;
+        if (clientApi != null)
+        {
+            clientApi.Logger.Notification("[vssiding] mesh cache held {0} entries at close", ForgetCache());
+            capi = null;
+        }
         base.Dispose();
     }
 

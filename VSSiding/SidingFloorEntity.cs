@@ -93,7 +93,7 @@ public class SidingFloorEntity : BlockEntity
         if (selectiveElements.Length == 0) return false;
 
         string cacheKey = CacheKey(Framing, Infill, Front, Back, (FrontStyle, BackStyle), joins, alternate, innerCorners);
-        MeshData[] meshes = ObjectCacheUtil.GetOrCreate(capi, cacheKey, () =>
+        MeshData[] meshes = SidingModSystem.Cached(cacheKey, () =>
         {
             Shape shape = SidingWallEntity.ParsedShape(capi, "floor/floor");
             var texSource = new TexSource(capi, this, alternate);
