@@ -191,6 +191,7 @@ public class TrapdoorScenarios : AtlasScenarioBase
     }
 
     // A ladder on a wall's flat outer face climbs the cell beside the wall, where the floor's edge is the only face to click.
+    // Vanilla lays a trapdoor clicked high on a block's side flat at the top of the cell beside it; near the ends it stands upright.
     // Closed, the hatch is not climbable, or a player standing on a trapdoor capping a ladder shaft would be held climbing.
     [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Trapdoor_Should_LieFlushHingedOnTheEdgeAndBeClimbableOnlyOpen_When_ClickedHighOnAFloorsEdgeOverALadder()
