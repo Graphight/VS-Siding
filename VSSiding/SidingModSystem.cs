@@ -418,8 +418,8 @@ public class SidingModSystem : ModSystem
         return dx == 0 && dz == 0 ? modelMat : Mat4f.Translate(modelMat, modelMat, (float)dx, 0, (float)dz);
     }
 
-    // The renderer lights the whole mesh from its own cell, which a sealed guest wall leaves dark, so an opened hatch or
-    // chest drew black. It takes the brightest cell on a face the panel leaves open, as an air cell's light would be.
+    // The renderer lights the whole mesh from its own cell's stored light, which in playtest read dark in a sealed guest's
+    // cell while the cells on its open side were lit, so an opened hatch drew black. It also takes the open side's light.
     internal static Vec4f HostedLightRGBs(IBlockAccessor accessor, int x, int y, int z)
     {
         Vec4f light = accessor.GetLightRGBs(x, y, z);
@@ -427,10 +427,15 @@ public class SidingModSystem : ModSystem
         Block block = accessor.GetBlock(pos);
         if (!IsHostableId(block.BlockId) || ApiRef(block) is not { } api
             || GuestWalls.GuestAt(api, pos) is not { Block: SidingWallBlock wall } guest || GuestWalls.Absorption(guest) <= 0) return light;
+        return OpenSideLight(accessor, wall.Variant["layout"], wall.Variant["side"], x, y, z, light);
+    }
 
+    // Each channel's brightest value over light and the cells on faces the panel leaves open, never past the panel.
+    internal static Vec4f OpenSideLight(IBlockAccessor accessor, string layout, string side, int x, int y, int z, Vec4f light)
+    {
         foreach (BlockFacing facing in BlockFacing.ALLFACES)
         {
-            if (wall.ClaimsFace(facing)) continue;
+            if (SidingWallBlock.ClaimsFace(layout, side, facing.Code)) continue;
             Vec4f beside = accessor.GetLightRGBs(x + facing.Normali.X, y + facing.Normali.Y, z + facing.Normali.Z);
             light = new Vec4f(Math.Max(light.R, beside.R), Math.Max(light.G, beside.G), Math.Max(light.B, beside.B), Math.Max(light.A, beside.A));
         }
