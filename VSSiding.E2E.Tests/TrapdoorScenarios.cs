@@ -61,6 +61,17 @@ public class TrapdoorScenarios : AtlasScenarioBase
         return Task.CompletedTask;
     }
 
+    // The room fill reads each face's retention; vanilla makes only a solid trapdoor airtight, a grated (window) one never.
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
+    public async Task Hatch_Should_SealUpAndDown_When_ItIsASolidTrapdoor()
+    {
+        BlockPos cell = Cell;
+        ITestPlayer player = await BuilderWithHatch(cell);
+        int Retention(BlockFacing face) => World.BlockAt(cell).GetRetention(cell, face, EnumRetentionType.Heat);
+
+        Assert.Equal(("trapdoor-solid-oak-1", true, true), (World.BlockAt(cell).Code.Path, Retention(BlockFacing.UP) != 0, Retention(BlockFacing.DOWN) != 0));
+    }
+
     [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Wall_Should_RefuseATrapdoor_When_ItIsDecked()
     {
