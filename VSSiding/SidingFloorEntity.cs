@@ -20,6 +20,8 @@ public class SidingFloorEntity : BlockEntity
     public string? Back;
     public string? FrontStyle;
     public string? BackStyle;
+    // The merge switches that were off when a sheet infill was laid, comma-separated; null merges every way.
+    public string? InfillUnmerged;
     // The block in the cell below went on a wall face through this floor's cell, and rises to its underside (decision 0094).
     public bool RaisedBelow;
 
@@ -28,6 +30,7 @@ public class SidingFloorEntity : BlockEntity
         base.ToTreeAttributes(tree);
         tree.SetString("framing", Framing);
         tree.SetString("infill", Infill);
+        tree.SetString("infillunmerged", InfillUnmerged);
         tree.SetString("front", Front);
         tree.SetString("back", Back);
         tree.SetString("frontstyle", FrontStyle);
@@ -42,6 +45,7 @@ public class SidingFloorEntity : BlockEntity
         var oldMesh = MeshState;
         Framing = SidingWallEntity.NullIfEmpty(tree.GetString("framing", null));
         Infill = SidingWallEntity.NullIfEmpty(tree.GetString("infill", null));
+        InfillUnmerged = SidingWallEntity.NullIfEmpty(tree.GetString("infillunmerged", null));
         // Other clients learn of new infill only through this sync, so they relight here; Api is null on chunk load.
         if (Api?.Side == EnumAppSide.Client && Infill != oldInfill)
         {
@@ -72,7 +76,7 @@ public class SidingFloorEntity : BlockEntity
             SidingWallBlock.AppendFillHint(dsc, forPlayer, "floor", Block.Attributes["Framings"], Block.Attributes["Infills"]);
     }
 
-    private (string?, string?, string?, string?, string?, string?) MeshState => (Framing, Infill, Front, Back, FrontStyle, BackStyle);
+    private (string?, string?, string?, string?, string?, string?, string?) MeshState => (Framing, Infill, Front, Back, FrontStyle, BackStyle, InfillUnmerged);
 
     public override bool OnTesselation(ITerrainMeshPool mesher, ITesselatorAPI tesselator)
     {
@@ -80,7 +84,7 @@ public class SidingFloorEntity : BlockEntity
 
         string? sheet = SidingWallBlock.SheetKind(Infill, Block.Attributes["Infills"]);
         bool glazed = sheet != null, transparent = SidingWallBlock.IsTransparent(Infill, Block.Attributes["Infills"]);
-        var joins = SidingFloorBlock.Joins(Api.World.BlockAccessor, Pos, sheet);
+        var joins = SidingFloorBlock.Joins(Api.World.BlockAccessor, Pos, sheet, InfillUnmerged);
         int alternate = SidingWallEntity.CellAlternate(Block.Attributes, SidingWallTexSource.Alternate(Pos), Framing, [], [Infill], [Front, Back], styles: [FrontStyle, BackStyle]);
         string[] innerCorners = SidingFloorBlock.InnerCorners(Api.World.BlockAccessor, Pos, sheet, joins);
         string[] selectiveElements = SelectiveElements(Framing, Infill, Front, Back, Block.Attributes["Finishes"], joins, (FrontStyle, BackStyle), glazed,

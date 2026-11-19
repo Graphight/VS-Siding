@@ -25,12 +25,13 @@ public static class SidingModePicker
     // Row definitions as plain data, so a later row is one more entry here. Framing is never empty -
     // AllowNone false, defaulting to its first option - while a finish row can be toggled off, which
     // means "use the entry's Elements default" back in SidingWallBlock.
-    internal static readonly (string Key, string[] Options, bool AllowNone)[] Rows =
+    internal static readonly (string Key, string[] Options, bool AllowNone, bool Switches)[] Rows =
     {
-        ("vssidingFraming", new[] { "wall", "corner", "diagonal", "post", "floor", "face" }, false),
-        ("vssidingDeck", new[] { "deck" }, true),
-        ("vssidingBoards", new[] { "weatherboard", "boards", "hboards" }, true),
-        ("vssidingLogs", new[] { "shakes", "logs", "bark", "hbark" }, true),
+        ("vssidingFraming", new[] { "wall", "corner", "diagonal", "post", "floor", "face" }, false, false),
+        ("vssidingDeck", new[] { "deck" }, true, false),
+        ("vssidingBoards", new[] { "weatherboard", "boards", "hboards" }, true, false),
+        ("vssidingLogs", new[] { "shakes", "logs", "bark", "hbark" }, true, false),
+        ("vssidingMerge", new[] { "updown", "leftright" }, true, true),
     };
 
     private const string ChannelName = "vssiding-modepicker";
@@ -58,8 +59,9 @@ public static class SidingModePicker
         var (row, option) = Locate(index);
         if (row < 0) return;
 
-        var (key, options, allowNone) = Rows[row];
-        player.Entity.WatchedAttributes.SetString(key, Toggle(ChoiceOf(player, row), options[option], allowNone));
+        var (key, options, allowNone, switches) = Rows[row];
+        string current = ChoiceOf(player, row);
+        player.Entity.WatchedAttributes.SetString(key, switches ? ToggleSwitch(current, options, options[option]) : Toggle(current, options[option], allowNone));
     }
 
     // Resolved in PatchDialog rather than as static initialisers: a renamed field after a game
@@ -143,7 +145,7 @@ public static class SidingModePicker
             for (int option = 0; option < Rows[row].Options.Length; option++, index++)
             {
                 int flat = index;
-                bool isChosen = Rows[row].Options[option] == chosen;
+                bool isChosen = IsLit(Rows[row], chosen, Rows[row].Options[option]);
                 string gridKey = $"skillitemgrid-{flat}";
                 composer.AddSkillItemGrid(new List<SkillItem> { isChosen ? lit[flat] : dim[flat] }, 1, 1, _ => OnClick(capi, __instance, flat),
                     ElementBounds.Fixed(option * (slotSize + OptionGap), y, slotSize, slotSize), gridKey);
@@ -194,9 +196,21 @@ public static class SidingModePicker
     internal static string Toggle(string current, string clicked, bool allowNone)
         => allowNone && current == clicked ? "" : clicked;
 
+    // A switch row stores the options that are off, in Options order, so an empty value is every
+    // switch lit.
+    internal static string ToggleSwitch(string off, string[] options, string clicked)
+    {
+        var offSet = off.Split(',', StringSplitOptions.RemoveEmptyEntries).ToHashSet();
+        if (!offSet.Remove(clicked)) offSet.Add(clicked);
+        return string.Join(",", options.Where(offSet.Contains));
+    }
+
+    internal static bool IsLit((string Key, string[] Options, bool AllowNone, bool Switches) row, string chosen, string option)
+        => row.Switches ? !chosen.Split(',').Contains(option) : option == chosen;
+
     internal static string ChoiceOf(IPlayer player, int row)
     {
-        var (key, options, allowNone) = Rows[row];
+        var (key, options, allowNone, _) = Rows[row];
         string fallback = allowNone ? "" : options[0];
         return player.Entity.WatchedAttributes.GetString(key, fallback) ?? fallback;
     }
@@ -218,6 +232,9 @@ public static class SidingModePicker
 
     internal static string Boards(IPlayer player) => ChoiceOf(player, Array.FindIndex(Rows, row => row.Key == "vssidingBoards"));
 
+    // The merge switches that are off for a sheet laid now, as stored: "", "updown", "leftright" or "updown,leftright".
+    internal static string Unmerged(IPlayer player) => ChoiceOf(player, Array.FindIndex(Rows, row => row.Key == "vssidingMerge"));
+
     // Every finish row, in row order, whichever is currently chosen. SidingWallBlock picks the
     // first one the clicked finish's Styles lists; a row with nothing chosen contributes nothing,
     // so no finish-to-row mapping is needed here.
@@ -225,7 +242,7 @@ public static class SidingModePicker
     {
         for (int row = 0; row < Rows.Length; row++)
         {
-            if (Rows[row].Key is "vssidingFraming" or "vssidingDeck") continue;
+            if (Rows[row].Key is "vssidingFraming" or "vssidingDeck" or "vssidingMerge") continue;
             string choice = ChoiceOf(player, row);
             if (choice.Length > 0) yield return choice;
         }

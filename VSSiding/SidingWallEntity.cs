@@ -39,6 +39,10 @@ public class SidingWallEntity : BlockEntity
     public string? OuterDeckBack;
     public string? OuterDeckFrontStyle;
     public string? OuterDeckBackStyle;
+    // The merge switches that were off when a sheet infill was laid, comma-separated; null merges every way.
+    public string? InfillUnmerged;
+    public string? DeckInfillUnmerged;
+    public string? OuterDeckInfillUnmerged;
     // A deck saved before decks took layers sealed as bare framing, and keeps doing so until infill is laid.
     public bool LegacyDeck;
     // The held stair's full block code, e.g. "game:plankstairs-oak-up-north-free".
@@ -52,6 +56,8 @@ public class SidingWallEntity : BlockEntity
         => half == DeckHalf.Outer
             ? (OuterDeck, OuterDeckInfill, OuterDeckFront, OuterDeckBack, OuterDeckFrontStyle, OuterDeckBackStyle)
             : (Deck, DeckInfill, DeckFront, DeckBack, DeckFrontStyle, DeckBackStyle);
+
+    internal string? DeckUnmerged(DeckHalf half) => half == DeckHalf.Outer ? OuterDeckInfillUnmerged : DeckInfillUnmerged;
 
     public override void ToTreeAttributes(ITreeAttribute tree)
     {
@@ -79,6 +85,9 @@ public class SidingWallEntity : BlockEntity
         tree.SetString("outerdeckback", OuterDeckBack);
         tree.SetString("outerdeckfrontstyle", OuterDeckFrontStyle);
         tree.SetString("outerdeckbackstyle", OuterDeckBackStyle);
+        tree.SetString("infillunmerged", InfillUnmerged);
+        tree.SetString("deckinfillunmerged", DeckInfillUnmerged);
+        tree.SetString("outerdeckinfillunmerged", OuterDeckInfillUnmerged);
         tree.SetBool("legacydeck", LegacyDeck);
         tree.SetString("step", Step);
         tree.SetString("steporientation", StepOrientation);
@@ -127,6 +136,9 @@ public class SidingWallEntity : BlockEntity
         OuterDeckBack = NullIfEmpty(tree.GetString("outerdeckback", null));
         OuterDeckFrontStyle = NullIfEmpty(tree.GetString("outerdeckfrontstyle", null));
         OuterDeckBackStyle = NullIfEmpty(tree.GetString("outerdeckbackstyle", null));
+        InfillUnmerged = NullIfEmpty(tree.GetString("infillunmerged", null));
+        DeckInfillUnmerged = NullIfEmpty(tree.GetString("deckinfillunmerged", null));
+        OuterDeckInfillUnmerged = NullIfEmpty(tree.GetString("outerdeckinfillunmerged", null));
         LegacyDeck = ReadLegacyDeck(tree, Deck);
         Step = NullIfEmpty(tree.GetString("step", null));
         StepOrientation = NullIfEmpty(tree.GetString("steporientation", null));
@@ -190,11 +202,11 @@ public class SidingWallEntity : BlockEntity
             && SidingWallBlock.FrontsFaceEachOther(Block.Variant["layout"], Block.Variant["side"], direction, wall.Variant["layout"], wall.Variant["side"]);
 
     // Everything OnTesselation reads off this entity, which is exactly what CacheKey covers.
-    private ((string?, string?, string?, string?, string?, string?, string?, string?, string?, string?, string?), (string?, string?, string?, string?, string?, string?, string?), string) MeshState
+    private ((string?, string?, string?, string?, string?, string?, string?, string?, string?, string?, string?), (string?, string?, string?, string?, string?, string?, string?, string?, string?), string) MeshState
         => ((Framing, Infill, Front, SecondFront, Back, FrontStyle, SecondFrontStyle, BackStyle, Deck, Step, StepOrientation),
-            (DeckInfill, DeckFront, DeckBack, DeckFrontStyle, DeckBackStyle, SecondBack, SecondBackStyle), OuterDeckState);
+            (DeckInfill, DeckFront, DeckBack, DeckFrontStyle, DeckBackStyle, SecondBack, SecondBackStyle, InfillUnmerged, DeckInfillUnmerged), OuterDeckState);
 
-    private string OuterDeckState => $"{OuterDeck}-{OuterDeckInfill}-{OuterDeckFront}-{OuterDeckBack}-{OuterDeckFrontStyle}-{OuterDeckBackStyle}";
+    private string OuterDeckState => $"{OuterDeck}-{OuterDeckInfill}-{OuterDeckFront}-{OuterDeckBack}-{OuterDeckFrontStyle}-{OuterDeckBackStyle}-{OuterDeckInfillUnmerged}";
 
     // A ToBytes/FromBytes round trip (chunk save/reload, client sync) turns a null
     // SetString value into "" - normalize back to null so "unbuilt" survives a reload.
@@ -211,7 +223,7 @@ public class SidingWallEntity : BlockEntity
         if (layout is not ("wall" or "cornerout" or "diagonal" or "cornerin")) return false;
         if (Api is not ICoreClientAPI capi) return false;
 
-        var joins = ((SidingWallBlock)Block).NeighbourJoins(Api.World.BlockAccessor, Pos, Infill);
+        var joins = ((SidingWallBlock)Block).NeighbourJoins(Api.World.BlockAccessor, Pos, Infill, InfillUnmerged);
 
         // An empty selectiveElements array matches zero shape elements, not "no filter", and any
         // built cell names at least one - glazing merged on every side still draws its pane. So
@@ -228,8 +240,8 @@ public class SidingWallEntity : BlockEntity
             [Infill, DeckInfill, OuterDeckInfill], [Front, SecondFront, Back, SecondBack, DeckFront, DeckBack, OuterDeckFront, OuterDeckBack],
             SidingWallTexSource.Varies(SidingWallTexSource.StairTexture(stair)),
             [FrontStyle, SecondFrontStyle, BackStyle, SecondBackStyle, DeckFrontStyle, DeckBackStyle, OuterDeckFrontStyle, OuterDeckBackStyle]);
-        string[] innerCorners = ((SidingWallBlock)Block).InnerCorners(Api.World.BlockAccessor, Pos, Infill, joins);
-        var glassRunsOn = ((SidingWallBlock)Block).GlassRunsOn(Api.World.BlockAccessor, Pos, Infill, joins);
+        string[] innerCorners = ((SidingWallBlock)Block).InnerCorners(Api.World.BlockAccessor, Pos, Infill, joins, InfillUnmerged);
+        var glassRunsOn = ((SidingWallBlock)Block).GlassRunsOn(Api.World.BlockAccessor, Pos, Infill, joins, InfillUnmerged);
         var tees = ((SidingWallBlock)Block).Tees(Api.World.BlockAccessor, Pos);
         string[] frontDirections = SidingWallBlock.FrontDirections(layout, side);
         var closed = (front: frontDirections.Length > 0 && FrontClosed(frontDirections[0]), second: frontDirections.Length > 1 && FrontClosed(frontDirections[1]));
@@ -240,7 +252,7 @@ public class SidingWallEntity : BlockEntity
         // The deck is laid like a floor, in world directions, so its groups are tesselated unrotated.
         string? deckSheet = SidingWallBlock.SheetKind(DeckInfill, Block.Attributes["Infills"]);
         bool deckGlazed = deckSheet != null, deckTransparent = SidingWallBlock.IsTransparent(DeckInfill, Block.Attributes["Infills"]);
-        var deckJoins = SidingFloorBlock.Joins(Api.World.BlockAccessor, Pos, deckSheet);
+        var deckJoins = SidingFloorBlock.Joins(Api.World.BlockAccessor, Pos, deckSheet, DeckInfillUnmerged);
         string[] deckInnerCorners = SidingFloorBlock.InnerCorners(Api.World.BlockAccessor, Pos, deckSheet, deckJoins);
         bool bothHalves = Deck != null && OuterDeck != null;
         bool capped = Capped(layout, DeckFront, SidingWallBlock.FreeAbove(Api.World.BlockAccessor, Pos), bothHalves);
@@ -249,7 +261,7 @@ public class SidingWallEntity : BlockEntity
             InfillElements(Block.Attributes["Infills"], DeckInfill), pane: deckTransparent);
         string? outerSheet = SidingWallBlock.SheetKind(OuterDeckInfill, Block.Attributes["Infills"]);
         bool outerGlazed = outerSheet != null, outerTransparent = SidingWallBlock.IsTransparent(OuterDeckInfill, Block.Attributes["Infills"]);
-        var allJoins = SidingFloorBlock.Joins(Api.World.BlockAccessor, Pos, outerSheet);
+        var allJoins = SidingFloorBlock.Joins(Api.World.BlockAccessor, Pos, outerSheet, OuterDeckInfillUnmerged);
         var outerJoins = (allJoins.above && SidingWallBlock.ClaimsFace(layout, side, "north"), allJoins.below && SidingWallBlock.ClaimsFace(layout, side, "south"),
             allJoins.left && SidingWallBlock.ClaimsFace(layout, side, "west"), allJoins.right && SidingWallBlock.ClaimsFace(layout, side, "east"));
         string[] outerElements = DeckElements(side, OuterDeck, OuterDeckInfill, OuterDeckFront, OuterDeckBack, Block.Attributes["Finishes"], outerJoins, (OuterDeckFrontStyle, OuterDeckBackStyle),

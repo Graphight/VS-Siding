@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Vintagestory.API.Common;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
@@ -253,6 +254,78 @@ public class SidingFloorTests
                 SidingFloorBlock.Continues("vent", "oak", "louvres", infills),
                 SidingFloorBlock.Continues("vent", "oak", "glass", infills),
                 SidingFloorBlock.Continues("glazed", "oak", "louvres", infills),
+            });
+    }
+
+    // Answers GetBlock and GetBlockEntity from the floors and walls it is given, and air everywhere else.
+    private class FloorsAccessor : DispatchProxy
+    {
+        internal Dictionary<BlockPos, SidingFloorEntity> Floors = new();
+        internal Dictionary<BlockPos, (Block Block, SidingWallEntity Entity)> Walls = new();
+
+        protected override object? Invoke(MethodInfo? targetMethod, object?[]? args)
+        {
+            if (args is not [BlockPos pos]) throw new System.NotSupportedException($"{targetMethod?.Name} is not stubbed");
+            bool walled = Walls.TryGetValue(pos, out var wall);
+            return targetMethod?.Name switch
+            {
+                nameof(IBlockAccessor.GetBlock) => walled ? wall.Block : new Block(),
+                nameof(IBlockAccessor.GetBlockEntity) when Floors.TryGetValue(pos, out var floor) => floor,
+                nameof(IBlockAccessor.GetBlockEntity) => walled && targetMethod.GetGenericArguments() is [var type] && type.IsInstanceOfType(wall.Entity) ? wall.Entity : null,
+                _ => throw new System.NotSupportedException($"{targetMethod?.Name} is not stubbed"),
+            };
+        }
+    }
+
+    // A glazed floor meets a wall's glazed deck as it meets another floor: east-west, both have to leave leftright on.
+    [Fact]
+    public void AGlazedFloorJoinsAWallsGlazedDeckOnlyWhereBothAllow()
+    {
+        var attributes = SidingWallEntityTests.Dict("""{ "Infills": { "glass": { "Transparent": true } } }""");
+        var wallBlock = new SidingWallBlock { Attributes = attributes };
+        wallBlock.VariantStrict["layout"] = "wall";
+        wallBlock.VariantStrict["side"] = "north";
+        var origin = new BlockPos(10, 60, 10, 0);
+        var accessor = DispatchProxy.Create<IBlockAccessor, FloorsAccessor>();
+        bool JoinsEast(string? floorUnmerged, string? deckUnmerged)
+        {
+            ((FloorsAccessor)(object)accessor).Walls = new()
+            {
+                [origin.EastCopy()] = (wallBlock, new SidingWallEntity { Framing = "oak", Infill = "wattle", Deck = "oak", DeckInfill = "glass", DeckInfillUnmerged = deckUnmerged }),
+            };
+            return SidingFloorBlock.Joins(accessor, origin, "glazed", floorUnmerged).right;
+        }
+
+        Assert.Equal(
+            [true, true, false, false],
+            new[] { JoinsEast(null, null), JoinsEast(null, "updown"), JoinsEast(null, "leftright"), JoinsEast("leftright", null) });
+    }
+
+    // A glazed floor joins a neighbour only on the axes both allow: north-south is updown, east-west leftright; joists ignore it.
+    [Fact]
+    public void AGlazedFloorJoinsOnlyTheWaysBothCellsAllow()
+    {
+        var block = new SidingFloorBlock { Attributes = SidingWallEntityTests.Dict("""{ "Infills": { "glass": { "Transparent": true } } }""") };
+        var origin = new BlockPos(10, 60, 10, 0);
+        SidingFloorEntity Glass(string? unmerged) => new() { Framing = "oak", Infill = "glass", InfillUnmerged = unmerged, Block = block };
+        var accessor = DispatchProxy.Create<IBlockAccessor, FloorsAccessor>();
+        ((FloorsAccessor)(object)accessor).Floors = new()
+        {
+            [origin.NorthCopy()] = Glass(null),
+            [origin.SouthCopy()] = Glass("updown"),
+            [origin.WestCopy()] = Glass("updown"),
+            [origin.EastCopy()] = Glass("leftright"),
+        };
+
+        Assert.Equal(
+            [(true, false, true, false), (false, false, true, false), (false, false, false, false), (true, false, false, false), (true, true, false, false)],
+            new[]
+            {
+                SidingFloorBlock.Joins(accessor, origin, "glazed", null),
+                SidingFloorBlock.Joins(accessor, origin, "glazed", "updown"),
+                SidingFloorBlock.Joins(accessor, origin, "glazed", "updown,leftright"),
+                SidingFloorBlock.Joins(accessor, origin, "glazed", "leftright"),
+                SidingFloorBlock.Joins(accessor, origin, null, "updown,leftright"),
             });
     }
 

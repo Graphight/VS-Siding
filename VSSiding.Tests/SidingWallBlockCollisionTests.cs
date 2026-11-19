@@ -465,7 +465,24 @@ public class SidingWallBlockCollisionTests
         """));
         var neighbour = new SidingWallEntity { Framing = neighbourFraming, Infill = neighbourInfill };
 
-        Assert.Equal(expected, SidingWallBlock.ContinuesGlazing(infill, neighbour, infills));
+        Assert.Equal(expected, SidingWallBlock.ContinuesGlazing(infill, neighbour, infills, null, "updown"));
+    }
+
+    // Two sheets join only where both cells allow the axis, so either one's switch off frames the edge.
+    [Theory]
+    [InlineData(null, null, "updown", true)]
+    [InlineData("leftright", null, "updown", true)]
+    [InlineData("updown", null, "updown", false)]
+    [InlineData(null, "updown", "updown", false)]
+    [InlineData("updown", "updown", "leftright", true)]
+    [InlineData(null, "leftright", "leftright", false)]
+    [InlineData("updown,leftright", null, "leftright", false)]
+    public void ASheetJoinsOnlyWhereBothCellsAllowTheAxis(string? unmerged, string? neighbourUnmerged, string axis, bool expected)
+    {
+        var infills = new JsonObject(JToken.Parse("""{ "glass": { "Transparent": true } }"""));
+        var neighbour = new SidingWallEntity { Framing = "oak", Infill = "glass", InfillUnmerged = neighbourUnmerged };
+
+        Assert.Equal(expected, SidingWallBlock.ContinuesGlazing("glass", neighbour, infills, unmerged, axis));
     }
 
     // Answers GetBlock and GetBlockEntity from the cells it is given and air everywhere else, so a cell's joins read a world.
@@ -538,6 +555,50 @@ public class SidingWallBlockCollisionTests
                 ["diagonal"] = ((true, false, true, true), "-top-left", (true, true), (false, false)),
             },
             new Dictionary<string, ((bool, bool, bool, bool), string, (bool, bool), (bool, bool))> { ["cornerout"] = Read(corner), ["diagonal"] = Read(diagonal) });
+    }
+
+    // A glazed wall boxed in by glass, and a glazed diagonal between two, join up and down only while updown is on,
+    // and at their ends, the diagonal's glass included, only while leftright is on.
+    [Fact]
+    public void AGlazedCellsSwitchesPickWhichOfItsNeighboursItJoins()
+    {
+        var attributes = new JsonObject(JToken.Parse("""{ "Infills": { "glass": { "Transparent": true } } }"""));
+        (Block Block, SidingWallEntity Entity) Glazed(string layout)
+        {
+            var block = new SidingWallBlock { Attributes = attributes };
+            block.VariantStrict["layout"] = layout;
+            block.VariantStrict["side"] = "west";
+            return (block, new SidingWallEntity { Framing = "oak", Infill = "glass" });
+        }
+
+        var wall = new BlockPos(10, 60, 10, 0);
+        var diagonal = new BlockPos(30, 60, 30, 0);
+        var (leftEnd, rightEnd) = SidingWallBlock.LeftRightEnds("wall", "west");
+        var (leftStep, rightStep) = SidingWallBlock.DiagonalRunNeighbours("west");
+        var accessor = DispatchProxy.Create<IBlockAccessor, CellsAccessor>();
+        var cells = ((CellsAccessor)(object)accessor).Cells = new()
+        {
+            [wall] = Glazed("wall"),
+            [wall.UpCopy()] = Glazed("wall"),
+            [wall.DownCopy()] = Glazed("wall"),
+            [wall.AddCopy(leftEnd.Points)] = Glazed("wall"),
+            [wall.AddCopy(rightEnd.Points)] = Glazed("wall"),
+            [diagonal] = Glazed("diagonal"),
+            [diagonal.AddCopy(leftStep)] = Glazed("diagonal"),
+            [diagonal.AddCopy(rightStep)] = Glazed("diagonal"),
+        };
+
+        ((bool, bool, bool, bool) Wall, (bool, bool) DiagonalGlass) Read(string? unmerged)
+        {
+            var wallBlock = (SidingWallBlock)cells[wall].Block;
+            var diagonalBlock = (SidingWallBlock)cells[diagonal].Block;
+            var diagonalJoins = diagonalBlock.NeighbourJoins(accessor, diagonal, "glass", unmerged);
+            return (wallBlock.NeighbourJoins(accessor, wall, "glass", unmerged), diagonalBlock.GlassRunsOn(accessor, diagonal, "glass", diagonalJoins, unmerged));
+        }
+
+        Assert.Equal(
+            new[] { ((true, true, true, true), (true, true)), ((false, false, true, true), (true, true)), ((true, true, false, false), (false, false)) },
+            new[] { Read(null), Read("updown"), Read("leftright") });
     }
 
     // Two vents side by side drop the post between them as glazing does; a vent beside glass keeps it.
