@@ -153,9 +153,9 @@ public class TrapdoorScenarios : AtlasScenarioBase
     {
         BlockPos cell = Cell;
         ITestPlayer player = await BuilderWithHatch(cell);
-        World.SetBlock("game:ladder-wood-aged-west", cell.DownCopy());
+        for (int below = 1; below <= 3; below++) World.SetBlock("game:ladder-wood-aged-west", cell.DownCopy(below));
 
-        bool placed = PlaceLadder(player, cell.DownCopy().EastCopy(), BlockFacing.EAST, true);
+        bool placed = PlaceLadder(player, cell.DownCopy(3).EastCopy(), BlockFacing.EAST, true);
 
         Assert.Equal((true, "trapdoor-solid-oak-1", "game:ladder-wood-aged-west"),
             (placed, World.BlockAt(cell).Code.Path, WallBuilder.GuestLadder(World, cell)));
