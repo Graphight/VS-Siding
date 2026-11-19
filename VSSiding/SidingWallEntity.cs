@@ -202,11 +202,11 @@ public class SidingWallEntity : BlockEntity
             && SidingWallBlock.FrontsFaceEachOther(Block.Variant["layout"], Block.Variant["side"], direction, wall.Variant["layout"], wall.Variant["side"]);
 
     // Everything OnTesselation reads off this entity, which is exactly what CacheKey covers.
-    private ((string?, string?, string?, string?, string?, string?, string?, string?, string?, string?, string?), (string?, string?, string?, string?, string?, string?, string?), string) MeshState
+    private ((string?, string?, string?, string?, string?, string?, string?, string?, string?, string?, string?), (string?, string?, string?, string?, string?, string?, string?, string?, string?), string) MeshState
         => ((Framing, Infill, Front, SecondFront, Back, FrontStyle, SecondFrontStyle, BackStyle, Deck, Step, StepOrientation),
-            (DeckInfill, DeckFront, DeckBack, DeckFrontStyle, DeckBackStyle, SecondBack, SecondBackStyle), OuterDeckState);
+            (DeckInfill, DeckFront, DeckBack, DeckFrontStyle, DeckBackStyle, SecondBack, SecondBackStyle, InfillUnmerged, DeckInfillUnmerged), OuterDeckState);
 
-    private string OuterDeckState => $"{OuterDeck}-{OuterDeckInfill}-{OuterDeckFront}-{OuterDeckBack}-{OuterDeckFrontStyle}-{OuterDeckBackStyle}-{InfillUnmerged}-{DeckInfillUnmerged}-{OuterDeckInfillUnmerged}";
+    private string OuterDeckState => $"{OuterDeck}-{OuterDeckInfill}-{OuterDeckFront}-{OuterDeckBack}-{OuterDeckFrontStyle}-{OuterDeckBackStyle}-{OuterDeckInfillUnmerged}";
 
     // A ToBytes/FromBytes round trip (chunk save/reload, client sync) turns a null
     // SetString value into "" - normalize back to null so "unbuilt" survives a reload.

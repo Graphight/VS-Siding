@@ -263,7 +263,7 @@ public class SidingWallBlock : Block
         }
         else
         {
-            var joins = NeighbourJoins(blockAccessor, pos, entity.Infill, entity.InfillUnmerged);
+            var joins = NeighbourJoins(blockAccessor, pos, entity.Infill);
             boxes = ComputeCollisionBoxes(Variant["layout"], Variant["side"], entity.Framing, entity.Infill, joins.above, fullBoxes);
         }
 
