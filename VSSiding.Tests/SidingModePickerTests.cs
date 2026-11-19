@@ -61,6 +61,15 @@ public class SidingModePickerTests
             });
     }
 
+    [Fact]
+    public void AnOptionRowLightsOnlyItsChosenOption()
+    {
+        var row = SidingModePicker.Rows.Single(r => r.Key == "vssidingFraming");
+        Assert.Equal(
+            new[] { true, false },
+            new[] { SidingModePicker.IsLit(row, "wall", "wall"), SidingModePicker.IsLit(row, "wall", "corner") });
+    }
+
     // The picker reaches into GuiDialogToolMode's private members by name, so a game update that
     // renames one would leave a saw in the off hand opening no picker, with only a log line to say so.
     [Fact]
