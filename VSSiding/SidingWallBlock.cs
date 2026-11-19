@@ -2006,7 +2006,17 @@ public class SidingWallBlock : Block
         return ResolveDrops(world, drops, dropQuantityMultiplier);
     }
 
-    internal List<BlockDropItemStack> DropsOf(SidingWallEntity? entity) => ComputeDrops(
+    internal List<BlockDropItemStack> DropsOf(SidingWallEntity? entity) => [.. DropsWithoutLadder(entity), .. LadderDrop(entity)];
+
+    // The ladder layer drops as the ladder block does, whichever side it was placed on.
+    private static IEnumerable<BlockDropItemStack> LadderDrop(SidingWallEntity? entity)
+    {
+        if (entity?.Ladder == null || entity.Api?.World is not { } world || world.GetBlock(new AssetLocation(entity.Ladder)) is not { BlockId: not 0 } ladder) yield break;
+        if (ladder.OnPickBlock(world, entity.Pos) is { } stack)
+            yield return new BlockDropItemStack { Type = stack.Class, Code = stack.Collectible.Code, Quantity = NatFloat.One };
+    }
+
+    private List<BlockDropItemStack> DropsWithoutLadder(SidingWallEntity? entity) => ComputeDrops(
         entity?.Framing, entity?.Infill, entity?.Front, entity?.SecondFront, entity?.Back, entity?.Deck,
         Attributes["Framings"], Attributes["Infills"], Attributes["Finishes"], entity?.Step,
         entity?.DeckInfill, entity?.DeckFront, entity?.DeckBack, Variant["layout"], entity?.SecondBack, TileLists(entity),

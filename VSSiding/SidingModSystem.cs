@@ -317,6 +317,22 @@ public class SidingModSystem : ModSystem
 
         try
         {
+            harmony.Patch(AccessTools.Method(typeof(BlockBehaviorTrapDoor), nameof(BlockBehaviorTrapDoor.TryPlaceBlock)),
+                prefix: new HarmonyMethod(typeof(SidingModSystem), nameof(TrapdoorIntoWallPrefix)));
+            harmony.Patch(AccessTools.Method(typeof(BEBehaviorTrapDoor), "getTfMatrix"),
+                postfix: new HarmonyMethod(typeof(SidingModSystem), nameof(TrapdoorOpenPartPostfix)));
+            harmony.Patch(AccessTools.Method(typeof(BlockBehaviorLadder), nameof(BlockBehaviorLadder.TryPlaceBlock)),
+                prefix: new HarmonyMethod(typeof(SidingModSystem), nameof(LadderIntoHatchPrefix)));
+            harmony.Patch(AccessTools.Method(typeof(Block), nameof(Block.IsClimbable)),
+                postfix: new HarmonyMethod(typeof(SidingModSystem), nameof(HatchClimbablePostfix)));
+        }
+        catch (Exception e)
+        {
+            api.Logger.Error("vssiding: trapdoor patches skipped, a trapdoor can't be placed into a wall's cell: {0}", e);
+        }
+
+        try
+        {
             harmony.Patch(AccessTools.Method(typeof(BlockBehaviorRightClickPickup), nameof(BlockBehaviorRightClickPickup.OnBlockInteractStart)),
                 postfix: new HarmonyMethod(typeof(SidingModSystem), nameof(PickedUpHostPostfix)));
         }
@@ -402,14 +418,46 @@ public class SidingModSystem : ModSystem
         return dx == 0 && dz == 0 ? modelMat : Mat4f.Translate(modelMat, modelMat, (float)dx, 0, (float)dz);
     }
 
+    // The renderer lights the whole mesh from its own cell's stored light, which in playtest read dark in a sealed guest's
+    // cell while the cells on its open side were lit, so an opened hatch drew black. It also takes the open side's light.
+    internal static Vec4f HostedLightRGBs(IBlockAccessor accessor, int x, int y, int z)
+    {
+        Vec4f light = accessor.GetLightRGBs(x, y, z);
+        var pos = new BlockPos(x, y, z);
+        Block block = accessor.GetBlock(pos);
+        if (!IsHostableId(block.BlockId) || ApiRef(block) is not { } api
+            || GuestWalls.GuestAt(api, pos) is not { Block: SidingWallBlock wall } guest || GuestWalls.Absorption(guest) <= 0) return light;
+        return OpenSideLight(accessor, wall.Variant["layout"], wall.Variant["side"], x, y, z, light);
+    }
+
+    // Each channel's brightest value over light and the cells on faces the panel leaves open, never past the panel.
+    internal static Vec4f OpenSideLight(IBlockAccessor accessor, string layout, string side, int x, int y, int z, Vec4f light)
+    {
+        foreach (BlockFacing facing in BlockFacing.ALLFACES)
+        {
+            if (SidingWallBlock.ClaimsFace(layout, side, facing.Code)) continue;
+            Vec4f beside = accessor.GetLightRGBs(x + facing.Normali.X, y + facing.Normali.Y, z + facing.Normali.Z);
+            light = new Vec4f(Math.Max(light.R, beside.R), Math.Max(light.G, beside.G), Math.Max(light.B, beside.B), Math.Max(light.A, beside.A));
+        }
+        return light;
+    }
+
     internal static IEnumerable<CodeInstruction> AnimatableRendererTranspiler(IEnumerable<CodeInstruction> instructions)
     {
         var identity = AccessTools.Method(typeof(Mat4f), nameof(Mat4f.Identity), new[] { typeof(float[]) });
         var shift = AccessTools.Method(typeof(SidingModSystem), nameof(ShiftAnimatable));
+        var lightRgbs = AccessTools.Method(typeof(IBlockAccessor), nameof(IBlockAccessor.GetLightRGBs), new[] { typeof(int), typeof(int), typeof(int) });
+        var hostedLight = AccessTools.Method(typeof(SidingModSystem), nameof(HostedLightRGBs));
 
-        int inserted = 0;
+        int inserted = 0, lit = 0;
         foreach (var instruction in instructions)
         {
+            if (instruction.Calls(lightRgbs))
+            {
+                lit++;
+                instruction.opcode = OpCodes.Call;
+                instruction.operand = hostedLight;
+            }
             yield return instruction;
             if (!instruction.Calls(identity)) continue;
             inserted++;
@@ -417,8 +465,8 @@ public class SidingModSystem : ModSystem
             yield return new CodeInstruction(OpCodes.Call, shift);
         }
 
-        if (inserted != 1)
-            throw new InvalidOperationException($"Expected exactly one Mat4f.Identity call in AnimatableRenderer.OnRenderFrame, found {inserted}.");
+        if (inserted != 1 || lit != 1)
+            throw new InvalidOperationException($"Expected one Mat4f.Identity and one GetLightRGBs call in AnimatableRenderer.OnRenderFrame, found {inserted} and {lit}.");
     }
 
     // Inserted after every Matrixf.Identity() in the renderer's OnRenderFrame. Translations
@@ -744,6 +792,16 @@ public class SidingModSystem : ModSystem
 
     internal static bool IsHostableId(int blockId) => Hostable is { } hostable && blockId < hostable.Length && hostable[blockId];
 
+    // Indexed by BlockId, like Hostable: whether the block is a trapdoor that can take a wall's cell, and so may carry a ladder layer (#138).
+    internal static bool[]? Hatches;
+
+    internal static bool IsHatchId(int blockId) => Hatches is { } hatches && blockId < hatches.Length && hatches[blockId];
+
+    // Indexed by BlockId, like Hostable: whether the block is a ladder that can take a wall's cell.
+    internal static bool[]? Ladders;
+
+    internal static bool IsLadderId(int blockId) => Ladders is { } ladders && blockId < ladders.Length && ladders[blockId];
+
     // Indexed by BlockId, like Hostable: whether the block hangs from the face above it (decision 0054).
     internal static bool[]? Hangers;
 
@@ -759,7 +817,7 @@ public class SidingModSystem : ModSystem
     // overrides that for a block whose boxes overstate its shape, such as Butchering's hooks.
     internal static double? UnderDeckDropFor(Block block)
     {
-        if (!IsHostable(block)) return null;
+        if (!IsHostable(block) || block.HasBehavior<BlockBehaviorTrapDoor>()) return null;
 
         const double room = 1 - PanelThickness;
         var boxes = block.SelectionBoxes ?? block.CollisionBoxes;
@@ -862,6 +920,8 @@ public class SidingModSystem : ModSystem
         var hostable = new bool[maxId + 1];
         var faceShift = new double[maxId + 1][];
         var hangers = new bool[maxId + 1];
+        var hatches = new bool[maxId + 1];
+        var ladders = new bool[maxId + 1];
         var underDeckDrop = new double?[maxId + 1];
         var mainPos = new PropertyInfo?[maxId + 1];
 
@@ -870,6 +930,8 @@ public class SidingModSystem : ModSystem
             if (block == null) continue;
             hostable[block.BlockId] = IsHostable(block);
             hangers[block.BlockId] = IsHanger(block);
+            hatches[block.BlockId] = hostable[block.BlockId] && block.HasBehavior<BlockBehaviorTrapDoor>();
+            ladders[block.BlockId] = hostable[block.BlockId] && block.HasBehavior<BlockBehaviorLadder>();
             underDeckDrop[block.BlockId] = UnderDeckDropFor(block);
             if (!hostable[block.BlockId]) continue;
 
@@ -880,6 +942,8 @@ public class SidingModSystem : ModSystem
 
         Hostable = hostable;
         Hangers = hangers;
+        Hatches = hatches;
+        Ladders = ladders;
         UnderDeckDrop = underDeckDrop;
         FaceShiftByBlock = faceShift;
         MainPosByBlock = mainPos;
@@ -894,6 +958,8 @@ public class SidingModSystem : ModSystem
     // right unless its front is the side against the wall.
     internal static double[] FaceShifts(Block block)
     {
+        if (block.HasBehavior<BlockBehaviorTrapDoor>()) return new double[HorizontalFaces.Length];
+
         var boxes = block.SelectionBoxes ?? block.CollisionBoxes;
         var shifts = HorizontalFaces.Select(face => FaceShift(boxes, face)).ToArray();
         return block.HasBehavior<BlockBehaviorRotateablePlaceable>() ? shifts.Select(_ => shifts.Max()).ToArray() : shifts;
@@ -1135,6 +1201,126 @@ public class SidingModSystem : ModSystem
 
         failureCode = "requireattachable";
         return false;
+    }
+
+    // Vanilla places a trapdoor only into a cell with nothing in its solid layer, which a wall's never is (#138). A straight
+    // wall takes it as a guest, flush at the top whatever face was clicked, the hit point still picking the hinge edge.
+    internal static bool TrapdoorIntoWallPrefix(BlockBehaviorTrapDoor __instance, IWorldAccessor world, IPlayer byPlayer,
+        ItemStack itemstack, BlockSelection blockSel, ref EnumHandling handling, ref string failureCode, ref bool __result)
+    {
+        var accessor = world.BlockAccessor;
+        BlockPos cell = blockSel.Position;
+        Block host = accessor.GetBlock(cell);
+        SidingWallEntity? entity = null, ladderGuest = null;
+        if (host is SidingWallBlock) entity = accessor.GetBlockEntity<SidingWallEntity>(cell);
+        else
+        {
+            // A ladder is not replaceable, so a click on a hosted one is offset into the cell beyond its face.
+            if (blockSel.DidOffset) cell = cell.AddCopy(blockSel.Face.Opposite);
+            if (!accessor.GetBlock(cell).HasBehavior<BlockBehaviorLadder>() || GuestWalls.GuestAt(world.Api, cell) is not { Ladder: null } guest) return true;
+            host = guest.Block;
+            entity = ladderGuest = guest;
+        }
+
+        handling = EnumHandling.PreventDefault;
+        __result = false;
+        if (host.Variant["layout"] != "wall") failureCode = "vssiding-hatch-straight";
+        else if (SidingWallBlock.OpenPartRefusal(entity) is { } refusal) failureCode = refusal;
+        else
+        {
+            var down = blockSel.Clone();
+            down.Position = cell.Copy();
+            down.DidOffset = false;
+            down.Face = BlockFacing.DOWN;
+            // A ladder's cell is never replaceable by a trapdoor, so CanPlaceBlock would refuse it; the claim is the one check left.
+            bool free = ladderGuest == null ? __instance.block.CanPlaceBlock(world, byPlayer, down, ref failureCode) : !SidingWallBlock.ClaimRefuses(world, byPlayer, cell);
+            if (!free && ladderGuest != null) failureCode = "claimed";
+            if (free)
+            {
+                if (ladderGuest != null) SetLadderLayer(world, cell, ladderGuest, accessor.GetBlock(cell).Code.ToString());
+                __result = __instance.placeDoor(world, byPlayer, itemstack, down, cell, accessor);
+            }
+        }
+
+        return false;
+    }
+
+    // A ladder joins a hatch's cell as the guest wall's layer, from a click on that cell or from the top of a ladder stack
+    // growing up into it, where vanilla would refuse the cell as not replaceable.
+    internal static bool LadderIntoHatchPrefix(BlockBehaviorLadder __instance, IWorldAccessor world, IPlayer byPlayer,
+        BlockSelection blockSel, ref EnumHandling handled, ref bool __result)
+    {
+        if (__instance.isFlexible && !byPlayer.Entity.Controls.ShiftKey) return true;
+
+        var accessor = world.BlockAccessor;
+        BlockPos clicked = blockSel.DidOffset ? blockSel.Position.AddCopy(blockSel.Face.Opposite) : blockSel.Position;
+        BlockPos cell = clicked;
+        if (!HatchWithoutLadder(accessor, world.Api, cell))
+        {
+            if (__instance.isFlexible || accessor.GetBlock(clicked).GetBehavior(typeof(BlockBehaviorLadder), false) is not BlockBehaviorLadder start
+                || start.LadderType != __instance.LadderType) return true;
+
+            cell = clicked.UpCopy();
+            while (cell.Y < accessor.MapSizeY && accessor.GetBlock(cell).GetBehavior(typeof(BlockBehaviorLadder), false) is BlockBehaviorLadder up && up.LadderType == __instance.LadderType) cell.Up();
+            if (!HatchWithoutLadder(accessor, world.Api, cell)) return true;
+        }
+
+        handled = EnumHandling.PreventDefault;
+        __result = false;
+        SidingWallEntity guest = GuestWalls.GuestAt(world.Api, cell)!;
+        if (accessor.GetBlock(__instance.block.CodeWithParts(guest.Block.Variant["side"])) is not { BlockId: not 0 } ladder || SidingWallBlock.ClaimRefuses(world, byPlayer, cell)) return false;
+
+        SetLadderLayer(world, cell, guest, ladder.Code.ToString());
+        world.PlaySoundAt(ladder.Sounds.Place, cell, 0.5, byPlayer);
+        __result = true;
+        return false;
+    }
+
+    private static bool HatchWithoutLadder(IBlockAccessor accessor, ICoreAPI api, BlockPos cell)
+        => accessor.GetBlock(cell).HasBehavior<BlockBehaviorTrapDoor>()
+            && GuestWalls.GuestAt(api, cell) is { Ladder: null, Block: SidingWallBlock wall } && wall.Variant["layout"] == "wall";
+
+    // The ladder a hatch goes over becomes the guest wall's layer, which the trapdoor replacing it as host would otherwise lose.
+    // Server only: a client's guess would outlive a placement the server refuses, and draw two ladders in one cell.
+    private static void SetLadderLayer(IWorldAccessor world, BlockPos cell, SidingWallEntity guest, string? ladder)
+    {
+        if (world.Side == EnumAppSide.Server && world.BlockAccessor.GetChunkAtBlockPos(cell) is { } chunk)
+            GuestWalls.Set(world, chunk, cell, GuestWalls.WithLadder(guest, ladder));
+    }
+
+    [ThreadStatic] private static BlockPos? belowHatch;
+
+    // A hatch holding a ladder layer, or open over a ladder, counts as a ladder for climbing: vanilla looks for a
+    // climbable block only in the cells from a player's feet to head height, and the hatch's cell is one of them on the way through.
+    // A closed one over a ladder does not: one on the top face of the block below keeps its slab at the bottom of its cell,
+    // and a player standing on it would be held climbing.
+    internal static void HatchClimbablePostfix(Block __instance, BlockPos pos, ref bool __result)
+    {
+        if (__result || !IsHatchId(__instance.BlockId) || ApiRef(__instance) is not { } api) return;
+        IBlockAccessor accessor = api.World.BlockAccessor;
+        BlockPos below = (belowHatch ??= new BlockPos(0)).Set(pos, pos.dimension).Down();
+        __result = GuestWalls.GuestAt(api, pos)?.Ladder != null
+            || IsLadderId(accessor.GetBlock(below).BlockId) && accessor.GetBlockEntity(pos)?.GetBehavior<BEBehaviorTrapDoor>()?.Opened == true;
+    }
+
+    // Squeezes a trapdoor's hinge matrix, which the mesh, the animation and the boxes all take, into the 12/16 of the
+    // cell a straight wall's panel leaves open.
+    internal static void TrapdoorOpenPartPostfix(BEBehaviorTrapDoor __instance, Matrixf __result)
+    {
+        if (__instance.Api is not { } api || GuestWalls.GuestAt(api, __instance.Pos)?.Block is not SidingWallBlock wall) return;
+        if (OpenPartSquash(wall.Variant["layout"], wall.Variant["side"]) is { } squash) __result.ReverseMul(squash.Values);
+    }
+
+    // The matrix that maps a cell onto the part a straight wall on side leaves open; null for any other layout.
+    internal static Matrixf? OpenPartSquash(string layout, string side)
+    {
+        if (layout != "wall" || BlockFacing.FromCode(side) is not { IsHorizontal: true } face) return null;
+
+        const float open = (float)(1 - PanelThickness);
+        float shift = (float)PanelThickness;
+        return face.Axis == EnumAxis.X
+            ? new Matrixf().Translate(face.Negative ? shift : 0, 0, 0).Scale(open, 1, 1)
+            : new Matrixf().Translate(0, 0, face.Negative ? shift : 0).Scale(1, 1, open);
     }
 
     // Vanilla works out the bed's facing again from this selection, by the angle from the player's eye to
@@ -1506,6 +1692,22 @@ public class SidingModSystem : ModSystem
         Block current = world.BlockAccessor.GetBlock(pos, BlockLayersAccess.Solid);
         if (ClassifyHostChange(current, guest.Block, Hostable) != HostChange.Restore) return;
 
+        // A hatch's ladder layer becomes the cell's host again, the wall staying its guest.
+        if (guest.Ladder != null && world.GetBlock(new AssetLocation(guest.Ladder)) is { BlockId: not 0 } ladder && IsHostableId(ladder.BlockId))
+        {
+            if (world.Side == EnumAppSide.Client)
+            {
+                world.BlockAccessor.SetBlock(ladder.BlockId, pos);
+                return;
+            }
+
+            GuestWalls.GuestRecord kept = GuestWalls.WithLadder(guest, null);
+            GuestWalls.Set(world, chunk, pos, kept, sync: false);
+            world.BlockAccessor.SetBlock(ladder.BlockId, pos);
+            GuestWalls.Sync(pos, kept);
+            return;
+        }
+
         if (world.Side == EnumAppSide.Client)
         {
             world.BlockAccessor.SetBlock(guest.Block.BlockId, pos);
@@ -1732,6 +1934,14 @@ public class SidingModSystem : ModSystem
 
         foreach (var item in api.World.Items.Where(i => i?.CollectibleBehaviors?.Any(behavior => behavior is PlaceWallFrame) == true))
             item.CollectibleBehaviors = PlaceWallFrame.AfterGroundStorable(item.CollectibleBehaviors);
+
+        // A hatch joins a ladder's cell, not the cell past the clicked face, which the server would otherwise test and
+        // refuse when it holds a floor (#138). Each checks its own target: a trapdoor for air, a ladder through CanPlaceBlock.
+        foreach (var block in api.World.Blocks.Where(b => b != null && (b.HasBehavior<BlockBehaviorTrapDoor>() || b.HasBehavior<BlockBehaviorLadder>())))
+        {
+            block.Attributes ??= new JsonObject(new JObject());
+            block.Attributes.Token!["ignoreServerReplaceableTest"] = true;
+        }
 
         var candidates = api.World.Items.Where(i => i?.Code != null)
             .Select(i => ("item", i.Code, (IDictionary<string, string>)i.Variant))

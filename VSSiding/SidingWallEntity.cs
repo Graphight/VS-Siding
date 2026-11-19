@@ -49,6 +49,8 @@ public class SidingWallEntity : BlockEntity
     public string? Step;
     // Vanilla's own vertical-horizontal naming, e.g. "up-north".
     public string? StepOrientation;
+    // A guest wall's ladder layer under a hosted trapdoor (#138): the ladder block's code, its last part the wall's side.
+    public string? Ladder;
 
     internal bool OpenPartFilled => Deck != null || OuterDeck != null || Step != null;
 
@@ -91,6 +93,7 @@ public class SidingWallEntity : BlockEntity
         tree.SetBool("legacydeck", LegacyDeck);
         tree.SetString("step", Step);
         tree.SetString("steporientation", StepOrientation);
+        tree.SetString("ladder", Ladder);
     }
 
     // A client builds a restored wall twice before the server's data arrives: once predicting the
@@ -142,6 +145,7 @@ public class SidingWallEntity : BlockEntity
         LegacyDeck = ReadLegacyDeck(tree, Deck);
         Step = NullIfEmpty(tree.GetString("step", null));
         StepOrientation = NullIfEmpty(tree.GetString("steporientation", null));
+        Ladder = NullIfEmpty(tree.GetString("ladder", null));
 
         // A chunk can be meshed before its block entities arrive, and nothing else redraws it
         // afterwards: OnTesselation reads null state, returns false, and the cell keeps the
@@ -202,9 +206,9 @@ public class SidingWallEntity : BlockEntity
             && SidingWallBlock.FrontsFaceEachOther(Block.Variant["layout"], Block.Variant["side"], direction, wall.Variant["layout"], wall.Variant["side"]);
 
     // Everything OnTesselation reads off this entity, which is exactly what CacheKey covers.
-    private ((string?, string?, string?, string?, string?, string?, string?, string?, string?, string?, string?), (string?, string?, string?, string?, string?, string?, string?, string?, string?), string) MeshState
+    private ((string?, string?, string?, string?, string?, string?, string?, string?, string?, string?, string?), (string?, string?, string?, string?, string?, string?, string?, string?, string?), string, string?) MeshState
         => ((Framing, Infill, Front, SecondFront, Back, FrontStyle, SecondFrontStyle, BackStyle, Deck, Step, StepOrientation),
-            (DeckInfill, DeckFront, DeckBack, DeckFrontStyle, DeckBackStyle, SecondBack, SecondBackStyle, InfillUnmerged, DeckInfillUnmerged), OuterDeckState);
+            (DeckInfill, DeckFront, DeckBack, DeckFrontStyle, DeckBackStyle, SecondBack, SecondBackStyle, InfillUnmerged, DeckInfillUnmerged), OuterDeckState, Ladder);
 
     private string OuterDeckState => $"{OuterDeck}-{OuterDeckInfill}-{OuterDeckFront}-{OuterDeckBack}-{OuterDeckFrontStyle}-{OuterDeckBackStyle}-{OuterDeckInfillUnmerged}";
 
@@ -267,7 +271,13 @@ public class SidingWallEntity : BlockEntity
         string[] outerElements = DeckElements(side, OuterDeck, OuterDeckInfill, OuterDeckFront, OuterDeckBack, Block.Attributes["Finishes"], outerJoins, (OuterDeckFrontStyle, OuterDeckBackStyle),
             outerGlazed, FrameElements(Block.Attributes["Framings"], OuterDeck, alternate), capped: Capped(layout, OuterDeckFront, false, bothHalves),
             fill: InfillElements(Block.Attributes["Infills"], OuterDeckInfill), group: "outerdeck", pane: outerTransparent);
-        if (selectiveElements.Length == 0 && deckElements.Length == 0 && outerElements.Length == 0 && stepElements.Length == 0) return false;
+        // Only under a hatch: a client predicting the hatch's break hosts the ladder block but keeps the layer for the server to clear.
+        MeshData? ladder = Ladder == null || !SidingModSystem.IsHatchId(capi.World.BlockAccessor.GetBlock(Pos).BlockId) ? null : LadderMesh(capi);
+        if (selectiveElements.Length == 0 && deckElements.Length == 0 && outerElements.Length == 0 && stepElements.Length == 0)
+        {
+            if (ladder != null) mesher.AddMeshData(ladder);
+            return ladder != null;
+        }
 
         string cacheKey = CacheKey(layout, side, Framing, Infill, Front, SecondFront, Back, joins, Styles, Deck, Step, StepOrientation,
             DeckInfill, DeckFront, DeckBack, (DeckFrontStyle, DeckBackStyle), deckJoins, alternate, innerCorners, deckInnerCorners, glassRunsOn, tees, closed, capped,
@@ -287,7 +297,24 @@ public class SidingWallEntity : BlockEntity
         });
 
         foreach (MeshData mesh in meshes) mesher.AddMeshData(mesh);
+        if (ladder != null) mesher.AddMeshData(ladder);
         return true;
+    }
+
+    // A closed hatch's slab, the top 3/16 of the cell, which the ladder stops under so their top faces do not fight.
+    private const float UnderHatch = 13f / 16;
+
+    // The ladder block's own mesh, moved off the panel as a hosted ladder is (GapShiftAt), once per ladder and side.
+    private MeshData? LadderMesh(ICoreClientAPI capi)
+    {
+        if (capi.World.GetBlock(new AssetLocation(Ladder)) is not { BlockId: not 0 } ladder) return null;
+
+        string side = Block.Variant["side"];
+        return ObjectCacheUtil.GetOrCreate(capi, $"vssiding-ladder-{Ladder}-{side}", () =>
+        {
+            var (dx, dz) = SidingModSystem.PanelOffset(ladder.SelectionBoxes ?? ladder.CollisionBoxes, [side]);
+            return capi.TesselatorManager.GetDefaultBlockMesh(ladder).Clone().Scale(new Vec3f(), 1, UnderHatch, 1).Translate((float)dx, 0, (float)dz);
+        });
     }
 
     // Shape.TryGet parses the whole file on every call, and a mesh is built once per distinct cell, so

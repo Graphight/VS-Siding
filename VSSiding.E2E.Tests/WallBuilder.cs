@@ -63,6 +63,9 @@ internal static class WallBuilder
     internal static (string? Deck, string? Infill, string? Front, string? Back)? GuestDeckLayers(IWorldSession world, BlockPos cell)
         => GuestAt(world, cell) is { } guest ? DeckLayersOf(guest) : null;
 
+    // The ladder layer the cell's guest record carries; null when it has none.
+    internal static string? GuestLadder(IWorldSession world, BlockPos cell) => GuestAt(world, cell) is { } guest ? Reader(guest)("ladder") : null;
+
     private static BlockEntity? GuestAt(IWorldSession world, BlockPos cell)
     {
         Type guestWalls = world.Api.ModLoader.GetModSystem("VSSiding.SidingModSystem").GetType().Assembly.GetType("VSSiding.GuestWalls")!;

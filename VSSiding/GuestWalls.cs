@@ -149,6 +149,15 @@ public static class GuestWalls
         return new GuestRecord { BlockCode = entity.Block.Code.ToString(), EntityData = tree.ToBytes() };
     }
 
+    // The guest's record with its ladder layer set or cleared, leaving the decoded entity as it was.
+    internal static GuestRecord WithLadder(SidingWallEntity guest, string? ladder)
+    {
+        var tree = new TreeAttribute();
+        guest.ToTreeAttributes(tree);
+        tree.SetString("ladder", ladder);
+        return new GuestRecord { BlockCode = guest.Block.Code.ToString(), EntityData = tree.ToBytes() };
+    }
+
     // Copy-on-write: never mutate the dictionary a reader might be iterating (see Guests above).
     // Only called from the main thread - the server's Set below, and the client's packet handler.
     private static void Replace(IWorldChunk chunk, BlockPos pos, GuestRecord? record)
