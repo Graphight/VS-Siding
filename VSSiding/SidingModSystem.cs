@@ -606,15 +606,6 @@ public class SidingModSystem : ModSystem
     {
         new Harmony("vssiding").UnpatchAll("vssiding");
         EveryOverridePatches.Forget();
-        // SidingModePicker's icons live in the object cache with no owner to free them.
-        foreach (var cacheKey in new[] { "vssidingModePickerLitIcons", "vssidingModePickerDimIcons" })
-        {
-            if (clientApi?.ObjectCache.TryGetValue(cacheKey, out var cached) == true)
-            {
-                foreach (var item in (SkillItem[])cached) item.Dispose();
-                clientApi.ObjectCache.Remove(cacheKey);
-            }
-        }
         if (clientApi != null)
         {
             clientApi.Logger.Notification("[vssiding] mesh cache held {0} entries at close", ForgetCache());

@@ -170,9 +170,9 @@ public static class SidingModePicker
         dialog.TryClose();
     }
 
-    // Freed once in SidingModSystem.Dispose.
+    // Freed by SidingModSystem.ForgetCache.
     private static SkillItem[] LoadIcons(ICoreClientAPI capi, string cacheKey, int color) =>
-        ObjectCacheUtil.GetOrCreate(capi, cacheKey, () => Rows.SelectMany(row => row.Options)
+        SidingModSystem.Cached(cacheKey, () => Rows.SelectMany(row => row.Options)
             .Select(code => new SkillItem { Code = new AssetLocation(code), Name = Lang.Get($"vssiding:toolmode-{code}") })
             .Select(item => item.WithIcon(capi, capi.Gui.LoadSvgWithPadding(
                 new AssetLocation("vssiding", $"textures/icons/{item.Code.Path}.svg"), 48, 48, 5, color)))
