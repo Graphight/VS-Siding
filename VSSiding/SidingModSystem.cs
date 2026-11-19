@@ -33,6 +33,7 @@ public class SidingModSystem : ModSystem
     private ICoreClientAPI? clientApi;
 
     // Tesselation runs off the main thread, so the shared ObjectCache dictionary is unsafe for these.
+    // Mod assemblies are never unloaded, so this outlives a world: a mesh left in it carries the old world's atlas positions.
     internal static readonly ConcurrentDictionary<string, object> Cache = new();
 
     internal static T Cached<T>(string key, System.Func<T> create) => (T)Cache.GetOrAdd(key, _ => create()!);
@@ -49,6 +50,8 @@ public class SidingModSystem : ModSystem
     public override void StartClientSide(ICoreClientAPI api)
     {
         base.StartClientSide(api);
+        // The last world's tesselation thread can still add a mesh after Dispose clears the cache: vanilla disposes mods before it stops tesselating.
+        Cache.Clear();
         capi = api;
         clientApi = api;
         GuestWalls.StartClientSide(api);
@@ -608,7 +611,8 @@ public class SidingModSystem : ModSystem
         EveryOverridePatches.Forget();
         if (clientApi != null)
         {
-            clientApi.Logger.Notification("[vssiding] mesh cache held {0} entries at close", ForgetCache());
+            int cached = ForgetCache();
+            clientApi.Logger.Notification("[vssiding] mesh cache held {0} entries at close", cached);
             capi = null;
         }
         base.Dispose();
