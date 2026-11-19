@@ -49,6 +49,16 @@ public class TrapdoorScenarios : AtlasScenarioBase
             (placed, World.BlockAt(cell).Code.Path, WallBuilder.GuestLayers(World, cell), (Round(box.X1), Round(box.Y1), Round(box.Z1), Round(box.X2), Round(box.Y2), Round(box.Z2))));
     }
 
+    // A click on a hosted ladder offsets into the cell past its face, often a thin floor the server's replaceable test would refuse.
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
+    public Task TrapdoorsAndLadders_Should_SkipTheServersReplaceableTest()
+    {
+        bool Skips(string code) => World.Api.World.GetBlock(new AssetLocation(code)).Attributes?["ignoreServerReplaceableTest"].AsBool() == true;
+
+        Assert.Equal((true, true, true), (Skips(Trapdoor), Skips("game:ladder-wood-aged-west"), Skips("game:ladder-rope-north")));
+        return Task.CompletedTask;
+    }
+
     [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Wall_Should_RefuseATrapdoor_When_ItIsDecked()
     {

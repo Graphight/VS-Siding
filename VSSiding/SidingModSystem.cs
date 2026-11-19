@@ -1889,6 +1889,14 @@ public class SidingModSystem : ModSystem
         foreach (var item in api.World.Items.Where(i => i?.CollectibleBehaviors?.Any(behavior => behavior is PlaceWallFrame) == true))
             item.CollectibleBehaviors = PlaceWallFrame.AfterGroundStorable(item.CollectibleBehaviors);
 
+        // A hatch joins a ladder's cell, not the cell past the clicked face, which the server would otherwise test and
+        // refuse when it holds a floor (#138). Each checks its own target: a trapdoor for air, a ladder through CanPlaceBlock.
+        foreach (var block in api.World.Blocks.Where(b => b != null && (b.HasBehavior<BlockBehaviorTrapDoor>() || b.HasBehavior<BlockBehaviorLadder>())))
+        {
+            block.Attributes ??= new JsonObject(new JObject());
+            block.Attributes.Token!["ignoreServerReplaceableTest"] = true;
+        }
+
         var candidates = api.World.Items.Where(i => i?.Code != null)
             .Select(i => ("item", i.Code, (IDictionary<string, string>)i.Variant))
             .Concat(api.World.Blocks.Where(b => b?.Code != null)
