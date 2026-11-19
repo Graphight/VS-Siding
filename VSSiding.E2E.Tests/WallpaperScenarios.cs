@@ -52,6 +52,24 @@ public class WallpaperScenarios : AtlasScenarioBase
         Assert.Equal((false, "decorrequiressolid", null), (placed, failure, World.Api.World.BlockAccessor.GetDecor(cell, new DecorBits(BlockFacing.WEST))?.Code?.ToString()));
     }
 
+    // The table answers for the hosted cell, through GuestSealingPatches.CanAttachPostfix.
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
+    public async Task HostedWall_Should_RefuseWallpaperDecor_When_ItIsPlacedOnItsClaimedFace()
+    {
+        (BlockPos cell, ITestPlayer player) = await RaiseWall();
+        player.Entity.LeftHandItemSlot.Itemstack = null;
+        player.Player.InventoryManager.ActiveHotbarSlot.Itemstack = new ItemStack(World.Api.World.GetBlock(new AssetLocation("game:table-normal")));
+        World.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player,
+            new BlockSelection { Position = cell.Copy(), Face = BlockFacing.EAST, HitPosition = new Vec3d(0.5, 0.5, 0.5) });
+        Block paper = World.Api.World.GetBlock(new AssetLocation("game:wallpaper-blue4"));
+
+        string failure = "";
+        bool placed = paper.TryPlaceBlock(World.Api.World, player.Player, new ItemStack(paper),
+            new BlockSelection { Position = cell.Copy(), Face = BlockFacing.WEST, HitPosition = new Vec3d(0, 0.5, 0.5) }, ref failure);
+
+        Assert.Equal(("game:table-normal", false, null), (World.BlockAt(cell).Code.ToString(), placed, World.Api.World.BlockAccessor.GetDecor(cell, new DecorBits(BlockFacing.WEST))?.Code?.ToString()));
+    }
+
     private async Task<(BlockPos Cell, ITestPlayer Player)> RaiseWall()
     {
         BlockPos cell = World.Spawn.Offset(1, 2, 0);

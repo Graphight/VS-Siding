@@ -39,7 +39,10 @@ One wallpaper per face, as every finish does, though vanilla's decor drops nothi
 **Walls refuse decor on side faces.**
 `SidingWallBlock.CanAttachBlockAt` answers false for a block with a `BlockBehaviorDecor` on a horizontal face, `HasBehavior` seeing block behaviours.
 UP (rugs on a deck) and DOWN are unchanged.
-`CanAttachOf` and its other callers (`GuestSealingPatches`, `SidingModSystem`) are untouched.
+The test is `SidingWallBlock.RefusesDecor`, and `GuestSealingPatches.CanAttachPostfix` applies it too.
+In a cell that hosts furniture the furniture answers `CanAttachBlockAt`, and that postfix rewrites a claimed side face's answer from the guest wall's retention.
+Without the test there, wallpaper went on a hosted cell as decor, and a plain click reached vanilla placement too, since `PanelInteractionPatches` passes a panel hit on.
+`CanAttachOf` is unchanged.
 
 ## Alternatives considered
 - **Paper layered over boards.** Two finishes on a face breaks the one-finish-per-face rule every other finish follows.
