@@ -1210,6 +1210,12 @@ public class SidingModSystem : ModSystem
         if (host is SidingWallBlock) entity = accessor.GetBlockEntity<SidingWallEntity>(cell);
         else
         {
+            if (blockSel.DidOffset && blockSel.Face.IsHorizontal && accessor.GetBlock(cell.AddCopy(blockSel.Face.Opposite)) is SidingFloorBlock)
+            {
+                handling = EnumHandling.PreventDefault;
+                __result = FloorEdgeHatch(__instance, world, byPlayer, itemstack, blockSel, ref failureCode);
+                return false;
+            }
             // A ladder is not replaceable, so a click on a hosted one is offset into the cell beyond its face.
             if (blockSel.DidOffset) cell = cell.AddCopy(blockSel.Face.Opposite);
             if (!accessor.GetBlock(cell).HasBehavior<BlockBehaviorLadder>() || GuestWalls.GuestAt(world.Api, cell) is not { Ladder: null } guest) return true;
@@ -1238,6 +1244,20 @@ public class SidingModSystem : ModSystem
         }
 
         return false;
+    }
+
+    // A trapdoor clicked onto a thin floor's edge lies flush with the floor in the cell beside it, hinged on that edge, where
+    // vanilla would stand it against the edge: a hole with only air above has no underside to click for a flush hatch.
+    private static bool FloorEdgeHatch(BlockBehaviorTrapDoor behavior, IWorldAccessor world, IPlayer byPlayer, ItemStack itemstack,
+        BlockSelection blockSel, ref string failureCode)
+    {
+        var flush = blockSel.Clone();
+        flush.DidOffset = false;
+        flush.Face = BlockFacing.DOWN;
+        flush.HitPosition = blockSel.HitPosition.SubCopy(blockSel.Face.Normald);
+        return world.BlockAccessor.GetBlock(flush.Position, BlockLayersAccess.Solid).Id == 0
+            && behavior.block.CanPlaceBlock(world, byPlayer, flush, ref failureCode)
+            && behavior.placeDoor(world, byPlayer, itemstack, flush, flush.Position, world.BlockAccessor);
     }
 
     // A ladder joins a hatch's cell as the guest wall's layer, from a click on that cell or from the top of a ladder stack
@@ -1285,10 +1305,15 @@ public class SidingModSystem : ModSystem
 
     // A hatch over a ladder counts as the ladder for climbing: vanilla looks for a climbable block in the player's own column,
     // and the ladder's own cell is the one the hatch took.
+    [ThreadStatic] private static BlockPos? belowHatch;
+
+    // A trapdoor over a ladder is climbable too, so a hatch flush in the floor above a ladder in the cell beside a wall
+    // lets a climber through without a ladder layer to answer for its cell.
     internal static void HatchClimbablePostfix(Block __instance, BlockPos pos, ref bool __result)
     {
-        if (__result || !IsHatchId(__instance.BlockId)) return;
-        if (ApiRef(__instance) is { } api && GuestWalls.GuestAt(api, pos)?.Ladder != null) __result = true;
+        if (__result || !IsHatchId(__instance.BlockId) || ApiRef(__instance) is not { } api) return;
+        BlockPos below = (belowHatch ??= new BlockPos(0)).Set(pos, pos.dimension).Down();
+        __result = GuestWalls.GuestAt(api, pos)?.Ladder != null || IsLadderId(api.World.BlockAccessor.GetBlock(below).BlockId);
     }
 
     // Squeezes a trapdoor's hinge matrix, which the mesh, the animation and the boxes all take, into the 12/16 of the

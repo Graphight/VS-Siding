@@ -179,6 +179,30 @@ public class TrapdoorScenarios : AtlasScenarioBase
         Assert.Equal((true, 0.25), (boxes.Length > 0, boxes.Max(box => Round(box.X2))));
     }
 
+    // A ladder on a wall's flat outer face climbs the cell beside the wall, where the floor's edge is the only face to click.
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
+    public async Task Trapdoor_Should_LieFlushHingedOnTheEdgeAndBeClimbable_When_ClickedOntoAFloorsEdgeOverALadder()
+    {
+        BlockPos floor = Cell, hole = Cell.EastCopy();
+        World.SetBlock("game:planks-aged-ud", floor.DownCopy());
+        World.SetBlock("game:ladder-wood-aged-west", hole.DownCopy());
+        ITestPlayer player = await WallBuilder.JoinBuilder(World);
+        player.Entity.WatchedAttributes.SetString("vssidingFraming", "floor");
+        await WallBuilder.Raise(World, player, floor, floor.WestCopy(), "game:plank-oak", null);
+        player.Entity.LeftHandItemSlot.Itemstack = null;
+        var stack = new ItemStack(World.Api.World.GetBlock(new AssetLocation(Trapdoor)));
+        var onEdge = new BlockSelection { Position = hole.Copy(), Face = BlockFacing.EAST, DidOffset = true, HitPosition = new Vec3d(1, 0.9, 0.5) };
+        string failureCode = "";
+
+        bool placed = stack.Block.TryPlaceBlock(player.Entity.World, player.Player, stack, onEdge, ref failureCode);
+        Cuboidf closed = World.BlockAt(hole).GetCollisionBoxes(World.Api.World.BlockAccessor, hole)[0];
+        bool climbable = World.BlockAt(hole).IsClimbable(hole);
+        Cuboidf open = Opened(player, hole)[0];
+
+        Assert.Equal((true, "trapdoor-solid-oak-1", 0.8125, 1.0, true, 0.0, 0.1875),
+            (placed, World.BlockAt(hole).Code.Path, Round(closed.Y1), Round(closed.Y2), climbable, Round(open.X1), Round(open.X2)));
+    }
+
     [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Hatch_Should_LeaveTheLadderHostedInTheWall_When_ItIsBroken()
     {
