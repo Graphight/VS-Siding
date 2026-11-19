@@ -765,6 +765,11 @@ public class SidingModSystem : ModSystem
 
     internal static bool IsHatchId(int blockId) => Hatches is { } hatches && blockId < hatches.Length && hatches[blockId];
 
+    // Indexed by BlockId, like Hostable: whether the block is a ladder that can take a wall's cell.
+    internal static bool[]? Ladders;
+
+    internal static bool IsLadderId(int blockId) => Ladders is { } ladders && blockId < ladders.Length && ladders[blockId];
+
     // Indexed by BlockId, like Hostable: whether the block hangs from the face above it (decision 0054).
     internal static bool[]? Hangers;
 
@@ -884,6 +889,7 @@ public class SidingModSystem : ModSystem
         var faceShift = new double[maxId + 1][];
         var hangers = new bool[maxId + 1];
         var hatches = new bool[maxId + 1];
+        var ladders = new bool[maxId + 1];
         var underDeckDrop = new double?[maxId + 1];
         var mainPos = new PropertyInfo?[maxId + 1];
 
@@ -893,6 +899,7 @@ public class SidingModSystem : ModSystem
             hostable[block.BlockId] = IsHostable(block);
             hangers[block.BlockId] = IsHanger(block);
             hatches[block.BlockId] = hostable[block.BlockId] && block.HasBehavior<BlockBehaviorTrapDoor>();
+            ladders[block.BlockId] = hostable[block.BlockId] && block.HasBehavior<BlockBehaviorLadder>();
             underDeckDrop[block.BlockId] = UnderDeckDropFor(block);
             if (!hostable[block.BlockId]) continue;
 
@@ -904,6 +911,7 @@ public class SidingModSystem : ModSystem
         Hostable = hostable;
         Hangers = hangers;
         Hatches = hatches;
+        Ladders = ladders;
         UnderDeckDrop = underDeckDrop;
         FaceShiftByBlock = faceShift;
         MainPosByBlock = mainPos;

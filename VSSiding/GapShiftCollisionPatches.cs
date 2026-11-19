@@ -61,11 +61,16 @@ internal static class GapShiftCollisionPatches
     // A hung block under a thin floor reaches head height in a low room, so it collides with nothing,
     // as vanilla's oil lamp has no collision box; it still selects (decision 0054).
     private static void PostfixCollision(Block __instance, ref Cuboidf[] __result, IBlockAccessor __0, BlockPos __1)
-        => __result = ShiftAndAppendPanel(__instance, IsHung(__instance, __1) ? null! : __result, __0, __1, wall => wall.CollisionBoxes, clampToCell: true);
+        => __result = ShiftAndAppendPanel(__instance, IsHung(__instance, __1) || IsHostedLadder(__instance, __0, __1) ? null! : __result, __0, __1, wall => wall.CollisionBoxes, clampToCell: true);
 
     // Outermost only, so an override reading base's boxes never sees null.
     private static bool IsHung(Block instance, BlockPos pos)
         => depth == 1 && pos != null && SidingModSystem.HangShiftAt(pos, instance) > 0;
+
+    // A hosted ladder collides as the panel it hangs on, which vanilla's climb check accepts as the ladder's boxes: its own
+    // 3/16 would hold a climber a cell's edge out, under the next cell's floor, where a hatch's 12/16 opening is (#138).
+    private static bool IsHostedLadder(Block instance, IBlockAccessor accessor, BlockPos pos)
+        => depth == 1 && SidingModSystem.IsLadderId(instance.BlockId) && accessor != null && pos != null && SidingWallBlock.WallAt(accessor, pos) != null;
 
     private static void PostfixParticleCollision(Block __instance, ref Cuboidf[] __result, IBlockAccessor __0, BlockPos __1)
         => __result = ShiftAndAppendPanel(__instance, __result, __0, __1, wall => wall.ParticleCollisionBoxes ?? wall.CollisionBoxes, clampToCell: true);

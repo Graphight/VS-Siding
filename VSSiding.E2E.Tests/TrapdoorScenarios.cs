@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading.Tasks;
 using Atlas.Api;
 using Atlas.XUnit;
@@ -104,6 +105,19 @@ public class TrapdoorScenarios : AtlasScenarioBase
 
         Assert.Equal((true, "trapdoor-solid-oak-1", "game:ladder-wood-aged-west", ("oak", "clay", null, null, null), true),
             (placed, World.BlockAt(cell).Code.Path, WallBuilder.GuestLadder(World, cell), WallBuilder.GuestLayers(World, cell), World.BlockAt(cell).IsClimbable(cell)));
+    }
+
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
+    public async Task HostedLadder_Should_CollideOnlyAsThePanel_When_ItIsInAWallsCell()
+    {
+        BlockPos cell = Cell;
+        ITestPlayer player = await BuilderWithWall(cell);
+        PlaceLadder(player, cell, BlockFacing.EAST, false);
+
+        Cuboidf[] boxes = World.BlockAt(cell).GetCollisionBoxes(World.Api.World.BlockAccessor, cell);
+
+        Assert.Equal(("ladder-wood-aged-west", true, 0.25, true), (World.BlockAt(cell).Code.Path, boxes.Length > 0,
+            boxes.Max(box => Round(box.X2)), World.BlockAt(cell).GetSelectionBoxes(World.Api.World.BlockAccessor, cell).Any(box => box.X2 > 0.3f)));
     }
 
     private async Task<ITestPlayer> BuilderWithHatch(BlockPos cell)
