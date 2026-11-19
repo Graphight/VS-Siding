@@ -1241,11 +1241,11 @@ public class SidingModSystem : ModSystem
             && GuestWalls.GuestAt(api, cell) is { Ladder: null, Block: SidingWallBlock wall } && wall.Variant["layout"] == "wall";
 
     // The ladder a hatch goes over becomes the guest wall's layer, which the trapdoor replacing it as host would otherwise lose.
+    // Server only: a client's guess would outlive a placement the server refuses, and draw two ladders in one cell.
     private static void SetLadderLayer(IWorldAccessor world, BlockPos cell, SidingWallEntity guest, string? ladder)
     {
-        GuestWalls.GuestRecord record = GuestWalls.WithLadder(guest, ladder);
-        if (world.Api is ICoreClientAPI capi) GuestWalls.SetOnClient(capi, cell, record);
-        else if (world.BlockAccessor.GetChunkAtBlockPos(cell) is { } chunk) GuestWalls.Set(world, chunk, cell, record);
+        if (world.Side == EnumAppSide.Server && world.BlockAccessor.GetChunkAtBlockPos(cell) is { } chunk)
+            GuestWalls.Set(world, chunk, cell, GuestWalls.WithLadder(guest, ladder));
     }
 
     // A hatch over a ladder counts as the ladder for climbing: vanilla looks for a climbable block in the player's own column,
