@@ -41,12 +41,15 @@ public class WallpaperScenarios : AtlasScenarioBase
     [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Wall_Should_RefuseWallpaperDecor_When_ItIsPlacedOnASideFace()
     {
-        (BlockPos cell, _) = await RaiseWall();
+        (BlockPos cell, ITestPlayer player) = await RaiseWall();
         Block paper = World.Api.World.GetBlock(new AssetLocation("game:wallpaper-blue4"));
 
-        Assert.Equal((false, false), (
-            World.BlockAt(cell).CanAttachBlockAt(World.Api.World.BlockAccessor, paper, cell, BlockFacing.EAST),
-            World.BlockAt(cell).CanAttachBlockAt(World.Api.World.BlockAccessor, paper, cell, BlockFacing.WEST)));
+        // A sneak-click runs vanilla placement before the wall's own click: BlockBehaviorDecor.TryPlaceBlock.
+        string failure = "";
+        bool placed = paper.TryPlaceBlock(World.Api.World, player.Player, new ItemStack(paper),
+            new BlockSelection { Position = cell.Copy(), Face = BlockFacing.WEST, HitPosition = new Vec3d(0, 0.5, 0.5) }, ref failure);
+
+        Assert.Equal((false, "decorrequiressolid", null), (placed, failure, World.Api.World.BlockAccessor.GetDecor(cell, new DecorBits(BlockFacing.WEST))?.Code?.ToString()));
     }
 
     private async Task<(BlockPos Cell, ITestPlayer Player)> RaiseWall()
