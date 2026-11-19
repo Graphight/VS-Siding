@@ -2,12 +2,12 @@
 
 - Status: Accepted
 - Created: 2026-11-16
-- Reflects: issues #138 and #127; branch `138-trapdoor-hatch`; `SidingModSystem.TrapdoorIntoWallPrefix`, `LadderIntoHatchPrefix`, `HatchClimbablePostfix`, `FloorEdgeHatch`, `HostedLightRGBs`, `IsLadderId`, `AssetsFinalize`, `TrapdoorOpenPartPostfix`, `OpenPartSquash`, `RestoreGuestWall`; `GapShiftCollisionPatches.IsHostedLadder`, `IsOpenHatch`; `SidingWallEntity.Ladder`; `SidingWallBlock.LadderDrop`; `GuestWalls.WithLadder`; `TrapdoorScenarios`; decompiled `BlockBehaviorTrapDoor`, `BEBehaviorTrapDoor`, `BlockBehaviorLadder` (`VSSurvivalMod`) and `EntityBehaviorControlledPhysics` (`VSEssentials`); decisions 0035, 0094, 0100
+- Reflects: issues #138 and #127; branch `138-trapdoor-hatch`; `SidingModSystem.TrapdoorIntoWallPrefix`, `LadderIntoHatchPrefix`, `HatchClimbablePostfix`, `HostedLightRGBs`, `OpenSideLight`, `IsLadderId`, `AssetsFinalize`, `TrapdoorOpenPartPostfix`, `OpenPartSquash`, `RestoreGuestWall`; `GapShiftCollisionPatches.IsHostedLadder`, `IsOpenHatch`; `SidingWallEntity.Ladder`; `SidingWallBlock.LadderDrop`; `GuestWalls.WithLadder`; `TrapdoorScenarios`; `GapShiftRendererPatchTests`; decompiled `BlockBehaviorTrapDoor`, `BEBehaviorTrapDoor`, `BlockBehaviorLadder` (`VSSurvivalMod`) and `EntityBehaviorControlledPhysics` (`VSEssentials`); decisions 0035, 0094, 0100
 
 ## Summary
 A wooden or metal trapdoor can be placed into a straight wall's cell as furniture, flush at the top of the cell and 12/16 of it wide, so a hatch can sit over a ladder that runs up a wall.
 Where the hatch and a ladder share a cell, the ladder is a layer of the wall, and the player still climbs through it.
-A ladder on a wall's flat outer face stands in the cell beside the wall, and its hatch lies flush in the floor beside the wall, clicked onto the floor's edge.
+A ladder on a wall's flat outer face stands in the cell beside the wall, and its hatch is vanilla's, clicked onto the middle of the floor's edge so it lies flush beside the wall.
 
 ## Context
 A player building a cellar tower out of Siding walls could not put a trapdoor in a wall's cell (#138, split from #127; the rest of #127 shipped in 1.5.0).
@@ -66,16 +66,17 @@ A closed hatch keeps its boxes, and the player stands on it.
 
 **An open hatch takes its light from the open side.**
 Open, a trapdoor is drawn by `AnimatableRenderer`, which lights the whole mesh from `GetLightRGBs` at its own cell, while the chunk mesh lights each face from the cell it faces.
-A hosted cell holds the guest wall's absorption, so a sealed wall's cell stores no light and the open hatch drew black in playtest.
-The renderer's transpiler swaps that call for `HostedLightRGBs`, which in a cell whose guest absorbs light takes each channel's brightest value over the neighbours on faces the panel does not claim, as an air cell would be lit.
+In playtest a sealed guest's cell read dark while the cells on its open side were lit, and the open hatch drew black.
+Why the cell read dark is not pinned down: vanilla stores the light flowing into an absorbing cell and subtracts the absorption only as the light leaves it (decision 0055), so the open side's light should have reached it.
+The renderer's transpiler swaps that call for `HostedLightRGBs`, which in a cell whose guest absorbs light takes, through `OpenSideLight`, each channel's brightest value over the neighbours on faces the panel does not claim, as an air cell would be lit.
 It leaves out the claimed faces so a hosted block indoors does not take the daylight past an outside wall, and it covers every hosted animated block, a chest's lid included.
 
 **A ladder on the flat outer face.**
 A ladder clicked onto the face a wall's panel claims goes into the cell beside the wall, as in vanilla, so its hatch belongs in that column's floor-layer cell, which holds a thin floor or air, not a wall.
-`HatchClimbablePostfix` also answers true for any trapdoor whose cell below holds a ladder (`IsLadderId`), vanilla's trapdoors anywhere included, so a hatch at the top of the cell over the top rung lets a climber through.
-Vanilla attaches a trapdoor to the face clicked, so a flush hatch at the top of an air cell needs the underside of a block above it, and over a hole in a floor that is the upper room's air.
-A trapdoor clicked onto a thin floor's side face (`FloorEdgeHatch`) lies at the top of the cell beside it instead, with the hit point moved into that cell so the hinge falls on the clicked edge, after vanilla's own air and `CanPlaceBlock` checks.
-The player peels the floor away first; a "Remove the floor first" refusal has no click to answer, since vanilla moves a click on a block that is not replaceable into the cell past the clicked face.
+`HatchClimbablePostfix` also answers true for any open trapdoor whose cell below holds a ladder (`IsLadderId`), vanilla's trapdoors anywhere included, so a climber from the top rung passes through it.
+A closed one answers false: a trapdoor on the top face of the block below keeps its closed slab at the bottom of its cell, and a player standing on one capping a ladder shaft would have their feet in that cell, be held climbing, and stop walking.
+Vanilla already lays the hatch flush: a trapdoor clicked onto a block's side lies flat at the top of the cell beside it, hinged on the clicked edge, when the point aimed at lies further above the face's centre than to either side of it (`OnBlockPlaced` rounds the direction from the centre to a quarter turn), which on a thin floor's 3/16 edge is all but its ends; near either end it stands upright, as against any block.
+The player peels the floor away first.
 No rungs are drawn in that hatch's cell: the ladder ends one cell under the hatch.
 
 **Breaking the hatch leaves the ladder.**
@@ -90,6 +91,7 @@ The trapdoor drops, and a second break takes the ladder as an ordinary hosted bl
 - **The deck kept under the hatch, or dropped.** A decked wall refuses instead, as decision 0094 refuses any block that does not fit under a deck; a ladder cell has no deck anyway.
 - **Hinge only along the wall** for a hosted hatch, so the open hatch hangs at a cell's end, clear of the ladder: honest collision, but the aim picks between two edges, not four.
 - **Rungs drawn in a floor-edge hatch's cell.** The ladder would need a store of its own outside the guest wall records, which hold a wall's layers.
+- **Every click on a floor's edge lying flush** (`FloorEdgeHatch`, removed in review): it changed only the clicks near the edge's ends, where vanilla stands a trapdoor upright, and took that upright trapdoor away.
 - **Corners and posts.** Left out: their open part is not one 12/16 by 16/16 rectangle, and the squash is a single scale.
 
 ## Consequences & open questions
@@ -98,7 +100,7 @@ The trapdoor drops, and a second break takes the ladder as an ordinary hosted bl
 - A cell holding a hatch and a ladder is one guest wall with a ladder layer, so changing the wall's own layers is refused until the hatch is broken, as for any hosted block.
 - A trapdoor clicked onto a wall's top face goes into the cell above, not the wall's, since `ClickedIsReplacableBy` sends only an open-side click into the wall's cell; there vanilla places it on the wall's top. Not looked at in game.
 - Only vanilla's airtight trapdoors (`trapdoor-solid-*-1` among the wooden ones) seal a room; a grated (`window`) or aged one answers no retention on any face, so its hatch leaves the rooms above and below joined, as it would in vanilla.
-- Every trapdoor over a ladder is climbable, in any world with the mod, whether Siding built it or not.
+- Every open trapdoor over a ladder is climbable, in any world with the mod, whether Siding built it or not.
 - An open hosted hatch is drawn where a climber passes through it.
-- A trapdoor clicked onto a thin floor's edge always lies flush, so one standing upright against a floor's edge can no longer be placed there.
+- A hatch over a flat-side ladder lies flush only from a click away from the ends of the floor's edge.
 - Placing a block on top of a closed hatch needs a sneak click, since a plain right-click on any trapdoor opens it.
