@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using HarmonyLib;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
+using Vintagestory.GameContent;
 
 namespace VSSiding;
 
@@ -61,7 +62,7 @@ internal static class GapShiftCollisionPatches
     // A hung block under a thin floor reaches head height in a low room, so it collides with nothing,
     // as vanilla's oil lamp has no collision box; it still selects (decision 0054).
     private static void PostfixCollision(Block __instance, ref Cuboidf[] __result, IBlockAccessor __0, BlockPos __1)
-        => __result = ShiftAndAppendPanel(__instance, IsHung(__instance, __1) || IsHostedLadder(__instance, __0, __1) ? null! : __result, __0, __1, wall => wall.CollisionBoxes, clampToCell: true);
+        => __result = ShiftAndAppendPanel(__instance, IsHung(__instance, __1) || IsHostedLadder(__instance, __0, __1) || IsOpenHatch(__instance, __0, __1) ? null! : __result, __0, __1, wall => wall.CollisionBoxes, clampToCell: true);
 
     // Outermost only, so an override reading base's boxes never sees null.
     private static bool IsHung(Block instance, BlockPos pos)
@@ -71,6 +72,12 @@ internal static class GapShiftCollisionPatches
     // 3/16 would hold a climber a cell's edge out, under the next cell's floor, where a hatch's 12/16 opening is (#138).
     private static bool IsHostedLadder(Block instance, IBlockAccessor accessor, BlockPos pos)
         => depth == 1 && SidingModSystem.IsLadderId(instance.BlockId) && accessor != null && pos != null && SidingWallBlock.WallAt(accessor, pos) != null;
+
+    // An open hatch hangs inside the 12/16 a panel leaves open, and hinged on the panel's edge it left a climber 0.15/16 to
+    // drop through; open, it collides with nothing, and the panel still does (#138).
+    private static bool IsOpenHatch(Block instance, IBlockAccessor accessor, BlockPos pos)
+        => depth == 1 && SidingModSystem.IsHatchId(instance.BlockId) && accessor != null && pos != null
+           && accessor.GetBlockEntity(pos)?.GetBehavior<BEBehaviorTrapDoor>()?.Opened == true && SidingWallBlock.WallAt(accessor, pos) != null;
 
     private static void PostfixParticleCollision(Block __instance, ref Cuboidf[] __result, IBlockAccessor __0, BlockPos __1)
         => __result = ShiftAndAppendPanel(__instance, __result, __0, __1, wall => wall.ParticleCollisionBoxes ?? wall.CollisionBoxes, clampToCell: true);

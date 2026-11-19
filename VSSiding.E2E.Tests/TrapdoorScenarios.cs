@@ -4,6 +4,7 @@ using Atlas.Api;
 using Atlas.XUnit;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
+using Vintagestory.GameContent;
 using Xunit;
 
 namespace VSSiding.E2E.Tests;
@@ -158,6 +159,24 @@ public class TrapdoorScenarios : AtlasScenarioBase
 
         Assert.Equal((true, "trapdoor-solid-oak-1", "game:ladder-wood-aged-west"),
             (placed, World.BlockAt(cell).Code.Path, WallBuilder.GuestLadder(World, cell)));
+    }
+
+    private Cuboidf[] Opened(ITestPlayer player, BlockPos cell)
+    {
+        World.Api.World.BlockAccessor.GetBlockEntity(cell).GetBehavior<BEBehaviorTrapDoor>().ToggleDoorState(player.Player, true);
+        return World.BlockAt(cell).GetCollisionBoxes(World.Api.World.BlockAccessor, cell);
+    }
+
+    // Hinged on the panel's edge, an open hatch hung where the ladder is and left a climber 0.15/16 to drop through.
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
+    public async Task OpenHatch_Should_CollideOnlyAsThePanel()
+    {
+        BlockPos cell = Cell;
+        ITestPlayer player = await BuilderWithHatch(cell);
+
+        Cuboidf[] boxes = Opened(player, cell);
+
+        Assert.Equal((true, 0.25), (boxes.Length > 0, boxes.Max(box => Round(box.X2))));
     }
 
     [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
