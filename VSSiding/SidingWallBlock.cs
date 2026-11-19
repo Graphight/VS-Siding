@@ -1352,8 +1352,10 @@ public class SidingWallBlock : Block
 
     // Another SideSolid consumer (decision 0020): with sidesolid off, nothing could be hung on any
     // siding wall. attachmentArea is ignored - a sealed face is solid across its whole 16x16.
+    // A decor on a side face draws over the whole wall shape, both faces at once (decision 0103).
     public override bool CanAttachBlockAt(IBlockAccessor blockAccessor, Block block, BlockPos pos, BlockFacing blockFace, Cuboidi? attachmentArea = null)
-        => CanAttachOf(blockAccessor.GetBlockEntity<SidingWallEntity>(pos), blockFace);
+        => !(blockFace.IsHorizontal && block.HasBehavior<BlockBehaviorDecor>())
+            && CanAttachOf(blockAccessor.GetBlockEntity<SidingWallEntity>(pos), blockFace);
 
     // A deck's underside takes hangers (decision 0094); a diagonal's deck covers half the cell, so it has none.
     internal bool CanAttachOf(SidingWallEntity? entity, BlockFacing blockFace)
