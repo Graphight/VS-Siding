@@ -418,14 +418,41 @@ public class SidingModSystem : ModSystem
         return dx == 0 && dz == 0 ? modelMat : Mat4f.Translate(modelMat, modelMat, (float)dx, 0, (float)dz);
     }
 
+    // The renderer lights the whole mesh from its own cell, which a sealed guest wall leaves dark, so an opened hatch or
+    // chest drew black. It takes the brightest cell on a face the panel leaves open, as an air cell's light would be.
+    internal static Vec4f HostedLightRGBs(IBlockAccessor accessor, int x, int y, int z)
+    {
+        Vec4f light = accessor.GetLightRGBs(x, y, z);
+        var pos = new BlockPos(x, y, z);
+        Block block = accessor.GetBlock(pos);
+        if (!IsHostableId(block.BlockId) || ApiRef(block) is not { } api
+            || GuestWalls.GuestAt(api, pos) is not { Block: SidingWallBlock wall } guest || GuestWalls.Absorption(guest) <= 0) return light;
+
+        foreach (BlockFacing facing in BlockFacing.ALLFACES)
+        {
+            if (wall.ClaimsFace(facing)) continue;
+            Vec4f beside = accessor.GetLightRGBs(x + facing.Normali.X, y + facing.Normali.Y, z + facing.Normali.Z);
+            light = new Vec4f(Math.Max(light.R, beside.R), Math.Max(light.G, beside.G), Math.Max(light.B, beside.B), Math.Max(light.A, beside.A));
+        }
+        return light;
+    }
+
     internal static IEnumerable<CodeInstruction> AnimatableRendererTranspiler(IEnumerable<CodeInstruction> instructions)
     {
         var identity = AccessTools.Method(typeof(Mat4f), nameof(Mat4f.Identity), new[] { typeof(float[]) });
         var shift = AccessTools.Method(typeof(SidingModSystem), nameof(ShiftAnimatable));
+        var lightRgbs = AccessTools.Method(typeof(IBlockAccessor), nameof(IBlockAccessor.GetLightRGBs), new[] { typeof(int), typeof(int), typeof(int) });
+        var hostedLight = AccessTools.Method(typeof(SidingModSystem), nameof(HostedLightRGBs));
 
-        int inserted = 0;
+        int inserted = 0, lit = 0;
         foreach (var instruction in instructions)
         {
+            if (instruction.Calls(lightRgbs))
+            {
+                lit++;
+                instruction.opcode = OpCodes.Call;
+                instruction.operand = hostedLight;
+            }
             yield return instruction;
             if (!instruction.Calls(identity)) continue;
             inserted++;
@@ -433,8 +460,8 @@ public class SidingModSystem : ModSystem
             yield return new CodeInstruction(OpCodes.Call, shift);
         }
 
-        if (inserted != 1)
-            throw new InvalidOperationException($"Expected exactly one Mat4f.Identity call in AnimatableRenderer.OnRenderFrame, found {inserted}.");
+        if (inserted != 1 || lit != 1)
+            throw new InvalidOperationException($"Expected one Mat4f.Identity and one GetLightRGBs call in AnimatableRenderer.OnRenderFrame, found {inserted} and {lit}.");
     }
 
     // Inserted after every Matrixf.Identity() in the renderer's OnRenderFrame. Translations
