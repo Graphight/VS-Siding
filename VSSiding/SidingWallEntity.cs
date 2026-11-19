@@ -271,7 +271,8 @@ public class SidingWallEntity : BlockEntity
         string[] outerElements = DeckElements(side, OuterDeck, OuterDeckInfill, OuterDeckFront, OuterDeckBack, Block.Attributes["Finishes"], outerJoins, (OuterDeckFrontStyle, OuterDeckBackStyle),
             outerGlazed, FrameElements(Block.Attributes["Framings"], OuterDeck, alternate), capped: Capped(layout, OuterDeckFront, false, bothHalves),
             fill: InfillElements(Block.Attributes["Infills"], OuterDeckInfill), group: "outerdeck", pane: outerTransparent);
-        MeshData? ladder = Ladder == null ? null : LadderMesh(capi);
+        // Only under a hatch: a client predicting the hatch's break hosts the ladder block but keeps the layer for the server to clear.
+        MeshData? ladder = Ladder == null || !SidingModSystem.IsHatchId(capi.World.BlockAccessor.GetBlock(Pos).BlockId) ? null : LadderMesh(capi);
         if (selectiveElements.Length == 0 && deckElements.Length == 0 && outerElements.Length == 0 && stepElements.Length == 0)
         {
             if (ladder != null) mesher.AddMeshData(ladder);
