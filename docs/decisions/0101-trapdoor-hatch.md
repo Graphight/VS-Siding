@@ -97,6 +97,7 @@ The trapdoor drops, and a second break takes the ladder as an ordinary hosted bl
 - A hatch in a decked wall needs the deck removed first, so the floor run stops one cell short of the wall at the hatch.
 - A cell holding a hatch and a ladder is one guest wall with a ladder layer, so changing the wall's own layers is refused until the hatch is broken, as for any hosted block.
 - A trapdoor clicked onto a wall's top face goes into the cell above, not the wall's, since `ClickedIsReplacableBy` sends only an open-side click into the wall's cell; there vanilla places it on the wall's top. Not looked at in game.
+- Only vanilla's airtight trapdoors (`trapdoor-solid-*-1` among the wooden ones) seal a room; a grated (`window`) or aged one answers no retention on any face, so its hatch leaves the rooms above and below joined, as it would in vanilla.
 - Every trapdoor over a ladder is climbable, in any world with the mod, whether Siding built it or not.
 - An open hosted hatch is drawn where a climber passes through it.
 - A trapdoor clicked onto a thin floor's edge always lies flush, so one standing upright against a floor's edge can no longer be placed there.
