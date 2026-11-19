@@ -1305,13 +1305,17 @@ public class SidingModSystem : ModSystem
 
     [ThreadStatic] private static BlockPos? belowHatch;
 
-    // A hatch holding a ladder layer, or standing over a ladder, counts as a ladder for climbing: vanilla looks for a
+    // A hatch holding a ladder layer, or open over a ladder, counts as a ladder for climbing: vanilla looks for a
     // climbable block only in the cells from a player's feet to head height, and the hatch's cell is one of them on the way through.
+    // A closed one over a ladder does not: one on the top face of the block below keeps its slab at the bottom of its cell,
+    // and a player standing on it would be held climbing.
     internal static void HatchClimbablePostfix(Block __instance, BlockPos pos, ref bool __result)
     {
         if (__result || !IsHatchId(__instance.BlockId) || ApiRef(__instance) is not { } api) return;
+        IBlockAccessor accessor = api.World.BlockAccessor;
         BlockPos below = (belowHatch ??= new BlockPos(0)).Set(pos, pos.dimension).Down();
-        __result = GuestWalls.GuestAt(api, pos)?.Ladder != null || IsLadderId(api.World.BlockAccessor.GetBlock(below).BlockId);
+        __result = GuestWalls.GuestAt(api, pos)?.Ladder != null
+            || IsLadderId(accessor.GetBlock(below).BlockId) && accessor.GetBlockEntity(pos)?.GetBehavior<BEBehaviorTrapDoor>()?.Opened == true;
     }
 
     // Squeezes a trapdoor's hinge matrix, which the mesh, the animation and the boxes all take, into the 12/16 of the

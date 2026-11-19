@@ -191,8 +191,9 @@ public class TrapdoorScenarios : AtlasScenarioBase
     }
 
     // A ladder on a wall's flat outer face climbs the cell beside the wall, where the floor's edge is the only face to click.
+    // Closed, the hatch is not climbable, or a player standing on a trapdoor capping a ladder shaft would be held climbing.
     [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
-    public async Task Trapdoor_Should_LieFlushHingedOnTheEdgeAndBeClimbable_When_ClickedOntoAFloorsEdgeOverALadder()
+    public async Task Trapdoor_Should_LieFlushHingedOnTheEdgeAndBeClimbableOnlyOpen_When_ClickedHighOnAFloorsEdgeOverALadder()
     {
         BlockPos floor = Cell, hole = Cell.EastCopy();
         World.SetBlock("game:planks-aged-ud", floor.DownCopy());
@@ -207,11 +208,11 @@ public class TrapdoorScenarios : AtlasScenarioBase
 
         bool placed = stack.Block.TryPlaceBlock(player.Entity.World, player.Player, stack, onEdge, ref failureCode);
         Cuboidf closed = World.BlockAt(hole).GetCollisionBoxes(World.Api.World.BlockAccessor, hole)[0];
-        bool climbable = World.BlockAt(hole).IsClimbable(hole);
+        bool closedClimbable = World.BlockAt(hole).IsClimbable(hole);
         Cuboidf open = Opened(player, hole)[0];
 
-        Assert.Equal((true, "trapdoor-solid-oak-1", 0.8125, 1.0, true, 0.0, 0.1875),
-            (placed, World.BlockAt(hole).Code.Path, Round(closed.Y1), Round(closed.Y2), climbable, Round(open.X1), Round(open.X2)));
+        Assert.Equal((true, "trapdoor-solid-oak-1", 0.8125, 1.0, false, 0.0, 0.1875, true),
+            (placed, World.BlockAt(hole).Code.Path, Round(closed.Y1), Round(closed.Y2), closedClimbable, Round(open.X1), Round(open.X2), World.BlockAt(hole).IsClimbable(hole)));
     }
 
     [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
