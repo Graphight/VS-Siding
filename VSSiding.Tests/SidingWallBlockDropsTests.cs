@@ -258,7 +258,8 @@ public class SidingWallBlockDropsTests
     }
 
     // A layer gives back what it took, or peeling one is a recipe. A stained plank goes on in
-    // any orientation and comes back as its ns block.
+    // any orientation and comes back as its ns block, and soil goes on under any grass coverage
+    // and comes back bare, as a dug block does.
     [Fact]
     public void EveryShippedMaterialDropsWhatItConsumes()
     {
@@ -279,7 +280,6 @@ public class SidingWallBlockDropsTests
         Assert.Equal(
             new Dictionary<string, string>
             {
-                // Soil is consumed under any grass coverage and comes back bare, as a dug block does.
                 ["Finishes.grass"] = """[{"type":"block","code":"game:soil-medium-none","quantity":{"avg":1,"var":0}}]""",
                 ["Finishes.dirt"] = """[{"type":"block","code":"game:soil-low-none","quantity":{"avg":1,"var":0}}]""",
                 ["FinishFamilies.stained-{stain}-{wood}"] = """[{"type":"block","code":"woodstain:stainedplanks-{stain}-{wood}-ns","quantity":{"avg":1,"var":0}}]""",
