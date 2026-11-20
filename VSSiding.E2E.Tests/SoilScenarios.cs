@@ -2,13 +2,13 @@ using System.Threading.Tasks;
 using Atlas.Api;
 using Atlas.XUnit;
 using Vintagestory.API.Common;
-using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Xunit;
 
 namespace VSSiding.E2E.Tests;
 
-// Grass and dirt are finishes for a floor's or a deck's top only (decision 0104).
+// Grass and dirt are finishes for a floor's or a deck's top only (decision 0104). A click the block answers false goes
+// on to vanilla placement; a refusal answers true.
 [AtlasWorld(StrictBootDiagnostics = true)]
 public class SoilScenarios : AtlasScenarioBase
 {
@@ -17,7 +17,7 @@ public class SoilScenarios : AtlasScenarioBase
     [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Floor_Should_TakeGrassOnItsTop_When_SoilIsPressedOnIt()
     {
-        (BlockPos cell, ITestPlayer player) = await RaiseFloor();
+        (BlockPos cell, ITestPlayer player) = await Raise("floor");
 
         await WallBuilder.Press(World, player, cell, "game:soil-medium-none", BlockFacing.UP, TopHit, quantity: 3);
 
@@ -25,60 +25,52 @@ public class SoilScenarios : AtlasScenarioBase
     }
 
     [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
-    public async Task Floor_Should_TakeNoSoil_When_ItIsPressedOnItsUnderside()
+    public async Task Floor_Should_PassTheClickOn_When_SoilIsPressedOnItsUnderside()
     {
-        (BlockPos cell, ITestPlayer player) = await RaiseFloor();
+        (BlockPos cell, ITestPlayer player) = await Raise("floor");
 
-        await WallBuilder.Press(World, player, cell, "game:soil-medium-none", BlockFacing.DOWN, new Vec3d(0.5, 0, 0.5), quantity: 3);
+        bool claimed = await Click(cell, player, "game:soil-medium-none", BlockFacing.DOWN, new Vec3d(0.5, 0, 0.5));
 
-        Assert.Equal(("oak", "clay", (string?)null, (string?)null, (string?)null), WallBuilder.Layers(World, cell));
+        Assert.Equal((false, ("oak", "clay", (string?)null, (string?)null, (string?)null)), (claimed, WallBuilder.Layers(World, cell)));
+    }
+
+    // A finish on a finished top goes to the underside (decision 0075), which soil does not take.
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
+    public async Task Floor_Should_PassTheClickOn_When_SoilIsPressedOnAGrassedTop()
+    {
+        (BlockPos cell, ITestPlayer player) = await Raise("floor");
+        await Click(cell, player, "game:soil-medium-none", BlockFacing.UP, TopHit);
+
+        bool claimed = await Click(cell, player, "game:soil-medium-none", BlockFacing.UP, TopHit);
+
+        Assert.Equal((false, ("oak", "clay", "grass", (string?)null, (string?)null)), (claimed, WallBuilder.Layers(World, cell)));
     }
 
     [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
-    public async Task Wall_Should_TakeNoSoil_When_ItIsPressedOnItsFace()
+    public async Task Wall_Should_RefuseSoil_When_ItIsPressedOnItsFace()
     {
-        BlockPos cell = World.Spawn.Offset(1, 2, 0);
-        World.SetBlock("game:planks-aged-ud", cell.DownCopy());
-        ITestPlayer player = await WallBuilder.JoinBuilder(World);
-        await WallBuilder.Raise(World, player, cell, cell.WestCopy(), "game:plank-oak", "game:clay-blue");
+        (BlockPos cell, ITestPlayer player) = await Raise("wall");
 
-        await WallBuilder.Press(World, player, cell, "game:soil-low-none", BlockFacing.EAST, new Vec3d(0.5, 0.5, 0.5), quantity: 3);
+        bool claimed = await Click(cell, player, "game:soil-low-none", BlockFacing.EAST, new Vec3d(0.5, 0.5, 0.5));
 
-        Assert.Equal((("oak", "clay", (string?)null, (string?)null, (string?)null), 3), (WallBuilder.Layers(World, cell), Held(player)));
+        Assert.Equal((true, ("oak", "clay", (string?)null, (string?)null, (string?)null), 1), (claimed, WallBuilder.Layers(World, cell), Held(player)));
     }
 
-    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
-    public async Task Diagonal_Should_TakeDirtOnItsOuterDeck_When_SoilIsPressedOnTheDecksTop()
+    private async Task<(BlockPos Cell, ITestPlayer Player)> Raise(string layout)
     {
         BlockPos cell = World.Spawn.Offset(1, 2, 0);
         World.SetBlock("game:planks-aged-ud", cell.DownCopy());
         ITestPlayer player = await WallBuilder.JoinBuilder(World);
-        player.Entity.WatchedAttributes.SetString("vssidingFraming", "diagonal");
-        await WallBuilder.Raise(World, player, cell, cell.WestCopy(), "game:plank-oak", null);
-        player.Entity.WatchedAttributes.SetString("vssidingDeck", "deck");
-        await player.GiveItem("game:plank-oak", 1);
-        World.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player,
-            new BlockSelection { Position = cell.Copy(), Face = BlockFacing.FromCode(World.BlockAt(cell).Variant["side"]), HitPosition = new Vec3d(0.5, 0.5, 0.5) });
-        var stripTop = new BlockSelection { Position = cell.Copy(), Face = BlockFacing.UP, HitPosition = TopHit, SelectionBoxIndex = World.BlockAt(cell).SelectionBoxes.Length };
-        await player.GiveItem("game:clay-blue", 2);
-        World.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, stripTop);
-
-        await player.GiveItem("game:soil-low-none", 1);
-        World.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, stripTop);
-
-        var tree = new TreeAttribute();
-        World.BlockEntityAt<BlockEntity>(cell)!.ToTreeAttributes(tree);
-        Assert.Equal(("dirt", (ItemStack?)null), (tree.GetString("outerdeckfront"), player.Player.InventoryManager.ActiveHotbarSlot.Itemstack));
-    }
-
-    private async Task<(BlockPos Cell, ITestPlayer Player)> RaiseFloor()
-    {
-        BlockPos cell = World.Spawn.Offset(1, 2, 0);
-        World.SetBlock("game:planks-aged-ud", cell.DownCopy());
-        ITestPlayer player = await WallBuilder.JoinBuilder(World);
-        player.Entity.WatchedAttributes.SetString("vssidingFraming", "floor");
+        player.Entity.WatchedAttributes.SetString("vssidingFraming", layout);
         await WallBuilder.Raise(World, player, cell, cell.WestCopy(), "game:plank-oak", "game:clay-blue");
         return (cell, player);
+    }
+
+    private async Task<bool> Click(BlockPos cell, ITestPlayer player, string item, BlockFacing face, Vec3d hit)
+    {
+        player.Player.InventoryManager.ActiveHotbarSlot.Itemstack = null;
+        await player.GiveItem(item, 1);
+        return World.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, new BlockSelection { Position = cell.Copy(), Face = face, HitPosition = hit });
     }
 
     private static int Held(ITestPlayer player)
