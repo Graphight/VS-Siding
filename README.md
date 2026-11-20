@@ -21,8 +21,8 @@ The in-game handbook has the whole thing: start at *VS Siding Mod: Guide*, which
 ## What a wall is made of
 
 - **Framing**: planks, in any wood the game or another mod adds, sticks, bones, or bamboo stakes. Bone does not burn.
-- **Infill**: wattle, bamboo poles, straw, clay, packed earth, rammed earth, pelt, cloth, rubble stone, glass, leaded glass or a glass pane from IndustrialStory.
-- **Finish**: appearance only, per face, in wood, clay, packed earth, rammed earth, brick, stone, or metal.
+- **Infill**: wattle, bamboo poles, straw, clay, packed earth, rammed earth, pelt, cloth, rubble stone, glass, leaded glass, a glass pane from IndustrialStory, or a wooden trapdoor as a louvred vent.
+- **Finish**: appearance only, per face, in wood, clay, packed earth, rammed earth, brick, stone, metal, wallpaper, or tiles laid four to a face.
 
 Framing plus infill is a complete wall, and seals a room the way solid blocks do.
 The infill decides whether it counts as a cooling (cellar) wall: rubble stone, clay, packed earth and rammed earth do, wattle, bamboo poles, straw, pelt and cloth do not.
@@ -68,6 +68,21 @@ Bamboo frames and pole infill on bamboo stilts:
 A stairwell with capped wall tops and steps that line up:
 
 ![stair-hosting](docs/screenshots/StairHosting.jpg)
+
+Tiles and wallpaper:
+
+![tile-mosaic](docs/screenshots/TileMosaic.jpg)
+![wallpaper-room](docs/screenshots/WallpaperRoom.jpg)
+
+Glass with the merge switches off, a hatch over a ladder, and a vent with Real Smoke:
+
+![glass-merge](docs/screenshots/GlassMerge.jpg)
+![hatch-ladder](docs/screenshots/HatchLadder.jpg)
+![vent-smoke](docs/screenshots/VentSmoke.jpg)
+
+A diagonal decked on both halves:
+
+![diagonal-outer-deck](docs/screenshots/DiagonalOuterDeck.jpg)
 
 Floors, from above and below:
 
