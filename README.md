@@ -73,7 +73,7 @@ A room with tiles and wallpaper:
 
 ![fit-out](docs/screenshots/FitOut.jpg)
 
-Glass with the merge switches off, a hatch over a ladder, and a vent with Real Smoke:
+Glass at every merge setting, a hatch over a ladder, and a kitchen vent:
 
 ![glass-merge](docs/screenshots/GlassMerge.jpg)
 ![hatch-ladder](docs/screenshots/HatchLadder.jpg)
