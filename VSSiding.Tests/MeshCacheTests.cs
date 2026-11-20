@@ -1,3 +1,4 @@
+using System.Linq;
 using Vintagestory.API.Client;
 using Xunit;
 
@@ -26,6 +27,21 @@ public class MeshCacheTests
         SidingModSystem.Cached("shape", () => new object());
 
         Assert.Equal(3 * (12 + 8 + 4), SidingModSystem.MeshBytes());
+        SidingModSystem.ForgetCache();
+    }
+
+    [Fact]
+    public void AFullCacheDropsEverythingButThePickerIconsOnItsNextMiss()
+    {
+        SidingModSystem.ForgetCache();
+        SidingModSystem.Cached("icons", () => new SkillItem[0]);
+        for (int i = 1; i < SidingModSystem.MaxEntries; i++) SidingModSystem.Cached($"mesh-{i}", () => new object());
+        SidingModSystem.Cached("mesh-1", () => new object());
+        Assert.Equal(SidingModSystem.MaxEntries, SidingModSystem.Cache.Count);
+
+        SidingModSystem.Cached("new", () => new object());
+
+        Assert.Equal(new[] { "icons", "new" }, SidingModSystem.Cache.Keys.OrderBy(key => key));
         SidingModSystem.ForgetCache();
     }
 }

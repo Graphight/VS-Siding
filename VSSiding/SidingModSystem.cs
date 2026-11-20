@@ -36,7 +36,17 @@ public class SidingModSystem : ModSystem
     // Mod assemblies are never unloaded, so this outlives a world: a mesh left in it carries the old world's atlas positions.
     internal static readonly ConcurrentDictionary<string, object> Cache = new();
 
-    internal static T Cached<T>(string key, System.Func<T> create) => (T)Cache.GetOrAdd(key, _ => create()!);
+    // A mesh entry measured about 23 KB, and a world built with every combination the mod makes held 1277 entries (#181).
+    internal const int MaxEntries = 10_000;
+
+    // Count takes every lock, so it is read only on a miss. The picker's icons stay: their GL textures are freed on the main thread only.
+    internal static T Cached<T>(string key, System.Func<T> create) => (T)Cache.GetOrAdd(key, _ =>
+    {
+        if (Cache.Count >= MaxEntries)
+            foreach (var entry in Cache)
+                if (entry.Value is not SkillItem[]) Cache.TryRemove(entry.Key, out object? _);
+        return create()!;
+    });
 
     internal static int ForgetCache()
     {
