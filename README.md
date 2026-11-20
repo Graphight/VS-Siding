@@ -22,7 +22,7 @@ The in-game handbook has the whole thing: start at *VS Siding Mod: Guide*, which
 
 - **Framing**: planks, in any wood the game or another mod adds, sticks, bones, or bamboo stakes. Bone does not burn.
 - **Infill**: wattle, bamboo poles, straw, clay, packed earth, rammed earth, pelt, cloth, rubble stone, glass, leaded glass, a glass pane from IndustrialStory, or a wooden trapdoor as a louvred vent.
-- **Finish**: appearance only, per face, in wood, clay, packed earth, rammed earth, brick, stone, metal, wallpaper, or tiles laid four to a face.
+- **Finish**: appearance only, per face, in wood, clay, packed earth, rammed earth, brick, stone, metal, wallpaper, tiles laid four to a face, or grass and dirt on a floor or deck top.
 
 Framing plus infill is a complete wall, and seals a room the way solid blocks do.
 The infill decides whether it counts as a cooling (cellar) wall: rubble stone, clay, packed earth and rammed earth do, wattle, bamboo poles, straw, pelt and cloth do not.
@@ -82,6 +82,10 @@ Glass at every merge setting, a hatch over a ladder, and a kitchen vent:
 A diagonal decked on both halves:
 
 ![diagonal-outer-deck](docs/screenshots/DiagonalOuterDeck.jpg)
+
+Grass and dirt on a deck, the grass matching the field:
+
+![dirt-and-grass](docs/screenshots/DirtAndGrass.jpg)
 
 Floors, from above and below:
 
