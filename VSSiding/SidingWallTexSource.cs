@@ -97,8 +97,7 @@ public class SidingWallTexSource : ITexPositionSource
             : atlas.UnknownTexturePosition;
     }
 
-    // Stamps the colour-map ids on every face drawing the given texture (decision 0104): its UV centroid
-    // lies in the texture's atlas rect on the texture's atlas page. Grey until the client tints it.
+    // By texture, not element name, so caps and the outer deck's fascia tint too (decision 0104).
     internal static void TintFaces(MeshData mesh, TextureAtlasPosition texture, byte climate, byte season)
     {
         int faces = mesh.VerticesCount / 4;
@@ -123,14 +122,13 @@ public class SidingWallTexSource : ITexPositionSource
         mesh.ColorMapIdsCount = faces;
     }
 
-    // Tints the faces of each finish whose entry names a block in ColorMapsFrom.
     internal static void TintFinishes(ICoreClientAPI capi, JsonObject finishes, IEnumerable<string?> keys, int alternate, IEnumerable<MeshData> meshes)
     {
         foreach (string key in keys.OfType<string>().Distinct())
         {
             var entry = finishes[key];
-            if (!entry.Exists || entry["ColorMapsFrom"].AsString(null!) is not { } blockCode || capi.World.GetBlock(new AssetLocation(blockCode)) is not { } source) continue;
-            if (entry["Texture"].AsString(null!) is not { } path) continue;
+            if (entry["ColorMapsFrom"].AsString(null!) is not { } blockCode || entry["Texture"].AsString(null!) is not { } path
+                || capi.World.GetBlock(new AssetLocation(blockCode)) is not { } source) continue;
             byte climate = (byte)((source.ClimateColorMapResolved?.RectIndex ?? -1) + 1), season = (byte)((source.SeasonColorMapResolved?.RectIndex ?? -1) + 1);
             var position = AtlasPosition(capi, new CompositeTexture(new AssetLocation(path)), alternate);
             foreach (MeshData mesh in meshes) TintFaces(mesh, position, climate, season);
