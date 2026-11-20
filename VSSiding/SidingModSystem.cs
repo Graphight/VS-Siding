@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -31,9 +32,40 @@ public class SidingModSystem : ModSystem
     // segfaults the game on exit.
     private ICoreClientAPI? clientApi;
 
+    // Tesselation runs off the main thread, so the shared ObjectCache dictionary is unsafe for these.
+    // Mod assemblies are never unloaded, so this outlives a world: a mesh left in it carries the old world's atlas positions.
+    internal static readonly ConcurrentDictionary<string, object> Cache = new();
+
+    // A mesh entry measured about 23 KB, and a world built with every combination the mod makes held 1277 entries (#181).
+    internal const int MaxEntries = 10_000;
+
+    // Count takes every lock, so it is read only on a miss. The picker's icons stay: their GL textures are freed on the main thread only.
+    internal static T Cached<T>(string key, System.Func<T> create) => (T)Cache.GetOrAdd(key, _ =>
+    {
+        if (Cache.Count >= MaxEntries)
+            foreach (var entry in Cache)
+                if (entry.Value is not SkillItem[]) Cache.TryRemove(entry.Key, out object? _);
+        return create()!;
+    });
+
+    internal static int ForgetCache()
+    {
+        int count = Cache.Count;
+        foreach (var value in Cache.Values)
+            if (value is SkillItem[] items) foreach (var item in items) item.Dispose();
+        Cache.Clear();
+        return count;
+    }
+
+    internal static long MeshBytes() => Cache.Values
+        .SelectMany(value => value switch { MeshData[] meshes => meshes, MeshData mesh => new[] { mesh }, _ => Array.Empty<MeshData>() })
+        .Sum(mesh => (long)mesh.SizeInBytes());
+
     public override void StartClientSide(ICoreClientAPI api)
     {
         base.StartClientSide(api);
+        // The last world's tesselation thread can still add a mesh after Dispose clears the cache: vanilla disposes mods before it stops tesselating.
+        Cache.Clear();
         capi = api;
         clientApi = api;
         GuestWalls.StartClientSide(api);
@@ -591,16 +623,13 @@ public class SidingModSystem : ModSystem
     {
         new Harmony("vssiding").UnpatchAll("vssiding");
         EveryOverridePatches.Forget();
-        // SidingModePicker's icons live in the object cache with no owner to free them.
-        foreach (var cacheKey in new[] { "vssidingModePickerLitIcons", "vssidingModePickerDimIcons" })
+        if (clientApi != null)
         {
-            if (clientApi?.ObjectCache.TryGetValue(cacheKey, out var cached) == true)
-            {
-                foreach (var item in (SkillItem[])cached) item.Dispose();
-                clientApi.ObjectCache.Remove(cacheKey);
-            }
+            long bytes = MeshBytes();
+            int cached = ForgetCache();
+            clientApi.Logger.Notification("[vssiding] mesh cache held {0} entries, {1:0.0} MB of mesh arrays, at close", cached, bytes / 1048576.0);
+            capi = null;
         }
-        if (clientApi != null) capi = null;
         base.Dispose();
     }
 

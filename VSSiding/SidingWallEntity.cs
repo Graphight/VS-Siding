@@ -283,7 +283,7 @@ public class SidingWallEntity : BlockEntity
             DeckInfill, DeckFront, DeckBack, (DeckFrontStyle, DeckBackStyle), deckJoins, alternate, innerCorners, deckInnerCorners, glassRunsOn, tees, closed, capped,
             SecondBack, SecondBackStyle, OuterDeckState + outerJoins);
 
-        MeshData[] meshes = ObjectCacheUtil.GetOrCreate(capi, cacheKey, () =>
+        MeshData[] meshes = SidingModSystem.Cached(cacheKey, () =>
         {
             Shape shape = ParsedShape(capi, $"wall/{layout}");
             var texSource = new SidingWallTexSource(
@@ -310,7 +310,7 @@ public class SidingWallEntity : BlockEntity
         if (capi.World.GetBlock(new AssetLocation(Ladder)) is not { BlockId: not 0 } ladder) return null;
 
         string side = Block.Variant["side"];
-        return ObjectCacheUtil.GetOrCreate(capi, $"vssiding-ladder-{Ladder}-{side}", () =>
+        return SidingModSystem.Cached($"vssiding-ladder-{Ladder}-{side}", () =>
         {
             var (dx, dz) = SidingModSystem.PanelOffset(ladder.SelectionBoxes ?? ladder.CollisionBoxes, [side]);
             return capi.TesselatorManager.GetDefaultBlockMesh(ladder).Clone().Scale(new Vec3f(), 1, UnderHatch, 1).Translate((float)dx, 0, (float)dz);
@@ -320,7 +320,7 @@ public class SidingWallEntity : BlockEntity
     // Shape.TryGet parses the whole file on every call, and a mesh is built once per distinct cell, so
     // each shape is parsed once and kept.
     internal static Shape ParsedShape(ICoreClientAPI capi, string path)
-        => ObjectCacheUtil.GetOrCreate(capi, "vssiding-shape-" + path, () => Shape.TryGet(capi, new AssetLocation("vssiding", $"shapes/block/{path}.json")));
+        => SidingModSystem.Cached("vssiding-shape-" + path, () => Shape.TryGet(capi, new AssetLocation("vssiding", $"shapes/block/{path}.json")));
 
     // The position hash has three readers: the texture source picks each wildcard texture's variant by it,
     // FrameElements picks the rough frame's variant by its parity, and the mesh cache keys on it. So a
