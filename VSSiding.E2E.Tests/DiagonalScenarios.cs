@@ -210,6 +210,38 @@ public class DiagonalScenarios : AtlasScenarioBase
         Assert.Equal(((string?)"planks", (ItemStack?)null), (Read(cell, "outerdeckfront"), player.Player.InventoryManager.ActiveHotbarSlot.Itemstack));
     }
 
+    // Soil on an outer deck's top lays dirt, so the outer half reads as the ground outside (decision 0104).
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
+    public async Task OuterDeck_Should_TakeDirt_When_SoilIsPressedOnItsTop()
+    {
+        (BlockPos cell, ITestPlayer player) = await DirtOuterDeck();
+
+        Assert.Equal(((string?)"dirt", (ItemStack?)null), (Read(cell, "outerdeckfront"), player.Player.InventoryManager.ActiveHotbarSlot.Itemstack));
+    }
+
+    // A finished top would send the soil to the underside (decision 0075); the deck passes the click on to vanilla instead.
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
+    public async Task OuterDeck_Should_PassTheClickOn_When_SoilIsPressedOnAFinishedTop()
+    {
+        (BlockPos cell, ITestPlayer player) = await DirtOuterDeck();
+        await player.GiveItem("game:soil-low-none", 1);
+
+        bool claimed = World.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, StripTop(cell, 0));
+
+        Assert.Equal((false, (string?)null), (claimed, Read(cell, "outerdeckback")));
+    }
+
+    private async Task<(BlockPos Cell, ITestPlayer Player)> DirtOuterDeck()
+    {
+        (BlockPos cell, ITestPlayer player) = await RaiseFrame("diagonal", deck: false);
+        await AddOuterDeck(cell, player, BlockFacing.FromCode(World.BlockAt(cell).Variant["side"]));
+        await player.GiveItem("game:clay-blue", 2);
+        World.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, StripTop(cell, 0));
+        await player.GiveItem("game:soil-low-none", 1);
+        World.BlockAt(cell).OnBlockInteractStart(player.Entity.World, player.Player, StripTop(cell, 0));
+        return (cell, player);
+    }
+
     private async Task AddOuterDeck(BlockPos cell, ITestPlayer player, BlockFacing claimedFace)
     {
         player.Entity.WatchedAttributes.SetString("vssidingDeck", "deck");

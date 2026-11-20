@@ -240,8 +240,9 @@ public class SidingWallEntity : BlockEntity
         (string[] stepElements, float stepRotation) = stepped
             ? StepMesh(layout, side, StepOrientation, StepFamily(stair?.Shape?.Base?.Path))
             : ([], 0);
+        string?[] finishes = [Front, SecondFront, Back, SecondBack, DeckFront, DeckBack, OuterDeckFront, OuterDeckBack];
         int alternate = CellAlternate(Block.Attributes, SidingWallTexSource.Alternate(Pos), Framing, [Deck, OuterDeck],
-            [Infill, DeckInfill, OuterDeckInfill], [Front, SecondFront, Back, SecondBack, DeckFront, DeckBack, OuterDeckFront, OuterDeckBack],
+            [Infill, DeckInfill, OuterDeckInfill], finishes,
             SidingWallTexSource.Varies(SidingWallTexSource.StairTexture(stair)),
             [FrontStyle, SecondFrontStyle, BackStyle, SecondBackStyle, DeckFrontStyle, DeckBackStyle, OuterDeckFrontStyle, OuterDeckBackStyle]);
         string[] innerCorners = ((SidingWallBlock)Block).InnerCorners(Api.World.BlockAccessor, Pos, Infill, joins, InfillUnmerged);
@@ -294,14 +295,13 @@ public class SidingWallEntity : BlockEntity
                 .Concat(Meshes(tesselator, shape, texSource, new Vec3f(0, 0, 0), outerElements, outerTransparent))
                 .Concat(Meshes(tesselator, shape, texSource, new Vec3f(0, stepRotation, 0), stepElements, false))
                 .ToArray();
-            SidingWallTexSource.TintFinishes(capi, Block.Attributes["Finishes"],
-                [Front, SecondFront, Back, SecondBack, DeckFront, DeckBack, OuterDeckFront, OuterDeckBack], alternate, built);
+            SidingWallTexSource.TintFinishes(capi, Block.Attributes["Finishes"], finishes, alternate, built);
             return built;
         });
 
         var colors = capi.World.GetColorMapData(Block, Pos.X, Pos.Y, Pos.Z);
         foreach (MeshData mesh in meshes) mesher.AddMeshData(mesh, colors);
-        if (ladder != null) mesher.AddMeshData(ladder, colors);
+        if (ladder != null) mesher.AddMeshData(ladder);
         return true;
     }
 

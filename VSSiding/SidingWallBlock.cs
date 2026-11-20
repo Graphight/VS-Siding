@@ -777,7 +777,7 @@ public class SidingWallBlock : Block
 
         if (FloorOnly(Attributes["Finishes"][finishKey]))
         {
-            (byPlayer as IServerPlayer)?.SendIngameError("vssiding:floor-only", Lang.Get("vssiding:build-floor-only"));
+            (byPlayer as IServerPlayer)?.SendIngameError("vssiding:flooronly", Lang.Get("vssiding:build-floor-only"));
             return true;
         }
 
@@ -1158,7 +1158,6 @@ public class SidingWallBlock : Block
         OnFinishChanged(world, entity, pos, oldAbsorption);
     }
 
-    // A finish that goes on the top of a floor or deck only, such as soil.
     internal static bool FloorOnly(JsonObject finish) => finish["FloorOnly"].AsBool();
 
     // Only a finish that lists a style can be asked for it, so a picked board style on daub or

@@ -133,22 +133,15 @@ public class SidingWallBlockBuildFlowTests
     }
 
     [Fact]
-    public void OnlyAFinishFlaggedFloorOnlyIsFloorOnly()
-    {
-        Assert.True(SidingWallBlock.FloorOnly(Dict("""{ "FloorOnly": true }""")));
-        Assert.False(SidingWallBlock.FloorOnly(Dict("{}")));
-    }
-
-    [Fact]
-    public void SoilBlocksMatchTheGrassAndDirtFinishes()
+    public void SoilBlocksMatchTheFloorOnlyGrassAndDirtFinishes()
     {
         var finishes = new JsonObject(MaterialTextureOpacityTests.BlockAttributes("wall.json")["Finishes"]!);
-        string? Match(string code) => SidingWallBlock.MatchConsumes(new AssetLocation(code), finishes);
+        (string?, bool) Match(string code) => SidingWallBlock.MatchConsumes(new AssetLocation(code), finishes) is { } key
+            ? (key, SidingWallBlock.FloorOnly(finishes[key])) : (null, false);
 
         Assert.Equal(
-            ("grass grass dirt ", true, true),
-            (string.Join(" ", new[] { Match("game:soil-medium-none"), Match("game:soil-medium-normal"), Match("game:soil-low-sparse"), Match("game:soil-high-none") }),
-                SidingWallBlock.FloorOnly(finishes["grass"]), SidingWallBlock.FloorOnly(finishes["dirt"])));
+            new (string?, bool)[] { ("grass", true), ("grass", true), ("dirt", true), (null, false), ("packeddirt", false) },
+            new[] { "game:soil-medium-none", "game:soil-medium-normal", "game:soil-low-sparse", "game:soil-high-none", "game:packeddirt" }.Select(Match));
     }
 
     private static readonly JsonObject StickFramings = Dict("""
