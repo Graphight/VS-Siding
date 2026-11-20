@@ -97,16 +97,22 @@ public class SidingFloorEntity : BlockEntity
         {
             Shape shape = SidingWallEntity.ParsedShape(capi, "floor/floor");
             var texSource = new TexSource(capi, this, alternate);
-            if (!transparent) return new[] { Tesselate(tesselator, shape, texSource, selectiveElements) };
-
-            // Two meshes, never merged: see SidingWallEntity.OnTesselation.
-            MeshData glass = Tesselate(tesselator, shape, texSource, Array.FindAll(selectiveElements, SidingWallEntity.IsInfillElement));
-            SidingWallEntity.SetRenderPass(glass, EnumChunkRenderPass.Transparent);
-            MeshData frame = Tesselate(tesselator, shape, texSource, Array.FindAll(selectiveElements, name => !SidingWallEntity.IsInfillElement(name)));
-            return new[] { frame, glass };
+            MeshData[] built;
+            if (!transparent) built = [Tesselate(tesselator, shape, texSource, selectiveElements)];
+            else
+            {
+                // Two meshes, never merged: see SidingWallEntity.OnTesselation.
+                MeshData glass = Tesselate(tesselator, shape, texSource, Array.FindAll(selectiveElements, SidingWallEntity.IsInfillElement));
+                SidingWallEntity.SetRenderPass(glass, EnumChunkRenderPass.Transparent);
+                MeshData frame = Tesselate(tesselator, shape, texSource, Array.FindAll(selectiveElements, name => !SidingWallEntity.IsInfillElement(name)));
+                built = [frame, glass];
+            }
+            SidingWallTexSource.TintFinishes(capi, Block.Attributes["Finishes"], [Front, Back], alternate, built);
+            return built;
         });
 
-        foreach (MeshData mesh in meshes) mesher.AddMeshData(mesh);
+        var colors = capi.World.GetColorMapData(Block, Pos.X, Pos.Y, Pos.Z);
+        foreach (MeshData mesh in meshes) mesher.AddMeshData(mesh, colors);
         return true;
     }
 
