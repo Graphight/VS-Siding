@@ -456,4 +456,24 @@ public class SidingWallTexSourceTests
 
         Assert.Equal(new byte[] { 255, 0, 0, 255, 0, 0, 255, 255 }, SidingWallTexSource.RolledBitmap(new BitmapExternal(source)).bmp.Bytes);
     }
+
+    [Fact]
+    public void TintFacesStampsOnlyFacesInsideTheTexturesRectOnItsAtlasPage()
+    {
+        float[] Quad(float u, float v) => [u, v, u + 0.1f, v, u + 0.1f, v + 0.1f, u, v + 0.1f];
+        var mesh = new MeshData(12, 18)
+        {
+            VerticesCount = 12,
+            Uv = [.. Quad(0.1f, 0.1f), .. Quad(0.6f, 0.6f), .. Quad(0.1f, 0.1f)],
+            TextureIds = [5, 6],
+            TextureIndices = [0, 0, 1],
+        };
+        var texture = new TextureAtlasPosition { atlasTextureId = 5, x1 = 0, y1 = 0, x2 = 0.5f, y2 = 0.5f };
+
+        SidingWallTexSource.TintFaces(mesh, texture, 3, 4);
+
+        Assert.Equal(
+            new (byte, byte, bool)[] { (3, 4, true), (0, 0, false), (0, 0, false) },
+            Enumerable.Range(0, mesh.ColorMapIdsCount).Select(face => (mesh.ClimateColorMapIds[face], mesh.SeasonColorMapIds[face], mesh.FrostableBits[face])));
+    }
 }

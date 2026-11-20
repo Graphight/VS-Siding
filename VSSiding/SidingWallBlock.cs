@@ -775,6 +775,12 @@ public class SidingWallBlock : Block
             return true;
         }
 
+        if (FloorOnly(Attributes["Finishes"][finishKey]))
+        {
+            (byPlayer as IServerPlayer)?.SendIngameError("vssiding:floor-only", Lang.Get("vssiding:build-floor-only"));
+            return true;
+        }
+
         if (ClaimRefuses(world, byPlayer, blockSel.Position)) return true;
 
         string? currentKey = FinishOn(entity, face);
@@ -1117,6 +1123,8 @@ public class SidingWallBlock : Block
             style = StyleFor(face);
         }
 
+        if (face != "front" && FloorOnly(Attributes["Finishes"][finishKey])) return base.OnBlockInteractStart(world, byPlayer, blockSel);
+
         var finishConsumes = ShareConsumes(Attributes["Finishes"][finishKey]["Consumes"], LayerParts(Variant["layout"], "deckfront"));
         if (!TryAffordOrError(byPlayer, isCreative, slot.StackSize, finishConsumes)) return true;
 
@@ -1149,6 +1157,9 @@ public class SidingWallBlock : Block
         }
         OnFinishChanged(world, entity, pos, oldAbsorption);
     }
+
+    // A finish that goes on the top of a floor or deck only, such as soil.
+    internal static bool FloorOnly(JsonObject finish) => finish["FloorOnly"].AsBool();
 
     // Only a finish that lists a style can be asked for it, so a picked board style on daub or
     // brick falls back to the entry's default rather than naming an element its shape hasn't got.

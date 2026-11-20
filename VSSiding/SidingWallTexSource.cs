@@ -97,6 +97,46 @@ public class SidingWallTexSource : ITexPositionSource
             : atlas.UnknownTexturePosition;
     }
 
+    // Stamps the colour-map ids on every face drawing the given texture (decision 0104): its UV centroid
+    // lies in the texture's atlas rect on the texture's atlas page. Grey until the client tints it.
+    internal static void TintFaces(MeshData mesh, TextureAtlasPosition texture, byte climate, byte season)
+    {
+        int faces = mesh.VerticesCount / 4;
+        if (faces == 0 || mesh.Uv == null || mesh.TextureIndices == null) return;
+        if (mesh.ClimateColorMapIds == null || mesh.ClimateColorMapIds.Length < faces) mesh.ClimateColorMapIds = new byte[faces];
+        if (mesh.SeasonColorMapIds == null || mesh.SeasonColorMapIds.Length < faces) mesh.SeasonColorMapIds = new byte[faces];
+        if (mesh.FrostableBits == null || mesh.FrostableBits.Length < faces) mesh.FrostableBits = new bool[faces];
+        for (int face = 0; face < faces; face++)
+        {
+            if (mesh.TextureIds[mesh.TextureIndices[face]] != texture.atlasTextureId) continue;
+            float u = 0, v = 0;
+            for (int i = 0; i < 4; i++)
+            {
+                u += mesh.Uv[face * 8 + i * 2];
+                v += mesh.Uv[face * 8 + i * 2 + 1];
+            }
+            if (!texture.ContainsUV(u / 4, v / 4)) continue;
+            mesh.ClimateColorMapIds[face] = climate;
+            mesh.SeasonColorMapIds[face] = season;
+            mesh.FrostableBits[face] = true;
+        }
+        mesh.ColorMapIdsCount = faces;
+    }
+
+    // Tints the faces of each finish whose entry names a block in ColorMapsFrom.
+    internal static void TintFinishes(ICoreClientAPI capi, JsonObject finishes, IEnumerable<string?> keys, int alternate, IEnumerable<MeshData> meshes)
+    {
+        foreach (string key in keys.OfType<string>().Distinct())
+        {
+            var entry = finishes[key];
+            if (!entry.Exists || entry["ColorMapsFrom"].AsString(null!) is not { } blockCode || capi.World.GetBlock(new AssetLocation(blockCode)) is not { } source) continue;
+            if (entry["Texture"].AsString(null!) is not { } path) continue;
+            byte climate = (byte)((source.ClimateColorMapResolved?.RectIndex ?? -1) + 1), season = (byte)((source.SeasonColorMapResolved?.RectIndex ?? -1) + 1);
+            var position = AtlasPosition(capi, new CompositeTexture(new AssetLocation(path)), alternate);
+            foreach (MeshData mesh in meshes) TintFaces(mesh, position, climate, season);
+        }
+    }
+
     internal static bool IsTileSlot(string slotCode)
         => slotCode.Length > 5 && char.IsDigit(slotCode[^1]) && slotCode[^5..^1] == "tile";
 

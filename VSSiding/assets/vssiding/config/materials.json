@@ -330,6 +330,23 @@
 			BlockMaterial: "Soil",
 			Consumes: { type: "block", code: "game:packeddirt", quantity: 1 },
 			Drops: [ { type: "block", code: "game:packeddirt", quantity: { avg: 1, var: 0 } } ]
+		},
+		"grass": {
+			DisplayName: "vssiding:finish-grass",
+			Texture: "game:block/plant/grasscoverage/normal-top",
+			ColorMapsFrom: "game:soil-medium-normal",
+			FloorOnly: true,
+			BlockMaterial: "Soil",
+			Consumes: { type: "block", code: "game:soil-medium-*", quantity: 1 },
+			Drops: [ { type: "block", code: "game:soil-medium-none", quantity: { avg: 1, var: 0 } } ]
+		},
+		"dirt": {
+			DisplayName: "vssiding:finish-dirt",
+			Texture: "game:block/soil/fertlow",
+			FloorOnly: true,
+			BlockMaterial: "Soil",
+			Consumes: { type: "block", code: "game:soil-low-*", quantity: 1 },
+			Drops: [ { type: "block", code: "game:soil-low-none", quantity: { avg: 1, var: 0 } } ]
 		}
 	},
 	FinishFamilies: {

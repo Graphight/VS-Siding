@@ -289,15 +289,19 @@ public class SidingWallEntity : BlockEntity
             var texSource = new SidingWallTexSource(
                 capi, this, Block.Attributes["Framings"], Block.Attributes["Infills"], Block.Attributes["Finishes"], alternate);
             var rotation = new Vec3f(0, RotationYDeg(side), 0);
-            return Meshes(tesselator, shape, texSource, rotation, selectiveElements, transparent)
+            MeshData[] built = Meshes(tesselator, shape, texSource, rotation, selectiveElements, transparent)
                 .Concat(Meshes(tesselator, shape, texSource, new Vec3f(0, 0, 0), deckElements, deckTransparent))
                 .Concat(Meshes(tesselator, shape, texSource, new Vec3f(0, 0, 0), outerElements, outerTransparent))
                 .Concat(Meshes(tesselator, shape, texSource, new Vec3f(0, stepRotation, 0), stepElements, false))
                 .ToArray();
+            SidingWallTexSource.TintFinishes(capi, Block.Attributes["Finishes"],
+                [Front, SecondFront, Back, SecondBack, DeckFront, DeckBack, OuterDeckFront, OuterDeckBack], alternate, built);
+            return built;
         });
 
-        foreach (MeshData mesh in meshes) mesher.AddMeshData(mesh);
-        if (ladder != null) mesher.AddMeshData(ladder);
+        var colors = capi.World.GetColorMapData(Block, Pos.X, Pos.Y, Pos.Z);
+        foreach (MeshData mesh in meshes) mesher.AddMeshData(mesh, colors);
+        if (ladder != null) mesher.AddMeshData(ladder, colors);
         return true;
     }
 

@@ -122,6 +122,8 @@ public class SidingFloorBlock : Block
             style = StyleFor(face);
         }
 
+        if (face != "front" && SidingWallBlock.FloorOnly(Attributes["Finishes"][finishKey])) return base.OnBlockInteractStart(world, byPlayer, blockSel);
+
         var finishConsumes = Attributes["Finishes"][finishKey]["Consumes"];
         if (!SidingWallBlock.TryAffordOrError(byPlayer, isCreative, slot.StackSize, finishConsumes)) return true;
 
