@@ -69,10 +69,9 @@ A stairwell with capped wall tops and steps that line up:
 
 ![stair-hosting](docs/screenshots/StairHosting.jpg)
 
-Tiles and wallpaper:
+A room with tiles and wallpaper:
 
-![tile-mosaic](docs/screenshots/TileMosaic.jpg)
-![wallpaper-room](docs/screenshots/WallpaperRoom.jpg)
+![fit-out](docs/screenshots/FitOut.jpg)
 
 Glass with the merge switches off, a hatch over a ladder, and a vent with Real Smoke:
 
