@@ -289,6 +289,7 @@
 	"toolmode-leftright": "Side to side",
 	"build-wrong-face": "Click the wall's face",
 	"build-floor-wrong-face": "Click the top or the underside",
+	"build-floor-only": "Soil only goes on a floor or a deck top",
 	"build-already-finished": "Both sides are already finished",
 	"build-occupied": "Something is in the way",
 	"game:placefailure-vssiding-decked": "Remove the deck first",

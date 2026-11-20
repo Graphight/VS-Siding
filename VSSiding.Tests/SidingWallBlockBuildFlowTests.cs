@@ -132,6 +132,13 @@ public class SidingWallBlockBuildFlowTests
             });
     }
 
+    [Fact]
+    public void OnlyAFinishFlaggedFloorOnlyIsFloorOnly()
+    {
+        Assert.True(SidingWallBlock.FloorOnly(Dict("""{ "FloorOnly": true }""")));
+        Assert.False(SidingWallBlock.FloorOnly(Dict("{}")));
+    }
+
     private static readonly JsonObject StickFramings = Dict("""
     {
         "oak": { "Consumes": { "type": "item", "code": "game:plank-oak", "quantity": 2 } },
