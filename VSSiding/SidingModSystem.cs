@@ -47,6 +47,14 @@ public class SidingModSystem : ModSystem
         return count;
     }
 
+    private static readonly FieldInfo[] MeshArrays = typeof(MeshData).GetFields()
+        .Where(field => field.FieldType.IsArray && field.FieldType.GetElementType()!.IsPrimitive).ToArray();
+
+    // Every cached mesh's arrays at their allocated length, which is what they hold in memory.
+    internal static long MeshBytes() => Cache.Values
+        .SelectMany(value => value switch { MeshData[] meshes => meshes, MeshData mesh => new[] { mesh }, _ => Array.Empty<MeshData>() })
+        .Sum(mesh => MeshArrays.Sum(field => field.GetValue(mesh) is Array array ? (long)Buffer.ByteLength(array) : 0));
+
     public override void StartClientSide(ICoreClientAPI api)
     {
         base.StartClientSide(api);
@@ -611,8 +619,9 @@ public class SidingModSystem : ModSystem
         EveryOverridePatches.Forget();
         if (clientApi != null)
         {
+            long bytes = MeshBytes();
             int cached = ForgetCache();
-            clientApi.Logger.Notification("[vssiding] mesh cache held {0} entries at close", cached);
+            clientApi.Logger.Notification("[vssiding] mesh cache held {0} entries, {1:0.0} MB of mesh arrays, at close", cached, bytes / 1048576.0);
             capi = null;
         }
         base.Dispose();
