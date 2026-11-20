@@ -279,6 +279,9 @@ public class SidingWallBlockDropsTests
         Assert.Equal(
             new Dictionary<string, string>
             {
+                // Soil is consumed under any grass coverage and comes back bare, as a dug block does.
+                ["Finishes.grass"] = """[{"type":"block","code":"game:soil-medium-none","quantity":{"avg":1,"var":0}}]""",
+                ["Finishes.dirt"] = """[{"type":"block","code":"game:soil-low-none","quantity":{"avg":1,"var":0}}]""",
                 ["FinishFamilies.stained-{stain}-{wood}"] = """[{"type":"block","code":"woodstain:stainedplanks-{stain}-{wood}-ns","quantity":{"avg":1,"var":0}}]""",
             },
             differing);

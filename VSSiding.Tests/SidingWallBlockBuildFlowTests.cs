@@ -139,6 +139,18 @@ public class SidingWallBlockBuildFlowTests
         Assert.False(SidingWallBlock.FloorOnly(Dict("{}")));
     }
 
+    [Fact]
+    public void SoilBlocksMatchTheGrassAndDirtFinishes()
+    {
+        var finishes = new JsonObject(MaterialTextureOpacityTests.BlockAttributes("wall.json")["Finishes"]!);
+        string? Match(string code) => SidingWallBlock.MatchConsumes(new AssetLocation(code), finishes);
+
+        Assert.Equal(
+            ("grass grass dirt ", true, true),
+            (string.Join(" ", new[] { Match("game:soil-medium-none"), Match("game:soil-medium-normal"), Match("game:soil-low-sparse"), Match("game:soil-high-none") }),
+                SidingWallBlock.FloorOnly(finishes["grass"]), SidingWallBlock.FloorOnly(finishes["dirt"])));
+    }
+
     private static readonly JsonObject StickFramings = Dict("""
     {
         "oak": { "Consumes": { "type": "item", "code": "game:plank-oak", "quantity": 2 } },
