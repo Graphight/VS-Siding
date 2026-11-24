@@ -31,6 +31,9 @@ internal static class GapShiftCollisionPatches
     // Per panel array, one PanelSelectionBox copy.
     private static readonly ConditionalWeakTable<Cuboidf[], Cuboidf[]> PanelSelectionCache = new();
 
+    // Per panel array, one copy cut under each roof slope, keyed by the cut's value.
+    private static readonly ConditionalWeakTable<Cuboidf[], ConcurrentDictionary<HalfSpace[][], Cuboidf[]>> RoofCutCache = new();
+
     internal static void PatchAll(Harmony harmony, ICoreAPI api)
     {
         var prefix = new HarmonyMethod(typeof(GapShiftCollisionPatches), nameof(Prefix));
@@ -52,6 +55,14 @@ internal static class GapShiftCollisionPatches
     {
         depth++;
         try { return block.GetSelectionBoxes(accessor, pos); }
+        finally { depth--; }
+    }
+
+    // The collision boxes as the block itself answers, with no panel appended: a roof's slope runs through them (RoofCut).
+    internal static Cuboidf[] RawCollisionBoxes(Block block, IBlockAccessor accessor, BlockPos pos)
+    {
+        depth++;
+        try { return block.GetCollisionBoxes(accessor, pos); }
         finally { depth--; }
     }
 
@@ -102,9 +113,19 @@ internal static class GapShiftCollisionPatches
         var (guestWall, guestEntity) = found;
 
         var panelBoxes = guestWall.PanelCollisionBoxes(blockAccessor, pos, guestEntity, fullBoxesOf(guestWall));
+        if (SidingModSystem.IsRoofId(instance.BlockId)
+            && RoofCut.CellsAt(RawCollisionBoxes(instance, blockAccessor, pos), instance.Variant["side"]) is { } cells)
+        {
+            panelBoxes = UnderRoof(panelBoxes, cells);
+        }
+
         if (markPanel != null) panelBoxes = markPanel(panelBoxes);
         return Combined(shifted, panelBoxes);
     }
+
+    internal static Cuboidf[] UnderRoof(Cuboidf[] panelBoxes, HalfSpace[][] cells)
+        => RoofCutCache.GetValue(panelBoxes, static _ => new ConcurrentDictionary<HalfSpace[][], Cuboidf[]>(RoofCut.CellsComparer))
+            .GetOrAdd(cells, static (cut, boxes) => RoofCut.ClipBoxes(boxes, cut), panelBoxes);
 
     private static Cuboidf[] MarkedForPanel(Cuboidf[] panelBoxes)
         => PanelSelectionCache.GetValue(panelBoxes, boxes => boxes.Select(box => (Cuboidf)new PanelSelectionBox(box)).ToArray());
