@@ -7,4 +7,4 @@ Each row is one block type of the mod, tried in the cell of a wall built for it.
 
 | Block | Verdict |
 | --- | --- |
-| roof | refused: solid side |
+| roof | hosts |

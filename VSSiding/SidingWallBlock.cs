@@ -531,9 +531,11 @@ public class SidingWallBlock : Block
     // Any hostable block may take a wall's cell, whichever way it's placed - a click on the panel,
     // on the floor in the gap, a sneak-placement, ground storage. SidingModSystem.HostChangePrefix
     // turns the wall's state into a guest in the same SetBlock, so neighbours never see air.
-    // Not a diagonal's: the open part of its cell is a triangle (decision 0066).
+    // Not a diagonal's: the open part of its cell is a triangle (decision 0066). Nor a roof clicked onto the wall's top
+    // (SidingModSystem.OnWallTop), which goes in the cell above.
     public override bool IsReplacableBy(Block block)
-        => (SidingModSystem.IsHostableId(block.BlockId) && Variant["layout"] != "diagonal") || base.IsReplacableBy(block);
+        => (SidingModSystem.IsHostableId(block.BlockId) && Variant["layout"] != "diagonal" && !(SidingModSystem.OnWallTop && SidingModSystem.IsRoofId(block.BlockId)))
+            || base.IsReplacableBy(block);
 
     // The placement failure code keeping a block out of the wall's cell: a step takes nothing, a deck
     // takes only a block that fits under it (decision 0094).

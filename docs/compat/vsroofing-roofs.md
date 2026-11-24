@@ -249,42 +249,42 @@ The player stands three blocks south with planks in hand, so a roof built there 
 
 | Wall | Click on | Admitted | Took the click | Roof at | Wall | In-game errors | Roof broken |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| bare frame | the top of the block below | no | nothing | nowhere | stays | none |  |
-| bare frame | the wall's room face | no | the held item | west | stays | none |  |
-| bare frame | the wall's outer face | no | the held item | east | stays | none |  |
+| bare frame | the top of the block below | no | the held item | the cell | guest, layers kept | none | wall back |
+| bare frame | the wall's room face | no | the held item | the cell | guest, layers kept | none | wall back |
+| bare frame | the wall's outer face | no | the held item | the cell | guest, layers kept | none | wall back |
 | bare frame | the wall's top | no | the held item | above | stays | none |  |
-| bare frame | the side neighbour's face | no | nothing | nowhere | stays | none |  |
-| clay infill | the top of the block below | no | nothing | nowhere | stays | none |  |
-| clay infill | the wall's room face | no | the held item | west | stays | none |  |
-| clay infill | the wall's outer face | no | the held item | east | stays | none |  |
+| bare frame | the side neighbour's face | no | the held item | the cell | guest, layers kept | none | wall back |
+| clay infill | the top of the block below | no | the held item | the cell | guest, layers kept | none | wall back |
+| clay infill | the wall's room face | no | the held item | the cell | guest, layers kept | none | wall back |
+| clay infill | the wall's outer face | no | the held item | the cell | guest, layers kept | none | wall back |
 | clay infill | the wall's top | no | the held item | above | stays | none |  |
-| clay infill | the side neighbour's face | no | nothing | nowhere | stays | none |  |
+| clay infill | the side neighbour's face | no | the held item | the cell | guest, layers kept | none | wall back |
 | bare frame | the top of the block below | yes | the held item | the cell | guest, layers kept | none | wall back |
 | bare frame | the wall's room face | yes | the held item | the cell | guest, layers kept | none | wall back |
 | bare frame | the wall's outer face | yes | the held item | the cell | guest, layers kept | none | wall back |
-| bare frame | the wall's top | yes | the held item | the cell | guest, layers kept | none | wall back |
+| bare frame | the wall's top | yes | the held item | above | stays | none |  |
 | bare frame | the side neighbour's face | yes | the held item | the cell | guest, layers kept | none | wall back |
 | clay infill | the top of the block below | yes | the held item | the cell | guest, layers kept | none | wall back |
 | clay infill | the wall's room face | yes | the held item | the cell | guest, layers kept | none | wall back |
 | clay infill | the wall's outer face | yes | the held item | the cell | guest, layers kept | none | wall back |
-| clay infill | the wall's top | yes | the held item | the cell | guest, layers kept | none | wall back |
+| clay infill | the wall's top | yes | the held item | above | stays | none |  |
 | clay infill | the side neighbour's face | yes | the held item | the cell | guest, layers kept | none | wall back |
 
 ## Base fill on a hosted roof
 
 A Standard roof frame from a plank click on granite under the cell, in open air or over a wall framed in oak with clay infill claiming its west face, the roof admitted as hostable for the run; then thatch with a sneak click on the roof's south face, or not; then a ctrl click with granite.
 The ctrl click lands on the roof's first selection box, on its south face, or on the guest wall's first panel box, on its west face.
-A hosted roof takes the off-panel shift BuildHostableTable gives a hostable block, so its own boxes sit east of the panel's.
+A hosted roof takes no off-panel shift, so its own boxes span the cell over the panel's.
 `Wall before` is the wall's cell once the roof is built and thatched, and `Key changes` the saved tree's keys the ctrl click added (+), dropped (-) or changed.
 
 | Roof | Wall before | Click on | Took the click | Roof after | Key changes | Collision after | Selection after | Wall after | In-game errors |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | vsroofing:roof-bare-north | no wall | the roof's south face | the clicked block | vsroofing:roof-filled-north | +materials [11812], +decorRot 0, +rotation 368640, +cuboids [7991296 11925504 13892608 15859200 9959520 4059296 6026400 2093280], +emitSideAo [33], +sideSolid [33], +sideAlmostSolid [33], +blockName fill, +availMaterialQuantities [4096] | (0,0,8)-(2,8,16) (14,0,8)-(16,8,16) (0,8,0)-(2,16,8) (14,8,0)-(16,16,8) | (0,0,8)-(16,8,16) (0,8,0)-(16,16,8) (0,0,0)-(16,16,16) | no wall | none |
-| vsroofing:roof-bare-north | guest, layers kept | the roof's south face | the clicked block | vsroofing:roof-filled-north | +materials [11812], +decorRot 0, +rotation 368640, +cuboids [7991296 11925504 13892608 15859200 9959520 4059296 6026400 2093280], +emitSideAo [33], +sideSolid [33], +sideAlmostSolid [33], +blockName fill, +availMaterialQuantities [4096] | (4,0,8)-(6,8,16) (16,0,8)-(16,8,16) (4,8,0)-(6,16,8) (16,8,0)-(16,16,8) (0,0,0)-(4,16,16) | (4,0,8)-(20,8,16) (4,8,0)-(20,16,8) (4,0,0)-(20,16,16) (0,0,0)-(4,16,16) | guest, layers kept | none |
-| vsroofing:roof-bare-north | guest, layers kept | the panel's west face | nothing | vsroofing:roof-bare-north | none | (4,0,8)-(6,8,16) (16,0,8)-(16,8,16) (4,8,0)-(6,16,8) (16,8,0)-(16,16,8) (0,0,0)-(4,16,16) | (4,0,8)-(20,8,16) (4,8,0)-(20,16,8) (0,0,0)-(4,16,16) | guest, layers kept | none |
+| vsroofing:roof-bare-north | guest, layers kept | the roof's south face | the clicked block | vsroofing:roof-filled-north | +materials [11812], +decorRot 0, +rotation 368640, +cuboids [7991296 11925504 13892608 15859200 9959520 4059296 6026400 2093280], +emitSideAo [33], +sideSolid [33], +sideAlmostSolid [33], +blockName fill, +availMaterialQuantities [4096] | (0,0,8)-(2,8,16) (14,0,8)-(16,8,16) (0,8,0)-(2,16,8) (14,8,0)-(16,16,8) (0,0,0)-(4,16,16) | (0,0,8)-(16,8,16) (0,8,0)-(16,16,8) (0,0,0)-(16,16,16) (0,0,0)-(4,16,16) | guest, layers kept | none |
+| vsroofing:roof-bare-north | guest, layers kept | the panel's west face | nothing | vsroofing:roof-bare-north | none | (0,0,8)-(2,8,16) (14,0,8)-(16,8,16) (0,8,0)-(2,16,8) (14,8,0)-(16,16,8) (0,0,0)-(4,16,16) | (0,0,8)-(16,8,16) (0,8,0)-(16,16,8) (0,0,0)-(4,16,16) | guest, layers kept | none |
 | vsroofing:roof-filled-north | no wall | the roof's south face | the clicked block | vsroofing:roof-filled-north | +materials [11812], +decorRot 0, +rotation 368640, +cuboids [7991296 11925504 13892608 15859200 9959520 4059296 6026400 2093280], +emitSideAo [33], +sideSolid [33], +sideAlmostSolid [33], +blockName fill, +availMaterialQuantities [4096] | (0,0,8)-(16,8,16) (0,8,0)-(16,16,8) | (0,0,8)-(16,8,16) (0,8,0)-(16,16,8) (0,0,0)-(16,16,16) | no wall | none |
-| vsroofing:roof-filled-north | guest, layers kept | the roof's south face | the clicked block | vsroofing:roof-filled-north | +materials [11812], +decorRot 0, +rotation 368640, +cuboids [7991296 11925504 13892608 15859200 9959520 4059296 6026400 2093280], +emitSideAo [33], +sideSolid [33], +sideAlmostSolid [33], +blockName fill, +availMaterialQuantities [4096] | (4,0,8)-(16,8,16) (4,8,0)-(16,16,8) (0,0,0)-(4,16,16) | (4,0,8)-(20,8,16) (4,8,0)-(20,16,8) (4,0,0)-(20,16,16) (0,0,0)-(4,16,16) | guest, layers kept | none |
-| vsroofing:roof-filled-north | guest, layers kept | the panel's west face | nothing | vsroofing:roof-filled-north | none | (4,0,8)-(16,8,16) (4,8,0)-(16,16,8) (0,0,0)-(4,16,16) | (4,0,8)-(20,8,16) (4,8,0)-(20,16,8) (0,0,0)-(4,16,16) | guest, layers kept | none |
+| vsroofing:roof-filled-north | guest, layers kept | the roof's south face | the clicked block | vsroofing:roof-filled-north | +materials [11812], +decorRot 0, +rotation 368640, +cuboids [7991296 11925504 13892608 15859200 9959520 4059296 6026400 2093280], +emitSideAo [33], +sideSolid [33], +sideAlmostSolid [33], +blockName fill, +availMaterialQuantities [4096] | (0,0,8)-(16,8,16) (0,8,0)-(16,16,8) (0,0,0)-(4,16,16) | (0,0,8)-(16,8,16) (0,8,0)-(16,16,8) (0,0,0)-(16,16,16) (0,0,0)-(4,16,16) | guest, layers kept | none |
+| vsroofing:roof-filled-north | guest, layers kept | the panel's west face | nothing | vsroofing:roof-filled-north | none | (0,0,8)-(16,8,16) (0,8,0)-(16,16,8) (0,0,0)-(4,16,16) | (0,0,8)-(16,8,16) (0,8,0)-(16,16,8) (0,0,0)-(4,16,16) | guest, layers kept | none |
 
 ## A siding frame click aimed at a roof's cell
 

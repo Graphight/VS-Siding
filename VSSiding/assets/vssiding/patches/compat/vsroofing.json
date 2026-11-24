@@ -1,0 +1,9 @@
+[
+	{
+		"op": "addmerge",
+		"file": "vsroofing:blocktypes/roof.json",
+		"path": "/attributes",
+		"value": { "vssidingHostable": true, "vssidingRoof": true },
+		"dependsOn": [{ "modid": "vsroofing" }]
+	}
+]

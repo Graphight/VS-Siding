@@ -81,6 +81,23 @@ public class PanelOffsetTests
         Assert.Null(SidingModSystem.UnderDeckDropFor(trapdoor));
     }
 
+    // A Roofing eave piece's boxes are its upper step alone, half a block high, so only the marker keeps it from a deck's drop.
+    [Fact]
+    public void ARoofTakesNoFaceShiftAndFitsUnderNoDeck()
+    {
+        static Block Eave(string attributes) => new()
+        {
+            Attributes = new JsonObject(JObject.Parse(attributes)),
+            SideSolid = new SmallBoolArray(SmallBoolArray.OnAllSides),
+            SelectionBoxes = new[] { new Cuboidf(0, 0.5f, 0, 1, 1, 0.5f) },
+        };
+        var unmarked = Eave("{ \"vssidingHostable\": true }");
+        var roof = Eave("{ \"vssidingHostable\": true, \"vssidingRoof\": true }");
+
+        Assert.Equal(new[] { 0.0, 0.0, 0.0, 0.0 }, SidingModSystem.FaceShifts(roof));
+        Assert.Equal(((double?)0.25, (double?)null), (SidingModSystem.UnderDeckDropFor(unmarked), SidingModSystem.UnderDeckDropFor(roof)));
+    }
+
     [Theory]
     [InlineData("north", 0.0, 0.0, 0.25, 1.0, 1.0, 1.0)]
     [InlineData("south", 0.0, 0.0, 0.0, 1.0, 1.0, 0.75)]

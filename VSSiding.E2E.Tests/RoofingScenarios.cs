@@ -16,7 +16,7 @@ using Xunit;
 
 namespace VSSiding.E2E.Tests;
 
-// Runs with `just probe vsroofing`, the only run that loads VS Roofing. It asserts nothing: it records what Roofing's own clicks
+// Runs with `just probe vsroofing`, the only run that loads VS Roofing. The probe asserts nothing: it records what Roofing's own clicks
 // build in open air, as single pieces, gables and corners, what they do to a siding wall's cell, what its base fill does to a
 // roof hosting one, and what a siding frame click does to a roof's cell, for the walls-under-roofing proposal.
 // docs/compat/vsroofing-roofs.md records the run.
@@ -164,6 +164,76 @@ public class RoofingScenarios : AtlasScenarioBase
         WriteReport(modes, collision, selection, sealing, gables, corners, walls, fills, frames);
     }
 
+    // A roof built from the block below takes the wall's cell where it stands in open air, off no panel, and keeps the wall as its
+    // guest through thatch, which turns roof-bare into roof-filled.
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
+    public async Task Roof_Should_HostTheWallUnshiftedAndKeepItThroughThatch_When_BuiltFromTheBlockBelow()
+    {
+        if (!RoofingLoaded) return;
+
+        ITestPlayer player = await WallBuilder.JoinBuilder(World);
+        try
+        {
+            BlockPos open = Cell(0, 6), cell = Cell(1, 6);
+            World.SetBlock(Support, open.DownCopy());
+            World.SetBlock(Support, cell.DownCopy());
+            await WallBuilder.Raise(World, player, cell, cell.WestCopy(), Plank, "game:clay-blue");
+            (string?, string?, string?, string?, string?)? layers = WallBuilder.Layers(World, cell);
+
+            player.Entity.LeftHandItemSlot.Itemstack = new ItemStack(World.Api.World.GetItem(new AssetLocation(Hammer)));
+            async Task RoofFromBelow(BlockPos at)
+            {
+                Stand(player, at);
+                await Hold(player, Plank, 4);
+                RightClick(player, Face(at.DownCopy(), BlockFacing.UP));
+            }
+            string RoofBoxes(BlockPos at)
+                => Format(World.BlockAt(at).GetSelectionBoxes(World.Api.World.BlockAccessor, at).Where(box => box.GetType().Name != "PanelSelectionBox").ToArray());
+
+            await RoofFromBelow(open);
+            await RoofFromBelow(cell);
+            var hosted = (World.BlockAt(cell).Code.Path, RoofBoxes(cell), WallBuilder.GuestLayers(World, cell));
+
+            await Hold(player, Thatch, 4);
+            WithKeys(player, shift: true, ctrl: false, Face(cell, BlockFacing.SOUTH));
+
+            Assert.Equal(((World.BlockAt(open).Code.Path, RoofBoxes(open), layers), hosted.Path.Replace("-bare-", "-filled-"), layers),
+                (hosted, World.BlockAt(cell).Code.Path, WallBuilder.GuestLayers(World, cell)));
+        }
+        finally
+        {
+            player.Player.Disconnect();
+            await World.Until(() => !player.IsConnected);
+        }
+    }
+
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
+    public async Task Roof_Should_GoInTheCellAbove_When_ClickedOntoTheWallsTop()
+    {
+        if (!RoofingLoaded) return;
+
+        ITestPlayer player = await WallBuilder.JoinBuilder(World);
+        try
+        {
+            BlockPos cell = Cell(0, 6);
+            World.SetBlock(Support, cell.DownCopy());
+            await WallBuilder.Raise(World, player, cell, cell.WestCopy(), Plank, "game:clay-blue");
+            var wall = (World.BlockAt(cell).Code.ToString(), WallBuilder.Layers(World, cell));
+
+            player.Entity.LeftHandItemSlot.Itemstack = new ItemStack(World.Api.World.GetItem(new AssetLocation(Hammer)));
+            Stand(player, cell);
+            await Hold(player, Plank, 4);
+            string took = RightClick(player, Face(cell, BlockFacing.UP));
+
+            Assert.Equal(("the held item", "vsroofing", wall), (took, World.BlockAt(cell.UpCopy()).Code.Domain, (World.BlockAt(cell).Code.ToString(), WallBuilder.Layers(World, cell))));
+        }
+        finally
+        {
+            player.Player.Disconnect();
+            await World.Until(() => !player.IsConnected);
+        }
+    }
+
     private static BlockSelection Face(BlockPos pos, BlockFacing face)
         => new() { Position = pos.Copy(), Face = face, HitPosition = new Vec3d(0.5, 0.5, 0.5).Add(face.Normalf.X * 0.5, face.Normalf.Y * 0.5, face.Normalf.Z * 0.5) };
 
@@ -211,7 +281,7 @@ public class RoofingScenarios : AtlasScenarioBase
         bool Held()
         {
             var handling = EnumHandHandling.NotHandled;
-            slot.Itemstack?.Collectible.OnHeldInteractStart(slot, player.Entity, selection, null, true, ref handling);
+            slot.Itemstack?.Collectible.OnHeldUseStart(slot, player.Entity, selection, null, EnumHandInteract.HeldItemInteract, true, ref handling);
             return handling != EnumHandHandling.NotHandled;
         }
 
@@ -682,7 +752,7 @@ public class RoofingScenarios : AtlasScenarioBase
             "",
             "A Standard roof frame from a plank click on granite under the cell, in open air or over a wall framed in oak with clay infill claiming its west face, the roof admitted as hostable for the run; then thatch with a sneak click on the roof's south face, or not; then a ctrl click with granite.",
             "The ctrl click lands on the roof's first selection box, on its south face, or on the guest wall's first panel box, on its west face.",
-            "A hosted roof takes the off-panel shift BuildHostableTable gives a hostable block, so its own boxes sit east of the panel's.",
+            "A hosted roof takes no off-panel shift, so its own boxes span the cell over the panel's.",
             "`Wall before` is the wall's cell once the roof is built and thatched, and `Key changes` the saved tree's keys the ctrl click added (+), dropped (-) or changed.",
             "",
             "| Roof | Wall before | Click on | Took the click | Roof after | Key changes | Collision after | Selection after | Wall after | In-game errors |",
