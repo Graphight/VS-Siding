@@ -119,8 +119,8 @@ internal static class GapShiftCollisionPatches
         return Combined(shifted, panelBoxes);
     }
 
-    // The cut a wall hosted by host keeps under its slope, or under a ridge the slopes beside it, or null for a host that is no
-    // roof or names no slope.
+    // The cut a wall hosted by host keeps under its slope, under a corner piece its two slopes, or under a ridge the slopes beside
+    // it, or null for a host that is no roof or names no slope.
     internal static HalfSpace[][]? RoofCutAt(Block host, IBlockAccessor accessor, BlockPos pos)
         => SidingModSystem.IsRoofId(host.BlockId)
             ? RoofCut.CellsAt(RawCollisionBoxes(host, accessor, pos), host.Variant["side"], facing => RoofAt(accessor, pos.AddCopy(facing.Normali.X, -1, facing.Normali.Z)))

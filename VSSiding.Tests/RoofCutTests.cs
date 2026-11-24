@@ -109,6 +109,58 @@ public class RoofCutTests
         Assert.Null(UnderRidge("(0,0,0)-(16,8,16)", null, null));
     }
 
+    // The Corners rows' (0,0,0) cells, a roof rising north, y = 1 - z, met by one rising east, y = x.
+    private const string OuterCorner = "(0,0,8)-(16,8,16) (0,0,0)-(8,8,16) (8,8,0)-(16,16,8) (8,8,0)-(16,16,8)";
+    private const string InnerCorner = "(0,0,8)-(8,8,16) (0,0,8)-(8,8,16) (0,8,0)-(16,16,8) (8,8,0)-(16,16,16)";
+
+    // A hip: the one cell under both slopes.
+    [Fact]
+    public void AnOuterCornerKeepsWhatLiesUnderBothSlopes()
+    {
+        Assert.Equal(new HalfSpace[][] { [new(0, 1, 1, 1), new(-1, 1, 0, 0)] }, Cells(OuterCorner, "north"), RoofCut.CellsComparer);
+    }
+
+    // A valley: under either slope, as two cells split upright along x + z = 1, where the slopes cross.
+    [Fact]
+    public void AnInnerCornerKeepsWhatLiesUnderEitherSlopeSplitWhereTheyCross()
+    {
+        Assert.Equal(new HalfSpace[][] { [new(0, 1, 1, 1), new(1, 0, 1, 1)], [new(-1, 1, 0, 0), new(-1, 0, -1, -1)] },
+            Cells(InnerCorner, "north"), RoofCut.CellsComparer);
+    }
+
+    // A corner wall claiming its west and north faces, cornerout-west's two boxes. Under the hip both legs are stripped along x,
+    // the west one rising x and the north one x up to 1 - z mid-leg; under the valley both along z, the west one falling 1 - z
+    // down to x mid-leg and the north one 1 - z.
+    [Fact]
+    public void ACornerWallUnderAnOuterCornerIsCutToTheLowerSlope()
+    {
+        var expected = Enumerable.Range(0, RoofCut.Strips).Select(k => Voxels(k / 2.0, 0, 0, (k + 1) / 2.0, 0.25 + k / 2.0, 16))
+            .Concat(Enumerable.Range(0, RoofCut.Strips).Select(k => Voxels(4 + 1.5 * k, 0, 0, 5.5 + 1.5 * k, Math.Min(14, 4.75 + 1.5 * k), 4)))
+            .ToArray();
+
+        Assert.Equal(expected, RoofCut.ClipBoxes([Voxels(0, 0, 0, 4, 16, 16), Voxels(4, 0, 0, 16, 16, 4)], Cells(OuterCorner, "north")));
+    }
+
+    [Fact]
+    public void ACornerWallUnderAnInnerCornerIsCutToTheHigherSlope()
+    {
+        var expected = Enumerable.Range(0, RoofCut.Strips).Select(k => Voxels(0, 0, 2 * k, 4, Math.Max(15 - 2 * k, 2), 2 * k + 2))
+            .Concat(Enumerable.Range(0, RoofCut.Strips).Select(k => Voxels(4, 0, k / 2.0, 16, 15.75 - k / 2.0, (k + 1) / 2.0)))
+            .ToArray();
+
+        Assert.Equal(expected, RoofCut.ClipBoxes([Voxels(0, 0, 0, 4, 16, 16), Voxels(4, 0, 0, 16, 16, 4)], Cells(InnerCorner, "north")));
+    }
+
+    // Each half of a valley's cube is capped on its own slope, a right triangle of half the slope's area, and nothing on the split.
+    [Fact]
+    public void AValleyCapsEachSlopeOnItsOwnSideOfTheSplit()
+    {
+        var caps = RoofCut.Caps(OneElementShape(("framing", [0, 0, 0], [16, 16, 16])), ["framing"], new Vec3f(), new OneTexture(),
+            Cells(InnerCorner, "north"));
+
+        Assert.Equal((2, 12, 2, 2, 2, 2, Math.Round(Math.Sqrt(2), 4)), Summary(caps));
+    }
+
     // A wall claiming its west face, run along a slope rising north: a gable end.
     [Fact]
     public void AGableWallIsCutIntoStripsAsHighAsTheSlopeAtTheirMiddles()
@@ -153,6 +205,8 @@ public class RoofCutTests
     [InlineData("east", "(0,0,0)-(8,8,16) (8,8,0)-(16,16,16)", 0, 16, 0, 0)] // pick 11
     [InlineData("south", "(0,0,0)-(16,8,8) (0,8,8)-(16,16,16)", 0, 0, 16, 0)] // pick 12
     [InlineData("west", "(8,0,0)-(16,8,16) (0,8,0)-(8,16,16)", 0, 0, 0, 16)] // pick 13
+    [InlineData("north", OuterCorner, 0, 0, 0, 0)]
+    [InlineData("north", InnerCorner, 16, 16, 0, 0)]
     public void AFaceDamsAsHighAsTheCutsLowestPointAlongIt(string side, string boxes, double north, double east, double south, double west)
     {
         var cells = Cells(boxes, side);

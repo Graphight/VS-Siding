@@ -11,7 +11,9 @@ namespace VSSiding;
 // Nx x + Ny y + Nz z <= D, in block units: the side of a plane a roof-hosted wall keeps.
 internal readonly record struct HalfSpace(double Nx, double Ny, double Nz, double D)
 {
-    internal double HeightAt(double x, double z) => (D - Nx * x - Nz * z) / Ny;
+    // An upright half-space, the split between a valley's two cells, bounds where a cell stands rather than how high it reaches.
+    internal double HeightAt(double x, double z) => Ny != 0 ? (D - Nx * x - Nz * z) / Ny
+        : Nx * x + Nz * z <= D + RoofCut.Epsilon ? double.PositiveInfinity : double.NegativeInfinity;
 
     // The same half-space in the coordinates of the cell (dx, dy, dz) blocks from this one's.
     internal HalfSpace SeenFrom(int dx, int dy, int dz) => this with { D = D - Nx * dx - Ny * dy - Nz * dz };
@@ -47,7 +49,7 @@ internal readonly record struct FaceData(int TextureId, byte XyzFace, byte Clima
 // half-spaces it lies inside.
 internal static class RoofCut
 {
-    private const double Epsilon = 1e-4;
+    internal const double Epsilon = 1e-4;
 
     // A quarter voxel off the line still counts as on it: the probe prints a step's thirds of a block to a tenth of a voxel.
     private const double OnTheLine = 1.0 / 64;
@@ -56,21 +58,25 @@ internal static class RoofCut
 
     internal static readonly IEqualityComparer<HalfSpace[][]> CellsComparer = new ByValue();
 
-    // The slope through the lowest step's low corner and the highest step's high corner, rising toward side; null unless every
-    // step's corners lie on it. A box spanning the run is no step (a ridge's slab, a corner's), and the full cube Roofing's base
-    // fill adds to the selection boxes is skipped.
+    // The one slope rising toward side that every box steps up, or null. A box spanning the run is no step of it (a ridge's slab,
+    // a corner's), and the full cube Roofing's base fill adds to the selection boxes is skipped.
     internal static HalfSpace? PlaneFrom(Cuboidf[]? boxes, string? side)
     {
         if (boxes == null || side == null || BlockFacing.FromCode(side) is not { IsHorizontal: true } facing) return null;
+        Cuboidf[] steps = Steps(boxes);
+        return steps.Any(box => Spans(box, facing)) ? null : Slope(steps, facing);
+    }
+
+    // The slope through the lowest step's low corner and the highest step's high corner, rising toward facing; null unless every
+    // step's corners lie on it.
+    private static HalfSpace? Slope(IReadOnlyCollection<Cuboidf> steps, BlockFacing facing)
+    {
         bool alongX = facing.Axis == EnumAxis.X;
         bool risesPositive = facing.Normali.X + facing.Normali.Z > 0;
 
         (double u, double y)? low = null, high = null;
-        foreach (var box in boxes)
+        foreach (var box in steps)
         {
-            if (IsFullCube(box)) continue;
-            var (u1, u2) = alongX ? (box.X1, box.X2) : (box.Z1, box.Z2);
-            if (u1 <= Epsilon && u2 >= 1 - Epsilon) return null;
             var (boxLow, boxHigh) = Corners(box, alongX, risesPositive);
             if (low == null || boxLow.y < low.Value.y) low = boxLow;
             if (high == null || boxHigh.y > high.Value.y) high = boxHigh;
@@ -80,9 +86,8 @@ internal static class RoofCut
         double rise = (h.y - l.y) / (h.u - l.u), at = l.y - rise * l.u, scale = Math.Sqrt(1 + rise * rise);
         bool OnLine((double u, double y) corner) => Math.Abs(at + rise * corner.u - corner.y) / scale <= OnTheLine;
 
-        foreach (var box in boxes)
+        foreach (var box in steps)
         {
-            if (IsFullCube(box)) continue;
             var (boxLow, boxHigh) = Corners(box, alongX, risesPositive);
             if (!OnLine(boxLow) || !OnLine(boxHigh)) return null;
         }
@@ -90,12 +95,53 @@ internal static class RoofCut
         return alongX ? new HalfSpace(-rise, 1, 0, at) : new HalfSpace(0, 1, -rise, at);
     }
 
+    // A corner piece's boxes are two slopes' steps, one rising toward side and one across it, each step kept where its slope is
+    // the lower (an outer corner, a hip) or the higher (an inner corner, a valley), so a step spanning one slope's run is the
+    // other's. Only a valley's boxes reach the higher plane everywhere. A hip keeps the one cell under both planes, a valley two,
+    // split upright where the planes cross, so the split takes no cap.
+    private static HalfSpace[][]? CornerFrom(Cuboidf[]? boxes, string? side)
+    {
+        if (boxes == null || side == null || BlockFacing.FromCode(side) is not { IsHorizontal: true } facing) return null;
+        Cuboidf[] steps = Steps(boxes);
+        if (steps.Any(box => Spans(box, facing) && Spans(box, facing.GetCW()))
+            || Slope(steps.Where(box => !Spans(box, facing)).ToArray(), facing) is not { } rising) return null;
+
+        foreach (var across in new[] { facing.GetCW(), facing.GetCCW() })
+        {
+            if (Slope(steps.Where(box => !Spans(box, across)).ToArray(), across) is not { } other) continue;
+            if (Reaches(steps, (x, z) => Math.Max(rising.HeightAt(x, z), other.HeightAt(x, z))))
+                return [[rising, Over(rising, other)], [other, Over(other, rising)]];
+            if (Reaches(steps, (x, z) => Math.Min(rising.HeightAt(x, z), other.HeightAt(x, z)))) return [[rising, other]];
+        }
+
+        return null;
+    }
+
+    // Whether the boxes' tops reach the height over every strip's middle both ways across the cell.
+    private static bool Reaches(Cuboidf[] steps, System.Func<double, double, double> height)
+    {
+        for (int i = 0; i < Strips; i++)
+        {
+            for (int j = 0; j < Strips; j++)
+            {
+                double x = (i + 0.5) / Strips, z = (j + 0.5) / Strips;
+                if (!steps.Any(box => box.X1 < x && x < box.X2 && box.Z1 < z && z < box.Z2 && box.Y2 >= height(x, z) - OnTheLine)) return false;
+            }
+        }
+
+        return true;
+    }
+
+    // Where a's plane is at or over b's, both planes as Slope makes them.
+    private static HalfSpace Over(HalfSpace a, HalfSpace b) => new(a.Nx - b.Nx, 0, a.Nz - b.Nz, a.D - b.D);
+
     // The convex cells a wall in the roof's cell keeps, or null where the roof's boxes name no slope Siding reads. A ridge is a
     // flat slab one level over the slopes either side, and the cell under it holds no roof, so under a ridge the wall keeps the
     // one cell under every slope a step down and over that rises toward it, slopeBelow answering that roof's boxes and side.
     internal static HalfSpace[][]? CellsAt(Cuboidf[]? boxes, string? side, System.Func<BlockFacing, (Cuboidf[]? boxes, string? side)>? slopeBelow = null)
     {
         if (PlaneFrom(boxes, side) is { } plane) return [[plane]];
+        if (CornerFrom(boxes, side) is { } corner) return corner;
         if (slopeBelow == null || boxes is not { Length: > 0 } || !boxes.All(IsSlab)) return null;
 
         var planes = new List<HalfSpace>();
@@ -109,23 +155,20 @@ internal static class RoofCut
         return planes.Count > 0 ? [[.. planes]] : null;
     }
 
-    // Each box cut into Strips strips along the slope's run, each as high as the cut at its middle, so its cut end lies either
-    // side of the slope by half a strip's rise, as decision 0067's deck strips straddle the panel's line. A box wholly under the
-    // cut is kept as it is, and a strip wholly over it is dropped.
+    // Each box cut into Strips strips along the way the cut falls further across it (the slope's run, or under a corner either),
+    // each as high as the cut at its middle, so its cut end lies either side of the slope by half a strip's rise, as decision
+    // 0067's deck strips straddle the panel's line. A box wholly under the cut is kept as it is, and a strip wholly over it is
+    // dropped. shortcut: a strip is read at the box's middle across it, so under a corner a thick box's top is off by the cut's
+    // fall across it; cut such a box both ways if that shows in game.
     internal static Cuboidf[] ClipBoxes(Cuboidf[] boxes, HalfSpace[][] cells)
     {
-        bool alongX = cells.Any(cell => cell.Any(half => Math.Abs(half.Nx) > Epsilon));
         var clipped = new List<Cuboidf>();
-        var tops = new float[Strips];
         foreach (var box in boxes)
         {
+            float[] byX = Tops(box, cells, alongX: true), byZ = Tops(box, cells, alongX: false);
+            bool alongX = byX.Max() - byX.Min() > byZ.Max() - byZ.Min();
+            float[] tops = alongX ? byX : byZ;
             double lo = alongX ? box.X1 : box.Z1, hi = alongX ? box.X2 : box.Z2;
-            double across = alongX ? (box.Z1 + box.Z2) / 2.0 : (box.X1 + box.X2) / 2.0;
-            for (int k = 0; k < Strips; k++)
-            {
-                double middle = lo + (hi - lo) * (k + 0.5) / Strips;
-                tops[k] = (float)Math.Min(box.Y2, alongX ? Height(cells, middle, across) : Height(cells, across, middle));
-            }
 
             if (tops.All(top => top >= box.Y2))
             {
@@ -144,6 +187,21 @@ internal static class RoofCut
         }
 
         return clipped.ToArray();
+    }
+
+    // The box's top in each of Strips strips along one way, read at their middles and at the box's middle the other way.
+    private static float[] Tops(Cuboidf box, HalfSpace[][] cells, bool alongX)
+    {
+        double lo = alongX ? box.X1 : box.Z1, hi = alongX ? box.X2 : box.Z2;
+        double across = alongX ? (box.Z1 + box.Z2) / 2.0 : (box.X1 + box.X2) / 2.0;
+        var tops = new float[Strips];
+        for (int k = 0; k < Strips; k++)
+        {
+            double middle = lo + (hi - lo) * (k + 0.5) / Strips;
+            tops[k] = (float)Math.Min(box.Y2, alongX ? Height(cells, middle, across) : Height(cells, across, middle));
+        }
+
+        return tops;
     }
 
     // The cut's height over (x, z): the highest of its cells, each as high as the lowest of its planes.
@@ -322,6 +380,15 @@ internal static class RoofCut
     }
 
     private static bool IsFullCube(Cuboidf box) => IsSlab(box) && box.Y2 >= 1 - Epsilon;
+
+    private static Cuboidf[] Steps(Cuboidf[] boxes) => boxes.Where(box => !IsFullCube(box)).ToArray();
+
+    // Whether the box runs the cell's whole width along facing's axis.
+    private static bool Spans(Cuboidf box, BlockFacing facing)
+    {
+        var (u1, u2) = facing.Axis == EnumAxis.X ? (box.X1, box.X2) : (box.Z1, box.Z2);
+        return u1 <= Epsilon && u2 >= 1 - Epsilon;
+    }
 
     // A box over the cell's whole floor, from its bottom up.
     private static bool IsSlab(Cuboidf box)

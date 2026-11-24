@@ -432,6 +432,56 @@ public class RoofingScenarios : AtlasScenarioBase
         }
     }
 
+    // A corner wall claiming its west and north faces, with a roof rising north built into its cell and then one rising east beside
+    // it, as the Corners rows are: the cell's roof turns into the corner piece, and the guest's panel is cut to the lower of y = 1 - z
+    // and y = x under the outer corner, a hip, or to the higher under the inner one, a valley, each strip as high as that at its
+    // middle.
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
+    public async Task CornerWall_Should_BeCutToTheHipOrValley_When_TwoRoofsMeetOverIt()
+    {
+        if (!RoofingLoaded) return;
+
+        ITestPlayer player = await WallBuilder.JoinBuilder(World);
+        try
+        {
+            var expected = new List<(string, string?, string, int, string)>();
+            var actual = new List<(string, string?, string, int, string)>();
+            for (int c = 0; c < Corners.Length; c++)
+            {
+                var (name, second) = Corners[c];
+                BlockPos cell = Cell(c, 6);
+                World.SetBlock(Support, cell.DownCopy());
+                player.Entity.LeftHandItemSlot.Itemstack = new ItemStack(World.Api.World.GetItem(new AssetLocation(Saw)));
+                player.Entity.WatchedAttributes.SetString("vssidingFraming", "wall");
+                player.Player.InventoryManager.ActiveHotbarSlot.Itemstack = null;
+                await WallBuilder.Raise(World, player, cell, cell.WestCopy(), Plank, "game:clay-blue");
+                player.Entity.WatchedAttributes.SetString("vssidingFraming", "corner");
+                await WallBuilder.Press(World, player, cell, "game:stick", BlockFacing.WEST, new Vec3d(0, 0.5, 0.2));
+                await RoofsFrom(player, name, cell, 0, ((0, 0, 0), new[] { 0, RisingNorth }), ((second.Normali.X, 0, second.Normali.Z), new[] { 0, RisingEast }));
+
+                Cuboidf[] boxes = World.BlockAt(cell).GetSelectionBoxes(World.Api.World.BlockAccessor, cell);
+                Cuboidf[] panel = boxes.Where(box => box.GetType().Name == "PanelSelectionBox").ToArray();
+                System.Func<double, double, double> corner = name == "outer" ? Math.Min : Math.Max;
+                string Tops(System.Func<Cuboidf, double> top) => string.Join(" ", panel.Select(box => Math.Round(16 * top(box), 2).ToString(CultureInfo.InvariantCulture)));
+
+                expected.Add((name, "vssiding:wall-cornerout-west",
+                    name == "outer"
+                        ? "(0,0,8)-(16,8,16) (0,0,0)-(8,8,16) (8,8,0)-(16,16,8) (8,8,0)-(16,16,8)"
+                        : "(0,0,8)-(8,8,16) (0,0,8)-(8,8,16) (0,8,0)-(16,16,8) (8,8,0)-(16,16,16)",
+                    2 * 8, Tops(box => Math.Min(1, corner(1 - (box.Z1 + box.Z2) / 2, (box.X1 + box.X2) / 2)))));
+                actual.Add((name, WallBuilder.GuestCode(World, cell), Format(boxes.Where(box => box.GetType().Name != "PanelSelectionBox").ToArray()),
+                    panel.Length, Tops(box => box.Y2)));
+            }
+
+            Assert.Equal(expected, actual);
+        }
+        finally
+        {
+            player.Player.Disconnect();
+            await World.Until(() => !player.IsConnected);
+        }
+    }
+
     // A hit on the room side of the first panel box the roof's selection appends.
     private BlockSelection PanelHit(BlockPos cell, BlockFacing face)
     {
