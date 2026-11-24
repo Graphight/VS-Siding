@@ -132,6 +132,26 @@ internal static class RoofCut
     internal static double Height(HalfSpace[][] cells, double x, double z)
         => cells.Max(cell => cell.Min(half => half.HeightAt(x, z)));
 
+    // The lowest the cut reaches along a side face's edge of the cell, between from and to along the face, held to the cell:
+    // as high as the face dams liquid. shortcut: reads the span's ends only, exact while every plane rises along one axis
+    // (Roofing's slopes, ridges and corners); read the planes' crossings too if a cut ever bends mid-span.
+    internal static double FaceHeight(HalfSpace[][] cells, BlockFacing face, double from = 0, double to = 1)
+    {
+        double edge = face.Normali.X + face.Normali.Z > 0 ? 1 : 0;
+        double At(double along) => face.Axis == EnumAxis.Z ? Height(cells, along, edge) : Height(cells, edge, along);
+        double height = Math.Min(At(from), At(to));
+        return height >= 1 - Epsilon ? 1 : Math.Max(0, height);
+    }
+
+    // Whether an attachment area on a side face, in inclusive voxels as vanilla passes one (the face's own axis unused), lies
+    // under the cut. No area is the whole face.
+    internal static bool Holds(HalfSpace[][] cells, BlockFacing face, Cuboidi? area)
+    {
+        if (area == null) return FaceHeight(cells, face) >= 1;
+        var (from, to) = face.Axis == EnumAxis.Z ? (area.X1, area.X2) : (area.Z1, area.Z2);
+        return FaceHeight(cells, face, from / 16.0, (to + 1) / 16.0) >= Math.Min(1, (area.Y2 + 1) / 16.0) - Epsilon;
+    }
+
     // Every mesh built under one roof is cached under the cut's value as well as the wall's state.
     internal static string Key(HalfSpace[][] cells)
         => string.Join("/", cells.Select(cell => string.Join(";", cell.Select(half

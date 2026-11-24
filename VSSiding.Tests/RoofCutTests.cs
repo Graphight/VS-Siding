@@ -95,6 +95,36 @@ public class RoofCutTests
             GapShiftCollisionPatches.UnderRoof(panel, Cells(ThatchedOneByOne, "north")));
     }
 
+    // In whole voxels, the lowest the cut reaches along the north, east, south and west faces.
+    [Theory]
+    [InlineData("north", ThatchedOneByOne, 16, 0, 0, 0)] // pick 0
+    [InlineData("north", "(0,5.3,8)-(16,8,16) (0,8,0)-(16,10.7,8)", 11, 5, 5, 5)] // pick 3 then 1
+    [InlineData("north", "(0,0,13.3)-(16,8,16) (0,8,10.7)-(16,16,13.3)", 16, 0, 0, 0)] // pick 3 then 12, held to the cell
+    [InlineData("east", "(0,0,0)-(8,8,16) (8,8,0)-(16,16,16)", 0, 16, 0, 0)] // pick 11
+    [InlineData("south", "(0,0,0)-(16,8,8) (0,8,8)-(16,16,16)", 0, 0, 16, 0)] // pick 12
+    [InlineData("west", "(8,0,0)-(16,8,16) (0,8,0)-(8,16,16)", 0, 0, 0, 16)] // pick 13
+    public void AFaceDamsAsHighAsTheCutsLowestPointAlongIt(string side, string boxes, double north, double east, double south, double west)
+    {
+        var cells = Cells(boxes, side);
+        double Height(BlockFacing face) => Math.Round(16 * RoofCut.FaceHeight(cells, face));
+
+        Assert.Equal((north, east, south, west), (Height(BlockFacing.NORTH), Height(BlockFacing.EAST), Height(BlockFacing.SOUTH), Height(BlockFacing.WEST)));
+    }
+
+    // On the east face under y = 1 - z, an area 7..8 voxels along it meets the cut 7 voxels up at its downhill end; no area
+    // asks for the whole face.
+    [Fact]
+    public void AnAttachmentHoldsOnlyWhereItsAreaLiesWhollyUnderTheCut()
+    {
+        var cells = Cells(ThatchedOneByOne, "north");
+
+        Assert.Equal((true, false, true, false), (
+            RoofCut.Holds(cells, BlockFacing.EAST, new Cuboidi(15, 0, 7, 15, 6, 8)),
+            RoofCut.Holds(cells, BlockFacing.EAST, new Cuboidi(15, 0, 7, 15, 7, 8)),
+            RoofCut.Holds(cells, BlockFacing.NORTH, null),
+            RoofCut.Holds(cells, BlockFacing.EAST, null)));
+    }
+
     private static readonly TextureAtlasPosition Texture = new() { atlasTextureId = 7, x1 = 0, y1 = 0, x2 = 0.5f, y2 = 0.5f };
 
     // The atlas uvs of a whole 16-texel face of Texture, as the tesselator works them out.
