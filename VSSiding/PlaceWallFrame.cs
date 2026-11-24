@@ -107,13 +107,29 @@ public class PlaceWallFrame : CollectibleBehavior
         placeSel.Position = targetPos;
         placeSel.DidOffset = didOffset;
 
+        // HorizontalOrientable would orient the post to the player; its corner is the click's instead.
+        Vec3d inCell = blockSel.HitPosition.AddCopy(blockSel.Position.X - targetPos.X, blockSel.Position.Y - targetPos.Y, blockSel.Position.Z - targetPos.Z);
+        Block? postBlock = post ? world.GetBlock(new AssetLocation("vssiding", $"wall-cornerin-{PostSide(inCell.X, inCell.Z)}")) : null;
+
+        // A roof's cell takes the frame as the roof's guest, as a roof built into a wall's cell does, with no deck under the slope.
+        // The client only reports the click handled; the server's record reaches it through GuestWalls' channel.
+        if (layout is not ("floor" or "diagonal") && SidingModSystem.IsRoofId(world.BlockAccessor.GetBlock(targetPos).BlockId)
+            && GuestWalls.GuestAt(world.Api, targetPos) == null)
+        {
+            Block? guestBlock = post ? postBlock : world.GetBlock(placeholder.CodeWithVariant("side", Block.SuggestedHVOrientation(byPlayer, placeSel)[0].Code));
+            if (guestBlock != null && world.Side == EnumAppSide.Server && !SidingWallBlock.ClaimRefuses(world, byPlayer, targetPos)
+                && world.BlockAccessor.GetChunkAtBlockPos(targetPos) is { } chunk)
+            {
+                GuestWalls.Set(world, chunk, targetPos, GuestWalls.Encode(new SidingWallEntity { Block = guestBlock, Pos = targetPos.Copy(), Framing = framingKey }));
+                SidingWallBlock.ConsumeHeld(slot, Cost(false), isCreative);
+            }
+            return;
+        }
+
         string failureCode = "";
         bool placed;
         if (post)
         {
-            // HorizontalOrientable would orient the post to the player; its corner is the click's instead.
-            Vec3d inCell = blockSel.HitPosition.AddCopy(blockSel.Position.X - targetPos.X, blockSel.Position.Y - targetPos.Y, blockSel.Position.Z - targetPos.Z);
-            var postBlock = world.GetBlock(new AssetLocation("vssiding", $"wall-cornerin-{PostSide(inCell.X, inCell.Z)}"));
             placed = postBlock != null && postBlock.CanPlaceBlock(world, byPlayer, placeSel, ref failureCode);
             if (placed) postBlock!.DoPlaceBlock(world, byPlayer, placeSel, new ItemStack(postBlock));
         }

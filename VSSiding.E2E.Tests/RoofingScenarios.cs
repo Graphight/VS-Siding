@@ -234,6 +234,51 @@ public class RoofingScenarios : AtlasScenarioBase
         }
     }
 
+    // A frame clicked onto the block under a roof goes in the roof's cell as its guest, the wall a frame in open air would be, paid
+    // for in full; one clicked onto the roof's top still goes in the cell above.
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
+    public async Task Frame_Should_BecomeTheRoofsGuest_When_ClickedOntoTheBlockBelow()
+    {
+        if (!RoofingLoaded) return;
+
+        ITestPlayer player = await WallBuilder.JoinBuilder(World);
+        try
+        {
+            BlockPos open = Cell(0, 6), cell = Cell(1, 6);
+            World.SetBlock(Support, open.DownCopy());
+            World.SetBlock(Support, cell.DownCopy());
+            player.Entity.LeftHandItemSlot.Itemstack = new ItemStack(World.Api.World.GetItem(new AssetLocation(Hammer)));
+            Stand(player, cell);
+            await Hold(player, Plank, 4);
+            RightClick(player, Face(cell.DownCopy(), BlockFacing.UP));
+            string roof = World.BlockAt(cell).Code.ToString();
+
+            player.Entity.LeftHandItemSlot.Itemstack = new ItemStack(World.Api.World.GetItem(new AssetLocation(Saw)));
+            ItemSlot slot = player.Player.InventoryManager.ActiveHotbarSlot;
+            async Task<(string Took, int Left)> Frame(BlockPos at, BlockSelection selection)
+            {
+                Stand(player, at);
+                await Hold(player, Plank, 2);
+                return (RightClick(player, selection), slot.Itemstack?.StackSize ?? 0);
+            }
+            (string?, (string?, string?, string?, string?, string?)?) Wall(BlockPos at) => (World.BlockAt(at).Code.ToString(), WallBuilder.Layers(World, at));
+
+            await Frame(open, Face(open.DownCopy(), BlockFacing.UP));
+            var framed = Wall(open);
+            var underRoof = await Frame(cell, Face(cell.DownCopy(), BlockFacing.UP));
+            var guest = (WallBuilder.GuestCode(World, cell), WallBuilder.GuestLayers(World, cell));
+            var onTop = await Frame(cell, Face(cell, BlockFacing.UP));
+
+            Assert.Equal((roof, ("the held item", 0), framed, ("the held item", 0), framed),
+                (World.BlockAt(cell).Code.ToString(), underRoof, guest, onTop, Wall(cell.UpCopy())));
+        }
+        finally
+        {
+            player.Player.Disconnect();
+            await World.Until(() => !player.IsConnected);
+        }
+    }
+
     private static BlockSelection Face(BlockPos pos, BlockFacing face)
         => new() { Position = pos.Copy(), Face = face, HitPosition = new Vec3d(0.5, 0.5, 0.5).Add(face.Normalf.X * 0.5, face.Normalf.Y * 0.5, face.Normalf.Z * 0.5) };
 
@@ -504,7 +549,8 @@ public class RoofingScenarios : AtlasScenarioBase
         await Hold(player, Plank, 4);
         Errors.Clear();
         string took = Try(() => RightClick(player, target.Select(cell)));
-        return $"| {roof} | {target.Name} | {took} | {Where(cell, "vssiding")} | {World.BlockAt(cell).Code} | {ErrorList()} |";
+        string guest = WallBuilder.GuestCode(World, cell) is { } code ? $"{code}, framing {WallBuilder.GuestLayers(World, cell)?.Framing}" : "none";
+        return $"| {roof} | {target.Name} | {took} | {Where(cell, "vssiding")} | {guest} | {World.BlockAt(cell).Code} | {ErrorList()} |";
     }
 
     private static void Stand(ITestPlayer player, BlockPos cell)
@@ -778,9 +824,10 @@ public class RoofingScenarios : AtlasScenarioBase
             "## A siding frame click aimed at a roof's cell",
             "",
             "A roof frame built as in the tool modes table, bare or thatched, with granite under it and east of it, and a siding wall frame clicked at its cell with planks.",
+            "`Guest` is the wall the roof's cell holds as its guest after the click.",
             "",
-            "| Roof | Click on | Took the click | Siding block at | Roof cell after | In-game errors |",
-            "| --- | --- | --- | --- | --- | --- |",
+            "| Roof | Click on | Took the click | Siding block at | Guest | Roof cell after | In-game errors |",
+            "| --- | --- | --- | --- | --- | --- | --- |",
         };
         string directory = Path.GetFullPath("../../../../docs/compat", Path.GetDirectoryName(typeof(RoofingScenarios).Assembly.Location)!);
         Directory.CreateDirectory(directory);

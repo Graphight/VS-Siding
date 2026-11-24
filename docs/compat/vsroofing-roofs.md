@@ -289,12 +289,13 @@ A hosted roof takes no off-panel shift, so its own boxes span the cell over the 
 ## A siding frame click aimed at a roof's cell
 
 A roof frame built as in the tool modes table, bare or thatched, with granite under it and east of it, and a siding wall frame clicked at its cell with planks.
+`Guest` is the wall the roof's cell holds as its guest after the click.
 
-| Roof | Click on | Took the click | Siding block at | Roof cell after | In-game errors |
-| --- | --- | --- | --- | --- | --- |
-| vsroofing:roof-bare-north | the top of the block below | the held item | nowhere | vsroofing:roof-bare-north | none |
-| vsroofing:roof-bare-north | the roof's top | the held item | above | vsroofing:roof-bare-north | none |
-| vsroofing:roof-bare-north | the side neighbour's face | the held item | nowhere | vsroofing:roof-bare-north | none |
-| vsroofing:roof-filled-north | the top of the block below | the held item | nowhere | vsroofing:roof-filled-north | none |
-| vsroofing:roof-filled-north | the roof's top | the held item | above | vsroofing:roof-filled-north | none |
-| vsroofing:roof-filled-north | the side neighbour's face | the held item | nowhere | vsroofing:roof-filled-north | none |
+| Roof | Click on | Took the click | Siding block at | Guest | Roof cell after | In-game errors |
+| --- | --- | --- | --- | --- | --- | --- |
+| vsroofing:roof-bare-north | the top of the block below | the held item | nowhere | vssiding:wall-wall-north, framing oak | vsroofing:roof-bare-north | none |
+| vsroofing:roof-bare-north | the roof's top | the held item | above | none | vsroofing:roof-bare-north | none |
+| vsroofing:roof-bare-north | the side neighbour's face | the held item | nowhere | vssiding:wall-wall-north, framing oak | vsroofing:roof-bare-north | none |
+| vsroofing:roof-filled-north | the top of the block below | the held item | nowhere | vssiding:wall-wall-north, framing oak | vsroofing:roof-filled-north | none |
+| vsroofing:roof-filled-north | the roof's top | the held item | above | none | vsroofing:roof-filled-north | none |
+| vsroofing:roof-filled-north | the side neighbour's face | the held item | nowhere | vssiding:wall-wall-north, framing oak | vsroofing:roof-filled-north | none |
