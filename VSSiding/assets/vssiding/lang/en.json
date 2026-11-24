@@ -305,7 +305,7 @@
 	"build-tile-glazed": "Glazing takes no tiles",
 	"build-tile-vent": "A vent takes no tiles",
 	"build-already-stepped": "This wall already has a step",
-	"build-under-roof": "A wall under a roof takes no deck, step or corner",
+	"build-under-roof": "A wall under a roof takes no deck or step and cannot be turned into a corner",
 	"build-roof-fill": "A wall and a base block cannot share a roof",
 	"build-cant-afford": "Not enough material",
 	"tooltip-no-framing": "No framing",

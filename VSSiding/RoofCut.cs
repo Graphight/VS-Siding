@@ -207,8 +207,9 @@ internal static class RoofCut
         => cells.Max(cell => cell.Min(half => half.HeightAt(x, z)));
 
     // The lowest the cut reaches along a side face's edge of the cell, between from and to along the face, held to the cell:
-    // as high as the face dams liquid. shortcut: reads the span's ends only, exact while every plane rises along one axis
-    // (Roofing's slopes, ridges and corners); read the planes' crossings too if a cut ever bends mid-span.
+    // as high as the face dams liquid. shortcut: reads the span's ends only. A cell's cut, the lowest of its planes, is lowest at
+    // an end; a valley's, the higher of two, is too while one of the two is level along the face, as on every side face of a
+    // Roofing valley; read the planes' crossings too if a cut ever dips mid-span.
     internal static double FaceHeight(HalfSpace[][] cells, BlockFacing face, double from = 0, double to = 1)
     {
         double edge = face.Normali.X + face.Normali.Z > 0 ? 1 : 0;

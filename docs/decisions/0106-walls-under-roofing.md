@@ -69,7 +69,7 @@ The probe found no other path the fill takes, so dropping the wall when a fill l
 - **Reading the slope from Roofing's block entity** (`RoofInfo`, `CornerType`, the slope picks). That is the private saved state of a mod with no public source; the collision boxes are vanilla's public block API, and the corner reading uses them alone.
 - **Decompiling Roofing's DLL.** Not needed: its assets, its block's public overrides read by reflection, and the probe's recorded boxes were enough.
 - **The base fill as the wall's fill** (the `chiselling-walls` route Roofing's author named). The fill is one block's material at the cell's full depth, not a framed, layered wall, and Roofing does not yet take a pre-chiselled block.
-- **Dropping the wall when the base fill lands.** Kept as the fallback had the fill reached the cell by a path Siding could not stop; none was found.
+- **Dropping the wall when the base fill lands.** Held in reserve for a fill reaching the cell by a path Siding could not stop; the probe found none, so it was not built.
 - **Keeping 0093's break for roofs.** A roof is not furniture moved in and out: breaking it to change a finish would mean rebuilding the roof and its thatch to put it back.
 - **An exact sloped box per layer for collision.** Collision boxes are axis-aligned, so a slope is a staircase either way; eight strips match the deck's under a diagonal (0067).
 - **A deck, a step and a corner upgrade under a roof, cut like the rest.** A deck lies at the top of the cell, mostly above any slope, and a gable needs neither the step nor the upgrade; left out until a player asks.
@@ -80,7 +80,7 @@ The probe found no other path the fill takes, so dropping the wall when a fill l
 - Corner pieces were probed at the 1x1 slope only; the other slopes' corners are read by the same rule from their boxes, unseen.
 - A ridge beside a corner piece reads the corner piece as no slope, so a wall under that ridge is cut by the other side alone, or not at all.
 - Under a corner a strip's height is read at the box's middle across it, so a thick box's top is off by the cut's fall across it (a `shortcut:` comment in `ClipBoxes`).
-- `FaceHeight` reads a face's span at its two ends, exact while every plane rises along one axis, as Roofing's slopes, ridges and corners do.
+- `FaceHeight` reads a face's span at its two ends: exact for a cell's cut, the lowest of its planes, and for a valley's, the higher of two, while one of the two is level along the face, as on every side face of a Roofing valley.
 - While a layer is being mined off the panel, the mining time and sounds are the roof's.
 - A Roofing update that changes its boxes changes the cut; a box set `RoofCut` cannot read leaves the wall uncut rather than wrong.
-- A wall under a roof takes no deck, step or corner upgrade, so a corner under a roof has to be framed as a corner.
+- A wall under a roof takes no deck or step and cannot be upgraded to a corner, so a corner under a roof has to be framed as a corner.

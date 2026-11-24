@@ -1739,7 +1739,8 @@ public class SidingWallBlock : Block
         world.BlockAccessor.ExchangeBlock(blockId, pos);
     }
 
-    // A deck, a step or a corner would reach past a roof's slope, so a wall a roof hosts takes none of them.
+    // A deck lies at the top of the cell, mostly above any slope, and a gable needs neither a step nor a corner upgrade, so a
+    // wall a roof hosts takes none of them (decision 0106); a corner can still be framed into a roof's cell as a corner.
     private static bool RoofRefuses(IWorldAccessor world, IPlayer byPlayer, BlockPos pos)
     {
         if (!SidingModSystem.IsRoofId(world.BlockAccessor.GetBlock(pos).BlockId)) return false;
