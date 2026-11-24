@@ -16,10 +16,10 @@ using Xunit;
 
 namespace VSSiding.E2E.Tests;
 
-// Runs with `just probe vsroofing`, the only run that loads VS Roofing. The probe asserts nothing: it records what Roofing's own clicks
-// build in open air, as single pieces, gables and corners, what they do to a siding wall's cell, what its base fill does to a
-// roof hosting one, and what a siding frame click does to a roof's cell, for the walls-under-roofing proposal.
-// docs/compat/vsroofing-roofs.md records the run.
+// Runs with `just probe vsroofing`, the only run that loads VS Roofing; under `just e2e` every scenario returns at once.
+// Probe_Should_RecordHowRoofingMeetsASidingWall asserts nothing: it records what Roofing's own clicks build in open air, as single
+// pieces, gables and corners, what they do to a siding wall's cell, what its base fill does to a roof hosting one, and what a
+// siding frame click does to a roof's cell, into docs/compat/vsroofing-roofs.md. The other scenarios assert decision 0106.
 [Trait("Category", "Probe")]
 [AtlasWorld(Mods = new[] { "../../../../compat/mods/slot0.zip", "../../../../compat/mods/slot1.zip", "../../../../compat/mods/slot2.zip", "../../../../compat/mods/slot3.zip", "../../../../compat/mods/slot4.zip", "../../../../compat/mods/slot5.zip" })]
 public class RoofingScenarios : AtlasScenarioBase
@@ -121,33 +121,14 @@ public class RoofingScenarios : AtlasScenarioBase
             }
 
             int k = 0;
-            foreach (bool admitted in new[] { false, true })
-            {
-                System.Action? restore = admitted ? Admit() : null;
-                try
-                {
-                    foreach (string? infill in new[] { null, "game:clay-blue" })
-                        foreach (Target target in WallTargets)
-                            walls.Add(await IntoWall(player, infill, target, admitted, Cell(k++, -12)));
-                }
-                finally
-                {
-                    restore?.Invoke();
-                }
-            }
+            foreach (string? infill in new[] { null, "game:clay-blue" })
+                foreach (Target target in WallTargets)
+                    walls.Add(await IntoWall(player, infill, target, Cell(k++, -12)));
 
-            System.Action restoreTable = Admit();
-            try
-            {
-                int f = 0;
-                foreach (bool thatched in new[] { false, true })
-                    foreach (var (hosted, onPanel) in FillClicks)
-                        fills.Add(await Fill(player, thatched, hosted, onPanel, Cell(f++, -18)));
-            }
-            finally
-            {
-                restoreTable();
-            }
+            int f = 0;
+            foreach (bool thatched in new[] { false, true })
+                foreach (var (hosted, onPanel) in FillClicks)
+                    fills.Add(await Fill(player, thatched, hosted, onPanel, Cell(f++, -18)));
 
             int m = 0;
             foreach (bool thatched in new[] { false, true })
@@ -197,7 +178,7 @@ public class RoofingScenarios : AtlasScenarioBase
             await Hold(player, Thatch, 4);
             WithKeys(player, shift: true, ctrl: false, Face(cell, BlockFacing.SOUTH));
 
-            Assert.Equal(((World.BlockAt(open).Code.Path, RoofBoxes(open), layers), hosted.Path.Replace("-bare-", "-filled-"), layers),
+            Assert.Equal(((World.BlockAt(open).Code.Path, RoofBoxes(open), layers), "roof-filled-north", layers),
                 (hosted, World.BlockAt(cell).Code.Path, WallBuilder.GuestLayers(World, cell)));
         }
         finally
@@ -714,7 +695,7 @@ public class RoofingScenarios : AtlasScenarioBase
             : WallBuilder.GuestLayers(World, cell) is { } guest ? guest == layers ? "guest, layers kept" : "guest, layers changed" : "gone";
 
     // A wall claiming its west face with granite under it and north of it, then a Roofing frame click aimed at its cell.
-    private async Task<string> IntoWall(ITestPlayer player, string? infill, Target target, bool admitted, BlockPos cell)
+    private async Task<string> IntoWall(ITestPlayer player, string? infill, Target target, BlockPos cell)
     {
         World.SetBlock(Support, cell.DownCopy());
         World.SetBlock(Support, cell.NorthCopy());
@@ -745,7 +726,7 @@ public class RoofingScenarios : AtlasScenarioBase
                 broken = $"no wall: {World.BlockAt(cell).Code}";
             }
         }
-        return $"| {(infill == null ? "bare frame" : "clay infill")} | {target.Name} | {(admitted ? "yes" : "no")} | {took} | {roofAt} | {wall} | {errors} | {broken} |";
+        return $"| {(infill == null ? "bare frame" : "clay infill")} | {target.Name} | {took} | {roofAt} | {wall} | {errors} | {broken} |";
     }
 
     // A roof frame from a plank click, thatched or not, with granite under it and east of it, then a siding frame click aimed at its cell.
@@ -870,31 +851,6 @@ public class RoofingScenarios : AtlasScenarioBase
         return boxes is not { Length: > 0 } ? "none" : string.Join(" ", boxes.Select(b => $"({S(b.X1)},{S(b.Y1)},{S(b.Z1)})-({S(b.X2)},{S(b.Y2)},{S(b.Z2)})"));
     }
 
-    // The roof admitted as hostable, as BuildHostableTable would have written it had HostRefusal passed it; the action returned
-    // puts back what the table held.
-    private System.Action Admit()
-    {
-        const BindingFlags flags = BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public;
-        Type modSystem = World.Api.ModLoader.GetModSystem("VSSiding.SidingModSystem").GetType();
-        var hostable = (bool[])modSystem.GetField("Hostable", flags)!.GetValue(null)!;
-        var shifts = (double[]?[])modSystem.GetField("FaceShiftByBlock", flags)!.GetValue(null)!;
-        MethodInfo faceShifts = modSystem.GetMethod("FaceShifts", flags)!;
-        var saved = Roofs.Select(roof => (roof.BlockId, Hostable: hostable[roof.BlockId], Shift: shifts[roof.BlockId])).ToArray();
-        foreach (Block roof in Roofs)
-        {
-            hostable[roof.BlockId] = true;
-            shifts[roof.BlockId] = (double[])faceShifts.Invoke(null, new object[] { roof })!;
-        }
-        return () =>
-        {
-            foreach (var (id, admitted, shift) in saved)
-            {
-                hostable[id] = admitted;
-                shifts[id] = shift;
-            }
-        };
-    }
-
     // Each class from the roof's own up to Block, with the members it overrides.
     private static IEnumerable<string> Overrides(Block roof)
     {
@@ -1015,7 +971,7 @@ public class RoofingScenarios : AtlasScenarioBase
             "",
             "## Base fill on a hosted roof",
             "",
-            "A Standard roof frame from a plank click on granite under the cell, in open air or over a wall framed in oak with clay infill claiming its west face, the roof admitted as hostable for the run; then thatch with a sneak click on the roof's south face, or not; then a ctrl click with granite.",
+            "A Standard roof frame from a plank click on granite under the cell, in open air or over a wall framed in oak with clay infill claiming its west face; then thatch with a sneak click on the roof's south face, or not; then a ctrl click with granite.",
             "The ctrl click lands on the roof's first selection box, on its south face, or on the guest wall's first panel box, on its west face.",
             "A hosted roof takes no off-panel shift, so its own boxes span the cell over the panel's.",
             "`Wall before` is the wall's cell once the roof is built and thatched, and `Key changes` the saved tree's keys the ctrl click added (+), dropped (-) or changed.",
@@ -1030,12 +986,11 @@ public class RoofingScenarios : AtlasScenarioBase
             "",
             "A wall framed in oak, bare or with clay infill, claims its west face, with granite under it and north of it.",
             "The player stands three blocks south with planks in hand, so a roof built there slopes along the wall's plane.",
-            "`Admitted` rows mark every roof block hostable in Siding's table for the run; the others leave the table as the mod built it.",
             "`Roof at` is where a roof block stands after the click, from the wall's cell, and `Wall` whether that cell still holds the wall, holds it as a guest or neither.",
             "`Roof broken` is the wall's cell after a roof in it is broken.",
             "",
-            "| Wall | Click on | Admitted | Took the click | Roof at | Wall | In-game errors | Roof broken |",
-            "| --- | --- | --- | --- | --- | --- | --- | --- |",
+            "| Wall | Click on | Took the click | Roof at | Wall | In-game errors | Roof broken |",
+            "| --- | --- | --- | --- | --- | --- | --- |",
         };
         string[] framesHeader =
         {

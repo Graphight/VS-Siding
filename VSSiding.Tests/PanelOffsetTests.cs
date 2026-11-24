@@ -94,7 +94,7 @@ public class PanelOffsetTests
         var unmarked = Eave("{ \"vssidingHostable\": true }");
         var roof = Eave("{ \"vssidingHostable\": true, \"vssidingRoof\": true }");
 
-        Assert.Equal(new[] { 0.0, 0.0, 0.0, 0.0 }, SidingModSystem.FaceShifts(roof));
+        Assert.Equal(new[] { new[] { 0.25, 0.25, 0.0, 0.25 }, new[] { 0.0, 0.0, 0.0, 0.0 } }, new[] { SidingModSystem.FaceShifts(unmarked), SidingModSystem.FaceShifts(roof) });
         Assert.Equal(((double?)0.25, (double?)null), (SidingModSystem.UnderDeckDropFor(unmarked), SidingModSystem.UnderDeckDropFor(roof)));
     }
 

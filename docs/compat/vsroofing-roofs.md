@@ -243,36 +243,25 @@ Every roof block within two blocks has a row.
 
 A wall framed in oak, bare or with clay infill, claims its west face, with granite under it and north of it.
 The player stands three blocks south with planks in hand, so a roof built there slopes along the wall's plane.
-`Admitted` rows mark every roof block hostable in Siding's table for the run; the others leave the table as the mod built it.
 `Roof at` is where a roof block stands after the click, from the wall's cell, and `Wall` whether that cell still holds the wall, holds it as a guest or neither.
 `Roof broken` is the wall's cell after a roof in it is broken.
 
-| Wall | Click on | Admitted | Took the click | Roof at | Wall | In-game errors | Roof broken |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| bare frame | the top of the block below | no | the held item | the cell | guest, layers kept | none | wall back |
-| bare frame | the wall's room face | no | the held item | the cell | guest, layers kept | none | wall back |
-| bare frame | the wall's outer face | no | the held item | the cell | guest, layers kept | none | wall back |
-| bare frame | the wall's top | no | the held item | above | stays | none |  |
-| bare frame | the side neighbour's face | no | the held item | the cell | guest, layers kept | none | wall back |
-| clay infill | the top of the block below | no | the held item | the cell | guest, layers kept | none | wall back |
-| clay infill | the wall's room face | no | the held item | the cell | guest, layers kept | none | wall back |
-| clay infill | the wall's outer face | no | the held item | the cell | guest, layers kept | none | wall back |
-| clay infill | the wall's top | no | the held item | above | stays | none |  |
-| clay infill | the side neighbour's face | no | the held item | the cell | guest, layers kept | none | wall back |
-| bare frame | the top of the block below | yes | the held item | the cell | guest, layers kept | none | wall back |
-| bare frame | the wall's room face | yes | the held item | the cell | guest, layers kept | none | wall back |
-| bare frame | the wall's outer face | yes | the held item | the cell | guest, layers kept | none | wall back |
-| bare frame | the wall's top | yes | the held item | above | stays | none |  |
-| bare frame | the side neighbour's face | yes | the held item | the cell | guest, layers kept | none | wall back |
-| clay infill | the top of the block below | yes | the held item | the cell | guest, layers kept | none | wall back |
-| clay infill | the wall's room face | yes | the held item | the cell | guest, layers kept | none | wall back |
-| clay infill | the wall's outer face | yes | the held item | the cell | guest, layers kept | none | wall back |
-| clay infill | the wall's top | yes | the held item | above | stays | none |  |
-| clay infill | the side neighbour's face | yes | the held item | the cell | guest, layers kept | none | wall back |
+| Wall | Click on | Took the click | Roof at | Wall | In-game errors | Roof broken |
+| --- | --- | --- | --- | --- | --- | --- |
+| bare frame | the top of the block below | the held item | the cell | guest, layers kept | none | wall back |
+| bare frame | the wall's room face | the held item | the cell | guest, layers kept | none | wall back |
+| bare frame | the wall's outer face | the held item | the cell | guest, layers kept | none | wall back |
+| bare frame | the wall's top | the held item | above | stays | none |  |
+| bare frame | the side neighbour's face | the held item | the cell | guest, layers kept | none | wall back |
+| clay infill | the top of the block below | the held item | the cell | guest, layers kept | none | wall back |
+| clay infill | the wall's room face | the held item | the cell | guest, layers kept | none | wall back |
+| clay infill | the wall's outer face | the held item | the cell | guest, layers kept | none | wall back |
+| clay infill | the wall's top | the held item | above | stays | none |  |
+| clay infill | the side neighbour's face | the held item | the cell | guest, layers kept | none | wall back |
 
 ## Base fill on a hosted roof
 
-A Standard roof frame from a plank click on granite under the cell, in open air or over a wall framed in oak with clay infill claiming its west face, the roof admitted as hostable for the run; then thatch with a sneak click on the roof's south face, or not; then a ctrl click with granite.
+A Standard roof frame from a plank click on granite under the cell, in open air or over a wall framed in oak with clay infill claiming its west face; then thatch with a sneak click on the roof's south face, or not; then a ctrl click with granite.
 The ctrl click lands on the roof's first selection box, on its south face, or on the guest wall's first panel box, on its west face.
 A hosted roof takes no off-panel shift, so its own boxes span the cell over the panel's.
 `Wall before` is the wall's cell once the roof is built and thatched, and `Key changes` the saved tree's keys the ctrl click added (+), dropped (-) or changed.
