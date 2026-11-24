@@ -279,6 +279,74 @@ public class RoofingScenarios : AtlasScenarioBase
         }
     }
 
+    // A wall a roof hosts takes layers from a click on its panel: clay fills it, a trapdoor puts the guest on the vent block, and a
+    // stair is refused, the roof keeping its cell throughout.
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
+    public async Task Guest_Should_TakeLayersFromItsPanel_When_ARoofHostsIt()
+    {
+        if (!RoofingLoaded) return;
+
+        ITestPlayer player = await WallBuilder.JoinBuilder(World);
+        object harmony = PatchIngameErrors(player.Player);
+        try
+        {
+            BlockPos clay = Cell(0, 6), vent = Cell(1, 6);
+            var roofs = new List<string>();
+            foreach (BlockPos cell in new[] { clay, vent })
+            {
+                World.SetBlock(Support, cell.DownCopy());
+                Stand(player, cell);
+                player.Entity.LeftHandItemSlot.Itemstack = new ItemStack(World.Api.World.GetItem(new AssetLocation(Hammer)));
+                await Hold(player, Plank, 4);
+                RightClick(player, Face(cell.DownCopy(), BlockFacing.UP));
+                roofs.Add(World.BlockAt(cell).Code.ToString());
+                player.Entity.LeftHandItemSlot.Itemstack = new ItemStack(World.Api.World.GetItem(new AssetLocation(Saw)));
+                await Hold(player, Plank, 2);
+                RightClick(player, Face(cell.DownCopy(), BlockFacing.UP));
+            }
+
+            async Task<(string, string?, (string?, string?, string?, string?, string?)?, string)> OnPanel(BlockPos cell, string code)
+            {
+                Stand(player, cell);
+                await Hold(player, code, 4);
+                Errors.Clear();
+                string took = RightClick(player, PanelHit(cell, BlockFacing.SOUTH));
+                return (took, WallBuilder.GuestCode(World, cell), WallBuilder.GuestLayers(World, cell), ErrorList());
+            }
+
+            var clayed = await OnPanel(clay, "game:clay-blue");
+            var vented = await OnPanel(vent, "game:trapdoor-solid-oak-1");
+            var stepped = await OnPanel(clay, "game:plankstairs-oak-up-north-free");
+            static (string?, string?, string?, string?, string?)? Filled(string infill) => ("oak", infill, null, null, null);
+
+            Assert.Equal(
+                (("the clicked block", "vssiding:wall-wall-north", Filled("clay"), "none"),
+                 ("the clicked block", "vssiding:wallvent-wall-north", Filled("trapdoor-solid-oak-1"), "none"),
+                 ("the clicked block", "vssiding:wall-wall-north", Filled("clay"), "vssiding:underroof"), roofs[0], roofs[1]),
+                (clayed, vented, stepped, World.BlockAt(clay).Code.ToString(), World.BlockAt(vent).Code.ToString()));
+        }
+        finally
+        {
+            harmony.GetType().GetMethod("UnpatchAll", new[] { typeof(string) })!.Invoke(harmony, new object[] { HarmonyId });
+            player.Player.Disconnect();
+            await World.Until(() => !player.IsConnected);
+        }
+    }
+
+    // A hit on the room side of the first panel box the roof's selection appends.
+    private BlockSelection PanelHit(BlockPos cell, BlockFacing face)
+    {
+        Cuboidf[] boxes = World.BlockAt(cell).GetSelectionBoxes(World.Api.World.BlockAccessor, cell);
+        int index = Array.FindIndex(boxes, box => box.GetType().Name == "PanelSelectionBox");
+        Assert.True(index >= 0, "the roof selects no panel box");
+        Cuboidf panel = boxes[index];
+        return new BlockSelection
+        {
+            Position = cell.Copy(), Face = face, SelectionBoxIndex = index,
+            HitPosition = new Vec3d((panel.X1 + panel.X2) / 2, (panel.Y1 + panel.Y2) / 2, face == BlockFacing.SOUTH ? panel.Z2 : panel.Z1),
+        };
+    }
+
     private static BlockSelection Face(BlockPos pos, BlockFacing face)
         => new() { Position = pos.Copy(), Face = face, HitPosition = new Vec3d(0.5, 0.5, 0.5).Add(face.Normalf.X * 0.5, face.Normalf.Y * 0.5, face.Normalf.Z * 0.5) };
 
