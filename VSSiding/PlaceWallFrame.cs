@@ -72,7 +72,7 @@ public class PlaceWallFrame : CollectibleBehavior
         // A post's frame costs a quarter of a wall's; a deck costs a full frame on either, half of one on a diagonal.
         JsonObject Cost(bool deck) => new(new JObject { ["quantity"] = (post ? SidingWallBlock.PostQuarter(frame) : frame) + (deck ? SidingWallBlock.Share(frame, SidingWallBlock.LayerParts(layout, "deck")) : 0) });
         bool isCreative = byPlayer.WorldData.CurrentGameMode == EnumGameMode.Creative;
-        if (!SidingWallBlock.TryAffordOrError(byPlayer, isCreative, slot.Itemstack.StackSize, Cost(withDeck))) return;
+        if (!SidingWallBlock.TryAffordOrError(byPlayer, isCreative, slot.Itemstack.StackSize, Cost(false))) return;
         var placeholder = world.GetBlock(new AssetLocation("vssiding", layout == "floor" ? "floor" : $"wall-{layout}-west"));
         if (placeholder == null) return;
 
@@ -130,6 +130,9 @@ public class PlaceWallFrame : CollectibleBehavior
             }
             return;
         }
+
+        // A roof's cell takes no deck, so the deck's share is only charged here.
+        if (withDeck && !SidingWallBlock.TryAffordOrError(byPlayer, isCreative, slot.Itemstack.StackSize, Cost(true))) return;
 
         string failureCode = "";
         bool placed;

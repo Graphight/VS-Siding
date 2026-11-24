@@ -235,7 +235,7 @@ public class RoofingScenarios : AtlasScenarioBase
     }
 
     // A frame clicked onto the block under a roof goes in the roof's cell as its guest, the wall a frame in open air would be, paid
-    // for in full; one clicked onto the roof's top still goes in the cell above.
+    // for in full with no deck's share though Deck is picked; one clicked onto the roof's top still goes in the cell above.
     [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
     public async Task Frame_Should_BecomeTheRoofsGuest_When_ClickedOntoTheBlockBelow()
     {
@@ -265,7 +265,9 @@ public class RoofingScenarios : AtlasScenarioBase
 
             await Frame(open, Face(open.DownCopy(), BlockFacing.UP));
             var framed = Wall(open);
+            player.Entity.WatchedAttributes.SetString("vssidingDeck", "deck");
             var underRoof = await Frame(cell, Face(cell.DownCopy(), BlockFacing.UP));
+            player.Entity.WatchedAttributes.SetString("vssidingDeck", "");
             var guest = (WallBuilder.GuestCode(World, cell), WallBuilder.GuestLayers(World, cell));
             var onTop = await Frame(cell, Face(cell, BlockFacing.UP));
 
