@@ -24,8 +24,9 @@ internal static class PanelInteractionPatches
         if (__0 == null || __2 == null) return true;
         if (!GapShiftCollisionPatches.IsPanelHit(__instance, __0.BlockAccessor, __2))
         {
-            // Roofing adds its base fill on a ctrl click with a block in hand, reading the raw ctrl key, not the sprint action.
-            if (!SidingModSystem.IsRoofId(__instance.BlockId) || __1?.Entity.Controls.CtrlKey != true
+            // Roofing adds its base fill on a ctrl click with a block in hand; the probe holds the ctrl key and the sprint action
+            // together, so either one counts.
+            if (!SidingModSystem.IsRoofId(__instance.BlockId) || __1?.Entity.Controls is not { } controls || !(controls.CtrlKey || controls.Sprint)
                 || __1.InventoryManager.ActiveHotbarSlot?.Itemstack?.Block == null || GuestWalls.GuestAt(__0.Api, __2.Position) == null)
                 return true;
             SidingWallBlock.RefuseBaseFill(__1);
