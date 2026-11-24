@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
+using Vintagestory.API.Client;
+using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
 
 namespace VSSiding;
@@ -10,6 +13,31 @@ internal readonly record struct HalfSpace(double Nx, double Ny, double Nz, doubl
 {
     internal double HeightAt(double x, double z) => (D - Nx * x - Nz * z) / Ny;
 }
+
+// A mesh corner as a cut carries it, its colour packed as MeshData.Rgba lays out one vertex's bytes.
+internal readonly record struct Corner(float X, float Y, float Z, float U, float V, int Rgba, int Flags)
+{
+    internal double Past(HalfSpace half) => half.Nx * X + half.Ny * Y + half.Nz * Z - half.D;
+
+    internal Corner Toward(Corner other, double t, int flags) => new(
+        (float)(X + (other.X - X) * t), (float)(Y + (other.Y - Y) * t), (float)(Z + (other.Z - Z) * t),
+        (float)(U + (other.U - U) * t), (float)(V + (other.V - V) * t), LerpBytes(Rgba, other.Rgba, t), flags);
+
+    private static int LerpBytes(int a, int b, double t)
+    {
+        int lerped = 0;
+        for (int shift = 0; shift < 32; shift += 8)
+        {
+            int from = (a >> shift) & 0xFF, to = (b >> shift) & 0xFF;
+            lerped |= (int)Math.Round(from + (to - from) * t) << shift;
+        }
+
+        return lerped;
+    }
+}
+
+// What the chunk tesselator reads per quad rather than per vertex.
+internal readonly record struct FaceData(int TextureId, byte XyzFace, byte Climate, byte Season, short RenderPass);
 
 // A Roofing roof spans the cell of the wall it hosts, so the wall keeps only the part under the roof's slope. The slope comes
 // from the roof's own boxes, a staircase whose step corners lie on it, and the part kept is a union of convex cells, each the
@@ -103,6 +131,157 @@ internal static class RoofCut
     // The cut's height over (x, z): the highest of its cells, each as high as the lowest of its planes.
     internal static double Height(HalfSpace[][] cells, double x, double z)
         => cells.Max(cell => cell.Min(half => half.HeightAt(x, z)));
+
+    // Every mesh built under one roof is cached under the cut's value as well as the wall's state.
+    internal static string Key(HalfSpace[][] cells)
+        => string.Join("/", cells.Select(cell => string.Join(";", cell.Select(half
+            => string.Create(CultureInfo.InvariantCulture, $"{half.Nx:R},{half.Ny:R},{half.Nz:R},{half.D:R}")))));
+
+    // A new mesh of each quad's part inside the cells. The chunk tesselator reads a mesh four corners and six indices per quad,
+    // so a face's cut part, a convex polygon, goes back in as quads fanned from its first corner, the last repeating a corner
+    // where the polygon's count is odd.
+    internal static MeshData ClipMesh(MeshData mesh, HalfSpace[][] cells)
+    {
+        var clipped = NewMesh(mesh.VerticesCount);
+        var quad = new Corner[4];
+        for (int face = 0; face < mesh.VerticesCount / 4; face++)
+        {
+            for (int i = 0; i < 4; i++) quad[i] = CornerAt(mesh, face * 4 + i);
+            var data = new FaceData(mesh.TextureIds[mesh.TextureIndices[face]], mesh.XyzFaces[face],
+                mesh.ClimateColorMapIds[face], mesh.SeasonColorMapIds[face], mesh.RenderPassesAndExtraBits[face]);
+            foreach (var cell in cells)
+            {
+                // The cells only touch, so a face wholly in one has nothing in another.
+                if (quad.All(corner => cell.All(half => corner.Past(half) <= Epsilon)))
+                {
+                    Emit(clipped, quad, data);
+                    break;
+                }
+
+                Emit(clipped, cell.Aggregate<HalfSpace, IReadOnlyList<Corner>>(quad, Clip), data);
+            }
+        }
+
+        return clipped;
+    }
+
+    // Each selected element's footprint raised onto every roof plane of a cell, where that plane runs through the element's
+    // box: the closed sloped top of the part ClipMesh keeps. It takes the element's up face's texture and uvs, or its first
+    // face's where another element sits on it, as the tesselator would lay them out, turned with the mesh. A turned element,
+    // a diagonal's, gets none: a diagonal hosts nothing.
+    internal static MeshData Caps(Shape shape, string[] selectiveElements, Vec3f rotation, ITexPositionSource texSource, HalfSpace[][] cells)
+    {
+        var caps = NewMesh(16);
+        var selected = selectiveElements.ToHashSet();
+        foreach (var element in shape.Elements)
+        {
+            if (!selected.Contains(element.Name ?? "") || element.From is not { } from || element.To is not { } to
+                || element.RotationX != 0 || element.RotationY != 0 || element.RotationZ != 0) continue;
+            if (element.FacesResolved is not { } faces || (faces[BlockFacing.UP.Index] ?? faces.FirstOrDefault(face => face != null)) is not { } top
+                || texSource[top.Texture] is not { } texture) continue;
+
+            Corner[] footprint = Footprint(shape, from, to, element, top, texture, rotation);
+            var slab = new[] { new HalfSpace(0, 1, 0, to[1] / 16), new HalfSpace(0, -1, 0, -from[1] / 16) };
+            var data = new FaceData(texture.atlasTextureId, BlockFacing.UP.MeshDataIndex, 0, 0,
+                (short)(element.RenderPass + (element.DisableRandomDrawOffset ? 1024 : 0)));
+            foreach (var cell in cells)
+            {
+                foreach (var plane in cell.Where(half => half.Ny > Epsilon))
+                {
+                    double length = Math.Sqrt(plane.Nx * plane.Nx + plane.Ny * plane.Ny + plane.Nz * plane.Nz);
+                    int normal = VertexFlags.PackNormal(plane.Nx / length, plane.Ny / length, plane.Nz / length);
+                    IReadOnlyList<Corner> raised = Array.ConvertAll(footprint, corner
+                        => corner with { Y = (float)plane.HeightAt(corner.X, corner.Z), Flags = (corner.Flags & VertexFlags.ClearNormalBitMask) | normal });
+                    Emit(caps, cell.Where(half => half != plane).Concat(slab).Aggregate(raised, Clip), data);
+                }
+            }
+        }
+
+        return caps;
+    }
+
+    // The face as ShapeTesselator.TesselateShapeElement lays out an up face, uvs and all, then turned as TesselateShape turns
+    // the whole mesh.
+    private static Corner[] Footprint(
+        Shape shape, double[] from, double[] to, ShapeElement element, ShapeElementFace top, TextureAtlasPosition texture, Vec3f rotation)
+    {
+        int[] texels = shape.TextureSizes.TryGetValue(top.Texture, out var sized) ? sized : [shape.TextureWidth, shape.TextureHeight];
+        float perU = (texture.x2 - texture.x1) / texels[0], perV = (texture.y2 - texture.y1) / texels[1];
+        float[] uv = top.Uv ?? [0, 0, (float)(to[0] - from[0]), (float)(to[2] - from[2])];
+        var origin = new Vec2f(texture.x1 + uv[0] * perU, texture.y1 + uv[3] * perV);
+        var span = new Vec2f((uv[2] - uv[0]) * perU, (uv[1] - uv[3]) * perV);
+        span.X -= Math.Max(0, origin.X + span.X - texture.x2);
+        span.Y -= Math.Max(0, origin.Y + span.Y - texture.y2);
+        int light = ((element.ZOffset & 7) << 8) | top.Glow;
+
+        var quad = new MeshData(4, 6);
+        ModelCubeUtilExt.AddFace(quad, BlockFacing.UP,
+            new Vec3f((float)(from[0] + to[0]) / 32, (float)(from[1] + to[1]) / 32, (float)(from[2] + to[2]) / 32),
+            new Vec3f((float)(to[0] - from[0]) / 16, (float)(to[1] - from[1]) / 16, (float)(to[2] - from[2]) / 16),
+            origin, span, texture.atlasTextureId, element.Color, ModelCubeUtilExt.EnumShadeMode.On, [light, light, light, light],
+            uvRotation: (int)(top.Rotation / 90) % 4);
+        if (rotation.X != 0 || rotation.Y != 0 || rotation.Z != 0)
+            quad.Rotate(new Vec3f(0.5f, 0.5f, 0.5f), rotation.X * GameMath.DEG2RAD, rotation.Y * GameMath.DEG2RAD, rotation.Z * GameMath.DEG2RAD);
+        return [.. Enumerable.Range(0, 4).Select(i => CornerAt(quad, i))];
+    }
+
+    private static MeshData NewMesh(int vertices)
+        => new MeshData(Math.Max(vertices, 4), Math.Max(vertices, 4) * 6 / 4).WithColorMaps().WithRenderpasses().WithXyzFaces();
+
+    private static Corner CornerAt(MeshData mesh, int vertex) => new(
+        mesh.xyz[vertex * 3], mesh.xyz[vertex * 3 + 1], mesh.xyz[vertex * 3 + 2], mesh.Uv[vertex * 2], mesh.Uv[vertex * 2 + 1],
+        BitConverter.ToInt32(mesh.Rgba, vertex * 4), mesh.Flags?[vertex] ?? 0);
+
+    // Sutherland-Hodgman: the polygon's part on the kept side, a crossing corner taking the flags of the corner kept. A corner
+    // within Epsilon of the plane is kept and is its edges' crossing, so only an edge from one side clear to the other adds one.
+    private static IReadOnlyList<Corner> Clip(IReadOnlyList<Corner> polygon, HalfSpace half)
+    {
+        var kept = new List<Corner>(polygon.Count + 1);
+        for (int i = 0; i < polygon.Count; i++)
+        {
+            Corner a = polygon[i], b = polygon[(i + 1) % polygon.Count];
+            double pastA = a.Past(half), pastB = b.Past(half);
+            if (pastA <= Epsilon) kept.Add(a);
+            if (Math.Min(pastA, pastB) < -Epsilon && Math.Max(pastA, pastB) > Epsilon)
+                kept.Add(a.Toward(b, pastA / (pastA - pastB), pastA < 0 ? a.Flags : b.Flags));
+        }
+
+        return kept;
+    }
+
+    // A polygon cut down to an edge or a point draws nothing.
+    private const double Sliver = 1e-6;
+
+    private static void Emit(MeshData mesh, IReadOnlyList<Corner> polygon, FaceData face)
+    {
+        if (polygon.Count < 3 || Area(polygon) < Sliver) return;
+        for (int i = 1; i < polygon.Count - 1; i += 2)
+        {
+            int first = mesh.VerticesCount;
+            foreach (var corner in new[] { polygon[0], polygon[i], polygon[i + 1], polygon[Math.Min(i + 2, polygon.Count - 1)] })
+                mesh.AddWithFlagsVertex(corner.X, corner.Y, corner.Z, corner.U, corner.V, corner.Rgba, corner.Flags);
+            mesh.AddQuadIndices(first);
+            mesh.AddTextureId(face.TextureId);
+            mesh.AddXyzFace(face.XyzFace);
+            mesh.AddColorMapIndex(face.Climate, face.Season);
+            mesh.AddRenderPass(face.RenderPass);
+        }
+    }
+
+    // Newell's method: half the length of the summed edge cross products.
+    private static double Area(IReadOnlyList<Corner> polygon)
+    {
+        double x = 0, y = 0, z = 0;
+        for (int i = 0; i < polygon.Count; i++)
+        {
+            Corner a = polygon[i], b = polygon[(i + 1) % polygon.Count];
+            x += (a.Y - b.Y) * (a.Z + b.Z);
+            y += (a.Z - b.Z) * (a.X + b.X);
+            z += (a.X - b.X) * (a.Y + b.Y);
+        }
+
+        return Math.Sqrt(x * x + y * y + z * z) / 2;
+    }
 
     private static bool IsFullCube(Cuboidf box)
         => box.X1 <= Epsilon && box.Y1 <= Epsilon && box.Z1 <= Epsilon && box.X2 >= 1 - Epsilon && box.Y2 >= 1 - Epsilon && box.Z2 >= 1 - Epsilon;

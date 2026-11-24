@@ -2,6 +2,8 @@ using System;
 using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Vintagestory.API.Client;
+using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
 using Xunit;
 
@@ -91,5 +93,106 @@ public class RoofCutTests
 
         Assert.Same(GapShiftCollisionPatches.UnderRoof(panel, Cells(ThatchedOneByOne, "north")),
             GapShiftCollisionPatches.UnderRoof(panel, Cells(ThatchedOneByOne, "north")));
+    }
+
+    private static readonly TextureAtlasPosition Texture = new() { atlasTextureId = 7, x1 = 0, y1 = 0, x2 = 0.5f, y2 = 0.5f };
+
+    // The atlas uvs of a whole 16-texel face of Texture, as the tesselator works them out.
+    private static readonly (Vec2f origin, Vec2f span) WholeTexture = (new Vec2f(0, 0.5f), new Vec2f(0.5f, -0.5f));
+
+    // A unit cube's six faces as the tesselator lays out a full-block element's.
+    private static MeshData Cube()
+    {
+        var mesh = new MeshData(24, 36).WithColorMaps().WithRenderpasses();
+        foreach (var facing in BlockFacing.ALLFACES)
+        {
+            ModelCubeUtilExt.AddFace(mesh, facing, new Vec3f(0.5f, 0.5f, 0.5f), new Vec3f(1, 1, 1), WholeTexture.origin, WholeTexture.span,
+                Texture.atlasTextureId, -1, ModelCubeUtilExt.EnumShadeMode.On, [0, 0, 0, 0]);
+        }
+
+        return mesh;
+    }
+
+    // Quads, then indices, then each per-quad array's count, then the area the triangles cover, in square blocks.
+    private static (int, int, int, int, int, int, double) Summary(MeshData mesh)
+    {
+        Vec3d At(int index) => new(mesh.xyz[index * 3], mesh.xyz[index * 3 + 1], mesh.xyz[index * 3 + 2]);
+        double area = Enumerable.Range(0, mesh.IndicesCount / 3).Sum(triangle =>
+        {
+            Vec3d a = At(mesh.Indices[triangle * 3]), b = At(mesh.Indices[triangle * 3 + 1]), c = At(mesh.Indices[triangle * 3 + 2]);
+            return (b - a).Cross(c - a).Length() / 2;
+        });
+        return (mesh.VerticesCount / 4, mesh.IndicesCount, mesh.TextureIndicesCount, mesh.XyzFacesCount, mesh.ColorMapIdsCount, mesh.RenderPassCount,
+            Math.Round(area, 4));
+    }
+
+    private static Shape OneElementShape(params (string name, double[] from, double[] to)[] elements) => new()
+    {
+        Elements = elements.Select(element =>
+        {
+            var shaped = new ShapeElement { Name = element.name, From = element.from, To = element.to };
+            shaped.FacesResolved![BlockFacing.UP.Index] = new ShapeElementFace { Texture = "framing", Uv = [0, 0, 16, 16] };
+            return shaped;
+        }).ToArray(),
+    };
+
+    private sealed class OneTexture : ITexPositionSource
+    {
+        public TextureAtlasPosition this[string textureCode] => Texture;
+
+        public Size2i AtlasSize => new(16, 16);
+    }
+
+    // Under y = 1 - z: the north and bottom faces whole, the east and west cut to triangles, the south and top to edges.
+    [Fact]
+    public void ACubeKeepsOnlyItsFacesPartsUnderTheSlope()
+    {
+        Assert.Equal((4, 24, 4, 4, 4, 4, 3.0), Summary(RoofCut.ClipMesh(Cube(), Cells(ThatchedOneByOne, "north"))));
+    }
+
+    // Each corner of a quad with the quad's lighting face and atlas page.
+    private static (float x, float y, float z, float u, float v, byte face, int texture)[] Corners(MeshData mesh, int quad)
+        => [.. Enumerable.Range(quad * 4, 4).Select(i => (mesh.xyz[i * 3], mesh.xyz[i * 3 + 1], mesh.xyz[i * 3 + 2], mesh.Uv[i * 2], mesh.Uv[i * 2 + 1],
+            mesh.XyzFaces[quad], mesh.TextureIds[mesh.TextureIndices[quad]]))];
+
+    // The north face is the cube's first quad and the first one kept.
+    [Fact]
+    public void AFaceWhollyUnderTheSlopeKeepsItsCornersAndQuadData()
+    {
+        var cube = Cube();
+
+        Assert.Equal(Corners(cube, 0), Corners(RoofCut.ClipMesh(cube, Cells(ThatchedOneByOne, "north")), 0));
+    }
+
+    // The cap is the element's up face, corners and uvs, raised onto y = 1 - z: a slope one block wide and root two long.
+    [Fact]
+    public void ACutElementIsClosedByItsUpFaceRaisedOntoTheSlope()
+    {
+        var expected = Corners(Cube(), BlockFacing.UP.Index).Select(corner => corner with { y = 1 - corner.z });
+
+        var caps = RoofCut.Caps(OneElementShape(("framing", [0, 0, 0], [16, 16, 16])), ["framing"], new Vec3f(), new OneTexture(),
+            Cells(ThatchedOneByOne, "north"));
+
+        Assert.Equal((1, 6, 1, 1, 1, 1, Math.Round(Math.Sqrt(2), 4)), Summary(caps));
+        Assert.Equal(expected, Corners(caps, 0));
+    }
+
+    [Fact]
+    public void AHalfHeightElementIsCappedOnlyWhereTheSlopeRunsThroughIt()
+    {
+        var caps = RoofCut.Caps(OneElementShape(("framing", [0, 0, 0], [16, 8, 16])), ["framing"], new Vec3f(), new OneTexture(),
+            Cells(ThatchedOneByOne, "north"));
+
+        Assert.Equal((1, 6, 1, 1, 1, 1, Math.Round(Math.Sqrt(2) / 2, 4)), Summary(caps));
+    }
+
+    // A sill under the slope, a plate over it, and a cube the selection leaves out.
+    [Fact]
+    public void NoCapGoesOnAnElementTheSlopeMissesOrTheSelectionLeavesOut()
+    {
+        var shape = OneElementShape(("sill", [0, 0, 0], [16, 8, 8]), ("plate", [0, 15, 8], [16, 16, 16]), ("infill", [0, 0, 0], [16, 16, 16]));
+
+        Assert.Equal((0, 0, 0, 0, 0, 0, 0.0),
+            Summary(RoofCut.Caps(shape, ["sill", "plate"], new Vec3f(), new OneTexture(), Cells(ThatchedOneByOne, "north"))));
     }
 }

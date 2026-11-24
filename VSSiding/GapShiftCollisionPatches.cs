@@ -113,15 +113,15 @@ internal static class GapShiftCollisionPatches
         var (guestWall, guestEntity) = found;
 
         var panelBoxes = guestWall.PanelCollisionBoxes(blockAccessor, pos, guestEntity, fullBoxesOf(guestWall));
-        if (SidingModSystem.IsRoofId(instance.BlockId)
-            && RoofCut.CellsAt(RawCollisionBoxes(instance, blockAccessor, pos), instance.Variant["side"]) is { } cells)
-        {
-            panelBoxes = UnderRoof(panelBoxes, cells);
-        }
+        if (RoofCutAt(instance, blockAccessor, pos) is { } cells) panelBoxes = UnderRoof(panelBoxes, cells);
 
         if (markPanel != null) panelBoxes = markPanel(panelBoxes);
         return Combined(shifted, panelBoxes);
     }
+
+    // The cut a wall hosted by host keeps under its slope, or null for a host that is no roof or names no slope.
+    internal static HalfSpace[][]? RoofCutAt(Block host, IBlockAccessor accessor, BlockPos pos)
+        => SidingModSystem.IsRoofId(host.BlockId) ? RoofCut.CellsAt(RawCollisionBoxes(host, accessor, pos), host.Variant["side"]) : null;
 
     internal static Cuboidf[] UnderRoof(Cuboidf[] panelBoxes, HalfSpace[][] cells)
         => RoofCutCache.GetValue(panelBoxes, static _ => new ConcurrentDictionary<HalfSpace[][], Cuboidf[]>(RoofCut.CellsComparer))
