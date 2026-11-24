@@ -1,6 +1,6 @@
 # Stone infill
 
-- Status: Accepted
+- Status: Accepted; the stone infill's texture choice superseded by 0105
 - Created: 2026-09-18
 - Reflects: branch `masonry-finishes` at 71b8139; `SidingWallBlock.ComputeRetention`; vanilla 1.21 assets (`itemtypes/resource/stone.json`, `textures/block/stone/drystone/`); graduated on branch `stone-infill` at 8195d65
 
