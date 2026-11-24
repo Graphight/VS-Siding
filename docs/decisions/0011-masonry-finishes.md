@@ -1,6 +1,6 @@
 # Masonry finishes
 
-- Status: Accepted
+- Status: Accepted; the drystone and cobblestone texture choice superseded by 0105
 - Created: 2026-09-16
 - Reflects: planning session on `docs/plan-later-proposals`; vanilla 1.21 assets (`blocktypes/stone/`, `itemtypes/resource/stone.json`, `itemtypes/resource/stonebrick.json`, `textures/block/stone/`); shipped in #15 (8195d65); graduated on branch `stone-infill`
 
