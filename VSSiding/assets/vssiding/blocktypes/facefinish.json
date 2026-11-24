@@ -7,7 +7,7 @@
 	],
 	drawtype: "surfacelayer",
 	shapeInventory: {
-		base: "block/basic/layers/0voxel-up", rotateX: 90
+		base: "game:block/basic/layers/0voxel-up", rotateX: 90
 	},
 	sidesolid: { all: false },
 	sideopaque: { all: false },
