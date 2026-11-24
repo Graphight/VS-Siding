@@ -59,6 +59,56 @@ public class RoofCutTests
         Assert.Null(RoofCut.PlaneFrom(Boxes(boxes), side));
     }
 
+    // A ridge's cut, a Gables row, with the roofs a step down and over to its north and south as the cells beside it.
+    private static HalfSpace[][]? UnderRidge(string ridge, (string boxes, string side)? north, (string boxes, string side)? south)
+        => RoofCut.CellsAt(Boxes(ridge), "north", facing => (facing == BlockFacing.NORTH ? north : facing == BlockFacing.SOUTH ? south : null) is { } roof
+            ? (Boxes(roof.boxes), roof.side)
+            : (null, null));
+
+    private const string OneByOneRisingSouth = "(14,0,0)-(16,8,8) (0,0,0)-(2,8,8) (14,8,8)-(16,16,16) (0,8,8)-(2,16,16)";
+    private const string OneByOneRisingNorth = "(0,0,8)-(2,8,16) (14,0,8)-(16,8,16) (0,8,0)-(2,16,8) (14,8,0)-(16,16,8)";
+
+    // In whole voxels mid-cell across the run, at the ridge cell's north edge, a quarter in, the middle, three quarters in and
+    // its south edge, not held to the cell.
+    [Theory]
+    [InlineData("(0,0,0)-(16,2.7,16)", "(14,10.7,0)-(16,13.3,8) (0,10.7,0)-(2,13.3,8) (14,13.3,8)-(16,16,16) (0,13.3,8)-(2,16,16)",
+        "(0,10.7,8)-(2,13.3,16) (14,10.7,8)-(16,13.3,16) (0,13.3,0)-(2,16,8) (14,13.3,0)-(16,16,8)", 0, 1, 3, 1, 0)] // 3x1
+    [InlineData("(0,0,0)-(16,8,16)", OneByOneRisingSouth, OneByOneRisingNorth, 0, 4, 8, 4, 0)] // 1x1
+    [InlineData("(0,0,0)-(16,16,16)", "(14,0,10.7)-(16,8,13.3) (0,0,10.7)-(2,8,13.3) (14,8,13.3)-(16,16,16) (0,8,13.3)-(2,16,16)",
+        "(0,0,2.7)-(2,8,5.3) (14,0,2.7)-(16,8,5.3) (0,8,0)-(2,16,2.7) (14,8,0)-(16,16,2.7)", 0, 12, 24, 12, 0)] // 1x3
+    public void AWallUnderARidgeIsCutToThePeakOfTheSlopesEitherSide(string ridge, string north, string south,
+        double edge, double quarter, double middle, double threeQuarters, double farEdge)
+    {
+        var cells = UnderRidge(ridge, (north, "south"), (south, "north"))!;
+
+        Assert.Equal(new[] { edge, quarter, middle, threeQuarters, farEdge },
+            new[] { 0, 0.25, 0.5, 0.75, 1 }.Select(z => Math.Round(16 * RoofCut.Height(cells, 0.5, z))));
+    }
+
+    // A gable end under the 1x1 ridge: 8 strips rising to the peak and falling again.
+    [Fact]
+    public void AGableWallUnderARidgeIsCutIntoStripsUpToItsPeak()
+    {
+        var expected = Enumerable.Range(0, RoofCut.Strips).Select(k => Voxels(0, 0, 2 * k, 4, k < 4 ? 2 * k + 1 : 15 - 2 * k, 2 * k + 2)).ToArray();
+
+        Assert.Equal(expected, RoofCut.ClipBoxes([Voxels(0, 0, 0, 4, 16, 16)],
+            UnderRidge("(0,0,0)-(16,8,16)", (OneByOneRisingSouth, "south"), (OneByOneRisingNorth, "north"))!));
+    }
+
+    // To the north a roof rising north, away from the ridge; to the south one rising toward it, y = 1 - z in the ridge's cell.
+    [Fact]
+    public void ARidgeIsCutOnlyBySlopesRisingTowardIt()
+    {
+        Assert.Equal(new HalfSpace[][] { [new HalfSpace(0, 1, 1, 1)] },
+            UnderRidge("(0,0,0)-(16,8,16)", (ThatchedOneByOne, "north"), (OneByOneRisingNorth, "north"))!, RoofCut.CellsComparer);
+    }
+
+    [Fact]
+    public void ARidgeWithNoSlopeBesideItIsNotCut()
+    {
+        Assert.Null(UnderRidge("(0,0,0)-(16,8,16)", null, null));
+    }
+
     // A wall claiming its west face, run along a slope rising north: a gable end.
     [Fact]
     public void AGableWallIsCutIntoStripsAsHighAsTheSlopeAtTheirMiddles()

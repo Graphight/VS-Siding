@@ -12,6 +12,9 @@ namespace VSSiding;
 internal readonly record struct HalfSpace(double Nx, double Ny, double Nz, double D)
 {
     internal double HeightAt(double x, double z) => (D - Nx * x - Nz * z) / Ny;
+
+    // The same half-space in the coordinates of the cell (dx, dy, dz) blocks from this one's.
+    internal HalfSpace SeenFrom(int dx, int dy, int dz) => this with { D = D - Nx * dx - Ny * dy - Nz * dz };
 }
 
 // A mesh corner as a cut carries it, its colour packed as MeshData.Rgba lays out one vertex's bytes.
@@ -87,9 +90,24 @@ internal static class RoofCut
         return alongX ? new HalfSpace(-rise, 1, 0, at) : new HalfSpace(0, 1, -rise, at);
     }
 
-    // The convex cells a wall in the roof's cell keeps, or null where the roof's boxes name no slope Siding reads.
-    internal static HalfSpace[][]? CellsAt(Cuboidf[]? boxes, string? side)
-        => PlaneFrom(boxes, side) is { } plane ? [[plane]] : null;
+    // The convex cells a wall in the roof's cell keeps, or null where the roof's boxes name no slope Siding reads. A ridge is a
+    // flat slab one level over the slopes either side, and the cell under it holds no roof, so under a ridge the wall keeps the
+    // one cell under every slope a step down and over that rises toward it, slopeBelow answering that roof's boxes and side.
+    internal static HalfSpace[][]? CellsAt(Cuboidf[]? boxes, string? side, System.Func<BlockFacing, (Cuboidf[]? boxes, string? side)>? slopeBelow = null)
+    {
+        if (PlaneFrom(boxes, side) is { } plane) return [[plane]];
+        if (slopeBelow == null || boxes is not { Length: > 0 } || !boxes.All(IsSlab)) return null;
+
+        var planes = new List<HalfSpace>();
+        foreach (var facing in BlockFacing.HORIZONTALS)
+        {
+            var (belowBoxes, belowSide) = slopeBelow(facing);
+            if (belowSide == facing.Opposite.Code && PlaneFrom(belowBoxes, belowSide) is { } below)
+                planes.Add(below.SeenFrom(-facing.Normali.X, 1, -facing.Normali.Z));
+        }
+
+        return planes.Count > 0 ? [[.. planes]] : null;
+    }
 
     // Each box cut into Strips strips along the slope's run, each as high as the cut at its middle, so its cut end lies either
     // side of the slope by half a strip's rise, as decision 0067's deck strips straddle the panel's line. A box wholly under the
@@ -303,8 +321,11 @@ internal static class RoofCut
         return Math.Sqrt(x * x + y * y + z * z) / 2;
     }
 
-    private static bool IsFullCube(Cuboidf box)
-        => box.X1 <= Epsilon && box.Y1 <= Epsilon && box.Z1 <= Epsilon && box.X2 >= 1 - Epsilon && box.Y2 >= 1 - Epsilon && box.Z2 >= 1 - Epsilon;
+    private static bool IsFullCube(Cuboidf box) => IsSlab(box) && box.Y2 >= 1 - Epsilon;
+
+    // A box over the cell's whole floor, from its bottom up.
+    private static bool IsSlab(Cuboidf box)
+        => box.X1 <= Epsilon && box.Y1 <= Epsilon && box.Z1 <= Epsilon && box.X2 >= 1 - Epsilon && box.Z2 >= 1 - Epsilon;
 
     // A step's foot on its downhill edge and its top on its uphill edge, as (along the run, height).
     private static ((double u, double y) low, (double u, double y) high) Corners(Cuboidf box, bool alongX, bool risesPositive)
