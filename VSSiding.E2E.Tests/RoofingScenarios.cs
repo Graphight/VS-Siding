@@ -17,8 +17,9 @@ using Xunit;
 namespace VSSiding.E2E.Tests;
 
 // Runs with `just probe vsroofing`, the only run that loads VS Roofing. It asserts nothing: it records what Roofing's own clicks
-// build in open air and what they do to a siding wall's cell, and what a siding frame click does to a roof's, for the
-// walls-under-roofing proposal. docs/compat/vsroofing-roofs.md records the run.
+// build in open air, as single pieces, gables and corners, what they do to a siding wall's cell, what its base fill does to a
+// roof hosting one, and what a siding frame click does to a roof's cell, for the walls-under-roofing proposal.
+// docs/compat/vsroofing-roofs.md records the run.
 [Trait("Category", "Probe")]
 [AtlasWorld(Mods = new[] { "../../../../compat/mods/slot0.zip", "../../../../compat/mods/slot1.zip", "../../../../compat/mods/slot2.zip", "../../../../compat/mods/slot3.zip", "../../../../compat/mods/slot4.zip", "../../../../compat/mods/slot5.zip" })]
 public class RoofingScenarios : AtlasScenarioBase
@@ -58,6 +59,25 @@ public class RoofingScenarios : AtlasScenarioBase
         new("the side neighbour's face", cell => Face(cell.EastCopy(), BlockFacing.WEST)),
     };
 
+    // Page 1's manual picks by slope and placement, the orientation picks, and the top page's ridge.
+    private const int Manual = 3, RidgeAuto = 8, RisingNorth = 10, RisingEast = 11, RisingSouth = 12;
+
+    private sealed record Gable(string Name, (int Dz, int Dy, int Pick)[] Side);
+
+    // One side of each gable, upper piece first: south of the ridge's column, rising north, and mirrored north of it. Built top
+    // down, so the granite under each cell is never a roof's cell, and the ridge goes on last, one level over the upper pieces.
+    private static readonly Gable[] Gables =
+    {
+        new("3x1", new[] { (1, 0, 2), (2, 0, 1), (3, 0, 0) }),
+        new("1x1", new[] { (1, 0, 7), (2, -1, 7) }),
+        new("1x3", new[] { (1, 0, 14), (1, -1, 13), (1, -2, 12) }),
+    };
+
+    // A roof rising north, then one rising east behind it (north, uphill) or in front of it (south, downhill).
+    private static readonly (string Name, BlockFacing Second)[] Corners = { ("outer", BlockFacing.NORTH), ("inner", BlockFacing.SOUTH) };
+
+    private static readonly (bool Hosted, bool OnPanel)[] FillClicks = { (false, false), (true, false), (true, true) };
+
     private BlockPos Cell(int index, int row) => World.Spawn.Offset(4 * (index % 10) - 18, 3, row + 6 * (index / 10));
 
     private IEnumerable<Block> Roofs => World.Api.World.Blocks.Where(block => block.Code?.Domain == "vsroofing");
@@ -73,28 +93,61 @@ public class RoofingScenarios : AtlasScenarioBase
         var modes = new List<string>();
         var collision = new List<string>();
         var selection = new List<string>();
+        var sealing = new List<string>();
+        var gables = new List<string>();
+        var corners = new List<string>();
         var walls = new List<string>();
+        var fills = new List<string>();
         var frames = new List<string>();
         try
         {
             List<int[]> picks = await Picks(player);
             for (int i = 0; i < picks.Count; i++)
             {
-                var (mode, boxes, selected) = await Build(player, picks[i], Cell(i, 6));
+                var (mode, boxes, selected, seal) = await Build(player, picks[i], Cell(i, 6));
                 modes.Add(mode);
                 collision.Add(boxes);
                 selection.Add(selected);
+                sealing.Add(seal);
+            }
+
+            for (int g = 0; g < Gables.Length; g++)
+                gables.AddRange(await BuildGable(player, Gables[g], World.Spawn.Offset(8 * g - 14, 6, 0)));
+            for (int c = 0; c < Corners.Length; c++)
+            {
+                var (name, second) = Corners[c];
+                corners.AddRange(await RoofsFrom(player, name, World.Spawn.Offset(8 * c + 10, 3, 0), 2,
+                    ((0, 0, 0), new[] { 0, RisingNorth }), ((second.Normali.X, 0, second.Normali.Z), new[] { 0, RisingEast })));
             }
 
             int k = 0;
             foreach (bool admitted in new[] { false, true })
             {
-                Admit(admitted);
-                foreach (string? infill in new[] { null, "game:clay-blue" })
-                    foreach (Target target in WallTargets)
-                        walls.Add(await IntoWall(player, infill, target, admitted, Cell(k++, -12)));
+                System.Action? restore = admitted ? Admit() : null;
+                try
+                {
+                    foreach (string? infill in new[] { null, "game:clay-blue" })
+                        foreach (Target target in WallTargets)
+                            walls.Add(await IntoWall(player, infill, target, admitted, Cell(k++, -12)));
+                }
+                finally
+                {
+                    restore?.Invoke();
+                }
             }
-            Admit(false);
+
+            System.Action restoreTable = Admit();
+            try
+            {
+                int f = 0;
+                foreach (bool thatched in new[] { false, true })
+                    foreach (var (hosted, onPanel) in FillClicks)
+                        fills.Add(await Fill(player, thatched, hosted, onPanel, Cell(f++, -18)));
+            }
+            finally
+            {
+                restoreTable();
+            }
 
             int m = 0;
             foreach (bool thatched in new[] { false, true })
@@ -103,13 +156,12 @@ public class RoofingScenarios : AtlasScenarioBase
         }
         finally
         {
-            Admit(false);
             harmony.GetType().GetMethod("UnpatchAll", new[] { typeof(string) })!.Invoke(harmony, new object[] { HarmonyId });
             player.Player.Disconnect();
             await World.Until(() => !player.IsConnected);
         }
 
-        WriteReport(modes, collision, selection, walls, frames);
+        WriteReport(modes, collision, selection, sealing, gables, corners, walls, fills, frames);
     }
 
     private static BlockSelection Face(BlockPos pos, BlockFacing face)
@@ -188,7 +240,7 @@ public class RoofingScenarios : AtlasScenarioBase
     }
 
     // A frame on a granite block in open air, the player three blocks south of it, then thatch and a granite fill clicked onto it.
-    private async Task<(string Mode, string Collision, string Selection)> Build(ITestPlayer player, int[] path, BlockPos cell)
+    private async Task<(string Mode, string Collision, string Selection, string Sealing)> Build(ITestPlayer player, int[] path, BlockPos cell)
     {
         string pick = string.Join(" then ", path);
         World.SetBlock(Support, cell.DownCopy());
@@ -199,25 +251,133 @@ public class RoofingScenarios : AtlasScenarioBase
         string took = Try(() => RightClick(player, Face(cell.DownCopy(), BlockFacing.UP)));
         Block roof = World.BlockAt(cell);
         if (roof.Code.Domain != "vsroofing")
-            return ($"| {pick} | {written} | {took} | {roof.Code}, errors {ErrorList()} | | | | |", $"| {pick} | | | |", $"| {pick} | | | |");
+            return ($"| {pick} | {written} | {took} | {roof.Code}, errors {ErrorList()} | | | | |", $"| {pick} | | | |", $"| {pick} | | | |", $"| {pick} | | | | |");
 
         Block wall = World.Api.World.GetBlock(new AssetLocation("vssiding:wall-wall-west"));
-        string sides = string.Concat(BlockFacing.ALLFACES.Select(face => roof.SideIsSolid(cell, face.Index) ? face.Code[0].ToString().ToUpperInvariant() : "-"));
-        string retention = string.Join(" ", BlockFacing.ALLFACES.Select(face => roof.GetRetention(cell, face, EnumRetentionType.Heat)));
-        string mode = $"| {pick} | {written} | {took} | {roof.Code} | {Keys(cell)} | {sides} | {retention} | {roof.IsReplacableBy(wall).ToString().ToLowerInvariant()} |";
+        string mode = $"| {pick} | {written} | {took} | {roof.Code} | {Keys(cell)} | {Sides(cell)} | {Retention(cell)} | {roof.IsReplacableBy(wall).ToString().ToLowerInvariant()} |";
         var boxes = new List<(string Collision, string Selection)> { Boxes(cell) };
+        var sealing = new List<string>();
 
         BlockSelection onRoof = Face(cell, BlockFacing.SOUTH);
         foreach (var (item, shift) in new[] { (Thatch, true), (Support, false) })
         {
             await Hold(player, item, 4);
             string material = Try(() => WithKeys(player, shift, !shift, onRoof));
+            string by = material == "the clicked block" ? "" : $"{material} took the click: ";
             var (after, selected) = Boxes(cell);
-            boxes.Add(material == "the clicked block" ? (after, selected) : ($"{material} took the click: {after}", $"{material} took the click: {selected}"));
+            boxes.Add(($"{by}{after}", $"{by}{selected}"));
+            sealing.Add($"{by}{Sides(cell)} | {Retention(cell)}");
         }
 
-        return (mode, $"| {pick} | {string.Join(" | ", boxes.Select(box => box.Collision))} |", $"| {pick} | {string.Join(" | ", boxes.Select(box => box.Selection))} |");
+        return (mode, $"| {pick} | {string.Join(" | ", boxes.Select(box => box.Collision))} |", $"| {pick} | {string.Join(" | ", boxes.Select(box => box.Selection))} |",
+            $"| {pick} | {string.Join(" | ", sealing)} |");
     }
+
+    private string Sides(BlockPos cell)
+        => string.Concat(BlockFacing.ALLFACES.Select(face => World.BlockAt(cell).SideIsSolid(cell, face.Index) ? face.Code[0].ToString().ToUpperInvariant() : "-"));
+
+    private string Retention(BlockPos cell)
+        => string.Join(" ", BlockFacing.ALLFACES.Select(face => World.BlockAt(cell).GetRetention(cell, face, EnumRetentionType.Heat)));
+
+    // Each side's pieces upper first with a manual pick, then the ridge with Roofing's own ridge pick.
+    private Task<List<string>> BuildGable(ITestPlayer player, Gable gable, BlockPos ridgeColumn)
+    {
+        var clicks = new List<((int, int, int), int[])>();
+        foreach (var (sign, rising) in new[] { (1, RisingNorth), (-1, RisingSouth) })
+            clicks.AddRange(gable.Side.Select(piece => ((0, piece.Dy, sign * piece.Dz), new[] { rising, Manual, piece.Pick })));
+        clicks.Add(((0, 1, 0), new[] { RisingNorth, RidgeAuto }));
+        return RoofsFrom(player, gable.Name, ridgeColumn, 4, clicks.ToArray());
+    }
+
+    // Each click a plank click on the top of granite put under its cell for the click and broken again after, then every roof
+    // block within reach of the origin, and any click whose cell holds no roof.
+    private async Task<List<string>> RoofsFrom(ITestPlayer player, string name, BlockPos origin, int reach, params ((int X, int Y, int Z) Offset, int[] Path)[] clicks)
+    {
+        player.Entity.LeftHandItemSlot.Itemstack = new ItemStack(World.Api.World.GetItem(new AssetLocation(Hammer)));
+        var took = new Dictionary<(int, int, int), (string Pick, string Took)>();
+        foreach (var (offset, path) in clicks)
+        {
+            BlockPos cell = origin.AddCopy(offset.X, offset.Y, offset.Z), below = cell.DownCopy();
+            bool support = World.BlockAt(below).BlockId == 0;
+            if (support) World.SetBlock(Support, below);
+            Stand(player, cell);
+            await Hold(player, Plank, 4, path);
+            Errors.Clear();
+            string result = Try(() => RightClick(player, Face(below, BlockFacing.UP)));
+            took[offset] = (string.Join(" then ", path), Errors.Count == 0 ? result : $"{result}, errors {ErrorList()}");
+            if (support) World.Api.World.BlockAccessor.BreakBlock(below, null, 0);
+        }
+        await World.Ticks(5);
+
+        var rows = new List<string>();
+        for (int dy = -reach; dy <= reach; dy++)
+            for (int dz = -reach; dz <= reach; dz++)
+                for (int dx = -reach; dx <= reach; dx++)
+                {
+                    BlockPos cell = origin.AddCopy(dx, dy, dz);
+                    bool clicked = took.Remove((dx, dy, dz), out var click);
+                    Block block = World.BlockAt(cell);
+                    if (block.Code?.Domain != "vsroofing" && !clicked) continue;
+                    if (block.Code?.Domain != "vsroofing")
+                    {
+                        rows.Add($"| {name} | ({dx},{dy},{dz}) | {click.Pick} | {click.Took} | {block.Code} | | | |");
+                        continue;
+                    }
+                    var (collision, selection) = Boxes(cell);
+                    rows.Add($"| {name} | ({dx},{dy},{dz}) | {click.Pick} | {click.Took} | {block.Code} | {Keys(cell)} | {collision} | {selection} |");
+                }
+        return rows;
+    }
+
+    // A roof frame from a plank click on the block below, over a clay wall claiming its west face unless in open air, thatched or
+    // not, then a ctrl click with granite on the roof's own first box or on the guest wall's panel.
+    private async Task<string> Fill(ITestPlayer player, bool thatched, bool hosted, bool onPanel, BlockPos cell)
+    {
+        World.SetBlock(Support, cell.DownCopy());
+        (string?, string?, string?, string?, string?) layers = default;
+        if (hosted)
+        {
+            player.Entity.LeftHandItemSlot.Itemstack = new ItemStack(World.Api.World.GetItem(new AssetLocation(Saw)));
+            await WallBuilder.Raise(World, player, cell, cell.WestCopy(), Plank, "game:clay-blue");
+            layers = WallBuilder.Layers(World, cell);
+        }
+
+        player.Entity.LeftHandItemSlot.Itemstack = new ItemStack(World.Api.World.GetItem(new AssetLocation(Hammer)));
+        Stand(player, cell);
+        await Hold(player, Plank, 4);
+        RightClick(player, Face(cell.DownCopy(), BlockFacing.UP));
+        if (thatched)
+        {
+            await Hold(player, Thatch, 4);
+            WithKeys(player, shift: true, ctrl: false, Face(cell, BlockFacing.SOUTH));
+        }
+        string roof = $"{World.BlockAt(cell).Code} | {(hosted ? WallState(cell, layers) : "no wall")} | {(onPanel ? "the panel's west face" : "the roof's south face")}";
+        var entriesBefore = Entries(cell);
+
+        BlockSelection selection = Face(cell, BlockFacing.SOUTH);
+        if (onPanel)
+        {
+            Cuboidf[] boxes = World.BlockAt(cell).GetSelectionBoxes(World.Api.World.BlockAccessor, cell);
+            int index = Array.FindIndex(boxes, box => box.GetType().Name == "PanelSelectionBox");
+            if (index < 0) return $"| {roof} | no panel box | | | | | | |";
+            Cuboidf panel = boxes[index];
+            selection = new BlockSelection
+            {
+                Position = cell.Copy(), Face = BlockFacing.WEST, SelectionBoxIndex = index,
+                HitPosition = new Vec3d(panel.X1, (panel.Y1 + panel.Y2) / 2, (panel.Z1 + panel.Z2) / 2),
+            };
+        }
+        await Hold(player, Support, 4);
+        Errors.Clear();
+        string took = Try(() => WithKeys(player, shift: false, ctrl: true, selection));
+        var (collision, selected) = Boxes(cell);
+        return $"| {roof} | {took} | {World.BlockAt(cell).Code} | {Changes(entriesBefore, Entries(cell))} | {collision} | {selected} | {(hosted ? WallState(cell, layers) : "no wall")} | {ErrorList()} |";
+    }
+
+    private string WallState(BlockPos cell, (string?, string?, string?, string?, string?) layers)
+        => IsWall(cell)
+            ? WallBuilder.Layers(World, cell) == layers ? "stays" : "stays, layers changed"
+            : WallBuilder.GuestLayers(World, cell) is { } guest ? guest == layers ? "guest, layers kept" : "guest, layers changed" : "gone";
 
     // A wall claiming its west face with granite under it and north of it, then a Roofing frame click aimed at its cell.
     private async Task<string> IntoWall(ITestPlayer player, string? infill, Target target, bool admitted, BlockPos cell)
@@ -235,9 +395,7 @@ public class RoofingScenarios : AtlasScenarioBase
         string took = Try(() => RightClick(player, target.Select(cell)));
         string errors = ErrorList();
         string roofAt = Where(cell, "vsroofing");
-        string wall = IsWall(cell)
-            ? WallBuilder.Layers(World, cell) == layers ? "stays" : "stays, layers changed"
-            : WallBuilder.GuestLayers(World, cell) is { } guest ? guest == layers ? "guest, layers kept" : "guest, layers changed" : "gone";
+        string wall = WallState(cell, layers);
 
         string broken = "";
         if (World.BlockAt(cell).Code.Domain == "vsroofing")
@@ -319,18 +477,45 @@ public class RoofingScenarios : AtlasScenarioBase
     // The saved tree's keys past the position and code; a scalar with its value, an array with its length.
     private string Keys(BlockPos cell)
     {
-        if (World.BlockEntityAt<BlockEntity>(cell) is not { } entity) return "no entity";
+        if (World.BlockEntityAt<BlockEntity>(cell) is null) return "no entity";
+        return string.Join(", ", Entries(cell).Select(entry => entry.Value.GetValue() switch
+        {
+            Array array => $"{entry.Key}[{array.Length}]",
+            ITreeAttribute => $"{entry.Key}{{}}",
+            var value => $"{entry.Key} {Render(value, full: false)}",
+        }));
+    }
+
+    private List<KeyValuePair<string, IAttribute>> Entries(BlockPos cell)
+    {
+        if (World.BlockEntityAt<BlockEntity>(cell) is not { } entity) return new();
         var tree = new TreeAttribute();
         entity.ToTreeAttributes(tree);
-        return string.Join(", ", tree
-            .Where(entry => entry.Key is not ("posx" or "posy" or "posz" or "blockCode"))
-            .Select(entry => entry.Value.GetValue() switch
-            {
-                Array array => $"{entry.Key}[{array.Length}]",
-                ITreeAttribute => $"{entry.Key}{{}}",
-                var value => $"{entry.Key} {Convert.ToString(value, CultureInfo.InvariantCulture)?.ToLowerInvariant()}",
-            }));
+        return tree.Where(entry => entry.Key is not ("posx" or "posy" or "posz" or "blockCode")).ToList();
     }
+
+    // Each key added, dropped or changed, compared in full and shown with an array of more than 16 by its length.
+    private static string Changes(List<KeyValuePair<string, IAttribute>> before, List<KeyValuePair<string, IAttribute>> after)
+    {
+        var was = before.ToDictionary(entry => entry.Key, entry => entry.Value.GetValue());
+        var changes = new List<string>();
+        foreach (var (key, attribute) in after)
+        {
+            object value = attribute.GetValue();
+            if (!was.Remove(key, out object? old)) changes.Add($"+{key} {Render(value, full: false)}");
+            else if (Render(old, full: true) != Render(value, full: true)) changes.Add($"{key} {Render(old, full: false)} to {Render(value, full: false)}");
+        }
+        changes.AddRange(was.Keys.Select(key => $"-{key}"));
+        return changes.Count == 0 ? "none" : string.Join(", ", changes);
+    }
+
+    private static string Render(object? value, bool full) => value switch
+    {
+        ITreeAttribute tree => $"{{{string.Join(", ", tree.Select(entry => $"{entry.Key} {Render(entry.Value.GetValue(), full)}"))}}}",
+        Array array when full || array.Length <= 16 => $"[{string.Join(" ", array.Cast<object?>().Select(item => Render(item, full)))}]",
+        Array array => $"[{array.Length}]",
+        _ => Convert.ToString(value, CultureInfo.InvariantCulture)?.ToLowerInvariant() ?? "null",
+    };
 
     private (string Collision, string Selection) Boxes(BlockPos cell)
     {
@@ -350,19 +535,39 @@ public class RoofingScenarios : AtlasScenarioBase
         return boxes is not { Length: > 0 } ? "none" : string.Join(" ", boxes.Select(b => $"({S(b.X1)},{S(b.Y1)},{S(b.Z1)})-({S(b.X2)},{S(b.Y2)},{S(b.Z2)})"));
     }
 
-    // The roof admitted as hostable for this run only, as BuildHostableTable would have written it had HostRefusal passed it.
-    private void Admit(bool admit)
+    // The roof admitted as hostable, as BuildHostableTable would have written it had HostRefusal passed it; the action returned
+    // puts back what the table held.
+    private System.Action Admit()
     {
         const BindingFlags flags = BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public;
         Type modSystem = World.Api.ModLoader.GetModSystem("VSSiding.SidingModSystem").GetType();
         var hostable = (bool[])modSystem.GetField("Hostable", flags)!.GetValue(null)!;
         var shifts = (double[]?[])modSystem.GetField("FaceShiftByBlock", flags)!.GetValue(null)!;
         MethodInfo faceShifts = modSystem.GetMethod("FaceShifts", flags)!;
+        var saved = Roofs.Select(roof => (roof.BlockId, Hostable: hostable[roof.BlockId], Shift: shifts[roof.BlockId])).ToArray();
         foreach (Block roof in Roofs)
         {
-            hostable[roof.BlockId] = admit;
-            shifts[roof.BlockId] = admit ? (double[])faceShifts.Invoke(null, new object[] { roof })! : null;
+            hostable[roof.BlockId] = true;
+            shifts[roof.BlockId] = (double[])faceShifts.Invoke(null, new object[] { roof })!;
         }
+        return () =>
+        {
+            foreach (var (id, admitted, shift) in saved)
+            {
+                hostable[id] = admitted;
+                shifts[id] = shift;
+            }
+        };
+    }
+
+    // Each class from the roof's own up to Block, with the members it overrides.
+    private static IEnumerable<string> Overrides(Block roof)
+    {
+        for (Type type = roof.GetType(); type != typeof(Block); type = type.BaseType!)
+            yield return $"- `{type.FullName}`: " + string.Join(", ", type
+                .GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly)
+                .Where(method => method.GetBaseDefinition().DeclaringType != type)
+                .Select(method => $"`{method.Name}`").Distinct().OrderBy(name => name, StringComparer.Ordinal));
     }
 
     // A refusal reaches the player as an in-game error, a packet Atlas does not decode, so a prefix on the server player's
@@ -381,7 +586,8 @@ public class RoofingScenarios : AtlasScenarioBase
         return harmony;
     }
 
-    private void WriteReport(IEnumerable<string> modes, IEnumerable<string> collision, IEnumerable<string> selection, IEnumerable<string> walls, IEnumerable<string> frames)
+    private void WriteReport(IEnumerable<string> modes, IEnumerable<string> collision, IEnumerable<string> selection, IEnumerable<string> sealing,
+        IEnumerable<string> gables, IEnumerable<string> corners, IEnumerable<string> walls, IEnumerable<string> fills, IEnumerable<string> frames)
     {
         var mod = World.Api.ModLoader.GetMod("vsroofing")!;
         string[] header =
@@ -391,8 +597,16 @@ public class RoofingScenarios : AtlasScenarioBase
             $"Mod version {mod.Info.Version}, game version {GameVersion.ShortGameVersion}, probed {DateTime.Now:yyyy-MM-dd}.",
             "Nothing here is asserted: each row is what the two mods did on this run.",
             "Every click goes through vanilla's right-click order, the clicked block's interaction first and then the held item's, run on the server with a hammer in the off hand for Roofing and a saw for Siding.",
-            "`Took the click` names the step that handled it.",
+            "`Took the click` names the step that handled it; `nothing` means vanilla would next place a held block against the clicked face.",
             "In-game errors are the codes the server sent the player; an error raised on the client alone does not reach this run.",
+            "",
+            "## Roof block overrides",
+            "",
+            "The roof's block class and each class above it up to `Block`, with every member it declares over its base, read by reflection.",
+            "",
+        };
+        string[] modesHeader =
+        {
             "",
             "## Tool modes",
             "",
@@ -426,6 +640,54 @@ public class RoofingScenarios : AtlasScenarioBase
             "| Pick | Frame | Thatched | Filled |",
             "| --- | --- | --- | --- |",
         };
+        string[] sealingHeader =
+        {
+            "",
+            "## Sealing after thatch and fill",
+            "",
+            "SideIsSolid and GetRetention as in the tool modes table, after the thatch and then the granite fill.",
+            "",
+            "| Pick | Thatched sides solid | Thatched heat retention | Filled sides solid | Filled heat retention |",
+            "| --- | --- | --- | --- | --- |",
+        };
+        string[] gablesHeader =
+        {
+            "",
+            "## Gables",
+            "",
+            "Each gable is one slice across, running north and south: the pieces south of the ridge's column rise north, and those north of it rise south.",
+            "Each piece is one plank click on granite put under its cell and broken after, built from the upper piece down with the orientation pick, then the manual slope and placement pick.",
+            "The ridge goes on last with Roofing's own ridge pick, one level over the upper pieces.",
+            "`Cell` is in blocks from the ridge's column at the upper pieces' level, (x,y,z); every roof block within four blocks has a row, and a click whose cell holds no roof has one too.",
+            "Boxes are in sixteenths of a block, as above.",
+            "",
+            "| Gable | Cell | Pick | Took the click | Block | Entity keys | Collision | Selection |",
+            "| --- | --- | --- | --- | --- | --- | --- | --- |",
+        };
+        string[] cornersHeader =
+        {
+            "",
+            "## Corners",
+            "",
+            "Two perpendicular roofs, each one Standard pick then an orientation pick, built as the gables are: a roof rising north at (0,0,0), then a roof rising east north of it (behind, uphill) for the outer corner or south of it (in front, downhill) for the inner one.",
+            "Every roof block within two blocks has a row.",
+            "",
+            "| Corner | Cell | Pick | Took the click | Block | Entity keys | Collision | Selection |",
+            "| --- | --- | --- | --- | --- | --- | --- | --- |",
+        };
+        string[] fillsHeader =
+        {
+            "",
+            "## Base fill on a hosted roof",
+            "",
+            "A Standard roof frame from a plank click on granite under the cell, in open air or over a wall framed in oak with clay infill claiming its west face, the roof admitted as hostable for the run; then thatch with a sneak click on the roof's south face, or not; then a ctrl click with granite.",
+            "The ctrl click lands on the roof's first selection box, on its south face, or on the guest wall's first panel box, on its west face.",
+            "A hosted roof takes the off-panel shift BuildHostableTable gives a hostable block, so its own boxes sit east of the panel's.",
+            "`Wall before` is the wall's cell once the roof is built and thatched, and `Key changes` the saved tree's keys the ctrl click added (+), dropped (-) or changed.",
+            "",
+            "| Roof | Wall before | Click on | Took the click | Roof after | Key changes | Collision after | Selection after | Wall after | In-game errors |",
+            "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
+        };
         string[] wallsHeader =
         {
             "",
@@ -433,7 +695,7 @@ public class RoofingScenarios : AtlasScenarioBase
             "",
             "A wall framed in oak, bare or with clay infill, claims its west face, with granite under it and north of it.",
             "The player stands three blocks south with planks in hand, so a roof built there slopes along the wall's plane.",
-            "`Admitted` rows mark every roof block hostable in Siding's table for the run, which no shipped patch does.",
+            "`Admitted` rows mark every roof block hostable in Siding's table for the run; the others leave the table as the mod built it.",
             "`Roof at` is where a roof block stands after the click, from the wall's cell, and `Wall` whether that cell still holds the wall, holds it as a guest or neither.",
             "`Roof broken` is the wall's cell after a roof in it is broken.",
             "",
@@ -445,14 +707,16 @@ public class RoofingScenarios : AtlasScenarioBase
             "",
             "## A siding frame click aimed at a roof's cell",
             "",
-            "A roof frame built as in the first table, bare or thatched, with granite under it and east of it, and a siding wall frame clicked at its cell with planks.",
+            "A roof frame built as in the tool modes table, bare or thatched, with granite under it and east of it, and a siding wall frame clicked at its cell with planks.",
             "",
             "| Roof | Click on | Took the click | Siding block at | Roof cell after | In-game errors |",
             "| --- | --- | --- | --- | --- | --- |",
         };
         string directory = Path.GetFullPath("../../../../docs/compat", Path.GetDirectoryName(typeof(RoofingScenarios).Assembly.Location)!);
         Directory.CreateDirectory(directory);
-        File.WriteAllLines($"{directory}/vsroofing-roofs.md", header.Concat(modes).Concat(boxesHeader).Concat(collision).Concat(selectionHeader).Concat(selection)
-            .Concat(wallsHeader).Concat(walls).Concat(framesHeader).Concat(frames));
+        File.WriteAllLines($"{directory}/vsroofing-roofs.md", header.Concat(Overrides(Roofs.First())).Concat(modesHeader).Concat(modes)
+            .Concat(boxesHeader).Concat(collision).Concat(selectionHeader).Concat(selection).Concat(sealingHeader).Concat(sealing)
+            .Concat(gablesHeader).Concat(gables).Concat(cornersHeader).Concat(corners)
+            .Concat(wallsHeader).Concat(walls).Concat(fillsHeader).Concat(fills).Concat(framesHeader).Concat(frames));
     }
 }

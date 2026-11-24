@@ -1,10 +1,16 @@
 # VS Roofing Mod roofs against siding walls
 
-Mod version 2.1.1, game version 1.22.7, probed 2026-11-23.
+Mod version 2.1.1, game version 1.22.7, probed 2026-11-24.
 Nothing here is asserted: each row is what the two mods did on this run.
 Every click goes through vanilla's right-click order, the clicked block's interaction first and then the held item's, run on the server with a hammer in the off hand for Roofing and a saw for Siding.
-`Took the click` names the step that handled it.
+`Took the click` names the step that handled it; `nothing` means vanilla would next place a held block against the clicked face.
 In-game errors are the codes the server sent the player; an error raised on the client alone does not reach this run.
+
+## Roof block overrides
+
+The roof's block class and each class above it up to `Block`, with every member it declares over its base, read by reflection.
+
+- `VSRoofing.RoofBlock`: `AllowSnowCoverage`, `CanAcceptFallOnto`, `CanAttachBlockAt`, `CanCreatureSpawnOn`, `DisplacesLiquids`, `DoEmitSideAoByFlag`, `DoEmitSideAo`, `DoPartialSelection`, `DoPlaceBlock`, `GetAttributes`, `GetBlockMaterial`, `GetCollisionBoxes`, `GetColorWithoutTint`, `GetDecal`, `GetDrops`, `GetLightAbsorption`, `GetLightHsv`, `GetLiquidBarrierHeightOnSide`, `GetParticleCollisionBoxes`, `GetPlacedBlockInfo`, `GetPlacedBlockInteractionHelp`, `GetPlacedBlockName`, `GetRandomColor`, `GetRetention`, `GetRotatedBlockCode`, `GetSelectionBoxes`, `GetSelectionColor`, `GetSnowCoveredVariant`, `GetSnowLevel`, `GetSounds`, `OnBlockBroken`, `OnBlockInteractStart`, `OnBlockPlaced`, `OnBlockRemoved`, `OnFallOnto`, `OnLoaded`, `OnNeighbourBlockChange`, `OnPickBlock`, `OnServerGameTick`, `OnUnloaded`, `PerformSnowLevelUpdate`, `ShouldReceiveServerGameTicks`, `SideIsSolid`
 
 ## Tool modes
 
@@ -146,11 +152,98 @@ In sixteenths of a block, (x1,y1,z1)-(x2,y2,z2), z running south.
 | 12 | (0,0,0)-(16,8,8) (0,8,8)-(16,16,16) | (0,0,0)-(16,8,8) (0,8,8)-(16,16,16) | (0,0,0)-(16,8,8) (0,8,8)-(16,16,16) (0,0,0)-(16,16,16) |
 | 13 | (8,0,0)-(16,8,16) (0,8,0)-(8,16,16) | (8,0,0)-(16,8,16) (0,8,0)-(8,16,16) | (8,0,0)-(16,8,16) (0,8,0)-(8,16,16) (0,0,0)-(16,16,16) |
 
+## Sealing after thatch and fill
+
+SideIsSolid and GetRetention as in the tool modes table, after the thatch and then the granite fill.
+
+| Pick | Thatched sides solid | Thatched heat retention | Filled sides solid | Filled heat retention |
+| --- | --- | --- | --- | --- |
+| 0 | N----D | 1 0 0 0 0 1 | N----D | 1 0 0 0 0 1 |
+| 1 | N----D | 1 0 0 0 0 1 | N----D | 1 0 0 0 0 1 |
+| 2 | N----D | 1 0 0 0 0 1 | N----D | 1 0 0 0 0 1 |
+| 3 then 0 | N----D | 1 0 0 0 0 1 | N----D | 1 0 0 0 0 1 |
+| 3 then 1 | N----D | 1 0 0 0 0 1 | N----D | 1 0 0 0 0 1 |
+| 3 then 2 | N----D | 1 0 0 0 0 1 | NE-W-D | 1 0 0 0 0 1 |
+| 3 then 3 | N----D | 1 0 0 0 0 1 | N----D | 1 0 0 0 0 1 |
+| 3 then 5 | N----D | 1 0 0 0 0 1 | N----D | 1 0 0 0 0 1 |
+| 3 then 7 | N----D | 1 0 0 0 0 1 | N----D | 1 0 0 0 0 1 |
+| 3 then 9 | N----D | 1 0 0 0 0 1 | N----D | 1 0 0 0 0 1 |
+| 3 then 11 | N----D | 1 0 0 0 0 1 | N----D | 1 0 0 0 0 1 |
+| 3 then 12 | N----D | 1 0 0 0 0 1 | NE-W-D | 1 0 0 0 0 1 |
+| 3 then 13 | N----D | 1 0 0 0 0 1 | N----D | 1 0 0 0 0 1 |
+| 3 then 14 | N----D | 1 0 0 0 0 1 | N----D | 1 0 0 0 0 1 |
+| 4 | ------ | 1 0 0 0 0 1 | ------ | 1 0 0 0 0 1 |
+| 5 | ------ | 1 0 0 0 0 1 | ------ | 1 0 0 0 0 1 |
+| 6 | ------ | 1 0 0 0 0 1 | ------ | 1 0 0 0 0 1 |
+| 7 then 0 | ------ | 1 0 0 0 0 1 | ------ | 1 0 0 0 0 1 |
+| 7 then 1 | ------ | 1 0 0 0 0 1 | ------ | 1 0 0 0 0 1 |
+| 7 then 2 | ------ | 1 0 0 0 0 1 | ------ | 1 0 0 0 0 1 |
+| 7 then 3 | ------ | 1 0 0 0 0 1 | ------ | 1 0 0 0 0 1 |
+| 7 then 5 | ------ | 1 0 0 0 0 1 | ------ | 1 0 0 0 0 1 |
+| 7 then 7 | ------ | 1 0 0 0 0 1 | ------ | 1 0 0 0 0 1 |
+| 7 then 9 | ------ | 1 0 0 0 0 1 | ------ | 1 0 0 0 0 1 |
+| 7 then 11 | ------ | 1 0 0 0 0 1 | ------ | 1 0 0 0 0 1 |
+| 7 then 12 | ------ | 1 0 0 0 0 1 | ------ | 1 0 0 0 0 1 |
+| 7 then 13 | ------ | 1 0 0 0 0 1 | ------ | 1 0 0 0 0 1 |
+| 7 then 14 | ------ | 1 0 0 0 0 1 | ------ | 1 0 0 0 0 1 |
+| 8 | N----D | 1 0 0 0 0 1 | N----D | 1 0 0 0 0 1 |
+| 9 then 0 | N----D | 1 0 0 0 0 1 | N----D | 1 0 0 0 0 1 |
+| 9 then 1 | N----D | 1 0 0 0 0 1 | N----D | 1 0 0 0 0 1 |
+| 9 then 2 | N----D | 1 0 0 0 0 1 | N----D | 1 0 0 0 0 1 |
+| 9 then 3 | N----D | 1 0 0 0 0 1 | N----D | 1 0 0 0 0 1 |
+| 9 then 4 | N----D | 1 0 0 0 0 1 | N----D | 1 0 0 0 0 1 |
+| 10 | N----D | 1 0 0 0 0 1 | N----D | 1 0 0 0 0 1 |
+| 11 | -E---D | 0 1 0 0 0 1 | -E---D | 0 1 0 0 0 1 |
+| 12 | --S--D | 0 0 1 0 0 1 | --S--D | 0 0 1 0 0 1 |
+| 13 | ---W-D | 0 0 0 1 0 1 | ---W-D | 0 0 0 1 0 1 |
+
+## Gables
+
+Each gable is one slice across, running north and south: the pieces south of the ridge's column rise north, and those north of it rise south.
+Each piece is one plank click on granite put under its cell and broken after, built from the upper piece down with the orientation pick, then the manual slope and placement pick.
+The ridge goes on last with Roofing's own ridge pick, one level over the upper pieces.
+`Cell` is in blocks from the ridge's column at the upper pieces' level, (x,y,z); every roof block within four blocks has a row, and a click whose cell holds no roof has one too.
+Boxes are in sixteenths of a block, as above.
+
+| Gable | Cell | Pick | Took the click | Block | Entity keys | Collision | Selection |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 3x1 | (0,0,-3) | 12 then 3 then 0 | the held item | vsroofing:roof-bare-south | Locked true, Info[2], Frame 3830, Tool 5, SideEaveVariant 0, RoofInfo[10], SnowCovered 0, BuildNumber 1 | (14,0,0)-(16,2.7,8) (0,0,0)-(2,2.7,8) (14,2.7,8)-(16,5.3,16) (0,2.7,8)-(2,5.3,16) | (0,0,0)-(16,2.7,8) (0,2.7,8)-(16,5.3,16) |
+| 3x1 | (0,0,-2) | 12 then 3 then 1 | the held item | vsroofing:roof-bare-south | Locked true, Info[4], Frame 3830, Tool 5, SideEaveVariant 0, RoofInfo[8], SnowCovered 0, BuildNumber 1 | (14,5.3,0)-(16,8,8) (0,5.3,0)-(2,8,8) (14,8,8)-(16,10.7,16) (0,8,8)-(2,10.7,16) | (0,5.3,0)-(16,8,8) (0,8,8)-(16,10.7,16) |
+| 3x1 | (0,0,-1) | 12 then 3 then 2 | the held item | vsroofing:roof-bare-south | Locked true, Info[4], Frame 3830, Tool 5, SideEaveVariant 0, RoofInfo[10], SnowCovered 0, BuildNumber 1 | (14,10.7,0)-(16,13.3,8) (0,10.7,0)-(2,13.3,8) (14,13.3,8)-(16,16,16) (0,13.3,8)-(2,16,16) | (0,10.7,0)-(16,13.3,8) (0,13.3,8)-(16,16,16) |
+| 3x1 | (0,0,1) | 10 then 3 then 2 | the held item | vsroofing:roof-bare-north | Locked true, Info[4], Frame 3830, Tool 5, SideEaveVariant 0, RoofInfo[10], SnowCovered 0, BuildNumber 1 | (0,10.7,8)-(2,13.3,16) (14,10.7,8)-(16,13.3,16) (0,13.3,0)-(2,16,8) (14,13.3,0)-(16,16,8) | (0,10.7,8)-(16,13.3,16) (0,13.3,0)-(16,16,8) |
+| 3x1 | (0,0,2) | 10 then 3 then 1 | the held item | vsroofing:roof-bare-north | Locked true, Info[4], Frame 3830, Tool 5, SideEaveVariant 0, RoofInfo[8], SnowCovered 0, BuildNumber 1 | (0,5.3,8)-(2,8,16) (14,5.3,8)-(16,8,16) (0,8,0)-(2,10.7,8) (14,8,0)-(16,10.7,8) | (0,5.3,8)-(16,8,16) (0,8,0)-(16,10.7,8) |
+| 3x1 | (0,0,3) | 10 then 3 then 0 | the held item | vsroofing:roof-bare-north | Locked true, Info[2], Frame 3830, Tool 5, SideEaveVariant 0, RoofInfo[10], SnowCovered 0, BuildNumber 1 | (0,0,8)-(2,2.7,16) (14,0,8)-(16,2.7,16) (0,2.7,0)-(2,5.3,8) (14,2.7,0)-(16,5.3,8) | (0,0,8)-(16,2.7,16) (0,2.7,0)-(16,5.3,8) |
+| 3x1 | (0,1,0) | 10 then 8 | the held item | vsroofing:roof-bare-north | Locked false, Info[4], Type 2, RidgeInfo[26], RidgeConnectInfo[8], RidgeRoofInfo[8], RidgeShapeResolved true, Frame 3830, Tool 5, SideEaveVariant 0, RoofInfo[12], SnowCovered 0, BuildNumber 1 | (0,0,0)-(16,2.7,16) | (0,0,0)-(16,2.7,16) |
+| 1x1 | (0,-1,-2) | 12 then 3 then 7 | the held item | vsroofing:roof-bare-south | Locked true, Info[4], Frame 3830, Tool 5, SideEaveVariant 0, RoofInfo[10], SnowCovered 0, BuildNumber 1 | (14,0,0)-(16,8,8) (0,0,0)-(2,8,8) (14,8,8)-(16,16,16) (0,8,8)-(2,16,16) | (0,0,0)-(16,8,8) (0,8,8)-(16,16,16) |
+| 1x1 | (0,-1,2) | 10 then 3 then 7 | the held item | vsroofing:roof-bare-north | Locked true, Info[4], Frame 3830, Tool 5, SideEaveVariant 0, RoofInfo[10], SnowCovered 0, BuildNumber 1 | (0,0,8)-(2,8,16) (14,0,8)-(16,8,16) (0,8,0)-(2,16,8) (14,8,0)-(16,16,8) | (0,0,8)-(16,8,16) (0,8,0)-(16,16,8) |
+| 1x1 | (0,0,-1) | 12 then 3 then 7 | the held item | vsroofing:roof-bare-south | Locked true, Info[4], Frame 3830, Tool 5, SideEaveVariant 0, RoofInfo[12], SnowCovered 0, BuildNumber 1 | (14,0,0)-(16,8,8) (0,0,0)-(2,8,8) (14,8,8)-(16,16,16) (0,8,8)-(2,16,16) | (0,0,0)-(16,8,8) (0,8,8)-(16,16,16) |
+| 1x1 | (0,0,1) | 10 then 3 then 7 | the held item | vsroofing:roof-bare-north | Locked true, Info[4], Frame 3830, Tool 5, SideEaveVariant 0, RoofInfo[12], SnowCovered 0, BuildNumber 1 | (0,0,8)-(2,8,16) (14,0,8)-(16,8,16) (0,8,0)-(2,16,8) (14,8,0)-(16,16,8) | (0,0,8)-(16,8,16) (0,8,0)-(16,16,8) |
+| 1x1 | (0,1,0) | 10 then 8 | the held item | vsroofing:roof-bare-north | Locked false, Info[4], Type 2, RidgeInfo[30], RidgeConnectInfo[8], RidgeRoofInfo[8], RidgeShapeResolved true, Frame 3830, Tool 5, SideEaveVariant 0, RoofInfo[12], SnowCovered 0, BuildNumber 1 | (0,0,0)-(16,8,16) | (0,0,0)-(16,8,16) |
+| 1x3 | (0,-2,-1) | 12 then 3 then 12 | the held item | vsroofing:roof-bare-south | Locked true, Info[2], Frame 3830, Tool 5, SideEaveVariant 0, RoofInfo[10], SnowCovered 0, BuildNumber 1 | (14,0,0)-(16,8,2.7) (0,0,0)-(2,8,2.7) (14,8,2.7)-(16,16,5.3) (0,8,2.7)-(2,16,5.3) | (0,0,0)-(16,8,2.7) (0,8,2.7)-(16,16,5.3) |
+| 1x3 | (0,-2,1) | 10 then 3 then 12 | the held item | vsroofing:roof-bare-north | Locked true, Info[2], Frame 3830, Tool 5, SideEaveVariant 0, RoofInfo[10], SnowCovered 0, BuildNumber 1 | (0,0,13.3)-(2,8,16) (14,0,13.3)-(16,8,16) (0,8,10.7)-(2,16,13.3) (14,8,10.7)-(16,16,13.3) | (0,0,13.3)-(16,8,16) (0,8,10.7)-(16,16,13.3) |
+| 1x3 | (0,-1,-1) | 12 then 3 then 13 | the held item | vsroofing:roof-bare-south | Locked true, Info[4], Frame 3830, Tool 5, SideEaveVariant 0, RoofInfo[8], SnowCovered 0, BuildNumber 1 | (14,0,5.3)-(16,8,8) (0,0,5.3)-(2,8,8) (14,8,8)-(16,16,10.7) (0,8,8)-(2,16,10.7) | (0,0,5.3)-(16,8,8) (0,8,8)-(16,16,10.7) |
+| 1x3 | (0,-1,1) | 10 then 3 then 13 | the held item | vsroofing:roof-bare-north | Locked true, Info[4], Frame 3830, Tool 5, SideEaveVariant 0, RoofInfo[8], SnowCovered 0, BuildNumber 1 | (0,0,8)-(2,8,10.7) (14,0,8)-(16,8,10.7) (0,8,5.3)-(2,16,8) (14,8,5.3)-(16,16,8) | (0,0,8)-(16,8,10.7) (0,8,5.3)-(16,16,8) |
+| 1x3 | (0,0,-1) | 12 then 3 then 14 | the held item | vsroofing:roof-bare-south | Locked true, Info[4], Frame 3830, Tool 5, SideEaveVariant 0, RoofInfo[10], SnowCovered 0, BuildNumber 1 | (14,0,10.7)-(16,8,13.3) (0,0,10.7)-(2,8,13.3) (14,8,13.3)-(16,16,16) (0,8,13.3)-(2,16,16) | (0,0,10.7)-(16,8,13.3) (0,8,13.3)-(16,16,16) |
+| 1x3 | (0,0,1) | 10 then 3 then 14 | the held item | vsroofing:roof-bare-north | Locked true, Info[4], Frame 3830, Tool 5, SideEaveVariant 0, RoofInfo[10], SnowCovered 0, BuildNumber 1 | (0,0,2.7)-(2,8,5.3) (14,0,2.7)-(16,8,5.3) (0,8,0)-(2,16,2.7) (14,8,0)-(16,16,2.7) | (0,0,2.7)-(16,8,5.3) (0,8,0)-(16,16,2.7) |
+| 1x3 | (0,1,0) | 10 then 8 | the held item | vsroofing:roof-bare-north | Locked false, Info[4], Type 2, RidgeInfo[26], RidgeConnectInfo[8], RidgeRoofInfo[8], RidgeShapeResolved true, Frame 3830, Tool 5, SideEaveVariant 0, RoofInfo[12], SnowCovered 0, BuildNumber 1 | (0,0,0)-(16,16,16) | (0,0,0)-(16,16,16) |
+
+## Corners
+
+Two perpendicular roofs, each one Standard pick then an orientation pick, built as the gables are: a roof rising north at (0,0,0), then a roof rising east north of it (behind, uphill) for the outer corner or south of it (in front, downhill) for the inner one.
+Every roof block within two blocks has a row.
+
+| Corner | Cell | Pick | Took the click | Block | Entity keys | Collision | Selection |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| outer | (0,0,-1) | 0 then 11 | the held item | vsroofing:roof-bare-east | Locked false, Info[4], Frame 3830, Tool 5, SideEaveVariant 0, RoofInfo[8], SnowCovered 0, BuildNumber 1 | (0,0,0)-(8,8,2) (0,0,15)-(8,8,16) (8,8,0)-(16,16,2) (8,8,15)-(16,16,16) | (0,0,0)-(8,8,16) (8,8,0)-(16,16,16) |
+| outer | (0,0,0) | 0 then 10 | the held item | vsroofing:roof-bare-north | Locked false, Info[4], CornerType 1, CornerInfo[10], Frame 3830, Tool 5, SideEaveVariant 0, RoofInfo[14], SnowCovered 0, BuildNumber 1 | (0,0,8)-(16,8,16) (0,0,0)-(8,8,16) (8,8,0)-(16,16,8) (8,8,0)-(16,16,8) | (0,0,8)-(16,8,16) (0,0,0)-(8,8,16) (8,8,0)-(16,16,8) (8,8,0)-(16,16,8) |
+| inner | (0,0,0) | 0 then 10 | the held item | vsroofing:roof-bare-north | Locked false, Info[4], CornerType 2, CornerInfo[10], Frame 3830, Tool 5, SideEaveVariant 0, RoofInfo[12], SnowCovered 0, BuildNumber 1 | (0,0,8)-(8,8,16) (0,0,8)-(8,8,16) (0,8,0)-(16,16,8) (8,8,0)-(16,16,16) | (0,0,8)-(8,8,16) (0,0,8)-(8,8,16) (0,8,0)-(16,16,8) (8,8,0)-(16,16,16) |
+| inner | (0,0,1) | 0 then 11 | the held item | vsroofing:roof-bare-east | Locked false, Info[4], Frame 3830, Tool 5, SideEaveVariant 0, RoofInfo[10], SnowCovered 0, BuildNumber 1 | (0,0,0)-(8,8,2) (0,0,14)-(8,8,16) (8,8,0)-(16,16,2) (8,8,14)-(16,16,16) | (0,0,0)-(8,8,16) (8,8,0)-(16,16,16) |
+
 ## A Roofing frame click aimed at a wall's cell
 
 A wall framed in oak, bare or with clay infill, claims its west face, with granite under it and north of it.
 The player stands three blocks south with planks in hand, so a roof built there slopes along the wall's plane.
-`Admitted` rows mark every roof block hostable in Siding's table for the run, which no shipped patch does.
+`Admitted` rows mark every roof block hostable in Siding's table for the run; the others leave the table as the mod built it.
 `Roof at` is where a roof block stands after the click, from the wall's cell, and `Wall` whether that cell still holds the wall, holds it as a guest or neither.
 `Roof broken` is the wall's cell after a roof in it is broken.
 
@@ -177,9 +270,25 @@ The player stands three blocks south with planks in hand, so a roof built there 
 | clay infill | the wall's top | yes | the held item | the cell | guest, layers kept | none | wall back |
 | clay infill | the side neighbour's face | yes | the held item | the cell | guest, layers kept | none | wall back |
 
+## Base fill on a hosted roof
+
+A Standard roof frame from a plank click on granite under the cell, in open air or over a wall framed in oak with clay infill claiming its west face, the roof admitted as hostable for the run; then thatch with a sneak click on the roof's south face, or not; then a ctrl click with granite.
+The ctrl click lands on the roof's first selection box, on its south face, or on the guest wall's first panel box, on its west face.
+A hosted roof takes the off-panel shift BuildHostableTable gives a hostable block, so its own boxes sit east of the panel's.
+`Wall before` is the wall's cell once the roof is built and thatched, and `Key changes` the saved tree's keys the ctrl click added (+), dropped (-) or changed.
+
+| Roof | Wall before | Click on | Took the click | Roof after | Key changes | Collision after | Selection after | Wall after | In-game errors |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| vsroofing:roof-bare-north | no wall | the roof's south face | the clicked block | vsroofing:roof-filled-north | +materials [11812], +decorRot 0, +rotation 368640, +cuboids [7991296 11925504 13892608 15859200 9959520 4059296 6026400 2093280], +emitSideAo [33], +sideSolid [33], +sideAlmostSolid [33], +blockName fill, +availMaterialQuantities [4096] | (0,0,8)-(2,8,16) (14,0,8)-(16,8,16) (0,8,0)-(2,16,8) (14,8,0)-(16,16,8) | (0,0,8)-(16,8,16) (0,8,0)-(16,16,8) (0,0,0)-(16,16,16) | no wall | none |
+| vsroofing:roof-bare-north | guest, layers kept | the roof's south face | the clicked block | vsroofing:roof-filled-north | +materials [11812], +decorRot 0, +rotation 368640, +cuboids [7991296 11925504 13892608 15859200 9959520 4059296 6026400 2093280], +emitSideAo [33], +sideSolid [33], +sideAlmostSolid [33], +blockName fill, +availMaterialQuantities [4096] | (4,0,8)-(6,8,16) (16,0,8)-(16,8,16) (4,8,0)-(6,16,8) (16,8,0)-(16,16,8) (0,0,0)-(4,16,16) | (4,0,8)-(20,8,16) (4,8,0)-(20,16,8) (4,0,0)-(20,16,16) (0,0,0)-(4,16,16) | guest, layers kept | none |
+| vsroofing:roof-bare-north | guest, layers kept | the panel's west face | nothing | vsroofing:roof-bare-north | none | (4,0,8)-(6,8,16) (16,0,8)-(16,8,16) (4,8,0)-(6,16,8) (16,8,0)-(16,16,8) (0,0,0)-(4,16,16) | (4,0,8)-(20,8,16) (4,8,0)-(20,16,8) (0,0,0)-(4,16,16) | guest, layers kept | none |
+| vsroofing:roof-filled-north | no wall | the roof's south face | the clicked block | vsroofing:roof-filled-north | +materials [11812], +decorRot 0, +rotation 368640, +cuboids [7991296 11925504 13892608 15859200 9959520 4059296 6026400 2093280], +emitSideAo [33], +sideSolid [33], +sideAlmostSolid [33], +blockName fill, +availMaterialQuantities [4096] | (0,0,8)-(16,8,16) (0,8,0)-(16,16,8) | (0,0,8)-(16,8,16) (0,8,0)-(16,16,8) (0,0,0)-(16,16,16) | no wall | none |
+| vsroofing:roof-filled-north | guest, layers kept | the roof's south face | the clicked block | vsroofing:roof-filled-north | +materials [11812], +decorRot 0, +rotation 368640, +cuboids [7991296 11925504 13892608 15859200 9959520 4059296 6026400 2093280], +emitSideAo [33], +sideSolid [33], +sideAlmostSolid [33], +blockName fill, +availMaterialQuantities [4096] | (4,0,8)-(16,8,16) (4,8,0)-(16,16,8) (0,0,0)-(4,16,16) | (4,0,8)-(20,8,16) (4,8,0)-(20,16,8) (4,0,0)-(20,16,16) (0,0,0)-(4,16,16) | guest, layers kept | none |
+| vsroofing:roof-filled-north | guest, layers kept | the panel's west face | nothing | vsroofing:roof-filled-north | none | (4,0,8)-(16,8,16) (4,8,0)-(16,16,8) (0,0,0)-(4,16,16) | (4,0,8)-(20,8,16) (4,8,0)-(20,16,8) (0,0,0)-(4,16,16) | guest, layers kept | none |
+
 ## A siding frame click aimed at a roof's cell
 
-A roof frame built as in the first table, bare or thatched, with granite under it and east of it, and a siding wall frame clicked at its cell with planks.
+A roof frame built as in the tool modes table, bare or thatched, with granite under it and east of it, and a siding wall frame clicked at its cell with planks.
 
 | Roof | Click on | Took the click | Siding block at | Roof cell after | In-game errors |
 | --- | --- | --- | --- | --- | --- |
