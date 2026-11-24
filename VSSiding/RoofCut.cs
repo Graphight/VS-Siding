@@ -59,12 +59,11 @@ internal static class RoofCut
     internal static readonly IEqualityComparer<HalfSpace[][]> CellsComparer = new ByValue();
 
     // The one slope rising toward side that every box steps up, or null. A box spanning the run is no step of it (a ridge's slab,
-    // a corner's), and the full cube Roofing's base fill adds to the selection boxes is skipped.
+    // a corner's).
     internal static HalfSpace? PlaneFrom(Cuboidf[]? boxes, string? side)
     {
         if (boxes == null || side == null || BlockFacing.FromCode(side) is not { IsHorizontal: true } facing) return null;
-        Cuboidf[] steps = Steps(boxes);
-        return steps.Any(box => Spans(box, facing)) ? null : Slope(steps, facing);
+        return boxes.Any(box => Spans(box, facing)) ? null : Slope(boxes, facing);
     }
 
     // The slope through the lowest step's low corner and the highest step's high corner, rising toward facing; null unless every
@@ -102,16 +101,15 @@ internal static class RoofCut
     private static HalfSpace[][]? CornerFrom(Cuboidf[]? boxes, string? side)
     {
         if (boxes == null || side == null || BlockFacing.FromCode(side) is not { IsHorizontal: true } facing) return null;
-        Cuboidf[] steps = Steps(boxes);
-        if (steps.Any(box => Spans(box, facing) && Spans(box, facing.GetCW()))
-            || Slope(steps.Where(box => !Spans(box, facing)).ToArray(), facing) is not { } rising) return null;
+        if (boxes.Any(box => Spans(box, facing) && Spans(box, facing.GetCW()))
+            || Slope(boxes.Where(box => !Spans(box, facing)).ToArray(), facing) is not { } rising) return null;
 
         foreach (var across in new[] { facing.GetCW(), facing.GetCCW() })
         {
-            if (Slope(steps.Where(box => !Spans(box, across)).ToArray(), across) is not { } other) continue;
-            if (Reaches(steps, (x, z) => Math.Max(rising.HeightAt(x, z), other.HeightAt(x, z))))
+            if (Slope(boxes.Where(box => !Spans(box, across)).ToArray(), across) is not { } other) continue;
+            if (Reaches(boxes, (x, z) => Math.Max(rising.HeightAt(x, z), other.HeightAt(x, z))))
                 return [[rising, Over(rising, other)], [other, Over(other, rising)]];
-            if (Reaches(steps, (x, z) => Math.Min(rising.HeightAt(x, z), other.HeightAt(x, z)))) return [[rising, other]];
+            if (Reaches(boxes, (x, z) => Math.Min(rising.HeightAt(x, z), other.HeightAt(x, z)))) return [[rising, other]];
         }
 
         return null;
@@ -378,10 +376,6 @@ internal static class RoofCut
 
         return Math.Sqrt(x * x + y * y + z * z) / 2;
     }
-
-    private static bool IsFullCube(Cuboidf box) => IsSlab(box) && box.Y2 >= 1 - Epsilon;
-
-    private static Cuboidf[] Steps(Cuboidf[] boxes) => boxes.Where(box => !IsFullCube(box)).ToArray();
 
     // Whether the box runs the cell's whole width along facing's axis.
     private static bool Spans(Cuboidf box, BlockFacing facing)

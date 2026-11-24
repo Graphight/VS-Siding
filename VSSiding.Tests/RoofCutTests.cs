@@ -27,7 +27,6 @@ public class RoofCutTests
     [Theory]
     [InlineData("north", "(0,0,8)-(2,8,16) (14,0,8)-(16,8,16) (0,8,0)-(2,16,8) (14,8,0)-(16,16,8)", 0, 16)] // pick 0, frame
     [InlineData("north", ThatchedOneByOne, 0, 16)] // pick 0, thatched
-    [InlineData("north", "(0,0,8)-(16,8,16) (0,8,0)-(16,16,8) (0,0,0)-(16,16,16)", 0, 16)] // pick 0, filled selection
     [InlineData("north", "(0,0,8)-(16,2.7,16) (0,2.7,0)-(16,5.3,8)", 0, 5)] // pick 3 then 0
     [InlineData("north", "(0,5.3,8)-(16,8,16) (0,8,0)-(16,10.7,8)", 5, 11)] // pick 3 then 1
     [InlineData("north", "(0,0,13.3)-(16,8,16) (0,8,10.7)-(16,16,13.3)", 0, 48)] // pick 3 then 12
