@@ -1657,15 +1657,21 @@ public class SidingModSystem : ModSystem
                 world.RegisterCallback(_ => RestoreGuestWall(world, restorePos), 0);
                 break;
             case HostChange.Drop:
-                if (guest.Block is SidingWallBlock guestWall)
-                {
-                    foreach (var stack in guestWall.ResolveDrops(world, guestWall.DropsOf(guest), 1f)) world.SpawnItemEntity(stack, pos);
-                }
-                GuestWalls.Set(world, __instance, pos, null);
+                DropGuest(world, __instance, pos, guest);
                 break;
             case HostChange.Keep:
                 break;
         }
+    }
+
+    // The guest's layers drop as items and its record goes, the host staying.
+    internal static void DropGuest(IWorldAccessor world, IWorldChunk chunk, BlockPos pos, SidingWallEntity guest, float dropQuantityMultiplier = 1f)
+    {
+        if (guest.Block is SidingWallBlock guestWall)
+        {
+            foreach (var stack in guestWall.ResolveDrops(world, guestWall.DropsOf(guest), dropQuantityMultiplier)) world.SpawnItemEntity(stack, pos);
+        }
+        GuestWalls.Set(world, chunk, pos, null);
     }
 
     // The server runs TriggerNeighbourBlocksUpdate straight after a player's break completes, so
@@ -1959,8 +1965,8 @@ public class SidingModSystem : ModSystem
 
         api.Event.BreakBlock += (IServerPlayer _, BlockSelection blockSel, ref float _, ref EnumHandling _) =>
         {
-            // Only a siding block's OnBlockBroken clears it, so set for any other block it outlives the break.
-            if (api.World.BlockAccessor.GetBlock(blockSel.Position) is SidingWallBlock or SidingFloorBlock)
+            // Only a siding block's OnBlockBroken, or a roof's (PanelInteractionPatches), clears it, so set for any other block it outlives the break.
+            if (api.World.BlockAccessor.GetBlock(blockSel.Position) is var block && (block is SidingWallBlock or SidingFloorBlock || IsRoofId(block.BlockId)))
                 SidingWallBlock.ServerBreakSelection = blockSel;
         };
 

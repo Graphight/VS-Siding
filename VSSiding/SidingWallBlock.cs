@@ -1925,7 +1925,7 @@ public class SidingWallBlock : Block
 
     public override void OnBlockBroken(IWorldAccessor world, BlockPos pos, IPlayer byPlayer, float dropQuantityMultiplier = 1f)
     {
-        var entity = world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos);
+        var entity = EntityAt(world.BlockAccessor, pos);
         BlockSelection? selection = byPlayer?.CurrentBlockSelection;
         if (world.Side == EnumAppSide.Server)
         {
@@ -1947,7 +1947,8 @@ public class SidingWallBlock : Block
         string? layer = entity == null ? null : PeelAt(entity, hitFace, hitHalf);
         if (entity == null || byPlayer == null || layer == null)
         {
-            base.OnBlockBroken(world, pos, byPlayer, dropQuantityMultiplier);
+            if (GuestEditAt(pos) is { } guest && byPlayer != null) BreakGuestFrame(world, pos, byPlayer, guest, dropQuantityMultiplier);
+            else base.OnBlockBroken(world, pos, byPlayer, dropQuantityMultiplier);
             return;
         }
 
@@ -1982,6 +1983,19 @@ public class SidingWallBlock : Block
         SpawnBlockBrokenParticles(pos, byPlayer);
         if (tileSlot >= 0) RemoveTile(world, entity, pos, layer, tileSlot);
         else RemoveLayer(world, entity, pos, layer);
+    }
+
+    // Block.SpawnDropsAndRemoveBlock for a roof's guest: its record goes in place of a block, so the roof stays (a departure from 0093).
+    private void BreakGuestFrame(IWorldAccessor world, BlockPos pos, IPlayer byPlayer, SidingWallEntity guest, float dropQuantityMultiplier)
+    {
+        if (world.Api is Vintagestory.API.Client.ICoreClientAPI capi) GuestWalls.SetOnClient(capi, pos, null);
+        else if (world.BlockAccessor.GetChunkAtBlockPos(pos) is { } chunk)
+        {
+            if (byPlayer.WorldData.CurrentGameMode == EnumGameMode.Creative) GuestWalls.Set(world, chunk, pos, null);
+            else SidingModSystem.DropGuest(world, chunk, pos, guest, dropQuantityMultiplier);
+            if (Sounds != null) world.PlaySoundAt(Sounds.GetBreakSound(byPlayer), pos, 0.0, byPlayer);
+        }
+        SpawnBlockBrokenParticles(pos, byPlayer);
     }
 
     // A fire that burns out against a wall takes its topmost layer, not the whole block; a bare

@@ -333,6 +333,51 @@ public class RoofingScenarios : AtlasScenarioBase
         }
     }
 
+    // Mining a roof-hosted wall's panel peels its top layer as a wall's own break does, dropping it, and the last break takes the bare
+    // frame, the roof keeping its cell throughout. The server runs the BreakBlock event, then OnBlockBroken while it stays PassThrough.
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
+    public async Task Panel_Should_PeelALayerAndLeaveTheRoof_When_Mined()
+    {
+        if (!RoofingLoaded) return;
+
+        ITestPlayer player = await WallBuilder.JoinBuilder(World);
+        try
+        {
+            BlockPos cell = Cell(0, 6);
+            World.SetBlock(Support, cell.DownCopy());
+            await WallBuilder.Raise(World, player, cell, cell.WestCopy(), Plank, "game:clay-blue", Plank);
+            player.Entity.LeftHandItemSlot.Itemstack = new ItemStack(World.Api.World.GetItem(new AssetLocation(Hammer)));
+            Stand(player, cell);
+            await Hold(player, Plank, 4);
+            RightClick(player, Face(cell.DownCopy(), BlockFacing.UP));
+            string roof = World.BlockAt(cell).Code.ToString();
+            player.Player.InventoryManager.ActiveHotbarSlot.Itemstack = null;
+
+            string State() => $"{World.BlockAt(cell).Code} {WallBuilder.GuestLayers(World, cell)?.ToString() ?? "no guest"}";
+            string Mine()
+            {
+                BlockSelection hit = PanelHit(cell, BlockFacing.EAST);
+                if (WallBuilder.TriggerBreakBlock(World, player, hit) == EnumHandling.PassThrough)
+                    World.BlockAt(cell).OnBlockBroken(player.Entity.World, cell, player.Player);
+                return State();
+            }
+            string hosted = State();
+            string mined = string.Join(" | ", Mine(), Mine(), Mine());
+            await World.Ticks(2);
+            int Dropped(string code) => World.Api.World.GetEntitiesAround(cell.ToVec3d().Add(0.5, 0.5, 0.5), 3, 3, entity => entity is EntityItem)
+                .Cast<EntityItem>().Where(item => item.Itemstack.Collectible.Code.ToString() == code).Sum(item => item.Itemstack.StackSize);
+
+            Assert.Equal(
+                ($"{roof} (oak, clay, , , planks)", $"{roof} (oak, clay, , , ) | {roof} (oak, , , , ) | {roof} no guest", 4, 4, (BlockSelection?)null),
+                (hosted, mined, Dropped(Plank), Dropped("game:clay-blue"), WallBuilder.ServerBreakSelection(World)));
+        }
+        finally
+        {
+            player.Player.Disconnect();
+            await World.Until(() => !player.IsConnected);
+        }
+    }
+
     // A hit on the room side of the first panel box the roof's selection appends.
     private BlockSelection PanelHit(BlockPos cell, BlockFacing face)
     {
