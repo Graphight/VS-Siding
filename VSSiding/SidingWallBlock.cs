@@ -1747,6 +1747,19 @@ public class SidingWallBlock : Block
         return true;
     }
 
+    // Roofing's base fill fills the cell a guest wall stands in, so a roof takes neither while it holds the other.
+    internal static void RefuseBaseFill(IPlayer? byPlayer)
+        => (byPlayer as IServerPlayer)?.SendIngameError("vssiding:rooffill", Lang.Get("vssiding:build-roof-fill"));
+
+    // Roofing saves a base fill as chisel cuboids on the roof's entity.
+    internal static bool HasBaseFill(IBlockAccessor accessor, BlockPos pos)
+    {
+        if (accessor.GetBlockEntity(pos) is not { } roof) return false;
+        var tree = new TreeAttribute();
+        roof.ToTreeAttributes(tree);
+        return tree["cuboids"] is IntArrayAttribute { value.Length: > 0 };
+    }
+
     // The real wall at a cell, or the guest wall of a hosted block there (decision 0035).
     internal static (SidingWallBlock wall, SidingWallEntity entity)? WallAt(IBlockAccessor accessor, BlockPos pos)
     {

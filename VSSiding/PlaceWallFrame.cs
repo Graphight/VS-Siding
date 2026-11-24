@@ -116,6 +116,11 @@ public class PlaceWallFrame : CollectibleBehavior
         if (layout is not ("floor" or "diagonal") && SidingModSystem.IsRoofId(world.BlockAccessor.GetBlock(targetPos).BlockId)
             && GuestWalls.GuestAt(world.Api, targetPos) == null)
         {
+            if (SidingWallBlock.HasBaseFill(world.BlockAccessor, targetPos))
+            {
+                SidingWallBlock.RefuseBaseFill(byPlayer);
+                return;
+            }
             Block? guestBlock = post ? postBlock : world.GetBlock(placeholder.CodeWithVariant("side", Block.SuggestedHVOrientation(byPlayer, placeSel)[0].Code));
             if (guestBlock != null && world.Side == EnumAppSide.Server && !SidingWallBlock.ClaimRefuses(world, byPlayer, targetPos)
                 && world.BlockAccessor.GetChunkAtBlockPos(targetPos) is { } chunk)

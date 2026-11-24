@@ -378,6 +378,60 @@ public class RoofingScenarios : AtlasScenarioBase
         }
     }
 
+    // Roofing's ctrl click with a block, which gives a roof in open air its base fill, is refused on a roof hosting a wall, the roof
+    // taking no fill and keeping its guest; a frame clicked into the filled roof's cell is refused too, the planks kept.
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
+    public async Task BaseFill_Should_BeRefused_When_ItWouldShareARoofWithAWall()
+    {
+        if (!RoofingLoaded) return;
+
+        ITestPlayer player = await WallBuilder.JoinBuilder(World);
+        object harmony = PatchIngameErrors(player.Player);
+        try
+        {
+            BlockPos open = Cell(0, 6), hosted = Cell(1, 6);
+            World.SetBlock(Support, open.DownCopy());
+            World.SetBlock(Support, hosted.DownCopy());
+            await WallBuilder.Raise(World, player, hosted, hosted.WestCopy(), Plank, "game:clay-blue");
+            var layers = WallBuilder.Layers(World, hosted);
+
+            ItemSlot slot = player.Player.InventoryManager.ActiveHotbarSlot;
+            void OffHand(string code) => player.Entity.LeftHandItemSlot.Itemstack = new ItemStack(World.Api.World.GetItem(new AssetLocation(code)));
+            async Task<(string Took, string Roof, bool Filled, string Errors)> RoofThenFill(BlockPos cell)
+            {
+                OffHand(Hammer);
+                Stand(player, cell);
+                await Hold(player, Plank, 4);
+                RightClick(player, Face(cell.DownCopy(), BlockFacing.UP));
+                await Hold(player, Support, 4);
+                Errors.Clear();
+                string took = WithKeys(player, shift: false, ctrl: true, Face(cell, BlockFacing.SOUTH));
+                return (took, World.BlockAt(cell).Code.ToString(), Entries(cell).Any(entry => entry.Key == "cuboids"), ErrorList());
+            }
+
+            var filled = await RoofThenFill(open);
+            var refused = await RoofThenFill(hosted);
+            var guest = WallBuilder.GuestLayers(World, hosted);
+
+            OffHand(Saw);
+            Stand(player, open);
+            await Hold(player, Plank, 2);
+            Errors.Clear();
+            var framed = (RightClick(player, Face(open.DownCopy(), BlockFacing.UP)), WallBuilder.GuestCode(World, open), slot.Itemstack?.StackSize ?? 0, ErrorList());
+
+            Assert.Equal(
+                (("the clicked block", "vsroofing:roof-filled-north", true, "none"), ("the clicked block", "vsroofing:roof-bare-north", false, "vssiding:rooffill"),
+                 layers, ("the held item", (string?)null, 2, "vssiding:rooffill")),
+                (filled, refused, guest, framed));
+        }
+        finally
+        {
+            harmony.GetType().GetMethod("UnpatchAll", new[] { typeof(string) })!.Invoke(harmony, new object[] { HarmonyId });
+            player.Player.Disconnect();
+            await World.Until(() => !player.IsConnected);
+        }
+    }
+
     // A hit on the room side of the first panel box the roof's selection appends.
     private BlockSelection PanelHit(BlockPos cell, BlockFacing face)
     {

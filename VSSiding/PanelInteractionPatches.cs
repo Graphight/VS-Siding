@@ -22,7 +22,16 @@ internal static class PanelInteractionPatches
     private static bool InteractPrefix(Block __instance, IWorldAccessor __0, IPlayer __1, BlockSelection __2, ref bool __result)
     {
         if (__0 == null || __2 == null) return true;
-        if (!GapShiftCollisionPatches.IsPanelHit(__instance, __0.BlockAccessor, __2)) return true;
+        if (!GapShiftCollisionPatches.IsPanelHit(__instance, __0.BlockAccessor, __2))
+        {
+            // Roofing adds its base fill on a ctrl click with a block in hand, reading the raw ctrl key, not the sprint action.
+            if (!SidingModSystem.IsRoofId(__instance.BlockId) || __1?.Entity.Controls.CtrlKey != true
+                || __1.InventoryManager.ActiveHotbarSlot?.Itemstack?.Block == null || GuestWalls.GuestAt(__0.Api, __2.Position) == null)
+                return true;
+            SidingWallBlock.RefuseBaseFill(__1);
+            __result = true;
+            return false;
+        }
 
         // Both sides run it, as a wall's own click: the client predicts the guest the server's record then replaces.
         if (SidingModSystem.IsRoofId(__instance.BlockId) && __1 != null && SidingWallBlock.HasBuildSignal(__1)
