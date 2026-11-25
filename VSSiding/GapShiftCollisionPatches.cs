@@ -34,6 +34,9 @@ internal static class GapShiftCollisionPatches
     // Per panel array, one copy cut under each roof slope, keyed by the cut's value.
     private static readonly ConditionalWeakTable<Cuboidf[], ConcurrentDictionary<HalfSpace[][], Cuboidf[]>> RoofCutCache = new();
 
+    // Per roof selection array, one copy cut to its part over each slope, keyed by the cut's value.
+    private static readonly ConditionalWeakTable<Cuboidf[], ConcurrentDictionary<HalfSpace[][], Cuboidf[]>> RoofTopCache = new();
+
     internal static void PatchAll(Harmony harmony, ICoreAPI api)
     {
         var prefix = new HarmonyMethod(typeof(GapShiftCollisionPatches), nameof(Prefix));
@@ -94,12 +97,12 @@ internal static class GapShiftCollisionPatches
         => __result = ShiftAndAppendPanel(__instance, __result, __0, __1, wall => wall.ParticleCollisionBoxes ?? wall.CollisionBoxes, clampToCell: true);
 
     // The panel's boxes go after the host's, so the host's own indices (which shelves and ground
-    // storage use to pick a slot) are unchanged.
+    // storage use to pick a slot) are unchanged, bar a roof's, cut to their part over its slope.
     private static void PostfixSelection(Block __instance, ref Cuboidf[] __result, IBlockAccessor __0, BlockPos __1)
-        => __result = ShiftAndAppendPanel(__instance, __result, __0, __1, wall => wall.SelectionBoxes, MarkedForPanel);
+        => __result = ShiftAndAppendPanel(__instance, __result, __0, __1, wall => wall.SelectionBoxes, MarkedForPanel, roofOverCut: true);
 
     private static Cuboidf[] ShiftAndAppendPanel(Block instance, Cuboidf[] result,
-        IBlockAccessor blockAccessor, BlockPos pos, System.Func<SidingWallBlock, Cuboidf[]> fullBoxesOf, System.Func<Cuboidf[], Cuboidf[]>? markPanel = null, bool clampToCell = false)
+        IBlockAccessor blockAccessor, BlockPos pos, System.Func<SidingWallBlock, Cuboidf[]> fullBoxesOf, System.Func<Cuboidf[], Cuboidf[]>? markPanel = null, bool clampToCell = false, bool roofOverCut = false)
     {
         Shift(instance, result, pos, out var shifted);
         // Vanilla only asks the cells an entity's box already overlaps, so a box past its own cell is never met.
@@ -113,7 +116,12 @@ internal static class GapShiftCollisionPatches
         var (guestWall, guestEntity) = found;
 
         var panelBoxes = guestWall.PanelCollisionBoxes(blockAccessor, pos, guestEntity, fullBoxesOf(guestWall));
-        if (RoofCutAt(instance, blockAccessor, pos) is { } cells) panelBoxes = UnderRoof(panelBoxes, cells);
+        if (RoofCutAt(instance, blockAccessor, pos) is { } cells)
+        {
+            panelBoxes = UnderRoof(panelBoxes, cells);
+            // A ray picks the nearest box, and a roof's steps reach under its slope, in front of the wall either side (0106).
+            if (roofOverCut) shifted = Cut(RoofTopCache, shifted, cells, above: true);
+        }
 
         if (markPanel != null) panelBoxes = markPanel(panelBoxes);
         return Combined(shifted, panelBoxes);
@@ -129,9 +137,11 @@ internal static class GapShiftCollisionPatches
     private static (Cuboidf[]?, string?) RoofAt(IBlockAccessor accessor, BlockPos pos)
         => accessor.GetBlock(pos) is { } block && SidingModSystem.IsRoofId(block.BlockId) ? (RawCollisionBoxes(block, accessor, pos), block.Variant["side"]) : (null, null);
 
-    internal static Cuboidf[] UnderRoof(Cuboidf[] panelBoxes, HalfSpace[][] cells)
-        => RoofCutCache.GetValue(panelBoxes, static _ => new ConcurrentDictionary<HalfSpace[][], Cuboidf[]>(RoofCut.CellsComparer))
-            .GetOrAdd(cells, static (cut, boxes) => RoofCut.ClipBoxes(boxes, cut), panelBoxes);
+    internal static Cuboidf[] UnderRoof(Cuboidf[] panelBoxes, HalfSpace[][] cells) => Cut(RoofCutCache, panelBoxes, cells, above: false);
+
+    private static Cuboidf[] Cut(ConditionalWeakTable<Cuboidf[], ConcurrentDictionary<HalfSpace[][], Cuboidf[]>> cache, Cuboidf[] boxes, HalfSpace[][] cells, bool above)
+        => cache.GetValue(boxes, static _ => new ConcurrentDictionary<HalfSpace[][], Cuboidf[]>(RoofCut.CellsComparer))
+            .GetOrAdd(cells, static (cut, arg) => RoofCut.ClipBoxes(arg.boxes, cut, arg.above), (boxes, above));
 
     private static Cuboidf[] MarkedForPanel(Cuboidf[] panelBoxes)
         => PanelSelectionCache.GetValue(panelBoxes, boxes => boxes.Select(box => (Cuboidf)new PanelSelectionBox(box)).ToArray());

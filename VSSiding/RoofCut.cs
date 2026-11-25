@@ -157,8 +157,8 @@ internal static class RoofCut
     // each as high as the cut at its middle, so its cut end lies either side of the slope by half a strip's rise, as decision
     // 0067's deck strips straddle the panel's line. A box wholly under the cut is kept as it is, and a strip wholly over it is
     // dropped. shortcut: a strip is read at the box's middle across it, so under a corner a thick box's top is off by the cut's
-    // fall across it; cut such a box both ways if that shows in game.
-    internal static Cuboidf[] ClipBoxes(Cuboidf[] boxes, HalfSpace[][] cells)
+    // fall across it; cut such a box both ways if that shows in game. With above, each box keeps the part over the cut instead.
+    internal static Cuboidf[] ClipBoxes(Cuboidf[] boxes, HalfSpace[][] cells, bool above = false)
     {
         var clipped = new List<Cuboidf>();
         foreach (var box in boxes)
@@ -168,7 +168,7 @@ internal static class RoofCut
             float[] tops = alongX ? byX : byZ;
             double lo = alongX ? box.X1 : box.Z1, hi = alongX ? box.X2 : box.Z2;
 
-            if (tops.All(top => top >= box.Y2))
+            if (tops.All(top => above ? top <= box.Y1 : top >= box.Y2))
             {
                 clipped.Add(box);
                 continue;
@@ -176,11 +176,12 @@ internal static class RoofCut
 
             for (int k = 0; k < Strips; k++)
             {
-                if (tops[k] <= box.Y1 + Epsilon) continue;
+                float y1 = above ? Math.Max(box.Y1, tops[k]) : box.Y1, y2 = above ? box.Y2 : tops[k];
+                if (y2 <= y1 + Epsilon) continue;
                 float u1 = (float)(lo + (hi - lo) * k / Strips), u2 = (float)(lo + (hi - lo) * (k + 1) / Strips);
                 clipped.Add(alongX
-                    ? new Cuboidf(u1, box.Y1, box.Z1, u2, tops[k], box.Z2)
-                    : new Cuboidf(box.X1, box.Y1, u1, box.X2, tops[k], u2));
+                    ? new Cuboidf(u1, y1, box.Z1, u2, y2, box.Z2)
+                    : new Cuboidf(box.X1, y1, u1, box.X2, y2, u2));
             }
         }
 

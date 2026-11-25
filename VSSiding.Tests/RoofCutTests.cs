@@ -94,6 +94,16 @@ public class RoofCutTests
             UnderRidge("(0,0,0)-(16,8,16)", (OneByOneRisingSouth, "south"), (OneByOneRisingNorth, "north"))!));
     }
 
+    // The 1x1 ridge's own box over that wall: each strip from the wall's top up to the box's, so the two never overlap.
+    [Fact]
+    public void ARidgesBoxIsCutToItsPartOverThePeak()
+    {
+        var expected = Enumerable.Range(0, RoofCut.Strips).Select(k => Voxels(0, k < 4 ? 2 * k + 1 : 15 - 2 * k, 2 * k, 16, 8, 2 * k + 2)).ToArray();
+
+        Assert.Equal(expected, RoofCut.ClipBoxes([Voxels(0, 0, 0, 16, 8, 16)],
+            UnderRidge("(0,0,0)-(16,8,16)", (OneByOneRisingSouth, "south"), (OneByOneRisingNorth, "north"))!, above: true));
+    }
+
     // To the north a roof rising north, away from the ridge; to the south one rising toward it, y = 1 - z in the ridge's cell.
     [Fact]
     public void ARidgeIsCutOnlyBySlopesRisingTowardIt()

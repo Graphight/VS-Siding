@@ -42,6 +42,8 @@ The same reading serves all five of Roofing's slopes and all four orientations; 
 
 **Collision, selection, mesh and sealing all follow the cut.**
 `ClipBoxes` cuts each panel box into eight strips along the way the cut falls, each as high as the cut at its middle, after decision 0067's deck strips, cached per panel array and cut.
+While it hosts a wall, the roof's own selection boxes are cut the other way, to their part over the cut (`above`).
+Vanilla's ray picks a cell's nearest box, a tie going to the first, and a roof's steps reach under its slope, so a 1x1 ridge's slab, filling the cell under its peak, stood in front of its wall from either side.
 `ClipMesh` clips every quad of the wall's mesh against the cells, and `Caps` closes each element's top along the slope in that element's own texture, so the frame, infill, finishes, glazing and vents are all cut, each with a closed top.
 The mesh cache key carries the cut, and every cut mesh is a new one.
 On the claimed faces the liquid barrier is the smaller of the wall's and the cut's height at that face (`RoofCut.FaceHeight`), so `SideIsSolid` follows it, and a block attaching to a side face needs its attachment area under the cut (`RoofCut.Holds`).
@@ -75,7 +77,9 @@ The probe found no other path the fill takes, so dropping the wall when a fill l
 - **A deck, a step and a corner upgrade under a roof, cut like the rest.** A deck lies at the top of the cell, mostly above any slope, and a gable needs neither the step nor the upgrade; left out until a player asks.
 
 ## Consequences & open questions
-- Not yet played; every stage was checked by unit tests and Probe scenarios on a headless server only.
+- Played once before merge, which found the ridge's slab in front of its wall; otherwise checked by unit tests and Probe scenarios on a headless server.
+- A hosting roof answers more selection boxes than Roofing's own, so a click can carry an index Roofing never returned; the probe found its thatch click unaffected, and no other Roofing click was tried on a strip.
+- Vanilla outlines only the hit box of a block whose `DoPartialSelection` answers true, so if Roofing's does, a hosting roof outlines one strip; unseen in game.
 - Retention on the claimed faces is the whole wall's even under a bare roof frame, which closes nothing above the cut.
 - Corner pieces were probed at the 1x1 slope only; the other slopes' corners are read by the same rule from their boxes, unseen.
 - A ridge beside a corner piece reads the corner piece as no slope, so a wall under that ridge is cut by the other side alone, or not at all.

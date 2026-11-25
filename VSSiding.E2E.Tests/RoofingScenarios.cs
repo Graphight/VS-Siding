@@ -168,17 +168,18 @@ public class RoofingScenarios : AtlasScenarioBase
                 await Hold(player, Plank, 4);
                 RightClick(player, Face(at.DownCopy(), BlockFacing.UP));
             }
-            string RoofBoxes(BlockPos at)
-                => Format(World.BlockAt(at).GetSelectionBoxes(World.Api.World.BlockAccessor, at).Where(box => box.GetType().Name != "PanelSelectionBox").ToArray());
+            // A hosting roof's selection is cut to the slope; its own collision boxes come first, the guest's after them.
+            Cuboidf[] RoofBoxes(BlockPos at) => World.BlockAt(at).GetCollisionBoxes(World.Api.World.BlockAccessor, at);
 
             await RoofFromBelow(open);
             await RoofFromBelow(cell);
-            var hosted = (World.BlockAt(cell).Code.Path, RoofBoxes(cell), WallBuilder.GuestLayers(World, cell));
+            Cuboidf[] openBoxes = RoofBoxes(open);
+            var hosted = (World.BlockAt(cell).Code.Path, Format(RoofBoxes(cell).Take(openBoxes.Length).ToArray()), WallBuilder.GuestLayers(World, cell));
 
             await Hold(player, Thatch, 4);
             WithKeys(player, shift: true, ctrl: false, Face(cell, BlockFacing.SOUTH));
 
-            Assert.Equal(((World.BlockAt(open).Code.Path, RoofBoxes(open), layers), "roof-filled-north", layers),
+            Assert.Equal(((World.BlockAt(open).Code.Path, Format(openBoxes), layers), "roof-filled-north", layers),
                 (hosted, World.BlockAt(cell).Code.Path, WallBuilder.GuestLayers(World, cell)));
         }
         finally
@@ -307,6 +308,86 @@ public class RoofingScenarios : AtlasScenarioBase
                  ("the clicked block", "vssiding:wallvent-wall-north", Filled("trapdoor-solid-oak-1"), "none"),
                  ("the clicked block", "vssiding:wall-wall-north", Filled("clay"), "vssiding:underroof"), roofs[0], roofs[1]),
                 (clayed, vented, stepped, World.BlockAt(clay).Code.ToString(), World.BlockAt(vent).Code.ToString()));
+        }
+        finally
+        {
+            harmony.GetType().GetMethod("UnpatchAll", new[] { typeof(string) })!.Invoke(harmony, new object[] { HarmonyId });
+            player.Player.Disconnect();
+            await World.Until(() => !player.IsConnected);
+        }
+    }
+
+    // A gable wall under a 1x1 ridge, whose box fills the cell's lower half, takes a finish on either face from a click aimed at it
+    // through the game's own ray test, while a look down onto the ridge clear of the wall still picks the roof.
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
+    public async Task Panel_Should_TakeAFinishOnEitherFace_When_AimedAtUnderARidge()
+    {
+        if (!RoofingLoaded) return;
+
+        ITestPlayer player = await WallBuilder.JoinBuilder(World);
+        try
+        {
+            BlockPos column = Cell(0, 12), ridge = column.UpCopy();
+            World.SetBlock(Support, column);
+            await WallBuilder.Raise(World, player, ridge, ridge.WestCopy(), Plank, "game:clay-blue");
+            await BuildGable(player, Gables[1], column);
+
+            BlockSelection? Aim(double fromX, double fromY, double fromZ, double toX, double toY, double toZ)
+            {
+                BlockSelection? hit = null;
+                EntitySelection? entity = null;
+                World.Api.World.RayTraceForSelection(new Vec3d(ridge.X + fromX, ridge.Y + fromY, ridge.Z + fromZ),
+                    new Vec3d(ridge.X + toX, ridge.Y + toY, ridge.Z + toZ), ref hit, ref entity);
+                return hit;
+            }
+            string What(BlockSelection? hit) => hit?.Position?.Equals(ridge) != true ? "nothing"
+                : World.BlockAt(ridge).GetSelectionBoxes(World.Api.World.BlockAccessor, ridge)[hit.SelectionBoxIndex].GetType().Name == "PanelSelectionBox" ? "panel" : "roof";
+
+            player.Entity.LeftHandItemSlot.Itemstack = new ItemStack(World.Api.World.GetItem(new AssetLocation(Saw)));
+            var faces = new List<(string, string)>();
+            foreach (var (from, to) in new[] { (-1.5, 1.5), (2.5, -0.5) })
+            {
+                await Hold(player, Plank, 2);
+                BlockSelection? hit = Aim(from, 0.15, 0.5, to, 0.15, 0.5);
+                faces.Add((What(hit), hit == null ? "nothing" : RightClick(player, hit)));
+            }
+
+            Assert.Equal((("panel", "the clicked block"), ("panel", "the clicked block"), ("oak", "clay", "planks", null, "planks"), "roof"),
+                (faces[0], faces[1], WallBuilder.GuestLayers(World, ridge), What(Aim(0.75, 2, 0.25, 0.75, 0, 0.25))));
+        }
+        finally
+        {
+            player.Player.Disconnect();
+            await World.Until(() => !player.IsConnected);
+        }
+    }
+
+    // A ridge hosting a wall selects as strips over its slope, past the one box Roofing's own answer holds, and still thatches from
+    // a sneak click aimed at one of them, the wall kept.
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
+    public async Task Ridge_Should_TakeThatch_When_ClickedOnAStripOverItsWall()
+    {
+        if (!RoofingLoaded) return;
+
+        ITestPlayer player = await WallBuilder.JoinBuilder(World);
+        object harmony = PatchIngameErrors(player.Player);
+        try
+        {
+            BlockPos column = Cell(0, 12), ridge = column.UpCopy();
+            World.SetBlock(Support, column);
+            await WallBuilder.Raise(World, player, ridge, ridge.WestCopy(), Plank, "game:clay-blue");
+            await BuildGable(player, Gables[1], column);
+            var layers = WallBuilder.GuestLayers(World, ridge);
+
+            BlockSelection? hit = null;
+            EntitySelection? entity = null;
+            World.Api.World.RayTraceForSelection(new Vec3d(ridge.X + 0.75, ridge.Y + 2, ridge.Z + 0.2), new Vec3d(ridge.X + 0.75, ridge.Y, ridge.Z + 0.2), ref hit, ref entity);
+            await Hold(player, Thatch, 4);
+            Errors.Clear();
+            string took = hit == null ? "nothing" : WithKeys(player, shift: true, ctrl: false, hit);
+
+            Assert.Equal((true, "the clicked block", "vsroofing:roof-filled-north", layers, "none"),
+                (hit?.SelectionBoxIndex > 0, took, World.BlockAt(ridge).Code.ToString(), WallBuilder.GuestLayers(World, ridge), ErrorList()));
         }
         finally
         {
@@ -447,12 +528,14 @@ public class RoofingScenarios : AtlasScenarioBase
                 System.Func<double, double, double> corner = name == "outer" ? Math.Min : Math.Max;
                 string Tops(System.Func<Cuboidf, double> top) => string.Join(" ", panel.Select(box => Math.Round(16 * top(box), 2).ToString(CultureInfo.InvariantCulture)));
 
-                expected.Add((name, "vssiding:wall-cornerout-west",
-                    name == "outer"
-                        ? "(0,0,8)-(16,8,16) (0,0,0)-(8,8,16) (8,8,0)-(16,16,8) (8,8,0)-(16,16,8)"
-                        : "(0,0,8)-(8,8,16) (0,0,8)-(8,8,16) (0,8,0)-(16,16,8) (8,8,0)-(16,16,16)",
+                string roofBoxes = name == "outer"
+                    ? "(0,0,8)-(16,8,16) (0,0,0)-(8,8,16) (8,8,0)-(16,16,8) (8,8,0)-(16,16,8)"
+                    : "(0,0,8)-(8,8,16) (0,0,8)-(8,8,16) (0,8,0)-(16,16,8) (8,8,0)-(16,16,16)";
+                expected.Add((name, "vssiding:wall-cornerout-west", roofBoxes,
                     2 * 8, Tops(box => Math.Min(1, corner(1 - (box.Z1 + box.Z2) / 2, (box.X1 + box.X2) / 2)))));
-                actual.Add((name, WallBuilder.GuestCode(World, cell), Format(boxes.Where(box => box.GetType().Name != "PanelSelectionBox").ToArray()),
+                // The roof's own collision boxes lead, the guest's following; its selection over a wall is cut to the slope.
+                Cuboidf[] collision = World.BlockAt(cell).GetCollisionBoxes(World.Api.World.BlockAccessor, cell);
+                actual.Add((name, WallBuilder.GuestCode(World, cell), Format(collision.Take(roofBoxes.Split(' ').Length).ToArray()),
                     panel.Length, Tops(box => box.Y2)));
             }
 
