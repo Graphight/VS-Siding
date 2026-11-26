@@ -12,6 +12,7 @@ using Vintagestory.API.Config;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
+using Vintagestory.GameContent;
 using Xunit;
 
 namespace VSSiding.E2E.Tests;
@@ -312,6 +313,48 @@ public class RoofingScenarios : AtlasScenarioBase
         finally
         {
             harmony.GetType().GetMethod("UnpatchAll", new[] { typeof(string) })!.Invoke(harmony, new object[] { HarmonyId });
+            player.Player.Disconnect();
+            await World.Until(() => !player.IsConnected);
+        }
+    }
+
+    // A one-cell room whose south wall a roof hosts, framed into the roof's cell and filled with clay through its panel as the last
+    // change to the world, measures as Room_Should_BeACellar_When_WallsAreFilledWithClay's does: the guest's retention seals it.
+    [AtlasScenario(RollbackWorld = true, StrictIsolation = true)]
+    public async Task Room_Should_BeACellar_When_ClayGoesOnThroughARoofsPanel()
+    {
+        if (!RoofingLoaded) return;
+
+        ITestPlayer player = await WallBuilder.JoinBuilder(World);
+        try
+        {
+            BlockPos cell = Cell(0, 6), inside = cell.NorthCopy();
+            World.SetBlock(Support, cell.DownCopy());
+            World.SetBlock("game:planks-aged-ud", inside.DownCopy());
+            foreach (BlockFacing side in new[] { BlockFacing.NORTH, BlockFacing.EAST, BlockFacing.WEST })
+            {
+                World.SetBlock("game:planks-aged-ud", inside.AddCopy(side).DownCopy());
+                await WallBuilder.Raise(World, player, inside.AddCopy(side), inside, Plank, "game:clay-blue");
+            }
+            World.SetBlock("game:planks-aged-ud", inside.UpCopy());
+
+            Stand(player, cell);
+            player.Entity.LeftHandItemSlot.Itemstack = new ItemStack(World.Api.World.GetItem(new AssetLocation(Hammer)));
+            await Hold(player, Plank, 4);
+            RightClick(player, Face(cell.DownCopy(), BlockFacing.UP));
+            player.Entity.LeftHandItemSlot.Itemstack = new ItemStack(World.Api.World.GetItem(new AssetLocation(Saw)));
+            await Hold(player, Plank, 2);
+            RightClick(player, Face(cell.DownCopy(), BlockFacing.UP));
+            await Hold(player, "game:clay-blue", 4);
+            RightClick(player, PanelHit(cell, BlockFacing.SOUTH));
+            await World.Ticks(5);
+
+            var room = World.Api.ModLoader.GetModSystem<RoomRegistry>().GetRoomForPosition(inside);
+            Assert.Equal(("vsroofing", ((string?, string?, string?, string?, string?)?)("oak", "clay", null, null, null), (4, 2, 0)),
+                (World.BlockAt(cell).Code.Domain, WallBuilder.GuestLayers(World, cell), (room.CoolingWallCount, room.NonCoolingWallCount, room.ExitCount)));
+        }
+        finally
+        {
             player.Player.Disconnect();
             await World.Until(() => !player.IsConnected);
         }
