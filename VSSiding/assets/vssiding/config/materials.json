@@ -188,6 +188,14 @@
 			BlockMaterial: "Soil",
 			Consumes: { type: "block", code: "game:rammed-light-{pattern}", quantity: 1 },
 			Drops: [ { type: "block", code: "game:rammed-light-{pattern}", quantity: { avg: 1, var: 0 } } ]
+		},
+		"mudbrick-{type}": {
+			Match: { type: "block", code: "game:mudbrick-*", variant: "type" },
+			DisplayName: "vssiding:infill-mudbrick-{type}",
+			Texture: "game:block/soil/mudbrick/{type}*",
+			BlockMaterial: "Soil",
+			Consumes: { type: "block", code: "game:mudbrick-{type}", quantity: 1 },
+			Drops: [ { type: "block", code: "game:mudbrick-{type}", quantity: { avg: 1, var: 0 } } ]
 		}
 	},
 	Finishes: {
@@ -486,6 +494,14 @@
 			BlockMaterial: "Soil",
 			Consumes: { type: "block", code: "game:rammed-light-{pattern}", quantity: 1 },
 			Drops: [ { type: "block", code: "game:rammed-light-{pattern}", quantity: { avg: 1, var: 0 } } ]
+		},
+		"mudbrick-{type}": {
+			Match: { type: "block", code: "game:mudbrick-*", variant: "type" },
+			DisplayName: "vssiding:finish-mudbrick-{type}",
+			Texture: "game:block/soil/mudbrick/{type}*",
+			BlockMaterial: "Soil",
+			Consumes: { type: "block", code: "game:mudbrick-{type}", quantity: 1 },
+			Drops: [ { type: "block", code: "game:mudbrick-{type}", quantity: { avg: 1, var: 0 } } ]
 		}
 	}
 }

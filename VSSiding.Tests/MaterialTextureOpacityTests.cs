@@ -130,6 +130,7 @@ public class MaterialTextureOpacityTests
             .Concat(Candidates(vintageStoryPath, "block", "blocktypes/glass/slab-quartz.json", 0, "{0}-{1}-down-free"))
             .Concat(Candidates(vintageStoryPath, "block", "blocktypes/glass/pane.json", 1, "{0}-leaded-{1}-ew"))
             .Concat(Candidates(vintageStoryPath, "block", "blocktypes/soil/rammed.json", 1, "{0}-light-{1}"))
+            .Concat(Candidates(vintageStoryPath, "block", "blocktypes/soil/mudbrick.json"))
             .Concat(Candidates(vintageStoryPath, "item", "itemtypes/resource/hide.json", 1, "{0}-pelt-{1}"))
             .Concat(Candidates(vintageStoryPath, "item", "itemtypes/resource/cloth.json"))
             .Concat(ClayTiles(vintageStoryPath))
