@@ -414,6 +414,8 @@ public class MaterialFamiliesTests
         MaterialNeedsCandidate("plaster-black-diagonal-ud", ("color", "black"), ("type", "diagonal"), ("orientation", "ud")),
         MaterialNeedsCandidate("plaster-black-diagonal-ns", ("color", "black"), ("type", "diagonal"), ("orientation", "ns")),
         MaterialNeedsCandidate("plaster-black-stripes-ud", ("color", "black"), ("type", "stripes"), ("orientation", "ud")),
+        MaterialNeedsCandidate("redmudbrick-light", ("type", "light")),
+        MaterialNeedsCandidate("oystermudbrick-dark", ("type", "dark")),
     ];
 
     [Theory]
@@ -426,10 +428,10 @@ public class MaterialFamiliesTests
         var infills = MaterialFamilies.Expand((JObject)attributes["InfillFamilies"]!, new JObject(), MaterialNeedsCandidates);
         var finishes = MaterialFamilies.Expand((JObject)attributes["FinishFamilies"]!, new JObject(), MaterialNeedsCandidates);
 
-        Assert.Equal(new[] { "rammed-black-plain", "rammed-browngolden-thinheavy" }, infills.Properties().Select(p => p.Name));
+        Assert.Equal(new[] { "rammed-black-plain", "rammed-browngolden-thinheavy", "mudbrick-red-light", "mudbrick-oyster-dark" }, infills.Properties().Select(p => p.Name));
         Assert.Equal(new[]
         {
-            "rammed-black-plain", "rammed-browngolden-thinheavy",
+            "rammed-black-plain", "rammed-browngolden-thinheavy", "mudbrick-red-light", "mudbrick-oyster-dark",
             "plaster-black-plain", "plaster-black-square", "plaster-black-diagonal", "plaster-black-stripes",
         }, finishes.Properties().Select(p => p.Name));
         AssertJson(JObject.Parse("""
@@ -441,6 +443,15 @@ public class MaterialFamiliesTests
             "Drops": [ { "type": "block", "code": "materialneeds:rammed-light-browngolden-thinheavy", "quantity": { "avg": 1, "var": 0 } } ]
         }
         """), (JObject)infills["rammed-browngolden-thinheavy"]!);
+        AssertJson(JObject.Parse("""
+        {
+            "DisplayName": "materialneeds:block-oystermudbrick-dark",
+            "Texture": "materialneeds:block/soil/mudbrick/oystermudbrick/dark*",
+            "BlockMaterial": "Soil",
+            "Consumes": { "type": "block", "code": "materialneeds:oystermudbrick-dark", "quantity": 1 },
+            "Drops": [ { "type": "block", "code": "materialneeds:oystermudbrick-dark", "quantity": { "avg": 1, "var": 0 } } ]
+        }
+        """), (JObject)infills["mudbrick-oyster-dark"]!);
         AssertJson(JObject.Parse("""
         {
             "DisplayName": "materialneeds:block-plaster-black-diagonal-ud",

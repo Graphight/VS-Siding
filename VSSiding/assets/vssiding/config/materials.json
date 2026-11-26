@@ -204,6 +204,46 @@
 			BlockMaterial: "Soil",
 			Consumes: { type: "block", code: "materialneeds:rammed-light-{color}-{pattern}", quantity: 1 },
 			Drops: [ { type: "block", code: "materialneeds:rammed-light-{color}-{pattern}", quantity: { avg: 1, var: 0 } } ]
+		},
+		"mudbrick-red-{type}": {
+			Match: { type: "block", code: "materialneeds:redmudbrick-*", variant: "type" },
+			DisplayName: "materialneeds:block-redmudbrick-{type}",
+			Texture: "materialneeds:block/soil/mudbrick/redmudbrick/{type}*",
+			BlockMaterial: "Soil",
+			Consumes: { type: "block", code: "materialneeds:redmudbrick-{type}", quantity: 1 },
+			Drops: [ { type: "block", code: "materialneeds:redmudbrick-{type}", quantity: { avg: 1, var: 0 } } ]
+		},
+		"mudbrick-gray-{type}": {
+			Match: { type: "block", code: "materialneeds:graymudbrick-*", variant: "type" },
+			DisplayName: "materialneeds:block-graymudbrick-{type}",
+			Texture: "materialneeds:block/soil/mudbrick/graymudbrick/{type}*",
+			BlockMaterial: "Soil",
+			Consumes: { type: "block", code: "materialneeds:graymudbrick-{type}", quantity: 1 },
+			Drops: [ { type: "block", code: "materialneeds:graymudbrick-{type}", quantity: { avg: 1, var: 0 } } ]
+		},
+		"mudbrick-brown-{type}": {
+			Match: { type: "block", code: "materialneeds:brownmudbrick-*", variant: "type" },
+			DisplayName: "materialneeds:block-brownmudbrick-{type}",
+			Texture: "materialneeds:block/soil/mudbrick/brownmudbrick/{type}*",
+			BlockMaterial: "Soil",
+			Consumes: { type: "block", code: "materialneeds:brownmudbrick-{type}", quantity: 1 },
+			Drops: [ { type: "block", code: "materialneeds:brownmudbrick-{type}", quantity: { avg: 1, var: 0 } } ]
+		},
+		"mudbrick-oxblood-{type}": {
+			Match: { type: "block", code: "materialneeds:oxbloodmudbrick-*", variant: "type" },
+			DisplayName: "materialneeds:block-oxbloodmudbrick-{type}",
+			Texture: "materialneeds:block/soil/mudbrick/oxbloodmudbrick/{type}*",
+			BlockMaterial: "Soil",
+			Consumes: { type: "block", code: "materialneeds:oxbloodmudbrick-{type}", quantity: 1 },
+			Drops: [ { type: "block", code: "materialneeds:oxbloodmudbrick-{type}", quantity: { avg: 1, var: 0 } } ]
+		},
+		"mudbrick-oyster-{type}": {
+			Match: { type: "block", code: "materialneeds:oystermudbrick-*", variant: "type" },
+			DisplayName: "materialneeds:block-oystermudbrick-{type}",
+			Texture: "materialneeds:block/soil/mudbrick/oystermudbrick/{type}*",
+			BlockMaterial: "Soil",
+			Consumes: { type: "block", code: "materialneeds:oystermudbrick-{type}", quantity: 1 },
+			Drops: [ { type: "block", code: "materialneeds:oystermudbrick-{type}", quantity: { avg: 1, var: 0 } } ]
 		}
 	},
 	Finishes: {
@@ -518,6 +558,46 @@
 			BlockMaterial: "Soil",
 			Consumes: { type: "block", code: "materialneeds:rammed-light-{color}-{pattern}", quantity: 1 },
 			Drops: [ { type: "block", code: "materialneeds:rammed-light-{color}-{pattern}", quantity: { avg: 1, var: 0 } } ]
+		},
+		"mudbrick-red-{type}": {
+			Match: { type: "block", code: "materialneeds:redmudbrick-*", variant: "type" },
+			DisplayName: "materialneeds:block-redmudbrick-{type}",
+			Texture: "materialneeds:block/soil/mudbrick/redmudbrick/{type}*",
+			BlockMaterial: "Soil",
+			Consumes: { type: "block", code: "materialneeds:redmudbrick-{type}", quantity: 1 },
+			Drops: [ { type: "block", code: "materialneeds:redmudbrick-{type}", quantity: { avg: 1, var: 0 } } ]
+		},
+		"mudbrick-gray-{type}": {
+			Match: { type: "block", code: "materialneeds:graymudbrick-*", variant: "type" },
+			DisplayName: "materialneeds:block-graymudbrick-{type}",
+			Texture: "materialneeds:block/soil/mudbrick/graymudbrick/{type}*",
+			BlockMaterial: "Soil",
+			Consumes: { type: "block", code: "materialneeds:graymudbrick-{type}", quantity: 1 },
+			Drops: [ { type: "block", code: "materialneeds:graymudbrick-{type}", quantity: { avg: 1, var: 0 } } ]
+		},
+		"mudbrick-brown-{type}": {
+			Match: { type: "block", code: "materialneeds:brownmudbrick-*", variant: "type" },
+			DisplayName: "materialneeds:block-brownmudbrick-{type}",
+			Texture: "materialneeds:block/soil/mudbrick/brownmudbrick/{type}*",
+			BlockMaterial: "Soil",
+			Consumes: { type: "block", code: "materialneeds:brownmudbrick-{type}", quantity: 1 },
+			Drops: [ { type: "block", code: "materialneeds:brownmudbrick-{type}", quantity: { avg: 1, var: 0 } } ]
+		},
+		"mudbrick-oxblood-{type}": {
+			Match: { type: "block", code: "materialneeds:oxbloodmudbrick-*", variant: "type" },
+			DisplayName: "materialneeds:block-oxbloodmudbrick-{type}",
+			Texture: "materialneeds:block/soil/mudbrick/oxbloodmudbrick/{type}*",
+			BlockMaterial: "Soil",
+			Consumes: { type: "block", code: "materialneeds:oxbloodmudbrick-{type}", quantity: 1 },
+			Drops: [ { type: "block", code: "materialneeds:oxbloodmudbrick-{type}", quantity: { avg: 1, var: 0 } } ]
+		},
+		"mudbrick-oyster-{type}": {
+			Match: { type: "block", code: "materialneeds:oystermudbrick-*", variant: "type" },
+			DisplayName: "materialneeds:block-oystermudbrick-{type}",
+			Texture: "materialneeds:block/soil/mudbrick/oystermudbrick/{type}*",
+			BlockMaterial: "Soil",
+			Consumes: { type: "block", code: "materialneeds:oystermudbrick-{type}", quantity: 1 },
+			Drops: [ { type: "block", code: "materialneeds:oystermudbrick-{type}", quantity: { avg: 1, var: 0 } } ]
 		},
 		"plaster-{color}-plain": {
 			Match: { type: "block", code: "materialneeds:plaster-*-plain", variant: "color" },
