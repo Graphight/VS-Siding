@@ -293,6 +293,14 @@ public class RoofCutTests
         Assert.Equal((4, 24, 4, 4, 4, 4, 3.0), Summary(RoofCut.ClipMesh(Cube(), Cells(ThatchedOneByOne, "north"))));
     }
 
+    // Under a valley, y = max(x, 1 - z): the bottom whole in two halves, one either side of the split, the north and east faces
+    // whole, the west and south cut to triangles, the top to edges.
+    [Fact]
+    public void ACubeUnderAValleyKeepsWhatLiesUnderEitherSlope()
+    {
+        Assert.Equal((6, 36, 6, 6, 6, 6, 4.0), Summary(RoofCut.ClipMesh(Cube(), Cells(InnerCorner, "north"))));
+    }
+
     // Under y = (1 - z) / 3 the north face's sides cross a third of the way up, so its cut corners and their uvs are a third of
     // the way along those sides.
     [Fact]
