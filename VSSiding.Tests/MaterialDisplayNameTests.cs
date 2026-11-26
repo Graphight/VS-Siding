@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json.Linq;
+using Vintagestory.API.Config;
 using Xunit;
 
 namespace VSSiding.Tests;
@@ -69,5 +70,44 @@ public class MaterialDisplayNameTests
 
         Assert.NotEmpty(keys);
         Assert.Equal(Array.Empty<string>(), keys.Where(key => lang[key] == null).ToArray());
+    }
+
+    // Material Needs names most of its blocks only through wildcard keys. The game takes the first wildcard
+    // entry in file order, so a diagonal plaster reads its own name before the plain one's broader key.
+    [Fact]
+    public void LangEntryFallsBackToAWildcardKeyOnlyAfterTheExactKeyMisses()
+    {
+        var assets = Directory.CreateTempSubdirectory();
+        try
+        {
+            Directory.CreateDirectory(Path.Combine(assets.FullName, "game", "lang"));
+            File.WriteAllText(Path.Combine(assets.FullName, "game", "lang", "en.json"), """
+            {
+                "materialneeds:block-plaster-black-diagonal-*": "Black plaster (Diagonal logs)",
+                "materialneeds:block-plaster-black-*": "Black plaster (Plain)",
+                "materialneeds:block-plaster-black-square": "Black plaster (Square logs)"
+            }
+            """);
+            var service = new TranslationService("en", null!);
+            service.PreLoad(assets.FullName);
+            Lang.AvailableLanguages["en"] = service;
+            Lang.ChangeLanguage("en");
+
+            string[] keys =
+            [
+                "materialneeds:block-plaster-black-square",
+                "materialneeds:block-plaster-black-plain",
+                "materialneeds:block-plaster-black-diagonal-ud",
+                "materialneeds:block-rammed-light-black-plain",
+            ];
+            Assert.Equal(
+                new string?[] { "Black plaster (Square logs)", "Black plaster (Plain)", "Black plaster (Diagonal logs)", null },
+                keys.Select(SidingWallBlock.LangEntry));
+        }
+        finally
+        {
+            Lang.AvailableLanguages.Remove("en");
+            assets.Delete(recursive: true);
+        }
     }
 }

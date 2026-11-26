@@ -1614,8 +1614,11 @@ public class SidingWallBlock : Block
 
     // The entities' translate delegate: the entry as written, or null where lang has none. Not Lang.GetIfExists,
     // which formats the entry with no arguments and logs an exception for every line that carries a {0}.
+    // A wildcard entry is tried only after the exact one misses: Material Needs names its rammed earth and
+    // plasters only through keys like materialneeds:block-rammed-light-black-*.
     internal static string? LangEntry(string key)
-        => Lang.HasTranslation(key, findWildcarded: false, logErrors: false) ? Lang.GetUnformatted(key) : null;
+        => Lang.HasTranslation(key, findWildcarded: false, logErrors: false) ? Lang.GetUnformatted(key)
+            : Lang.HasTranslation(key, findWildcarded: true, logErrors: false) ? Lang.GetMatchingIfExists(key) : null;
 
     private static string TitleCase(string key)
         => string.Join(' ', key.Split('-').Select(word => word.Length == 0 ? word : char.ToUpperInvariant(word[0]) + word[1..]));

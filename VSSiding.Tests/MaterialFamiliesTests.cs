@@ -401,4 +401,72 @@ public class MaterialFamiliesTests
         }
         """), (JObject)actual["leadedglasspane-green-oak"]!);
     }
+
+    private static (string, AssetLocation, IDictionary<string, string>) MaterialNeedsCandidate(string code, params (string Name, string Value)[] variants)
+        => ("block", new AssetLocation("materialneeds:" + code), variants.ToDictionary(v => v.Name, v => v.Value));
+
+    private static readonly (string, AssetLocation, IDictionary<string, string>)[] MaterialNeedsCandidates =
+    [
+        MaterialNeedsCandidate("rammed-light-black-plain", ("soil", "light"), ("color", "black"), ("pattern", "plain")),
+        MaterialNeedsCandidate("rammed-light-browngolden-thinheavy", ("soil", "light"), ("color", "browngolden"), ("pattern", "thinheavy")),
+        MaterialNeedsCandidate("plaster-black-plain", ("color", "black"), ("type", "plain")),
+        MaterialNeedsCandidate("plaster-black-square", ("color", "black"), ("type", "square")),
+        MaterialNeedsCandidate("plaster-black-diagonal-ud", ("color", "black"), ("type", "diagonal"), ("orientation", "ud")),
+        MaterialNeedsCandidate("plaster-black-diagonal-ns", ("color", "black"), ("type", "diagonal"), ("orientation", "ns")),
+        MaterialNeedsCandidate("plaster-black-stripes-ud", ("color", "black"), ("type", "stripes"), ("orientation", "ud")),
+        MaterialNeedsCandidate("redmudbrick-light", ("type", "light")),
+        MaterialNeedsCandidate("oystermudbrick-dark", ("type", "dark")),
+    ];
+
+    [Theory]
+    [InlineData("wall.json")]
+    [InlineData("floor.json")]
+    public void ShippedMaterialNeedsTemplatesExpandAgainstItsBlocks(string blockFile)
+    {
+        var attributes = MaterialTextureOpacityTests.BlockAttributes(blockFile);
+
+        var infills = MaterialFamilies.Expand((JObject)attributes["InfillFamilies"]!, new JObject(), MaterialNeedsCandidates);
+        var finishes = MaterialFamilies.Expand((JObject)attributes["FinishFamilies"]!, new JObject(), MaterialNeedsCandidates);
+
+        Assert.Equal(new[] { "rammed-black-plain", "rammed-browngolden-thinheavy", "mudbrick-red-light", "mudbrick-oyster-dark" }, infills.Properties().Select(p => p.Name));
+        Assert.Equal(new[]
+        {
+            "rammed-black-plain", "rammed-browngolden-thinheavy", "mudbrick-red-light", "mudbrick-oyster-dark",
+            "plaster-black-plain", "plaster-black-square", "plaster-black-diagonal", "plaster-black-stripes",
+        }, finishes.Properties().Select(p => p.Name));
+        AssertJson(JObject.Parse("""
+        {
+            "DisplayName": "materialneeds:block-rammed-light-browngolden-thinheavy",
+            "Texture": "materialneeds:block/soil/rammed/light/browngolden/thinheavy*",
+            "BlockMaterial": "Soil",
+            "Consumes": { "type": "block", "code": "materialneeds:rammed-light-browngolden-thinheavy", "quantity": 1 },
+            "Drops": [ { "type": "block", "code": "materialneeds:rammed-light-browngolden-thinheavy", "quantity": { "avg": 1, "var": 0 } } ]
+        }
+        """), (JObject)infills["rammed-browngolden-thinheavy"]!);
+        AssertJson(JObject.Parse("""
+        {
+            "DisplayName": "materialneeds:block-oystermudbrick-dark",
+            "Texture": "materialneeds:block/soil/mudbrick/oystermudbrick/dark*",
+            "BlockMaterial": "Soil",
+            "Consumes": { "type": "block", "code": "materialneeds:oystermudbrick-dark", "quantity": 1 },
+            "Drops": [ { "type": "block", "code": "materialneeds:oystermudbrick-dark", "quantity": { "avg": 1, "var": 0 } } ]
+        }
+        """), (JObject)infills["mudbrick-oyster-dark"]!);
+        AssertJson(JObject.Parse("""
+        {
+            "DisplayName": "materialneeds:block-plaster-black-diagonal-ud",
+            "Texture": "materialneeds:block/stone/plaster/black/diagonal",
+            "WholeOnCorners": true,
+            "MirrorsOnCorners": true,
+            "FloorElements": {
+                "front": { "hboards": "front-hboards", "boards": "front-boards" },
+                "back": { "hboards": "back-hboards", "boards": "back-boards" }
+            },
+            "Styles": ["hboards", "boards"],
+            "BlockMaterial": "Stone",
+            "Consumes": { "type": "block", "code": "materialneeds:plaster-black-diagonal-ud", "quantity": 1 },
+            "Drops": [ { "type": "block", "code": "materialneeds:plaster-black-diagonal-ud", "quantity": { "avg": 1, "var": 0 } } ]
+        }
+        """), (JObject)finishes["plaster-black-diagonal"]!);
+    }
 }
