@@ -365,6 +365,17 @@ public class SidingModSystem : ModSystem
 
         try
         {
+            harmony.Patch(AccessTools.Method(typeof(CollectibleObject), nameof(CollectibleObject.OnHeldUseStart)),
+                prefix: new HarmonyMethod(typeof(SidingModSystem), nameof(WallTopPrefix)),
+                finalizer: new HarmonyMethod(typeof(SidingModSystem), nameof(WallTopFinalizer)));
+        }
+        catch (Exception e)
+        {
+            api.Logger.Error("vssiding: wall top click patch skipped, a roof clicked onto a wall's top takes the wall's cell instead of the one above: {0}", e);
+        }
+
+        try
+        {
             harmony.Patch(AccessTools.Method(typeof(BlockBehaviorRightClickPickup), nameof(BlockBehaviorRightClickPickup.OnBlockInteractStart)),
                 postfix: new HarmonyMethod(typeof(SidingModSystem), nameof(PickedUpHostPostfix)));
         }
@@ -831,6 +842,25 @@ public class SidingModSystem : ModSystem
 
     internal static bool IsLadderId(int blockId) => Ladders is { } ladders && blockId < ladders.Length && ladders[blockId];
 
+    // Indexed by BlockId, like Hostable: whether the block is a roof that can take a wall's cell (vssidingRoof, set on Roofing's roofs).
+    internal static bool[]? Roofs;
+
+    internal static bool IsRoofId(int blockId) => Roofs is { } roofs && blockId < roofs.Length && roofs[blockId];
+
+    internal static bool IsRoof(Block block) => block.Attributes?["vssidingRoof"].AsBool() == true;
+
+    // Set for the length of a held item's use on a siding wall's top, so a roof clicked there goes in the cell above, as it did
+    // before roofs could take a wall's cell; a click on the block below or a side neighbour puts the roof in the wall's cell.
+    [ThreadStatic] internal static bool OnWallTop;
+
+    internal static void WallTopPrefix(EntityAgent byEntity, BlockSelection blockSel, out bool __state)
+    {
+        __state = OnWallTop;
+        OnWallTop = blockSel?.Face == BlockFacing.UP && byEntity?.World.BlockAccessor.GetBlock(blockSel.Position) is SidingWallBlock;
+    }
+
+    internal static void WallTopFinalizer(bool __state) => OnWallTop = __state;
+
     // Indexed by BlockId, like Hostable: whether the block hangs from the face above it (decision 0054).
     internal static bool[]? Hangers;
 
@@ -846,7 +876,7 @@ public class SidingModSystem : ModSystem
     // overrides that for a block whose boxes overstate its shape, such as Butchering's hooks.
     internal static double? UnderDeckDropFor(Block block)
     {
-        if (!IsHostable(block) || block.HasBehavior<BlockBehaviorTrapDoor>()) return null;
+        if (!IsHostable(block) || block.HasBehavior<BlockBehaviorTrapDoor>() || IsRoof(block)) return null;
 
         const double room = 1 - PanelThickness;
         var boxes = block.SelectionBoxes ?? block.CollisionBoxes;
@@ -951,6 +981,7 @@ public class SidingModSystem : ModSystem
         var hangers = new bool[maxId + 1];
         var hatches = new bool[maxId + 1];
         var ladders = new bool[maxId + 1];
+        var roofs = new bool[maxId + 1];
         var underDeckDrop = new double?[maxId + 1];
         var mainPos = new PropertyInfo?[maxId + 1];
 
@@ -961,6 +992,7 @@ public class SidingModSystem : ModSystem
             hangers[block.BlockId] = IsHanger(block);
             hatches[block.BlockId] = hostable[block.BlockId] && block.HasBehavior<BlockBehaviorTrapDoor>();
             ladders[block.BlockId] = hostable[block.BlockId] && block.HasBehavior<BlockBehaviorLadder>();
+            roofs[block.BlockId] = hostable[block.BlockId] && IsRoof(block);
             underDeckDrop[block.BlockId] = UnderDeckDropFor(block);
             if (!hostable[block.BlockId]) continue;
 
@@ -973,6 +1005,7 @@ public class SidingModSystem : ModSystem
         Hangers = hangers;
         Hatches = hatches;
         Ladders = ladders;
+        Roofs = roofs;
         UnderDeckDrop = underDeckDrop;
         FaceShiftByBlock = faceShift;
         MainPosByBlock = mainPos;
@@ -984,10 +1017,11 @@ public class SidingModSystem : ModSystem
 
     // A RotateablePlaceable block (a cabinet) turns its boxes by its block entity's angle, so its
     // default boxes don't say which face meets the wall; it takes its largest shift on every face,
-    // right unless its front is the side against the wall.
+    // right unless its front is the side against the wall. A trapdoor is squashed to the open part instead, and a roof spans
+    // the whole cell over the wall.
     internal static double[] FaceShifts(Block block)
     {
-        if (block.HasBehavior<BlockBehaviorTrapDoor>()) return new double[HorizontalFaces.Length];
+        if (block.HasBehavior<BlockBehaviorTrapDoor>() || IsRoof(block)) return new double[HorizontalFaces.Length];
 
         var boxes = block.SelectionBoxes ?? block.CollisionBoxes;
         var shifts = HorizontalFaces.Select(face => FaceShift(boxes, face)).ToArray();
@@ -1623,15 +1657,21 @@ public class SidingModSystem : ModSystem
                 world.RegisterCallback(_ => RestoreGuestWall(world, restorePos), 0);
                 break;
             case HostChange.Drop:
-                if (guest.Block is SidingWallBlock guestWall)
-                {
-                    foreach (var stack in guestWall.ResolveDrops(world, guestWall.DropsOf(guest), 1f)) world.SpawnItemEntity(stack, pos);
-                }
-                GuestWalls.Set(world, __instance, pos, null);
+                DropGuest(world, __instance, pos, guest);
                 break;
             case HostChange.Keep:
                 break;
         }
+    }
+
+    // The guest's layers drop as items and its record goes, the host staying.
+    internal static void DropGuest(IWorldAccessor world, IWorldChunk chunk, BlockPos pos, SidingWallEntity guest, float dropQuantityMultiplier = 1f)
+    {
+        if (guest.Block is SidingWallBlock guestWall)
+        {
+            foreach (var stack in guestWall.ResolveDrops(world, guestWall.DropsOf(guest), dropQuantityMultiplier)) world.SpawnItemEntity(stack, pos);
+        }
+        GuestWalls.Set(world, chunk, pos, null);
     }
 
     // The server runs TriggerNeighbourBlocksUpdate straight after a player's break completes, so
@@ -1925,8 +1965,8 @@ public class SidingModSystem : ModSystem
 
         api.Event.BreakBlock += (IServerPlayer _, BlockSelection blockSel, ref float _, ref EnumHandling _) =>
         {
-            // Only a siding block's OnBlockBroken clears it, so set for any other block it outlives the break.
-            if (api.World.BlockAccessor.GetBlock(blockSel.Position) is SidingWallBlock or SidingFloorBlock)
+            // Only a siding block's OnBlockBroken, or a roof's (PanelInteractionPatches), clears it, so set for any other block it outlives the break.
+            if (api.World.BlockAccessor.GetBlock(blockSel.Position) is var block && (block is SidingWallBlock or SidingFloorBlock || IsRoofId(block.BlockId)))
                 SidingWallBlock.ServerBreakSelection = blockSel;
         };
 

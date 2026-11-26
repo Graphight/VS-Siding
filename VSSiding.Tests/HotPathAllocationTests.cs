@@ -61,6 +61,7 @@ public class HotPathAllocationTests
             ["a wall's light absorption"] = BytesPerCall(() => wall.AbsorptionOf(entity)),
             ["a wall's attachability"] = BytesPerCall(() => wall.CanAttachOf(entity, BlockFacing.NORTH)),
             ["a decked wall's boxes"] = BytesPerCall(() => SidingWallBlock.AddOpenPartBoxes(PlainBlock.Boxes, "wall", "west", "oak", null)),
+            ["a host that is no roof's cut"] = BytesPerCall(() => GapShiftCollisionPatches.RoofCutAt(plain, null!, pos)),
         };
         harmony.UnpatchAll("vssiding.tests.allocations");
 
@@ -73,6 +74,7 @@ public class HotPathAllocationTests
             ["a wall's light absorption"] = 0,
             ["a wall's attachability"] = 0,
             ["a decked wall's boxes"] = 0,
+            ["a host that is no roof's cut"] = 0,
         }, actual);
     }
 }

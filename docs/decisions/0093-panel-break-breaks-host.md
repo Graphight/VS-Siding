@@ -1,6 +1,6 @@
 # 0093 — A panel break breaks the hosted block
 
-- Status: Accepted
+- Status: Accepted; a Roofing roof's panel peels a layer of its guest instead, see 0106
 - Created: 2026-11-08
 - Reflects: issue #163; branch `163-panel-break`; the server `BreakBlock` handler in `SidingModSystem.StartServerSide` and `PanelInteractionPatches`, which lose their break guards; Atlas scenario `Lamp_Should_Break_When_ItsWallPanelIsMined`; supersedes the breaking half of the "Interaction and breaking on the panel" row in decision 0035
 

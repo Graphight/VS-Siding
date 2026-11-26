@@ -531,9 +531,11 @@ public class SidingWallBlock : Block
     // Any hostable block may take a wall's cell, whichever way it's placed - a click on the panel,
     // on the floor in the gap, a sneak-placement, ground storage. SidingModSystem.HostChangePrefix
     // turns the wall's state into a guest in the same SetBlock, so neighbours never see air.
-    // Not a diagonal's: the open part of its cell is a triangle (decision 0066).
+    // Not a diagonal's: the open part of its cell is a triangle (decision 0066). Nor a roof clicked onto the wall's top
+    // (SidingModSystem.OnWallTop), which goes in the cell above.
     public override bool IsReplacableBy(Block block)
-        => (SidingModSystem.IsHostableId(block.BlockId) && Variant["layout"] != "diagonal") || base.IsReplacableBy(block);
+        => (SidingModSystem.IsHostableId(block.BlockId) && Variant["layout"] != "diagonal" && !(SidingModSystem.OnWallTop && SidingModSystem.IsRoofId(block.BlockId)))
+            || base.IsReplacableBy(block);
 
     // The placement failure code keeping a block out of the wall's cell: a step takes nothing, a deck
     // takes only a block that fits under it (decision 0094).
@@ -640,7 +642,7 @@ public class SidingWallBlock : Block
         AssetLocation? heldCode = slot.Itemstack?.Collectible.Code;
         if (heldCode == null) return base.OnBlockInteractStart(world, byPlayer, blockSel);
 
-        var entity = world.BlockAccessor.GetBlockEntity<SidingWallEntity>(blockSel.Position);
+        var entity = EntityAt(world.BlockAccessor, blockSel.Position);
 
         // With floor picked, planks frame a floor beside the wall (PlaceWallFrame) rather than work on it.
         // A filled deck's top or underside still takes them as floorboards or a ceiling, as a floor's does,
@@ -659,7 +661,7 @@ public class SidingWallBlock : Block
         // A stair on a side face fills the open part beside the stair in the room (decision 0046).
         if (slot.Itemstack!.Block is BlockStairs && blockSel.Face != BlockFacing.UP)
         {
-            if (ClaimRefuses(world, byPlayer, blockSel.Position)) return true;
+            if (ClaimRefuses(world, byPlayer, blockSel.Position) || RoofRefuses(world, byPlayer, blockSel.Position)) return true;
 
             if (Variant["layout"] is "diagonal" or "cornerin")
             {
@@ -803,6 +805,7 @@ public class SidingWallBlock : Block
             string? farFace = turnsToCorner || post ? null : ResolveFinishFace(Variant["layout"], side, blockSel.Face.Opposite);
             if (farFace == null || FinishOn(entity, farFace) != null)
             {
+                if (turnsToCorner && RoofRefuses(world, byPlayer, blockSel.Position)) return true;
                 if (heldPlaces) return base.OnBlockInteractStart(world, byPlayer, blockSel);
                 (byPlayer as IServerPlayer)?.SendIngameError("vssiding:alreadyfinished", Lang.Get("vssiding:build-already-finished"));
                 return true;
@@ -977,7 +980,7 @@ public class SidingWallBlock : Block
             || ResolveFinishFace(layout, Variant["side"], blockSel.Face) == null)
             return false;
 
-        if (ClaimRefuses(world, byPlayer, blockSel.Position)) return true;
+        if (ClaimRefuses(world, byPlayer, blockSel.Position) || RoofRefuses(world, byPlayer, blockSel.Position)) return true;
 
         if (entity.Step != null)
         {
@@ -997,7 +1000,7 @@ public class SidingWallBlock : Block
 
         // Keeps the block entity, and the engine repoints its Block at the new
         // type, so Framing survives and OnTesselation reads the new layout.
-        world.BlockAccessor.ExchangeBlock(target.Id, blockSel.Position);
+        SwapWallBlock(world, target.Id, blockSel.Position);
         if (filled)
         {
             if (FrontMovesToSecondFace(Variant["side"], target.Variant["side"]))
@@ -1064,7 +1067,7 @@ public class SidingWallBlock : Block
             else { entity.DeckInfill = infillKey; entity.DeckInfillUnmerged = unmerged; entity.LegacyDeck = false; }
             entity.MarkDirty(true);
             // Rooms only recompute on a chunk-dirty event, and the deck's retention just changed.
-            world.BlockAccessor.ExchangeBlock(VentId(world, entity), blockSel.Position);
+            SwapWallBlock(world, VentId(world, entity), blockSel.Position);
             SidingFloorBlock.MarkNeighboursDirty(world, blockSel.Position);
             ConsumeHeld(slot, consumes, isCreative);
             return true;
@@ -1186,7 +1189,7 @@ public class SidingWallBlock : Block
         entity.MarkDirty(true);
         MarkAbsorptionChanged(world.BlockAccessor, pos, oldAbsorption);
         // Infill changes retention, but rooms only recompute on a chunk-dirty event; exchanging the block for itself fires one.
-        world.BlockAccessor.ExchangeBlock(VentId(world, entity), pos);
+        SwapWallBlock(world, VentId(world, entity), pos);
         // It changes the liquid barrier too, and the block itself never changed, so the water
         // beside it has no idea. Without this a wall only starts damming once something else
         // nearby happens to make the neighbours recalculate - and only stops damming then too.
@@ -1261,7 +1264,7 @@ public class SidingWallBlock : Block
         // fires when infill changes, and peeling glass out has to redraw the neighbours that were
         // merged with it - by which point this cell is no longer glazed. No walk either way. The
         // cells diagonally across are told too: each frames its inside corner by this one (InnerCorners).
-        if (world.BlockAccessor.GetBlock(pos) is not SidingWallBlock block) return;
+        if (WallAt(world.BlockAccessor, pos)?.wall is not { } block) return;
         if (block.Variant["layout"] == "diagonal") MarkDiagonalRunDirty(world, pos, block.Variant["side"]);
         BlockFacing[] sideways = [.. Ends(block.Variant["layout"], block.Variant["side"]).Select(end => end.Points)];
         for (int dy = -1; dy <= 1; dy++)
@@ -1436,7 +1439,7 @@ public class SidingWallBlock : Block
     {
         if (entity.DeckLayers(half).Deck != null || MatchFraming(heldCode, FramesAsFilled(entity), Attributes["Framings"], Attributes["Infills"]) is not { } deckKey) return false;
 
-        if (ClaimRefuses(world, byPlayer, pos)) return true;
+        if (ClaimRefuses(world, byPlayer, pos) || RoofRefuses(world, byPlayer, pos)) return true;
 
         if (entity.Step != null)
         {
@@ -1476,7 +1479,7 @@ public class SidingWallBlock : Block
         else { entity.Deck = deckKey; entity.LegacyDeck = false; }
         entity.MarkDirty(true);
         SidingFloorBlock.MarkNeighboursDirty(world, pos);
-        world.BlockAccessor.ExchangeBlock(Id, pos);
+        SwapWallBlock(world, Id, pos);
     }
 
     // Looking at a built wall names its layers - otherwise a boarded infill is unreadable
@@ -1675,8 +1678,11 @@ public class SidingWallBlock : Block
         => (SealedFlags(caller.GetCurrentBlockEntityOnSide(vec)) & flags) != 0 || base.DoEmitSideAoByFlag(caller, vec, flags);
 
     // The relight skips when old and new absorption match, so the caller reads the old value before it edits the wall (decision 0034).
+    // A guest's relight is GuestWalls.Set's, from the stored record before and after.
     internal void MarkAbsorptionChanged(IBlockAccessor accessor, BlockPos pos, int oldAbsorption)
-        => accessor.MarkAbsorptionChanged(oldAbsorption, GetLightAbsorption(accessor, pos), pos);
+    {
+        if (GuestEditAt(pos) == null) accessor.MarkAbsorptionChanged(oldAbsorption, GetLightAbsorption(accessor, pos), pos);
+    }
 
     // ClaimsFace's horizontal faces as BlockFacing flags, fixed per block; -1 until first read.
     private int claimedFlags = -1;
@@ -1712,6 +1718,47 @@ public class SidingWallBlock : Block
         BlockPos above = pos.UpCopy();
         Block block = accessor.GetBlock(above);
         return (block.BlockId == 0 || block.Replaceable >= 6000) && WallAt(accessor, above) == null;
+    }
+
+    // The guest a click on a roof's panel is layering (GuestWalls.Edit), standing in for the block entity a hosted cell lacks.
+    [ThreadStatic] internal static SidingWallEntity? GuestEdit;
+
+    private static SidingWallEntity? GuestEditAt(BlockPos pos) => GuestEdit is { } guest && guest.Pos.Equals(pos) ? guest : null;
+
+    internal static SidingWallEntity? EntityAt(IBlockAccessor accessor, BlockPos pos) => GuestEditAt(pos) ?? accessor.GetBlockEntity<SidingWallEntity>(pos);
+
+    // Exchanging the block fires the chunk-dirty event rooms recompute on. A guest has no block of its own, so it is recoded
+    // instead, and its host exchanged for itself.
+    internal static void SwapWallBlock(IWorldAccessor world, int blockId, BlockPos pos)
+    {
+        if (GuestEditAt(pos) is { } guest)
+        {
+            guest.Block = world.GetBlock(blockId);
+            blockId = world.BlockAccessor.GetBlock(pos).Id;
+        }
+        world.BlockAccessor.ExchangeBlock(blockId, pos);
+    }
+
+    // A deck lies at the top of the cell, mostly above any slope, and a gable needs neither a step nor a corner upgrade, so a
+    // wall a roof hosts takes none of them (decision 0106); a corner can still be framed into a roof's cell as a corner.
+    private static bool RoofRefuses(IWorldAccessor world, IPlayer byPlayer, BlockPos pos)
+    {
+        if (!SidingModSystem.IsRoofId(world.BlockAccessor.GetBlock(pos).BlockId)) return false;
+        (byPlayer as IServerPlayer)?.SendIngameError("vssiding:underroof", Lang.Get("vssiding:build-under-roof"));
+        return true;
+    }
+
+    // Roofing's base fill fills the cell a guest wall stands in, so a roof takes neither while it holds the other.
+    internal static void RefuseBaseFill(IPlayer? byPlayer)
+        => (byPlayer as IServerPlayer)?.SendIngameError("vssiding:rooffill", Lang.Get("vssiding:build-roof-fill"));
+
+    // Roofing saves a base fill as chisel cuboids on the roof's entity.
+    internal static bool HasBaseFill(IBlockAccessor accessor, BlockPos pos)
+    {
+        if (accessor.GetBlockEntity(pos) is not { } roof) return false;
+        var tree = new TreeAttribute();
+        roof.ToTreeAttributes(tree);
+        return tree["cuboids"] is IntArrayAttribute { value.Length: > 0 };
     }
 
     // The real wall at a cell, or the guest wall of a hosted block there (decision 0035).
@@ -1892,7 +1939,7 @@ public class SidingWallBlock : Block
 
     public override void OnBlockBroken(IWorldAccessor world, BlockPos pos, IPlayer byPlayer, float dropQuantityMultiplier = 1f)
     {
-        var entity = world.BlockAccessor.GetBlockEntity<SidingWallEntity>(pos);
+        var entity = EntityAt(world.BlockAccessor, pos);
         BlockSelection? selection = byPlayer?.CurrentBlockSelection;
         if (world.Side == EnumAppSide.Server)
         {
@@ -1914,7 +1961,8 @@ public class SidingWallBlock : Block
         string? layer = entity == null ? null : PeelAt(entity, hitFace, hitHalf);
         if (entity == null || byPlayer == null || layer == null)
         {
-            base.OnBlockBroken(world, pos, byPlayer, dropQuantityMultiplier);
+            if (GuestEditAt(pos) is { } guest && byPlayer != null) BreakGuestFrame(world, pos, byPlayer, guest, dropQuantityMultiplier);
+            else base.OnBlockBroken(world, pos, byPlayer, dropQuantityMultiplier);
             return;
         }
 
@@ -1951,6 +1999,19 @@ public class SidingWallBlock : Block
         else RemoveLayer(world, entity, pos, layer);
     }
 
+    // Block.SpawnDropsAndRemoveBlock for a roof's guest: its record goes in place of a block, so the roof stays (a departure from 0093).
+    private void BreakGuestFrame(IWorldAccessor world, BlockPos pos, IPlayer byPlayer, SidingWallEntity guest, float dropQuantityMultiplier)
+    {
+        if (world.Api is Vintagestory.API.Client.ICoreClientAPI capi) GuestWalls.SetOnClient(capi, pos, null);
+        else if (world.BlockAccessor.GetChunkAtBlockPos(pos) is { } chunk)
+        {
+            if (byPlayer.WorldData.CurrentGameMode == EnumGameMode.Creative) GuestWalls.Set(world, chunk, pos, null);
+            else SidingModSystem.DropGuest(world, chunk, pos, guest, dropQuantityMultiplier);
+            if (Sounds != null) world.PlaySoundAt(Sounds.GetBreakSound(byPlayer), pos, 0.0, byPlayer);
+        }
+        SpawnBlockBrokenParticles(pos, byPlayer);
+    }
+
     // A fire that burns out against a wall takes its topmost layer, not the whole block; a bare
     // wood frame has none left, so vanilla deletes it. Vanilla only rechecks fuel once a second, so a
     // non-wood layer added in that window, or a bare frame that is not wood, is left standing and the
@@ -1983,7 +2044,7 @@ public class SidingWallBlock : Block
                 entity.DeckInfillUnmerged = null;
                 entity.MarkDirty(true);
                 // Rooms only recompute on a chunk-dirty event, and the deck's retention just changed.
-                world.BlockAccessor.ExchangeBlock(VentId(world, entity), pos);
+                SwapWallBlock(world, VentId(world, entity), pos);
                 SidingFloorBlock.MarkNeighboursDirty(world, pos);
                 // Decor only goes on a sealed top, so a rug left on the bare joists comes off with the infill.
                 world.BlockAccessor.BreakDecor(pos, BlockFacing.UP);
@@ -1994,7 +2055,7 @@ public class SidingWallBlock : Block
                 entity.OuterDeckInfill = null;
                 entity.OuterDeckInfillUnmerged = null;
                 entity.MarkDirty(true);
-                world.BlockAccessor.ExchangeBlock(VentId(world, entity), pos);
+                SwapWallBlock(world, VentId(world, entity), pos);
                 SidingFloorBlock.MarkNeighboursDirty(world, pos);
                 return;
             case "deck": SetDeck(world, entity, pos, null); return;

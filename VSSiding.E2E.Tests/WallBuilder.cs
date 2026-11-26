@@ -59,6 +59,9 @@ internal static class WallBuilder
     internal static (string? Framing, string? Infill, string? Front, string? SecondFront, string? Back)? GuestLayers(IWorldSession world, BlockPos cell)
         => GuestAt(world, cell) is { } guest ? LayersOf(guest) : null;
 
+    // The guest record's wall block code; null when the cell holds no guest.
+    internal static string? GuestCode(IWorldSession world, BlockPos cell) => GuestAt(world, cell)?.Block.Code.ToString();
+
     // The same four deck layers read off the guest store's record; null when the cell holds no guest.
     internal static (string? Deck, string? Infill, string? Front, string? Back)? GuestDeckLayers(IWorldSession world, BlockPos cell)
         => GuestAt(world, cell) is { } guest ? DeckLayersOf(guest) : null;

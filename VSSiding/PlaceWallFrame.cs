@@ -72,7 +72,7 @@ public class PlaceWallFrame : CollectibleBehavior
         // A post's frame costs a quarter of a wall's; a deck costs a full frame on either, half of one on a diagonal.
         JsonObject Cost(bool deck) => new(new JObject { ["quantity"] = (post ? SidingWallBlock.PostQuarter(frame) : frame) + (deck ? SidingWallBlock.Share(frame, SidingWallBlock.LayerParts(layout, "deck")) : 0) });
         bool isCreative = byPlayer.WorldData.CurrentGameMode == EnumGameMode.Creative;
-        if (!SidingWallBlock.TryAffordOrError(byPlayer, isCreative, slot.Itemstack.StackSize, Cost(withDeck))) return;
+        if (!SidingWallBlock.TryAffordOrError(byPlayer, isCreative, slot.Itemstack.StackSize, Cost(false))) return;
         var placeholder = world.GetBlock(new AssetLocation("vssiding", layout == "floor" ? "floor" : $"wall-{layout}-west"));
         if (placeholder == null) return;
 
@@ -107,13 +107,37 @@ public class PlaceWallFrame : CollectibleBehavior
         placeSel.Position = targetPos;
         placeSel.DidOffset = didOffset;
 
+        // HorizontalOrientable would orient the post to the player; its corner is the click's instead.
+        Vec3d inCell = blockSel.HitPosition.AddCopy(blockSel.Position.X - targetPos.X, blockSel.Position.Y - targetPos.Y, blockSel.Position.Z - targetPos.Z);
+        Block? postBlock = post ? world.GetBlock(new AssetLocation("vssiding", $"wall-cornerin-{PostSide(inCell.X, inCell.Z)}")) : null;
+
+        // A roof's cell takes the frame as the roof's guest, as a roof built into a wall's cell does, with no deck under the slope.
+        // The client only reports the click handled; the server's record reaches it through GuestWalls' channel.
+        if (layout is not ("floor" or "diagonal") && SidingModSystem.IsRoofId(world.BlockAccessor.GetBlock(targetPos).BlockId)
+            && GuestWalls.GuestAt(world.Api, targetPos) == null)
+        {
+            if (SidingWallBlock.HasBaseFill(world.BlockAccessor, targetPos))
+            {
+                SidingWallBlock.RefuseBaseFill(byPlayer);
+                return;
+            }
+            Block? guestBlock = post ? postBlock : world.GetBlock(placeholder.CodeWithVariant("side", Block.SuggestedHVOrientation(byPlayer, placeSel)[0].Code));
+            if (guestBlock != null && world.Side == EnumAppSide.Server && !SidingWallBlock.ClaimRefuses(world, byPlayer, targetPos)
+                && world.BlockAccessor.GetChunkAtBlockPos(targetPos) is { } chunk)
+            {
+                GuestWalls.Set(world, chunk, targetPos, GuestWalls.Encode(new SidingWallEntity { Block = guestBlock, Pos = targetPos.Copy(), Framing = framingKey }));
+                SidingWallBlock.ConsumeHeld(slot, Cost(false), isCreative);
+            }
+            return;
+        }
+
+        // A roof's cell takes no deck, so the deck's share is only charged here.
+        if (withDeck && !SidingWallBlock.TryAffordOrError(byPlayer, isCreative, slot.Itemstack.StackSize, Cost(true))) return;
+
         string failureCode = "";
         bool placed;
         if (post)
         {
-            // HorizontalOrientable would orient the post to the player; its corner is the click's instead.
-            Vec3d inCell = blockSel.HitPosition.AddCopy(blockSel.Position.X - targetPos.X, blockSel.Position.Y - targetPos.Y, blockSel.Position.Z - targetPos.Z);
-            var postBlock = world.GetBlock(new AssetLocation("vssiding", $"wall-cornerin-{PostSide(inCell.X, inCell.Z)}"));
             placed = postBlock != null && postBlock.CanPlaceBlock(world, byPlayer, placeSel, ref failureCode);
             if (placed) postBlock!.DoPlaceBlock(world, byPlayer, placeSel, new ItemStack(postBlock));
         }

@@ -6,7 +6,8 @@ using Vintagestory.API.MathTools;
 namespace VSSiding;
 
 // Once furniture hosts a wall's cell, vanilla asks the host about that cell's retention, liquid
-// barrier and attachability, so on the guest's claimed faces the answer stays the wall's (decision 0035).
+// barrier and attachability, so on the guest's claimed faces the answer stays the wall's (decision 0035). Under a roof the
+// wall dams and holds attachments only below its cut, and its retention stays whole: the roof closes the rest of the face.
 internal static class GuestSealingPatches
 {
     // One counter for all three: none calls another, so only base calls nest.
@@ -89,22 +90,30 @@ internal static class GuestSealingPatches
         SidingWallEntity? entity = ClaimingGuestAt(__instance, pos, face.Code);
         if (entity == null) return;
 
-        var wall = (SidingWallBlock)entity.Block;
-        __result = SidingWallBlock.ComputeLiquidBarrier(true, entity.Framing, entity.Infill, wall.Attributes);
+        __result = BarrierOf(__instance, pos, face, entity);
     }
 
     private static void SideSolidPostfix(Block __instance, BlockPos __0, int __1, ref bool __result)
     {
         if (depth != 1 || __0 == null || __1 < 0 || __1 > 5) return;
+        var face = BlockFacing.ALLFACES[__1];
 
-        SidingWallEntity? entity = ClaimingGuestAt(__instance, __0, BlockFacing.ALLFACES[__1].Code);
+        SidingWallEntity? entity = ClaimingGuestAt(__instance, __0, face.Code);
         if (entity == null) return;
 
-        var wall = (SidingWallBlock)entity.Block;
-        __result = SidingWallBlock.ComputeLiquidBarrier(true, entity.Framing, entity.Infill, wall.Attributes) >= 1f;
+        __result = BarrierOf(__instance, __0, face, entity) >= 1f;
     }
 
-    private static void CanAttachPostfix(Block __instance, IBlockAccessor __0, Block __1, BlockPos __2, BlockFacing __3, ref bool __result)
+    private static float BarrierOf(Block host, BlockPos pos, BlockFacing face, SidingWallEntity entity)
+    {
+        var wall = (SidingWallBlock)entity.Block;
+        float barrier = SidingWallBlock.ComputeLiquidBarrier(true, entity.Framing, entity.Infill, wall.Attributes);
+        return barrier > 0 && SidingModSystem.ApiRef(host) is { } api && GapShiftCollisionPatches.RoofCutAt(host, api.World.BlockAccessor, pos) is { } cut
+            ? Math.Min(barrier, (float)RoofCut.FaceHeight(cut, face))
+            : barrier;
+    }
+
+    private static void CanAttachPostfix(Block __instance, IBlockAccessor __0, Block __1, BlockPos __2, BlockFacing __3, Cuboidi? __4, ref bool __result)
     {
         if (depth != 1 || __0 == null || __2 == null || __3 == null) return;
         var (blockAccessor, pos, blockFace) = (__0, __2, __3);
@@ -113,13 +122,16 @@ internal static class GuestSealingPatches
         SidingWallEntity? entity = vertical
             ? DeckedGuestAt(__instance, pos, restorePending: true)
             : ClaimingGuestAt(__instance, pos, blockFace.Code, restorePending: true);
+        // Only the host's own guest is cut: one across the face is a wall about to be hosted by the block attaching.
+        HalfSpace[][]? cut = entity == null || vertical ? null : GapShiftCollisionPatches.RoofCutAt(__instance, blockAccessor, pos);
         if (entity == null && !__result && !vertical) entity = GuestAcrossFace(blockAccessor, pos, blockFace);
         if (entity == null) return;
 
         var wall = (SidingWallBlock)entity.Block;
         __result = vertical
             ? wall.CanAttachOf(entity, blockFace)
-            : !SidingWallBlock.RefusesDecor(__1, blockFace) && SidingWallBlock.TraitsOf(wall.Attributes, entity.Framing, entity.Infill).Retention != 0;
+            : !SidingWallBlock.RefusesDecor(__1, blockFace) && SidingWallBlock.TraitsOf(wall.Attributes, entity.Framing, entity.Infill).Retention != 0
+              && (cut == null || RoofCut.Holds(cut, blockFace, __4));
     }
 
     // A torch or sign placed on the panel's inner face asks the cell past the panel (pos, often air)

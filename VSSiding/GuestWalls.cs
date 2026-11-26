@@ -149,6 +149,25 @@ public static class GuestWalls
         return new GuestRecord { BlockCode = entity.Block.Code.ToString(), EntityData = tree.ToBytes() };
     }
 
+    // Runs edit with a fresh copy of the guest standing in for the cell's block entity (SidingWallBlock.EntityAt), then stores the
+    // copy if the edit changed it: the decoded guest is shared with the lighting, tesselation and physics threads.
+    internal static bool Edit(IWorldAccessor world, BlockPos pos, SidingWallEntity guest, System.Func<bool> edit)
+    {
+        GuestRecord before = Encode(guest);
+        SidingWallEntity copy = Decode(world.Api, before, pos);
+        SidingWallEntity? outer = SidingWallBlock.GuestEdit;
+        SidingWallBlock.GuestEdit = copy;
+        bool handled;
+        try { handled = edit(); }
+        finally { SidingWallBlock.GuestEdit = outer; }
+
+        GuestRecord after = Encode(copy);
+        if (after.BlockCode == before.BlockCode && after.EntityData.AsSpan().SequenceEqual(before.EntityData)) return handled;
+        if (world.Api is ICoreClientAPI capi) SetOnClient(capi, pos, after);
+        else if (world.BlockAccessor.GetChunkAtBlockPos(pos) is { } chunk) Set(world, chunk, pos, after);
+        return handled;
+    }
+
     // The guest's record with its ladder layer set or cleared, leaving the decoded entity as it was.
     internal static GuestRecord WithLadder(SidingWallEntity guest, string? ladder)
     {

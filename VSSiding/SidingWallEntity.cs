@@ -280,9 +280,11 @@ public class SidingWallEntity : BlockEntity
             return ladder != null;
         }
 
+        // A guest under a roof is cut under its slope; every other wall stands in its own cell, which names no cut.
+        HalfSpace[][]? cut = GapShiftCollisionPatches.RoofCutAt(Api.World.BlockAccessor.GetBlock(Pos), Api.World.BlockAccessor, Pos);
         string cacheKey = CacheKey(layout, side, Framing, Infill, Front, SecondFront, Back, joins, Styles, Deck, Step, StepOrientation,
             DeckInfill, DeckFront, DeckBack, (DeckFrontStyle, DeckBackStyle), deckJoins, alternate, innerCorners, deckInnerCorners, glassRunsOn, tees, closed, capped,
-            SecondBack, SecondBackStyle, OuterDeckState + outerJoins);
+            SecondBack, SecondBackStyle, OuterDeckState + outerJoins, cut == null ? null : RoofCut.Key(cut));
 
         MeshData[] meshes = SidingModSystem.Cached(cacheKey, () =>
         {
@@ -290,10 +292,10 @@ public class SidingWallEntity : BlockEntity
             var texSource = new SidingWallTexSource(
                 capi, this, Block.Attributes["Framings"], Block.Attributes["Infills"], Block.Attributes["Finishes"], alternate);
             var rotation = new Vec3f(0, RotationYDeg(side), 0);
-            MeshData[] built = Meshes(tesselator, shape, texSource, rotation, selectiveElements, transparent)
-                .Concat(Meshes(tesselator, shape, texSource, new Vec3f(0, 0, 0), deckElements, deckTransparent))
-                .Concat(Meshes(tesselator, shape, texSource, new Vec3f(0, 0, 0), outerElements, outerTransparent))
-                .Concat(Meshes(tesselator, shape, texSource, new Vec3f(0, stepRotation, 0), stepElements, false))
+            MeshData[] built = Meshes(tesselator, shape, texSource, rotation, selectiveElements, transparent, cut)
+                .Concat(Meshes(tesselator, shape, texSource, new Vec3f(0, 0, 0), deckElements, deckTransparent, cut))
+                .Concat(Meshes(tesselator, shape, texSource, new Vec3f(0, 0, 0), outerElements, outerTransparent, cut))
+                .Concat(Meshes(tesselator, shape, texSource, new Vec3f(0, stepRotation, 0), stepElements, false, cut))
                 .ToArray();
             SidingWallTexSource.TintFinishes(capi, Block.Attributes["Finishes"], finishes, alternate, built);
             return built;
@@ -356,10 +358,10 @@ public class SidingWallEntity : BlockEntity
         => infill == null ? "infill" : infills[infill]["Elements"].AsString("infill");
 
     private static IEnumerable<MeshData> Meshes(
-        ITesselatorAPI tesselator, Shape shape, ITexPositionSource texSource, Vec3f rotation, string[] elements, bool glazed)
+        ITesselatorAPI tesselator, Shape shape, ITexPositionSource texSource, Vec3f rotation, string[] elements, bool glazed, HalfSpace[][]? cut)
     {
         if (elements.Length == 0) return [];
-        if (!glazed) return [Tesselate(tesselator, shape, texSource, rotation, elements)];
+        if (!glazed) return [Tesselate(tesselator, shape, texSource, rotation, elements, cut)];
 
         // Glazing has to reach the transparent pool while its frame stays opaque, so the two
         // halves are tesselated and handed over separately. They are deliberately NOT merged
@@ -367,18 +369,24 @@ public class SidingWallEntity : BlockEntity
         // last index value plus one, which is only the target's vertex count when that last
         // index is also its highest. Any trailing vertex without an index shifts the glass
         // indices back into the frame's vertices and smears a pane across the room.
-        MeshData glass = Tesselate(tesselator, shape, texSource, rotation, Array.FindAll(elements, IsInfillElement));
+        MeshData glass = Tesselate(tesselator, shape, texSource, rotation, Array.FindAll(elements, IsInfillElement), cut);
         SetRenderPass(glass, EnumChunkRenderPass.Transparent);
-        MeshData frame = Tesselate(tesselator, shape, texSource, rotation, Array.FindAll(elements, name => !IsInfillElement(name)));
+        MeshData frame = Tesselate(tesselator, shape, texSource, rotation, Array.FindAll(elements, name => !IsInfillElement(name)), cut);
         return [frame, glass];
     }
 
+    // Under a roof the mesh is a new one cut from the tesselator's, its caps appended; AddMeshData offsets their indices from the
+    // last one, which is each quad's highest (see Meshes).
     private static MeshData Tesselate(
-        ITesselatorAPI tesselator, Shape shape, ITexPositionSource texSource, Vec3f rotation, string[] selectiveElements)
+        ITesselatorAPI tesselator, Shape shape, ITexPositionSource texSource, Vec3f rotation, string[] selectiveElements, HalfSpace[][]? cut)
     {
         tesselator.TesselateShape(
             "vssiding-wall", shape, out MeshData modeldata, texSource, rotation, 0, 0, 0, null, selectiveElements);
-        return modeldata;
+        if (cut == null) return modeldata;
+
+        MeshData clipped = RoofCut.ClipMesh(modeldata, cut);
+        clipped.AddMeshData(RoofCut.Caps(shape, selectiveElements, rotation, texSource, cut));
+        return clipped;
     }
 
     internal static bool IsInfillElement(string name)
@@ -405,10 +413,11 @@ public class SidingWallEntity : BlockEntity
         string? deckInfill = null, string? deckFront = null, string? deckBack = null, (string? front, string? back) deckStyles = default,
         (bool above, bool below, bool left, bool right) deckJoins = default, int alternate = 0,
         string[]? innerCorners = null, string[]? deckInnerCorners = null, (bool left, bool right) glassRunsOn = default, (bool left, bool right) tees = default,
-        (bool front, bool second) closed = default, bool capped = false, string? secondBack = null, string? secondBackStyle = null, string? outerDeckState = null)
+        (bool front, bool second) closed = default, bool capped = false, string? secondBack = null, string? secondBackStyle = null, string? outerDeckState = null,
+        string? roofCut = null)
         => $"vssiding-wall-mesh-{layout}-{side}-{framing}-{infill}-{front}-{secondFront}-{back}-{joins.above}-{joins.below}-{joins.left}-{joins.right}-{styles.front}-{styles.secondFront}-{styles.back}-{deck}-{step}-{stepOrientation}"
             + $"-{deckInfill}-{deckFront}-{deckBack}-{deckStyles.front}-{deckStyles.back}-{deckJoins.above}-{deckJoins.below}-{deckJoins.left}-{deckJoins.right}-{alternate}"
-            + $"-{string.Concat(innerCorners ?? [])}-{string.Concat(deckInnerCorners ?? [])}-{glassRunsOn.left}-{glassRunsOn.right}-{tees.left}-{tees.right}-{closed.front}-{closed.second}-{capped}-{secondBack}-{secondBackStyle}-{outerDeckState}";
+            + $"-{string.Concat(innerCorners ?? [])}-{string.Concat(deckInnerCorners ?? [])}-{glassRunsOn.left}-{glassRunsOn.right}-{tees.left}-{tees.right}-{closed.front}-{closed.second}-{capped}-{secondBack}-{secondBackStyle}-{outerDeckState}-{roofCut}";
 
     // The floor's groups for the deck, which the wall shapes carry per side as deck-{side}-{name}. The
     // deck stops a voxel short of the frame, at the slot the wall's room-side finish takes, so the shapes
