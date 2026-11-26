@@ -21,11 +21,12 @@ The in-game handbook has the whole thing: start at *VS Siding Mod: Guide*, which
 ## What a wall is made of
 
 - **Framing**: planks, in any wood the game or another mod adds, sticks, bones, or bamboo stakes. Bone does not burn.
-- **Infill**: wattle, bamboo poles, straw, clay, packed earth, rammed earth, pelt, cloth, rubble stone, glass, leaded glass, a glass pane from IndustrialStory, or a wooden trapdoor as a louvred vent.
-- **Finish**: appearance only, per face, in wood, clay, packed earth, rammed earth, brick, stone, metal, wallpaper, tiles laid four to a face, or grass and dirt on a floor or deck top.
+- **Infill**: wattle, bamboo poles, straw, clay, packed earth, rammed earth, mud brick, pelt, cloth, rubble stone, glass, leaded glass, a glass pane from IndustrialStory, rammed earth or mud brick from Material Needs, or a wooden trapdoor as a louvred vent.
+- **Finish**: appearance only, per face, in wood, clay, packed earth, rammed earth, mud brick, brick, stone, metal, wallpaper, tiles laid four to a face, Material Needs rammed earth, mud brick or plaster, or grass and dirt on a floor or deck top.
 
 Framing plus infill is a complete wall, and seals a room the way solid blocks do.
-The infill decides whether it counts as a cooling (cellar) wall: rubble stone, clay, packed earth and rammed earth do, wattle, bamboo poles, straw, pelt and cloth do not.
+The infill decides whether it counts as a cooling (cellar) wall: rubble stone, clay, packed earth, rammed earth and mud brick do, wattle, bamboo poles, straw, pelt and cloth do not.
+With [Roofing](https://mods.vintagestory.at/show/mod/30143), a wall can share a block with a roof, cut to the roof's slope, so a gable end fills right up to it.
 Glass seals the same way but lets daylight through.
 
 ## Floors
