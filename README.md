@@ -88,6 +88,10 @@ Grass and dirt on a deck, the grass matching the field:
 
 ![dirt-and-grass](docs/screenshots/DirtAndGrass.jpg)
 
+A mud brick gable under a Roofing roof:
+
+![roofing-gable](docs/screenshots/RoofingGable.jpg)
+
 Floors, from above and below:
 
 ![floors-above](docs/screenshots/FloorsAbove.jpg)
