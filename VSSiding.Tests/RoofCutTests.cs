@@ -293,6 +293,17 @@ public class RoofCutTests
         Assert.Equal((4, 24, 4, 4, 4, 4, 3.0), Summary(RoofCut.ClipMesh(Cube(), Cells(ThatchedOneByOne, "north"))));
     }
 
+    // Under y = (1 - z) / 3 the north face's sides cross a third of the way up, so its cut corners and their uvs are a third of
+    // the way along those sides.
+    [Fact]
+    public void AFaceCrossedOffCentreHasItsCutCornersWhereTheSlopeCrosses()
+    {
+        var clipped = RoofCut.ClipMesh(Cube(), [[new HalfSpace(0, 1, 1.0 / 3, 1.0 / 3)]]);
+
+        Assert.Equal([(0, 0, 0, 0.5, 0.5), (0, 0.3333, 0, 0.5, 0.3333), (1, 0.3333, 0, 0, 0.3333), (1, 0, 0, 0, 0.5)],
+            Corners(clipped, 0).Select(c => (Math.Round(c.x, 4), Math.Round(c.y, 4), Math.Round(c.z, 4), Math.Round(c.u, 4), Math.Round(c.v, 4))));
+    }
+
     // Each corner of a quad with the quad's lighting face and atlas page.
     private static (float x, float y, float z, float u, float v, byte face, int texture)[] Corners(MeshData mesh, int quad)
         => [.. Enumerable.Range(quad * 4, 4).Select(i => (mesh.xyz[i * 3], mesh.xyz[i * 3 + 1], mesh.xyz[i * 3 + 2], mesh.Uv[i * 2], mesh.Uv[i * 2 + 1],
