@@ -196,6 +196,14 @@
 			BlockMaterial: "Soil",
 			Consumes: { type: "block", code: "game:mudbrick-{type}", quantity: 1 },
 			Drops: [ { type: "block", code: "game:mudbrick-{type}", quantity: { avg: 1, var: 0 } } ]
+		},
+		"rammed-{color}-{pattern}": {
+			Match: { type: "block", code: "materialneeds:rammed-light-*-*", variant: ["color", "pattern"] },
+			DisplayName: "materialneeds:block-rammed-light-{color}-{pattern}",
+			Texture: "materialneeds:block/soil/rammed/light/{color}/{pattern}*",
+			BlockMaterial: "Soil",
+			Consumes: { type: "block", code: "materialneeds:rammed-light-{color}-{pattern}", quantity: 1 },
+			Drops: [ { type: "block", code: "materialneeds:rammed-light-{color}-{pattern}", quantity: { avg: 1, var: 0 } } ]
 		}
 	},
 	Finishes: {
@@ -502,6 +510,60 @@
 			BlockMaterial: "Soil",
 			Consumes: { type: "block", code: "game:mudbrick-{type}", quantity: 1 },
 			Drops: [ { type: "block", code: "game:mudbrick-{type}", quantity: { avg: 1, var: 0 } } ]
+		},
+		"rammed-{color}-{pattern}": {
+			Match: { type: "block", code: "materialneeds:rammed-light-*-*", variant: ["color", "pattern"] },
+			DisplayName: "materialneeds:block-rammed-light-{color}-{pattern}",
+			Texture: "materialneeds:block/soil/rammed/light/{color}/{pattern}*",
+			BlockMaterial: "Soil",
+			Consumes: { type: "block", code: "materialneeds:rammed-light-{color}-{pattern}", quantity: 1 },
+			Drops: [ { type: "block", code: "materialneeds:rammed-light-{color}-{pattern}", quantity: { avg: 1, var: 0 } } ]
+		},
+		"plaster-{color}-plain": {
+			Match: { type: "block", code: "materialneeds:plaster-*-plain", variant: "color" },
+			DisplayName: "materialneeds:block-plaster-{color}-plain",
+			Texture: "materialneeds:block/stone/plaster/{color}/plain",
+			BlockMaterial: "Stone",
+			Consumes: { type: "block", code: "materialneeds:plaster-{color}-plain", quantity: 1 },
+			Drops: [ { type: "block", code: "materialneeds:plaster-{color}-plain", quantity: { avg: 1, var: 0 } } ]
+		},
+		"plaster-{color}-square": {
+			Match: { type: "block", code: "materialneeds:plaster-*-square", variant: "color" },
+			DisplayName: "materialneeds:block-plaster-{color}-square",
+			Texture: "materialneeds:block/stone/plaster/{color}/square",
+			WholeOnCorners: true,
+			BlockMaterial: "Stone",
+			Consumes: { type: "block", code: "materialneeds:plaster-{color}-square", quantity: 1 },
+			Drops: [ { type: "block", code: "materialneeds:plaster-{color}-square", quantity: { avg: 1, var: 0 } } ]
+		},
+		"plaster-{color}-diagonal": {
+			Match: { type: "block", code: "materialneeds:plaster-*-diagonal-ud", variant: "color" },
+			DisplayName: "materialneeds:block-plaster-{color}-diagonal-ud",
+			Texture: "materialneeds:block/stone/plaster/{color}/diagonal",
+			WholeOnCorners: true,
+			MirrorsOnCorners: true,
+			FloorElements: {
+				front: { hboards: "front-hboards", boards: "front-boards" },
+				back: { hboards: "back-hboards", boards: "back-boards" }
+			},
+			Styles: ["hboards", "boards"],
+			BlockMaterial: "Stone",
+			Consumes: { type: "block", code: "materialneeds:plaster-{color}-diagonal-ud", quantity: 1 },
+			Drops: [ { type: "block", code: "materialneeds:plaster-{color}-diagonal-ud", quantity: { avg: 1, var: 0 } } ]
+		},
+		"plaster-{color}-stripes": {
+			Match: { type: "block", code: "materialneeds:plaster-*-stripes-ud", variant: "color" },
+			DisplayName: "materialneeds:block-plaster-{color}-stripes-ud",
+			Texture: "materialneeds:block/stone/plaster/{color}/stripes",
+			WholeOnCorners: true,
+			FloorElements: {
+				front: { hboards: "front-hboards", boards: "front-boards" },
+				back: { hboards: "back-hboards", boards: "back-boards" }
+			},
+			Styles: ["hboards", "boards"],
+			BlockMaterial: "Stone",
+			Consumes: { type: "block", code: "materialneeds:plaster-{color}-stripes-ud", quantity: 1 },
+			Drops: [ { type: "block", code: "materialneeds:plaster-{color}-stripes-ud", quantity: { avg: 1, var: 0 } } ]
 		}
 	}
 }

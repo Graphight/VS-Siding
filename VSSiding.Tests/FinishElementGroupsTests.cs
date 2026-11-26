@@ -550,6 +550,8 @@ public class FinishElementGroupsTests
             .. PlankFinishes.Select(name => $"{name}: {Row("vssidingBoards")}"),
             "plaster-diagonal: hboards, boards",
             "plaster-stripes: hboards, boards",
+            "plaster-{color}-diagonal: hboards, boards",
+            "plaster-{color}-stripes: hboards, boards",
             $"shakes-{{wood}}: {Row("vssidingLogs")}",
         ];
 
