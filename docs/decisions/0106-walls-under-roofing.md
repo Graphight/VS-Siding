@@ -82,6 +82,8 @@ The probe found no other path the fill takes, so dropping the wall when a fill l
 - Vanilla outlines only the hit box of a block whose `DoPartialSelection` answers true, so if Roofing's does, a hosting roof outlines one strip; unseen in game.
 - Retention on the claimed faces is the whole wall's even under a bare roof frame, which closes nothing above the cut.
 - Corner pieces were probed at the 1x1 slope only; the other slopes' corners are read by the same rule from their boxes, unseen.
+- The cut is read again on every collision and selection query, uncached: on 2026-11-25 a throwaway probe scenario timed a hosting slope at 2.1 µs and 650 bytes a query and a hosting ridge at 4.0 µs and 1350 bytes, against Roofing's own 0.6 µs and none.
+  Roofing answers the same box array on every call, so a cache keyed by it would hit, but rain particles skip terrain collision and few other queries reach a gable's cells, so none was built.
 - A ridge beside a corner piece reads the corner piece as no slope, so a wall under that ridge is cut by the other side alone, or not at all.
 - Under a corner a strip's height is read at the box's middle across it, so a thick box's top is off by the cut's fall across it (a `shortcut:` comment in `ClipBoxes`).
 - `FaceHeight` reads a face's span at its two ends: exact for a cell's cut, the lowest of its planes, and for a valley's, the higher of two, while one of the two is level along the face, as on every side face of a Roofing valley.
